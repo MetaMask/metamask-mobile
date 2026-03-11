@@ -5,7 +5,7 @@ describe('isCustomAction', () => {
     const quote = {
       provider: 'paypal',
       quote: { isCustomAction: true },
-    } as Parameters<typeof isCustomAction>[0];
+    } as unknown as Parameters<typeof isCustomAction>[0];
     expect(isCustomAction(quote)).toBe(true);
   });
 
@@ -13,7 +13,7 @@ describe('isCustomAction', () => {
     const quote = {
       provider: 'paypal',
       quote: { isCustomAction: false },
-    } as Parameters<typeof isCustomAction>[0];
+    } as unknown as Parameters<typeof isCustomAction>[0];
     expect(isCustomAction(quote)).toBe(false);
   });
 
@@ -21,12 +21,14 @@ describe('isCustomAction', () => {
     const quote = {
       provider: 'moonpay',
       quote: {},
-    } as Parameters<typeof isCustomAction>[0];
+    } as unknown as Parameters<typeof isCustomAction>[0];
     expect(isCustomAction(quote)).toBe(false);
   });
 
   it('returns false when quote.quote is undefined', () => {
-    const quote = { provider: 'test' } as Parameters<typeof isCustomAction>[0];
+    const quote = {
+      provider: 'test',
+    } as unknown as Parameters<typeof isCustomAction>[0];
     expect(isCustomAction(quote)).toBe(false);
   });
 });

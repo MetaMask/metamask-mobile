@@ -117,6 +117,7 @@ const mockUseRampsControllerInitialValues: ReturnType<
   orders: [],
   getOrderById: jest.fn(),
   addOrder: jest.fn(),
+  addPrecreatedOrder: jest.fn(),
   removeOrder: jest.fn(),
   refreshOrder: jest.fn(),
   getOrderFromCallback: jest.fn(),

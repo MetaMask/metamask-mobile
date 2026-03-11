@@ -360,21 +360,33 @@ function BuildQuote() {
     navigation.goBack();
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const updateAmount = useCallback((value: number) => {
-    setAmount(String(value));
-    setAmountAsNumber(value);
-    setKeyboardIsDirty(true);
-    setUserHasEnteredAmount(true);
-    setRampsError(null);
-  }, []);
+  const updateAmount = useCallback(
+    (valueOrNumber: string | number, valueAsNumber?: number) => {
+      if (typeof valueOrNumber === 'string') {
+        setAmount(valueOrNumber === '' ? '0' : valueOrNumber);
+        setAmountAsNumber(
+          valueAsNumber != null
+            ? valueAsNumber
+            : parseFloat(valueOrNumber) || 0,
+        );
+      } else {
+        setAmount(String(valueOrNumber));
+        setAmountAsNumber(valueOrNumber);
+      }
+      setKeyboardIsDirty(true);
+      setUserHasEnteredAmount(true);
+      setRampsError(null);
+    },
+    [],
+  );
 
   const handleKeypadChange = useCallback(
-    ({ valueAsNumber, pressedKey }: KeypadChangeData) => {
-      if (pressedKey === Keys.Back) {
-        updateAmount(!keyboardIsDirty ? 0 : valueAsNumber || 0);
+    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+      if (pressedKey === Keys.Back && !keyboardIsDirty) {
+        updateAmount(0);
         return;
       }
-      updateAmount(valueAsNumber || 0);
+      updateAmount(value, valueAsNumber ?? 0);
     },
     [keyboardIsDirty, updateAmount],
   );
