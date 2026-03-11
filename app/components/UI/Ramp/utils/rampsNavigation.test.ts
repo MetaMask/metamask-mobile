@@ -9,27 +9,21 @@ describe('createRampsOrderDetailsRoute', () => {
     const result = createRampsOrderDetailsRoute({
       orderId: 'abc-123',
       showCloseButton: true,
-      providerCode: 'paypal',
-      walletAddress: '0x123',
     });
     expect(result).toEqual({
       name: Routes.RAMP.RAMPS_ORDER_DETAILS,
       params: {
         orderId: 'abc-123',
         showCloseButton: true,
-        providerCode: 'paypal',
-        walletAddress: '0x123',
       },
     });
   });
 
-  it('allows optional walletAddress', () => {
+  it('allows optional showCloseButton', () => {
     const result = createRampsOrderDetailsRoute({
       orderId: 'x',
-      showCloseButton: false,
-      providerCode: 'moonpay',
     });
-    expect(result.params.walletAddress).toBeUndefined();
+    expect(result.params.showCloseButton).toBeUndefined();
   });
 });
 

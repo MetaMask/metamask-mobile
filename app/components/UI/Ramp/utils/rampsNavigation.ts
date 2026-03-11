@@ -2,9 +2,7 @@ import Routes from '../../../../constants/navigation/Routes';
 
 export interface RampsOrderDetailsParams {
   orderId: string;
-  showCloseButton: boolean;
-  providerCode: string;
-  walletAddress?: string;
+  showCloseButton?: boolean;
 }
 
 export function createRampsOrderDetailsRoute(params: RampsOrderDetailsParams): {

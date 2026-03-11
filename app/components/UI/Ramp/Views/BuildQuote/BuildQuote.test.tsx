@@ -128,9 +128,31 @@ jest.mock('../../hooks/useTransakRouting', () => ({
   }),
 }));
 
-jest.mock('../../utils/openExternalBrowserCheckout', () => ({
-  openExternalBrowserAndNavigate: jest.fn(() => Promise.resolve()),
+jest.mock('../../../../../util/device', () => ({
+  isAndroid: jest.fn(() => false),
 }));
+
+jest.mock('react-native-inappbrowser-reborn', () => ({
+  openAuth: jest.fn(() =>
+    Promise.resolve({
+      type: 'success',
+      url: 'metamask://on-ramp/providers/paypal',
+    }),
+  ),
+  isAvailable: jest.fn(() => Promise.resolve(true)),
+  closeAuth: jest.fn(),
+}));
+
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Linking: {
+      ...RN.Linking,
+      openURL: jest.fn(() => Promise.resolve()),
+    },
+  };
+});
 
 jest.mock('../../Aggregator/components/ScreenLayout', () => {
   /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-shadow */

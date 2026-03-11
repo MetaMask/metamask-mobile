@@ -1,4 +1,3 @@
-import useRampsProviders from './hooks/useRampsProviders';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
 
 /**
@@ -14,7 +13,6 @@ import useRampsSmartRouting from './hooks/useRampsSmartRouting';
  */
 function RampsBootstrap(): null {
   useRampsSmartRouting();
-  useRampsProviders();
   return null;
 }
 

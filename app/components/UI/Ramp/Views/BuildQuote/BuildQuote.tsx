@@ -5,18 +5,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
-
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   buildQuoteWithRedirectUrl,
   getAggregatorRedirectUrl,
   getCheckoutContext,
 } from '../../utils/buildQuoteWithRedirectUrl';
+import { extractOrderCode } from '../../utils/extractOrderCode';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import { openExternalBrowserAndNavigate } from '../../utils/openExternalBrowserCheckout';
 import {
   createBuildQuoteRoute,
   createRampsOrderDetailsRoute,
@@ -43,7 +43,11 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
+import {
+  type RampsOrder,
+  RampsOrderStatus,
+  normalizeProviderCode,
+} from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
@@ -75,8 +79,19 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
+import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
+  RampsOrderStatus.Precreated,
+  RampsOrderStatus.IdExpired,
+  RampsOrderStatus.Unknown,
+]);
+
+function isBailedOrderStatus(status: RampsOrderStatus | undefined): boolean {
+  return status != null && BAILED_ORDER_STATUSES.has(status);
+}
+
 export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
@@ -411,23 +426,21 @@ function BuildQuote() {
   const navigateAfterExternalBrowser = useCallback(
     (
       opts:
-        | { type: 'buildQuote' }
+        | { returnDestination: 'buildQuote' }
         | {
-            type: 'order';
+            returnDestination: 'order';
             orderCode: string;
             providerCode: string;
             walletAddress?: string;
           },
     ) => {
-      if (opts.type === 'order') {
+      if (opts.returnDestination === 'order') {
         navigation.reset({
           index: 0,
           routes: [
             createRampsOrderDetailsRoute({
               orderId: opts.orderCode,
               showCloseButton: true,
-              providerCode: opts.providerCode,
-              walletAddress: opts.walletAddress,
             }),
           ],
         });
@@ -439,6 +452,117 @@ function BuildQuote() {
       }
     },
     [navigation],
+  );
+
+  const openExternalBrowserAndNavigate = useCallback(
+    async (opts: {
+      buyWidgetUrl: string;
+      deeplinkRedirectUrl: string;
+      effectiveOrderId: string | null;
+      effectiveWallet: string;
+      providerCode: string;
+      network: string;
+      addPrecreatedOrder: (o: {
+        orderId: string;
+        providerCode: string;
+        walletAddress: string;
+        chainId?: string;
+      }) => void;
+      getOrderFromCallback: (
+        providerCode: string,
+        callbackUrl: string,
+        wallet: string,
+      ) => Promise<RampsOrder>;
+      addOrder: (order: RampsOrder) => void;
+      navigateAfterBrowser: (
+        n:
+          | { returnDestination: 'buildQuote' }
+          | {
+              returnDestination: 'order';
+              orderCode: string;
+              providerCode: string;
+              walletAddress?: string;
+            },
+      ) => void;
+    }) => {
+      const {
+        buyWidgetUrl,
+        deeplinkRedirectUrl,
+        effectiveOrderId,
+        effectiveWallet,
+        providerCode,
+        network,
+        addPrecreatedOrder: addPrecreated,
+        getOrderFromCallback: getOrder,
+        addOrder: addOrderFn,
+        navigateAfterBrowser: navigateAfter,
+      } = opts;
+
+      if (effectiveOrderId && effectiveWallet) {
+        addPrecreated({
+          orderId: effectiveOrderId,
+          providerCode,
+          walletAddress: effectiveWallet,
+          chainId: network || undefined,
+        });
+      }
+
+      const isAndroid = Device.isAndroid();
+      const inAppBrowserAvailable =
+        !isAndroid && (await InAppBrowser.isAvailable());
+
+      if (isAndroid || !inAppBrowserAvailable) {
+        await Linking.openURL(buyWidgetUrl);
+        navigateAfter({ returnDestination: 'buildQuote' });
+        return;
+      }
+
+      try {
+        const result = await InAppBrowser.openAuth(
+          buyWidgetUrl,
+          deeplinkRedirectUrl,
+        );
+
+        if (result.type !== 'success' || !result.url) {
+          navigateAfter({ returnDestination: 'buildQuote' });
+          return;
+        }
+
+        try {
+          const order = await getOrder(
+            providerCode,
+            result.url,
+            effectiveWallet,
+          );
+
+          if (!order || isBailedOrderStatus(order.status)) {
+            navigateAfter({ returnDestination: 'buildQuote' });
+            return;
+          }
+
+          addOrderFn(order);
+
+          const rawOrderId = order.providerOrderId ?? effectiveOrderId;
+          if (!rawOrderId) {
+            navigateAfter({ returnDestination: 'buildQuote' });
+            return;
+          }
+
+          const orderCode = extractOrderCode(rawOrderId);
+          navigateAfter({
+            returnDestination: 'order',
+            orderCode,
+            providerCode,
+            walletAddress: effectiveWallet || undefined,
+          });
+        } catch {
+          navigateAfter({ returnDestination: 'buildQuote' });
+        }
+      } finally {
+        InAppBrowser.closeAuth();
+      }
+    },
+    [],
   );
 
   const handlePaymentPillPress = useCallback(() => {
@@ -521,98 +645,30 @@ function BuildQuote() {
   ]);
 
   /**
-   * Handles the continue button press for a "custom action" provider such as PayPal.
-   * This function fetches the widget URL from the provider and routes the user to the widget.
+   * Handles the continue button press for widget providers (custom action e.g. PayPal,
+   * or aggregator e.g. Moonpay, Mercuryo). Fetches the widget URL and routes the user
+   * to either external browser or in-app Checkout based on the provider configuration.
    * @returns {Promise<void>}
    */
-  const handleCustomActionContinue = useCallback(async () => {
+  const handleWidgetProviderContinue = useCallback(async () => {
     if (!selectedQuote) return;
     setIsContinueLoading(true);
     try {
       const providerCode = normalizeProviderCode(selectedQuote.provider);
-      const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
-      const quoteForWidget = buildQuoteWithRedirectUrl(
-        selectedQuote,
-        deeplinkRedirectUrl,
-      );
-      const buyWidget = await getBuyWidgetData(quoteForWidget);
-
-      if (!buyWidget?.url) {
-        setRampsError(
-          reportRampsError(
-            new Error('No widget URL available for custom action provider'),
-            { provider: selectedQuote.provider },
-            strings('deposit.buildQuote.unexpectedError'),
-          ),
-        );
-        return;
-      }
-
-      const { network, effectiveWallet, effectiveOrderId } = getCheckoutContext(
-        selectedToken,
-        walletAddress,
-        buyWidget.orderId,
-      );
-
-      await openExternalBrowserAndNavigate({
-        buyWidgetUrl: buyWidget.url,
-        deeplinkRedirectUrl,
-        effectiveOrderId,
-        effectiveWallet,
-        providerCode,
-        network,
-        addPrecreatedOrder,
-        getOrderFromCallback,
-        addOrder,
-        navigateAfterBrowser: navigateAfterExternalBrowser,
-      });
-    } catch (error) {
-      setRampsError(
-        reportRampsError(
-          error,
-          {
-            provider: selectedQuote.provider,
-            message: 'Failed to fetch widget URL for custom action',
-          },
-          strings('deposit.buildQuote.unexpectedError'),
-        ),
-      );
-    } finally {
-      setIsContinueLoading(false);
-    }
-  }, [
-    selectedQuote,
-    selectedToken,
-    walletAddress,
-    getBuyWidgetData,
-    addPrecreatedOrder,
-    getOrderFromCallback,
-    addOrder,
-    navigateAfterExternalBrowser,
-  ]);
-
-  /**
-   * Handles the continue button press for an aggregator provider such as Moonpay, Mercuryo, etc.
-   * This function simply fetches the widget URL from the provider and routes the user to the widget.
-   * @returns {Promise<void>}
-   */
-  const handleAggregatorContinue = useCallback(async () => {
-    if (!selectedQuote) return;
-    setIsContinueLoading(true);
-    try {
-      const providerCode = normalizeProviderCode(selectedQuote.provider);
-      const redirectUrl = getAggregatorRedirectUrl(selectedQuote, providerCode);
+      const isCustom = isCustomAction(selectedQuote);
+      const redirectUrl = isCustom
+        ? `metamask://on-ramp/providers/${providerCode}`
+        : getAggregatorRedirectUrl(selectedQuote, providerCode);
       const quoteForWidget = buildQuoteWithRedirectUrl(
         selectedQuote,
         redirectUrl,
       );
-
       const buyWidget = await getBuyWidgetData(quoteForWidget);
 
       if (!buyWidget?.url) {
         setRampsError(
           reportRampsError(
-            new Error('No widget URL available for aggregator provider'),
+            new Error('No widget URL available for provider'),
             { provider: selectedQuote.provider },
             strings('deposit.buildQuote.unexpectedError'),
           ),
@@ -625,7 +681,8 @@ function BuildQuote() {
         walletAddress,
         buyWidget.orderId,
       );
-      const useExternalBrowser = buyWidget.browser === 'IN_APP_OS_BROWSER';
+      const useExternalBrowser =
+        isCustom || buyWidget.browser === 'IN_APP_OS_BROWSER';
 
       if (useExternalBrowser) {
         const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
@@ -685,6 +742,7 @@ function BuildQuote() {
     getOrderFromCallback,
     addOrder,
     navigateAfterExternalBrowser,
+    openExternalBrowserAndNavigate,
   ]);
 
   const handleContinuePress = useCallback(async () => {
@@ -711,10 +769,8 @@ function BuildQuote() {
 
     if (isNativeProvider(selectedQuote)) {
       await handleNativeProviderContinue();
-    } else if (isCustomAction(selectedQuote)) {
-      await handleCustomActionContinue();
     } else {
-      await handleAggregatorContinue();
+      await handleWidgetProviderContinue();
     }
   }, [
     selectedQuote,
@@ -728,8 +784,7 @@ function BuildQuote() {
     trackEvent,
     createEventBuilder,
     handleNativeProviderContinue,
-    handleCustomActionContinue,
-    handleAggregatorContinue,
+    handleWidgetProviderContinue,
   ]);
 
   const hasAmount = amountAsNumber > 0;
