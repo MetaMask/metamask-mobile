@@ -72,22 +72,17 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
 
+const mockUseTokenBuyability = jest.fn();
 jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
-  useTokenBuyability: () => ({ isBuyable: true, isLoading: false }),
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseTokenBuyability(...args),
 }));
 
-const mockHandleBuyPress = jest.fn();
-const mockHandleSellPress = jest.fn();
+const mockGoToSwaps = jest.fn();
+const mockOnBuy = jest.fn();
+const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
-  useTokenActions: () => ({
-    onBuy: jest.fn(),
-    onSend: jest.fn(),
-    onReceive: jest.fn(),
-    goToSwaps: jest.fn(),
-    handleBuyPress: mockHandleBuyPress,
-    handleSellPress: mockHandleSellPress,
-    networkModal: null,
-  }),
+  useTokenActions: () => mockUseTokenActions(),
 }));
 
 const defaultUseTokenTransactionsReturn = {
@@ -334,6 +329,20 @@ describe('TokenDetails', () => {
     });
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
+    mockUseTokenBuyability.mockReturnValue({
+      isBuyable: true,
+      isLoading: false,
+    });
+    mockUseTokenActions.mockReturnValue({
+      onBuy: mockOnBuy,
+      onSend: jest.fn(),
+      onReceive: jest.fn(),
+      goToSwaps: mockGoToSwaps,
+      handleBuyPress: jest.fn(),
+      handleSellPress: jest.fn(),
+      hasEligibleSwapTokens: true,
+      networkModal: null,
+    });
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -364,11 +373,12 @@ describe('TokenDetails', () => {
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 
-  describe('Buy/Sell sticky buttons', () => {
+  describe('Swap/Buy sticky buttons', () => {
     it('shows sticky buttons when useNewLayout is true (treatment variant)', () => {
       const { getByTestId, getByText } = render(<TokenDetails />);
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
@@ -392,43 +402,41 @@ describe('TokenDetails', () => {
       expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
 
-    it('shows both Buy and Sell buttons when token has balance > 0', () => {
-      mockUseTokenBalance.mockReturnValue({
-        balance: '10.5',
-        fiatBalance: '$1050.00',
-        tokenFormattedBalance: '10.5 DAI',
-      });
-
+    it('shows both Swap and Buy when user has eligible tokens and token is buyable', () => {
       const { getByText } = render(<TokenDetails />);
 
+      expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
-      expect(getByText('Sell')).toBeOnTheScreen();
     });
 
-    it('shows only Buy button when token has no balance', () => {
-      mockUseTokenBalance.mockReturnValue({
-        balance: '0',
-        fiatBalance: '$0.00',
-        tokenFormattedBalance: '0 DAI',
+    it('shows only Swap when user has eligible tokens but token is not buyable', () => {
+      mockUseTokenBuyability.mockReturnValue({
+        isBuyable: false,
+        isLoading: false,
+      });
+
+      const { getByText, queryByText } = render(<TokenDetails />);
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(queryByText('Buy')).toBeNull();
+    });
+
+    it('shows only Buy when user has no eligible swap tokens', () => {
+      mockUseTokenActions.mockReturnValue({
+        onBuy: mockOnBuy,
+        onSend: jest.fn(),
+        onReceive: jest.fn(),
+        goToSwaps: mockGoToSwaps,
+        handleBuyPress: jest.fn(),
+        handleSellPress: jest.fn(),
+        hasEligibleSwapTokens: false,
+        networkModal: null,
       });
 
       const { getByText, queryByText } = render(<TokenDetails />);
 
       expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Sell')).toBeNull();
-    });
-
-    it('shows only Buy button when token balance is undefined', () => {
-      mockUseTokenBalance.mockReturnValue({
-        balance: undefined,
-        fiatBalance: undefined,
-        tokenFormattedBalance: undefined,
-      });
-
-      const { getByText, queryByText } = render(<TokenDetails />);
-
-      expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Sell')).toBeNull();
+      expect(queryByText('Swap')).toBeNull();
     });
   });
 
