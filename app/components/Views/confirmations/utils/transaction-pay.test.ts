@@ -353,6 +353,36 @@ describe('Transaction Pay Utils', () => {
       });
     });
 
+    describe('fiatPayment', () => {
+      it('clears isSelected on all tokens when fiat payment is active', () => {
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK],
+          payToken: {
+            address: TOKEN_MOCK.address as Hex,
+            chainId: TOKEN_MOCK.chainId as Hex,
+          } as TransactionPaymentToken,
+          fiatPayment: { selectedPaymentMethodId: 'pm-card' },
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].isSelected).toBe(false);
+      });
+
+      it('preserves isSelected when fiat payment has no selected method', () => {
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK],
+          payToken: {
+            address: TOKEN_MOCK.address as Hex,
+            chainId: TOKEN_MOCK.chainId as Hex,
+          } as TransactionPaymentToken,
+          fiatPayment: {},
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].isSelected).toBe(true);
+      });
+    });
+
     describe('blockedTokens', () => {
       it('marks token as disabled when its chain is in blocklist chainIds', () => {
         const blockedTokens: BlockedTokensListConfig = {

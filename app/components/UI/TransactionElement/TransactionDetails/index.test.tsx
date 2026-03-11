@@ -142,7 +142,6 @@ const renderComponent = ({
               ...(hash ? { hash } : {}),
             }}
             navigation={navigationMock}
-            chainId={networkId}
           />
         )}
       </Stack.Screen>
