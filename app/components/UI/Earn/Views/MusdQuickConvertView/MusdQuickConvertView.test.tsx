@@ -641,8 +641,6 @@ describe('MusdQuickConvertView', () => {
         asset_symbol: token.symbol,
         network_chain_id: token.chainId,
         network_name: 'Ethereum',
-        balance_decimal: token.balance,
-        balance_hex: token.rawBalance,
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
@@ -687,8 +685,6 @@ describe('MusdQuickConvertView', () => {
         asset_symbol: token.symbol,
         network_chain_id: token.chainId,
         network_name: 'Ethereum',
-        balance_decimal: token.balance,
-        balance_hex: token.rawBalance,
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });

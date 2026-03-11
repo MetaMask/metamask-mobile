@@ -142,8 +142,6 @@ const MusdQuickConvertView = () => {
             network_name: token.chainId
               ? getNetworkName(token.chainId as Hex)
               : 'unknown',
-            balance_decimal: token.balance,
-            balance_hex: token.rawBalance,
           })
           .build(),
       );
@@ -186,8 +184,6 @@ const MusdQuickConvertView = () => {
             network_name: token.chainId
               ? getNetworkName(token.chainId as Hex)
               : 'unknown',
-            balance_decimal: token.balance,
-            balance_hex: token.rawBalance,
           })
           .build(),
       );
