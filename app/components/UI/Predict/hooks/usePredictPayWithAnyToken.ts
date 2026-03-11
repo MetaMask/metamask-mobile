@@ -1,7 +1,10 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
+import { strings } from '../../../../../locales/i18n';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -13,10 +16,7 @@ import {
   PredictBuyPreviewParams,
   PredictNavigationParamList,
 } from '../types/navigation';
-import {
-  createDepositErrorToast,
-  ensureError,
-} from '../utils/predictErrorHandler';
+import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { OrderPreview } from '../types';
 
@@ -66,28 +66,46 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
       });
 
       navigation.goBack();
-      toastRef?.current?.showToast(createDepositErrorToast(theme));
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('predict.deposit.error_title'), isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: strings('predict.deposit.error_description'),
+            isBold: false,
+          },
+        ],
+        iconName: IconName.Error,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.accent04.normal,
+        hasNoTimeout: false,
+      });
     },
-    [navigation, theme, toastRef],
+    [
+      navigation,
+      theme.colors.accent04.normal,
+      theme.colors.error.default,
+      toastRef,
+    ],
   );
 
   const triggerPayWithAnyToken = useCallback(
-    //(params: PredictPayWithAnyTokenParams) => {
-    () => {
-      // TODO: Uncomment this when the confirmation screen is ready
+    (params: PredictPayWithAnyTokenParams) => {
       try {
         payWithAnyTokenConfirmation();
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
           headerShown: false,
-          /* replace: true,
+          replace: true,
           routeParams: {
             market: params.market,
             outcome: params.outcome,
             outcomeToken: params.outcomeToken,
             isConfirmation: true,
             preview: params.preview,
-          }, */
+          },
         });
       } catch (err) {
         handleDepositError(err, 'pay_with_any_token');
