@@ -1208,7 +1208,13 @@ export class Engine {
     }
   }
 
-  // This should be used instead of AccountsController.setSelectedAccount
+  /**
+   * Method to set the selected account in the accounts-controller.
+   *
+   * @deprecated The accounts-controller should not be used anymore. Use the
+   * account-tree-controller instead.
+   * @param address - Account address
+   */
   setSelectedAccount(address: string) {
     const { AccountsController } = this.context;
     const account = AccountsController.getAccountByAddress(address);
