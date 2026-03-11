@@ -28,9 +28,7 @@ export interface PredictPayWithAnyTokenParams {
 }
 
 interface UsePredictPayWithAnyTokenResult {
-  triggerPayWithAnyToken: (
-    params: PredictPayWithAnyTokenParams,
-  ) => Promise<{ transactionId?: string } | undefined>;
+  triggerPayWithAnyToken: (params: PredictPayWithAnyTokenParams) => void;
 }
 
 export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
@@ -94,9 +92,9 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
   );
 
   const triggerPayWithAnyToken = useCallback(
-    async (params: PredictPayWithAnyTokenParams) => {
+    (params: PredictPayWithAnyTokenParams) => {
       try {
-        const { response } = await payWithAnyTokenConfirmation();
+        payWithAnyTokenConfirmation();
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
           headerShown: false,
@@ -105,12 +103,10 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
             market: params.market,
             outcome: params.outcome,
             outcomeToken: params.outcomeToken,
-            transactionId: response?.transactionId,
             isConfirmation: true,
             preview: params.preview,
           },
         });
-        return { transactionId: response?.transactionId };
       } catch (err) {
         handleDepositError(err, 'pay_with_any_token');
       }

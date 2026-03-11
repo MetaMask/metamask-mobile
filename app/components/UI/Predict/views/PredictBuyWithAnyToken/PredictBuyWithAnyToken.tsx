@@ -62,7 +62,6 @@ const PredictBuyWithAnyToken = () => {
     outcome,
     outcomeToken,
     entryPoint,
-    transactionId,
     isConfirmation,
     preview: initialPreview,
   } = route.params;
@@ -161,7 +160,6 @@ const PredictBuyWithAnyToken = () => {
   usePredictBuyBackSwipe({ onBack: handleBackSwipe });
 
   usePredictPayWithAnyTokenTracking({
-    transactionId,
     onFail: handleDepositFailed,
     onConfirm: handleConfirm,
   });

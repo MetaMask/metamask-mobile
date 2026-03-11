@@ -8,3 +8,5 @@ export const PREDICT_BALANCE_CHAIN_ID = '0x89' as Hex;
 export const MINIMUM_BET = 1; // $1 minimum bet
 
 export const PREDICT_BALANCE_TOKEN_KEY = 'predict-balance';
+
+export const PREDICTION_ERROR_TRANSACTION_BATCH_ID = 'NA';

@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../../types/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { usePredictNavigation } from '../../../hooks/usePredictNavigation';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictPayWithAnyToken } from '../../../hooks/usePredictPayWithAnyToken';
@@ -46,13 +46,15 @@ export const usePredictBuyActions = ({
   const { navigateToBuyPreview } = usePredictNavigation();
   const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
   const { resetSelectedPaymentToken } = usePredictPaymentToken();
+  const { activeOrder } = usePredictActiveOrder();
+
+  const batchId = useMemo(() => activeOrder?.batchId, [activeOrder?.batchId]);
 
   const {
     market,
     outcome,
     outcomeToken,
     entryPoint,
-    transactionId,
     isConfirmation,
     preview: previewFromRoute,
   } = route.params;
@@ -64,9 +66,6 @@ export const usePredictBuyActions = ({
           market,
           outcome,
           outcomeToken,
-          ...(params?.includeTransaction && transactionId
-            ? { transactionId }
-            : {}),
           ...(livePreview ? { preview: { ...livePreview } } : {}),
           animationEnabled: false,
           entryPoint,
@@ -82,19 +81,18 @@ export const usePredictBuyActions = ({
       outcome,
       outcomeToken,
       livePreview,
-      transactionId,
     ],
   );
 
   const handleTokenSelected = useCallback(
     async ({ tokenKey }: { tokenKey: string | null }) => {
+      updateActiveOrder({ error: null });
       if (isConfirmation) {
         if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
           return;
         }
         updateActiveOrder({
           state: ActiveOrderState.PREVIEW,
-          transactionId: null,
         });
         redirectToBuyPreview();
         onReject(undefined, true);
@@ -102,18 +100,13 @@ export const usePredictBuyActions = ({
       }
       if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
         updateActiveOrder({
-          state: ActiveOrderState.REDIRECTING,
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
         });
-        const response = await triggerPayWithAnyToken({
+        triggerPayWithAnyToken({
           market,
           outcome,
           outcomeToken,
           ...(livePreview ? { preview: { ...livePreview } } : {}),
-        });
-
-        updateActiveOrder({
-          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-          transactionId: response?.transactionId,
         });
       }
     },
@@ -134,18 +127,15 @@ export const usePredictBuyActions = ({
     async (depositErrorMessage?: string) => {
       setIsConfirming(false);
       updateActiveOrder({
-        state: ActiveOrderState.REDIRECTING,
+        state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
         error:
           depositErrorMessage ?? strings('predict.deposit.error_description'),
+        batchId: null,
       });
-      const response = await triggerPayWithAnyToken({
+      triggerPayWithAnyToken({
         market,
         outcome,
         outcomeToken,
-      });
-      updateActiveOrder({
-        state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        transactionId: response?.transactionId,
       });
     },
     [
@@ -165,10 +155,8 @@ export const usePredictBuyActions = ({
     if (isConfirmation) {
       updateActiveOrder({
         state: ActiveOrderState.DEPOSITING,
-        transactionId,
       });
       redirectToBuyPreview({
-        includeTransaction: true,
         isConfirming: true,
       });
       await onApprovalConfirm({
@@ -183,7 +171,7 @@ export const usePredictBuyActions = ({
       throw new Error('Preview is required');
     }
 
-    const isFromPayWithAnyToken = transactionId && !isPreviewFromRouteUsed;
+    const isFromPayWithAnyToken = batchId && !isPreviewFromRouteUsed;
     const previewToUse = isFromPayWithAnyToken ? previewFromRoute : livePreview;
 
     if (!previewToUse) {
@@ -198,11 +186,14 @@ export const usePredictBuyActions = ({
     updateActiveOrder({
       state: ActiveOrderState.PLACING_ORDER,
     });
-    const outcome = await placeOrder({
+    const orderResult = await placeOrder({
       analyticsProperties,
       preview: previewToUse,
     });
-    if (outcome.status === 'error' || outcome.status === 'order_not_filled') {
+    if (
+      orderResult.status === 'error' ||
+      orderResult.status === 'order_not_filled'
+    ) {
       setIsConfirming(false);
       updateActiveOrder({ state: ActiveOrderState.PREVIEW });
     }
@@ -212,7 +203,7 @@ export const usePredictBuyActions = ({
     isConfirmation,
     livePreview,
     previewFromRoute,
-    transactionId,
+    batchId,
     isPreviewFromRouteUsed,
     placeOrder,
     analyticsProperties,

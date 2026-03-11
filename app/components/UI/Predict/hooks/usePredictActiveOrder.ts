@@ -50,11 +50,11 @@ export const usePredictActiveOrder = () => {
         }
       }
 
-      if ('transactionId' in order) {
-        if (order.transactionId === null) {
-          delete nextOrder.transactionId;
+      if ('batchId' in order) {
+        if (order.batchId === null) {
+          delete nextOrder.batchId;
         } else {
-          nextOrder.transactionId = order.transactionId;
+          nextOrder.batchId = order.batchId;
         }
       }
 

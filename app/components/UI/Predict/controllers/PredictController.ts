@@ -49,10 +49,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import {
-  addTransaction,
-  addTransactionBatch,
-} from '../../../../util/transaction-controller';
+import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
   PredictShareStatusValue,
@@ -121,6 +118,7 @@ import {
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
+import { PREDICTION_ERROR_TRANSACTION_BATCH_ID } from '../constants/transactions';
 
 /**
  * State shape for PredictController
@@ -154,7 +152,7 @@ export type PredictControllerState = {
 
   activeOrder?: {
     amount?: number;
-    transactionId?: string;
+    batchId?: string;
     isInputFocused?: boolean;
     state: ActiveOrderState;
     error?: string;
@@ -2080,12 +2078,18 @@ export class PredictController extends BaseController<
    * `@metamask/transaction-controller`.
    */
   public async payWithAnyTokenConfirmation(): Promise<
-    Result<{ transactionId: string }>
+    Result<{ batchId: string }>
   > {
     const provider = this.provider;
 
     try {
       const signer = this.getSigner();
+
+      this.update((state) => {
+        if (state.activeOrder) {
+          delete state.activeOrder.batchId;
+        }
+      });
 
       const depositPreparation = await provider.prepareDeposit({
         signer,
@@ -2145,47 +2149,58 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
-      // Use the actual deposit transaction for the custom pay-with-any-token
-      // flow. Setup transactions (deployment/allowances) can appear earlier.
-      const tx = depositAndOrderTransactions.find(
-        (transaction) => transaction.type === predictDepositAndOrderType,
-      );
+      const batchResult = await addTransactionBatch({
+        from: signer.address as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        skipInitialGasEstimate: true,
+        transactions: depositAndOrderTransactions,
+      });
 
-      if (!tx) {
-        throw new Error(
-          'No predict deposit transaction returned from deposit preparation',
-        );
+      if (!batchResult?.batchId) {
+        throw new Error('Failed to get batch ID from transaction submission');
       }
 
-      const result = await addTransaction(
-        {
-          to: tx.params.to,
-          from: signer.address as Hex,
-          data: tx.params.data,
-        },
-        {
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          type: tx.type,
-        },
-      );
+      const { batchId } = batchResult;
 
-      const transactionId = result.transactionMeta?.id ?? '';
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.batchId = batchId;
+          delete state.activeOrder.error;
+        }
+      });
 
       return {
         success: true,
         response: {
-          transactionId,
+          batchId,
         },
       };
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
+        this.update((state) => {
+          if (state.activeOrder) {
+            state.activeOrder = null;
+          }
+        });
         return {
           success: true,
-          response: { transactionId: 'NA' },
+          response: { batchId: PREDICTION_ERROR_TRANSACTION_BATCH_ID },
         };
       }
+
+      const errorMessage = e.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.error = errorMessage;
+          state.activeOrder.batchId = PREDICTION_ERROR_TRANSACTION_BATCH_ID;
+        }
+      });
+
       Logger.error(
         e,
         this.getErrorContext('payWithAnyTokenConfirmation', {
@@ -2193,11 +2208,7 @@ export class PredictController extends BaseController<
         }),
       );
 
-      throw new Error(
-        error instanceof Error
-          ? error.message
-          : PREDICT_ERROR_CODES.DEPOSIT_FAILED,
-      );
+      throw new Error(errorMessage);
     }
   }
 

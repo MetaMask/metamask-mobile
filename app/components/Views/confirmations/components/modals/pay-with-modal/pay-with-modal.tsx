@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
-import { useSelector } from 'react-redux';
+import { useRoute } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
@@ -39,14 +39,16 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../constants/predict';
-import { selectPredictActiveOrder } from '../../../../../UI/Predict/selectors/predictController';
+
+interface PayWithModalParams {
+  isPredictContext?: boolean;
+}
 
 export function PayWithModal() {
+  const route = useRoute();
+  const { isPredictContext = false } =
+    (route.params as PayWithModalParams) ?? {};
   const transactionMeta = useTransactionMetadataRequest();
-  const activePredictOrder = useSelector(selectPredictActiveOrder);
-  const isPredictPayContext =
-    hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE]) ||
-    (!transactionMeta && Boolean(activePredictOrder));
   const hideNetworkFilter = hasTransactionType(
     transactionMeta,
     HIDE_NETWORK_FILTER_TYPES,
@@ -68,7 +70,7 @@ export function PayWithModal() {
   const { onPaymentTokenChange: onPredictPaymentTokenChange } =
     usePredictPaymentToken();
   const predictBalanceTokenFilter =
-    usePredictBalanceTokenFilter(isPredictPayContext);
+    usePredictBalanceTokenFilter(isPredictContext);
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -120,7 +122,7 @@ export function PayWithModal() {
           return;
         }
 
-        if (isPredictPayContext) {
+        if (isPredictContext) {
           onPredictPaymentTokenChange(token);
           return;
         }
@@ -167,7 +169,7 @@ export function PayWithModal() {
     },
     [
       close,
-      isPredictPayContext,
+      isPredictContext,
       isWithdraw,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
@@ -204,7 +206,7 @@ export function PayWithModal() {
         ])
       ) {
         filteredTokens = perpsBalanceTokenFilter(availableTokens);
-      } else if (isPredictPayContext) {
+      } else if (isPredictContext) {
         filteredTokens = predictBalanceTokenFilter(availableTokens);
       }
 
@@ -224,7 +226,7 @@ export function PayWithModal() {
       payToken,
       requiredTokens,
       transactionMeta,
-      isPredictPayContext,
+      isPredictContext,
       perpsBalanceTokenFilter,
       predictBalanceTokenFilter,
       wrapHighlightedItemCallbacks,

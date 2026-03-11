@@ -69,8 +69,6 @@ const ConfirmationInfoComponentMap = {
         return PerpsDepositInfo;
       case TransactionType.perpsDepositAndOrder:
         return PerpsOrderView;
-      case PREDICT_DEPOSIT_AND_ORDER_TYPE:
-        return PredictBuyWithAnyToken;
       // Default to contract interaction as generic transaction confirmation
       case TransactionType.lendingDeposit:
       case TransactionType.lendingWithdraw:
@@ -131,6 +129,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
   ) {
     return <PredictClaimInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
+  ) {
+    return <PredictBuyWithAnyToken />;
   }
 
   if (
