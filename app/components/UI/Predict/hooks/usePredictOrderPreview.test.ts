@@ -114,7 +114,7 @@ describe('usePredictOrderPreview', () => {
       };
       mockPreviewOrder.mockResolvedValue(updatedPreview);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview({
           ...defaultParams,
           initialPreview: mockPreview,
@@ -127,9 +127,10 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(updatedPreview);
+      });
 
-      expect(result.current.preview).toEqual(updatedPreview);
       expect(result.current.isLoading).toBe(false);
     });
 

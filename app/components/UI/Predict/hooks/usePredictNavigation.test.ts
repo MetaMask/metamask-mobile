@@ -102,8 +102,6 @@ describe('usePredictNavigation', () => {
     it('passes all params to the navigation call', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams({
-        amount: 10,
-        transactionId: 'tx-123',
         isConfirmation: true,
         animationEnabled: false,
       });
@@ -115,8 +113,6 @@ describe('usePredictNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PREDICT.MODALS.BUY_PREVIEW,
         expect.objectContaining({
-          amount: 10,
-          transactionId: 'tx-123',
           isConfirmation: true,
           animationEnabled: false,
         }),
@@ -126,7 +122,6 @@ describe('usePredictNavigation', () => {
     it('passes all params through ROOT navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams({
-        amount: 25,
         entryPoint: 'carousel',
       });
 
@@ -137,7 +132,6 @@ describe('usePredictNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
         params: expect.objectContaining({
-          amount: 25,
           entryPoint: 'carousel',
         }),
       });

@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePredictActiveOrder } from './usePredictActiveOrder';
-import { ActiveOrderState } from '../types';
+import { ActiveOrderState, Recurrence } from '../types';
 import { PredictTradeStatus } from '../constants/eventNames';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -214,7 +214,7 @@ describe('usePredictActiveOrder', () => {
             description: 'Market Description',
             image: 'image-url',
             status: 'open',
-            recurrence: 'none' as const,
+            recurrence: Recurrence.NONE,
             category: 'trending' as const,
             tags: [],
             outcomes: [],
@@ -246,7 +246,7 @@ describe('usePredictActiveOrder', () => {
             description: 'Market Description',
             image: 'image-url',
             status: 'open',
-            recurrence: 'none' as const,
+            recurrence: Recurrence.NONE,
             category: 'trending' as const,
             tags: [],
             outcomes: [],
@@ -275,7 +275,7 @@ describe('usePredictActiveOrder', () => {
             description: 'Market Description',
             image: 'image-url',
             status: 'open',
-            recurrence: 'none' as const,
+            recurrence: Recurrence.NONE,
             category: 'trending' as const,
             tags: [],
             outcomes: [],
@@ -306,7 +306,7 @@ describe('usePredictActiveOrder', () => {
         description: 'Market Description',
         image: 'image-url',
         status: 'open' as const,
-        recurrence: 'none' as const,
+        recurrence: Recurrence.NONE,
         category: 'trending' as const,
         tags: [],
         outcomes: [],

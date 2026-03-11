@@ -101,17 +101,20 @@ const PredictFeeBreakdownSheet = forwardRef<
           <>
             <Box twClassName="flex-row items-start py-4">
               <Box twClassName="flex-1 pr-4 gap-1">
-                <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+                <Text
+                  color={TextColor.TextDefault}
+                  variant={TextVariant.BodyMd}
+                >
                   {strings('predict.fee_summary.deposit_fee')}
                 </Text>
                 <Text
-                  color={TextColor.Alternative}
-                  variant={TextVariant.BodyXS}
+                  color={TextColor.TextAlternative}
+                  variant={TextVariant.BodyXs}
                 >
                   {strings('predict.fee_summary.deposit_fee_description')}
                 </Text>
               </Box>
-              <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
                 {formatPrice(depositFee, { maximumDecimals: 2 })}
               </Text>
             </Box>

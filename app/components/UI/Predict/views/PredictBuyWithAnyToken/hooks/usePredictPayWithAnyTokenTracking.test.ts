@@ -64,7 +64,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -82,7 +82,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.failed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -99,7 +99,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.rejected,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -116,7 +116,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -135,7 +135,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.signed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -153,7 +153,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.submitted,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -172,7 +172,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             batchId: 'batch-1',
             status: TransactionStatus.failed,
             error: { message: 'Transaction reverted' },
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -224,7 +224,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -242,7 +242,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -265,7 +265,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             batchId: 'batch-1',
             status: TransactionStatus.failed,
             error: { message: 'Transaction failed on-chain' },
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -285,7 +285,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             batchId: 'batch-1',
             status: TransactionStatus.failed,
             error: { message: 'fail' },
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 
@@ -323,12 +323,12 @@ describe('usePredictPayWithAnyTokenTracking', () => {
             id: 'tx-1',
             batchId: 'batch-1',
             status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
           {
             id: 'tx-2',
             batchId: 'batch-2',
             status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          } as unknown as TransactionMeta,
         ],
       });
 

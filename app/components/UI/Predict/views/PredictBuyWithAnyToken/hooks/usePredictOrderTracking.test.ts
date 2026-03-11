@@ -1,9 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePredictOrderTracking } from './usePredictOrderTracking';
-
-interface Result {
-  success: boolean;
-}
+import { Result } from '../../../types';
 
 describe('usePredictOrderTracking', () => {
   beforeEach(() => {
@@ -15,7 +12,7 @@ describe('usePredictOrderTracking', () => {
       // Arrange
       const onSuccess = jest.fn();
       const onError = jest.fn();
-      const result: Result = { success: true };
+      const result = { success: true, response: undefined } as Result;
 
       // Act
       renderHook(() =>
@@ -56,7 +53,7 @@ describe('usePredictOrderTracking', () => {
       // Arrange
       const onSuccess = jest.fn();
       const onError = jest.fn();
-      const result: Result = { success: false };
+      const result = { success: false, error: 'test' } as Result;
 
       // Act
       renderHook(() =>
@@ -77,7 +74,7 @@ describe('usePredictOrderTracking', () => {
       // Arrange
       const onSuccess = jest.fn();
       const onError = jest.fn();
-      const result: Result = { success: true };
+      const result = { success: true, response: undefined } as Result;
 
       // Act
       const { rerender } = renderHook(
@@ -195,7 +192,7 @@ describe('usePredictOrderTracking', () => {
       // Arrange
       const onSuccess = jest.fn();
       const onError = jest.fn();
-      const result: Result = { success: true };
+      const result = { success: true, response: undefined } as Result;
       const error = 'Error occurred';
 
       // Act

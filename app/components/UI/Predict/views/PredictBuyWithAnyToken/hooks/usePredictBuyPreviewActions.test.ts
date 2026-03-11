@@ -93,7 +93,7 @@ const defaultRouteParams = {
   preview: null,
 };
 
-const createDefaultParams = () => ({
+const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
   currentValue: 100,
   preview: {
     minAmountReceived: 180,
@@ -297,7 +297,10 @@ describe('usePredictBuyActions', () => {
 
   describe('handleConfirm', () => {
     it('sets isConfirming to true', async () => {
-      mockPlaceOrder.mockResolvedValue({ status: 'success', result: {} });
+      mockPlaceOrder.mockResolvedValue({
+        status: 'success',
+        result: { success: true, response: undefined },
+      });
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -310,7 +313,10 @@ describe('usePredictBuyActions', () => {
     });
 
     it('clears error on active order', async () => {
-      mockPlaceOrder.mockResolvedValue({ status: 'success', result: {} });
+      mockPlaceOrder.mockResolvedValue({
+        status: 'success',
+        result: { success: true, response: undefined },
+      });
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -324,7 +330,10 @@ describe('usePredictBuyActions', () => {
 
     it('calls placeOrder with preview and analyticsProperties when not in confirmation', async () => {
       mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
-      mockPlaceOrder.mockResolvedValue({ status: 'success', result: {} });
+      mockPlaceOrder.mockResolvedValue({
+        status: 'success',
+        result: { success: true, response: undefined },
+      });
       const params = createDefaultParams();
       const { result } = renderHook(() => usePredictBuyActions(params));
 
@@ -340,7 +349,10 @@ describe('usePredictBuyActions', () => {
 
     it('sets state to PLACING_ORDER before calling placeOrder', async () => {
       mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
-      mockPlaceOrder.mockResolvedValue({ status: 'success', result: {} });
+      mockPlaceOrder.mockResolvedValue({
+        status: 'success',
+        result: { success: true, response: undefined },
+      });
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -453,7 +465,7 @@ describe('usePredictBuyActions', () => {
         preview: null,
       };
       const params = createDefaultParams();
-      params.preview = null;
+      params.preview = undefined;
       const { result } = renderHook(() => usePredictBuyActions(params));
 
       await expect(
