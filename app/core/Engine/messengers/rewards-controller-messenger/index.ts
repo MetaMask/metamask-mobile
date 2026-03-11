@@ -52,7 +52,7 @@ import {
   RewardsDataServiceGetRewardsEnvUrlAction,
   RewardsDataServiceCanChangeRewardsEnvUrlAction,
   RewardsDataServiceSetRewardsEnvUrlAction,
-  RewardsDataServiceGetDefaultRewardsEnvUrlAction,
+  RewardsDataServiceGetDefaultRewardsEnvUrlAction, RewardsDataServiceGetBenefitsAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -93,7 +93,8 @@ type AllowedActions =
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetBenefitsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -155,6 +156,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
+      'RewardsDataService:getBenefits'
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

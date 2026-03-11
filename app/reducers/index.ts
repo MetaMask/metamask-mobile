@@ -44,6 +44,7 @@ import sampleCounterReducer from '../features/SampleFeature/reducers/sample-coun
 import cardReducer from '../core/redux/slices/card';
 import rewardsReducer, { RewardsState } from './rewards';
 import { isTest } from '../util/test/utils';
+import benefitsReducer, {BenefitsState} from './benefits';
 
 /**
  * Infer state from a reducer
@@ -131,6 +132,7 @@ export interface RootState {
   ///: END:ONLY_INCLUDE_IF
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
+  benefits: BenefitsState;
   networkConnectionBanner: NetworkConnectionBannerState;
 }
 
@@ -173,6 +175,7 @@ const baseReducers = {
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
+  benefits: benefitsReducer,
   networkConnectionBanner: networkConnectionBannerReducer,
 };
 

@@ -737,6 +737,32 @@ export type SubscriptionSeasonReferralDetailState = {
   lastFetched?: number;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitDto = {
+  id: number;
+  longTitle: string;
+  shortDescription: string;
+  longDescription: string;
+  thumbnail: string;
+  validFrom: string;
+  validTo: string;
+  url: string;
+  actionDate: string;
+  chain: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitsDto = {
+  benefits: SubscriptionBenefitDto[]
+  page: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitsState = {
+  benefits: SubscriptionBenefitDto[]
+  lastFetched: number;
+};
+
 // Serializable versions for state storage (Date objects converted to timestamps)
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonRewardDtoState = {
@@ -1188,6 +1214,9 @@ export type RewardsControllerState = {
   subscriptionReferralDetails: {
     [compositeId: string]: SubscriptionSeasonReferralDetailState;
   };
+  subscriptionBenefits: {
+    [compositeId: string]: SubscriptionBenefitsState;
+  };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
@@ -1597,6 +1626,14 @@ export interface RewardsControllerApplyBonusCodeAction {
 }
 
 /**
+ * Action for getting benefits of an existing subscription
+ */
+export interface RewardsControllerGetBenefitsAction {
+  type: 'RewardsController:getBenefits';
+  handler: (subscriptionId: string) => Promise<SubscriptionBenefitsState | null>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1634,7 +1671,8 @@ export type RewardsControllerActions =
   | RewardsControllerCanChangeRewardsEnvUrlAction
   | RewardsControllerSetRewardsEnvUrlAction
   | RewardsControllerGetDefaultRewardsEnvUrlAction
-  | RewardsControllerApplyBonusCodeAction;
+  | RewardsControllerApplyBonusCodeAction
+  | RewardsControllerGetBenefitsAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

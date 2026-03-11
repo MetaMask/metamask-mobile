@@ -1,6 +1,6 @@
 import type { Messenger } from '@metamask/messenger';
 import { getVersion } from 'react-native-device-info';
-import type {
+import {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
@@ -25,7 +25,7 @@ import type {
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
-  SnapshotDto,
+  SnapshotDto, SubscriptionBenefitsDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -230,6 +230,11 @@ export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
   handler: RewardsDataService['getDefaultRewardsEnvUrl'];
 }
 
+export interface RewardsDataServiceGetBenefitsAction {
+  type: `${typeof SERVICE_NAME}:getBenefits`;
+  handler: RewardsDataService['getBenefits'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -259,7 +264,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetBenefitsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -413,6 +419,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getBenefits`,
+      this.getBenefits.bind(this),
     );
   }
 
@@ -1290,5 +1300,46 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SnapshotDto[];
+  }
+
+  /**
+   * Get benefits for a specific subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The benefits paged array.
+   */
+  async getBenefits(
+    subscriptionId: string,
+    // TODO add pagination
+  ): Promise<SubscriptionBenefitsDto> {
+    return {
+      benefits: [
+        {
+          id: 3023,
+          longTitle: 'Get highlighted in the weekly "From The Bodega" features',
+          shortDescription: 'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
+          longDescription: 'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
+          thumbnail: 'https://pbs.twimg.com/media/GNKKmIzXsAAk5Xn?format=jpg&name=medium',
+          validFrom: '2024-05-08T00:00:00+00:00',
+          validTo: '2048-05-23T00:00:00+00:00',
+          url: 'https://app.themiracle.io/redirect?url=https%3A%2F%2Fdiscord.com%2Finvite%2Fbayc&trackingBenefitId=3023&trackingBenefitType=23&trackingSource=metamaskmobilewallet&trackingWallet=0x504dAC87BF574C0c70D95b30576d6af2376A6da5&',
+          actionDate: '2048-05-23T00:00:00+00:00',
+          chain: 'ethereum',
+        }
+      ],
+      page: ''
+    };
+    // const response = await this.makeRequest(
+    //   `/benefits`,
+    //   {
+    //     method: 'GET',
+    //   },
+    //   subscriptionId,
+    // );
+    //
+    // if (!response.ok) {
+    //   throw new Error(`Get benefits failed: ${response.status}`);
+    // }
+    // const data = await response.json();
+    // return data as SubscriptionBenefitsDto;
   }
 }

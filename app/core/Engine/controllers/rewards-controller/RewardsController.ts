@@ -31,7 +31,7 @@ import {
   type SeasonMetadataDto,
   type SeasonStateDto,
   type LineaTokenRewardDto,
-  BASE32_REGEX,
+  BASE32_REGEX, SubscriptionBenefitsState,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -179,6 +179,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  subscriptionBenefits: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -188,6 +194,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeAccount: null,
   accounts: {},
   subscriptions: {},
+  subscriptionBenefits: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
@@ -610,6 +617,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:applyBonusCode',
       this.applyBonusCode.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getBenefits',
+      this.getBenefits.bind(this),
     );
   }
 
@@ -3361,6 +3372,58 @@ export class RewardsController extends BaseController<
       );
       throw error;
     }
+  }
+
+  /**
+   * Get benefits details with caching
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async getBenefits(
+    subscriptionId: string,
+  ): Promise<SubscriptionBenefitsState | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return null;
+    }
+    const result = await wrapWithCache<SubscriptionBenefitsState>({
+      key: subscriptionId,
+      ttl: REFERRAL_DETAILS_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.subscriptionBenefits[key] || undefined;
+        if (!cached) return;
+        return { payload: cached, lastFetched: cached.lastFetched };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh benefits details data via API call for',
+            { subscriptionId },
+          );
+          const benefitsDto = await this.messenger.call(
+            'RewardsDataService:getBenefits',
+            subscriptionId,
+          );
+          return {
+            benefits: benefitsDto.benefits,
+            lastFetched: Date.now(),
+          };
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get benefits details:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state: RewardsControllerState) => {
+          state.subscriptionBenefits[key] = payload;
+        });
+      },
+    });
+
+    return result;
   }
 
   /**
