@@ -293,6 +293,66 @@ describe('PerpsMarketDetailsView', () => {
       expect(screen.getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
     });
 
+    it('renders title section with price when market has no maxLeverage', async () => {
+      renderPerpsMarketDetailsView({
+        initialParams: {
+          market: {
+            symbol: 'ETH',
+            name: 'Ethereum',
+            price: '$2,000',
+            change24h: '$0',
+            change24hPercent: '0%',
+            volume: '$1M',
+          },
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [{ symbol: 'BTC', name: 'Bitcoin', maxLeverage: '50x' }],
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('title section onLayout sets header height for scroll animation', async () => {
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
+
+      const titleSectionWrapper = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+      );
+      fireEvent(titleSectionWrapper, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
+      });
+    });
+
     it('opens fullscreen chart modal and close button is pressable', async () => {
       renderPerpsMarketDetailsView({
         streamOverrides: { positions: [] },

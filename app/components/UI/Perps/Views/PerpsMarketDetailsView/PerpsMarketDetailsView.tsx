@@ -1147,6 +1147,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           }
         >
           <Box
+            testID={PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER}
             onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
           >
             <TitleSubpage
@@ -1165,8 +1166,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 <LivePriceHeader
                   symbol={market.symbol}
                   currentPrice={chartCurrentPrice}
-                  testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-                  testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                  testIDPrice={
+                    PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION
+                  }
+                  testIDChange={
+                    PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION
+                  }
                   throttleMs={1000}
                 />
               }
