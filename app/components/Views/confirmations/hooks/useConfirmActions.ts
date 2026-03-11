@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
 
@@ -10,14 +10,8 @@ import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import {
-  useHardwareWallet,
-  isUserCancellation,
-} from '../../../../core/HardwareWallet';
-import { isHardwareAccount } from '../../../../util/address';
-import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import { getDeviceId } from '../../../../core/Ledger/Ledger';
+import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
+import { useLedgerConfirm } from './useLedgerConfirm';
 
 export const useConfirmActions = () => {
   const {
@@ -29,30 +23,13 @@ export const useConfirmActions = () => {
   const { captureSignatureMetrics } = useSignatureMetrics();
   const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
     useQRHardwareContext();
-  const {
-    ensureDeviceReady,
-    showHardwareWalletError,
-    showAwaitingConfirmation,
-    hideAwaitingConfirmation,
-  } = useHardwareWallet();
   const navigation = useNavigation();
-  const transactionMetadata = useTransactionMetadataRequest();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
     approvalType && approvalType === ApprovalType.Transaction;
 
-  // Determine if the current confirmation is for a Ledger account
-  // This uses the `from` address from the approval request instead of
-  // the currently selected account to correctly handle edge cases where they
-  // might differ.
-  const isLedgerAccount = useMemo(() => {
-    const fromAddress =
-      (approvalRequest?.requestData?.from as string) ||
-      (transactionMetadata?.txParams?.from as string);
-    if (!fromAddress) return false;
-    return isHardwareAccount(fromAddress, [ExtendedKeyringTypes.ledger]);
-  }, [approvalRequest?.requestData?.from, transactionMetadata?.txParams?.from]);
+  const isLedgerAccount = useIsConfirmationFromLedgerAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -78,8 +55,6 @@ export const useConfirmActions = () => {
       approvalRequest?.id,
     ],
   );
-
-  const hasRejectedRef = useRef(false);
 
   const executeApproval = useCallback(async () => {
     const waitForResult = approvalType !== ApprovalType.TransactionBatch;
@@ -108,49 +83,21 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
   ]);
 
+  const ledgerConfirmOptions = useMemo(
+    () => ({
+      onReject,
+      onTransactionConfirm,
+      executeApproval,
+      isTransactionReq: Boolean(isTransactionReq),
+    }),
+    [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
+  );
+
+  const { onConfirm: onLedgerConfirm } = useLedgerConfirm(ledgerConfirmOptions);
+
   const onConfirm = useCallback(async () => {
     if (isLedgerAccount) {
-      hasRejectedRef.current = false;
-
-      const rejectOnce = () => {
-        if (hasRejectedRef.current) return;
-        hasRejectedRef.current = true;
-        onReject();
-      };
-
-      try {
-        const deviceId = await getDeviceId();
-        const isReady = await ensureDeviceReady(deviceId);
-
-        if (!isReady) {
-          return;
-        }
-
-        const operationType = isTransactionReq ? 'transaction' : 'message';
-        showAwaitingConfirmation(operationType, () => {
-          rejectOnce();
-        });
-
-        if (isTransactionReq) {
-          await onTransactionConfirm({
-            onError: (err) => {
-              throw err;
-            },
-          });
-        } else {
-          await executeApproval();
-        }
-
-        hideAwaitingConfirmation();
-      } catch (err) {
-        hideAwaitingConfirmation();
-
-        if (!isUserCancellation(err)) {
-          showHardwareWalletError(err);
-        }
-
-        rejectOnce();
-      }
+      await onLedgerConfirm();
       return;
     }
 
@@ -172,11 +119,7 @@ export const useConfirmActions = () => {
     setScannerVisible,
     onTransactionConfirm,
     executeApproval,
-    showAwaitingConfirmation,
-    hideAwaitingConfirmation,
-    showHardwareWalletError,
-    onReject,
-    ensureDeviceReady,
+    onLedgerConfirm,
   ]);
 
   return { onConfirm, onReject };
