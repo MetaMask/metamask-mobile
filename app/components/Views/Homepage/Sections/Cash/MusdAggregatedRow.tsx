@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -39,6 +39,9 @@ import { TokenI } from '../../../../UI/Tokens/types';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
+import NavigationService from '../../../../../core/NavigationService';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 
 /**
  * Minimal mUSD asset for useMerklBonusClaim (claim runs on Linea).
@@ -84,16 +87,28 @@ const MusdAggregatedRow = () => {
     claimRewards();
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
+  const handleTokenRowPress = useCallback(() => {
+    NavigationService.navigation.navigate(
+      'Asset' as never,
+      {
+        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+        source: TokenDetailsSource.MobileTokenListPage,
+      } as never,
+    );
+  }, []);
+
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 6,
+    maximumFractionDigits: 2,
   }).format(Number(tokenBalanceAggregated))} ${MUSD_TOKEN.symbol}`;
 
   return (
-    <TouchableOpacity
-      activeOpacity={1}
-      style={tw.style('flex-row items-center py-3')}
+    <Pressable
+      style={({ pressed }) =>
+        tw.style('flex-row items-center py-3', pressed && 'opacity-80')
+      }
       testID="cash-section-musd-row"
+      onPress={handleTokenRowPress}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -143,7 +158,7 @@ const MusdAggregatedRow = () => {
             {isClaiming ? (
               <AnimatedSpinner size={SpinnerSize.SM} />
             ) : hasClaimableBonus ? (
-              <TouchableOpacity
+              <Pressable
                 onPress={handleClaimBonus}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
@@ -154,7 +169,7 @@ const MusdAggregatedRow = () => {
                 >
                   {strings('earn.claim_bonus')}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ) : (
               <Text
                 variant={TextVariant.BodySm}
@@ -169,7 +184,7 @@ const MusdAggregatedRow = () => {
           </Box>
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
