@@ -1368,6 +1368,10 @@ class FixtureBuilder {
         },
         selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Default to Ethereum account
       },
+      accountIdByAddress: {
+        '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6':
+          '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+      },
     };
     // this.fixture.state.engine.backgroundState.PreferencesController.identities = {
     //   '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6': {
