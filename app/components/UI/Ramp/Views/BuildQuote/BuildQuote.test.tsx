@@ -1,8 +1,12 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
 import type { BuyWidget } from '@metamask/ramps-controller';
+import type { UseRampsControllerResult } from '../../hooks/useRampsController';
 import BuildQuote, { createBuildQuoteNavDetails } from './BuildQuote';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import type { Quote } from '../../types';
@@ -43,7 +47,7 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
 const mockGetBuyWidgetData = jest.fn<Promise<BuyWidget | null>, [Quote]>();
 const mockAddPrecreatedOrder = jest.fn<void, [AddPrecreatedOrderParams]>();
 
-const rampsControllerState: any = {
+const rampsControllerState: DeepPartial<UseRampsControllerResult> = {
   userRegion: {
     country: { currency: 'USD', quickAmounts: [50, 100, 200] },
     regionCode: 'US',
