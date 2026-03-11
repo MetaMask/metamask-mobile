@@ -360,9 +360,17 @@ function buildAllowedNetworkIdSet(chainIds: string[]): Set<string> {
   return set;
 }
 
+/** Sort config for "by balance" (fiat value descending). Used for homepage so it always shows balance order; View all uses user preference. */
+const BALANCE_SORT_CONFIG = {
+  key: 'tokenFiatAmount',
+  order: 'dsc',
+  sortCallback: 'stringNumeric',
+} as const;
+
 /**
  * Sorted assets by selected account group filtered by an explicit list of chain IDs (e.g. from listPopularNetworks()).
  * Use when the chain list comes from a hook or callback rather than from state.
+ * Respects user's token sort preference (balance vs name).
  * @param state - Redux state
  * @param chainIds - Array of network/chain IDs (CAIP-2 or Hex) to include
  */
@@ -387,6 +395,34 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
         filteredAssets,
         stakedAssets,
         tokenSortConfig,
+      );
+    },
+  );
+
+/**
+ * Like selectSortedAssetsBySelectedAccountGroupForChainIds but always sorts by balance (fiat value desc).
+ * Use on the homepage so the tokens section always shows by balance; the full "View all" list keeps the user's sort preference.
+ */
+export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
+  createDeepEqualSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      (_state: RootState, chainIds: string[]) => chainIds,
+      selectStakedAssets,
+    ],
+    (bip44Assets, chainIds, stakedAssets) => {
+      const allowedIds = buildAllowedNetworkIdSet(chainIds);
+      const filteredAssets = Object.entries(bip44Assets)
+        .filter(([networkId]) => allowedIds.has(networkId))
+        .flatMap(([_, chainAssets]) =>
+          chainAssets.filter(
+            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+          ),
+        );
+      return mergeStakedSortAndDedupeAssets(
+        filteredAssets,
+        stakedAssets,
+        BALANCE_SORT_CONFIG,
       );
     },
   );
