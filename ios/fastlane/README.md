@@ -8,19 +8,12 @@ The `upload_to_testflight_only` lane uploads pre-built IPA files to TestFlight a
 
 ## GitHub Actions
 
-The **Build Mobile App** workflow (`.github/workflows/build.yml`) can upload to TestFlight when you run it with:
+Use the **Upload to TestFlight** workflow (`.github/workflows/upload-to-testflight.yml`) to build iOS and upload to TestFlight. Run it manually from the Actions tab (**workflow_dispatch**).
 
-- **Version bump applied:** do not use “Skip version bump” (upload runs only when version bump is applied)
-- **Platform:** `ios` or `both`
-- **Build name:** `main-rc`, `main-exp`, or `main-prod` (device builds only)
+- **Environment:** `exp`, `beta`, or `rc` (builds `main-exp`, `main-beta`, or `main-rc`)
+- **TestFlight group:** e.g. MetaMask BETA & Release Candidates, MM Card Team, Ramp Provider Testing
 
-Required **environment secrets** (per GitHub Environment: `build-rc`, `build-exp`, `build-production`):
-
-| Secret | Description |
-|--------|-------------|
-| `APP_STORE_CONNECT_API_KEY_ISSUER_ID` | App Store Connect API Key Issuer ID |
-| `APP_STORE_CONNECT_API_KEY_KEY_ID` | App Store Connect API Key ID |
-| `APP_STORE_CONNECT_API_KEY_KEY_CONTENT` | Full contents of the `.p8` private key file |
+The workflow runs the Build Mobile App workflow (build.yml) for the iOS build and version bump, then uploads the resulting IPA to TestFlight.
 
 ## Documentation
 

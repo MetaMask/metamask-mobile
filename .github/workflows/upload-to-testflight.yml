@@ -3,13 +3,7 @@ name: Upload to TestFlight
 # Dedicated workflow to build iOS (via build.yml) and upload to TestFlight.
 # All TestFlight logic lives here; build.yml only builds and uploads artifacts.
 #
-# Push to build/upload-to-testflight runs with default inputs (rc, MetaMask BETA & Release Candidates)
-# for testing. Manual run via workflow_dispatch allows choosing environment and TestFlight group.
-
 on:
-  push:
-    branches:
-      - build/upload-to-testflight
   workflow_dispatch:
     inputs:
       environment:
