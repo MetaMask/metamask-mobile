@@ -56,7 +56,6 @@ const config = {
     '.*/e2e/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
-    '.*\\.view\\.test\\.(ts|tsx|js|jsx)$',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
