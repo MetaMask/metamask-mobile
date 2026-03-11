@@ -9,6 +9,7 @@ import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
@@ -101,12 +102,12 @@ describe(SmokeTrade('Bridge functionality'), () => {
           timeout: 30000,
           description: 'Activity title visible after bridge submission',
         });
-        await Assertions.expectElementToBeVisible(
-          ActivitiesView.confirmedLabel,
+        await Assertions.expectElementToHaveText(
+          ActivitiesView.transactionStatus(0),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
           {
             timeout: 120000,
-            description:
-              'Bridge transaction confirmed after getTxStatus returns COMPLETE',
+            description: 'First transaction row status should show Confirmed',
           },
         );
         await Assertions.expectElementToBeVisible(
