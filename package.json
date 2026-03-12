@@ -577,6 +577,7 @@
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
     "@walletconnect/types": "^2.23.0",
+    "@wdio/protocols": "^9.24.0",
     "@welldone-software/why-did-you-render": "^8.0.1",
     "appium": "^2.12.1",
     "appium-adb": "^9.11.4",
