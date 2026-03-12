@@ -262,6 +262,69 @@ describe('TransactionElement', () => {
     });
   });
 
+  describe('Speed up and Cancel visibility when gas paid with alternate token', () => {
+    it('does not render Speed up and Cancel when selectedGasFeeToken is set', async () => {
+      const txWithGasFeeToken = {
+        id: 'tx-gas-fee-token-1',
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        selectedGasFeeToken: '0x12345678901234567890123456789012345678',
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText, queryByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={txWithGasFeeToken}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      expect(queryByText('Speed up')).toBeNull();
+      expect(queryByText('Cancel')).toBeNull();
+    });
+
+    it('renders Speed up and Cancel when status is submitted and selectedGasFeeToken is not set', async () => {
+      const submittedTx = {
+        id: 'tx-submitted-1',
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={submittedTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      expect(getByText('Speed up')).toBeOnTheScreen();
+      expect(getByText('Cancel')).toBeOnTheScreen();
+    });
+  });
+
   describe('analytics tracking', () => {
     it('tracks Transaction Detail List Item Clicked when pressed', async () => {
       const tx = {

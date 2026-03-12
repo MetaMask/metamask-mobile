@@ -51,6 +51,7 @@ import {
 } from '../../../../selectors/transactionController';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { hasGasFeeTokenSelected } from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -378,7 +379,8 @@ class TransactionDetails extends PureComponent {
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&
       !isSmartTransaction &&
-      !isBridgeTransaction;
+      !isBridgeTransaction &&
+      !hasGasFeeTokenSelected(transactionObject);
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (

@@ -9,6 +9,7 @@ import {
   get4ByteCode,
   getErrorMessage,
   getSeverity,
+  hasGasFeeTokenSelected,
   hasTransactionType,
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
@@ -215,6 +216,28 @@ describe('hasTransactionType', () => {
         TransactionType.cancel,
       ]),
     ).toBe(false);
+  });
+});
+
+describe('hasGasFeeTokenSelected', () => {
+  it('returns false for undefined transaction', () => {
+    expect(hasGasFeeTokenSelected(undefined)).toBe(false);
+  });
+
+  it('returns false for transaction without selectedGasFeeToken', () => {
+    expect(hasGasFeeTokenSelected({})).toBe(false);
+  });
+
+  it('returns false when selectedGasFeeToken is undefined', () => {
+    expect(hasGasFeeTokenSelected({ selectedGasFeeToken: undefined })).toBe(
+      false,
+    );
+  });
+
+  it('returns true when selectedGasFeeToken is set', () => {
+    expect(hasGasFeeTokenSelected({ selectedGasFeeToken: '0xabc123' })).toBe(
+      true,
+    );
   });
 });
 

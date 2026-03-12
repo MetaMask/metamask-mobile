@@ -1,6 +1,6 @@
 import React from 'react';
 import { query } from '@metamask/controller-utils';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -421,6 +421,38 @@ describe('TransactionDetails', () => {
 
     expect(getByText('Speed up')).toBeOnTheScreen();
     expect(getByText('Cancel')).toBeOnTheScreen();
+  });
+
+  it('does not render speed up and cancel buttons when selectedGasFeeToken is set', async () => {
+    const { queryByText, getByText } = renderComponent({
+      state: {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              smartTransactionsOptInStatus: false,
+            },
+          },
+        },
+      },
+      hash: '0x3',
+      txParams: {
+        multiLayerL1FeeTotal: '0x1',
+      },
+      status: 'submitted',
+      transactionObj: {
+        selectedGasFeeToken: '0x12345678901234567890123456789012345678',
+      },
+    });
+
+    await waitFor(() => {
+      expect(getByText('Status')).toBeTruthy();
+    });
+
+    expect(queryByText('Speed up')).toBeNull();
+    expect(queryByText('Cancel')).toBeNull();
   });
 
   it('should render `Batched transactions` tag if there are nested transactions', async () => {
