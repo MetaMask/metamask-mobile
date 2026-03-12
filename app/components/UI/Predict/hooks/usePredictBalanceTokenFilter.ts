@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import { useCallback } from 'react';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../Views/confirmations/constants/predict';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
@@ -10,10 +11,6 @@ import {
 } from '../constants/transactions';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
-import { TransactionType } from '@metamask/transaction-controller';
-
-//TODO: Remove this once the predictDepositAndOrder type is added to the transaction controller
-const PREDICT_DEPOSIT_AND_ORDER_TYPE = 'predictDepositAndOrder';
 
 export function usePredictBalanceTokenFilter(
   forceEnabled = false,
@@ -27,10 +24,7 @@ export function usePredictBalanceTokenFilter(
     (tokens: AssetType[]): AssetType[] => {
       if (
         !forceEnabled &&
-        !hasTransactionType(transactionMeta, [
-          // TODO: Remove this once the predictDepositAndOrder type is added to the transaction controller
-          PREDICT_DEPOSIT_AND_ORDER_TYPE as TransactionType,
-        ])
+        !hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
       ) {
         return tokens;
       }

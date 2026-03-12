@@ -72,22 +72,20 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
   );
 
   const triggerPayWithAnyToken = useCallback(
-    //(params: PredictPayWithAnyTokenParams) => {
-    () => {
-      // TODO: Uncomment this when the confirmation screen is ready
+    (params: PredictPayWithAnyTokenParams) => {
       try {
         payWithAnyTokenConfirmation();
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
           headerShown: false,
-          /* replace: true,
+          replace: true,
           routeParams: {
             market: params.market,
             outcome: params.outcome,
             outcomeToken: params.outcomeToken,
             isConfirmation: true,
             preview: params.preview,
-          }, */
+          },
         });
       } catch (err) {
         handleDepositError(err, 'pay_with_any_token');
