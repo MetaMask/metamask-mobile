@@ -348,6 +348,57 @@ describe('TransactionDetails', () => {
     });
   });
 
+  it('should display explorer link for arbitrum (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0xa4b1';
+      },
+      buttonText: 'View on Arbiscan',
+      expectedUrl: 'https://arbiscan.io/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for polygon (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x89';
+      },
+      buttonText: 'View on Polygonscan',
+      expectedUrl: 'https://polygonscan.com/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for bnb chain (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x38';
+      },
+      buttonText: 'View on Bscscan',
+      expectedUrl: 'https://bscscan.com/tx/0x3',
+    });
+  });
+
   it('should render `Batched transactions` tag if there are nested transactions', async () => {
     const { getByText } = renderComponent({
       state: initialState,
