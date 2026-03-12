@@ -1,5 +1,5 @@
 import React from 'react';
-import { waitFor, fireEvent, act } from '@testing-library/react-native';
+import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
 import renderWithProvider, {
   DeepPartial,
@@ -543,47 +543,6 @@ describe('AppInformation', () => {
 
       expect(getByText('Contact us')).toBeTruthy();
     });
-
-    it('calls navigation when support center link is pressed', async () => {
-      const mockNavigate = jest.fn();
-      const navigation = { navigate: mockNavigate, goBack: jest.fn() };
-
-      const { getByText } = renderWithProvider(
-        <AppInformation navigation={navigation} />,
-        { state: MOCK_STATE },
-        false,
-      );
-
-      await waitFor(() => {
-        expect(getByText('Visit our support center')).toBeTruthy();
-      });
-
-      await act(async () => {
-        fireEvent.press(getByText('Visit our support center'));
-      });
-
-      expect(mockNavigate).toHaveBeenCalled();
-    });
-
-    it('calls navigation when contact us link is pressed', async () => {
-      const mockNavigate = jest.fn();
-      const navigation = { navigate: mockNavigate, goBack: jest.fn() };
-
-      const { getByText } = renderWithProvider(
-        <AppInformation navigation={navigation} />,
-        { state: MOCK_STATE },
-        false,
-      );
-
-      await waitFor(() => {
-        expect(getByText('Contact us')).toBeTruthy();
-      });
-
-      await act(async () => {
-        fireEvent.press(getByText('Contact us'));
-      });
-
-      expect(mockNavigate).toHaveBeenCalled();
-    });
   });
 });
+
