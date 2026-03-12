@@ -10,7 +10,7 @@ import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
 import { PERPS_CURRENCY } from '../../constants/perps';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
 import { noop } from 'lodash';
 
