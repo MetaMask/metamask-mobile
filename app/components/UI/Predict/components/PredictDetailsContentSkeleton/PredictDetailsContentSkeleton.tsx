@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface PredictDetailsContentSkeletonProps {
   testID?: string;

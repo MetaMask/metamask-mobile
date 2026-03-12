@@ -2,7 +2,7 @@ import React from 'react';
 import { Dimensions, ScrollView } from 'react-native';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictHomeFeaturedVariant } from '../../selectors/featureFlags';
 import PredictHomeSkeleton from './PredictHomeSkeleton';
 

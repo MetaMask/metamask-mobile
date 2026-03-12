@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { PredictPosition } from '../../types';
 
 interface PredictPicksForCardItemProps {
