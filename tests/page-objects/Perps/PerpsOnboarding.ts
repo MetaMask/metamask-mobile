@@ -36,7 +36,7 @@ class PerpsOnboarding {
   get addFundsButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText('Add funds'),
-      appium: () => PlaywrightMatchers.getElementByCatchAll('Add funds'),
+      appium: () => PlaywrightMatchers.getElementByText('Add funds'),
     });
   }
 
@@ -44,7 +44,7 @@ class PerpsOnboarding {
   get tutorialTitle(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText('What are perps?'),
-      appium: () => PlaywrightMatchers.getElementByCatchAll('What are perps?'),
+      appium: () => PlaywrightMatchers.getElementByText('What are perps?'),
     });
   }
 

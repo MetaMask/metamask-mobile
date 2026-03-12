@@ -163,19 +163,10 @@ class TabBarComponent {
   }
 
   async tapSettings(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        // Navigate to Wallet first (where the hamburger menu lives)
-        await UnifiedGestures.waitAndTap(this.tabBarWalletButton);
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
-        await Assertions.expectElementToBeVisible(SettingsView.title);
-      },
-      {
-        timeout: 45000,
-        description: 'Tap Settings Button',
-      },
-    );
+    await UnifiedGestures.waitAndTap(this.tabBarWalletButton);
+    await Assertions.expectElementToBeVisible(WalletView.container);
+    await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
+    await Assertions.expectElementToBeVisible(SettingsView.title);
   }
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(

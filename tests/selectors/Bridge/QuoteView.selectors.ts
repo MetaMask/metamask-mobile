@@ -49,6 +49,7 @@ export const QuoteViewSelectorIDs = {
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
   CONFIRM_BUTTON: 'bridge-confirm-button',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
   BACK_BUTTON: 'button-icon',
 };

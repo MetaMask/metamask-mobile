@@ -1,7 +1,4 @@
-import {
-  WalletActionsBottomSheetSelectorsIDs,
-  WalletActionsBottomSheetSelectorsText,
-} from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
@@ -57,8 +54,9 @@ class WalletActionsBottomSheet {
           WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByCatchAll(
-          WalletActionsBottomSheetSelectorsText.PERPS_DESCRIPTION,
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+          { exact: true },
         ),
     });
   }
@@ -70,8 +68,9 @@ class WalletActionsBottomSheet {
           WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByCatchAll(
-          WalletActionsBottomSheetSelectorsText.PREDICT_DESCRIPTION,
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+          { exact: true },
         ),
     });
   }

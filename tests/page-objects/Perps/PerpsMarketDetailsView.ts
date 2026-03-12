@@ -41,9 +41,12 @@ class PerpsMarketDetailsView {
       detox: () =>
         Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       appium: () =>
-        PlaywrightMatchers.getElementById('perps-market-header', {
-          exact: true,
-        }),
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.HEADER,
+          {
+            exact: true,
+          },
+        ),
     });
   }
 

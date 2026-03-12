@@ -15,7 +15,6 @@ import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/Wal
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-  FEE_DISCLAIMER_QUOTE_VISIBLE,
   getChainIdForNetwork,
 } from '../../selectors/Bridge/QuoteView.selectors';
 
@@ -99,12 +98,14 @@ class QuoteView {
     });
   }
 
-  /** Fee disclaimer text (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
+  /** Fee disclaimer (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
   get feeDisclaimerLabel(): EncapsulatedElementType {
     return encapsulated({
-      detox: () => Matchers.getElementByText(FEE_DISCLAIMER_QUOTE_VISIBLE),
+      detox: () => Matchers.getElementByID(QuoteViewSelectorIDs.FEE_DISCLAIMER),
       appium: () =>
-        PlaywrightMatchers.getElementByCatchAll(FEE_DISCLAIMER_QUOTE_VISIBLE),
+        PlaywrightMatchers.getElementById(QuoteViewSelectorIDs.FEE_DISCLAIMER, {
+          exact: true,
+        }),
     });
   }
 
