@@ -56,6 +56,22 @@ function getEncapsulatedGetterNames(pageObject: object): string[] {
   return names;
 }
 
+function atLeastOneDetoxMatcherWasCalled(): void {
+  const detoxCallCount =
+    (Matchers.getElementByID as jest.Mock).mock.calls.length +
+    (Matchers.getElementByText as jest.Mock).mock.calls.length;
+  expect(detoxCallCount).toBeGreaterThan(0);
+}
+
+function atLeastOnePlaywrightMatcherWasCalled(): void {
+  const playwrightCallCount =
+    (PlaywrightMatchers.getElementById as jest.Mock).mock.calls.length +
+    (PlaywrightMatchers.getElementByText as jest.Mock).mock.calls.length +
+    (PlaywrightMatchers.getElementByAccessibilityId as jest.Mock).mock.calls
+      .length;
+  expect(playwrightCallCount).toBeGreaterThan(0);
+}
+
 function noPlaywrightMatcherWasCalled(): void {
   expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalled();
   expect(PlaywrightMatchers.getElementByText).not.toHaveBeenCalled();
@@ -89,6 +105,7 @@ function describeGetters(
           );
           await Promise.resolve(descriptor?.get?.call(pageObject));
 
+          atLeastOneDetoxMatcherWasCalled();
           noPlaywrightMatcherWasCalled();
         });
       }
@@ -116,6 +133,7 @@ function describeGetters(
           );
           await Promise.resolve(descriptor?.get?.call(pageObject));
 
+          atLeastOnePlaywrightMatcherWasCalled();
           noDetoxMatcherWasCalled();
         });
       }
@@ -143,6 +161,7 @@ function describeGetters(
           );
           await Promise.resolve(descriptor?.get?.call(pageObject));
 
+          atLeastOnePlaywrightMatcherWasCalled();
           noDetoxMatcherWasCalled();
         });
       }
