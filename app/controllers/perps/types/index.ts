@@ -403,6 +403,10 @@ export type PerpsMarketData = {
    * Multi-provider: which provider this market data comes from (injected by aggregator)
    */
   providerId?: PerpsProviderType;
+  /**
+   * Indicates this market snapshot came from the last known good cache after live fetch failure.
+   */
+  isStale?: boolean;
 };
 
 export type ToggleTestnetResult = {

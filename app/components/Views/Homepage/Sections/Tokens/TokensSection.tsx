@@ -179,7 +179,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
 
-    useHomeViewedEvent({
+    const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
       isLoading: false,
       sectionName: HomeSectionNames.TOKENS,
@@ -199,7 +199,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }, [refresh]);
 
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={handleViewAllTokens} />
           {showTokensError ? (

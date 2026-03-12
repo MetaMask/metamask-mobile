@@ -109,8 +109,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
 
-    // When user has no positions/orders, keep skeleton visible until markets
-    // load so the section doesn't flash empty while trending tiles are fetched.
+    // When user has no positions/orders, keep skeleton visible until markets load.
     const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
     const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 
@@ -229,7 +228,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const isLoadingSection = hookLoading || deferredLoading || pendingTrending;
     const willRender = !isLoadingSection;
 
-    useHomeViewedEvent({
+    const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading: isLoadingSection,
       sectionName: HomeSectionNames.PERPS,
@@ -241,7 +240,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef}>
+        <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>
             <SectionHeader title={title} onPress={handleViewAllPerps} />
             <ErrorState
@@ -256,7 +255,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={handleViewAllPerps} />
           {showSkeleton || pendingTrending ? (
