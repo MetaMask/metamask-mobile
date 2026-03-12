@@ -175,7 +175,9 @@ const RewardsDashboard: React.FC = () => {
   );
 
   // Check if user is in the UK (mUSD not available in UK)
-  const isUkUser = geoLocation === 'GB' || geoLocation === 'UK';
+  // geoLocation values are region-suffixed (e.g., 'UK-ENG', 'GB-SCT', 'US-NY')
+  const isUkUser =
+    geoLocation?.startsWith('GB') || geoLocation?.startsWith('UK');
 
   const tabOptions = useMemo(() => {
     const options: { value: 'musd' | 'season1'; label: string }[] = [];

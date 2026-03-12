@@ -558,7 +558,7 @@ describe('RewardsDashboard', () => {
   const pastDate = new Date(Date.now() - 86400000).toISOString(); // Yesterday
 
   const defaultSelectorValues = {
-    activeTab: 'overview' as const,
+    activeTab: 'musd' as const,
     subscriptionId: 'test-subscription-id',
     seasonId: currentSeasonId,
     seasonEndDate: new Date(futureDate), // Season is active by default
@@ -567,7 +567,7 @@ describe('RewardsDashboard', () => {
     selectedAccount: mockSelectedAccount,
     selectedAccountGroup: mockSelectedAccountGroup,
     isSnapshotsEnabled: true, // Enable snapshots by default in tests
-    geoLocation: 'US', // Default to non-UK location
+    geoLocation: 'US-NY', // Default to non-UK location (region-suffixed)
   };
 
   const defaultHookValues = {
@@ -887,9 +887,9 @@ describe('RewardsDashboard', () => {
   });
 
   describe('geolocation-based content', () => {
-    it('hides mUSD tab and shows only Season 1 content for UK users (GB)', () => {
-      // Arrange
-      mockSelectGeoLocation.mockReturnValue('GB');
+    it('hides mUSD tab and shows only Season 1 content for UK users (GB-ENG)', () => {
+      // Arrange - geoLocation is region-suffixed (e.g., 'GB-ENG')
+      mockSelectGeoLocation.mockReturnValue('GB-ENG');
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
@@ -906,7 +906,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'GB';
+        if (selector === selectGeoLocation) return 'GB-ENG';
         return undefined;
       });
 
@@ -921,9 +921,9 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId('season-status')).toBeOnTheScreen();
     });
 
-    it('hides mUSD tab and shows only Season 1 content for UK users (UK)', () => {
-      // Arrange
-      mockSelectGeoLocation.mockReturnValue('UK');
+    it('hides mUSD tab and shows only Season 1 content for UK users (UK-SCT)', () => {
+      // Arrange - geoLocation is region-suffixed (e.g., 'UK-SCT')
+      mockSelectGeoLocation.mockReturnValue('UK-SCT');
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
@@ -940,7 +940,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'UK';
+        if (selector === selectGeoLocation) return 'UK-SCT';
         return undefined;
       });
 
@@ -956,8 +956,8 @@ describe('RewardsDashboard', () => {
     });
 
     it('displays mUSD calculator content and tabs for non-UK users', () => {
-      // Arrange - US location (default)
-      mockSelectGeoLocation.mockReturnValue('US');
+      // Arrange - US location (region-suffixed)
+      mockSelectGeoLocation.mockReturnValue('US-NY');
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
@@ -974,7 +974,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'US';
+        if (selector === selectGeoLocation) return 'US-NY';
         return undefined;
       });
 
@@ -1026,7 +1026,8 @@ describe('RewardsDashboard', () => {
 
     it('resets activeTab to season1 for UK users when activeTab is musd', () => {
       // Arrange - UK user with activeTab set to 'musd' (which is unavailable for them)
-      mockSelectGeoLocation.mockReturnValue('GB');
+      // geoLocation is region-suffixed (e.g., 'GB-ENG')
+      mockSelectGeoLocation.mockReturnValue('GB-ENG');
       mockSelectActiveTab.mockReturnValue('musd');
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab) return 'musd';
@@ -1043,7 +1044,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'GB';
+        if (selector === selectGeoLocation) return 'GB-ENG';
         return undefined;
       });
 
