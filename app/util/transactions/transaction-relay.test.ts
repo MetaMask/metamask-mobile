@@ -12,7 +12,10 @@ import {
 } from './transaction-relay';
 
 import jsonRpcRequest from '../../util/jsonRpcRequest';
-import { getSentinelNetworkFlags } from './sentinel-api';
+import {
+  getSentinelApiHeadersAsync,
+  getSentinelNetworkFlags,
+} from './sentinel-api';
 
 jest.useFakeTimers();
 
@@ -25,6 +28,9 @@ jest.mock('./sentinel-api', () => ({
 
 describe('Transaction Relay (mobile)', () => {
   const jsonRpcRequestMock = jest.mocked(jsonRpcRequest);
+  const getSentinelApiHeadersAsyncMock = jest.mocked(
+    getSentinelApiHeadersAsync,
+  );
   const getSentinelNetworkFlagsMock = jest.mocked(getSentinelNetworkFlags);
 
   const TRANSACTION_HASH_MOCK = '0x123';
@@ -83,6 +89,7 @@ describe('Transaction Relay (mobile)', () => {
     jest.resetAllMocks();
     jest.clearAllTimers();
     global.fetch = jest.fn() as unknown as typeof fetch;
+    getSentinelApiHeadersAsyncMock.mockResolvedValue({});
     mockRelaySupported();
     jsonRpcRequestMock.mockResolvedValue({
       uuid: UUID_MOCK,
