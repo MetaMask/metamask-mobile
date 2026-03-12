@@ -14,6 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 export interface ResultTypeConfig {
   label: string;
   textColor: TextColor;
+  subtitle?: string;
   icon?: IconName;
   iconColor?: IconColor;
 }
@@ -27,6 +28,7 @@ export const getResultTypeConfig = (
       return {
         label: strings('security_trust.safe'),
         textColor: TextColor.SuccessDefault,
+        subtitle: strings('security_trust.subtitle_safe'),
         icon: IconName.SecurityTick,
         iconColor: IconColor.SuccessDefault,
       };
@@ -35,6 +37,7 @@ export const getResultTypeConfig = (
       return {
         label: strings('security_trust.medium_risk'),
         textColor: TextColor.WarningDefault,
+        subtitle: strings('security_trust.subtitle_medium_risk'),
         icon: IconName.Warning,
         iconColor: IconColor.WarningDefault,
       };
@@ -42,13 +45,15 @@ export const getResultTypeConfig = (
       return {
         label: strings('security_trust.high_risk'),
         textColor: TextColor.ErrorDefault,
+        subtitle: strings('security_trust.subtitle_high_risk'),
         icon: IconName.Danger,
         iconColor: IconColor.ErrorDefault,
       };
     default:
       return {
-        label: strings('security_trust.unknown'),
-        textColor: TextColor.TextDefault,
+        label: strings('security_trust.data_unavailable'),
+        textColor: TextColor.TextAlternative,
+        subtitle: strings('security_trust.subtitle_unavailable'),
       };
   }
 };

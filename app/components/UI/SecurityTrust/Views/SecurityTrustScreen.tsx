@@ -64,9 +64,13 @@ const SecurityTrustScreen: React.FC = () => {
     true,
   );
 
-  const { icon: tagIcon, iconColor: tagIconColor } = getResultTypeConfig(
-    securityData?.resultType,
-  );
+  const {
+    label: resultLabel,
+    textColor: resultTextColor,
+    subtitle: resultSubtitle,
+    icon: tagIcon,
+    iconColor: tagIconColor,
+  } = getResultTypeConfig(securityData?.resultType);
   const financialStats = securityData?.financialStats ?? null;
   const metadata = securityData?.metadata ?? null;
 
@@ -116,43 +120,6 @@ const SecurityTrustScreen: React.FC = () => {
     [insets.bottom],
   );
 
-  const RESULT_CONFIG: Record<
-    string,
-    { heading: string; headingColor: TextColor; subtitle: string }
-  > = {
-    Verified: {
-      heading: strings('security_trust.safe'),
-      headingColor: TextColor.SuccessDefault,
-      subtitle: strings('security_trust.subtitle_safe'),
-    },
-    Benign: {
-      heading: strings('security_trust.safe'),
-      headingColor: TextColor.SuccessDefault,
-      subtitle: strings('security_trust.subtitle_safe'),
-    },
-    Warning: {
-      heading: strings('security_trust.medium_risk'),
-      headingColor: TextColor.WarningDefault,
-      subtitle: strings('security_trust.subtitle_medium_risk'),
-    },
-    Spam: {
-      heading: strings('security_trust.medium_risk'),
-      headingColor: TextColor.WarningDefault,
-      subtitle: strings('security_trust.subtitle_medium_risk'),
-    },
-    Malicious: {
-      heading: strings('security_trust.high_risk'),
-      headingColor: TextColor.ErrorDefault,
-      subtitle: strings('security_trust.subtitle_high_risk'),
-    },
-  };
-
-  const resultConfig = RESULT_CONFIG[securityData?.resultType ?? ''] ?? {
-    heading: strings('security_trust.data_unavailable'),
-    headingColor: TextColor.TextAlternative,
-    subtitle: strings('security_trust.subtitle_unavailable'),
-  };
-
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
       <Box
@@ -196,14 +163,11 @@ const SecurityTrustScreen: React.FC = () => {
           twClassName="px-4 pt-3 self-stretch"
           gap={3}
         >
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={resultConfig.headingColor}
-          >
-            {resultConfig.heading}
+          <Text variant={TextVariant.HeadingMd} color={resultTextColor}>
+            {resultLabel}
           </Text>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {resultConfig.subtitle}
+            {resultSubtitle}
           </Text>
           {featureTags.length > 0 && (
             <Box
@@ -227,9 +191,8 @@ const SecurityTrustScreen: React.FC = () => {
                     />
                   )}
                   <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    fontWeight={FontWeight.Medium}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
                   >
                     {tag.label}
                   </Text>
