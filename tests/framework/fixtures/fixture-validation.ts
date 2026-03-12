@@ -208,6 +208,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Per-wallet secrets and dynamic IDs (change every onboarding) ──
     'engine.backgroundState.AccountsController.internalAccounts.selectedAccount',
     'engine.backgroundState.AccountsController.internalAccounts.accounts',
+    'engine.backgroundState.AccountsController.accountIdByAddress',
     'engine.backgroundState.AccountTrackerController.accountsByChainId',
     'engine.backgroundState.KeyringController.keyrings',
     'engine.backgroundState.KeyringController.vault',

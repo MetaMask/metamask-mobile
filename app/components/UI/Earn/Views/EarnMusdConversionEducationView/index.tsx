@@ -316,6 +316,15 @@ const EarnMusdConversionEducationView = () => {
   };
 
   const handleTermsOfUsePressed = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
+        .addProperties({
+          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        })
+        .build(),
+    );
+
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   };
 
