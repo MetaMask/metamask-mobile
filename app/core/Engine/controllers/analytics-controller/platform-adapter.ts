@@ -10,9 +10,9 @@ import {
   TimerFlushPolicy,
   type SegmentClient,
 } from '@segment/analytics-react-native';
-import { segmentPersistor } from '../../../Analytics/SegmentPersistor';
+import { segmentPersistor } from '../../../../util/analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
-import MetaMetricsPrivacySegmentPlugin from '../../../Analytics/MetaMetricsPrivacySegmentPlugin';
+import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
 const getSegmentClient = (): SegmentClient => {
   const config: Config = {

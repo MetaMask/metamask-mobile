@@ -161,6 +161,7 @@ const PerpsWithdrawView: React.FC = () => {
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.WITHDRAWAL,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.WITHDRAW_BUTTON,
     },
   });
 

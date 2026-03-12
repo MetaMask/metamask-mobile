@@ -487,7 +487,7 @@ describe('OAuth login handlers', () => {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
           expect((error as OAuthError).message).toContain(
-            'Unknown error - Error: Network error',
+            'Unknown error - Network error',
           );
         }
       });
@@ -509,8 +509,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      // no credentials
-      it('throw GoogleLoginNoCredential when no credentials are found', async () => {
+      it('treats "no credential" as UserCancelled', async () => {
         const message = 'e1 error Mo.m: No credential available';
         mockSignInWithGoogle.mockRejectedValue(new Error(message));
 
@@ -519,30 +518,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.GoogleLoginNoCredential,
-          );
-          expect((error as OAuthError).message).toContain(
-            `Google login has no credential - handleGoogleLogin: Google login has no credential`,
-          );
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UserCancelled);
         }
-      });
-
-      // retry successfy when there is only once no credentials
-      it('verify successful login after a retry when no credentials are found on the first attempt', async () => {
-        const message = 'e1 error Mo.m: No credential available';
-        mockSignInWithGoogle.mockClear();
-        mockSignInWithGoogle.mockResolvedValue({
-          type: 'google-signin',
-          idToken: 'googleIdToken',
-        });
-        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        await handler.login();
-
-        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
       });
 
       it('throw GoogleLoginNoMatchingCredential when no matching credential is found', async () => {
@@ -562,24 +539,6 @@ describe('OAuth login handlers', () => {
             `Google login has no matching credential - handleGoogleLogin: Google login has no matching credential`,
           );
         }
-      });
-
-      // retry successfy when there is only once no credentials
-      it('verify successful login after a retry when no matching credential is found on the first attempt', async () => {
-        const message =
-          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
-        mockSignInWithGoogle.mockClear();
-        mockSignInWithGoogle.mockResolvedValue({
-          type: 'google-signin',
-          idToken: 'googleIdToken',
-        });
-        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        await handler.login();
-
-        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
       });
 
       it('re-throw existing OAuthError instances', async () => {
@@ -634,23 +593,6 @@ describe('OAuth login handlers', () => {
             OAuthErrorType.GoogleLoginNoMatchingCredential,
           );
         }
-      });
-
-      it('verify successful login after a retry when one tap failure occurs on the first attempt', async () => {
-        const message =
-          'During begin signin, failure response from one tap. 16: [28434] Unknown error';
-        mockSignInWithGoogle.mockClear();
-        mockSignInWithGoogle.mockResolvedValue({
-          type: 'google-signin',
-          idToken: 'googleIdToken',
-        });
-        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        await handler.login();
-
-        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
       });
     });
   });

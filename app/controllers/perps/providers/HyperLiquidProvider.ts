@@ -1049,9 +1049,14 @@ export class HyperLiquidProvider implements PerpsProvider {
     try {
       allDexs = await infoClient.perpDexs();
     } catch (error) {
-      this.#deps.logger.error(
-        ensureError(error, 'HyperLiquidProvider.fetchValidatedDexsInternal'),
-        this.#getErrorContext('getValidatedDexs.perpDexs'),
+      // debugLogger not logger.error: this is a handled transient failure — the app
+      // recovers to main DEX via return [null]. Sending to Sentry as error() is noise.
+      this.#deps.debugLogger.log(
+        '[fetchValidatedDexsInternal] perpDexs() call failed, falling back to main DEX',
+        {
+          error: String(error),
+          ...this.#getErrorContext('getValidatedDexs.perpDexs'),
+        },
       );
       // Do not cache — transient error, allow retry on next call
       return [null];
