@@ -1179,7 +1179,12 @@ class AuthenticationService {
           error instanceof Error ? error.message : 'Unknown error';
 
         // trace only if error is not an incorrect password error
-        if (!containsErrorMessage(error as Error, 'Incorrect password')) {
+        if (
+          !containsErrorMessage(
+            error as Error,
+            SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+          )
+        ) {
           trace({
             name: TraceName.OnboardingFetchSrpsError,
             op: TraceOperation.OnboardingError,
