@@ -384,18 +384,9 @@ step "Starting Metro" "Bundler on port $PORT → logs at $LOGFILE"
 bash "$SCRIPTS/start-metro.sh" --platform "$PLAT" $($DO_LAUNCH && echo "--launch" || echo "")
 ok "Metro running on port $PORT"
 
-# ── Launch app if not already running ─────────────────────────────
-if $DO_LAUNCH; then
-  if [ "$PLAT" = "ios" ]; then
-    echo "  Launching $BUNDLE_ID on $SIM_TARGET..."
-    xcrun simctl launch "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || warn "simctl launch returned non-zero (app may already be running)"
-  else
-    echo "  Launching $PACKAGE_ID on device..."
-    $ADB_CMD shell am start -n "$PACKAGE_ID/.MainActivity" 2>/dev/null || warn "am start returned non-zero"
-  fi
-  sleep 3
-  ok "App launched"
-fi
+# NOTE: App launch is handled by start-metro.sh --launch (via expo deeplink).
+# Do NOT launch again here with plain simctl launch / am start — that would
+# kill the expo dev client connection and show the server picker.
 
 # ── Step: CDP ───────────────────────────────────────────────────────
 step "Connecting CDP" "Waiting for app to expose debug target"

@@ -50,7 +50,7 @@ PLAT=$(detect_platform)
 # ── Platform-specific constants ────────────────────────────────────
 if [ "$PLAT" = "ios" ]; then
   BUNDLE_ID="io.metamask.MetaMask"
-  SIM_TARGET="${SIM_UDID:-booted}"
+  SIM_TARGET="${SIM_UDID:-${IOS_SIMULATOR:-booted}}"
 else
   PACKAGE_ID="io.metamask"
   ADB_TARGET=$(adb devices 2>/dev/null | awk '/\tdevice$/{print $1; exit}' || true)
@@ -72,7 +72,7 @@ if [ -n "${PLATFORM:-}" ] && [ "$PLAT" != "$PLATFORM" ]; then
   PLAT="$PLATFORM"
   if [ "$PLAT" = "ios" ]; then
     BUNDLE_ID="io.metamask.MetaMask"
-    SIM_TARGET="${SIM_UDID:-booted}"
+    SIM_TARGET="${SIM_UDID:-${IOS_SIMULATOR:-booted}}"
   else
     PACKAGE_ID="io.metamask"
     ADB_TARGET=$(adb devices 2>/dev/null | awk '/\tdevice$/{print $1; exit}' || true)
