@@ -1539,13 +1539,12 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ bottom: 'additive' }}
+          edges={{ top: 'additive' }}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
               <HeaderRoot
-                includesTopInset
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                 endAccessory={
                   <View style={styles.headerEndAccessoryContainer}>
