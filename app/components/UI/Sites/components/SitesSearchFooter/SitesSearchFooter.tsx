@@ -14,6 +14,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
+import { SEARCH_ENGINE_URLS } from '../../../../../util/browser';
+import AppConstants from '../../../../../core/AppConstants';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -72,13 +74,14 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
   const isUrl = looksLikeUrl(searchQuery.toLowerCase());
 
+  const engineKey = searchEngine ?? AppConstants.DEFAULT_SEARCH_ENGINE;
+  const resolvedEngine = SEARCH_ENGINE_URLS[engineKey]
+    ? engineKey
+    : AppConstants.DEFAULT_SEARCH_ENGINE;
   const searchUrl =
-    searchEngine === 'DuckDuckGo'
-      ? `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`
-      : `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+    SEARCH_ENGINE_URLS[resolvedEngine] + encodeURIComponent(searchQuery);
 
-  const searchEngineLabel =
-    searchEngine === 'DuckDuckGo' ? 'DuckDuckGo' : 'Google';
+  const searchEngineLabel = resolvedEngine;
 
   return (
     <Box style={containerStyle}>
@@ -110,7 +113,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
         onPress={() => handlePress(searchUrl)}
-        testID="trending-search-footer-google-link"
+        testID="trending-search-footer-search-link"
       >
         <Box twClassName="flex-1 flex-row items-center">
           <Text
