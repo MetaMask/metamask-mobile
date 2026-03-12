@@ -10,7 +10,11 @@ import {
   BoxProps,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 import {
@@ -18,6 +22,7 @@ import {
   getSearchUrl,
   navigateToBrowser,
 } from '../../utils/search';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -28,13 +33,6 @@ export interface SitesSearchFooterProps {
    */
   onPress?: (url: string) => void;
   containerStyle?: BoxProps['style'];
-}
-
-/**
- * Checks if a string looks like a URL
- */
-function looksLikeUrl(str: string): boolean {
-  return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
 }
 
 export const useSearchFooterBrowserNavigation = () => {
