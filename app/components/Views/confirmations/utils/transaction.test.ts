@@ -225,19 +225,25 @@ describe('hasGasFeeTokenSelected', () => {
   });
 
   it('returns false for transaction without selectedGasFeeToken', () => {
-    expect(hasGasFeeTokenSelected({})).toBe(false);
-  });
-
-  it('returns false when selectedGasFeeToken is undefined', () => {
-    expect(hasGasFeeTokenSelected({ selectedGasFeeToken: undefined })).toBe(
+    expect(hasGasFeeTokenSelected({} as unknown as TransactionMeta)).toBe(
       false,
     );
   });
 
+  it('returns false when selectedGasFeeToken is undefined', () => {
+    expect(
+      hasGasFeeTokenSelected({
+        selectedGasFeeToken: undefined,
+      } as unknown as TransactionMeta),
+    ).toBe(false);
+  });
+
   it('returns true when selectedGasFeeToken is set', () => {
-    expect(hasGasFeeTokenSelected({ selectedGasFeeToken: '0xabc123' })).toBe(
-      true,
-    );
+    expect(
+      hasGasFeeTokenSelected({
+        selectedGasFeeToken: '0xabc123',
+      } as unknown as TransactionMeta),
+    ).toBe(true);
   });
 });
 
