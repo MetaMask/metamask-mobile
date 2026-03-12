@@ -9,7 +9,7 @@ jest.mock('./known-feature-flag-constants', () => ({
 jest.mock('@actions/github', () => ({
   context: { payload: {}, repo: { owner: 'test', repo: 'test' } },
   getOctokit: jest.fn(),
-}));
+}), { virtual: true });
 
 import {
   parseDiff,
