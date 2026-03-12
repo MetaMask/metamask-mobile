@@ -87,6 +87,21 @@ echo "Fixture OK: password + ${ACCOUNT_COUNT} account(s)"
 $CDP eval "JSON.stringify({ok:true})" >/dev/null 2>&1 || { echo "ERROR: CDP not reachable"; exit 1; }
 echo "CDP bridge connected."
 
+# -- Wait for Engine to be ready (KeyringController must exist) --
+ENGINE_WAIT=0
+ENGINE_MAX=30
+while [ $ENGINE_WAIT -lt $ENGINE_MAX ]; do
+  ENGINE_OK=$(cdp_eval "(function(){ return Engine && Engine.context && Engine.context.KeyringController ? 'ready' : 'waiting'; })()" 2>/dev/null || echo "")
+  [ "$ENGINE_OK" = "ready" ] && break
+  sleep 1
+  ENGINE_WAIT=$((ENGINE_WAIT + 1))
+  [ $ENGINE_WAIT -eq 5 ] && echo "Waiting for Engine to initialize..."
+done
+if [ "$ENGINE_OK" != "ready" ]; then
+  echo "ERROR: Engine.context.KeyringController not available after ${ENGINE_MAX}s"
+  exit 1
+fi
+
 # -- Check vault state --
 VAULT_STATE=$(cdp_eval "(function(){ var v = Engine.context.KeyringController.state; return JSON.stringify({hasVault: v.vault !== undefined && v.vault !== null, isUnlocked: v.isUnlocked}); })()")
 HAS_VAULT=$(echo "$VAULT_STATE" | jq -r '.hasVault')
