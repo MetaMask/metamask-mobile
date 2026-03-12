@@ -46,7 +46,7 @@ const CashSection = ({
     navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW as never);
   }, [navigation]);
 
-  useHomeViewedEvent({
+  const { onLayout } = useHomeViewedEvent({
     sectionRef: sectionViewRef,
     isLoading: false,
     sectionName: HomeSectionNames.CASH,
@@ -66,7 +66,7 @@ const CashSection = ({
   const title = strings('homepage.sections.cash');
 
   return (
-    <View ref={sectionViewRef}>
+    <View ref={sectionViewRef} onLayout={onLayout}>
       <Box gap={3}>
         <SectionHeader title={title} onPress={handleViewCashTokens} />
         {!hasMusdBalanceOnAnyChain ? (
