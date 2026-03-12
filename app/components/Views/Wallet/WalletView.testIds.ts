@@ -89,6 +89,8 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
+  WALLET_HEADER_ROOT: 'wallet-header-root',
+  WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
   HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
     `homepage-section-title-${sectionName}`,
