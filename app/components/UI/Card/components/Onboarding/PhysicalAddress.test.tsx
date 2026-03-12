@@ -1832,4 +1832,90 @@ describe('PhysicalAddress Component', () => {
       expect(buttonText.props.children).toBe('Continue');
     });
   });
+
+  describe('Error Reset on Field Change', () => {
+    it('clears consent error when address field is edited', () => {
+      const mockResetConsent = jest.fn();
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
+        getOnboardingConsentSetByOnboardingId: jest
+          .fn()
+          .mockResolvedValue(null),
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        error: 'Consent failed',
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: mockResetConsent,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '456 Oak Ave');
+
+      expect(mockResetConsent).toHaveBeenCalled();
+    });
+
+    it('clears consent error when city field is edited', () => {
+      const mockResetConsent = jest.fn();
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
+        getOnboardingConsentSetByOnboardingId: jest
+          .fn()
+          .mockResolvedValue(null),
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        error: 'Consent failed',
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: mockResetConsent,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+
+      expect(mockResetConsent).toHaveBeenCalled();
+    });
+
+    it('clears consent error when zip code field is edited', () => {
+      const mockResetConsent = jest.fn();
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
+        getOnboardingConsentSetByOnboardingId: jest
+          .fn()
+          .mockResolvedValue(null),
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        error: 'Consent failed',
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: mockResetConsent,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+
+      expect(mockResetConsent).toHaveBeenCalled();
+    });
+  });
 });
