@@ -1,10 +1,8 @@
-import { device } from 'detox';
 import {
   NetworkEducationModalSelectorsIDs,
   NetworkEducationModalSelectorsText,
 } from '../../../app/components/UI/NetworkInfo/NetworkEducationModal.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   encapsulated,
@@ -62,10 +60,17 @@ class NetworkEducationModal {
     );
   }
 
-  get networkName(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkEducationModalSelectorsIDs.NETWORK_NAME,
-    );
+  /** Network name - wdio uses networkEducationNetworkName */
+  get networkName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworkEducationModalSelectorsIDs.NETWORK_NAME),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkEducationModalSelectorsIDs.NETWORK_NAME,
+          { exact: true },
+        ),
+    });
   }
 
   async tapGotItButton(): Promise<void> {
@@ -75,7 +80,9 @@ class NetworkEducationModal {
   }
 
   async tapNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.networkName);
+    await UnifiedGestures.waitAndTap(this.networkName, {
+      description: 'Network name',
+    });
   }
 }
 

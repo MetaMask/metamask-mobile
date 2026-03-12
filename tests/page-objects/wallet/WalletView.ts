@@ -575,6 +575,17 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
   }
 
+  get tokensSection(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        ),
+    });
+  }
+
   /** NFTs section header on the homepage. */
   get nftsSectionHeader(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
@@ -584,6 +595,21 @@ class WalletView {
     await Gestures.waitAndTap(this.tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'New Tokens Section',
+    });
+  }
+
+  async tapOnTokensSection(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'Tokens Section',
+        });
+      },
+      appium: async () => {
+        const el = await asPlaywrightElement(this.tokensSection);
+        await el.click();
+      },
     });
   }
 

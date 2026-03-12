@@ -1,4 +1,3 @@
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
@@ -9,8 +8,16 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PerpsTutorialSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
 class PerpsOnboarding {
-  get continueButton(): DetoxElement {
-    return Matchers.getElementByID(PerpsTutorialSelectorsIDs.CONTINUE_BUTTON);
+  get continueButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsTutorialSelectorsIDs.CONTINUE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsTutorialSelectorsIDs.CONTINUE_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   get skipButton(): EncapsulatedElementType {
@@ -42,8 +49,8 @@ class PerpsOnboarding {
   }
 
   async tapContinueButton(): Promise<void> {
-    await Gestures.waitAndTap(this.continueButton, {
-      elemDescription: 'Perps Tutorial Continue Button',
+    await UnifiedGestures.waitAndTap(this.continueButton, {
+      description: 'Perps Tutorial Continue Button',
     });
   }
 

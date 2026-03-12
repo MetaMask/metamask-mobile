@@ -7,6 +7,7 @@ import {
   UnifiedGestures,
   encapsulated,
   encapsulatedAction,
+  asDetoxElement,
   asPlaywrightElement,
   type EncapsulatedElementType,
 } from '../../framework';
@@ -285,10 +286,13 @@ class QuoteView {
   async isVisible(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Assertions.expectElementToBeVisible(this.amountInput, {
-          timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
-          description: 'Swap screen source token input should be visible',
-        });
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.amountInput),
+          {
+            timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
+            description: 'Swap screen source token input should be visible',
+          },
+        );
       },
       appium: async () => {
         const el = await asPlaywrightElement(this.amountInput);
@@ -304,10 +308,13 @@ class QuoteView {
   async isQuoteDisplayed(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Assertions.expectElementToBeVisible(this.feeDisclaimerLabel, {
-          timeout: TIMEOUT.QUOTE_DISPLAYED,
-          description: 'Fee disclaimer (quote) should be visible',
-        });
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.feeDisclaimerLabel),
+          {
+            timeout: TIMEOUT.QUOTE_DISPLAYED,
+            description: 'Fee disclaimer (quote) should be visible',
+          },
+        );
       },
       appium: async () => {
         const el = await asPlaywrightElement(this.feeDisclaimerLabel);

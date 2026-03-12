@@ -1,12 +1,17 @@
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
+import {
+  WalletActionsBottomSheetSelectorsIDs,
+  WalletActionsBottomSheetSelectorsText,
+} from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   encapsulated,
   EncapsulatedElementType,
+  asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 
 class WalletActionsBottomSheet {
   get sendButton(): DetoxElement {
@@ -52,16 +57,23 @@ class WalletActionsBottomSheet {
           WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
-          { exact: true },
+        PlaywrightMatchers.getElementByCatchAll(
+          WalletActionsBottomSheetSelectorsText.PERPS_DESCRIPTION,
         ),
     });
   }
-  get predictButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
-    );
+
+  get predictButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByCatchAll(
+          WalletActionsBottomSheetSelectorsText.PREDICT_DESCRIPTION,
+        ),
+    });
   }
 
   async tapSendButton(): Promise<void> {
@@ -99,7 +111,18 @@ class WalletActionsBottomSheet {
   }
 
   async tapPredictButton(): Promise<void> {
-    await Gestures.waitAndTap(this.predictButton);
+    await UnifiedGestures.waitAndTap(this.predictButton, {
+      description: 'Predict Button',
+    });
+  }
+  // We would need to update this as assertions should not live in page objects
+  async checkModalVisibility(): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const resolved = await asPlaywrightElement(this.perpsButton);
+        await resolved.waitForDisplayed({ timeout: 5000 });
+      },
+    });
   }
 
   async swipeDownActionsBottomSheet(): Promise<void> {
