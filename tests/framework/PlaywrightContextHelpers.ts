@@ -15,24 +15,16 @@ const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
 export default class PlaywrightContextHelpers {
   private static readonly WEBVIEW_TIMEOUT_MS = 30_000;
   private static readonly POLL_INTERVAL_MS = 1_000;
-  private static driverInstance: WebdriverIO.Browser;
-
-  private static getDriver(): WebdriverIO.Browser {
-    if (!this.driverInstance) {
-      this.driverInstance = getDriver();
-    }
-    return this.driverInstance;
-  }
 
   static async switchToNativeContext(): Promise<void> {
-    await this.getDriver().switchContext(NATIVE_APP);
+    await getDriver().switchContext(NATIVE_APP);
   }
 
   static async switchToWebViewContext(dappUrl: string): Promise<void> {
     // Strategy B: Try WebdriverIO's built-in URL matching first.
     // Falls back to manual polling only on LavaMoat scuttling errors.
     try {
-      await this.getDriver().switchContext({
+      await getDriver().switchContext({
         url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
         androidWebviewConnectTimeout: this.WEBVIEW_TIMEOUT_MS,
       });
@@ -74,7 +66,7 @@ export default class PlaywrightContextHelpers {
 
   private static async getDetailedWebviews(): Promise<DetailedContext[]> {
     const contexts: (Context | DetailedContext)[] =
-      await this.getDriver().getContexts({ returnDetailedContexts: true });
+      await getDriver().getContexts({ returnDetailedContexts: true });
 
     return contexts.filter((ctx): ctx is DetailedContext => {
       if (typeof ctx === 'string') return false;
@@ -114,7 +106,7 @@ export default class PlaywrightContextHelpers {
     contextId: string,
   ): Promise<boolean> {
     try {
-      await this.getDriver().switchContext(contextId);
+      await getDriver().switchContext(contextId);
       return true;
     } catch (err) {
       const message = this.getErrorMessage(err);

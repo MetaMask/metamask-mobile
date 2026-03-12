@@ -82,14 +82,6 @@ export function boxedStep<This, Args extends unknown[], Return>(
 }
 
 class PlaywrightUtilities {
-  private static driverInstance: WebdriverIO.Browser;
-
-  private static getDriverInstance(): WebdriverIO.Browser {
-    if (!this.driverInstance) {
-      this.driverInstance = getDriver();
-    }
-    return this.driverInstance;
-  }
   /**
    * Get the device screen size.
    * @returns The device screen size.
@@ -98,7 +90,7 @@ class PlaywrightUtilities {
     width: number;
     height: number;
   }> {
-    const screenSize = await this.getDriverInstance().getWindowSize();
+    const screenSize = await getDriver().getWindowSize();
     return { width: screenSize.width, height: screenSize.height };
   }
 }
