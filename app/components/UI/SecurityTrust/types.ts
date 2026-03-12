@@ -8,13 +8,6 @@ export type {
   TokenSecurityMetadata,
 } from '@metamask/assets-controllers';
 
-export enum RiskLevel {
-  Low = 'LOW',
-  Medium = 'MEDIUM',
-  High = 'HIGH',
-  Unknown = 'UNKNOWN',
-}
-
 export interface FeatureTag {
   label: string;
 }
