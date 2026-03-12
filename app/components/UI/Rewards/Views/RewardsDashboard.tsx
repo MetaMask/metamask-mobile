@@ -34,8 +34,8 @@ import {
   selectHideCurrentAccountNotOptedInBannerArray,
   selectSeasonId,
   selectSeasonEndDate,
-  selectGeoLocation,
 } from '../../../../reducers/rewards/selectors';
+import Engine from '../../../../core/Engine';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
@@ -78,7 +78,7 @@ const RewardsDashboard: React.FC = () => {
   );
   const seasonId = useSelector(selectSeasonId);
   const seasonEndDate = useSelector(selectSeasonEndDate);
-  const geoLocation = useSelector(selectGeoLocation);
+  const [geoLocation, setGeoLocation] = useState<string | null>(null);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -100,6 +100,16 @@ const RewardsDashboard: React.FC = () => {
 
   // mUSD Calculator state
   const [musdAmount, setMusdAmount] = useState('1000');
+
+  // Fetch geolocation on mount using messenger pattern
+  useEffect(() => {
+    Engine.controllerMessenger
+      .call('GeolocationController:getGeolocation')
+      .catch(() => 'UNKNOWN')
+      .then((location) => {
+        setGeoLocation(location);
+      });
+  }, []);
 
   // mUSD Calculator computed values
   const musdCalculations = useMemo(() => {
@@ -178,8 +188,11 @@ const RewardsDashboard: React.FC = () => {
 
   // Check if user is in the UK (mUSD not available in UK)
   // geoLocation values are region-suffixed (e.g., 'UK-ENG', 'GB-SCT', 'US-NY')
+  // If geo API failed or location is unknown, treat as UK user (hide mUSD tab)
   const isUkUser =
-    geoLocation?.startsWith('GB') || geoLocation?.startsWith('UK');
+    geoLocation === 'UNKNOWN' ||
+    geoLocation?.startsWith('GB') ||
+    geoLocation?.startsWith('UK');
 
   const tabOptions = useMemo(() => {
     const options: { value: 'musd' | 'season1'; label: string }[] = [];

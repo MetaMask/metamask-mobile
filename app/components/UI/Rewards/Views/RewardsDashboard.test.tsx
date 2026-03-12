@@ -47,7 +47,19 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectSeasonEndDate: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
-  selectGeoLocation: jest.fn(),
+}));
+
+// Mock Engine for GeolocationController messenger calls
+const mockGetGeolocation = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn((action: string) => {
+      if (action === 'GeolocationController:getGeolocation') {
+        return mockGetGeolocation();
+      }
+      return Promise.resolve();
+    }),
+  },
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -71,7 +83,6 @@ import {
   selectSeasonEndDate,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
-  selectGeoLocation,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -98,9 +109,6 @@ const mockSelectHideCurrentAccountNotOptedInBannerArray =
   selectHideCurrentAccountNotOptedInBannerArray as jest.MockedFunction<
     typeof selectHideCurrentAccountNotOptedInBannerArray
   >;
-const mockSelectGeoLocation = selectGeoLocation as jest.MockedFunction<
-  typeof selectGeoLocation
->;
 const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
@@ -120,7 +128,6 @@ jest.mock('../../../../util/theme', () => {
 
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {
-  const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     useSafeAreaInsets: jest.fn(() => ({
@@ -567,7 +574,6 @@ describe('RewardsDashboard', () => {
     selectedAccount: mockSelectedAccount,
     selectedAccountGroup: mockSelectedAccountGroup,
     isSnapshotsEnabled: true, // Enable snapshots by default in tests
-    geoLocation: 'US-NY', // Default to non-UK location (region-suffixed)
   };
 
   const defaultHookValues = {
@@ -663,7 +669,9 @@ describe('RewardsDashboard', () => {
     mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(
       defaultSelectorValues.isSnapshotsEnabled,
     );
-    mockSelectGeoLocation.mockReturnValue(defaultSelectorValues.geoLocation);
+
+    // Setup geolocation mock - default to non-UK location
+    mockGetGeolocation.mockResolvedValue('US-NY');
 
     // Setup hook mocks
     mockUseRewardOptinSummary.mockReturnValue(
@@ -696,8 +704,6 @@ describe('RewardsDashboard', () => {
         return defaultSelectorValues.selectedAccountGroup;
       if (selector === selectSnapshotsRewardsEnabledFlag)
         return defaultSelectorValues.isSnapshotsEnabled;
-      if (selector === selectGeoLocation)
-        return defaultSelectorValues.geoLocation;
       return undefined;
     });
   });
@@ -753,8 +759,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation)
-          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
@@ -792,8 +796,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation)
-          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
@@ -832,8 +834,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation)
-          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
@@ -868,8 +868,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation)
-          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
@@ -887,102 +885,53 @@ describe('RewardsDashboard', () => {
   });
 
   describe('geolocation-based content', () => {
-    it('hides mUSD tab and shows only Season 1 content for UK users (GB-ENG)', () => {
+    it('hides mUSD tab and shows only Season 1 content for UK users (GB-ENG)', async () => {
       // Arrange - geoLocation is region-suffixed (e.g., 'GB-ENG')
-      mockSelectGeoLocation.mockReturnValue('GB-ENG');
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'GB-ENG';
-        return undefined;
-      });
+      mockGetGeolocation.mockResolvedValue('GB-ENG');
 
       // Act
       const { queryByTestId, queryByText } = render(<RewardsDashboard />);
 
-      // Assert - tabs should not be visible for UK users
-      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      // Assert - wait for geolocation to resolve, then check UI
+      await waitFor(() => {
+        expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      });
       // mUSD content should not be visible
       expect(queryByText('rewards.musd.title')).toBeNull();
       // Season 1 content should be visible
       expect(queryByTestId('season-status')).toBeOnTheScreen();
     });
 
-    it('hides mUSD tab and shows only Season 1 content for UK users (UK-SCT)', () => {
+    it('hides mUSD tab and shows only Season 1 content for UK users (UK-SCT)', async () => {
       // Arrange - geoLocation is region-suffixed (e.g., 'UK-SCT')
-      mockSelectGeoLocation.mockReturnValue('UK-SCT');
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'UK-SCT';
-        return undefined;
-      });
+      mockGetGeolocation.mockResolvedValue('UK-SCT');
 
       // Act
       const { queryByTestId, queryByText } = render(<RewardsDashboard />);
 
-      // Assert - tabs should not be visible for UK users
-      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      // Assert - wait for geolocation to resolve, then check UI
+      await waitFor(() => {
+        expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      });
       // mUSD content should not be visible
       expect(queryByText('rewards.musd.title')).toBeNull();
       // Season 1 content should be visible
       expect(queryByTestId('season-status')).toBeOnTheScreen();
     });
 
-    it('displays mUSD calculator content and tabs for non-UK users', () => {
+    it('displays mUSD calculator content and tabs for non-UK users', async () => {
       // Arrange - US location (region-suffixed)
-      mockSelectGeoLocation.mockReturnValue('US-NY');
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'US-NY';
-        return undefined;
-      });
+      mockGetGeolocation.mockResolvedValue('US-NY');
 
       // Act
       const { getByTestId, getByText } = render(<RewardsDashboard />);
 
-      // Assert - tabs should be visible for non-UK users
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeOnTheScreen();
+      // Assert - wait for geolocation to resolve, then check UI
+      await waitFor(() => {
+        expect(
+          getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL),
+        ).toBeOnTheScreen();
+      });
       // mUSD tab content should be visible (mUSD is first/default tab)
       expect(getByText('rewards.musd.title')).toBeOnTheScreen();
       expect(getByText('rewards.musd.description')).toBeOnTheScreen();
@@ -991,27 +940,8 @@ describe('RewardsDashboard', () => {
     });
 
     it('displays skeleton loader while geolocation is loading', () => {
-      // Arrange - geoLocation is null (loading)
-      mockSelectGeoLocation.mockReturnValue(null);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return null;
-        return undefined;
-      });
+      // Arrange - create a pending promise that never resolves to simulate loading
+      mockGetGeolocation.mockReturnValue(new Promise(jest.fn()));
 
       // Act
       const { queryByTestId, queryByText } = render(<RewardsDashboard />);
@@ -1024,10 +954,9 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId('season-status')).toBeNull();
     });
 
-    it('resets activeTab to season1 for UK users when activeTab is musd', () => {
+    it('resets activeTab to season1 for UK users when activeTab is musd', async () => {
       // Arrange - UK user with activeTab set to 'musd' (which is unavailable for them)
-      // geoLocation is region-suffixed (e.g., 'GB-ENG')
-      mockSelectGeoLocation.mockReturnValue('GB-ENG');
+      mockGetGeolocation.mockResolvedValue('GB-ENG');
       mockSelectActiveTab.mockReturnValue('musd');
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab) return 'musd';
@@ -1044,7 +973,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation) return 'GB-ENG';
         return undefined;
       });
 
@@ -1052,7 +980,28 @@ describe('RewardsDashboard', () => {
       render(<RewardsDashboard />);
 
       // Assert - should dispatch setActiveTab('season1') to reset the invalid tab
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('season1'));
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('season1'));
+      });
+    });
+
+    it('shows Season 1 content without tabs when geo API fails (treats as UNKNOWN)', async () => {
+      // Arrange - geo API failed (resolves to 'UNKNOWN' via catch handler)
+      mockGetGeolocation.mockRejectedValue(new Error('Network error'));
+
+      // Act
+      const { queryByTestId, queryByText, getByTestId } = render(
+        <RewardsDashboard />,
+      );
+
+      // Assert - wait for geolocation to resolve (with UNKNOWN), then check UI
+      await waitFor(() => {
+        expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      });
+      // mUSD content should not be visible
+      expect(queryByText('rewards.musd.title')).toBeNull();
+      // Season 1 content should be visible (not skeleton)
+      expect(getByTestId('season-status')).toBeOnTheScreen();
     });
   });
 
@@ -1164,8 +1113,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation)
-          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
@@ -1244,8 +1191,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
-        if (selector === selectGeoLocation)
-          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
