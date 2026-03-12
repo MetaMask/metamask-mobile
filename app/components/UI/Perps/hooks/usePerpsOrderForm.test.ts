@@ -435,9 +435,9 @@ describe('usePerpsOrderForm', () => {
       });
 
       // Assert
-      // With $2 balance and 3x leverage = $6 max amount, which is less than $10 default
-      // Should use the max possible amount ($6) instead of the default ($10)
-      expect(result.current.orderForm.amount).toBe('6');
+      // With $2 balance and 3x leverage, max is floor(6 * (1 - 0.5% buffer)) = 5 (less than $10 default)
+      // Should use the max possible amount (5) instead of the default ($10)
+      expect(result.current.orderForm.amount).toBe('5');
     });
 
     it('should use default amount when available balance times leverage is greater than default amount', () => {
@@ -515,7 +515,7 @@ describe('usePerpsOrderForm', () => {
       // Test 1: Low balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '2', // $2 balance = $6 max with 3x leverage (less than $10 default)
+          availableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -528,7 +528,7 @@ describe('usePerpsOrderForm', () => {
         wrapper: createWrapper(),
       });
 
-      expect(result1.current.orderForm.amount).toBe('6'); // Should use maxPossibleAmount
+      expect(result1.current.orderForm.amount).toBe('5'); // Should use maxPossibleAmount (with margin buffer)
 
       // Test 2: High balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
