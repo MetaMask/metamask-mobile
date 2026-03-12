@@ -7646,15 +7646,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:@metamask-previews/ai-controllers@0.2.0-preview-566b7c611":
-  version: 0.2.0-preview-566b7c611
-  resolution: "@metamask-previews/ai-controllers@npm:0.2.0-preview-566b7c611"
+"@metamask/ai-controllers@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/ai-controllers@npm:0.3.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/ef30f44263e638c3ff7f667d10e149979069325701d0293938e0bb9d0958e491d05f91c04aa695d89ba5070ac88f66971bc5abe02be6f00495f515e7f768595d
+  checksum: 10/a1a4655243a5de34378aad291a34a1b5bf441b186b9e541083bc870ee65bb3244c31e45d84ec3a24bcf8f36452408f3518445939bd450304feaacfcadffb51f5
   languageName: node
   linkType: hard
 
