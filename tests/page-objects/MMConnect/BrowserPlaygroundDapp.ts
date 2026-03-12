@@ -508,12 +508,11 @@ class BrowserPlaygroundDapp {
     await encapsulatedAction({
       appium: async () => {
         const element = await asPlaywrightElement(this.getScopeCard(scope));
-        const visible = await element.isVisible();
-        if (visible) {
-          throw new Error(
-            `BrowserPlaygroundDapp: scope card "${scope}" is still visible (expected not displayed)`,
-          );
-        }
+        await element.waitForDisplayed({
+          timeout: 10000,
+          reverse: true,
+          timeoutMsg: `BrowserPlaygroundDapp: scope card "${scope}" is visible (expected not displayed)`,
+        });
       },
     });
   }
