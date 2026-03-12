@@ -38,29 +38,34 @@ if [ "$DO_LIST" = true ]; then
   # to see the full set (Login screen only shows onboarding/modal routes).
   EXPR='(function(){
     var hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
-    if (!hook || !hook.getFiberRoots) return JSON.stringify({error: "React DevTools hook not available"});
-    var fiberRoots = hook.getFiberRoots(1);
-    if (!fiberRoots) return JSON.stringify({error: "no fiber roots"});
-    var root = Array.from(fiberRoots)[0];
-    if (!root || !root.current) return JSON.stringify({error: "no root fiber"});
+    if (!hook || !hook.renderers) return JSON.stringify({error: "React DevTools hook not available"});
+    var getFiberRoots = hook.getFiberRoots;
+    if (!getFiberRoots) return JSON.stringify({error: "getFiberRoots not available"});
     var names = {};
-    var queue = [root.current];
-    var visited = 0;
-    while (queue.length > 0 && visited < 15000) {
-      var f = queue.shift();
-      visited++;
-      var pp = f.pendingProps;
-      if (pp && pp.state && pp.state.routeNames) {
-        var rn = pp.state.routeNames;
-        for (var j = 0; j < rn.length; j++) names[rn[j]] = 1;
-      }
-      var mp = f.memoizedProps;
-      if (mp && mp.state && mp.state.routeNames) {
-        var rn2 = mp.state.routeNames;
-        for (var j = 0; j < rn2.length; j++) names[rn2[j]] = 1;
-      }
-      if (f.child) queue.push(f.child);
-      if (f.sibling) queue.push(f.sibling);
+    for (var [id] of hook.renderers) {
+      var fiberRoots = getFiberRoots(id);
+      if (!fiberRoots) continue;
+      fiberRoots.forEach(function(root) {
+        if (!root || !root.current) return;
+        var queue = [root.current];
+        var visited = 0;
+        while (queue.length > 0 && visited < 15000) {
+          var f = queue.shift();
+          visited++;
+          var pp = f.pendingProps;
+          if (pp && pp.state && pp.state.routeNames) {
+            var rn = pp.state.routeNames;
+            for (var j = 0; j < rn.length; j++) names[rn[j]] = 1;
+          }
+          var mp = f.memoizedProps;
+          if (mp && mp.state && mp.state.routeNames) {
+            var rn2 = mp.state.routeNames;
+            for (var j = 0; j < rn2.length; j++) names[rn2[j]] = 1;
+          }
+          if (f.child) queue.push(f.child);
+          if (f.sibling) queue.push(f.sibling);
+        }
+      });
     }
     var sorted = Object.keys(names).sort();
     return JSON.stringify({count: sorted.length, routes: sorted});
