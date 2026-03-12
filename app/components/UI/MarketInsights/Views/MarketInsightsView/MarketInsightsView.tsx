@@ -22,7 +22,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Hex, CaipChainId } from '@metamask/utils';
+import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
 import {
   Box,
   Text,
@@ -71,6 +71,9 @@ import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
@@ -150,7 +153,7 @@ interface MarketInsightsRouteParams {
  * - Consolidated trends sources pill
  * - "What's being said" social section
  * - Feedback row with thumbs actions
- * - Trade CTA button (navigates to Swaps with asset pre-filled)
+ * - Swap and Buy CTA buttons
  */
 const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
@@ -223,6 +226,8 @@ const MarketInsightsView: React.FC = () => {
     sourceToken,
   });
 
+  const { goToBuy } = useRampNavigation();
+
   // Collect all tweets from all trends for the "What people are saying" section
   const allTweets: MarketInsightsTweet[] = useMemo(() => {
     if (!report) return [];
@@ -238,19 +243,54 @@ const MarketInsightsView: React.FC = () => {
     }
   }, []);
 
-  const handleTradePress = useCallback(() => {
+  const handleSwapPress = useCallback(() => {
     const event = createEventBuilder(
       MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
     )
       .addProperties({
         caip19: caip19Id,
-        interaction_type: 'trade',
+        interaction_type: 'swap',
       })
       .build();
     trackEvent(event);
 
     goToSwaps();
   }, [goToSwaps, trackEvent, createEventBuilder, caip19Id]);
+
+  const handleBuyPress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        caip19: caip19Id,
+        interaction_type: 'buy',
+      })
+      .build();
+    trackEvent(event);
+
+    let assetId: string | undefined;
+    try {
+      if (tokenAddress && isCaipAssetType(tokenAddress)) {
+        assetId = tokenAddress;
+      } else if (tokenChainId && tokenAddress) {
+        assetId = parseRampIntent({
+          chainId: getDecimalChainId(tokenChainId),
+          address: tokenAddress,
+        })?.assetId;
+      }
+    } catch {
+      assetId = undefined;
+    }
+
+    goToBuy({ assetId });
+  }, [
+    goToBuy,
+    trackEvent,
+    createEventBuilder,
+    caip19Id,
+    tokenAddress,
+    tokenChainId,
+  ]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -570,15 +610,30 @@ const MarketInsightsView: React.FC = () => {
       <Box
         twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
       >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleTradePress}
-          testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
-        >
-          {strings('market_insights.trade_button')}
-        </Button>
+        <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+          <Box twClassName="flex-1">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleSwapPress}
+              testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+            >
+              {strings('market_insights.swap_button')}
+            </Button>
+          </Box>
+          <Box twClassName="flex-1">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleBuyPress}
+              testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+            >
+              {strings('market_insights.buy_button')}
+            </Button>
+          </Box>
+        </Box>
         <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('market_insights.footer_disclaimer')}

@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
+const mockGoToBuy = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
 const mockFeedbackBottomSheet = jest.fn();
@@ -65,6 +66,17 @@ jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
   useSwapBridgeNavigation: (options: unknown) =>
     mockUseSwapBridgeNavigation(options),
+}));
+
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
+}));
+
+jest.mock('../../../Ramp/utils/parseRampIntent', () => ({
+  __esModule: true,
+  default: ({ chainId, address }: { chainId: string; address: string }) => ({
+    assetId: `eip155:${chainId}/erc20:${address}`,
+  }),
 }));
 
 jest.mock(
@@ -290,7 +302,7 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
   });
 
-  it('renders report content and handles tweet/trade actions', () => {
+  it('renders report content and handles tweet/swap/buy actions', () => {
     mockUseMarketInsights.mockReturnValue({
       report: {
         asset: 'eth',
@@ -369,7 +381,7 @@ describe('MarketInsightsView', () => {
       'https://x.com/user/status/100',
     );
 
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.TRADE_BUTTON));
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON));
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -383,6 +395,9 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.BUY_BUTTON));
+    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
     expect(
@@ -416,7 +431,16 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
-          interaction_type: 'trade',
+          interaction_type: 'swap',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+          interaction_type: 'buy',
         }),
       }),
     );
