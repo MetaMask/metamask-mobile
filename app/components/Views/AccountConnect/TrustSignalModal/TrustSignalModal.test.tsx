@@ -26,24 +26,26 @@ describe('TrustSignalModal', () => {
   it('renders all expected elements', () => {
     const { getByTestId } = renderModal();
 
-    expect(getByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeDefined();
+    expect(
+      getByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(TrustSignalModalSelectorsIDs.CLOSE_BUTTON),
-    ).toBeDefined();
-    expect(getByTestId(TrustSignalModalSelectorsIDs.TITLE)).toBeDefined();
-    expect(getByTestId(TrustSignalModalSelectorsIDs.URL)).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(getByTestId(TrustSignalModalSelectorsIDs.TITLE)).toBeOnTheScreen();
+    expect(getByTestId(TrustSignalModalSelectorsIDs.URL)).toBeOnTheScreen();
     expect(
       getByTestId(TrustSignalModalSelectorsIDs.DESCRIPTION_BOX),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(TrustSignalModalSelectorsIDs.CONNECT_ANYWAY_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('displays the malicious title', () => {
     const { getByText } = renderModal();
 
-    expect(getByText('Malicious site detected')).toBeDefined();
+    expect(getByText('Malicious site detected')).toBeOnTheScreen();
   });
 
   it('displays the malicious description', () => {
@@ -53,20 +55,20 @@ describe('TrustSignalModal', () => {
       getByText(
         'This site has been flagged as malicious. Connecting may put your assets at risk.',
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('displays the dapp URL', () => {
     const { getByText } = renderModal();
 
-    expect(getByText(MOCK_URL)).toBeDefined();
+    expect(getByText(MOCK_URL)).toBeOnTheScreen();
   });
 
   it('renders with a different URL', () => {
     const otherUrl = 'https://another-dapp.example.com';
     const { getByText } = renderModal(otherUrl);
 
-    expect(getByText(otherUrl)).toBeDefined();
+    expect(getByText(otherUrl)).toBeOnTheScreen();
   });
 
   it('calls onConnectAnyway when the Connect Anyway button is pressed', () => {

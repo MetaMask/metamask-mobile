@@ -1447,9 +1447,11 @@ describe('AccountConnect', () => {
       );
 
       // PermissionsSummary should be visible (Warning no longer gates)
-      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(getByTestId('permission-summary-container')).toBeOnTheScreen();
       // TrustSignalModal should NOT be visible
-      expect(queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeNull();
+      expect(
+        queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders TrustSignalModal when trust signal state is Malicious', () => {
@@ -1464,9 +1466,13 @@ describe('AccountConnect', () => {
       );
 
       // TrustSignalModal should be visible
-      expect(getByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeDefined();
+      expect(
+        getByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
       // PermissionsSummary should NOT be visible
-      expect(queryByTestId('permission-summary-container')).toBeNull();
+      expect(
+        queryByTestId('permission-summary-container'),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders PermissionsSummary (SingleConnect) when trust signal state is Unknown', () => {
@@ -1481,9 +1487,11 @@ describe('AccountConnect', () => {
       );
 
       // PermissionsSummary should be visible
-      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(getByTestId('permission-summary-container')).toBeOnTheScreen();
       // TrustSignalModal should NOT be visible
-      expect(queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeNull();
+      expect(
+        queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders PermissionsSummary (SingleConnect) when trust signal state is Verified', () => {
@@ -1498,9 +1506,11 @@ describe('AccountConnect', () => {
       );
 
       // PermissionsSummary should be visible
-      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(getByTestId('permission-summary-container')).toBeOnTheScreen();
       // TrustSignalModal should NOT be visible
-      expect(queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeNull();
+      expect(
+        queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('navigates to SingleConnect when Connect Anyway is pressed on TrustSignalModal', async () => {
@@ -1515,7 +1525,9 @@ describe('AccountConnect', () => {
       );
 
       // Verify TrustSignalModal is shown
-      expect(getByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeDefined();
+      expect(
+        getByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
 
       // Press Connect Anyway
       const connectAnywayButton = getByTestId(
@@ -1527,7 +1539,7 @@ describe('AccountConnect', () => {
       const permissionsContainer = await findByTestId(
         'permission-summary-container',
       );
-      expect(permissionsContainer).toBeDefined();
+      expect(permissionsContainer).toBeOnTheScreen();
     });
 
     it('cancels permission request when Close is pressed on TrustSignalModal', () => {

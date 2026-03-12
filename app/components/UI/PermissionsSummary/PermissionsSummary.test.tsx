@@ -270,7 +270,7 @@ describe('PermissionsSummary', () => {
       });
 
       // Warning state uses a plain connect button
-      expect(getByText('Connect')).toBeDefined();
+      expect(getByText('Connect')).toBeOnTheScreen();
     });
 
     it('renders a danger-style Connect button when trustSignalState is Malicious', () => {
@@ -280,7 +280,7 @@ describe('PermissionsSummary', () => {
       });
 
       // The connect button text should still be present
-      expect(getByText('Connect')).toBeDefined();
+      expect(getByText('Connect')).toBeOnTheScreen();
     });
   });
 });
