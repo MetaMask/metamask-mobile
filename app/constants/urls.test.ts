@@ -43,34 +43,22 @@ describe('URL Constants', () => {
     });
 
     it('should include utm_source=mobile_app in SIMULATION_DETALS_ARTICLE_URL', () => {
-      expect(SIMULATION_DETALS_ARTICLE_URL).toContain(
-        'support.metamask.io',
-      );
-      expect(SIMULATION_DETALS_ARTICLE_URL).toContain(
-        'utm_source=mobile_app',
-      );
+      expect(SIMULATION_DETALS_ARTICLE_URL).toContain('support.metamask.io');
+      expect(SIMULATION_DETALS_ARTICLE_URL).toContain('utm_source=mobile_app');
     });
 
     it('should include utm_source=mobile_app in TOKEN_APPROVAL_SPENDING_CAP', () => {
       expect(TOKEN_APPROVAL_SPENDING_CAP).toContain('support.metamask.io');
-      expect(TOKEN_APPROVAL_SPENDING_CAP).toContain(
-        'utm_source=mobile_app',
-      );
+      expect(TOKEN_APPROVAL_SPENDING_CAP).toContain('utm_source=mobile_app');
     });
 
     it('should include utm_source=mobile_app in CONNECTING_TO_A_DECEPTIVE_SITE', () => {
-      expect(CONNECTING_TO_A_DECEPTIVE_SITE).toContain(
-        'support.metamask.io',
-      );
-      expect(CONNECTING_TO_A_DECEPTIVE_SITE).toContain(
-        'utm_source=mobile_app',
-      );
+      expect(CONNECTING_TO_A_DECEPTIVE_SITE).toContain('support.metamask.io');
+      expect(CONNECTING_TO_A_DECEPTIVE_SITE).toContain('utm_source=mobile_app');
     });
 
     it('should include utm_source=mobile_app in CONNECTING_TO_DEPRECATED_NETWORK', () => {
-      expect(CONNECTING_TO_DEPRECATED_NETWORK).toContain(
-        'support.metamask.io',
-      );
+      expect(CONNECTING_TO_DEPRECATED_NETWORK).toContain('support.metamask.io');
       expect(CONNECTING_TO_DEPRECATED_NETWORK).toContain(
         'utm_source=mobile_app',
       );
@@ -83,9 +71,7 @@ describe('URL Constants', () => {
 
     it('should include utm_source=mobile_app in ADD_CUSTOM_NETWORK_ARTCILE', () => {
       expect(ADD_CUSTOM_NETWORK_ARTCILE).toContain('support.metamask.io');
-      expect(ADD_CUSTOM_NETWORK_ARTCILE).toContain(
-        'utm_source=mobile_app',
-      );
+      expect(ADD_CUSTOM_NETWORK_ARTCILE).toContain('utm_source=mobile_app');
     });
 
     it('should include utm_source=mobile_app in HOW_TO_MANAGE_METRAMETRICS_SETTINGS', () => {
@@ -100,9 +86,7 @@ describe('URL Constants', () => {
 
   describe('Community and other URLs', () => {
     it('should have WHY_TRANSACTION_TAKE_TIME_URL without UTM (community URL)', () => {
-      expect(WHY_TRANSACTION_TAKE_TIME_URL).toContain(
-        'community.metamask.io',
-      );
+      expect(WHY_TRANSACTION_TAKE_TIME_URL).toContain('community.metamask.io');
       expect(WHY_TRANSACTION_TAKE_TIME_URL).not.toContain('utm_source');
     });
 

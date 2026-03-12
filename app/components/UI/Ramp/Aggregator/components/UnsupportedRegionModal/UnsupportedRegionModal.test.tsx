@@ -87,9 +87,9 @@ describe('UnsupportedRegionModal', () => {
   it('opens support article with UTM parameter when link is pressed', () => {
     const { getByText } = render(UnsupportedRegionModal);
     const supportLink = getByText('Visit support article');
-    
+
     fireEvent.press(supportLink);
-    
+
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/?utm_source=mobile_app',
     );

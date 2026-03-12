@@ -467,7 +467,9 @@ describe('Settings', () => {
         state: initialState,
       });
 
-      const experimentalButton = getByTestId(SettingsViewSelectorsIDs.EXPERIMENTAL);
+      const experimentalButton = getByTestId(
+        SettingsViewSelectorsIDs.EXPERIMENTAL,
+      );
       fireEvent.press(experimentalButton);
 
       expect(mockNavigate).toHaveBeenCalledWith('ExperimentalSettings');
@@ -482,7 +484,9 @@ describe('Settings', () => {
         state: initialState,
       });
 
-      const notificationButton = getByTestId(SettingsViewSelectorsIDs.NOTIFICATIONS);
+      const notificationButton = getByTestId(
+        SettingsViewSelectorsIDs.NOTIFICATIONS,
+      );
       fireEvent.press(notificationButton);
 
       expect(mockNavigate).toHaveBeenCalled();
