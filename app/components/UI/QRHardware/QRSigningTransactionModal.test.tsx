@@ -122,10 +122,10 @@ describe('QRSigningTransactionModal', () => {
 
     (
       Engine.context as unknown as {
-        ApprovalController: { accept: jest.Mock };
+        ApprovalController: { acceptRequest: jest.Mock };
       }
     ).ApprovalController = {
-      accept: jest.fn().mockResolvedValue(undefined),
+      acceptRequest: jest.fn().mockResolvedValue(undefined),
     };
   });
 
