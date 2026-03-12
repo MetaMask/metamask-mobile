@@ -72,7 +72,8 @@
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
     "tests/**/*",
-    "appwright/**/*"
+    "appwright/**/*",
+    "scripts/**/*"
   ],
   "exclude": [
     "node_modules",
