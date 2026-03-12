@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { View, Text } from 'react-native';
 import PerpsHomeSection from './PerpsHomeSection';
+import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
 
@@ -158,7 +159,7 @@ describe('PerpsHomeSection', () => {
     it('makes header row pressable when onActionPress provided', () => {
       const mockOnActionPress = jest.fn();
 
-      const { getByText } = render(
+      const { getByTestId } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading={false}
@@ -170,7 +171,7 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      fireEvent.press(getByText('Test Section'));
+      fireEvent.press(getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON));
 
       expect(mockOnActionPress).toHaveBeenCalledTimes(1);
     });
@@ -344,7 +345,7 @@ describe('PerpsHomeSection', () => {
     it('handles multiple header presses', () => {
       const mockOnActionPress = jest.fn();
 
-      const { getByText } = render(
+      const { getByTestId } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading={false}
@@ -356,11 +357,11 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      const headerRow = getByText('Test Section');
+      const actionButton = getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON);
 
-      fireEvent.press(headerRow);
-      fireEvent.press(headerRow);
-      fireEvent.press(headerRow);
+      fireEvent.press(actionButton);
+      fireEvent.press(actionButton);
+      fireEvent.press(actionButton);
 
       expect(mockOnActionPress).toHaveBeenCalledTimes(3);
     });
@@ -476,7 +477,7 @@ describe('PerpsHomeSection', () => {
     it('renders subtitle alongside title and action button', () => {
       const mockOnActionPress = jest.fn();
 
-      const { getByText } = render(
+      const { getByText, getByTestId } = render(
         <PerpsHomeSection
           title="Positions"
           subtitle="-$18.47 (2.1%)"
@@ -494,7 +495,7 @@ describe('PerpsHomeSection', () => {
       expect(getByText('-$18.47 (2.1%)')).toBeTruthy();
 
       // Action should still work
-      fireEvent.press(getByText('Positions'));
+      fireEvent.press(getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON));
       expect(mockOnActionPress).toHaveBeenCalledTimes(1);
     });
 

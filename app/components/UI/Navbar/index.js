@@ -48,12 +48,6 @@ import HeaderBase, {
 } from '../../../component-library/components/HeaderBase';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import BadgeNetwork from '../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapperComponent, {
-  BadgePosition,
-} from '../../../component-library/components/Badges/BadgeWrapper';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -74,7 +68,6 @@ import {
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
-import { Skeleton } from '../../../component-library/components/Skeleton';
 
 const styles = StyleSheet.create({
   hitSlop: {
@@ -256,7 +249,7 @@ export function getNavigationOptionsTitle(
     headerLeft: () =>
       isFullScreenModal ? null : (
         <ButtonIcon
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
@@ -1249,7 +1242,7 @@ export function getNetworkNavbarOptions(
             style={styles.headerLeftButton}
             onPress={() => navigation.pop()}
             testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
           />
@@ -1651,7 +1644,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       <ButtonIcon
         iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
       />
     ),
     headerRight: () => <View style={innerStyles.rightSpacer} />,
@@ -1684,7 +1677,7 @@ export function getPerpsMarketDetailsNavbar(navigation, title) {
       <ButtonIcon
         iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
       />
     ),
   };
@@ -1901,7 +1894,7 @@ export function getStakingNavbar(
     headerLeft: () =>
       hasBackButton ? (
         <ButtonIcon
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
           onPress={handleBackPress}
           style={innerStyles.headerLeft}
@@ -1947,145 +1940,10 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         style={styles.headerLeftButton}
         onPress={() => navigation.pop()}
         testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />
-    ),
-  };
-}
-
-/**
- * Function that returns the navigation options for the Ramps Build Quote screen
- *
- * @param {Object} navigation - Navigation object required to navigate between screens
- * @param {Object} options - Options for the navbar
- * @param {string} [options.tokenName] - Name of the selected token (used for avatar)
- * @param {string} [options.tokenSymbol] - Symbol/ticker of the selected token (e.g., "ETH")
- * @param {string} [options.tokenIconUrl] - URL for the token icon
- * @param {string} [options.networkName] - Name of the network
- * @param {Object} [options.networkImageSource] - Image source for the network icon
- * @param {Function} [options.onSettingsPress] - Callback for settings button press
- * @returns {Object} - Navigation options object
- */
-export function getRampsBuildQuoteNavbarOptions(
-  navigation,
-  {
-    tokenName,
-    tokenSymbol,
-    tokenIconUrl,
-    networkName,
-    networkImageSource,
-    onSettingsPress,
-  } = {},
-) {
-  const innerStyles = StyleSheet.create({
-    centerContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
-    },
-    labelsContainer: {
-      gap: 0,
-      marginTop: -2,
-    },
-    backButton: {
-      marginLeft: 16,
-    },
-    skeletonAvatar: {
-      borderRadius: 20,
-    },
-    skeletonTitle: {
-      borderRadius: 4,
-    },
-    skeletonSubtitle: {
-      borderRadius: 4,
-      marginTop: 4,
-    },
-  });
-
-  const isLoading = !tokenName || !tokenSymbol || !networkName;
-
-  return {
-    header: () => (
-      <HeaderBase
-        includesTopInset
-        variant={HeaderBaseVariant.Display}
-        twClassName="gap-2"
-        startAccessory={
-          <ButtonIcon
-            style={innerStyles.backButton}
-            onPress={() => navigation.goBack()}
-            size={ButtonIconSize.Lg}
-            iconName={IconName.ArrowLeft}
-            iconColor={IconColor.Default}
-            testID="build-quote-back-button"
-          />
-        }
-        endAccessory={
-          <ButtonIcon
-            style={styles.headerRightButton}
-            onPress={onSettingsPress}
-            size={ButtonIconSize.Lg}
-            iconName={IconName.Setting}
-            iconColor={IconColor.Default}
-            testID="build-quote-settings-button"
-          />
-        }
-      >
-        <View style={innerStyles.centerContainer}>
-          {isLoading ? (
-            <>
-              <Skeleton
-                width={40}
-                height={40}
-                style={innerStyles.skeletonAvatar}
-              />
-              <View style={innerStyles.labelsContainer}>
-                <Skeleton
-                  width={80}
-                  height={20}
-                  style={innerStyles.skeletonTitle}
-                />
-                <Skeleton
-                  width={100}
-                  height={16}
-                  style={innerStyles.skeletonSubtitle}
-                />
-              </View>
-            </>
-          ) : (
-            <>
-              <BadgeWrapperComponent
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <BadgeNetwork
-                    name={networkName}
-                    imageSource={networkImageSource}
-                  />
-                }
-              >
-                <AvatarToken
-                  name={tokenName}
-                  imageSource={{ uri: tokenIconUrl }}
-                  size={AvatarSize.Lg}
-                />
-              </BadgeWrapperComponent>
-              <View style={innerStyles.labelsContainer}>
-                <MorphText variant={TextVariant.HeadingSM}>
-                  {strings('fiat_on_ramp.buy', { ticker: tokenSymbol })}
-                </MorphText>
-                <MorphText
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('fiat_on_ramp.on_network', { networkName })}
-                </MorphText>
-              </View>
-            </>
-          )}
-        </View>
-      </HeaderBase>
     ),
   };
 }
@@ -2094,7 +1952,7 @@ export function getRampsOrderDetailsNavbarOptions(
   navigation,
   { title, showBack = true },
   theme,
-  onClose = undefined,
+  onClose,
 ) {
   let startButtonIconProps;
   if (showBack) {

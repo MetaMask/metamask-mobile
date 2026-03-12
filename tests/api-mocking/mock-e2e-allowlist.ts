@@ -19,8 +19,14 @@ export const ALLOWLISTED_HOSTS = [
   '*.polymarket.com',
   'sepolia.infura.io',
   'mainnet.infura.io',
+  'base-mainnet.infura.io',
+  'arbitrum-mainnet.infura.io',
+  'bsc-mainnet.infura.io',
+  'optimism-mainnet.infura.io',
+  'polygon-mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
+  'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
 export const ALLOWLISTED_URLS = [

@@ -27,7 +27,14 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import {
+  saveOnboardingEvent as saveEvent,
+  setAccountType,
+} from '../../../actions/onboarding';
+import {
+  AccountType,
+  getSocialAccountType,
+} from '../../../constants/onboarding';
 import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePna25Acknowledged as storePna25AcknowledgedAction,
@@ -350,14 +357,15 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
+      dispatch(setAccountType(AccountType.Metamask));
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-        account_type: 'metamask',
+        account_type: AccountType.Metamask,
       });
     };
 
     handleExistingUser(action);
     endTrace({ name: TraceName.OnboardingCreateWallet });
-  }, [metrics, navigation, track, handleExistingUser]);
+  }, [metrics, navigation, track, handleExistingUser, dispatch]);
 
   const onPressImport = useCallback(async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -384,12 +392,13 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
+      dispatch(setAccountType(AccountType.Imported));
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-        account_type: 'imported',
+        account_type: AccountType.Imported,
       });
     };
     handleExistingUser(action);
-  }, [metrics, navigation, track, handleExistingUser]);
+  }, [metrics, navigation, track, handleExistingUser, dispatch]);
 
   const handlePostSocialLogin = useCallback(
     (
@@ -404,9 +413,11 @@ const Onboarding = () => {
       }
 
       if (result.type === 'success') {
-        // Track social login completed
+        const accountType = getSocialAccountType(provider, result.existingUser);
+        dispatch(setAccountType(accountType));
+
         track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
-          account_type: provider,
+          account_type: accountType,
         });
         if (createWallet) {
           if (result.existingUser) {
@@ -480,21 +491,27 @@ const Onboarding = () => {
         // handle error: show error message in the UI
       }
     },
-    [navigation, track],
+    [navigation, track, dispatch],
   );
 
   const handleOAuthLoginError = useCallback(
-    (error: Error): void => {
-      // If user has already consented to analytics, report error using regular Sentry
+    (error: OAuthError, provider: string, isFallback: boolean): void => {
+      const platform = Platform.OS;
+      const errorCode = String(error.code);
+
       if (metrics.isEnabled()) {
         captureException(error, {
           tags: {
             view: 'Onboarding',
             context: 'OAuth login failed - user consented to analytics',
+            oauth_platform: platform,
+            oauth_provider: provider,
+            oauth_error_code: errorCode,
+            oauth_is_fallback: String(isFallback),
           },
+          fingerprint: ['oauth-login-error', platform, provider, errorCode],
         });
       } else {
-        // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
         setState((prevState) => ({
           ...prevState,
           loading: false,
@@ -529,7 +546,13 @@ const Onboarding = () => {
           // login as an alternative since the user's intent is to sign in - they just prefer
           // not to use the One Tap UI. Browser OAuth provides a familiar login experience.
           error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
-          error.code === OAuthErrorType.GoogleLoginOneTapFailure
+          error.code === OAuthErrorType.GoogleLoginOneTapFailure ||
+          // GoogleLoginNoProviderDependencies: The Android Credential Manager cannot find
+          // required provider dependencies. Fallback to browser-based OAuth.
+          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies ||
+          (error.code === OAuthErrorType.UnknownError &&
+            Platform.OS === 'android' &&
+            socialConnectionType === 'google')
         ) {
           // For Android Google, try browser fallback instead of showing error.
           // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
@@ -570,7 +593,11 @@ const Onboarding = () => {
               }
               // Handle both OAuthError and unexpected errors from browser fallback
               if (fallbackError instanceof OAuthError) {
-                handleOAuthLoginError(fallbackError);
+                handleOAuthLoginError(
+                  fallbackError,
+                  socialConnectionType,
+                  true,
+                );
               } else {
                 // Wrap unexpected errors as OAuthError to ensure they're properly handled
                 const wrappedError = new OAuthError(
@@ -579,7 +606,7 @@ const Onboarding = () => {
                     : 'Browser fallback failed with unknown error',
                   OAuthErrorType.UnknownError,
                 );
-                handleOAuthLoginError(wrappedError);
+                handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
               return;
             }
@@ -587,7 +614,7 @@ const Onboarding = () => {
           return;
         }
         // unexpected oauth login error
-        handleOAuthLoginError(error);
+        handleOAuthLoginError(error, socialConnectionType, false);
         return;
       }
 
@@ -676,13 +703,14 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
+      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-          account_type: `metamask_${provider}`,
+          account_type: accountType,
         });
       } else {
         track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-          account_type: `imported_${provider}`,
+          account_type: accountType,
         });
       }
 

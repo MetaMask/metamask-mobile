@@ -10,7 +10,6 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import ExploreSearchResults from '../../components/ExploreSearchResults/ExploreSearchResults';
-import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import {
   looksLikeUrl,
@@ -18,6 +17,7 @@ import {
   navigateToBrowser,
 } from '../../../../UI/Sites/utils/search';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
+import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();

@@ -30,8 +30,10 @@ import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
-import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
+import CashTokensFullView from '../../Views/CashTokensFullView';
+import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -68,6 +70,7 @@ import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
+import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -116,7 +119,6 @@ import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
-import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -233,6 +235,7 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -261,6 +264,10 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ORDER_DETAILS}
+      component={DepositOrderDetails}
     />
     <Stack.Screen
       name={Routes.RAMP.BANK_DETAILS_STANDALONE}
@@ -449,7 +456,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ExperimentalSettings"
         component={ExperimentalSettings}
-        options={ExperimentalSettings.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="CompanySettings"
@@ -485,11 +492,12 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
-        options={WalletConnectSessions.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ResetPassword"
@@ -989,6 +997,11 @@ const MainNavigator = () => {
         component={DeFiFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
+      <Stack.Screen
+        name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
+        component={CashTokensFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
       <Stack.Screen name="AddAsset" component={AddAsset} />
       <Stack.Screen
         name="ConfirmAddAsset"
@@ -1008,6 +1021,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
+        options={slideFromRightAnimation}
+      />
+      <Stack.Screen
+        name="RWATokensFullView"
+        component={RWATokensFullView}
         options={slideFromRightAnimation}
       />
 
@@ -1214,11 +1232,6 @@ const MainNavigator = () => {
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}
         options={NotificationsOptInStack.navigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
-        component={TurnOnBackupAndSync}
-        options={TurnOnBackupAndSync.navigationOptions}
       />
       <Stack.Screen
         name="DeFiProtocolPositionDetails"

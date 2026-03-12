@@ -10,9 +10,11 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useAssetFromTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import wifiOffIcon from '../../../../../images/wifi-off.png';
-import styles from './ErrorState.styles';
+import errorStateLight from '../../../../../images/error-state-no-connection-light.png';
+import errorStateDark from '../../../../../images/error-state-no-connection-dark.png';
 
 interface ErrorStateProps {
   /** Text describing what failed to load (e.g., "Unable to load predictions") */
@@ -23,9 +25,12 @@ interface ErrorStateProps {
 
 /**
  * Generic error state for homepage sections.
- * Shows a wifi-off icon, error message, and a retry button.
+ * Shows a no-connection illustration, error message, and a retry button.
  */
 const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
+  const tw = useTailwind();
+  const noConnectionImage = useAssetFromTheme(errorStateLight, errorStateDark);
+
   const handleRetry = () => {
     try {
       const result = onRetry();
@@ -41,7 +46,11 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
 
   return (
     <Box alignItems={BoxAlignItems.Center} gap={3} padding={4}>
-      <Image source={wifiOffIcon} style={styles.icon} />
+      <Image
+        source={noConnectionImage}
+        resizeMode="contain"
+        style={tw.style('w-[72px] h-[72px]')}
+      />
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
@@ -53,6 +62,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         onPress={handleRetry}
+        twClassName={'self-center'}
       >
         {strings('homepage.error.retry')}
       </Button>

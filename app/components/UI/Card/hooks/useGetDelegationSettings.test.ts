@@ -1,36 +1,35 @@
-import { renderHook } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useQuery } from '@tanstack/react-query';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import { useCardSDK } from '../sdk';
-import { useWrapWithCache } from './useWrapWithCache';
 import {
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
 } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
-
-// Mock dependencies
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
+import { cardQueries } from '../queries';
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-jest.mock('./useWrapWithCache', () => ({
-  useWrapWithCache: jest.fn(),
+const mockFetchQuery = jest.fn();
+const mockQueryClient = {
+  fetchQuery: (...args: unknown[]) => mockFetchQuery(...args),
+};
+jest.mock('@tanstack/react-query', () => ({
+  useQuery: jest.fn().mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    error: null,
+  }),
+  useQueryClient: jest.fn(() => mockQueryClient),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
-  typeof useWrapWithCache
->;
 
 describe('useGetDelegationSettings', () => {
   const mockGetDelegationSettings = jest.fn();
-  const mockFetchData = jest.fn();
 
   const mockSDK = {
     getDelegationSettings: mockGetDelegationSettings,
@@ -77,30 +76,24 @@ describe('useGetDelegationSettings', () => {
     },
   };
 
-  const mockCacheReturn = {
-    data: null,
-    isLoading: false,
-    error: null,
-    fetchData: mockFetchData,
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockUseSelector.mockReturnValue(true); // isAuthenticated
 
     mockUseCardSDK.mockReturnValue({
       ...jest.requireMock('../sdk'),
       sdk: mockSDK,
     });
 
-    mockUseWrapWithCache.mockImplementation((_key, fetchFn, _options) => {
-      // Store the fetch function for later use
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockCacheReturn as any).actualFetchFn = fetchFn;
-      return mockCacheReturn;
+    (useQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
     });
 
+    const { useQueryClient } = jest.requireMock('@tanstack/react-query');
+    useQueryClient.mockReturnValue(mockQueryClient);
+
+    mockFetchQuery.mockResolvedValue(mockDelegationSettingsResponse);
     mockGetDelegationSettings.mockResolvedValue(mockDelegationSettingsResponse);
   });
 
@@ -109,53 +102,41 @@ describe('useGetDelegationSettings', () => {
   });
 
   describe('Initial State', () => {
-    it('returns cache data from useWrapWithCache', () => {
+    it('returns default state from useQuery', () => {
       const { result } = renderHook(() => useGetDelegationSettings());
 
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(null);
-      expect(result.current.fetchData).toBe(mockFetchData);
+      expect(typeof result.current.fetchData).toBe('function');
     });
 
-    it('passes correct cache key to useWrapWithCache', () => {
+    it('passes correct query key to useQuery', () => {
       renderHook(() => useGetDelegationSettings());
 
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        'delegation-settings',
-        expect.any(Function),
-        expect.any(Object),
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.queryKey).toEqual(
+        cardQueries.dashboard.keys.delegationSettings(),
       );
     });
 
-    it('passes correct cache configuration to useWrapWithCache', () => {
+    it('passes correct staleTime to useQuery', () => {
       renderHook(() => useGetDelegationSettings());
 
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Function),
-        {
-          cacheDuration: 600000, // 10 minutes in milliseconds
-          fetchOnMount: false,
-        },
-      );
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.staleTime).toBe(600000);
     });
 
-    it('uses 10 minute cache duration', () => {
+    it('uses 10 minute staleTime', () => {
       renderHook(() => useGetDelegationSettings());
 
-      const call = mockUseWrapWithCache.mock.calls[0];
-      const options = call[2];
-
-      expect(options).toEqual({
-        cacheDuration: 10 * 60 * 1000,
-        fetchOnMount: false,
-      });
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.staleTime).toBe(10 * 60 * 1000);
     });
   });
 
   describe('Prerequisites Check', () => {
-    it('returns null when SDK is not available', async () => {
+    it('throws error from queryFn when SDK is not available', () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: null,
@@ -163,36 +144,26 @@ describe('useGetDelegationSettings', () => {
 
       renderHook(() => useGetDelegationSettings());
 
-      // Get the fetch function from the mock
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
-
-      expect(result).toBeNull();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(() => queryConfig.queryFn()).toThrow('SDK not initialized');
       expect(mockGetDelegationSettings).not.toHaveBeenCalled();
     });
 
-    it('returns null when user is not authenticated', async () => {
-      mockUseSelector.mockReturnValue(false);
-
+    it('query is always disabled (fetching is done via fetchData)', () => {
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
-
-      expect(result).toBeNull();
-      expect(mockGetDelegationSettings).not.toHaveBeenCalled();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.enabled).toBe(false);
     });
 
-    it('calls getDelegationSettings when SDK and authentication are available', async () => {
-      renderHook(() => useGetDelegationSettings());
+    it('calls getDelegationSettings when SDK is available via fetchData', async () => {
+      const { result } = renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      await fetchFn();
+      await act(async () => {
+        await result.current.fetchData();
+      });
 
-      expect(mockGetDelegationSettings).toHaveBeenCalledTimes(1);
+      expect(mockFetchQuery).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -200,9 +171,8 @@ describe('useGetDelegationSettings', () => {
     it('returns delegation settings from SDK', async () => {
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result).toEqual(mockDelegationSettingsResponse);
     });
@@ -210,9 +180,8 @@ describe('useGetDelegationSettings', () => {
     it('calls SDK getDelegationSettings without arguments', async () => {
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      await queryConfig.queryFn();
 
       expect(mockGetDelegationSettings).toHaveBeenCalledWith();
     });
@@ -220,9 +189,8 @@ describe('useGetDelegationSettings', () => {
     it('returns delegation settings with multiple networks', async () => {
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.networks).toHaveLength(2);
       expect(result?.count).toBe(2);
@@ -231,9 +199,8 @@ describe('useGetDelegationSettings', () => {
     it('returns delegation settings with network configurations', async () => {
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.networks[0]).toMatchObject({
         network: 'linea',
@@ -246,9 +213,8 @@ describe('useGetDelegationSettings', () => {
     it('returns delegation settings with token configurations', async () => {
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.networks[0].tokens).toHaveProperty('USDC');
       expect(result?.networks[0].tokens.USDC).toMatchObject({
@@ -261,9 +227,8 @@ describe('useGetDelegationSettings', () => {
     it('returns delegation settings with links', async () => {
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?._links).toHaveProperty('self');
       expect(result?._links.self).toBe(
@@ -284,9 +249,8 @@ describe('useGetDelegationSettings', () => {
 
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.networks).toEqual([]);
       expect(result?.count).toBe(0);
@@ -311,9 +275,8 @@ describe('useGetDelegationSettings', () => {
 
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.networks[0].tokens).toEqual({});
     });
@@ -337,9 +300,8 @@ describe('useGetDelegationSettings', () => {
 
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.networks).toHaveLength(1);
       expect(result?.count).toBe(1);
@@ -347,19 +309,56 @@ describe('useGetDelegationSettings', () => {
   });
 
   describe('Cache Integration', () => {
-    it('exposes fetchData function from useWrapWithCache', () => {
+    it('exposes fetchData function', () => {
       const { result } = renderHook(() => useGetDelegationSettings());
 
-      expect(result.current.fetchData).toBe(mockFetchData);
       expect(typeof result.current.fetchData).toBe('function');
     });
 
-    it('returns data from cache when available', () => {
-      mockUseWrapWithCache.mockReturnValue({
+    it('delegates cache freshness to fetchQuery with staleTime', async () => {
+      const { result } = renderHook(() => useGetDelegationSettings());
+
+      await act(async () => {
+        await result.current.fetchData();
+      });
+
+      expect(mockFetchQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: cardQueries.dashboard.keys.delegationSettings(),
+          staleTime: 10 * 60 * 1000,
+        }),
+      );
+    });
+
+    it('returns fetched data from fetchData', async () => {
+      const { result } = renderHook(() => useGetDelegationSettings());
+
+      let fetchResult;
+      await act(async () => {
+        fetchResult = await result.current.fetchData();
+      });
+
+      expect(fetchResult).toEqual(mockDelegationSettingsResponse);
+    });
+
+    it('returns null when fetchQuery returns null', async () => {
+      mockFetchQuery.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useGetDelegationSettings());
+
+      let fetchResult;
+      await act(async () => {
+        fetchResult = await result.current.fetchData();
+      });
+
+      expect(fetchResult).toBeNull();
+    });
+
+    it('returns data from useQuery when available', () => {
+      (useQuery as jest.Mock).mockReturnValue({
         data: mockDelegationSettingsResponse,
         isLoading: false,
         error: null,
-        fetchData: mockFetchData,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
@@ -367,12 +366,11 @@ describe('useGetDelegationSettings', () => {
       expect(result.current.data).toEqual(mockDelegationSettingsResponse);
     });
 
-    it('returns loading state from cache', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
+    it('returns loading state from useQuery', () => {
+      (useQuery as jest.Mock).mockReturnValue({
+        data: undefined,
         isLoading: true,
         error: null,
-        fetchData: mockFetchData,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
@@ -380,12 +378,11 @@ describe('useGetDelegationSettings', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('returns error state from cache', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
+    it('returns error state from useQuery', () => {
+      (useQuery as jest.Mock).mockReturnValue({
+        data: undefined,
         isLoading: false,
         error: new Error('Test error'),
-        fetchData: mockFetchData,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
@@ -393,70 +390,28 @@ describe('useGetDelegationSettings', () => {
       expect(result.current.error).toBeInstanceOf(Error);
     });
 
-    it('uses consistent cache key across renders', () => {
+    it('uses consistent query key across renders', () => {
       const { rerender } = renderHook(() => useGetDelegationSettings());
 
-      const firstCallKey = mockUseWrapWithCache.mock.calls[0][0];
+      const firstCallKey = (useQuery as jest.Mock).mock.calls[0][0].queryKey;
 
       rerender();
 
-      const secondCallKey = mockUseWrapWithCache.mock.calls[1][0];
+      const secondCallKey = (useQuery as jest.Mock).mock.calls[1][0].queryKey;
 
-      expect(firstCallKey).toBe(secondCallKey);
-      expect(firstCallKey).toBe('delegation-settings');
+      expect(firstCallKey).toEqual(secondCallKey);
+      expect(firstCallKey).toEqual(
+        cardQueries.dashboard.keys.delegationSettings(),
+      );
     });
   });
 
-  describe('Callback Stability', () => {
-    it('updates fetch callback when SDK changes', () => {
-      const { rerender } = renderHook(() => useGetDelegationSettings());
+  describe('Enabled Condition', () => {
+    it('query is always disabled (manual fetching via fetchData)', () => {
+      renderHook(() => useGetDelegationSettings());
 
-      const firstCallback = mockUseWrapWithCache.mock.calls[0][1];
-
-      // Change SDK instance
-      const newMockSDK = {
-        getDelegationSettings: jest.fn(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
-
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: newMockSDK,
-      });
-
-      rerender();
-
-      const secondCallback = mockUseWrapWithCache.mock.calls[1][1];
-
-      expect(firstCallback).not.toBe(secondCallback);
-    });
-
-    it('updates fetch callback when authentication state changes', () => {
-      const { rerender } = renderHook(() => useGetDelegationSettings());
-
-      const firstCallback = mockUseWrapWithCache.mock.calls[0][1];
-
-      // Change authentication state
-      mockUseSelector.mockReturnValue(false);
-
-      rerender();
-
-      const secondCallback = mockUseWrapWithCache.mock.calls[1][1];
-
-      expect(firstCallback).not.toBe(secondCallback);
-    });
-
-    it('maintains callback stability when unrelated state changes', () => {
-      const { rerender } = renderHook(() => useGetDelegationSettings());
-
-      const firstCallback = mockUseWrapWithCache.mock.calls[0][1];
-
-      rerender();
-
-      const secondCallback = mockUseWrapWithCache.mock.calls[1][1];
-
-      // Callback should be stable since SDK and auth haven't changed
-      expect(firstCallback).toBe(secondCallback);
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.enabled).toBe(false);
     });
   });
 
@@ -486,10 +441,9 @@ describe('useGetDelegationSettings', () => {
 
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
 
-      await expect(fetchFn()).rejects.toThrow('API Error');
+      await expect(queryConfig.queryFn()).rejects.toThrow('API Error');
     });
 
     it('handles network errors', async () => {
@@ -498,24 +452,22 @@ describe('useGetDelegationSettings', () => {
 
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
 
-      await expect(fetchFn()).rejects.toThrow('Network timeout');
+      await expect(queryConfig.queryFn()).rejects.toThrow('Network timeout');
     });
 
-    it('handles SDK method not available', async () => {
+    it('handles SDK method not available', () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
-        sdk: {} as unknown as CardSDK, // SDK wi thout getDelegationSettings method
+        sdk: {} as unknown as CardSDK,
       });
 
       renderHook(() => useGetDelegationSettings());
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
 
-      await expect(fetchFn()).rejects.toThrow();
+      expect(() => queryConfig.queryFn()).toThrow();
     });
   });
 
@@ -526,29 +478,30 @@ describe('useGetDelegationSettings', () => {
 
       expect(result1.current).toBeDefined();
       expect(result2.current).toBeDefined();
-      expect(mockUseWrapWithCache).toHaveBeenCalledTimes(2);
+      expect(useQuery as jest.Mock).toHaveBeenCalledTimes(2);
     });
 
-    it('uses same cache key across multiple instances', () => {
+    it('uses same query key across multiple instances', () => {
       renderHook(() => useGetDelegationSettings());
       renderHook(() => useGetDelegationSettings());
 
-      const firstKey = mockUseWrapWithCache.mock.calls[0][0];
-      const secondKey = mockUseWrapWithCache.mock.calls[1][0];
+      const firstKey = (useQuery as jest.Mock).mock.calls[0][0].queryKey;
+      const secondKey = (useQuery as jest.Mock).mock.calls[1][0].queryKey;
 
-      expect(firstKey).toBe(secondKey);
-      expect(firstKey).toBe('delegation-settings');
+      expect(firstKey).toEqual(secondKey);
+      expect(firstKey).toEqual(cardQueries.dashboard.keys.delegationSettings());
     });
 
-    it('uses same cache duration across multiple instances', () => {
+    it('uses same staleTime across multiple instances', () => {
       renderHook(() => useGetDelegationSettings());
       renderHook(() => useGetDelegationSettings());
 
-      const firstOptions = mockUseWrapWithCache.mock.calls[0][2];
-      const secondOptions = mockUseWrapWithCache.mock.calls[1][2];
+      const firstStaleTime = (useQuery as jest.Mock).mock.calls[0][0].staleTime;
+      const secondStaleTime = (useQuery as jest.Mock).mock.calls[1][0]
+        .staleTime;
 
-      expect(firstOptions).toEqual(secondOptions);
-      expect(firstOptions?.cacheDuration).toBe(600000);
+      expect(firstStaleTime).toBe(secondStaleTime);
+      expect(firstStaleTime).toBe(600000);
     });
   });
 });

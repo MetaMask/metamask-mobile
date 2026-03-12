@@ -2,11 +2,13 @@ import React, { ReactChild } from 'react';
 import Modal from 'react-native-modal';
 import { View } from 'react-native';
 
+import { brandColor } from '@metamask/design-tokens';
+
 import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './bottom-modal.styles';
 
-const OPAQUE_GRAY = '#414141';
+const OPAQUE_GRAY = brandColor.grey600;
 interface BottomModalProps {
   avoidKeyboard?: boolean;
   children: ReactChild;
