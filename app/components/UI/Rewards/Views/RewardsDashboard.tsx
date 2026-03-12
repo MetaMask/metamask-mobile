@@ -6,7 +6,12 @@ import React, {
   useState,
 } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconName,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -26,7 +31,6 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSnapshotsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
@@ -34,8 +38,6 @@ import {
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import RewardsOverview from '../components/Tabs/RewardsOverview';
-import RewardsSnapshots from '../components/Tabs/RewardsSnapshots';
-import RewardsActivity from '../components/Tabs/RewardsActivity';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import Toast from '../../../../component-library/components/Toast';
@@ -58,7 +60,6 @@ const RewardsDashboard: React.FC = () => {
   );
   const seasonId = useSelector(selectSeasonId);
   const seasonEndDate = useSelector(selectSeasonEndDate);
-  const isSnapshotsEnabled = useSelector(selectSnapshotsRewardsEnabledFlag);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -119,65 +120,19 @@ const RewardsDashboard: React.FC = () => {
     [optInByWallet],
   );
 
-  const tabOptions = useMemo(() => {
-    const options: {
-      value: 'overview' | 'snapshots' | 'activity';
-      label: string;
-    }[] = [
-      {
-        value: 'overview' as const,
-        label: strings('rewards.tab_overview_title'),
-      },
-    ];
-
-    if (isSnapshotsEnabled) {
-      options.push({
-        value: 'snapshots' as const,
-        label: strings('rewards.tab_snapshots_title'),
-      });
-    }
-
-    options.push({
-      value: 'activity' as const,
-      label: strings('rewards.tab_activity_title'),
-    });
-
-    return options;
-  }, [isSnapshotsEnabled]);
-
-  const getActiveIndex = useCallback(
-    () => tabOptions.findIndex((tab) => tab.value === activeTab),
-    [tabOptions, activeTab],
+  const tabOptions = useMemo(
+    () => [
+      { value: 'musd' as const, label: 'mUSD' },
+      { value: 'season1' as const, label: strings('rewards.season_1') },
+    ],
+    [],
   );
-
-  // Reset activeTab to 'overview' if current tab becomes unavailable (e.g., snapshots disabled)
-  // This ensures Redux state stays in sync with the visible tab and analytics events are accurate
-  useEffect(() => {
-    const isCurrentTabAvailable = tabOptions.some(
-      (tab) => tab.value === activeTab,
-    );
-    if (!isCurrentTabAvailable) {
-      dispatch(setActiveTab('overview'));
-    }
-  }, [tabOptions, activeTab, dispatch]);
-
-  // Sync TabsList with Redux state changes
-  useEffect(() => {
-    const activeIndex = tabOptions.findIndex((tab) => tab.value === activeTab);
-    if (tabsListRef.current && activeIndex !== -1) {
-      // Use setTimeout to avoid race conditions with TabsList internal state
-      if (tabsListRef.current) {
-        tabsListRef.current.goToTabIndex(activeIndex);
-      }
-    }
-  }, [activeTab, tabOptions]);
 
   const handleTabChange = useCallback(
     ({ i }: { i: number }) => {
-      const newTab = tabOptions[i]?.value as RewardsTab;
-      // Only dispatch if the tab is actually different to prevent loops
+      const newTab = tabOptions[i]?.value;
       if (newTab && newTab !== activeTab) {
-        dispatch(setActiveTab(newTab));
+        dispatch(setActiveTab(newTab as RewardsTab));
       }
     },
     [dispatch, tabOptions, activeTab],
@@ -186,7 +141,7 @@ const RewardsDashboard: React.FC = () => {
   const tabsListProps = useMemo(
     () => ({
       ref: tabsListRef,
-      initialActiveIndex: getActiveIndex(),
+      initialActiveIndex: 0,
       onChangeTab: handleTabChange,
       testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
       tabsBarProps: {
@@ -194,35 +149,8 @@ const RewardsDashboard: React.FC = () => {
       },
       tabsListContentTwClassName: 'px-0',
     }),
-    [getActiveIndex, handleTabChange],
+    [handleTabChange],
   );
-
-  const tabComponents = useMemo(() => {
-    const tabs: React.ReactElement[] = [
-      <RewardsOverview
-        key="overview"
-        tabLabel={strings('rewards.tab_overview_title')}
-      />,
-    ];
-
-    if (isSnapshotsEnabled) {
-      tabs.push(
-        <RewardsSnapshots
-          key="snapshots"
-          tabLabel={strings('rewards.tab_snapshots_title')}
-        />,
-      );
-    }
-
-    tabs.push(
-      <RewardsActivity
-        key="activity"
-        tabLabel={strings('rewards.tab_activity_title')}
-      />,
-    );
-
-    return tabs;
-  }, [isSnapshotsEnabled]);
 
   // Auto-resume interrupted bulk link process when screen comes into focus.
   // This handles the case where the app was closed during a bulk opt-in process.
@@ -362,12 +290,28 @@ const RewardsDashboard: React.FC = () => {
           {showPreviousSeasonSummary ? (
             <PreviousSeasonSummary />
           ) : (
-            <>
-              <Box twClassName="mx-4">
-                <SeasonStatus />
+            <TabsList {...tabsListProps}>
+              {/* mUSD Tab - Blank placeholder */}
+              <Box key="musd" tabLabel="mUSD" twClassName="flex-1 p-4">
+                <Box twClassName="flex-1 items-center justify-center">
+                  <Text variant={TextVariant.BodyMd}>
+                    mUSD content coming soon
+                  </Text>
+                </Box>
               </Box>
-              <TabsList {...tabsListProps}>{tabComponents}</TabsList>
-            </>
+
+              {/* Season 1 Tab - Current rewards content */}
+              <Box
+                key="season1"
+                tabLabel={strings('rewards.season_1')}
+                twClassName="flex-1"
+              >
+                <Box twClassName="mx-4">
+                  <SeasonStatus />
+                </Box>
+                <RewardsOverview tabLabel="Overview" />
+              </Box>
+            </TabsList>
           )}
         </Box>
       </SafeAreaView>
