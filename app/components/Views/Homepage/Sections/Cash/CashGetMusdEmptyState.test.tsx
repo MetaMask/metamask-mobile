@@ -126,7 +126,7 @@ describe('CashGetMusdEmptyState', () => {
     expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
   });
 
-  it('tracks MUSD_CONVERSION_CTA_CLICKED with mobile-token-list when Get mUSD is pressed on homepage', () => {
+  it('tracks MUSD_CONVERSION_CTA_CLICKED with home_cash_section when Get mUSD is pressed on homepage', () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
     fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
@@ -136,7 +136,7 @@ describe('CashGetMusdEmptyState', () => {
     );
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MOBILE_TOKEN_LIST,
+        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
         cta_type: MUSD_EVENTS_CONSTANTS.MUSD_CTA_TYPES.PRIMARY,
         cta_text: 'Get mUSD',
       }),

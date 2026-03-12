@@ -12,9 +12,7 @@ const EVENT_LOCATIONS = {
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
   QUICK_CONVERT_HOME_SCREEN: 'quick_convert_home_screen',
-  /** Primary CTA / token list item on homepage compact view */
-  MOBILE_TOKEN_LIST: 'mobile-token-list',
-  /** Primary CTA / token list item on full page token list */
+  /** CTA on full page Cash token list */
   MOBILE_TOKEN_LIST_PAGE: 'mobile-token-list-page',
 };
 

@@ -125,7 +125,7 @@ const CashGetMusdEmptyState = ({
         .addProperties({
           location: isFullView
             ? EVENT_LOCATIONS.MOBILE_TOKEN_LIST_PAGE
-            : EVENT_LOCATIONS.MOBILE_TOKEN_LIST,
+            : EVENT_LOCATIONS.HOME_CASH_SECTION,
           redirects_to: getRedirectLocation(),
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: strings('earn.musd_conversion.get_musd'),
