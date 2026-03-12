@@ -68,6 +68,7 @@ export const Recipient = () => {
       if (isSubmittingTransaction) {
         return;
       }
+      // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
       if (!asset || !chainId) {
         return;
       }
