@@ -31,7 +31,9 @@ export function setSentinelApiAuth(
  *
  * @returns Promise resolving to headers (optional Bearer only when authenticated).
  */
-export async function getSentinelApiHeadersAsync(): Promise<HeadersInit> {
+export async function getSentinelApiHeadersAsync(): Promise<
+  Record<string, string>
+> {
   const headers: Record<string, string> = {};
 
   if (getBearerTokenForSentinel) {
