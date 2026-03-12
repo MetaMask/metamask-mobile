@@ -469,7 +469,8 @@
     "assetsBalance": {},
     "assetsInfo": {},
     "assetsPrice": {},
-    "customAssets": {}
+    "customAssets": {},
+    "selectedCurrency": "usd"
   },
   "PermissionController": {
     "subjects": {}
