@@ -19,8 +19,6 @@ import {
   getChainIdForNetwork,
 } from '../../selectors/Bridge/QuoteView.selectors';
 
-const TOKEN_LIST_MATCHER = by.id(QuoteViewSelectorIDs.TOKEN_LIST);
-
 const TIMEOUT = {
   SWAP_SCREEN_VISIBLE: 10000,
   TOKEN_EXISTS_BEFORE_SCROLL: 15000,
@@ -159,7 +157,7 @@ class QuoteView {
           .withTimeout(TIMEOUT.TOKEN_EXISTS_BEFORE_SCROLL);
         await Gestures.scrollToElement(
           tokenElement as unknown as DetoxElement,
-          Promise.resolve(TOKEN_LIST_MATCHER),
+          Matchers.getIdentifier(QuoteViewSelectorIDs.TOKEN_LIST),
           {
             direction: 'down',
             scrollAmount: 350,
