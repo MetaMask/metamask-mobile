@@ -79,6 +79,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed token hiding not working on the redesigned homepage (#26649)
 - Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after token selection (#25952)
 
+## [7.68.2]
+
+### Fixed
+
+- Fixed a bug that permanently locked some seedless onboarding users out of their wallets after a background token refresh (#27382)
+
+## [7.68.1]
+
+### Added
+
+- Add support for additional icon colors in Snaps `Icon` component (#27335)
+
 ## [7.68.0]
 
 ### Added
@@ -10921,7 +10933,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...HEAD
-[7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.69.0
+[7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.69.0
+[7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.1...v7.68.2
+[7.68.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.68.1
 [7.68.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.67.3...v7.68.0
 [7.67.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.67.0...v7.67.3
 [7.67.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.1...v7.67.0
