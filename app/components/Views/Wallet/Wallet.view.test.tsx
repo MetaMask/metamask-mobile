@@ -125,25 +125,21 @@ describeForPlatforms('Wallet', () => {
     } as unknown as Record<string, unknown>,
   };
 
-  it('displays navbar address copy button', () => {
+  it('navbar address copy button is visible and pressable', () => {
     const { getByTestId } = renderWalletView(defaultWalletOverrides);
 
-    expect(
-      getByTestId(WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('displays account picker in header', () => {
-    const { getByTestId } = renderWalletView(defaultWalletOverrides);
-
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
-  });
-
-  it('address copy button is pressable', () => {
-    const { getByTestId } = renderWalletView(defaultWalletOverrides);
-
-    fireEvent.press(
-      getByTestId(WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON),
+    const addressCopyButton = getByTestId(
+      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
     );
+    expect(addressCopyButton).toBeOnTheScreen();
+    fireEvent.press(addressCopyButton);
+  });
+
+  it('account picker in header is pressable', () => {
+    const { getByTestId } = renderWalletView(defaultWalletOverrides);
+
+    const accountPicker = getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON);
+    expect(accountPicker).toBeOnTheScreen();
+    fireEvent.press(accountPicker);
   });
 });
