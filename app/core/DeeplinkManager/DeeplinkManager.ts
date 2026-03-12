@@ -14,6 +14,11 @@ import { BranchParams } from './types/deepLinkAnalytics.types';
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
  * a clicked Branch link with a $deeplink_path, replace the host and path segment
  * with link.metamask.io/$deeplink_path while preserving the original query string.
+ *
+ * For deferred deeplinks (app installed via Branch link), the original URL's query
+ * parameters are stored as custom data in Branch params rather than on the URI itself.
+ * This function merges those custom data keys onto the reconstructed URL so that
+ * UTM parameters and other query params flow downstream to handlers and analytics.
  */
 export function rewriteBranchUri(
   uri: string | undefined,
@@ -26,8 +31,31 @@ export function rewriteBranchUri(
 
     const parsed = new URL(uri);
     parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
-    // Set the pathname to the sanitized $deeplink_path
     parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
+
+    // Merge custom data from Branch params onto the URL.
+    // Branch stores the original link's query parameters as top-level keys.
+    // Skip Branch internal keys (prefixed with +, ~, $) and known Branch metadata.
+    for (const [key, value] of Object.entries(params)) {
+      if (
+        key.startsWith('+') ||
+        key.startsWith('~') ||
+        key.startsWith('$') ||
+        key === 'BNCUpdateStateInstall'
+      ) {
+        continue;
+      }
+      // Only add params that aren't already on the URL (URI params take precedence)
+      if (
+        !parsed.searchParams.has(key) &&
+        (typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean')
+      ) {
+        parsed.searchParams.set(key, String(value));
+      }
+    }
+
     return parsed.toString();
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
