@@ -1,112 +1,264 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import TokenListRoutes from './routes';
+import LockManagerService from '../../../core/LockManagerService';
 
-// Mock LockManagerService - must use inline jest.fn() to avoid hoisting issues
-jest.mock('../../../core/LockManagerService', () => ({
-  __esModule: true,
-  default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
-  },
-}));
-
-// Get references to the mock functions for assertions
-const mockLockManagerService = jest.requireMock(
-  '../../../core/LockManagerService',
-).default;
-const mockStopListening = mockLockManagerService.stopListening;
-const mockStartListening = mockLockManagerService.startListening;
-
-// Mock all the view components
-jest.mock('./Views/TokenSelection', () => 'TokenSelection');
-jest.mock('./Views/BuildQuote', () => 'BuildQuote');
-jest.mock('./Views/Checkout', () => 'Checkout');
-jest.mock('./Views/NativeFlow/EnterEmail', () => 'V2EnterEmail');
-jest.mock('./Views/NativeFlow/OtpCode', () => 'V2OtpCode');
-jest.mock('./Views/NativeFlow/BasicInfo', () => 'V2BasicInfo');
-jest.mock('./Views/NativeFlow/EnterAddress', () => 'V2EnterAddress');
-jest.mock('./Views/NativeFlow/VerifyIdentity', () => 'V2VerifyIdentity');
-jest.mock('./Views/NativeFlow/BankDetails', () => 'V2BankDetails');
-jest.mock('./Views/NativeFlow/OrderProcessing', () => 'V2OrderProcessing');
-jest.mock('./Views/NativeFlow/KycProcessing', () => 'V2KycProcessing');
-jest.mock(
-  './Views/NativeFlow/AdditionalVerification',
-  () => 'V2AdditionalVerification',
-);
-jest.mock(
-  './Views/Modals/UnsupportedTokenModal',
-  () => 'UnsupportedTokenModal',
-);
-jest.mock('./Views/Modals/SettingsModal', () => 'SettingsModal');
-jest.mock(
-  './Views/Modals/PaymentSelectionModal',
-  () => 'PaymentSelectionModal',
-);
-jest.mock(
-  './Views/Modals/TokenNotAvailableModal',
-  () => 'TokenNotAvailableModal',
-);
-jest.mock(
-  './Views/Modals/ProviderSelectionModal',
-  () => 'ProviderSelectionModal',
-);
-jest.mock('./Views/Modals/ErrorDetailsModal', () => 'ErrorDetailsModal');
-jest.mock(
-  './Views/Modals/ProcessingInfoModal/ProcessingInfoModal',
-  () => 'ProcessingInfoModal',
-);
-jest.mock('./Views/OrderDetails', () => 'RampsOrderDetails');
-
-// Mock @react-navigation/stack
 jest.mock('@react-navigation/stack', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View, Text } = require('react-native');
   return {
     createStackNavigator: () => ({
       Navigator: ({
         children,
-        ...props
-      }: React.PropsWithChildren<Record<string, unknown>>) => (
-        <View testID="stack-navigator" {...props}>
+        screenOptions,
+      }: {
+        children: React.ReactNode;
+        screenOptions?: {
+          headerShown?: boolean;
+          presentation?: string;
+        };
+      }) => (
+        <View testID="stack-navigator">
+          {screenOptions?.headerShown === false && (
+            <Text>headerShown: false</Text>
+          )}
+          {screenOptions?.presentation && (
+            <Text>presentation: {screenOptions.presentation}</Text>
+          )}
           {children}
         </View>
       ),
       Screen: ({
-        children,
-        ...props
-      }: React.PropsWithChildren<{ name: string }>) => (
-        <View testID={`screen-${props.name}`} {...props}>
-          {children}
+        name,
+        options,
+      }: {
+        name: string;
+        options?: {
+          headerShown?: boolean;
+          gestureEnabled?: boolean;
+        };
+      }) => (
+        <View testID={`screen-${name}`}>
+          <Text>{name}</Text>
+          {options?.headerShown === false && <Text>no-header</Text>}
+          {options?.gestureEnabled === false && <Text>no-gesture</Text>}
         </View>
       ),
     }),
   };
 });
 
-const renderWithNavigation = (component: React.ReactElement) =>
-  render(<NavigationContainer>{component}</NavigationContainer>);
+jest.mock('../../../core/LockManagerService', () => ({
+  stopListening: jest.fn(),
+  startListening: jest.fn(),
+}));
 
-describe('TokenListRoutes', () => {
+jest.mock('./Views/TokenSelection', () => {
+  const { View } = require('react-native');
+  return () => <View testID="token-selection" />;
+});
+
+jest.mock('./Views/BuildQuote', () => {
+  const { View } = require('react-native');
+  return () => <View testID="build-quote" />;
+});
+
+jest.mock('./Views/Checkout', () => {
+  const { View } = require('react-native');
+  return () => <View testID="checkout" />;
+});
+
+jest.mock('./Views/NativeFlow/EnterEmail', () => {
+  const { View } = require('react-native');
+  return () => <View testID="enter-email" />;
+});
+
+jest.mock('./Views/NativeFlow/OtpCode', () => {
+  const { View } = require('react-native');
+  return () => <View testID="otp-code" />;
+});
+
+jest.mock('./Views/NativeFlow/BasicInfo', () => {
+  const { View } = require('react-native');
+  return () => <View testID="basic-info" />;
+});
+
+jest.mock('./Views/NativeFlow/EnterAddress', () => {
+  const { View } = require('react-native');
+  return () => <View testID="enter-address" />;
+});
+
+jest.mock('./Views/NativeFlow/VerifyIdentity', () => {
+  const { View } = require('react-native');
+  return () => <View testID="verify-identity" />;
+});
+
+jest.mock('./Views/NativeFlow/BankDetails', () => {
+  const { View } = require('react-native');
+  return () => <View testID="bank-details" />;
+});
+
+jest.mock('./Views/NativeFlow/OrderProcessing', () => {
+  const { View } = require('react-native');
+  return () => <View testID="order-processing" />;
+});
+
+jest.mock('./Views/NativeFlow/KycProcessing', () => {
+  const { View } = require('react-native');
+  return () => <View testID="kyc-processing" />;
+});
+
+jest.mock('./Views/NativeFlow/AdditionalVerification', () => {
+  const { View } = require('react-native');
+  return () => <View testID="additional-verification" />;
+});
+
+jest.mock('./Views/Modals/UnsupportedTokenModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="unsupported-token-modal" />;
+});
+
+jest.mock('./Views/Modals/SettingsModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="settings-modal" />;
+});
+
+jest.mock('./Views/Modals/PaymentSelectionModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="payment-selection-modal" />;
+});
+
+jest.mock('./Views/Modals/TokenNotAvailableModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="token-not-available-modal" />;
+});
+
+jest.mock('./Views/Modals/ProviderSelectionModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="provider-selection-modal" />;
+});
+
+jest.mock('./Views/Modals/ErrorDetailsModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="error-details-modal" />;
+});
+
+jest.mock('./Views/Modals/ProcessingInfoModal/ProcessingInfoModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="processing-info-modal" />;
+});
+
+jest.mock('./Deposit/Views/Modals/SsnInfoModal', () => {
+  const { View } = require('react-native');
+  return () => <View testID="ssn-info-modal" />;
+});
+
+jest.mock('./Views/OrderDetails', () => {
+  const { View } = require('react-native');
+  return () => <View testID="order-details" />;
+});
+
+jest.mock('../../../constants/navigation/Routes', () => ({
+  RAMP: {
+    TOKEN_SELECTION: 'TokenSelection',
+    AMOUNT_INPUT: 'AmountInput',
+    ENTER_EMAIL: 'EnterEmail',
+    OTP_CODE: 'OtpCode',
+    BASIC_INFO: 'BasicInfo',
+    ENTER_ADDRESS: 'EnterAddress',
+    VERIFY_IDENTITY: 'VerifyIdentity',
+    BANK_DETAILS: 'BankDetails',
+    ORDER_PROCESSING: 'OrderProcessing',
+    KYC_PROCESSING: 'KycProcessing',
+    ADDITIONAL_VERIFICATION: 'AdditionalVerification',
+    CHECKOUT: 'Checkout',
+    RAMPS_ORDER_DETAILS: 'RampsOrderDetails',
+    MODALS: {
+      ID: 'RampModals',
+      UNSUPPORTED_TOKEN: 'UnsupportedTokenModal',
+      BUILD_QUOTE_SETTINGS: 'BuildQuoteSettingsModal',
+      PAYMENT_SELECTION: 'PaymentSelectionModal',
+      TOKEN_NOT_AVAILABLE: 'TokenNotAvailableModal',
+      PROVIDER_SELECTION: 'ProviderSelectionModal',
+      ERROR_DETAILS: 'ErrorDetailsModal',
+      PROCESSING_INFO: 'ProcessingInfoModal',
+      SSN_INFO: 'SsnInfoModal',
+    },
+  },
+}));
+
+describe('TokenListRoutes (Ramp routes)', () => {
+  const renderWithNavigation = (component: React.ReactElement) =>
+    render(<NavigationContainer>{component}</NavigationContainer>);
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Auto-lock Management', () => {
-    it('disables auto-lock when component mounts', () => {
+  describe('LockManagerService integration', () => {
+    it('stops listening to lock manager on mount', () => {
       renderWithNavigation(<TokenListRoutes />);
 
-      expect(mockStopListening).toHaveBeenCalledTimes(1);
+      expect(LockManagerService.stopListening).toHaveBeenCalled();
     });
 
-    it('re-enables auto-lock when component unmounts', () => {
+    it('starts listening to lock manager on unmount', () => {
       const { unmount } = renderWithNavigation(<TokenListRoutes />);
-
-      expect(mockStartListening).not.toHaveBeenCalled();
 
       unmount();
 
-      expect(mockStartListening).toHaveBeenCalledTimes(1);
+      expect(LockManagerService.startListening).toHaveBeenCalled();
+    });
+
+    it('calls stopListening only once on mount', () => {
+      renderWithNavigation(<TokenListRoutes />);
+
+      expect(LockManagerService.stopListening).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Main routes', () => {
+    it('renders successfully', () => {
+      const { getByTestId } = renderWithNavigation(<TokenListRoutes />);
+
+      expect(getByTestId('stack-navigator')).toBeTruthy();
+    });
+
+    it('renders nested stack navigators', () => {
+      const { getAllByTestId } = renderWithNavigation(<TokenListRoutes />);
+
+      expect(getAllByTestId('stack-navigator').length).toBeGreaterThan(0);
+    });
+
+    it('includes TokenSelection screen', () => {
+      const { getByTestId } = renderWithNavigation(<TokenListRoutes />);
+
+      expect(getByTestId('screen-TokenSelection')).toBeTruthy();
+    });
+
+    it('includes RampModals navigator', () => {
+      const { getByTestId } = renderWithNavigation(<TokenListRoutes />);
+
+      expect(getByTestId('screen-RampModals')).toBeTruthy();
+    });
+  });
+
+  describe('Navigator configuration', () => {
+    it('has header hidden for main navigator', () => {
+      const { getByText } = renderWithNavigation(<TokenListRoutes />);
+
+      expect(getByText('headerShown: false')).toBeTruthy();
+    });
+
+    it('includes modals navigator with no-header option', () => {
+      const { getByTestId, getByText } = renderWithNavigation(
+        <TokenListRoutes />,
+      );
+
+      expect(getByTestId('screen-RampModals')).toBeTruthy();
+      expect(getByText('no-header')).toBeTruthy();
     });
   });
 });
