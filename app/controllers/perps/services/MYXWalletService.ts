@@ -13,11 +13,11 @@
  * while delegating actual signing to the MetaMask keyring.
  */
 
-import {
-  SignTypedDataVersion
-
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import type {
+  KeyringControllerState,
+  TypedMessageParams,
 } from '@metamask/keyring-controller';
-import type {KeyringControllerState, TypedMessageParams } from '@metamask/keyring-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
