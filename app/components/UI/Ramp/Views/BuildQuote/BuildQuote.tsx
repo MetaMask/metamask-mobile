@@ -88,7 +88,9 @@ const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Unknown,
 ]);
 
-function isBailedOrderStatus(status: RampsOrderStatus | undefined): boolean {
+export function isBailedOrderStatus(
+  status: RampsOrderStatus | undefined,
+): boolean {
   return status != null && BAILED_ORDER_STATUSES.has(status);
 }
 

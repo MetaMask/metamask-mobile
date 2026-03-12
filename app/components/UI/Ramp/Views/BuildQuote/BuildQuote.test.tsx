@@ -1,8 +1,11 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
-import type { BuyWidget } from '@metamask/ramps-controller';
+import { RampsOrderStatus, type BuyWidget } from '@metamask/ramps-controller';
 import type { UseRampsControllerResult } from '../../hooks/useRampsController';
-import BuildQuote, { createBuildQuoteNavDetails } from './BuildQuote';
+import BuildQuote, {
+  createBuildQuoteNavDetails,
+  isBailedOrderStatus,
+} from './BuildQuote';
 import {
   renderScreen,
   DeepPartial,
@@ -445,6 +448,34 @@ function render() {
     name: Routes.RAMP.AMOUNT_INPUT,
   });
 }
+
+describe('isBailedOrderStatus', () => {
+  it('returns true for Precreated status', () => {
+    expect(isBailedOrderStatus(RampsOrderStatus.Precreated)).toBe(true);
+  });
+
+  it('returns true for IdExpired status', () => {
+    expect(isBailedOrderStatus(RampsOrderStatus.IdExpired)).toBe(true);
+  });
+
+  it('returns true for Unknown status', () => {
+    expect(isBailedOrderStatus(RampsOrderStatus.Unknown)).toBe(true);
+  });
+
+  it('returns false for Pending status', () => {
+    expect(isBailedOrderStatus(RampsOrderStatus.Pending)).toBe(false);
+  });
+
+  it('returns false for undefined status', () => {
+    expect(isBailedOrderStatus(undefined)).toBe(false);
+  });
+
+  it('returns false for null status', () => {
+    expect(isBailedOrderStatus(null as unknown as RampsOrderStatus)).toBe(
+      false,
+    );
+  });
+});
 
 describe('createBuildQuoteNavDetails', () => {
   it('returns nav details for TOKEN_SELECTION with AMOUNT_INPUT screen', () => {
