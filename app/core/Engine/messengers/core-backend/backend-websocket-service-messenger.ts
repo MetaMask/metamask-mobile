@@ -54,7 +54,7 @@ export function getBackendWebSocketServiceInitMessenger(
   const messenger = new Messenger<
     'BackendWebSocketServiceInit',
     | RemoteFeatureFlagControllerGetStateAction
-    | AuthenticationController.AuthenticationControllerGetBearerToken,
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction,
     never,
     RootMessenger
   >({
