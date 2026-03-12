@@ -53,7 +53,9 @@
 -dontwarn kotlinx.serialization.Serializable
 
 
-# Ignore missing Java desktop classes referenced by JNA
+# JNA (used by UniFFI / WalletConnect Pay native module)
+-keep class com.sun.jna.** { *; }
+-keep class uniffi.** { *; }
 -dontwarn java.awt.**
 -dontwarn javax.swing.**
 -dontwarn java.lang.instrument.**

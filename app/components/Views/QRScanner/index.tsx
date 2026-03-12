@@ -46,6 +46,8 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
+import { isPaymentLink } from '@reown/walletkit';
+import handleWalletConnectPay from '../../../core/DeeplinkManager/handlers/legacy/handleWalletConnectPay';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -239,6 +241,23 @@ const QRScanner = ({
         return;
       }
 
+      if (isPaymentLink(content)) {
+        shouldReadBarCodeRef.current = false;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+            .addProperties({
+              [QRScannerEventProperties.SCAN_SUCCESS]: true,
+              [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              [QRScannerEventProperties.SCAN_RESULT]:
+                ScanResult.DEEPLINK_HANDLED,
+            })
+            .build(),
+        );
+        handleWalletConnectPay({ paymentUrl: content });
+        end();
+        return;
+      }
+
       // MetaMask universal links (metamask.app.link, link.metamask.io, etc.)
       // must be handled in-app via DeeplinkManager, not opened externally.
       // On iOS, calling Linking.openURL() with a universal link that belongs to
@@ -294,12 +313,14 @@ const QRScanner = ({
       const contentProtocol = getURLProtocol(content);
       const isWalletConnect = content.startsWith(MM_WALLETCONNECT_DEEPLINK);
       const isSDK = content.startsWith(MM_SDK_DEEPLINK);
+      const isWCPayLink = isPaymentLink(content);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
           contentProtocol === PROTOCOLS.HTTPS ||
           contentProtocol === PROTOCOLS.DAPP) &&
         !isWalletConnect &&
-        !isSDK
+        !isSDK &&
+        !isWCPayLink
       ) {
         if (contentProtocol === PROTOCOLS.DAPP) {
           content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);

@@ -764,6 +764,10 @@ export class WC2Manager {
     return sessions.some((session) => session.peer.metadata.url === origin);
   }
 
+  public getWalletKit(): IWalletKit {
+    return this.web3Wallet;
+  }
+
   public async connect({
     wcUri,
     redirectUrl,

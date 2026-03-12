@@ -471,6 +471,9 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  WALLET_CONNECT_PAY: {
+    PAYMENT_MODAL: 'WalletConnectPayModal',
+  },
 };
 
 export default Routes;
