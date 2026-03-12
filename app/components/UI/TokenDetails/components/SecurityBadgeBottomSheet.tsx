@@ -1,5 +1,7 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -28,6 +30,11 @@ export interface SecurityBadgeBottomSheetParams {
   title: string;
   description: string;
   onProceed?: () => void;
+  source: string;
+  severity?: string;
+  tokenAddress?: string;
+  tokenSymbol?: string;
+  chainId?: string;
 }
 
 type SecurityBadgeBottomSheetRouteProp = RouteProp<
@@ -38,17 +45,83 @@ type SecurityBadgeBottomSheetRouteProp = RouteProp<
 const SecurityBadgeBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<SecurityBadgeBottomSheetRouteProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { icon, iconColor, title, description, onProceed } = route.params;
+  const {
+    icon,
+    iconColor,
+    title,
+    description,
+    onProceed,
+    source,
+    severity,
+    tokenAddress,
+    tokenSymbol,
+    chainId,
+  } = route.params;
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_OPENED)
+        .addProperties({
+          source,
+          severity,
+          token_address: tokenAddress,
+          token_symbol: tokenSymbol,
+          chain_id: chainId,
+        })
+        .build(),
+    );
+  }, [
+    chainId,
+    createEventBuilder,
+    severity,
+    source,
+    tokenAddress,
+    tokenSymbol,
+    trackEvent,
+  ]);
+
+  const trackAction = useCallback(
+    (action: 'proceed' | 'cancel') => {
+      if (!onProceed) return;
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
+        )
+          .addProperties({
+            action,
+            source,
+            severity,
+            token_address: tokenAddress,
+            token_symbol: tokenSymbol,
+            chain_id: chainId,
+          })
+          .build(),
+      );
+    },
+    [
+      chainId,
+      createEventBuilder,
+      onProceed,
+      severity,
+      source,
+      tokenAddress,
+      tokenSymbol,
+      trackEvent,
+    ],
+  );
 
   const handleClose = useCallback(() => {
+    trackAction('cancel');
     sheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackAction]);
 
   const handleProceed = useCallback(() => {
+    trackAction('proceed');
     sheetRef.current?.onCloseBottomSheet();
     onProceed?.();
-  }, [onProceed]);
+  }, [onProceed, trackAction]);
 
   return (
     <BottomSheet ref={sheetRef}>

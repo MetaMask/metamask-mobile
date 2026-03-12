@@ -47,7 +47,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const showBuyButton = isBuyable || !hasEligibleSwapTokens;
 
   const handleFooterAction = useCallback(
-    (action: () => void) => {
+    (action: () => void, source: string) => {
       const resultType = securityData?.resultType;
 
       const configMap: Record<
@@ -97,10 +97,24 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-        params: { ...config, onProceed: action },
+        params: {
+          ...config,
+          onProceed: action,
+          source,
+          severity: resultType,
+          tokenAddress: token.address,
+          tokenSymbol: token.symbol,
+          chainId: token.chainId,
+        },
       });
     },
-    [navigation, securityData?.resultType, token.symbol],
+    [
+      navigation,
+      securityData?.resultType,
+      token.symbol,
+      token.address,
+      token.chainId,
+    ],
   );
 
   const footerStyle = React.useMemo(
@@ -126,7 +140,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                     variant: ButtonVariants.Primary,
                     label: strings('asset_overview.swap'),
                     size: ButtonSize.Lg,
-                    onPress: () => handleFooterAction(() => goToSwaps()),
+                    onPress: () =>
+                      handleFooterAction(
+                        () => goToSwaps(),
+                        strings('asset_overview.swap'),
+                      ),
                   },
                 ]
               : []),
@@ -136,7 +154,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                     variant: ButtonVariants.Primary,
                     label: strings('asset_overview.buy_button'),
                     size: ButtonSize.Lg,
-                    onPress: () => handleFooterAction(onBuy),
+                    onPress: () =>
+                      handleFooterAction(
+                        onBuy,
+                        strings('asset_overview.buy_button'),
+                      ),
                   },
                 ]
               : []),

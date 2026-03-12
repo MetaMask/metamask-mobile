@@ -418,10 +418,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     if (config) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-        params: config,
+        params: {
+          ...config,
+          source: 'badge',
+          severity: securityData.resultType,
+          tokenAddress: token.address,
+          tokenSymbol: token.symbol,
+          chainId: token.chainId,
+        },
       });
     }
-  }, [securityData?.resultType, token.symbol, navigation]);
+  }, [
+    securityData?.resultType,
+    token.symbol,
+    token.address,
+    token.chainId,
+    navigation,
+  ]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
