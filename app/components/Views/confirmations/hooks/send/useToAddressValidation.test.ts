@@ -46,6 +46,7 @@ describe('useToAddressValidation', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -63,6 +64,7 @@ describe('useToAddressValidation', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -90,6 +92,7 @@ describe('useToAddressValidation', () => {
         loading: false,
         resolvedAddress: undefined,
         toAddressError: 'Invalid address',
+        toAddressErrorAllowAcknowledge: false,
         toAddressValidated: '0x123',
         toAddressWarning: undefined,
       });
@@ -111,6 +114,7 @@ describe('useToAddressValidation', () => {
         loading: false,
         resolvedAddress: undefined,
         toAddressError: 'Invalid address',
+        toAddressErrorAllowAcknowledge: false,
         toAddressValidated: 'dummy',
         toAddressWarning: undefined,
       });
@@ -139,6 +143,7 @@ describe('useToAddressValidation', () => {
         loading: false,
         resolvedAddress: undefined,
         toAddressError: 'Invalid address',
+        toAddressErrorAllowAcknowledge: false,
         toAddressValidated: 'dummy',
         toAddressWarning: undefined,
       });

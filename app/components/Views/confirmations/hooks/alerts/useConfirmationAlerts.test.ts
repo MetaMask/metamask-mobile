@@ -23,6 +23,7 @@ import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { useTokenContractAlert } from './useTokenContractAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -41,6 +42,7 @@ jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
 jest.mock('./useOriginTrustSignalAlerts');
 jest.mock('./useFirstTimeInteractionAlert');
+jest.mock('./useTokenContractAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -170,6 +172,14 @@ describe('useConfirmationAlerts', () => {
       severity: Severity.Danger,
     },
   ];
+  const mockTokenContractAlert: Alert[] = [
+    {
+      key: 'TokenContractAlert',
+      title: 'Test Token Contract Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Warning,
+    },
+  ];
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
@@ -189,6 +199,7 @@ describe('useConfirmationAlerts', () => {
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useFirstTimeInteractionAlert as jest.Mock).mockReturnValue([]);
+    (useTokenContractAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -263,6 +274,9 @@ describe('useConfirmationAlerts', () => {
     (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockOriginTrustSignalAlerts,
     );
+    (useTokenContractAlert as jest.Mock).mockReturnValue(
+      mockTokenContractAlert,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -278,6 +292,7 @@ describe('useConfirmationAlerts', () => {
       ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
       ...mockTokenTrustSignalAlerts,
+      ...mockTokenContractAlert,
       ...mockUpgradeAccountAlert,
       ...mockOriginTrustSignalAlerts,
       ...mockAddressTrustSignalAlerts,
