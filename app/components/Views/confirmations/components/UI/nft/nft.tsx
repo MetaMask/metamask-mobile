@@ -29,7 +29,7 @@ export function Nft({ asset, onPress }: NftProps) {
     onPress(asset);
   }, [asset, onPress]);
 
-  const testID = `nft-${asset.name || asset.collectionName || asset.tokenId}`;
+  const testID = `nft-${asset.name || asset.collectionName || 'NFT'}-${asset.tokenId}`;
 
   return (
     <Pressable
