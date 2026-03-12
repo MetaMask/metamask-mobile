@@ -33,12 +33,6 @@ export const icon: UIComponentFactory<IconElement> = ({
         return IconColor.Muted;
       case 'primary':
         return IconColor.Primary;
-      case 'error':
-        return IconColor.Error;
-      case 'warning':
-        return IconColor.Warning;
-      case 'success':
-        return IconColor.Success;
       default:
         return IconColor.Default;
     }

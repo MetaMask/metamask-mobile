@@ -111,7 +111,6 @@ export function getPermissionControllerInitMessenger(
       'SnapController:updateSnapState',
       'SnapInterfaceController:createInterface',
       'SnapInterfaceController:getInterface',
-      'SnapInterfaceController:setInterfaceDisplayed',
       'SnapInterfaceController:updateInterface',
     ],
     events: ['KeyringController:unlock'],
