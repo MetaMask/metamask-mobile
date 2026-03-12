@@ -124,10 +124,17 @@ class SendView {
   }
 
   async pressReviewButton() {
+    await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
     await Utilities.waitForElementToBeEnabled(this.reviewButton);
+    await Utilities.waitForElementToStopMoving(this.reviewButton, {
+      timeout: 10000,
+      interval: 250,
+      stableCount: 3,
+    });
     await Gestures.waitAndTap(this.reviewButton, {
       elemDescription: 'Review button',
-      checkStability: true,
+      checkStability: false,
+      timeout: 20000,
     });
   }
 
