@@ -1,6 +1,6 @@
 import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity, InteractionManager } from 'react-native';
 import renderWithProvider, {
   DeepPartial,
   renderScreen,
@@ -9,6 +9,11 @@ import AppInformation from './';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
+
+// Mock InteractionManager
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: jest.fn((callback) => callback()),
+}));
 
 // Mock device info
 const mockGetApplicationName = jest.fn();
@@ -514,6 +519,70 @@ describe('AppInformation', () => {
         expect(getByText(/OTA Update runtime version: 1.0.0/)).toBeTruthy();
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Support Links', () => {
+    it('renders support center link', () => {
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(getByText('Visit our support center')).toBeTruthy();
+    });
+
+    it('renders contact us link', () => {
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(getByText('Contact us')).toBeTruthy();
+    });
+
+    it('calls navigation when support center link is pressed', async () => {
+      const mockNavigate = jest.fn();
+      const navigation = { navigate: mockNavigate, goBack: jest.fn() };
+
+      const { getByText } = renderWithProvider(
+        <AppInformation navigation={navigation} />,
+        { state: MOCK_STATE },
+        false,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Visit our support center')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Visit our support center'));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalled();
+      });
+    });
+
+    it('calls navigation when contact us link is pressed', async () => {
+      const mockNavigate = jest.fn();
+      const navigation = { navigate: mockNavigate, goBack: jest.fn() };
+
+      const { getByText } = renderWithProvider(
+        <AppInformation navigation={navigation} />,
+        { state: MOCK_STATE },
+        false,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Contact us')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Contact us'));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalled();
       });
     });
   });

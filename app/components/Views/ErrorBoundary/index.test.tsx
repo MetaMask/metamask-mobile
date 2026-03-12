@@ -348,4 +348,23 @@ describe('ErrorBoundary', () => {
       });
     });
   });
+
+  describe('Contact Support', () => {
+    it('opens support URL with UTM parameter when contact support is pressed', () => {
+      const mockOpenURL = jest.fn();
+      const Linking = require('react-native/Libraries/Linking/Linking');
+      Linking.openURL = mockOpenURL;
+
+      const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+        state: initialState,
+      });
+
+      const contactSupportButton = getByText('Contact support');
+      fireEvent.press(contactSupportButton);
+
+      expect(mockOpenURL).toHaveBeenCalledWith(
+        'https://support.metamask.io?utm_source=mobile_app',
+      );
+    });
+  });
 });
