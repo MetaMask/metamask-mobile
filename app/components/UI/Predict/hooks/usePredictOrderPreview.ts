@@ -105,7 +105,6 @@ export function usePredictOrderPreview(
     debouncedParams.side,
     debouncedParams.marketId,
     debouncedParams.outcomeId,
-    params.initialPreview,
   ]);
 
   return {
