@@ -10,7 +10,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import Text from '../../../../Base/Text';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -94,12 +99,24 @@ const Header = ({
   return (
     <View style={[styles.header, style]} {...props}>
       {title && (
-        <Text style={titleStyle} big black centered bold={bold}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          fontWeight={bold ? FontWeight.Bold : undefined}
+          twClassName="text-center"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          style={titleStyle as any}
+        >
           {typeof title === 'function' ? title() : title}
         </Text>
       )}
       {description && (
-        <Text style={[styles.description, descriptionStyle]} centered grey>
+        <Text
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          style={[styles.description, descriptionStyle as any]}
+        >
           {description}
         </Text>
       )}

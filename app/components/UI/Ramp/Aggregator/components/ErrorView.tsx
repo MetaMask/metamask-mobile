@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../../../../util/theme';
 import Title from '../../../../Base/Title';
-import Text from '../../../../Base/Text';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -155,7 +155,7 @@ function ErrorView({
         </View>
 
         <View style={styles.row}>
-          <Text centered grey>
+          <Text color={TextColor.TextAlternative} twClassName="text-center">
             {description}
           </Text>
         </View>
