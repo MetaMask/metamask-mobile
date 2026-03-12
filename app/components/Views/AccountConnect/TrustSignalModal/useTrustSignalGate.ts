@@ -38,11 +38,19 @@ export function useTrustSignalGateControl(
 
   useEffect(() => {
     if (needsTrustSignalGate && !gateDismissedRef.current) {
-      setScreen((prev) =>
-        prev === AccountConnectScreens.SingleConnect
-          ? AccountConnectScreens.TrustSignalWarning
-          : prev,
-      );
+      setScreen((prev) => {
+        // Don't interrupt screens that are already blocking gates, and avoid a
+        // no-op re-render when we're already on the warning screen itself.
+        if (
+          prev === AccountConnectScreens.TrustSignalWarning ||
+          prev === AccountConnectScreens.MaliciousWarning
+        ) {
+          return prev;
+        }
+        // Gate fires regardless of which "browse" screen the user reached while
+        // the async dapp-scanning result was in flight.
+        return AccountConnectScreens.TrustSignalWarning;
+      });
     }
   }, [needsTrustSignalGate, setScreen]);
 
