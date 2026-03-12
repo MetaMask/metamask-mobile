@@ -279,6 +279,9 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
   readonly #cachedMetaByDex = new Map<string, MetaResponse>();
 
+  // Last successfully transformed market data — used as stale fallback when retry fails
+  #lastGoodMarketData: PerpsMarketData[] | null = null;
+
   // Session cache for spot metadata (contains USDC/USDH token info for HIP-3 collateral checks)
   // Pre-fetched in ensureReadyForTrading() to avoid API failures during order placement
   #cachedSpotMeta: SpotMetaResponse | null = null;
@@ -1279,6 +1282,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Store raw meta response for reuse
     this.#cachedMetaByDex.set(dexKey, meta);
+    this.#backfillAssetMapForDex(dexName, meta);
 
     this.#deps.debugLogger.log(
       '[getCachedMeta] Fetched and cached meta response',
@@ -2135,6 +2139,77 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Backfill symbolToAssetId entries for a single DEX from its cached meta.
+   * Additive — does not clear existing entries.
+   *
+   * @param dexName - The DEX name (null for main DEX)
+   * @param meta - The meta response containing universe data
+   * @returns Number of entries added
+   */
+  #backfillAssetMapForDex(dexName: string | null, meta: MetaResponse): number {
+    if (!meta?.universe || !Array.isArray(meta.universe)) {
+      return 0;
+    }
+
+    const allPerpDexs = this.#cachedAllPerpDexs;
+    if (!allPerpDexs) {
+      return 0;
+    }
+
+    const perpDexIndex = allPerpDexs.findIndex((entry) => {
+      if (dexName === null) {
+        return entry === null;
+      }
+      return entry !== null && entry.name === dexName;
+    });
+
+    if (perpDexIndex === -1) {
+      return 0;
+    }
+
+    const { symbolToAssetId } = buildAssetMapping({
+      metaUniverse: meta.universe,
+      dex: dexName,
+      perpDexIndex,
+    });
+
+    let added = 0;
+    symbolToAssetId.forEach((assetId, coin) => {
+      if (!this.#symbolToAssetId.has(coin)) {
+        added += 1;
+      }
+      this.#symbolToAssetId.set(coin, assetId);
+    });
+
+    return added;
+  }
+
+  /**
+   * Resolve asset ID for a symbol, repairing the map on cache miss.
+   *
+   * @param symbol - The trading pair symbol (e.g., 'ETH' or 'xyz:TOKEN')
+   * @returns The numeric asset ID
+   */
+  async #resolveAssetId(symbol: string): Promise<number> {
+    const assetId = this.#symbolToAssetId.get(symbol);
+    if (assetId !== undefined) {
+      return assetId;
+    }
+
+    // Attempt repair: extract DEX name, fetch meta, backfill
+    const dexName = symbol.includes(':') ? symbol.split(':')[0] : null;
+    const meta = await this.#getCachedMeta({ dexName, skipCache: true });
+    this.#backfillAssetMapForDex(dexName, meta);
+
+    const retried = this.#symbolToAssetId.get(symbol);
+    if (retried !== undefined) {
+      return retried;
+    }
+
+    throw new Error(`Asset ID not found for ${symbol}`);
+  }
+
+  /**
    * Set user fee discount context for next operations
    * Used by PerpsController to apply MetaMask reward discounts
    *
@@ -2177,7 +2252,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   ): Promise<{ dex: string | null; data: TResult }[]> {
     const enabledDexs = await this.#getValidatedDexs();
 
-    const results = await Promise.all(
+    const settled = await Promise.allSettled(
       enabledDexs.map(async (dex) => {
         const params = dex
           ? ({ ...baseParams, dex } as TParams & { dex: string })
@@ -2186,6 +2261,31 @@ export class HyperLiquidProvider implements PerpsProvider {
         return { dex, data };
       }),
     );
+
+    const results: { dex: string | null; data: TResult }[] = [];
+    const failures: { dex: string | null; error: Error }[] = [];
+
+    for (let i = 0; i < settled.length; i++) {
+      const entry = settled[i];
+      if (entry.status === 'fulfilled') {
+        results.push(entry.value);
+      } else {
+        failures.push({
+          dex: enabledDexs[i],
+          error: ensureError(entry.reason),
+        });
+      }
+    }
+
+    if (failures.length > 0) {
+      this.#deps.debugLogger.log('[queryUserDataAcrossDexs] Partial failures', {
+        failed: failures.map((failure) => failure.dex ?? 'main'),
+      });
+    }
+
+    if (results.length === 0) {
+      throw failures[0].error;
+    }
 
     return results;
   }
@@ -3900,11 +4000,8 @@ export class HyperLiquidProvider implements PerpsProvider {
           );
         }
 
-        // Get asset ID
-        const assetId = this.#symbolToAssetId.get(position.symbol);
-        if (assetId === undefined) {
-          throw new Error(`Asset ID not found for ${position.symbol}`);
-        }
+        // Get asset ID (with auto-repair on cache miss)
+        const assetId = await this.#resolveAssetId(position.symbol);
 
         // Calculate position details (always full close)
         const positionSize = parseFloat(position.size);
@@ -4125,10 +4222,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Cancel existing TP/SL orders for this position
       // OPTIMIZATION: Use WebSocket cache first (0 weight), fall back to single-DEX REST (20 weight)
       // Previously: queryUserDataAcrossDexs queried ALL DEXs (20 weight × N DEXs = 40+ weight)
-      const assetId = this.#symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
-      }
+      const assetId = await this.#resolveAssetId(symbol);
 
       let cancelRequests: { a: number; o: number }[] = [];
 
@@ -4520,11 +4614,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Determine position direction
       const isBuy = parseFloat(position.size) > 0; // true for long, false for short
 
-      // Get asset ID for the symbol
-      const assetId = this.#symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
-      }
+      // Get asset ID for the symbol (with auto-repair on cache miss)
+      const assetId = await this.#resolveAssetId(symbol);
 
       // Convert amount to micro-units (HyperLiquid SDK requirement)
       const amountFloat = parseFloat(amount);
@@ -5504,7 +5595,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       // Re-throw the error so the controller can handle it properly
       // This allows the UI to show proper error messages instead of zeros
-      throw error;
+      throw ensureError(error, 'HyperLiquidProvider.getAccountState');
     }
   }
 
@@ -5991,8 +6082,17 @@ export class HyperLiquidProvider implements PerpsProvider {
         combinedAllMids,
       );
 
-      // If still empty after retry, throw with diagnostic info
+      // If still empty after retry, use stale cache or throw
       if (combinedUniverse.length === 0) {
+        if (this.#lastGoodMarketData) {
+          this.#deps.debugLogger.log(
+            '[getMarketDataWithPrices] Retry failed, returning stale cache',
+            { staleCount: this.#lastGoodMarketData.length },
+          );
+          return this.#lastGoodMarketData;
+        }
+
+        // Genuine first-load failure — throw with diagnostics
         const failedDexs = retryResults
           .filter((result) => !result.success)
           .map((result) => result.dex ?? 'main');
@@ -6040,7 +6140,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     });
 
     // Transform to UI-friendly format using standalone utility
-    return transformMarketData(
+    const marketData = transformMarketData(
       {
         universe: combinedUniverse,
         assetCtxs: combinedAssetCtxs,
@@ -6049,6 +6149,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#deps.marketDataFormatters,
       HIP3_ASSET_MARKET_TYPES,
     );
+    this.#lastGoodMarketData = marketData;
+    return marketData;
   }
 
   /**
@@ -7447,6 +7549,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // to prevent repeated signing requests across reconnections
       this.#cachedMetaByDex.clear();
       this.#cachedSpotMeta = null;
+      this.#lastGoodMarketData = null;
       this.#perpDexsCache = { data: null, timestamp: 0 };
       this.#dexDiscoveryComplete = false;
 
