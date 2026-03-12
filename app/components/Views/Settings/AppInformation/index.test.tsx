@@ -545,4 +545,3 @@ describe('AppInformation', () => {
     });
   });
 });
-
