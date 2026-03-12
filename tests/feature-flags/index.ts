@@ -15,3 +15,4 @@ export {
   fetchProductionFlags,
 } from './sync-production-flags';
 export type { SyncResult } from './sync-production-flags';
+export { updateRegistryFile } from './sync-production-flags';

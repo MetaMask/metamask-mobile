@@ -21,7 +21,9 @@
  * @see {@link https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod}
  */
 
+// eslint-disable-next-line import/no-nodejs-modules -- Node.js script for CI/sync
 import fs from 'fs';
+// eslint-disable-next-line import/no-nodejs-modules -- Node.js script for CI/sync
 import path from 'path';
 
 import { isEqual } from 'lodash';
@@ -415,7 +417,7 @@ function findBalancedEnd(content: string, openIndex: number): number {
  * Formats the file with Prettier before writing.
  * @param result
  */
-async function updateRegistryFile(result: SyncResult): Promise<void> {
+export async function updateRegistryFile(result: SyncResult): Promise<void> {
   let content = fs.readFileSync(REGISTRY_FILE_PATH, 'utf-8');
   const today = new Date().toISOString().split('T')[0];
 
