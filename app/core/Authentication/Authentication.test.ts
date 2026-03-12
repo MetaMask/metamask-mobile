@@ -2070,6 +2070,62 @@ describe('Authentication', () => {
         }),
       ).rejects.toThrow('No seed phrase found');
     });
+
+    it('does not trace OnboardingFetchSrpsError when fetchAllSecretData throws wrapped incorrect password error', async () => {
+      // Arrange
+      const incorrectPasswordError = new Error(
+        `SeedlessOnboardingController- ${SeedlessOnboardingControllerErrorMessage.IncorrectPassword}`,
+      );
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(incorrectPasswordError);
+
+      // Act
+      await expect(
+        Authentication.unlockWallet({
+          password: mockPassword,
+          authPreference: mockAuthData,
+        }),
+      ).rejects.toThrow(
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+      );
+
+      // Assert
+      expect(mockTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ name: TraceName.OnboardingFetchSrpsError }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ name: TraceName.OnboardingFetchSrpsError }),
+      );
+    });
+
+    it('traces OnboardingFetchSrpsError when fetchAllSecretData throws a non-password error', async () => {
+      // Arrange
+      const networkError = new Error('Network request failed');
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(networkError);
+
+      // Act
+      await expect(
+        Authentication.unlockWallet({
+          password: mockPassword,
+          authPreference: mockAuthData,
+        }),
+      ).rejects.toThrow('Network request failed');
+
+      // Assert
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingFetchSrpsError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage: 'Network request failed' },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingFetchSrpsError,
+      });
+    });
   });
 
   describe('submitLatestGlobalSeedlessPassword', () => {

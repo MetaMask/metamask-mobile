@@ -132,6 +132,10 @@ export function usePerpsLivePositions(
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         if (newPositions === null) {
+          // Cleared on account switch — show skeleton until first update for new account
+          hasReceivedFirstUpdate.current = false;
+          setIsInitialLoading(true);
+          setRawPositions(EMPTY_POSITIONS);
           return;
         }
 

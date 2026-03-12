@@ -78,10 +78,19 @@ const PerpsAdjustMarginView: React.FC = () => {
       onSuccess: () => navigation.goBack(),
       onError: (errorMessage) => {
         submittedEstimateRef.current = null;
-        Logger.error(
-          new Error(errorMessage),
-          `Failed to ${mode} margin for ${routePosition?.symbol}`,
-        );
+        Logger.error(new Error(errorMessage), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+          },
+          context: {
+            name: 'PerpsAdjustMarginView',
+            data: {
+              action: mode === 'remove' ? 'remove_margin' : 'add_margin',
+              symbol: routePosition?.symbol,
+              error: errorMessage,
+            },
+          },
+        });
       },
     });
 

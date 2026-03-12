@@ -28,6 +28,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { SMART_ACCOUNT_MODAL_TEST_IDS } from './SmartAccountModal.testIds';
 
 interface RootNavigationParamList extends ParamListBase {
   SmartAccount: {
@@ -67,7 +68,10 @@ const SmartAccountModal = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} testID="smart-account-safe-area">
+    <SafeAreaView
+      style={styles.safeArea}
+      testID={SMART_ACCOUNT_MODAL_TEST_IDS.SAFE_AREA}
+    >
       <HeaderBase
         style={styles.header}
         startAccessory={
@@ -82,7 +86,10 @@ const SmartAccountModal = () => {
         {strings('multichain_accounts.account_details.smart_account')}
       </HeaderBase>
       <View style={styles.container}>
-        <View style={styles.contentContainer} testID="smart-account-content">
+        <View
+          style={styles.contentContainer}
+          testID={SMART_ACCOUNT_MODAL_TEST_IDS.CONTAINER}
+        >
           <Box style={styles.cardContainer}>
             <Text variant={TextVariant.BodyMDMedium}>
               {strings('multichain_accounts.smart_account.title')}
