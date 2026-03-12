@@ -139,7 +139,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={handleViewAllDeFi} />
           <SectionRow>
