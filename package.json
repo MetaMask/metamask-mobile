@@ -134,7 +134,6 @@
     "feature-flags:sync": "ts-node tests/feature-flags/sync-production-flags.ts",
     "feature-flags:sync:check": "ts-node tests/feature-flags/sync-production-flags.ts --check",
     "feature-flags:sync:update": "ts-node tests/feature-flags/sync-production-flags.ts --update",
-    "a:start": "scripts/perps/agentic/start-metro.sh",
     "a:watch": "scripts/perps/agentic/interactive-start.sh",
     "a:stop": "scripts/perps/agentic/stop-metro.sh",
     "a:status": "scripts/perps/agentic/app-state.sh status",
