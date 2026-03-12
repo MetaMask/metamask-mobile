@@ -4,18 +4,12 @@ import { Hex } from '@metamask/utils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 import { selectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
+import { selectTokenSortConfig } from '../../../../../../selectors/preferencesController';
 import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { RootState } from '../../../../../../reducers';
 import { sortAssets } from '../../../../../UI/Tokens/util';
 import { selectHomepageSectionsV1Enabled } from '../../../../../../selectors/featureFlagController/homepage';
 import { selectEVMEnabledNetworks } from '../../../../../../selectors/networkEnablementController';
-
-/** Homepage always sorts DeFi by market value; View all uses user preference. */
-const HOMEPAGE_DEFI_SORT_BY_VALUE = {
-  key: 'protocolAggregate.aggregatedMarketValue',
-  order: 'dsc',
-  sortCallback: 'stringNumeric',
-} as const;
 
 /**
  * Represents a single DeFi position entry for the homepage.
@@ -54,6 +48,7 @@ const MAX_POSITIONS_DEFAULT = 5;
 export const useDeFiPositionsForHomepage = (
   maxPositions: number = MAX_POSITIONS_DEFAULT,
 ): UseDeFiPositionsForHomepageResult => {
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
   const evmEnabledNetworks = useSelector(selectEVMEnabledNetworks);
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
@@ -119,10 +114,18 @@ export const useDeFiPositionsForHomepage = (
       )
       .flat();
 
-    // Homepage always sorts by market value (descending); View all DeFi list uses user preference.
+    // Sort by market value (descending) or name
+    const defiSortConfig = {
+      ...tokenSortConfig,
+      key:
+        tokenSortConfig.key === 'tokenFiatAmount'
+          ? 'protocolAggregate.aggregatedMarketValue'
+          : 'protocolAggregate.protocolDetails.name',
+    };
+
     const sortedPositions = sortAssets(
       defiPositionsList,
-      HOMEPAGE_DEFI_SORT_BY_VALUE,
+      defiSortConfig,
     ) as DeFiPositionEntry[];
 
     // Limit to maxPositions
@@ -134,7 +137,7 @@ export const useDeFiPositionsForHomepage = (
       hasError: false,
       isEmpty: limitedPositions.length === 0,
     };
-  }, [defiPositionsByChainIds, maxPositions]);
+  }, [defiPositionsByChainIds, tokenSortConfig, maxPositions]);
 
   return result;
 };

@@ -1283,16 +1283,10 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
-  // Reset viewed sections synchronously on focus, before the new visitId
-  // propagates to child effects that re-add sections. A useEffect on [visitId]
-  // runs after children's effects (React runs children before parents), so
-  // sections would add themselves then the parent would clear them — causing
-  // total_sections_viewed to always be 0 on the second+ visit.
-  useFocusEffect(
-    useCallback(() => {
-      viewedSectionsRef.current.clear();
-    }, []),
-  );
+  // Reset viewed sections on each new visit so session summary starts fresh.
+  useEffect(() => {
+    viewedSectionsRef.current.clear();
+  }, [visitId]);
 
   const notifySectionViewed = useCallback((sectionName: string) => {
     viewedSectionsRef.current.add(sectionName);
@@ -1414,7 +1408,6 @@ const Wallet = ({
                 ref={scrollViewRef}
                 isScrollEnabled={shouldEnableParentScroll}
                 scrollViewProps={{
-                  testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                   contentContainerStyle: scrollViewContentStyle,
                   showsVerticalScrollIndicator: false,
                   onScroll: isHomepageSectionsV1Enabled

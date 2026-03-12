@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import Logger from '../../../../../util/Logger';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position } from '@metamask/perps-controller';
 
@@ -56,10 +55,7 @@ jest.mock('../../hooks/usePerpsMeasurement', () => ({
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-  },
+  error: jest.fn(),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -343,41 +339,6 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.errors.position_not_found'),
       ).toBeOnTheScreen();
-    });
-
-    it('logs add-margin errors from the hook callback with perps context', () => {
-      mockRouteParams = {
-        position: mockPosition,
-        mode: 'add',
-      };
-
-      render(<PerpsAdjustMarginView />);
-
-      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
-        onError?: (errorMessage: string) => void;
-      };
-
-      options.onError?.('Failed to add margin');
-
-      const [loggedError, loggerContext] = (Logger.error as jest.Mock).mock
-        .calls[0];
-      expect(loggedError).toBeInstanceOf(Error);
-      expect((loggedError as Error).message).toBe('Failed to add margin');
-      expect(loggerContext).toEqual(
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            feature: expect.any(String),
-          }),
-          context: {
-            name: 'PerpsAdjustMarginView',
-            data: {
-              action: 'add_margin',
-              symbol: 'ETH',
-              error: 'Failed to add margin',
-            },
-          },
-        }),
-      );
     });
   });
 

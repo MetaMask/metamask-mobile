@@ -19,7 +19,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -30,10 +30,7 @@ import {
 } from '../../../../UI/Perps/hooks';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
-import {
-  selectPerpsWatchlistMarkets,
-  selectIsFirstTimePerpsUser,
-} from '../../../../UI/Perps/selectors/perpsController';
+import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
@@ -98,7 +95,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const { markets, isLoading: marketsLoading } = usePerpsMarkets();
     const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
-    const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
     const displayPositions = useMemo(
       () => positions.slice(0, MAX_ITEMS),
@@ -113,7 +109,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
 
-    // When user has no positions/orders, keep skeleton visible until markets load.
+    // When user has no positions/orders, keep skeleton visible until markets
+    // load so the section doesn't flash empty while trending tiles are fetched.
     const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
     const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 
@@ -177,32 +174,19 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       [connectionError, reconnectWithNewContext, refreshSparklines],
     );
 
-    const navigateToTutorialOrScreen = useCallback(
-      (screen: string, params: Record<string, unknown>) => {
-        if (isFirstTimePerpsUser) {
-          navigation.navigate(Routes.PERPS.TUTORIAL, {
-            source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-            redirectScreen: screen,
-            redirectParams: params,
-          });
-        } else {
-          navigation.navigate(Routes.PERPS.ROOT, { screen, params });
-        }
-      },
-      [isFirstTimePerpsUser, navigation],
-    );
-
     const handleViewAllPerps = useCallback(() => {
-      navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
       });
-    }, [navigateToTutorialOrScreen]);
+    }, [navigation]);
 
     const handleViewMorePerps = useCallback(() => {
-      navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
       });
-    }, [navigateToTutorialOrScreen]);
+    }, [navigation]);
 
     const handlePositionPress = useCallback(
       (position: Position) => {
@@ -215,26 +199,29 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
         });
         const market = markets.find((m) => m.symbol === position.symbol);
-        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
-          market: market ?? {
-            symbol: position.symbol,
-            maxLeverage: position.maxLeverage,
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: market ?? {
+              symbol: position.symbol,
+              maxLeverage: position.maxLeverage,
+            },
+            initialTab: 'position',
+            source: 'section_position',
           },
-          initialTab: 'position',
-          source: 'section_position',
         });
       },
-      [navigateToTutorialOrScreen, markets, track],
+      [navigation, markets, track],
     );
 
     const handleTilePress = useCallback(
       (market: PerpsMarketData) => {
-        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
-          market,
-          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: { market, source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
         });
       },
-      [navigateToTutorialOrScreen],
+      [navigation],
     );
 
     // Pass null while loading so the hook uses the immediate-fire path and
@@ -242,7 +229,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const isLoadingSection = hookLoading || deferredLoading || pendingTrending;
     const willRender = !isLoadingSection;
 
-    const { onLayout } = useHomeViewedEvent({
+    useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading: isLoadingSection,
       sectionName: HomeSectionNames.PERPS,
@@ -254,9 +241,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
+        <View ref={sectionViewRef}>
           <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <SectionTitle title={title} onPress={handleViewAllPerps} />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
                 section: title.toLowerCase(),
@@ -269,9 +256,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllPerps} />
+          <SectionTitle title={title} onPress={handleViewAllPerps} />
           {showSkeleton || pendingTrending ? (
             <SectionRow>
               <PerpsPositionSkeleton />

@@ -17,10 +17,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { formatVolume } from '../../utils/format';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictGameDetailsFooterProps } from './PredictGameDetailsFooter.types';
-import {
-  PREDICT_GAME_DETAILS_FOOTER,
-  PREDICT_GAME_DETAILS_FOOTER_TEST_IDS,
-} from './PredictGameDetailsFooter.testIds';
 
 const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   market,
@@ -31,7 +27,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   claimableAmount = 0,
   isLoading = false,
   isClaimPending = false,
-  testID = PREDICT_GAME_DETAILS_FOOTER,
+  testID = 'predict-game-details-footer',
 }) => {
   const insets = useSafeAreaInsets();
   const formattedVolume = useMemo(
@@ -68,7 +64,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.LABEL}`}
+              testID={`${testID}-label`}
             >
               {strings('predict.game_details_footer.pick_a_winner')}
             </Text>
@@ -77,14 +73,14 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
               iconProps={{ color: IconColor.IconAlternative }}
               iconName={IconName.Info}
               onPress={onInfoPress}
-              testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.INFO_BUTTON}`}
+              testID={`${testID}-info-button`}
             />
           </Box>
 
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.VOLUME}`}
+            testID={`${testID}-volume`}
           >
             {strings('predict.game_details_footer.volume_display', {
               volume: formattedVolume,
@@ -101,7 +97,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         claimableAmount={claimableAmount}
         isLoading={isLoading}
         isClaimPending={isClaimPending}
-        testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.ACTION_BUTTONS}`}
+        testID={`${testID}-action-buttons`}
       />
     </Box>
   );

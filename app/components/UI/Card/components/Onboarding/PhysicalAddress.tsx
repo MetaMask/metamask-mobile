@@ -372,46 +372,41 @@ const PhysicalAddress = () => {
   const handleAddressLine1Change = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setAddressLine1(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleAddressLine2Change = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setAddressLine2(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleCityChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setCity(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleStateChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setState(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleZipCodeChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setZipCode(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleElectronicConsentToggle = useCallback(() => {

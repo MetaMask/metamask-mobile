@@ -6,7 +6,6 @@ import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
 import Checkbox from '../../../../components/Checkbox';
-import { ACCOUNT_LIST_CELL_TEST_IDS } from './AccountListCell.testIds';
 
 const AccountListCell = memo(
   ({
@@ -32,9 +31,7 @@ const AccountListCell = memo(
           <AccountCell
             startAccessory={
               showCheckbox ? (
-                <View
-                  testID={`${ACCOUNT_LIST_CELL_TEST_IDS.ACCOUNT_LIST_CELL}${accountGroup.id}`}
-                >
+                <View testID={`account-list-cell-checkbox-${accountGroup.id}`}>
                   <Checkbox isChecked={isSelected} onPress={handlePress} />
                 </View>
               ) : undefined

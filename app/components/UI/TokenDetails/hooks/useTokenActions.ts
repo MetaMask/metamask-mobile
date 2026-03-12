@@ -99,8 +99,6 @@ export interface UseTokenActionsResult {
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
   handleSellPress: () => void;
-  /** Whether the user has any tokens with positive balance that can be used as a swap source */
-  hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
 }
 
@@ -470,7 +468,6 @@ export const useTokenActions = ({
     goToSwaps,
     handleBuyPress,
     handleSellPress,
-    hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };
 };

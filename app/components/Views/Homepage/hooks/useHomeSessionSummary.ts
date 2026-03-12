@@ -51,6 +51,7 @@ const useHomeSessionSummary = ({
   useFocusEffect(
     useCallback(
       () => () => {
+        // Blur — user is leaving the homepage. Skip if never actually focused.
         if (visitIdRef.current === 0) return;
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,

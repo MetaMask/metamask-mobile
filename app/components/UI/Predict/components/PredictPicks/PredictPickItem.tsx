@@ -11,7 +11,6 @@ import { PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { PREDICT_PICK_ITEM_TEST_IDS } from './PredictPickItem.testIds';
 
 interface PredictPickItemProps {
   position: PredictPosition;
@@ -51,7 +50,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
                 : TextColor.SuccessDefault
             }
             twClassName="font-medium"
-            testID={`${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_PNL}-${position.id}`}
+            testID={`predict-picks-pnl-${position.id}`}
           >
             {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
           </Text>
@@ -63,7 +62,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
           twClassName="light:bg-muted/5"
           onPress={() => onCashOut(position)}
           isDisabled={isOptimistic}
-          testID={`${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_CASH_OUT_BUTTON}-${position.id}`}
+          testID={`predict-picks-cash-out-button-${position.id}`}
         >
           <Text variant={TextVariant.BodyMd} twClassName="font-medium">
             {strings('predict.cash_out')}
