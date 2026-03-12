@@ -1,7 +1,7 @@
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement, wrapElement } from './PlaywrightAdapter';
 import { MatcherOptions } from './types';
-import { getDriver } from './Utilities';
+import { getDriver } from './PlaywrightUtilities';
 import { ChainablePromiseElement } from 'webdriverio';
 
 /**

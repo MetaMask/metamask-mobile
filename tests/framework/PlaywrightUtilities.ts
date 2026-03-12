@@ -81,7 +81,7 @@ export function boxedStep<This, Args extends unknown[], Return>(
   return replacementMethod;
 }
 
-class PlaywrightUtils {
+class PlaywrightUtilities {
   private static driverInstance: WebdriverIO.Browser;
 
   private static getDriverInstance(): WebdriverIO.Browser {
@@ -104,4 +104,4 @@ class PlaywrightUtils {
 }
 
 // Change this once we use functions for the PlaywrightAdapter Utils
-export default PlaywrightUtils;
+export default PlaywrightUtilities;

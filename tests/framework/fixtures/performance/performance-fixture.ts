@@ -170,7 +170,10 @@ export const expect = test.expect.extend({
   toBeVisible: async (elem: PlaywrightElement, options?: IsDisplayedParams) => {
     const isVisible = await elem.isVisible(options);
     return {
-      message: () => (isVisible ? '' : `Element was not found on the screen`),
+      message: () =>
+        isVisible
+          ? `Expected element NOT to be visible, but it was found on the screen`
+          : `Element was not found on the screen`,
       pass: isVisible,
       name: 'toBeVisible',
       expected: true,
