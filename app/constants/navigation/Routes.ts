@@ -261,6 +261,7 @@ const Routes = {
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
     RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
+    CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -273,6 +274,7 @@ const Routes = {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
+    QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
       DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
@@ -283,6 +285,7 @@ const Routes = {
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
+      PRICE_IMPACT_MODAL: 'PriceImpactModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

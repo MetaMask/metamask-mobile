@@ -103,6 +103,10 @@ app/util/walletconnect.js                                   @MetaMask/wallet-int
 # Accounts Team
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
+app/core/Engine/controllers/multichain-account-service      @MetaMask/accounts-engineers
+app/core/Engine/controllers/snap-keyring                    @MetaMask/accounts-engineers
+app/core/Engine/controllers/keyring-controller              @MetaMask/accounts-engineers
+app/core/Engine/controllers/storage-service                 @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
@@ -110,7 +114,6 @@ app/core/SnapKeyring                                        @MetaMask/accounts-e
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
-app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
@@ -163,6 +166,7 @@ app/components/UI/WalletAction/*perps* @MetaMask/perps
 app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
+app/core/AgenticService/             @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 
@@ -243,8 +247,23 @@ app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/we
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
-app/components/Views/OnboardingCarousel                     @MetaMask/web3auth
+app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
+app/components/Views/ChoosePassword                         @MetaMask/web3auth
+app/components/Views/ManualBackupStep1                      @MetaMask/web3auth
+app/components/Views/ManualBackupStep2                      @MetaMask/web3auth
+app/components/Views/ManualBackupStep3                      @MetaMask/web3auth
+app/components/Views/AccountBackupStep1                     @MetaMask/web3auth
+app/components/Views/AccountBackupStep1B                    @MetaMask/web3auth
+app/components/Views/ImportFromSecretRecoveryPhrase         @MetaMask/web3auth
+app/components/Views/ImportNewSecretRecoveryPhrase          @MetaMask/web3auth
+app/components/Views/SelectSRP                              @MetaMask/web3auth
+app/components/Views/SrpInput                               @MetaMask/web3auth
+app/components/Views/RestoreWallet                          @MetaMask/web3auth
+app/components/Views/WalletCreationError                    @MetaMask/web3auth
+app/components/Views/OAuthRehydration                       @MetaMask/web3auth
+app/components/Views/SocialLoginIosUser                     @MetaMask/web3auth
+app/components/Views/RevealPrivateCredential                @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
 # Delegation team

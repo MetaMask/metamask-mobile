@@ -1,198 +1,66 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import Engine from '../../../../../../core/Engine';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectPredictEnabledFlag } from '../../../../../UI/Predict';
+import { useMemo } from 'react';
+import { usePredictPositions } from '../../../../../UI/Predict/hooks/usePredictPositions';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 
 export interface UsePredictPositionsForHomepageResult {
   positions: PredictPosition[];
+  /** Sum of currentValue across all claimable positions (only meaningful when claimable: true) */
+  totalClaimableValue: number;
   isLoading: boolean;
   error: string | null;
-  refresh: () => Promise<void>;
+  refetch: () => Promise<unknown>;
 }
 
-interface CacheEntry {
-  positions: PredictPosition[];
-  timestamp: number;
+interface UsePredictPositionsForHomepageOptions {
+  maxPositions?: number;
+  claimable?: boolean;
 }
 
-// Module-level cache for positions data
-const positionsCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 60 * 1000; // 1 minute TTL for positions (shorter than markets)
-
 /**
- * Clean expired entries from cache
- */
-const cleanExpiredCache = () => {
-  const now = Date.now();
-  for (const [key, value] of positionsCache.entries()) {
-    if (now - value.timestamp > CACHE_TTL_MS) {
-      positionsCache.delete(key);
-    }
-  }
-};
-
-/**
- * Clear the positions cache (useful for testing or forced refresh)
- */
-export const _clearPositionsCache = (): void => {
-  positionsCache.clear();
-};
-
-/**
- * Lightweight hook for fetching user prediction positions for the homepage.
+ * Lightweight wrapper around the Predict team's usePredictPositions hook,
+ * adapted for homepage display with optional slicing and claimable value sum.
  *
- * Uses module-level caching to avoid redundant API calls.
- *
- * @param maxPositions - Maximum number of positions to return (all if omitted)
- * @param claimable - When true, returns only claimable positions; when false (default), returns only active positions
- * @returns Positions data, loading state, and refresh function
+ * The feature flag check is handled at the UI level (Homepage conditionally
+ * renders the Predictions section), so this hook assumes it is only called
+ * when predictions are enabled.
  */
 export const usePredictPositionsForHomepage = (
-  maxPositions?: number,
-  claimable = false,
+  options: UsePredictPositionsForHomepageOptions = {},
 ): UsePredictPositionsForHomepageResult => {
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const userAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const { maxPositions, claimable = false } = options;
 
-  const isMountedRef = useRef(true);
-  const requestIdRef = useRef(0);
-
-  // Use ref for maxPositions to keep fetchPositions callback stable
-  const maxPositionsRef = useRef(maxPositions);
-  maxPositionsRef.current = maxPositions;
-
-  const cacheKey = userAddress
-    ? `predict_positions_${userAddress}_${claimable}`
-    : null;
-
-  const [state, setState] = useState<{
-    positions: PredictPosition[];
-    isLoading: boolean;
-    error: string | null;
-  }>(() => {
-    // Check cache on initial render
-    if (!cacheKey || !isPredictEnabled) {
-      return { positions: [], isLoading: false, error: null };
-    }
-
-    const cached = positionsCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return {
-        positions: maxPositions
-          ? cached.positions.slice(0, maxPositions)
-          : cached.positions,
-        isLoading: false,
-        error: null,
-      };
-    }
-
-    return { positions: [], isLoading: true, error: null };
+  const { data, isLoading, error, refetch } = usePredictPositions({
+    claimable,
   });
 
-  const fetchPositions = useCallback(async () => {
-    const currentMaxPositions = maxPositionsRef.current;
+  const allPositions = useMemo(() => data ?? [], [data]);
 
-    if (!isPredictEnabled || !cacheKey || !userAddress) {
-      setState({ positions: [], isLoading: false, error: null });
-      return;
-    }
+  const positions = useMemo(
+    () =>
+      maxPositions !== undefined
+        ? allPositions.slice(0, maxPositions)
+        : allPositions,
+    [allPositions, maxPositions],
+  );
 
-    const currentRequestId = ++requestIdRef.current;
-
-    // Check cache first
-    const cached = positionsCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      if (isMountedRef.current) {
-        setState({
-          positions: currentMaxPositions
-            ? cached.positions.slice(0, currentMaxPositions)
-            : cached.positions,
-          isLoading: false,
-          error: null,
-        });
-      }
-      return;
-    }
-
-    try {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-      const controller = Engine.context.PredictController;
-      const positionsData = await controller.getPositions({
-        address: userAddress,
-        claimable,
-      });
-
-      // Check if this request is still valid
-      if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
-        return;
-      }
-
-      const validPositions = Array.isArray(positionsData) ? positionsData : [];
-
-      // Update cache
-      positionsCache.set(cacheKey, {
-        positions: validPositions,
-        timestamp: Date.now(),
-      });
-
-      cleanExpiredCache();
-
-      setState({
-        positions: currentMaxPositions
-          ? validPositions.slice(0, currentMaxPositions)
-          : validPositions,
-        isLoading: false,
-        error: null,
-      });
-    } catch (err) {
-      if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
-        return;
-      }
-
-      setState({
-        positions: [],
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to fetch positions',
-      });
-    }
-  }, [isPredictEnabled, cacheKey, userAddress, claimable]);
-
-  const refresh = useCallback(async () => {
-    // Clear cache and refetch
-    if (cacheKey) {
-      positionsCache.delete(cacheKey);
-    }
-    await fetchPositions();
-  }, [cacheKey, fetchPositions]);
-
-  // Initial fetch
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    if (!isPredictEnabled || !userAddress) {
-      setState({ positions: [], isLoading: false, error: null });
-      return () => {
-        isMountedRef.current = false;
-      };
-    }
-
-    fetchPositions();
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [isPredictEnabled, userAddress, fetchPositions]);
+  const totalClaimableValue = useMemo(
+    () =>
+      claimable
+        ? allPositions.reduce((sum, p) => sum + (p.currentValue ?? 0), 0)
+        : 0,
+    [claimable, allPositions],
+  );
 
   return {
-    positions: state.positions,
-    isLoading: state.isLoading,
-    error: state.error,
-    refresh,
+    positions,
+    totalClaimableValue,
+    isLoading,
+    error: error
+      ? error instanceof Error
+        ? error.message
+        : String(error)
+      : null,
+    refetch,
   };
 };
 
