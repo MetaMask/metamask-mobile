@@ -165,6 +165,7 @@ import {
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import AppConstants from '../../../core/AppConstants';
+import { OTA_VERSION } from '../../../constants/ota';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -244,6 +245,11 @@ const createStyles = ({ colors }: Theme) =>
     },
     headerAccountPickerStyle: {
       marginRight: 16,
+    },
+    otaText: {
+      marginTop: 4,
+      fontSize: 10,
+      opacity: 0.7,
     },
   });
 
@@ -1482,6 +1488,9 @@ const Wallet = ({
           />
         ) : null}
         <NetworkConnectionBanner />
+        <CustomText color={TextColor.Muted} style={styles.otaText}>
+          OTA {OTA_VERSION}
+        </CustomText>
       </View>
       <>
         <AccountGroupBalance />
