@@ -4,18 +4,48 @@ import {
 } from '../../../app/components/UI/NetworkInfo/NetworkEducationModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import UnifiedGestures from '../../framework/UnifiedGestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class NetworkEducationModal {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CONTAINER),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            NetworkEducationModalSelectorsIDs.CONTAINER,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            NetworkEducationModalSelectorsIDs.CONTAINER,
+          ),
+      },
+    });
   }
 
-  get closeButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CLOSE_BUTTON)
-      : Matchers.getElementByLabel(
-          NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
-        );
+  get closeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CLOSE_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
+          ),
+      },
+    });
   }
 
   get addToken(): DetoxElement {
@@ -31,8 +61,8 @@ class NetworkEducationModal {
   }
 
   async tapGotItButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeButton, {
-      elemDescription: 'Got it button',
+    await UnifiedGestures.waitAndTap(this.closeButton, {
+      description: 'Got it button',
     });
   }
 

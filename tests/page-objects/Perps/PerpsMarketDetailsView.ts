@@ -8,6 +8,11 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class PerpsMarketDetailsView {
   // Container elements
@@ -25,9 +30,16 @@ class PerpsMarketDetailsView {
     return Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.ERROR);
   }
 
-  // Header elements
-  get header() {
-    return Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER);
+  /** Header - wdio PerpsPositionDetailsView uses 'perps-market-header' for isContainerDisplayed */
+  get header(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+      appium: () =>
+        PlaywrightMatchers.getElementById('perps-market-header', {
+          exact: true,
+        }),
+    });
   }
 
   get backButton() {
