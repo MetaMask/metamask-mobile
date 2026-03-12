@@ -1,11 +1,7 @@
 import {
   mapCardStatus,
   mapTokenizationStatus,
-  isValidCardStatus,
-  isValidTokenizationStatus,
-  isValidTokenInfo,
   validateTokenArray,
-  createProvisioningError,
   createErrorResult,
   logAdapterError,
 } from './utils';
@@ -21,42 +17,6 @@ jest.mock('../../../../../../util/Logger', () => ({
 describe('Wallet Adapter Utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('isValidCardStatus', () => {
-    it('returns true for valid card statuses', () => {
-      expect(isValidCardStatus('not found')).toBe(true);
-      expect(isValidCardStatus('active')).toBe(true);
-      expect(isValidCardStatus('pending')).toBe(true);
-      expect(isValidCardStatus('suspended')).toBe(true);
-      expect(isValidCardStatus('deactivated')).toBe(true);
-      expect(isValidCardStatus('requireActivation')).toBe(true);
-    });
-
-    it('returns false for invalid card statuses', () => {
-      expect(isValidCardStatus('invalid')).toBe(false);
-      expect(isValidCardStatus('')).toBe(false);
-      expect(isValidCardStatus(null)).toBe(false);
-      expect(isValidCardStatus(undefined)).toBe(false);
-      expect(isValidCardStatus(123)).toBe(false);
-      expect(isValidCardStatus({})).toBe(false);
-    });
-  });
-
-  describe('isValidTokenizationStatus', () => {
-    it('returns true for valid tokenization statuses', () => {
-      expect(isValidTokenizationStatus('success')).toBe(true);
-      expect(isValidTokenizationStatus('canceled')).toBe(true);
-      expect(isValidTokenizationStatus('error')).toBe(true);
-    });
-
-    it('returns false for invalid tokenization statuses', () => {
-      expect(isValidTokenizationStatus('invalid')).toBe(false);
-      expect(isValidTokenizationStatus('')).toBe(false);
-      expect(isValidTokenizationStatus(null)).toBe(false);
-      expect(isValidTokenizationStatus(undefined)).toBe(false);
-      expect(isValidTokenizationStatus(123)).toBe(false);
-    });
   });
 
   describe('mapCardStatus', () => {
@@ -104,49 +64,6 @@ describe('Wallet Adapter Utils', () => {
     });
   });
 
-  describe('isValidTokenInfo', () => {
-    it('returns true for valid token info', () => {
-      expect(
-        isValidTokenInfo({
-          identifier: 'token-123',
-          lastDigits: '1234',
-          tokenState: 1,
-        }),
-      ).toBe(true);
-    });
-
-    it('returns false for invalid token info', () => {
-      expect(isValidTokenInfo(null)).toBe(false);
-      expect(isValidTokenInfo(undefined)).toBe(false);
-      expect(isValidTokenInfo({})).toBe(false);
-      expect(isValidTokenInfo({ identifier: 'test' })).toBe(false);
-      expect(isValidTokenInfo({ identifier: 'test', lastDigits: '1234' })).toBe(
-        false,
-      );
-      expect(
-        isValidTokenInfo({
-          identifier: 123, // wrong type
-          lastDigits: '1234',
-          tokenState: 1,
-        }),
-      ).toBe(false);
-      expect(
-        isValidTokenInfo({
-          identifier: 'test',
-          lastDigits: 1234, // wrong type
-          tokenState: 1,
-        }),
-      ).toBe(false);
-      expect(
-        isValidTokenInfo({
-          identifier: 'test',
-          lastDigits: '1234',
-          tokenState: '1', // wrong type
-        }),
-      ).toBe(false);
-    });
-  });
-
   describe('validateTokenArray', () => {
     it('returns valid tokens from array', () => {
       const tokens = [
@@ -182,79 +99,26 @@ describe('Wallet Adapter Utils', () => {
     });
   });
 
-  describe('createProvisioningError', () => {
+  describe('createErrorResult', () => {
     it('returns existing ProvisioningError unchanged', () => {
       const existingError = new ProvisioningError(
         ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
         'Wallet not available',
       );
-      expect(createProvisioningError(existingError)).toBe(existingError);
+      const result = createErrorResult(existingError);
+
+      expect(result.status).toBe('error');
+      expect(result.error).toBe(existingError);
     });
 
     it('wraps Error with default code', () => {
-      const error = new Error('Something went wrong');
-      const result = createProvisioningError(error);
-
-      expect(result).toBeInstanceOf(ProvisioningError);
-      expect(result.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
-      expect(result.message).toBe('Something went wrong');
-      expect(result.originalError).toBe(error);
-    });
-
-    it('wraps Error with custom code', () => {
-      const error = new Error('Invalid card');
-      const result = createProvisioningError(
-        error,
-        ProvisioningErrorCode.INVALID_CARD_DATA,
-      );
-
-      expect(result.code).toBe(ProvisioningErrorCode.INVALID_CARD_DATA);
-    });
-
-    it('creates error from non-Error with default message', () => {
-      const result = createProvisioningError('string error');
-
-      expect(result).toBeInstanceOf(ProvisioningError);
-      // Non-Error values use the default message 'An unknown error occurred'
-      expect(result.message).toBe('An unknown error occurred');
-      expect(result.originalError).toBeUndefined();
-    });
-
-    it('uses custom default message for non-Error', () => {
-      const result = createProvisioningError(
-        null,
-        ProvisioningErrorCode.UNKNOWN_ERROR,
-        'Custom message',
-      );
-
-      expect(result.message).toBe('Custom message');
-    });
-
-    it('prefers defaultMessage over Error.message for user-facing errors', () => {
-      const error = new Error('PKPassKitErrorDomain error 2');
-      const result = createProvisioningError(
-        error,
-        ProvisioningErrorCode.UNKNOWN_ERROR,
-        'Something went wrong. Please try again.',
-      );
-
-      expect(result).toBeInstanceOf(ProvisioningError);
-      expect(result.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
-      // defaultMessage takes precedence to avoid exposing raw SDK errors
-      expect(result.message).toBe('Something went wrong. Please try again.');
-      // Original error is preserved for debugging
-      expect(result.originalError).toBe(error);
-    });
-  });
-
-  describe('createErrorResult', () => {
-    it('creates error result from Error', () => {
       const error = new Error('Test error');
       const result = createErrorResult(error);
 
       expect(result.status).toBe('error');
       expect(result.error).toBeInstanceOf(ProvisioningError);
       expect(result.error?.message).toBe('Test error');
+      expect(result.error?.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
     });
 
     it('creates error result with custom code and message', () => {
@@ -269,6 +133,29 @@ describe('Wallet Adapter Utils', () => {
         ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
       );
       expect(result.error?.message).toBe('Wallet not found');
+    });
+
+    it('prefers defaultMessage over Error.message for user-facing errors', () => {
+      const error = new Error('PKPassKitErrorDomain error 2');
+      const result = createErrorResult(
+        error,
+        ProvisioningErrorCode.UNKNOWN_ERROR,
+        'Something went wrong. Please try again.',
+      );
+
+      expect(result.status).toBe('error');
+      expect(result.error?.message).toBe(
+        'Something went wrong. Please try again.',
+      );
+      expect(result.error?.originalError).toBe(error);
+    });
+
+    it('creates error from non-Error with default message', () => {
+      const result = createErrorResult('string error');
+
+      expect(result.status).toBe('error');
+      expect(result.error?.message).toBe('An unknown error occurred');
+      expect(result.error?.originalError).toBeUndefined();
     });
   });
 

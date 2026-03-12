@@ -19,6 +19,7 @@ import {
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
+import { isAccountEligibleForProvisioning } from '../constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
@@ -62,7 +63,14 @@ import { strings } from '../../../../../../locales/i18n';
 export function usePushProvisioning(
   options: UsePushProvisioningOptions,
 ): UsePushProvisioningReturn {
-  const { cardDetails, userAddress, onSuccess, onError, onCancel } = options;
+  const {
+    cardDetails,
+    userAddress,
+    accountCreatedAt,
+    onSuccess,
+    onError,
+    onCancel,
+  } = options;
 
   const [status, setStatus] = useState<ProvisioningStatus>('idle');
   const [error, setError] = useState<ProvisioningError | null>(null);
@@ -94,22 +102,15 @@ export function usePushProvisioning(
         : false;
 
   // Create the adapters based on user location and platform
-  const cardAdapter = useMemo(() => {
-    if (isSDKLoading) {
-      return null;
-    }
-    if (!cardSDK) {
-      return null;
-    }
+  const cardAdapter = useMemo(
+    () =>
+      isSDKLoading || !cardSDK
+        ? null
+        : getCardProvider(userCardLocation, cardSDK),
+    [cardSDK, userCardLocation, isSDKLoading],
+  );
 
-    const adapter = getCardProvider(userCardLocation, cardSDK);
-    return adapter;
-  }, [cardSDK, userCardLocation, isSDKLoading]);
-
-  const walletAdapter = useMemo(() => {
-    const adapter = getWalletProvider();
-    return adapter;
-  }, []);
+  const walletAdapter = useMemo(() => getWalletProvider(), []);
 
   // Check wallet eligibility (async) - includes availability and canAddCard checks
   const [eligibility, setEligibility] = useState<WalletEligibility | null>(
@@ -435,14 +436,12 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
-  // Simplified availability checks
-  const isCardProviderAvailable = cardAdapter !== null;
-  const isWalletProviderAvailable = walletAdapter !== null;
-
   const isLoading = isSDKLoading || isEligibilityCheckLoading;
 
   // Check if card is eligible (status must be 'ACTIVE')
   const isCardEligible = cardDetails?.status === 'ACTIVE';
+
+  const isAccountEligible = isAccountEligibleForProvisioning(accountCreatedAt);
 
   const canAddToWallet =
     isPushProvisioningFeatureEnabled &&
@@ -450,8 +449,9 @@ export function usePushProvisioning(
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
-    isCardProviderAvailable &&
-    isWalletProviderAvailable &&
+    isAccountEligible &&
+    !!cardAdapter &&
+    !!walletAdapter &&
     eligibility?.isAvailable === true &&
     eligibility?.canAddCard === true;
 
