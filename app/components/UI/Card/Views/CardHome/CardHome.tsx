@@ -952,6 +952,7 @@ const CardHome = () => {
       isMetalCardCheckoutEnabled &&
       isBaanxLoginEnabled &&
       isAuthenticated &&
+      warning === CardStateWarning.NoCard &&
       userLocation === 'us' &&
       !!userShippingAddress,
     [
@@ -961,6 +962,7 @@ const CardHome = () => {
       isMetalCardCheckoutEnabled,
       isBaanxLoginEnabled,
       isAuthenticated,
+      warning,
       userLocation,
       userShippingAddress,
     ],
@@ -978,8 +980,21 @@ const CardHome = () => {
     navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
       flow: 'home',
       shippingAddress: userShippingAddress,
+      priorityToken,
+      allTokens,
+      delegationSettings,
+      externalWalletDetailsData,
     });
-  }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    userShippingAddress,
+    priorityToken,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  ]);
 
   const ButtonsSection = useMemo(() => {
     if (isLoading) {

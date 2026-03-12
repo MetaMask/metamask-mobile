@@ -5,7 +5,7 @@ import { ChooseYourCardSelectors } from './ChooseYourCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardType } from '../../types';
+import { AllowanceState, CardType } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
@@ -26,11 +26,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockUseParams = jest.fn(() => ({
+  flow: 'onboarding',
+  shippingAddress: undefined,
+}));
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => ({
-    flow: 'onboarding',
-    shippingAddress: undefined,
-  }),
+  useParams: () => mockUseParams(),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -274,6 +276,46 @@ describe('ChooseYourCard', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
         flow: 'onboarding',
+      });
+    });
+
+    it('navigates to spending limit with manage flow params when flow is home and virtual card selected', () => {
+      const priorityToken = {
+        caipChainId: 'eip155:1',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: '0x123',
+        decimals: 6,
+        allowanceState: AllowanceState.Enabled,
+        allowance: '1000',
+      };
+      const allTokens = [priorityToken];
+      const delegationSettings = { networks: [] };
+      const externalWalletDetailsData = {
+        walletDetails: {},
+        mappedWalletDetails: [priorityToken],
+        priorityWalletDetail: priorityToken,
+      };
+
+      mockUseParams.mockImplementationOnce(() => ({
+        flow: 'home',
+        shippingAddress: undefined,
+        priorityToken,
+        allTokens,
+        delegationSettings,
+        externalWalletDetailsData,
+      }));
+
+      const { getByTestId } = render(<ChooseYourCard />);
+
+      fireEvent.press(getByTestId(ChooseYourCardSelectors.CONTINUE_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'manage',
+        priorityToken,
+        allTokens,
+        delegationSettings,
+        externalWalletDetailsData,
       });
     });
   });
