@@ -4,6 +4,8 @@ const EVENT_PROVIDERS = {
 
 const EVENT_LOCATIONS = {
   HOME_SCREEN: 'home',
+  /** Cash section on homepage (aggregated mUSD row or empty state "Get mUSD") */
+  HOME_CASH_SECTION: 'home_cash_section',
   TOKEN_LIST_ITEM: 'token_list_item',
   ASSET_OVERVIEW: 'asset_overview',
   CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',

@@ -9,7 +9,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
@@ -162,7 +162,7 @@ const PredictionsSection = forwardRef<
     return (
       <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionTitle
+          <SectionHeader
             title={title}
             onPress={handleViewAllPredictions}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
@@ -185,7 +185,7 @@ const PredictionsSection = forwardRef<
     return (
       <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionTitle
+          <SectionHeader
             title={title}
             onPress={handleViewAllPredictions}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
@@ -232,7 +232,7 @@ const PredictionsSection = forwardRef<
   return (
     <View ref={sectionViewRef}>
       <Box gap={3}>
-        <SectionTitle
+        <SectionHeader
           title={title}
           onPress={handleViewAllPredictions}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
