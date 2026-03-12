@@ -27,12 +27,21 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
   >
     <View
       style={
-        {
-          "borderRadius": 6,
-          "height": 16,
-          "overflow": "hidden",
-          "width": "40%",
-        }
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 16,
+          },
+          {
+            "width": "40%",
+          },
+          {
+            "borderRadius": 6,
+          },
+        ]
       }
       testID="predict-details-content-skeleton-line-1"
     >
@@ -55,12 +64,21 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
     </View>
     <View
       style={
-        {
-          "borderRadius": 12,
-          "height": 120,
-          "overflow": "hidden",
-          "width": "100%",
-        }
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 120,
+          },
+          {
+            "width": "100%",
+          },
+          {
+            "borderRadius": 12,
+          },
+        ]
       }
       testID="predict-details-content-skeleton-block-1"
     >
@@ -95,12 +113,21 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
   >
     <View
       style={
-        {
-          "borderRadius": 6,
-          "height": 16,
-          "overflow": "hidden",
-          "width": "30%",
-        }
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 16,
+          },
+          {
+            "width": "30%",
+          },
+          {
+            "borderRadius": 6,
+          },
+        ]
       }
       testID="predict-details-content-skeleton-line-2"
     >
@@ -123,12 +150,21 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
     </View>
     <View
       style={
-        {
-          "borderRadius": 12,
-          "height": 80,
-          "overflow": "hidden",
-          "width": "100%",
-        }
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 80,
+          },
+          {
+            "width": "100%",
+          },
+          {
+            "borderRadius": 12,
+          },
+        ]
       }
       testID="predict-details-content-skeleton-block-2"
     >
