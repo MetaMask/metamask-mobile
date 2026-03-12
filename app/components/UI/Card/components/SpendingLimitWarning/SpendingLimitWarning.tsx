@@ -43,13 +43,13 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
 
         <View style={styles.textContent}>
           <Text
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             style={styles.mainText}
           >
             {strings('card.card_home.warnings.close_spending_limit.title')}
           </Text>
-          <Text color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings(
               'card.card_home.warnings.close_spending_limit.description',
             )}
@@ -59,7 +59,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
 
       <View style={styles.buttonsRow}>
         <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
-          <Text fontWeight={FontWeight.Bold}>
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
             {strings(
               'card.card_home.warnings.close_spending_limit.dismiss_button_label',
             )}
@@ -70,7 +70,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
           style={styles.setLimitButton}
           onPress={handleSetNewLimit}
         >
-          <Text fontWeight={FontWeight.Bold}>
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
             {strings(
               'card.card_home.warnings.close_spending_limit.confirm_button_label',
             )}
