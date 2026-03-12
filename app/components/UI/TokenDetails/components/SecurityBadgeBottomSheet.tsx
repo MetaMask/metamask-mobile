@@ -132,30 +132,37 @@ const SecurityBadgeBottomSheet = () => {
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
-        twClassName="self-stretch px-4 pt-6 pb-8 gap-4"
+        twClassName="self-stretch px-4 pt-6 pb-8 gap-6"
       >
-        <Icon name={icon} size={IconSize.Xl} color={iconColor} />
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          gap={3}
+          gap={2}
           twClassName="self-stretch"
         >
-          <DSText
-            variant={DSTextVariant.HeadingMd}
-            color={DSTextColor.TextDefault}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-center"
+          <Icon name={icon} size={IconSize.Xl} color={iconColor} />
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+            twClassName="self-stretch"
           >
-            {title}
-          </DSText>
-          <DSText
-            variant={DSTextVariant.BodyMd}
-            color={DSTextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {description}
-          </DSText>
+            <DSText
+              variant={DSTextVariant.HeadingLg}
+              color={DSTextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
+              twClassName="text-center"
+            >
+              {title}
+            </DSText>
+            <DSText
+              variant={DSTextVariant.BodyMd}
+              color={DSTextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {description}
+            </DSText>
+          </Box>
         </Box>
         {onProceed ? (
           <Box
@@ -184,7 +191,14 @@ const SecurityBadgeBottomSheet = () => {
             isFullWidth
             onPress={handleClose}
           >
-            {strings('security_trust.got_it')}
+            <DSText
+              variant={DSTextVariant.ButtonLabelLg}
+              color={DSTextColor.PrimaryInverse}
+              fontWeight={FontWeight.Medium}
+              twClassName="text-center"
+            >
+              {strings('security_trust.got_it')}
+            </DSText>
           </Button>
         )}
       </Box>

@@ -79,11 +79,15 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Md}
-            color={IconColor.IconDefault}
+            color={IconColor.IconAlternative}
           />
         )}
       </Box>
-      <Text variant={TextVariant.HeadingMd} color={config.textColor}>
+      <Text
+        variant={TextVariant.HeadingMd}
+        color={config.textColor}
+        fontWeight={'600' as FontWeight}
+      >
         {config.label}
       </Text>
       {hasDetails ? (

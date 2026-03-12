@@ -729,7 +729,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             >
               <Icon
                 name={IconName.Danger}
-                size={IconSize.Xl}
+                size={IconSize.Md}
                 color={IconColor.ErrorDefault}
               />
               <Box

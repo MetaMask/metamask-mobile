@@ -24,28 +24,35 @@ export const getResultTypeConfig = (
 ): ResultTypeConfig => {
   switch (resultType) {
     case 'Verified':
+      return {
+        label: strings('security_trust.known'),
+        textColor: TextColor.SuccessDefault,
+        subtitle: strings('security_trust.subtitle_known'),
+        icon: IconName.SecurityTick,
+        iconColor: IconColor.SuccessDefault,
+      };
     case 'Benign':
       return {
-        label: strings('security_trust.safe'),
+        label: strings('security_trust.no_issues'),
         textColor: TextColor.SuccessDefault,
-        subtitle: strings('security_trust.subtitle_safe'),
+        subtitle: strings('security_trust.subtitle_no_issues'),
         icon: IconName.SecurityTick,
         iconColor: IconColor.SuccessDefault,
       };
     case 'Warning':
     case 'Spam':
       return {
-        label: strings('security_trust.medium_risk'),
+        label: strings('security_trust.suspicious'),
         textColor: TextColor.WarningDefault,
-        subtitle: strings('security_trust.subtitle_medium_risk'),
+        subtitle: strings('security_trust.subtitle_suspicious'),
         icon: IconName.Warning,
         iconColor: IconColor.WarningDefault,
       };
     case 'Malicious':
       return {
-        label: strings('security_trust.high_risk'),
+        label: strings('security_trust.malicious_label'),
         textColor: TextColor.ErrorDefault,
-        subtitle: strings('security_trust.subtitle_high_risk'),
+        subtitle: strings('security_trust.subtitle_malicious'),
         icon: IconName.Danger,
         iconColor: IconColor.ErrorDefault,
       };
@@ -103,9 +110,9 @@ const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
   POST_DUMP: { label: 'Post Dump', type: 'Malicious' },
 
   // Spam
-  IMPERSONATOR_HIGH_CONFIDENCE: { label: 'Impersonator (High)', type: 'Spam' },
+  IMPERSONATOR_HIGH_CONFIDENCE: { label: 'Impersonator', type: 'Spam' },
   IMPERSONATOR_MEDIUM_CONFIDENCE: {
-    label: 'Impersonator (Medium)',
+    label: 'Impersonator',
     type: 'Spam',
   },
 
@@ -135,7 +142,7 @@ const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
   SNIPE_AT_MINT: { label: 'Sniped at Mint', type: 'Warning' },
 
   // Info – risk-bearing capabilities
-  IMPERSONATOR_LOW_CONFIDENCE: { label: 'Impersonator (Low)', type: 'Info' },
+  IMPERSONATOR_LOW_CONFIDENCE: { label: 'Impersonator', type: 'Warning' }, // used to be Info, but now it's Warning
   IS_MINTABLE: { label: 'Mintable', type: 'Info' },
   CAN_BLACKLIST: { label: 'Can Blacklist', type: 'Info' },
   CAN_WHITELIST: { label: 'Can Whitelist', type: 'Info' },

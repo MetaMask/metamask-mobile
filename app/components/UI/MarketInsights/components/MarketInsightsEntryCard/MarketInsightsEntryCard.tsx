@@ -65,7 +65,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Md}
-            color={IconColor.IconDefault}
+            color={IconColor.IconAlternative}
           />
         </Box>
 

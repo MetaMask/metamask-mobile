@@ -15,6 +15,7 @@ import {
   BoxJustifyContent,
   FontWeight,
   ButtonBase,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +33,7 @@ import {
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 
 const Divider: React.FC = () => (
-  <Box twClassName="py-5 self-stretch">
+  <Box twClassName="py-5 self-stretch -mx-4">
     <Box twClassName="h-px bg-border-muted" />
   </Box>
 );
@@ -41,7 +42,7 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
     variant={TextVariant.HeadingMd}
     color={TextColor.TextDefault}
-    twClassName="px-4 pt-6 pb-3"
+    twClassName="pt-6 pb-3"
   >
     {title}
   </Text>
@@ -116,7 +117,12 @@ const SecurityTrustScreen: React.FC = () => {
   }, []);
 
   const scrollContentStyle = React.useMemo(
-    () => ({ paddingTop: 16, paddingBottom: insets.bottom + 24 }),
+    () => ({
+      paddingTop: 16,
+      paddingBottom: insets.bottom + 24,
+      paddingLeft: 16,
+      paddingRight: 16,
+    }),
     [insets.bottom],
   );
 
@@ -160,20 +166,28 @@ const SecurityTrustScreen: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Start}
-          twClassName="px-4 pt-3 self-stretch"
-          gap={3}
+          twClassName="pt-3 pb-1 self-stretch"
         >
-          <Text variant={TextVariant.HeadingMd} color={resultTextColor}>
+          <Text
+            variant={TextVariant.HeadingMd}
+            color={resultTextColor}
+            fontWeight={'600' as FontWeight}
+          >
             {resultLabel}
           </Text>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mt-3"
+          >
             {resultSubtitle}
           </Text>
           {featureTags.length > 0 && (
             <Box
               flexDirection={BoxFlexDirection.Column}
               alignItems={BoxAlignItems.Start}
-              twClassName="self-stretch"
+              twClassName="self-stretch mt-4"
+              gap={4}
             >
               {featureTags.map((tag) => (
                 <Box
@@ -186,7 +200,7 @@ const SecurityTrustScreen: React.FC = () => {
                   {tagIcon && tagIconColor && (
                     <Icon
                       name={tagIcon}
-                      size={IconSize.Sm}
+                      size={IconSize.Md}
                       color={tagIconColor}
                     />
                   )}
@@ -207,18 +221,18 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 2: Token Distribution ═══════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.token_distribution')} />
 
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pb-3 gap-6">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="pb-3 gap-6">
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
             >
               {strings('security_trust.total_supply')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
-              fontWeight={FontWeight.Medium}
               twClassName="mt-0.5"
             >
               {formatCompactSupply(financialStats?.supply, params?.decimals)}{' '}
@@ -228,14 +242,14 @@ const SecurityTrustScreen: React.FC = () => {
         </Box>
 
         {top10Pct !== null && (
-          <Box twClassName="px-4 pb-4">
+          <Box twClassName="pb-3">
             <Box twClassName="h-2 rounded-full overflow-hidden flex-row bg-[rgba(133,139,154,0.3)]">
               <Box twClassName="h-full bg-[#6B7FFF]" style={barFillStyle} />
             </Box>
           </Box>
         )}
 
-        <Box twClassName="px-4 py-1 gap-y-3">
+        <Box twClassName="gap-y-1">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -247,9 +261,9 @@ const SecurityTrustScreen: React.FC = () => {
               gap={2}
               twClassName="flex-1"
             >
-              <Box twClassName="w-2 h-2 rounded-full bg-[#6B7FFF]" />
+              <Box twClassName="w-3 h-3 rounded-full bg-[#6B7FFF]" />
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
                 {strings('security_trust.top_10_holders')}
@@ -281,9 +295,9 @@ const SecurityTrustScreen: React.FC = () => {
               gap={2}
               twClassName="flex-1"
             >
-              <Box twClassName="w-2 h-2 rounded-full bg-[rgba(133,139,154,0.5)]" />
+              <Box twClassName="w-3 h-3 rounded-full bg-[rgba(133,139,154,0.5)]" />
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
                 {strings('security_trust.other')}
@@ -307,7 +321,7 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 8: Buy/Sell Tax ══════════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.buy_sell_tax')} />
-        <Box twClassName="px-4 w-full" gap={3}>
+        <Box twClassName="w-full" gap={3}>
           <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full">
             {(
               [
@@ -329,7 +343,7 @@ const SecurityTrustScreen: React.FC = () => {
                 alignItems={BoxAlignItems.Start}
               >
                 <Text
-                  variant={TextVariant.HeadingMd}
+                  variant={TextVariant.HeadingLg}
                   color={TextColor.SuccessDefault}
                   fontWeight={FontWeight.Bold}
                 >
@@ -373,7 +387,7 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 9: Token Info ════════════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.token_info')} />
-        <Box twClassName="px-4 w-full" gap={2}>
+        <Box twClassName="w-full" gap={3}>
           <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
@@ -434,17 +448,18 @@ const SecurityTrustScreen: React.FC = () => {
             <SectionHeader title={strings('security_trust.official_links')} />
             <Box
               flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={3}
-              twClassName="px-4 w-full py-3 flex-wrap content-center"
+              alignItems={BoxAlignItems.Start}
+              gap={4}
+              twClassName="w-full py-3 flex-wrap"
             >
               {metadata.externalLinks.homepage && (
                 <ButtonBase
                   onPress={() =>
                     openLink(metadata.externalLinks.homepage || '')
                   }
+                  size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                   }
                   startIconName={IconName.Global}
                   startIconProps={{
@@ -455,6 +470,8 @@ const SecurityTrustScreen: React.FC = () => {
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-center"
                   >
                     {strings('security_trust.website')}
                   </Text>
@@ -467,8 +484,9 @@ const SecurityTrustScreen: React.FC = () => {
                       `https://x.com/${metadata.externalLinks.twitterPage}`,
                     )
                   }
+                  size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                   }
                   startIconName={IconName.X}
                   startIconProps={{
@@ -479,8 +497,10 @@ const SecurityTrustScreen: React.FC = () => {
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-center"
                   >
-                    {strings('security_trust.twitter_x')}
+                    {`@${metadata.externalLinks.twitterPage}`}
                   </Text>
                 </ButtonBase>
               )}
@@ -491,8 +511,9 @@ const SecurityTrustScreen: React.FC = () => {
                       `https://t.me/${metadata.externalLinks.telegramChannelId}`,
                     )
                   }
+                  size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                   }
                   startIconName={IconName.Global}
                   startIconProps={{
@@ -503,6 +524,8 @@ const SecurityTrustScreen: React.FC = () => {
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-center"
                   >
                     {strings('security_trust.telegram')}
                   </Text>
@@ -513,8 +536,9 @@ const SecurityTrustScreen: React.FC = () => {
                   onPress={() =>
                     openLink(`https://etherscan.io/address/${params.address}`)
                   }
+                  size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                   }
                   startIconName={IconName.Global}
                   startIconProps={{
@@ -525,6 +549,8 @@ const SecurityTrustScreen: React.FC = () => {
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-center"
                   >
                     {strings('security_trust.etherscan')}
                   </Text>
@@ -538,7 +564,7 @@ const SecurityTrustScreen: React.FC = () => {
         <Box
           justifyContent={BoxJustifyContent.Center}
           alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-3 self-stretch"
+          twClassName="py-3 self-stretch"
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('security_trust.evaluation_disclaimer')}
