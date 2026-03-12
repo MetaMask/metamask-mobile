@@ -1525,24 +1525,28 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   /**
    * Clear cache and reset fetch time.
    *
-   * Market data is global (not account-specific), so we intentionally do NOT notify
-   * subscribers when clearing. Existing market data stays in the UI until fresh data
-   * arrives from the next fetchMarketData() call (triggered by prewarm/reconnect).
-   * This prevents a blank flash between skeleton and trending carousel on account switch.
+   * @param skipNotify - When true, subscribers keep their current data (used on
+   * account switches where market data is global and stays valid). When false
+   * (default), subscribers are notified with `[]` and their throttle state is
+   * reset so the next fetch result is delivered immediately.
    */
-  public clearCache(): void {
+  public clearCache(skipNotify = false): void {
     this.cache.clear();
     this.lastFetchTime = 0;
     this.fetchPromise = null;
     this.cachedProviderId = null;
 
-    // Clear pending throttle timers so stale batched updates don't fire after the switch
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+
+      if (!skipNotify) {
+        subscriber.hasReceivedFirstUpdate = false;
+        subscriber.callback([]);
+      }
     });
   }
 }

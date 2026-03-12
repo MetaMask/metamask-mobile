@@ -652,6 +652,10 @@ describe('PerpsConnectionManager', () => {
           currentAddress: '0xdef456',
         }),
       );
+
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalledWith(true);
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -687,6 +691,10 @@ describe('PerpsConnectionManager', () => {
           currentNetwork: 'testnet',
         }),
       );
+
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalledWith(false);
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {

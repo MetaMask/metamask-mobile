@@ -1597,10 +1597,9 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('clears cache without notifying subscribers (market data is global)', async () => {
+    it('skips subscriber notification when clearCache is called with skipNotify=true', async () => {
       const callback = jest.fn();
 
-      // First subscription to populate cache
       const unsubscribe = testStreamManager.marketData.subscribe({
         callback,
         throttleMs: 0,
@@ -1612,38 +1611,53 @@ describe('PerpsStreamManager', () => {
 
       const callCountBeforeClear = callback.mock.calls.length;
 
-      // Clear cache
-      testStreamManager.marketData.clearCache();
+      testStreamManager.marketData.clearCache(true);
 
-      // Should NOT notify subscribers — market data stays in UI until refetch
       expect(callback).toHaveBeenCalledTimes(callCountBeforeClear);
 
       unsubscribe();
     });
 
-    it('clears pending throttle timers on clearCache without notifying', async () => {
+    it('notifies subscribers with [] when clearCache is called without skipNotify', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      testStreamManager.marketData.clearCache();
+
+      expect(callback).toHaveBeenLastCalledWith([]);
+
+      unsubscribe();
+    });
+
+    it('clears pending throttle timers on skipNotify clearCache without notifying', async () => {
       jest.useRealTimers();
       const callback = jest.fn();
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
 
       const unsubscribe = testStreamManager.marketData.subscribe({
         callback,
-        throttleMs: 5000, // Second update is throttled; timer is set
+        throttleMs: 5000,
       });
 
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
       });
-      // First update delivered immediately; trigger second update so throttle path runs and sets timer
       mockGetMarketDataWithPrices.mockResolvedValueOnce([mockMarketData[0]]);
       testStreamManager.marketData.refresh();
       await Promise.resolve();
       await Promise.resolve();
 
       const callCountBeforeClear = callback.mock.calls.length;
-      testStreamManager.marketData.clearCache();
+      testStreamManager.marketData.clearCache(true);
 
-      // Throttle timer cleared; no additional callback from the second update
       expect(callback).toHaveBeenCalledTimes(callCountBeforeClear);
       unsubscribe();
       jest.useFakeTimers();
