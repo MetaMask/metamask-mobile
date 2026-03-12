@@ -180,7 +180,7 @@ describe('musdConversionTransaction', () => {
         updatePaymentToken: transactionPayControllerUpdatePaymentToken,
       },
       ApprovalController: {
-        reject: approvalControllerReject,
+        rejectRequest: approvalControllerReject,
       },
     };
 
