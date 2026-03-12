@@ -180,7 +180,31 @@ export class AccountService {
           context.stateManager.update((state) => {
             state.lastError = null;
             state.lastUpdateTimestamp = Date.now();
-            state.withdrawInProgress = false;
+
+            // Update the withdrawal request by request ID
+            if (state.withdrawalRequests.length > 0) {
+              const requestToUpdate = state.withdrawalRequests.find(
+                (req) => req.id === currentWithdrawalId,
+              );
+              if (requestToUpdate) {
+                if (result.txHash) {
+                  // Withdrawal is fully completed (has txHash)
+                  requestToUpdate.status = 'completed' as TransactionStatus;
+                  requestToUpdate.success = true;
+                  requestToUpdate.txHash = result.txHash;
+                } else {
+                  // Withdrawal is bridging (no txHash yet)
+                  requestToUpdate.status = 'bridging' as TransactionStatus;
+                  requestToUpdate.success = true;
+                }
+                if (result.withdrawalId) {
+                  requestToUpdate.withdrawalId = result.withdrawalId;
+                }
+              }
+            }
+
+            // Set lastWithdrawResult when submission is successful (even if bridging)
+            // This triggers the "confirmed" toast telling user funds arrive in ~5 mins
             state.lastWithdrawResult = {
               success: true,
               txHash: result.txHash ?? '',
@@ -190,24 +214,27 @@ export class AccountService {
               error: '',
             };
 
-            // Update the withdrawal request by request ID
-            if (state.withdrawalRequests.length > 0) {
-              const requestToUpdate = state.withdrawalRequests.find(
+            if (result.txHash) {
+              // Direct completion: remove from queue and record the txHash
+              // so the polling hook won't re-match this completion.
+              // We do NOT update lastCompletedWithdrawalTimestamp here
+              // because Date.now() is local device time while the FIFO guard
+              // compares against API server timestamps — mixing domains can
+              // poison the guard.  The txHash exclusion alone prevents
+              // re-matching since the item is also spliced from the queue.
+              const completedIndex = state.withdrawalRequests.findIndex(
                 (req) => req.id === currentWithdrawalId,
               );
-              if (requestToUpdate) {
-                if (result.txHash) {
-                  requestToUpdate.status = 'completed' as TransactionStatus;
-                  requestToUpdate.success = true;
-                  requestToUpdate.txHash = result.txHash;
-                } else {
-                  requestToUpdate.status = 'bridging' as TransactionStatus;
-                  requestToUpdate.success = true;
-                }
-                if (result.withdrawalId) {
-                  requestToUpdate.withdrawalId = result.withdrawalId;
-                }
+              if (completedIndex !== -1) {
+                state.withdrawalRequests.splice(completedIndex, 1);
               }
+
+              state.lastCompletedWithdrawalTxHashes.push(result.txHash);
+
+              const hasOtherPending = state.withdrawalRequests.some(
+                (req) => req.status === 'pending' || req.status === 'bridging',
+              );
+              state.withdrawInProgress = hasOtherPending;
             }
           });
         }
