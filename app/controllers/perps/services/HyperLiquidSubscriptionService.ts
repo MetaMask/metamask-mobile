@@ -167,6 +167,15 @@ export class HyperLiquidSubscriptionService {
   // Global price data cache
   #cachedPriceData: Map<string, PriceUpdate> | null = null;
 
+  // Per-DEX WS allMids snapshots — key is dex name ('' for main DEX).
+  // Used as primary source for allMids in getMarketDataWithPrices (avoids REST).
+  readonly #allMidsSnapshots = new Map<string, Record<string, string>>();
+
+  // HIP-3: per-DEX allMids WS subscriptions (key: dex name)
+  readonly #dexAllMidsSubscriptions = new Map<string, ISubscription>();
+
+  readonly #dexAllMidsSubscriptionPromises = new Map<string, Promise<void>>();
+
   // Fills cache for cache-first pattern (similar to price caching)
   #cachedFills: OrderFill[] | null = null;
 
@@ -980,6 +989,20 @@ export class HyperLiquidSubscriptionService {
             ),
             this.#getErrorContext(
               'subscribeToPrices.ensureAssetCtxsSubscription',
+              { dex: dexName },
+            ),
+          );
+        });
+
+        // HIP-3: per-DEX allMids subscription (main DEX uses global allMids)
+        this.#ensureDexAllMidsSubscription(dexName).catch((error) => {
+          this.#logErrorUnlessClearing(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.subscribeToPrices',
+            ),
+            this.#getErrorContext(
+              'subscribeToPrices.ensureDexAllMidsSubscription',
               { dex: dexName },
             ),
           );
@@ -2216,6 +2239,22 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Returns the most recent raw WS allMids snapshot for a given DEX,
+   * or null if no WS data has been received yet.
+   *
+   * @param dex - Optional DEX name (empty string or omitted for main DEX).
+   * @returns Defensive copy of the allMids snapshot, or null.
+   */
+  public getLastAllMidsSnapshot(dex?: string): Record<string, string> | null {
+    const dexKey = dex ?? '';
+    const snapshot = this.#allMidsSnapshots.get(dexKey);
+    if (!snapshot) {
+      return null;
+    }
+    return { ...snapshot };
+  }
+
+  /**
    * Get cached fills from WebSocket userFills subscription
    * OPTIMIZATION: Use this instead of REST userFills() to avoid rate limiting
    *
@@ -2355,6 +2394,9 @@ export class HyperLiquidSubscriptionService {
 
         // Initialize cache if needed
         this.#cachedPriceData ??= new Map<string, PriceUpdate>();
+
+        // Store raw snapshot for main DEX (all symbols, not just subscribed)
+        this.#allMidsSnapshots.set('', data.mids as Record<string, string>);
 
         const subscribedSymbols = new Set<string>();
 
@@ -2595,6 +2637,83 @@ export class HyperLiquidSubscriptionService {
       this.#assetCtxsSubscriptionPromises.delete(dexKey);
       throw error;
     }
+  }
+
+  /**
+   * Ensure a per-DEX allMids WS subscription exists (singleton per DEX).
+   * Mirrors the #ensureAssetCtxsSubscription pattern with promise dedup.
+   *
+   * @param dex - The HIP-3 DEX name (e.g. 'xyz', 'flx'). Skips main DEX (handled by global).
+   */
+  async #ensureDexAllMidsSubscription(dex: string): Promise<void> {
+    if (!dex) {
+      return;
+    }
+
+    if (this.#dexAllMidsSubscriptions.has(dex)) {
+      return;
+    }
+
+    if (this.#dexAllMidsSubscriptionPromises.has(dex)) {
+      await this.#dexAllMidsSubscriptionPromises.get(dex);
+      return;
+    }
+
+    const promise = this.#createDexAllMidsSubscription(dex);
+    this.#dexAllMidsSubscriptionPromises.set(dex, promise);
+
+    try {
+      await promise;
+    } catch (error) {
+      this.#dexAllMidsSubscriptionPromises.delete(dex);
+      throw error;
+    }
+  }
+
+  /**
+   * Create allMids WS subscription for a specific HIP-3 DEX.
+   *
+   * @param dex - The HIP-3 DEX name.
+   */
+  async #createDexAllMidsSubscription(dex: string): Promise<void> {
+    await this.#clientService.ensureSubscriptionClient(
+      this.#walletService.createWalletAdapter(),
+    );
+    const subscriptionClient = this.#clientService.getSubscriptionClient();
+
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      subscriptionClient
+        .allMids({ dex }, (data: AllMidsWsEvent) => {
+          this.#allMidsSnapshots.set(dex, data.mids as Record<string, string>);
+        })
+        .then((sub) => {
+          this.#dexAllMidsSubscriptions.set(dex, sub);
+          this.#deps.debugLogger.log(
+            `allMids subscription established for DEX: ${dex}`,
+          );
+          resolve();
+          return undefined;
+        })
+        .catch((error) => {
+          this.#logErrorUnlessClearing(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.createDexAllMidsSubscription',
+            ),
+            this.#getErrorContext('createDexAllMidsSubscription', { dex }),
+          );
+          reject(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.createDexAllMidsSubscription',
+            ),
+          );
+        });
+    });
   }
 
   /**
@@ -3179,6 +3298,8 @@ export class HyperLiquidSubscriptionService {
       // Clear existing subscriptions (they're dead after reconnection)
       this.#assetCtxsSubscriptions.clear();
       this.#assetCtxsSubscriptionPromises.clear();
+      this.#dexAllMidsSubscriptions.clear();
+      this.#dexAllMidsSubscriptionPromises.clear();
       // Clear reference counts to prevent double-counting after reconnection
       this.#dexSubscriberCounts.clear();
 
@@ -3202,13 +3323,16 @@ export class HyperLiquidSubscriptionService {
         dexsNeeded.add('');
       }
 
-      // Re-establish subscriptions
+      // Re-establish assetCtxs + per-DEX allMids subscriptions
       await Promise.all(
-        Array.from(dexsNeeded).map((dex) =>
+        Array.from(dexsNeeded).flatMap((dex) => [
           this.#ensureAssetCtxsSubscription(dex).catch(() => {
             // Ignore errors during assetCtxs subscription restoration
           }),
-        ),
+          this.#ensureDexAllMidsSubscription(dex).catch(() => {
+            // Ignore errors during per-DEX allMids subscription restoration
+          }),
+        ]),
       );
     }
   }
@@ -3241,6 +3365,7 @@ export class HyperLiquidSubscriptionService {
 
     // Clear cached data
     this.#cachedPriceData = null;
+    this.#allMidsSnapshots.clear();
     this.#cachedPositions = null;
     this.#cachedOrders = null;
     this.#cachedAccount = null;
@@ -3286,6 +3411,10 @@ export class HyperLiquidSubscriptionService {
     // HIP-3: Clear assetCtxs subscriptions (clearinghouseState no longer needed with webData3)
     this.#assetCtxsSubscriptions.clear();
     this.#assetCtxsSubscriptionPromises.clear();
+
+    // HIP-3: Clear per-DEX allMids subscriptions
+    this.#dexAllMidsSubscriptions.clear();
+    this.#dexAllMidsSubscriptionPromises.clear();
 
     // Cleanup individual subscriptions (clearinghouseState + openOrders)
     if (this.#clearinghouseStateSubscriptions.size > 0) {

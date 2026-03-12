@@ -416,6 +416,8 @@ describe('HyperLiquidProvider', () => {
       getCachedOrders: jest.fn().mockReturnValue([]),
       // Atomic getter - returns null when cache not initialized (prevents race condition)
       getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
+      // WS allMids snapshot for REST fallback
+      getLastAllMidsSnapshot: jest.fn().mockReturnValue(null),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -3670,6 +3672,223 @@ describe('HyperLiquidProvider', () => {
         expect(mockMetaAndCtxs).toHaveBeenCalledTimes(2);
 
         jest.useRealTimers();
+      });
+
+      it('uses WS allMids snapshot as primary source (skips REST)', async () => {
+        const assetCtx = {
+          funding: '0.0001',
+          openInterest: '1000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        };
+
+        const mockAllMids = jest.fn().mockResolvedValue({ BTC: '50000' });
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockResolvedValue([
+                { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+                [assetCtx],
+              ]),
+            allMids: mockAllMids,
+          }),
+        );
+
+        // WS snapshot available — REST should not be called
+        mockSubscriptionService.getLastAllMidsSnapshot.mockReturnValue({
+          BTC: '50100',
+        });
+
+        const freshProvider = createTestProvider();
+        const result = await freshProvider.getMarketDataWithPrices();
+
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0].symbol).toBe('BTC');
+        expect(mockAllMids).not.toHaveBeenCalled();
+      });
+
+      it('falls back to REST allMids on cold start (no WS snapshot)', async () => {
+        const assetCtx = {
+          funding: '0.0001',
+          openInterest: '1000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        };
+
+        const mockAllMids = jest.fn().mockResolvedValue({ BTC: '50000' });
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockResolvedValue([
+                { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+                [assetCtx],
+              ]),
+            allMids: mockAllMids,
+          }),
+        );
+
+        // No WS snapshot yet — cold start
+        mockSubscriptionService.getLastAllMidsSnapshot.mockReturnValue(null);
+
+        const freshProvider = createTestProvider();
+        const result = await freshProvider.getMarketDataWithPrices();
+
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0].symbol).toBe('BTC');
+        expect(mockAllMids).toHaveBeenCalled();
+      });
+
+      it('uses per-DEX WS allMids snapshot for HIP-3 DEX (skips REST)', async () => {
+        const assetCtx = {
+          funding: '0.0001',
+          openInterest: '1000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        };
+
+        const mockAllMids = jest
+          .fn()
+          .mockResolvedValue({ 'xyz:STOCK1': '100' });
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            perpDexs: jest.fn().mockResolvedValue([null, { name: 'xyz' }]),
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockImplementation((params?: { dex?: string }) => {
+                if (params?.dex === 'xyz') {
+                  return Promise.resolve([
+                    {
+                      universe: [
+                        {
+                          name: 'xyz:STOCK1',
+                          szDecimals: 2,
+                          maxLeverage: 20,
+                        },
+                      ],
+                    },
+                    [assetCtx],
+                  ]);
+                }
+                return Promise.resolve([
+                  {
+                    universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+                  },
+                  [assetCtx],
+                ]);
+              }),
+            allMids: mockAllMids,
+          }),
+        );
+
+        // Per-DEX WS snapshots available for both main and xyz
+        mockSubscriptionService.getLastAllMidsSnapshot.mockImplementation(
+          (dex?: string): Record<string, string> | null => {
+            if (dex === 'xyz') {
+              return { 'xyz:STOCK1': '101' };
+            }
+            if (!dex || dex === '') {
+              return { BTC: '50100' };
+            }
+            return null;
+          },
+        );
+
+        const hip3Provider = createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:*'],
+        });
+        const result = await hip3Provider.getMarketDataWithPrices();
+
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        expect(mockAllMids).not.toHaveBeenCalled();
+      });
+
+      it('falls back to REST for HIP-3 DEX without WS allMids snapshot', async () => {
+        const assetCtx = {
+          funding: '0.0001',
+          openInterest: '1000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        };
+
+        const mockAllMids = jest
+          .fn()
+          .mockImplementation((params?: { dex?: string }) => {
+            if (params?.dex === 'xyz') {
+              return Promise.resolve({ 'xyz:STOCK1': '100' });
+            }
+            return Promise.resolve({ BTC: '50000' });
+          });
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            perpDexs: jest.fn().mockResolvedValue([null, { name: 'xyz' }]),
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockImplementation((params?: { dex?: string }) => {
+                if (params?.dex === 'xyz') {
+                  return Promise.resolve([
+                    {
+                      universe: [
+                        {
+                          name: 'xyz:STOCK1',
+                          szDecimals: 2,
+                          maxLeverage: 20,
+                        },
+                      ],
+                    },
+                    [assetCtx],
+                  ]);
+                }
+                return Promise.resolve([
+                  {
+                    universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+                  },
+                  [assetCtx],
+                ]);
+              }),
+            allMids: mockAllMids,
+          }),
+        );
+
+        // Main DEX has WS snapshot, but xyz does NOT
+        mockSubscriptionService.getLastAllMidsSnapshot.mockImplementation(
+          (dex?: string): Record<string, string> | null => {
+            if (!dex || dex === '') {
+              return { BTC: '50100' };
+            }
+            return null;
+          },
+        );
+
+        const hip3Provider = createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:*'],
+        });
+        const result = await hip3Provider.getMarketDataWithPrices();
+
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        // REST should be called for the xyz DEX (no WS snapshot)
+        expect(mockAllMids).toHaveBeenCalledWith({ dex: 'xyz' });
+        // REST should NOT be called for main DEX (has WS snapshot)
+        expect(mockAllMids).not.toHaveBeenCalledWith(undefined);
       });
     });
 

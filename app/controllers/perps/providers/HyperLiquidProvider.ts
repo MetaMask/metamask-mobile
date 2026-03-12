@@ -5748,6 +5748,36 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Get allMids for a DEX — uses WS snapshot as primary source, REST as fallback.
+   *
+   * @param infoClient - The HyperLiquid info client (used only on cold start).
+   * @param dexParam - Optional DEX parameter (empty string for main DEX).
+   * @returns allMids record.
+   */
+  async #getAllMids(
+    infoClient: ReturnType<
+      typeof HyperLiquidClientService.prototype.getInfoClient
+    >,
+    dexParam?: string,
+  ): Promise<Record<string, string>> {
+    const wsSnapshot =
+      this.#subscriptionService.getLastAllMidsSnapshot(dexParam);
+    if (wsSnapshot) {
+      return wsSnapshot;
+    }
+
+    // Cold start — fall back to REST
+    this.#deps.debugLogger.log(
+      '[getMarketDataWithPrices] No WS allMids snapshot, falling back to REST',
+      { dexParam: dexParam ?? 'main' },
+    );
+    const mids = await infoClient.allMids(
+      dexParam ? { dex: dexParam } : undefined,
+    );
+    return mids ?? {};
+  }
+
+  /**
    * Fetch fresh meta, assetCtxs, and allMids for a single DEX — no cache check.
    * Populates meta/assetCtxs caches after a successful fetch so subsequent calls
    * can benefit from the cache without re-fetching.
@@ -5769,15 +5799,16 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       const meta = metaAndCtxs?.[0] ?? null;
       const assetCtxs = metaAndCtxs?.[1] ?? [];
-      const dexAllMids = await infoClient.allMids(
-        dexParam ? { dex: dexParam } : undefined,
+      const dexAllMids = await this.#getAllMids(
+        infoClient,
+        dexParam || undefined,
       );
       if (meta?.universe) {
         this.#cachedMetaByDex.set(dexParam, meta);
         this.#subscriptionService.setDexMetaCache(dexParam, meta);
         this.#subscriptionService.setDexAssetCtxsCache(dexParam, assetCtxs);
       }
-      return { dex, meta, assetCtxs, allMids: dexAllMids ?? {}, success: true };
+      return { dex, meta, assetCtxs, allMids: dexAllMids, success: true };
     } catch {
       return { dex, meta: null, assetCtxs: [], allMids: {}, success: false };
     }
@@ -5876,15 +5907,16 @@ export class HyperLiquidProvider implements PerpsProvider {
               assetCtxs = freshResult?.[1] ?? [];
               this.#subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
             }
-            // Always fetch fresh allMids for current prices
-            const dexAllMids = await infoClient.allMids(
-              dexParam ? { dex: dexParam } : undefined,
+            // Use WS allMids snapshot when available, REST as fallback
+            const dexAllMids = await this.#getAllMids(
+              infoClient,
+              dexParam || undefined,
             );
             return {
               dex,
               meta: cachedMeta,
               assetCtxs,
-              allMids: dexAllMids ?? {},
+              allMids: dexAllMids,
               success: true,
             };
           } catch (error) {
