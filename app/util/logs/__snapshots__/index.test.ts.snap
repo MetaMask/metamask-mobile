@@ -48,6 +48,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
+        "selectedCurrency": "usd",
       },
       "AuthenticationController": {
         "isSignedIn": false,
@@ -913,6 +914,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
+        "selectedCurrency": "usd",
       },
       "AuthenticationController": {
         "isSignedIn": false,
