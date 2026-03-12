@@ -1,5 +1,4 @@
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
+import { clamp } from './clamp';
 
 const isDecimalSeparatorMatch = (rawChar: string, formattedChar: string) =>
   rawChar === '.' && /\D/u.test(formattedChar);

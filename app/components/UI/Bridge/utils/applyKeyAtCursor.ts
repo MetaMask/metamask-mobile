@@ -1,7 +1,5 @@
 import { Keys } from '../../../Base/Keypad';
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
+import { clamp } from './clamp';
 
 const isDigitKey = (input: Keys) => /^(\d)$/u.test(input);
 
