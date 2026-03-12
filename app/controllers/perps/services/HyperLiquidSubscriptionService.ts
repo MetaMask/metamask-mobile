@@ -2611,30 +2611,34 @@ export class HyperLiquidSubscriptionService {
   async #ensureAssetCtxsSubscription(dex: string): Promise<void> {
     const dexKey = dex || '';
 
-    // Increment subscriber count for this DEX
-    const currentCount = this.#dexSubscriberCounts.get(dexKey) ?? 0;
-    this.#dexSubscriberCounts.set(dexKey, currentCount + 1);
-
-    // Return if subscription already exists
+    // Return early (with refcount increment) if subscription already exists
     if (this.#assetCtxsSubscriptions.has(dexKey)) {
+      const currentCount = this.#dexSubscriberCounts.get(dexKey) ?? 0;
+      this.#dexSubscriberCounts.set(dexKey, currentCount + 1);
       return;
     }
 
-    // Await existing promise if subscription is being established
+    // Await existing promise (with refcount increment) if subscription is being established
     if (this.#assetCtxsSubscriptionPromises.has(dexKey)) {
+      const currentCount = this.#dexSubscriberCounts.get(dexKey) ?? 0;
+      this.#dexSubscriberCounts.set(dexKey, currentCount + 1);
       await this.#assetCtxsSubscriptionPromises.get(dexKey);
       return;
     }
 
-    // Create new subscription promise
+    // Create new subscription promise — only increment refcount on success
     const promise = this.#createAssetCtxsSubscription(dex);
     this.#assetCtxsSubscriptionPromises.set(dexKey, promise);
 
     try {
       await promise;
+      // Increment only after successful creation
+      const currentCount = this.#dexSubscriberCounts.get(dexKey) ?? 0;
+      this.#dexSubscriberCounts.set(dexKey, currentCount + 1);
     } catch (error) {
-      // Clear promise on error so it can be retried
+      // Clear all state on error so it can be retried cleanly
       this.#assetCtxsSubscriptionPromises.delete(dexKey);
+      this.#dexSubscriberCounts.delete(dexKey);
       throw error;
     }
   }
@@ -2876,18 +2880,19 @@ export class HyperLiquidSubscriptionService {
             this.#getErrorContext('cleanupAssetCtxsSubscription', { dex }),
           );
         });
-
-        this.#assetCtxsSubscriptions.delete(dexKey);
-        this.#dexAssetCtxsCache.delete(dexKey);
-        this.#assetCtxsSubscriptionPromises.delete(dexKey);
-        this.#dexSubscriberCounts.delete(dexKey);
-
-        this.#deps.debugLogger.log(
-          `Cleaned up assetCtxs subscription for ${
-            dex ? `DEX: ${dex}` : 'main DEX'
-          }`,
-        );
       }
+
+      // Always clear state, even if subscription object is null
+      this.#assetCtxsSubscriptions.delete(dexKey);
+      this.#dexAssetCtxsCache.delete(dexKey);
+      this.#assetCtxsSubscriptionPromises.delete(dexKey);
+      this.#dexSubscriberCounts.delete(dexKey);
+
+      this.#deps.debugLogger.log(
+        `Cleaned up assetCtxs subscription for ${
+          dex ? `DEX: ${dex}` : 'main DEX'
+        }`,
+      );
     } else {
       // Still has subscribers - just decrement count
       this.#dexSubscriberCounts.set(dexKey, currentCount - 1);
@@ -3324,16 +3329,56 @@ export class HyperLiquidSubscriptionService {
       }
 
       // Re-establish assetCtxs + per-DEX allMids subscriptions
+      const failedDexs: string[] = [];
+      const dexArray = Array.from(dexsNeeded);
+
       await Promise.all(
-        Array.from(dexsNeeded).flatMap((dex) => [
-          this.#ensureAssetCtxsSubscription(dex).catch(() => {
-            // Ignore errors during assetCtxs subscription restoration
+        dexArray.flatMap((dex) => [
+          this.#ensureAssetCtxsSubscription(dex).catch((error) => {
+            failedDexs.push(dex || 'main');
+            this.#deps.debugLogger.log(
+              `Failed to restore assetCtxs subscription for ${dex || 'main'}`,
+              { error },
+            );
           }),
-          this.#ensureDexAllMidsSubscription(dex).catch(() => {
-            // Ignore errors during per-DEX allMids subscription restoration
+          this.#ensureDexAllMidsSubscription(dex).catch((error) => {
+            this.#deps.debugLogger.log(
+              `Failed to restore allMids subscription for ${dex || 'main'}`,
+              { error },
+            );
           }),
         ]),
       );
+
+      if (failedDexs.length > 0) {
+        this.#deps.debugLogger.log(
+          `[restoreSubscriptions] ${failedDexs.length} DEX(s) failed, scheduling retry`,
+          { failedDexs },
+        );
+
+        // Single delayed retry for failed DEXs only
+        const uniqueFailedDexs = [...new Set(failedDexs)];
+        setTimeout(() => {
+          Promise.all(
+            uniqueFailedDexs.flatMap((dexLabel) => {
+              const dex = dexLabel === 'main' ? '' : dexLabel;
+              return [
+                this.#ensureAssetCtxsSubscription(dex).catch(
+                  // Silently ignore — best-effort retry
+                  (_e: unknown) => undefined,
+                ),
+                this.#ensureDexAllMidsSubscription(dex).catch(
+                  // Silently ignore — best-effort retry
+                  (_e: unknown) => undefined,
+                ),
+              ];
+            }),
+          ).catch(
+            // Silently ignore — best-effort retry
+            (_e: unknown) => undefined,
+          );
+        }, 5000);
+      }
     }
   }
 
