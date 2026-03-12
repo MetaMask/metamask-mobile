@@ -3,7 +3,7 @@ import { Keys } from '../../../Base/Keypad';
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
-const isDigitKey = (input: Keys): input is `${number}` => /^(\d)$/u.test(input);
+const isDigitKey = (input: Keys) => /^(\d)$/u.test(input);
 
 const normalizeLeadingDecimal = (
   value: string,
@@ -101,7 +101,7 @@ export const applyKeyAtCursor = ({
 
   // Preserve existing keypad behavior for replacing the initial zero.
   if (normalizedCurrentValue === '0') {
-    return { value: pressedKey, cursorPosition: 1 };
+    return { value: String(pressedKey), cursorPosition: 1 };
   }
 
   const insertedValue =

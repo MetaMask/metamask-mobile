@@ -1,8 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type {
-  NativeSyntheticEvent,
-  TextInputSelectionChangeEventData,
-} from 'react-native';
 import { type KeypadChangeData } from '../../../Base/Keypad';
 import { formatAmountWithLocaleSeparators } from '../utils/formatAmountWithLocaleSeparators';
 import { applyKeyAtCursor } from '../utils/applyKeyAtCursor';
@@ -10,6 +6,15 @@ import {
   mapFormattedCursorToRaw,
   mapRawCursorToFormatted,
 } from '../utils/cursorPosition';
+
+export interface SourceAmountSelectionChangeEvent {
+  nativeEvent: {
+    selection: {
+      start: number;
+      end: number;
+    };
+  };
+}
 
 export interface UseSourceAmountCursorParams {
   sourceAmount?: string;
@@ -26,7 +31,7 @@ export interface UseSourceAmountCursorResult {
       }
     | undefined;
   handleSourceSelectionChange: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
+    event: SourceAmountSelectionChangeEvent,
   ) => void;
   handleKeypadChange: ({ pressedKey, value }: KeypadChangeData) => void;
   resetSourceAmountCursorPosition: () => void;
@@ -76,7 +81,7 @@ export const useSourceAmountCursor = ({
   }, [rawSourceAmount.length, sourceAmountCursorPosition]);
 
   const handleSourceSelectionChange = useCallback(
-    (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    (event: SourceAmountSelectionChangeEvent) => {
       const rawCursorIndex = mapFormattedCursorToRaw({
         rawValue: rawSourceAmount,
         formattedValue: formattedSourceAmount,
