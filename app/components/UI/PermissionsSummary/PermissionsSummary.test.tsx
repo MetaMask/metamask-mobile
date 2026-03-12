@@ -10,6 +10,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 
 const mockedNavigate = jest.fn();
 
@@ -219,7 +220,7 @@ describe('PermissionsSummary', () => {
   describe('trustSignalState prop', () => {
     it('renders no icon next to the URL when trustSignalState is Warning', () => {
       const { toJSON } = renderPermissionsSummary({
-        trustSignalState: 'warning',
+        trustSignalState: TrustSignalDisplayState.Warning,
         isAlreadyConnected: false,
       });
 
@@ -230,7 +231,7 @@ describe('PermissionsSummary', () => {
 
     it('renders an error icon next to the URL when trustSignalState is Malicious', () => {
       const { toJSON } = renderPermissionsSummary({
-        trustSignalState: 'malicious',
+        trustSignalState: TrustSignalDisplayState.Malicious,
         isAlreadyConnected: false,
       });
 
@@ -241,7 +242,7 @@ describe('PermissionsSummary', () => {
 
     it('renders a verified icon next to the URL when trustSignalState is Verified', () => {
       const { toJSON } = renderPermissionsSummary({
-        trustSignalState: 'verified',
+        trustSignalState: TrustSignalDisplayState.Verified,
         isAlreadyConnected: false,
       });
 
@@ -252,7 +253,7 @@ describe('PermissionsSummary', () => {
 
     it('does not render a trust signal icon when trustSignalState is Unknown', () => {
       const { toJSON } = renderPermissionsSummary({
-        trustSignalState: 'unknown',
+        trustSignalState: TrustSignalDisplayState.Unknown,
         isAlreadyConnected: false,
         isMaliciousDapp: false,
       });
@@ -265,7 +266,7 @@ describe('PermissionsSummary', () => {
 
     it('renders a standard Connect button when trustSignalState is Warning', () => {
       const { getByText } = renderPermissionsSummary({
-        trustSignalState: 'warning',
+        trustSignalState: TrustSignalDisplayState.Warning,
         isAlreadyConnected: false,
       });
 
@@ -275,7 +276,7 @@ describe('PermissionsSummary', () => {
 
     it('renders a danger-style Connect button when trustSignalState is Malicious', () => {
       const { getByText } = renderPermissionsSummary({
-        trustSignalState: 'malicious',
+        trustSignalState: TrustSignalDisplayState.Malicious,
         isAlreadyConnected: false,
       });
 
