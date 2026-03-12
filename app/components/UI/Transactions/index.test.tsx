@@ -19,6 +19,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -346,19 +347,14 @@ describe('Transactions', () => {
       expect(mockGasFeeEstimates.medium.suggestedMaxFeePerGas).toBe('20');
     });
 
-    it('handles EIP-1559 transaction parameters', () => {
+    it('handles EIP-1559 transaction parameters (controller shape)', () => {
       const eip1559Tx = {
-        suggestedMaxFeePerGasHex: '4a817c800',
-        suggestedMaxPriorityFeePerGasHex: '77359400',
+        maxFeePerGas: '0x4a817c800',
+        maxPriorityFeePerGas: '0x77359400',
       };
 
-      const result = {
-        maxFeePerGas: `0x${eip1559Tx.suggestedMaxFeePerGasHex}`,
-        maxPriorityFeePerGas: `0x${eip1559Tx.suggestedMaxPriorityFeePerGasHex}`,
-      };
-
-      expect(result.maxFeePerGas).toBe('0x4a817c800');
-      expect(result.maxPriorityFeePerGas).toBe('0x77359400');
+      expect(eip1559Tx.maxFeePerGas).toBe('0x4a817c800');
+      expect(eip1559Tx.maxPriorityFeePerGas).toBe('0x77359400');
     });
 
     it('generates block explorer URLs for mainnet addresses', () => {
@@ -1227,23 +1223,15 @@ describe('Transactions', () => {
       expect(foundIndex).toBe(0);
     });
 
-    it('should exercise getCancelOrSpeedupValues with EIP-1559', () => {
-      // Test getCancelOrSpeedupValues method logic
-      const transactionObject = {
-        suggestedMaxFeePerGasHex: '4a817c800',
-        suggestedMaxPriorityFeePerGasHex: '77359400',
-      };
-
-      // Call getCancelOrSpeedupValues to cover EIP-1559 logic
-      const result = transactionObject.suggestedMaxFeePerGasHex
-        ? {
-            maxFeePerGas: `0x${transactionObject.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${transactionObject.suggestedMaxPriorityFeePerGasHex}`,
-          }
-        : undefined;
-
-      expect(result?.maxFeePerGas).toBe('0x4a817c800');
-      expect(result?.maxPriorityFeePerGas).toBe('0x77359400');
+    it('should exercise getCancelOrSpeedupValues (no arg, derives from existingTx)', () => {
+      // getCancelOrSpeedupValues() takes no arg; when existingTx has gasPrice 0x0 it returns { gasPrice } from estimate
+      const mockExistingTx = { txParams: { gasPrice: '0x0' } };
+      const existingGasPriceHex = mockExistingTx.txParams.gasPrice;
+      const shouldReturnEstimate =
+        existingGasPriceHex === undefined ||
+        existingGasPriceHex === '0x0' ||
+        parseInt(String(existingGasPriceHex), 16) === 0;
+      expect(shouldReturnEstimate).toBe(true);
     });
 
     it('should exercise getCancelOrSpeedupValues with legacy transaction', () => {
@@ -1450,19 +1438,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const estimate = instance.getGasPriceEstimate();
     expect(estimate).toBeDefined();
 
-    // Test getCancelOrSpeedupValues method directly
-    const transactionObject = {
-      suggestedMaxFeePerGasHex: '4a817c800',
-      suggestedMaxPriorityFeePerGasHex: '77359400',
-    };
-    const result = instance.getCancelOrSpeedupValues(transactionObject);
-    expect(result.maxFeePerGas).toBe('0x4a817c800');
-    expect(result.maxPriorityFeePerGas).toBe('0x77359400');
+    // Test getCancelOrSpeedupValues (no arg; derives from existingTx)
+    instance.existingTx = { txParams: { gasPrice: '0x0' } };
+    const result = instance.getCancelOrSpeedupValues();
+    expect(result?.gasPrice).toBeDefined();
 
-    // Test legacy gas pricing
-    instance.existingGas = { gasPrice: 0 };
-    const legacyResult = instance.getCancelOrSpeedupValues({});
-    expect(legacyResult.gasPrice).toBeDefined();
+    instance.existingTx = { txParams: { gasPrice: '0x64' } };
+    const legacyResult = instance.getCancelOrSpeedupValues();
+    expect(legacyResult).toBeUndefined();
   });
 
   it('should test updateBlockExplorer method directly', () => {
@@ -1549,12 +1532,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test onSpeedUpAction method directly', () => {
     instance.setState = jest.fn();
-    const existingGas = { isEIP1559Transaction: false, gasPrice: 20000000000 };
     const tx = { id: 'tx-123' };
 
-    instance.onSpeedUpAction(true, existingGas, tx);
+    instance.onSpeedUpAction(true, tx);
 
-    expect(instance.existingGas).toBe(existingGas);
     expect(instance.speedUpTxId).toBe('tx-123');
     expect(instance.existingTx).toBe(tx);
     expect(instance.setState).toHaveBeenCalled();
@@ -1562,47 +1543,32 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test onCancelAction method directly', () => {
     instance.setState = jest.fn();
-    const existingGas = { isEIP1559Transaction: true };
     const tx = { id: 'tx-456' };
 
-    instance.onCancelAction(true, existingGas, tx);
+    instance.onCancelAction(true, tx);
 
-    expect(instance.existingGas).toBe(existingGas);
     expect(instance.cancelTxId).toBe('tx-456');
     expect(instance.existingTx).toBe(tx);
-    expect(instance.setState).toHaveBeenCalledWith({ cancel1559IsOpen: true });
+    expect(instance.setState).toHaveBeenCalledWith({
+      speedUpIsOpen: false,
+      cancelIsOpen: true,
+      confirmDisabled: false,
+    });
   });
 
-  it('should test onSpeedUpCompleted method directly', () => {
+  it('should test closeSpeedUpCancelModal method directly', () => {
     instance.setState = jest.fn();
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.speedUpTxId = 'tx-123';
+    instance.cancelTxId = 'tx-456';
     instance.existingTx = { id: 'tx-123' };
 
-    instance.onSpeedUpCompleted();
+    instance.closeSpeedUpCancelModal();
 
     expect(instance.setState).toHaveBeenCalledWith({
-      speedUp1559IsOpen: false,
       speedUpIsOpen: false,
-    });
-    expect(instance.existingGas).toBeNull();
-    expect(instance.speedUpTxId).toBeNull();
-    expect(instance.existingTx).toBeNull();
-  });
-
-  it('should test onCancelCompleted method directly', () => {
-    instance.setState = jest.fn();
-    instance.existingGas = { gasPrice: 20000000000 };
-    instance.cancelTxId = 'tx-456';
-    instance.existingTx = { id: 'tx-456' };
-
-    instance.onCancelCompleted();
-
-    expect(instance.setState).toHaveBeenCalledWith({
-      cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
-    expect(instance.existingGas).toBeNull();
+    expect(instance.speedUpTxId).toBeNull();
     expect(instance.cancelTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
@@ -1639,7 +1605,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onSpeedUpAction = jest.fn();
     instance.onCancelAction = jest.fn();
     instance.speedUpTxId = 'speed-up-tx';
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.existingTx = { id: 'speed-up-tx' };
 
     instance.retry();
@@ -1715,19 +1680,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test gas and EIP-1559 patterns for coverage', () => {
-    // Test EIP-1559 transaction handling
+    // Test EIP-1559 transaction handling (controller shape)
     const eip1559Tx = {
-      suggestedMaxFeePerGasHex: '4a817c800',
-      suggestedMaxPriorityFeePerGasHex: '77359400',
+      maxFeePerGas: '0x4a817c800',
+      maxPriorityFeePerGas: '0x77359400',
     };
-    const result = eip1559Tx.suggestedMaxFeePerGasHex
-      ? {
-          maxFeePerGas: `0x${eip1559Tx.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${eip1559Tx.suggestedMaxPriorityFeePerGasHex}`,
-        }
-      : undefined;
-    expect(result?.maxFeePerGas).toBe('0x4a817c800');
-    expect(result?.maxPriorityFeePerGas).toBe('0x77359400');
+    expect(eip1559Tx.maxFeePerGas).toBe('0x4a817c800');
+    expect(eip1559Tx.maxPriorityFeePerGas).toBe('0x77359400');
 
     // Test legacy gas handling
     const mockExistingGas = { gasPrice: 0 };
@@ -1891,8 +1850,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test componentDidUpdate method directly', () => {
     instance.updateBlockExplorer = jest.fn();
-    instance.onSpeedUpCompleted = jest.fn();
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
     instance.existingTx = { id: 'tx-123' };
     instance.props = {
       ...defaultTestProps,
@@ -1902,8 +1860,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.componentDidUpdate();
 
     expect(instance.updateBlockExplorer).toHaveBeenCalled();
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test init method directly', () => {
@@ -1969,16 +1926,16 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
-      suggestedMaxFeePerGasHex: '123',
-      suggestedMaxPriorityFeePerGasHex: '456',
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x456',
     };
 
     await instance.speedUpTransaction(transactionObject);
 
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test cancelTransaction method directly', async () => {
@@ -1988,11 +1945,11 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
-      suggestedMaxFeePerGasHex: '123',
-      suggestedMaxPriorityFeePerGasHex: '456',
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x456',
     };
 
     await instance.cancelTransaction(transactionObject);
@@ -2000,7 +1957,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(
       Engine.context.TransactionController.stopTransaction,
     ).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test renderLoader method directly', () => {
@@ -2082,6 +2039,56 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result).toBeDefined();
   });
 
+  it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
+    instance.context = {
+      colors: {
+        background: { default: '#fff' },
+        text: { muted: '#999' },
+        primary: { default: '#037dd6' },
+        icon: { default: '#24272a' },
+      },
+      typography: {},
+    };
+    instance.state = {
+      refreshing: false,
+      confirmDisabled: false,
+    };
+    instance.props = {
+      ...defaultTestProps,
+      submittedTransactions: [],
+      confirmedTransactions: [],
+      transactions: [{ id: 'tx-1' }],
+      isSigningQRObject: false,
+    };
+    instance.existingTx = { id: 'tx-1', chainId: '0x1' };
+
+    // When both closed: modal mounted but not visible (exit animation can run)
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = false;
+    let listResult = instance.renderList();
+    let listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(false);
+
+    // When speed up open: one modal, isVisible true, isCancel false
+    instance.state.speedUpIsOpen = true;
+    instance.state.cancelIsOpen = false;
+    listResult = instance.renderList();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(false);
+
+    // When cancel open: one modal, isVisible true, isCancel true
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = true;
+    listResult = instance.renderList();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(true);
+  });
+
   it('should test render method directly', () => {
     instance.context = {
       colors: {
@@ -2092,8 +2099,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
-      speedUp1559IsOpen: false,
-      cancel1559IsOpen: false,
       retryIsOpen: false,
       errorMsg: null,
     };
@@ -2161,19 +2166,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test getCancelOrSpeedupValues edge cases', () => {
-    // Test when transactionObject has no suggested values
-    instance.existingGas = { gasPrice: 100 };
-    const result1 = instance.getCancelOrSpeedupValues({});
-    expect(result1).toBeUndefined(); // Should return undefined for non-zero gasPrice
+    // getCancelOrSpeedupValues() takes no arg; derives from existingTx only
+    instance.existingTx = { txParams: { gasPrice: '0x64' } };
+    const result1 = instance.getCancelOrSpeedupValues();
+    expect(result1).toBeUndefined();
 
-    // Test when gasPrice is 0 but no suggested values
-    instance.existingGas = { gasPrice: 0 };
-    const result2 = instance.getCancelOrSpeedupValues({});
-    expect(result2.gasPrice).toBeDefined();
-
-    // Test with null/undefined transactionObject
-    const result3 = instance.getCancelOrSpeedupValues(null);
-    expect(result3.gasPrice).toBeDefined();
+    instance.existingTx = { txParams: { gasPrice: '0x0' } };
+    const result2 = instance.getCancelOrSpeedupValues();
+    expect(result2?.gasPrice).toBeDefined();
   });
 
   it('should test getGasPriceEstimate with different scenarios', () => {
@@ -2337,7 +2337,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.speedUpTxId = 'tx-123';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       suggestedMaxFeePerGasHex: '123',
@@ -2352,7 +2352,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.cancelTxId = 'tx-456';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     await instance.cancelTransaction(transactionObject);
 
@@ -2367,7 +2367,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     // Test retry with speedUpTxId
     instance.speedUpTxId = 'speed-up-tx';
     instance.cancelTxId = null;
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.existingTx = { id: 'speed-up-tx' };
 
     instance.retry();

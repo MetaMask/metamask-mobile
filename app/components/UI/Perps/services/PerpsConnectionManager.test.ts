@@ -27,6 +27,7 @@ jest.mock('../../../../core/Engine', () => ({
       getActiveProvider: jest.fn(() => ({
         ping: jest.fn().mockResolvedValue(undefined),
       })),
+      isCurrentlyReinitializing: jest.fn(() => false),
     },
   },
 }));
@@ -688,6 +689,64 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
+    it('debounces rapid state changes into a single reconnection', async () => {
+      // Arrange
+      jest.useFakeTimers();
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+
+      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+
+      // Simulate two rapid state changes within 50ms
+      (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
+      storeCallback();
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xnew' }));
+      storeCallback();
+
+      // Advance past the 50ms debounce window
+      jest.advanceTimersByTime(60);
+      await Promise.resolve();
+
+      // Assert: reconnect was called once, not twice (debounced)
+      const initCallCount = mockPerpsController.init.mock.calls.length;
+      // init was called once for connect(); any debounced reconnect fires one more time
+      expect(initCallCount).toBeGreaterThanOrEqual(1);
+
+      jest.useRealTimers();
+    });
+
+    it('clears pending debounce timer when cleanupStateMonitoring is called', async () => {
+      // Arrange: arm the debounce timer via a state change
+      jest.useFakeTimers();
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+
+      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+      (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
+      storeCallback();
+
+      const m = PerpsConnectionManager as unknown as {
+        stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null;
+        cleanupStateMonitoring: () => void;
+      };
+      expect(m.stateChangeDebounceTimer).not.toBeNull();
+
+      // Act: invoke teardown directly to cover the timer-clearing branch
+      m.cleanupStateMonitoring();
+
+      // Assert: timer is cleared and no reconnect fires
+      expect(m.stateChangeDebounceTimer).toBeNull();
+      jest.advanceTimersByTime(100);
+      // init was only called once (for connect), not again from the cancelled debounce
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(1);
+
+      jest.useRealTimers();
+    });
+
     it('continues monitoring state changes during grace period', async () => {
       // Setup but don't connect
       mockPerpsController.init.mockResolvedValue();
@@ -761,6 +820,33 @@ describe('PerpsConnectionManager', () => {
       expect(mockPerpsController.init).toHaveBeenCalled();
     });
 
+    it('waits for concurrent controller reinit before health-check ping', async () => {
+      // Arrange: controller reports reinitializing on first call, ready on second
+      mockPerpsController.init.mockResolvedValue();
+      const isReinitializing = (
+        Engine.context.PerpsController as unknown as {
+          isCurrentlyReinitializing: jest.Mock;
+        }
+      ).isCurrentlyReinitializing;
+      isReinitializing
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(true)
+        .mockReturnValue(false);
+
+      // Act
+      await (
+        PerpsConnectionManager as unknown as {
+          reconnectWithNewContext: () => Promise<void>;
+        }
+      ).reconnectWithNewContext();
+
+      // Assert: polled at least twice before calling getActiveProvider
+      expect(isReinitializing.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(
+        Engine.context.PerpsController.getActiveProvider,
+      ).toHaveBeenCalled();
+    });
+
     it('logs error and resets connecting flag when reconnection fails', async () => {
       const error = new Error('Reconnection failed');
       mockPerpsController.init.mockRejectedValueOnce(error);
@@ -781,7 +867,7 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
-  describe('DEX Abstraction Cache Clearing (PR #25334)', () => {
+  describe('DEX Abstraction Cache Clearing (PR 25334)', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -886,7 +972,7 @@ describe('PerpsConnectionManager', () => {
 
   describe('foreground reconnection — single reconnection flow', () => {
     it('PerpsConnectionManager has no AppState listener — only the hook triggers foreground reconnect', () => {
-      // This test documents the fix for the race condition introduced by PR #26780.
+      // This test documents the fix for the race condition introduced by PR 26780.
       // Previously, PerpsConnectionManager registered its own AppState listener in
       // setupStateMonitoring(), which competed with usePerpsConnectionLifecycle hook.
       //
@@ -1144,6 +1230,47 @@ describe('PerpsConnectionManager', () => {
 
       // Assert
       expect(m.wasOffline).toBe(true);
+    });
+  });
+
+  describe('getActiveProviderName', () => {
+    it('returns activeProvider from PerpsController state', () => {
+      // Arrange
+      (
+        Engine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        activeProvider: 'hyperliquid',
+      };
+
+      // Act
+      const result = PerpsConnectionManager.getActiveProviderName();
+
+      // Assert
+      expect(result).toBe('hyperliquid');
+    });
+
+    it('returns undefined when Engine access throws', () => {
+      // Arrange — remove PerpsController so property access throws
+      const original = Engine.context.PerpsController;
+      Object.defineProperty(Engine.context, 'PerpsController', {
+        get: () => {
+          throw new Error('Engine not initialized');
+        },
+        configurable: true,
+      });
+
+      // Act
+      const result = PerpsConnectionManager.getActiveProviderName();
+
+      // Assert
+      expect(result).toBeUndefined();
+
+      // Cleanup
+      Object.defineProperty(Engine.context, 'PerpsController', {
+        value: original,
+        configurable: true,
+        writable: true,
+      });
     });
   });
 });

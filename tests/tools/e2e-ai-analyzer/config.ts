@@ -7,6 +7,19 @@
 import { ProviderType, ProviderConfig } from './providers/types';
 
 /**
+ * Pricing per million tokens (USD) for each model.
+ * Update when pricing changes: https://openai.com/api/pricing / https://anthropic.com/pricing
+ */
+export const MODEL_PRICING: Record<
+  string,
+  { inputPerM: number; outputPerM: number }
+> = {
+  'gpt-5.2-chat-latest': { inputPerM: 1.75, outputPerM: 14.0 },
+  'claude-sonnet-4-6': { inputPerM: 3.0, outputPerM: 15.0 },
+  'gemini-2.0-flash': { inputPerM: 0.1, outputPerM: 0.4 },
+};
+
+/**
  * Multi-Provider LLM Configuration
  *
  * Supports automatic fallback between providers when one is unavailable.
@@ -16,18 +29,18 @@ export const LLM_CONFIG = {
    * Provider priority order for automatic fallback
    * The first available provider in this list will be used
    */
-  providerPriority: ['anthropic', 'openai', 'google'] as ProviderType[],
+  providerPriority: ['openai', 'anthropic', 'google'] as ProviderType[],
 
   /**
    * Per-provider configuration
    */
   providers: {
     anthropic: {
-      model: 'claude-opus-4-5-20251101',
+      model: 'claude-sonnet-4-6',
       envKey: 'E2E_CLAUDE_API_KEY',
     } as ProviderConfig,
     openai: {
-      model: 'gpt-5',
+      model: 'gpt-5.2-chat-latest',
       envKey: 'E2E_OPENAI_API_KEY',
     } as ProviderConfig,
     google: {

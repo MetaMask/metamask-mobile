@@ -152,7 +152,7 @@ export function getAssetsControllerInitMessenger(
 ) {
   const messenger = new Messenger<
     'AssetsControllerInit',
-    | AuthenticationController.AuthenticationControllerGetBearerToken
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction
     | PreferencesControllerGetStateAction
     | RemoteFeatureFlagControllerGetStateAction
     | AnalyticsControllerActions,

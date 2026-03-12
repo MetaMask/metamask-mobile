@@ -104,8 +104,8 @@
       "title": "Unzureichende Gelder"
     },
     "insufficient_pay_token_native_post_quote": {
-      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
-      "title": "Insufficient funds for post quote"
+      "message": "Nicht genug {{ticker}}, um die Gebühren zu decken. Fügen Sie {{ticker}} hinzu, um fortzufahren.",
+      "title": "Unzureichende Mittel für nachträgliche Angebote"
     },
     "no_pay_token_quotes": {
       "message": "Diese Zahlungsroute ist derzeit nicht verfügbar. Versuchen Sie, den Betrag, das Netzwerk oder das Token zu ändern, und wir finden die beste Option.",
@@ -2077,12 +2077,12 @@
     "title": "Markteinblicke",
     "a_closer_look": "Ein genauerer Blick",
     "whats_being_said": "Was gesagt wird",
-    "footer_disclaimer": "AI summary for information only",
+    "footer_disclaimer": "KI-Zusammenfassung nur zu Informationszwecken",
     "trade_button": "Trade",
     "sources_count": "+{{count}} Quellen",
-    "sources_title": "News sources",
+    "sources_title": "Nachrichtenquellen",
     "feedback_submitted": "Feedback eingereicht",
-    "helpful_prompt": "Was this helpful?",
+    "helpful_prompt": "War dies hilfreich?",
     "feedback": {
       "title": "Feedback",
       "description": "Helfen Sie uns, unsere KI-generierten Markteinblicke zu erweitern.",
@@ -2197,6 +2197,7 @@
     "available_balance": "Verfügbares Guthaben",
     "claim_amount_text": "{{amount}} $ einfordern",
     "claim_winnings_text": "Gewinne einfordern",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Nicht realisierte GuV",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Laden nicht möglich",
@@ -2275,6 +2276,9 @@
           "title": "Hoppla! Etwas ist schiefgelaufen ...",
           "description": "Fortfahren mit Einforderung fehlgeschlagen",
           "try_again": "Erneut versuchen"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2333,7 +2337,8 @@
       "exchange_fee": "Umrechnungsgebühr",
       "exchange_fee_description": "An die Börse oder den Markt entrichtete Gebühr",
       "total_incl_fees": "inkl. Gebühren",
-      "close": "Schließen"
+      "close": "Schließen",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Verbindung zu Prognosen nicht möglich",
@@ -2915,10 +2920,6 @@
     "enabling_notifications": "Benachrichtigungen aktivieren ...",
     "updating_notifications": "Aktualisierung der Benachrichtigungen ...",
     "updating_account_settings": "Aktualisierung der Kontoeinstellungen ...",
-    "reset_notifications_title": "Benachrichtigungen zurücksetzen",
-    "reset_notifications_description": "Das Zurücksetzen von Benachrichtigungen führt zum Löschen Ihrer Speicherschlüssel für Benachrichtigungen sowie zum Zurücksetzen Ihres gesamten Benachrichtigungsverlaufs. Möchten Sie diesen Vorgang wirklich fortsetzen?",
-    "reset_notifications": "Benachrichtigungen zurücksetzen",
-    "reset_notifications_success": "Der Speicherungsschlüssel für Benachrichtigungen wurde gelöscht/neu erstellt und der Benachrichtigungsverlauf zurückgesetzt.",
     "notifications_dismiss_modal": "Verwerfen",
     "select_rpc_url": "RPC-URL auswählen",
     "title": "Einstellungen",
@@ -3705,10 +3706,10 @@
     "speedup_tx_title": "Versuchen, zu beschleunigen?",
     "speedup_tx_message": "Das Absenden dieses Versuches garantiert nicht, dass die Transaktion beschleunigt wird. Wenn der Beschleunigungsversuch erfolgreich ist, wird Ihnen die obige Transaktionsgebühr in Rechnung gestellt.",
     "nevermind": "Macht nichts",
-    "cancel_speedup_speedup_title": "Speed up Transaction",
-    "cancel_speedup_cancel_title": "Cancel Transaction",
-    "cancel_speedup_speedup_message": "This network fee will replace the original.",
-    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
+    "cancel_speedup_speedup_title": "Transaktion beschleunigen",
+    "cancel_speedup_cancel_title": "Transaktion storniert",
+    "cancel_speedup_speedup_message": "Diese Netzwerkgebühr ersetzt die ursprüngliche Gebühr.",
+    "cancel_speedup_cancel_message": "Diese Transaktion wird storniert und diese Netzwerkgebühr ersetzt die ursprüngliche Gebühr.",
     "edit_network_fee": "Gas-Gebühr bearbeiten",
     "edit_priority": "Priorität bearbeiten",
     "gas_cancel_fee": "Gas-Stornogebühr",
@@ -4841,7 +4842,7 @@
     "quote_unavailable": "Angebot nicht verfügbar.",
     "providers": "Anbieter",
     "quotes_displayed_for": "Angebote angezeigt für {{paymentMethodName}}.",
-    "other_options": "Other options",
+    "other_options": "Weitere Optionen",
     "previously_used": "Zuvor verwendet",
     "best_rate": "Bester Wechselkurs",
     "most_reliable": "Am zuverlässigsten",
@@ -4952,10 +4953,10 @@
     "provider_picker_modal": {
       "title": "Anbieter auswählen"
     },
-    "contact_provider_support": "Contact {{provider}} support",
+    "contact_provider_support": "Wenden Sie sich an den {{provider}}-Support",
     "got_it": "Verstanden",
-    "encountered_error": "We've encountered an error",
-    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "encountered_error": "Ein Fehler ist aufgetreten",
+    "no_quotes_error": "Beim Abrufen der Angebote von {{provider}} ist ein Problem aufgetreten. Versuchen Sie einen anderen Betrag oder wechseln Sie den Anbieter.",
     "change_provider_button": "Anbieter wechseln"
   },
   "fiat_on_ramp_aggregator": {
@@ -5918,7 +5919,7 @@
     "error_description": "Installation von {{snap}} fehlgeschlagen."
   },
   "earn": {
-    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "claimable_bonus_tooltip": "Sie haben den jährlichen Bonus für das Halten von mUSD verdient. Ihr Bonus kann täglich auf Linea eingefordert werden.",
     "earn_a_percentage_bonus": "Verdienen Sie einen Bonus von {{percentage}} %",
     "claimable_bonus": "Anspruchsberechtigter Bonus",
     "claim_bonus": "Bonus einfordern",
@@ -6026,21 +6027,21 @@
       "toasts": {
         "converting": "Konvertierung von {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "mUSD conversion successful",
-        "delivered_description": "Bonus will be claimable within a day.",
+        "delivered": "mUSD-Konvertierung erfolgreich",
+        "delivered_description": "Der Bonus kann innerhalb eines Tages eingefordert werden.",
         "failed": "mUSD-Konvertierung fehlgeschlagen"
       },
       "education": {
         "heading": "ERHALTEN SIE {{percentage}} % AUF\nSTABILECOINS",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Konvertieren Sie Ihre Stablecoins in mUSD und verdienen Sie einen Bonus von bis zu {{percentage}} % auf jährlicher Basis, den Sie täglich einfordern können.",
         "terms_apply": "Es gelten die Nutzungsbedingungen.",
         "primary_button": "Erste Schritte",
         "secondary_button": "Nicht jetzt"
       },
       "buy_musd": "mUSD kaufen",
       "get_musd": "mUSD erhalten",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "bonus_title": "Erhalten Sie {{percentage}} % auf Ihre Stablecoins",
+      "bonus_description": "Konvertieren Sie Ihre Stablecoins in mUSD und erhalten Sie einen jährlichen Bonus von {{percentage}} %.",
       "powered_by_relay": "Unterstützt von Relay",
       "max": "Max.",
       "quick_convert_button": "Konvertieren",
@@ -6048,14 +6049,14 @@
       "tooltip_title": "Verdienen Sie Rendite mit mUSD",
       "tooltip_content": "Konvertieren Sie Ihre USDC, USDT oder DAI gegen mUSD, den an den US-Dollar gekoppelten Stablecoin von MetaMask. Verdienen Sie {{apy}} Rendite für jeden von Ihnen gehaltenen US-Dollar.",
       "quick_convert": {
-        "title": "Convert and get {{percentage}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "title": "Konvertieren und {{percentage}} % erhalten",
+        "subtitle": "Konvertieren Sie Ihre Stablecoins in mUSD und erhalten Sie einen Bonus von bis zu {{percentage}} % auf jährlicher Basis, den Sie täglich einfordern können.",
         "inline_failed_message": "Konvertierung fehlgeschlagen. Versuchen Sie es erneut.",
         "confirmation": {
           "title": "Konvertieren max"
         }
       },
-      "percentage_bonus": "{{percentage}}% bonus",
+      "percentage_bonus": "Bonus von {{percentage}} %",
       "rate": "Rate"
     },
     "bonus_claim": {
@@ -6096,7 +6097,9 @@
       "fee": "Gebühr",
       "errors": {
         "insufficient_balance": "Sie haben nicht genügend Ressourcen, um diese Aktion durchzuführen."
-      }
+      },
+      "trx_unstaking_in_progress": "Unstaken {{amount}} TRX in Bearbeitung. Das Unstaken erfordert 14 Tage.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "ETH staken",
     "unstake_eth": "ETH unstaken",
@@ -6347,7 +6350,8 @@
       "metamask_fee": "MetaMask-Gebühr",
       "network_fee": "Netzwerk-Gebühr",
       "bridge_fee": "Gebühr für Bridge-Anbieter",
-      "provider_fee": "Anbietergebühr"
+      "provider_fee": "Anbietergebühr",
+      "sending": "Senden"
     },
     "title": {
       "signature": "Signaturanfrage",
@@ -6385,10 +6389,10 @@
         "transaction_fee": "Wir swappen Ihre Token gegen USDC.e auf Polygon, dem von Predictions verwendeten Netzwerk. Swap-Anbieter erheben möglicherweise eine Gebühr, MetaMask jedoch nicht."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "transaction_fee": "MetaMask swappt den Token für Sie in den gewünschten Token um. Beim Swap in mUSD fallen keine MetaMask-Gebühren an."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+        "transaction_fee": "Die Gebühren für die mUSD-Konvertierung beinhalten Netzwerkkosten und können Anbietergebühren beinhalten. Bei der Konvertierung in mUSD fällt keine MetaMask-Gebühr an."
       },
       "title": {
         "transaction_fee": "Gebühren"
@@ -6574,12 +6578,12 @@
     "hardware_wallet_not_supported": "Hardware-Wallets werden noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren.",
     "hardware_wallet_not_supported_solana": "Hardware-Wallets werden für Solana noch nicht unterstützt. Verwenden Sie ein Hot Wallet, um fortzufahren.",
     "price_impact_info_title": "Preiseinfluss",
-    "price_impact_info_description": "Der Preiseinfluss spiegelt wider, wie Ihre Swap-Order den Marktpreis des Assets beeinflusst. Er hängt von der Trade-Größe und der verfügbaren Liquidität im Pool ab. MetaMask hat keinerlei Kontrolle über den Preiseinfluss.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Die Preisauswirkung spiegelt wider, wie Ihre Swap-Order den Marktpreis des Assets beeinflusst. Falls Sie nicht über genügend Gelder für Gas halten, wird ein Teil Ihres Quelltokens automatisch zur Deckung der Gebühren verwendet, was die Preisauswirkung erhöht. MetaMask hat keinerlei Kontrolle über die Preisauswirkung.",
-    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
-    "price_impact_high": "High price impact",
-    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
-    "proceed": "Proceed",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_high": "Hohe Preisauswirkungen",
+    "price_impact_execution_description": "Sie verlieren bei diesem Swap etwa {{priceImpact}} des Wertes Ihres Tokens. Versuchen Sie, den Betrag zu senken oder eine liquidere Route zu wählen.",
+    "proceed": "Fortfahren",
     "cancel": "Stornieren",
     "slippage_info_title": "Slippage",
     "slippage_info_description": "Die prozentuale Preisänderung, die Sie zuzulassen bereit sind, bevor Ihre Transaktion storniert wird.",
@@ -6607,7 +6611,14 @@
     "exceeding_upper_slippage_error": "Sie können keinen Wert eingeben, der größer als {{value}} % ist.",
     "custom": "Benutzerdefiniert",
     "invalid_recipient_address": "Ungültige Adresse",
-    "got_it": "Got it"
+    "select_quote": "Angebot auswählen",
+    "select_quote_info": "Die Angebote sind nach den geschätzten Gesamtkosten einschließlich des Wechselkurses und der Netzwerkgebühr sortiert.",
+    "lowest_cost": "Niedrigste Kosten",
+    "total_cost": "Gesamtkosten",
+    "got_it": "Verstanden",
+    "price_impact_warning_title": "Hohe Preisauswirkungen",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "Neue Angebote sind verfügbar",
@@ -6904,7 +6915,7 @@
       "title": "Passwort eingeben",
       "description": "Geben Sie Ihr Wallet-Passwort ein, um die Kartendetails anzuzeigen.",
       "description_unfreeze": "Geben Sie Ihr Wallet-Passwort ein, um mit Ihrer Karte weiter bezahlen zu können.",
-      "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_view_pin": "Geben Sie Ihr Wallet-Passwort ein, um Ihre Karten-PIN einzusehen.",
       "placeholder": "Passwort",
       "confirm": "Bestätigen",
       "cancel": "Stornieren",
@@ -6912,7 +6923,7 @@
       "error_incorrect": "Falsches Passwort. Bitte versuchen Sie es erneut."
     },
     "view_pin_bottomsheet": {
-      "title": "Your Card PIN"
+      "title": "Ihre Karten-PIN"
     },
     "choose_your_card": {
       "title": "Wählen Sie Ihre Karte",
@@ -7229,9 +7240,9 @@
         "view_card_details": "Kartendetails anzeigen",
         "hide_card_details": "Kartendetails verbergen",
         "view_card_details_description": "Kartennummer, Ablaufdatum und Karteprüfwert",
-        "view_pin": "View PIN",
-        "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin": "PIN anzeigen",
+        "view_pin_description": "Sehen Sie Ihre Karten-PIN sicher ein",
+        "view_pin_error": "PIN konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
         "manage_spending_limit": "Limit verwalten",
         "manage_spending_limit_description_restricted": "Begrenzte Ausgaben sind an",
         "manage_spending_limit_description_full": "Vollzugriff ist an",
@@ -7244,7 +7255,7 @@
         "order_metal_card_description": "Bestellen Sie jetzt Ihre physische Metallkarte",
         "cashback": "Cashback",
         "cashback_description": "Verdienen Sie 1 % Rabatt auf alle Ausgaben",
-        "cashback_description_metal": "Earn 3% back on all spending",
+        "cashback_description_metal": "Verdienen Sie 3 % Rabatt auf alle Ausgaben",
         "freeze_card": "Karte sperren",
         "unfreeze_card": "Karte entsperren",
         "freeze_card_description": "Alle Ausgaben mit Ihrer Karte pausieren",
@@ -7398,7 +7409,8 @@
   "pay_with_modal": {
     "title": "Zahlungsmethode auswählen",
     "title_receive": "Token empfangen auswählen",
-    "no_gas": "Kein nativer Saldo für Gas"
+    "no_gas": "Kein nativer Saldo für Gas",
+    "not_supported": "Nicht unterstützt"
   },
   "connection_removed_modal": {
     "title": "Verbindungen entfernt",
@@ -7636,12 +7648,12 @@
       "environment_selector": "Umgebung",
       "environment_cancel": "Stornieren",
       "environment_default": "Standard",
-      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
-      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
-      "off_device_accounts_banner_cta": "View",
-      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
-      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
-      "off_device_accounts_sheet_let_us_know": "Let us know"
+      "off_device_accounts_banner_title": "Angemeldete Konten fehlen",
+      "off_device_accounts_banner_description": "Es gibt Konten, die für das Belohnungsprogramm angemeldet wurden, aber nicht auf diesem Gerät zu finden sind.",
+      "off_device_accounts_banner_cta": "Ansehen",
+      "off_device_accounts_sheet_title": "Angemeldete Konten fehlen",
+      "off_device_accounts_sheet_description": "Diese gehören möglicherweise zu einer Wallet, die nach der Neuinstallation von MetaMask noch nicht hinzugefügt wurde. Erkennen Sie eine dieser Adressen nicht?",
+      "off_device_accounts_sheet_let_us_know": "Sagen Sie uns Bescheid"
     },
     "referred_by_code": {
       "title": "Empfehlungscode",
@@ -7839,12 +7851,12 @@
       "description": "Bitte stellen Sie über die App eine neue Verbindung her, um fortzufahren."
     },
     "show_internal_error": {
-      "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "title": "Hoppla! Etwas ist schiefgelaufen ...",
+      "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
     },
     "show_method_error": {
-      "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "title": "Anfrage fehlgeschlagen",
+      "description": "Die Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut."
     }
   },
   "network_connection_banner": {
@@ -7985,7 +7997,7 @@
       "scanning": "Scannen nach Geräten ...",
       "no_devices_found": "Es wurden keine Geräte gefunden",
       "no_devices_hint": "Vergewissern Sie sich, dass Ihr {{device}} entsperrt und Bluetooth aktiviert ist",
-      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "tips": "Entsperren Sie Ihr {{device}}, aktivieren Sie Bluetooth und stellen Sie sicher, dass „Nicht stören“ deaktiviert ist",
       "connect": "Verbinden",
       "rescan": "Erneut scannen",
       "unknown_device": "Unbekanntes Gerät",
@@ -8001,7 +8013,7 @@
       "nfts": "NFTs",
       "import_nfts": "NFTs importieren",
       "import_nfts_description": "Fügen Sie ganz einfach Ihre Sammlerstücke hinzu",
-      "view_more": "View more",
+      "view_more": "Mehr anzeigen",
       "positions": {
         "no_tp_sl": "Kein TP/SL"
       }
