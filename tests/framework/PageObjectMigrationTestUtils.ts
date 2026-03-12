@@ -91,6 +91,7 @@ function describeGetters(
   describe(`${pageObjectName}`, () => {
     describe('Detox context', () => {
       beforeEach(() => {
+        jest.clearAllMocks();
         FrameworkDetector.reset();
         FrameworkDetector.setFramework(TestFramework.DETOX);
       });
@@ -113,6 +114,7 @@ function describeGetters(
 
     describe('Appium context — iOS', () => {
       beforeEach(() => {
+        jest.clearAllMocks();
         FrameworkDetector.reset();
         FrameworkDetector.setFramework(TestFramework.APPIUM);
         (global as Record<string, unknown>).driver = {
@@ -141,6 +143,7 @@ function describeGetters(
 
     describe('Appium context — Android', () => {
       beforeEach(() => {
+        jest.clearAllMocks();
         FrameworkDetector.reset();
         FrameworkDetector.setFramework(TestFramework.APPIUM);
         (global as Record<string, unknown>).driver = {
