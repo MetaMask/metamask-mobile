@@ -13,7 +13,6 @@ import {
   IconColor,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -74,8 +73,6 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="h-6"
             gap={1}
           >
             <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
@@ -84,7 +81,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Md}
-              color={IconColor.IconAlternative}
+              color={IconColor.IconDefault}
             />
           </Box>
           <Text variant={TextVariant.HeadingMd} color={config.textColor}>

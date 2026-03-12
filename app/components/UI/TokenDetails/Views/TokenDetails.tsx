@@ -168,6 +168,11 @@ const TokenDetails: React.FC<{
     isNonEvmAsset: txIsNonEvmAsset,
   } = useTokenTransactions(token);
 
+  const hasTransactions =
+    transactions.length > 0 ||
+    submittedTxs.length > 0 ||
+    confirmedTxs.length > 0;
+
   const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
     asset: {
       isETH: token.isETH ?? false,
@@ -219,12 +224,14 @@ const TokenDetails: React.FC<{
         readyForWithdrawalBalance={readyForWithdrawalBalance}
         ///: END:ONLY_INCLUDE_IF
       />
-      <ActivityHeader
-        asset={{
-          ...token,
-          hasBalanceError: token.hasBalanceError ?? false,
-        }}
-      />
+      {(txLoading || hasTransactions) && (
+        <ActivityHeader
+          asset={{
+            ...token,
+            hasBalanceError: token.hasBalanceError ?? false,
+          }}
+        />
+      )}
     </>
   );
 
@@ -273,6 +280,7 @@ const TokenDetails: React.FC<{
           headerHeight={280}
           tokenChainId={token.chainId}
           skipScrollOnClick
+          hideEmptyState
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
