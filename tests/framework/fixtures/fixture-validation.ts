@@ -209,8 +209,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.AccountsController.internalAccounts.selectedAccount',
     'engine.backgroundState.AccountsController.internalAccounts.accounts',
     'engine.backgroundState.AccountsController.accountIdByAddress',
-    'engine.backgroundState.PreferencesController.selectedAddress',
-    'engine.backgroundState.PreferencesController.identities',
     'engine.backgroundState.AccountTrackerController.accountsByChainId',
     'engine.backgroundState.KeyringController.keyrings',
     'engine.backgroundState.KeyringController.vault',

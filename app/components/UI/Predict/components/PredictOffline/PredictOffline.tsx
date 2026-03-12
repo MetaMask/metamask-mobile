@@ -11,6 +11,7 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import { PREDICT_OFFLINE_TEST_IDS } from './PredictOffline.testIds';
 
 interface PredictOfflineProps {
   /**
@@ -25,7 +26,7 @@ interface PredictOfflineProps {
 
 const PredictOffline: React.FC<PredictOfflineProps> = ({
   onRetry,
-  testID = 'predict-error-state',
+  testID = PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
 }) => {
   const tw = useTailwind();
 

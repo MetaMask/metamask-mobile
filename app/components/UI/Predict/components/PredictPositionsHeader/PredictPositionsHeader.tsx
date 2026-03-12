@@ -54,6 +54,7 @@ import Skeleton from '../../../../../component-library/components/Skeleton/Skele
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 import { PredictEventValues } from '../../constants/eventNames';
 import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
+import { PREDICT_POSITIONS_HEADER_TEST_IDS } from './PredictPositionsHeader.testIds';
 
 export interface PredictPositionsHeaderHandle {
   refresh: () => Promise<void>;
@@ -219,7 +220,7 @@ const PredictPositionsHeader = forwardRef<
             'bg-muted rounded-xl pt-3',
             !(hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
           )}
-          testID="markets-won-card"
+          testID={PREDICT_POSITIONS_HEADER_TEST_IDS.MARKETS_WON_CARD}
         >
           {(hasAvailableBalance || isBalanceLoading) && (
             <TouchableOpacity
@@ -242,7 +243,7 @@ const PredictPositionsHeader = forwardRef<
                   <Text
                     variant={TextVariant.BodyMd}
                     twClassName="text-alternative"
-                    testID="markets-won-count"
+                    testID={PREDICT_POSITIONS_HEADER_TEST_IDS.MARKETS_WON_COUNT}
                   >
                     {strings('predict.available_balance')}
                   </Text>
@@ -265,7 +266,9 @@ const PredictPositionsHeader = forwardRef<
                         isHidden={privacyMode}
                         length={SensitiveTextLength.Medium}
                         style={tw.style('text-primary mr-1')}
-                        testID="claimable-amount"
+                        testID={
+                          PREDICT_POSITIONS_HEADER_TEST_IDS.CLAIMABLE_AMOUNT
+                        }
                       >
                         {formatPrice(balance, { maximumDecimals: 2 })}
                       </SensitiveText>

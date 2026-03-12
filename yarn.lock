@@ -9394,19 +9394,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/preferences-controller@npm:^21.0.0":
-  version: 21.0.0
-  resolution: "@metamask/preferences-controller@npm:21.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
-    "@metamask/messenger": "npm:^0.3.0"
-  peerDependencies:
-    "@metamask/keyring-controller": ^24.0.0
-  checksum: 10/1c67b419f732f314daf943ab4806235abe218850d11765d2463347e6a044d2e9067b4ec19c192218610ad2c81ec1912829e67de962ff5543b2abaac8e5a9b131
-  languageName: node
-  linkType: hard
-
 "@metamask/preferences-controller@npm:^22.1.0":
   version: 22.1.0
   resolution: "@metamask/preferences-controller@npm:22.1.0"
@@ -18967,6 +18954,16 @@ __metadata:
   version: 1.0.1
   resolution: "@types/pretty-hrtime@npm:1.0.1"
   checksum: 10/a6cdee417eea6f7af914e4fcd13e05822864ce10b5d7646525632e86d69b79123eec55a5d3fff0155ba46b61902775e1644bcb80e1e4dffdac28e7febb089083
+  languageName: node
+  linkType: hard
+
+"@types/prompts@npm:^2.4.9":
+  version: 2.4.9
+  resolution: "@types/prompts@npm:2.4.9"
+  dependencies:
+    "@types/node": "npm:*"
+    kleur: "npm:^3.0.3"
+  checksum: 10/69b8372f4c790b45fea16a46ff8d1bcc71b14579481776b67bd6263637118a7ecb1f12e1311506c29fadc81bf618dc64f1a91f903cfd5be67a0455a227b3e462
   languageName: node
   linkType: hard
 
@@ -35566,7 +35563,7 @@ __metadata:
     "@metamask/permission-controller": "npm:^12.1.0"
     "@metamask/phishing-controller": "npm:^16.3.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
-    "@metamask/preferences-controller": "npm:^21.0.0"
+    "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.2"
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.0.0"
@@ -35674,6 +35671,7 @@ __metadata:
     "@types/luxon": "npm:^3.4.2"
     "@types/node": "npm:^20.12.8"
     "@types/pako": "npm:^2.0.4"
+    "@types/prompts": "npm:^2.4.9"
     "@types/qs": "npm:^6.9.15"
     "@types/react": "npm:^18.2.6"
     "@types/react-native-background-timer": "npm:^2.0.0"
@@ -35721,6 +35719,7 @@ __metadata:
     bnjs4: "npm:bn.js@^4.12.3"
     bnjs5: "npm:bn.js@^5.2.3"
     buffer: "npm:6.0.3"
+    chalk: "npm:^4.1.2"
     chromedriver: "npm:^123.0.1"
     cockatiel: "npm:^3.1.2"
     compare-versions: "npm:^3.6.0"
@@ -35810,6 +35809,7 @@ __metadata:
     pify: "npm:6.1.0"
     prettier: "npm:^3.6.2"
     prettier-2: "npm:prettier@^2.8.8"
+    prompts: "npm:^2.4.2"
     prop-types: "npm:15.7.2"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
