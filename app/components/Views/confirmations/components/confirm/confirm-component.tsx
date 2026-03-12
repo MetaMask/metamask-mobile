@@ -36,6 +36,7 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -43,8 +44,15 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
   TransactionType.predictWithdraw,
 ];
+
+const TRANSACTION_TYPES_NO_HEADER = [PREDICT_DEPOSIT_AND_ORDER_TYPE];
+const TRANSACTION_TYPES_USE_DEFAULT_BACKGROUND = [
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
+];
+const TRANSACTION_TYPES_DISABLE_SAFE_AREA = [PREDICT_DEPOSIT_AND_ORDER_TYPE];
 
 export enum ConfirmationLoader {
   Default = 'default',
@@ -116,26 +124,38 @@ export const Confirm = ({
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
+  const transaction = useTransactionMetadataRequest();
+  const useDefaultBackground = hasTransactionType(
+    transaction,
+    TRANSACTION_TYPES_USE_DEFAULT_BACKGROUND,
+  );
+
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
-    disableSafeArea,
+    disableSafeArea:
+      hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SAFE_AREA) ||
+      disableSafeArea,
+    useDefaultBackground,
   });
 
   useEffect(() => {
     if (approvalRequest) {
       const options = {
-        headerShown: false,
         // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
         gestureEnabled: true,
+        headerShown: false,
       };
 
-      if (isFullScreenConfirmation) {
+      if (
+        isFullScreenConfirmation &&
+        !hasTransactionType(transaction, TRANSACTION_TYPES_NO_HEADER)
+      ) {
         // If the confirmation is full screen, we need to show the header
         options.headerShown = true;
       }
       navigation.setOptions(options);
     }
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, isFullScreenConfirmation, navigation, transaction]);
 
   useEffect(() => {
     if (!approvalRequest) {

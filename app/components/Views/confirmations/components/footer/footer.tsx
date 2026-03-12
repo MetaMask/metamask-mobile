@@ -39,11 +39,13 @@ import { PredictClaimFooter } from '../predict-confirmations/predict-claim-foote
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
   TransactionType.predictWithdraw,
   TransactionType.musdConversion,
 ];
