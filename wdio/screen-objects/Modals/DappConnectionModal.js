@@ -1,3 +1,4 @@
+// Migrated to tests/page-objects/MMConnect/DappConnectionModal.ts
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 

@@ -1,6 +1,6 @@
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { boxedStep, getDriver } from './Utilities';
+import { boxedStep, getDriver } from './PlaywrightUtilities';
 
 /**
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright

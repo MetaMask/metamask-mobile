@@ -11,6 +11,7 @@ import {
   getTestId,
 } from '../../quality-gates';
 import { getTeamInfoFromTags } from '../../utils/teams';
+import { IsDisplayedParams, PlaywrightElement } from '../../PlaywrightAdapter';
 
 interface PerformanceFixtures {
   performanceTracker: PerformanceTracker;
@@ -156,5 +157,24 @@ export const test = base.extend<PerformanceFixtures>({
     } else {
       console.log('⚠️ No session ID found - video URL cannot be retrieved');
     }
+  },
+});
+
+/**
+ * Extend the test expect with a toBeVisible matcher.
+ * @param locator - The locator to check.
+ * @param options - The options to pass to the isVisible method.
+ * @returns The result of the isVisible method.
+ */
+export const expect = test.expect.extend({
+  toBeVisible: async (elem: PlaywrightElement, options?: IsDisplayedParams) => {
+    const isVisible = await elem.isVisible(options);
+    return {
+      message: () => (isVisible ? '' : `Element was not found on the screen`),
+      pass: isVisible,
+      name: 'toBeVisible',
+      expected: true,
+      actual: isVisible,
+    };
   },
 });
