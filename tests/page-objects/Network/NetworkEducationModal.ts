@@ -1,3 +1,4 @@
+import { device } from 'detox';
 import {
   NetworkEducationModalSelectorsIDs,
   NetworkEducationModalSelectorsText,
@@ -32,8 +33,15 @@ class NetworkEducationModal {
 
   get closeButton(): EncapsulatedElementType {
     return encapsulated({
+      // Android Detox: testID may not be exposed for StyledButton; use label. iOS: use testID.
       detox: () =>
-        Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CLOSE_BUTTON),
+        device.getPlatform() === 'android'
+          ? Matchers.getElementByLabel(
+              NetworkEducationModalSelectorsText.GOT_IT,
+            )
+          : Matchers.getElementByID(
+              NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
+            ),
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(

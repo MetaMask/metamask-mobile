@@ -59,8 +59,13 @@ class TokenOverview {
   get todaysChange(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE),
-      appium: () => PlaywrightMatchers.getElementByText('%) Today'),
+        Matchers.getElementByText(
+          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
+        ),
     });
   }
 

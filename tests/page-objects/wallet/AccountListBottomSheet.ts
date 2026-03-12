@@ -234,6 +234,7 @@ class AccountListBottomSheet {
 
   async scrollToBottomOfAccountList(): Promise<void> {
     await UnifiedGestures.swipe(this.accountList, 'up', {
+      speed: 'fast',
       description: 'Scroll to bottom of account list',
     });
   }
