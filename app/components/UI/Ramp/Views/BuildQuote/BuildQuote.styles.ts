@@ -23,6 +23,17 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 16,
     },
+    amountRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    cursor: {
+      width: 2,
+      height: 48,
+      marginHorizontal: 1,
+      marginBottom: 12,
+      backgroundColor: theme.colors.primary.default,
+    },
     actionSection: {
       paddingBottom: 16,
       gap: 16,
