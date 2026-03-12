@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import ProtectWalletMandatoryModal from './ProtectWalletMandatoryModal';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const mockNavigate = jest.fn();
 const mockGetState = jest.fn(() => ({
@@ -88,12 +89,22 @@ const createMockStore = (
             },
           },
           SeedlessOnboardingController: {
-            isSeedlessOnboardingLoginFlow: isSeedlessOnboarding,
+            vault: isSeedlessOnboarding ? 'mock-vault' : null,
           },
         },
       }),
     },
   });
+
+const renderWithTheme = (
+  component: React.ReactElement,
+  store: ReturnType<typeof createMockStore>,
+) =>
+  render(
+    <ThemeContext.Provider value={mockTheme}>
+      <Provider store={store}>{component}</Provider>
+    </ThemeContext.Provider>,
+  );
 
 describe('ProtectWalletMandatoryModal', () => {
   beforeEach(() => {
@@ -106,10 +117,9 @@ describe('ProtectWalletMandatoryModal', () => {
   it('does not show modal when password is set and seedphrase is backed up', async () => {
     const store = createMockStore(true, true);
 
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
@@ -120,10 +130,9 @@ describe('ProtectWalletMandatoryModal', () => {
   it('does not show modal for seedless onboarding flow', async () => {
     const store = createMockStore(false, false, true);
 
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
@@ -138,10 +147,9 @@ describe('ProtectWalletMandatoryModal', () => {
 
     const store = createMockStore(false, false);
 
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
@@ -156,10 +164,9 @@ describe('ProtectWalletMandatoryModal', () => {
 
     const store = createMockStore(false, false);
 
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
@@ -174,10 +181,9 @@ describe('ProtectWalletMandatoryModal', () => {
 
     const store = createMockStore(true, false);
 
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
@@ -188,10 +194,9 @@ describe('ProtectWalletMandatoryModal', () => {
   it('shows modal when password not set', async () => {
     const store = createMockStore(false, false);
 
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { getByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
@@ -202,11 +207,7 @@ describe('ProtectWalletMandatoryModal', () => {
   it('tracks WALLET_SECURITY_PROTECT_VIEWED event when modal is shown', async () => {
     const store = createMockStore(false, false);
 
-    render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
-    );
+    renderWithTheme(<ProtectWalletMandatoryModal />, store);
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -216,14 +217,13 @@ describe('ProtectWalletMandatoryModal', () => {
   it('navigates to SetPasswordFlow when Secure Wallet button is pressed', async () => {
     const store = createMockStore(false, false);
 
-    const { getByText } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { getByText } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
-      const secureButton = getByText('Secure wallet');
+      const secureButton = getByText('Protect wallet');
       fireEvent.press(secureButton);
     });
 
@@ -233,14 +233,13 @@ describe('ProtectWalletMandatoryModal', () => {
   it('navigates to AccountBackupStep1 when password is already set', async () => {
     const store = createMockStore(true, false);
 
-    const { getByText } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { getByText } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
-      const secureButton = getByText('Secure wallet');
+      const secureButton = getByText('Protect wallet');
       fireEvent.press(secureButton);
     });
 
@@ -252,15 +251,14 @@ describe('ProtectWalletMandatoryModal', () => {
   it('shows password-specific message when password not set', async () => {
     const store = createMockStore(false, false);
 
-    const { getByText } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { getByText } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
       expect(
-        getByText(/create a password to protect your wallet/i),
+        getByText(/Protect your wallet by setting a password/i),
       ).toBeTruthy();
     });
   });
@@ -268,14 +266,15 @@ describe('ProtectWalletMandatoryModal', () => {
   it('shows seedphrase-specific message when password is set but seedphrase not backed up', async () => {
     const store = createMockStore(true, false);
 
-    const { getByText } = render(
-      <Provider store={store}>
-        <ProtectWalletMandatoryModal />
-      </Provider>,
+    const { getByText } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
     );
 
     await waitFor(() => {
-      expect(getByText(/back up your Secret Recovery Phrase/i)).toBeTruthy();
+      expect(
+        getByText(/protect your wallet by setting a password/i),
+      ).toBeTruthy();
     });
   });
 });
