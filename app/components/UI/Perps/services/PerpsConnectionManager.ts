@@ -171,8 +171,13 @@ class PerpsConnectionManagerClass {
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
 
-        // Store flag so performReconnection can thread it into the second clearCache call
-        this.pendingSkipMarketNotify = accountOnly;
+        // Store flag so performReconnection can thread it into the second clearCache call.
+        // AND with current value when a debounce timer is pending so that any
+        // non-account-only change within the window forces a full market reset.
+        this.pendingSkipMarketNotify =
+          this.stateChangeDebounceTimer !== null
+            ? this.pendingSkipMarketNotify && accountOnly
+            : accountOnly;
 
         // Debounce: coalesce rapid state changes (e.g. provider switch + network
         // toggle in the same tick) into a single reconnection attempt.
