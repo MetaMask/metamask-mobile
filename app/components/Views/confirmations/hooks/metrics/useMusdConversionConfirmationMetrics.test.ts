@@ -15,7 +15,7 @@ import {
 import { getMusdConversionQuoteTrackingData } from '../../../../UI/Earn/utils/analytics';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
-import { Hex, Json } from '@metamask/utils';
+import { Json } from '@metamask/utils';
 import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
@@ -44,10 +44,11 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 const QUOTE_TRACKING_DATA_MOCK = {
-  quote_payment_chain_id: '0x1' as Hex,
-  quote_output_chain_id: '0xa' as Hex,
-  quote_is_same_chain: false,
-  pay_quote_strategy: 'bridge',
+  quote_is_same_chain: true,
+  payment_amount_usd: '5',
+  output_amount_usd: '5',
+  tx_execution_chain_matches_quote_output_chain: true,
+  pay_quote_strategy: 'relay',
 };
 
 function runHook() {
@@ -116,9 +117,10 @@ describe('useMusdConversionConfirmationMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: expect.objectContaining({
+        properties: {
           confirmation_source: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-        }),
+          is_max: false,
+        },
         sensitiveProperties: {},
       },
     });
@@ -132,10 +134,11 @@ describe('useMusdConversionConfirmationMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: expect.objectContaining({
+        properties: {
           confirmation_source:
             EVENT_LOCATIONS.QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
-        }),
+          is_max: false,
+        },
         sensitiveProperties: {},
       },
     });
@@ -149,9 +152,10 @@ describe('useMusdConversionConfirmationMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: expect.objectContaining({
+        properties: {
+          confirmation_source: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
           is_max: true,
-        }),
+        },
         sensitiveProperties: {},
       },
     });
@@ -165,9 +169,10 @@ describe('useMusdConversionConfirmationMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: expect.objectContaining({
+        properties: {
+          confirmation_source: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
           is_max: false,
-        }),
+        },
         sensitiveProperties: {},
       },
     });
@@ -175,7 +180,7 @@ describe('useMusdConversionConfirmationMetrics', () => {
 
   it('includes quote tracking data when quotes are available', () => {
     useTransactionPayQuotesMock.mockReturnValue([
-      { strategy: 'bridge' } as unknown as TransactionPayQuote<Json>,
+      { strategy: 'relay' } as unknown as TransactionPayQuote<Json>,
     ]);
 
     runHook();
@@ -184,13 +189,20 @@ describe('useMusdConversionConfirmationMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: expect.objectContaining(QUOTE_TRACKING_DATA_MOCK),
+        properties: {
+          confirmation_source: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+          is_max: false,
+          quote_is_same_chain: true,
+          payment_amount_usd: '5',
+          output_amount_usd: '5',
+          tx_execution_chain_matches_quote_output_chain: true,
+        },
         sensitiveProperties: {},
       },
     });
   });
 
-  it('dispatches empty quote data when no quotes exist', () => {
+  it('dispatches only base properties when no quotes exist', () => {
     useTransactionPayQuotesMock.mockReturnValue([]);
 
     runHook();
@@ -199,10 +211,10 @@ describe('useMusdConversionConfirmationMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: expect.objectContaining({
+        properties: {
           confirmation_source: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
           is_max: false,
-        }),
+        },
         sensitiveProperties: {},
       },
     });
@@ -216,9 +228,10 @@ describe('useMusdConversionConfirmationMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: expect.objectContaining({
+        properties: {
           confirmation_source: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-        }),
+          is_max: false,
+        },
         sensitiveProperties: {},
       },
     });

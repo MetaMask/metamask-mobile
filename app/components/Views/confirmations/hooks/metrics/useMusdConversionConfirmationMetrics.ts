@@ -37,7 +37,19 @@ export function useMusdConversionConfirmationMetrics() {
     if (!txMeta || !quotes?.length) {
       return {};
     }
-    return getMusdConversionQuoteTrackingData(txMeta, quotes);
+    const {
+      quote_is_same_chain,
+      payment_amount_usd,
+      output_amount_usd,
+      tx_execution_chain_matches_quote_output_chain,
+    } = getMusdConversionQuoteTrackingData(txMeta, quotes);
+
+    return {
+      quote_is_same_chain,
+      payment_amount_usd,
+      output_amount_usd,
+      tx_execution_chain_matches_quote_output_chain,
+    };
   }, [txMeta, quotes]);
 
   useEffect(() => {
