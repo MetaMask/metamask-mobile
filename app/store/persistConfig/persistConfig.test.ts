@@ -219,9 +219,6 @@ describe('persistConfig', () => {
         if (key === 'persist:KeyringController') {
           return JSON.stringify({ vault: 'encrypted_data', isUnlocked: false });
         }
-        if (key === 'persist:PreferencesController') {
-          return JSON.stringify({ selectedAddress: '0x123' });
-        }
         // Other controllers have no data
         return null;
       });
@@ -231,7 +228,6 @@ describe('persistConfig', () => {
       expect(result).toEqual({
         backgroundState: {
           KeyringController: { vault: 'encrypted_data', isUnlocked: false },
-          PreferencesController: { selectedAddress: '0x123' },
         },
       });
     });
@@ -439,7 +435,7 @@ describe('persistConfig', () => {
       // Arrange
       jest.spyOn(ControllerStorage, 'setItem').mockResolvedValue();
       const persistController = createPersistController();
-      const filteredState = { selectedAddress: '0x123' };
+      const filteredState = { privacyMode: false };
       const controllerName = 'PreferencesController';
 
       // Act
