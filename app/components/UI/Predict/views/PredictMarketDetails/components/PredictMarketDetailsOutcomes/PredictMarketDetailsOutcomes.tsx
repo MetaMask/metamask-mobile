@@ -16,6 +16,7 @@ import Icon, {
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../../util/theme';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
 import PredictMarketOutcome from '../../../../components/PredictMarketOutcome';
 import PredictMarketOutcomeResolved from '../../../../components/PredictMarketOutcomeResolved';
 import {
@@ -159,6 +160,11 @@ const PredictMarketDetailsOutcomes = memo(
                 }
                 size={IconSize.Md}
                 color={colors.text.alternative}
+                testID={
+                  isResolvedExpanded
+                    ? PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_EXPANDED
+                    : PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED
+                }
               />
             </Box>
             {isResolvedExpanded &&
