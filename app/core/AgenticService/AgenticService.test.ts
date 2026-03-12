@@ -321,7 +321,7 @@ describe('AgenticService.install', () => {
       goBack: jest.fn(),
       dispatch: jest.fn(),
       getCurrentRoute: jest.fn(() => ({ name: 'Wallet', key: 'w-1' })),
-      dangerouslyGetState: jest.fn(() => ({})),
+      getState: jest.fn(() => ({})),
       canGoBack: jest.fn(() => true),
     } as unknown as NavigationContainerRef<ParamListBase>;
 

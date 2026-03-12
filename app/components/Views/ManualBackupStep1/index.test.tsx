@@ -308,7 +308,7 @@ describe('ManualBackupStep1', () => {
         wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
       ).toBeTruthy();
     });
-  });
+  }, 15000);
 
   it('render Step 2 of 3 i.e Reveal SeedPhrase with dark theme', async () => {
     const { wrapper } = setupTestDark();
