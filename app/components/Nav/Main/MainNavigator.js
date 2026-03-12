@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
+import CashAccountHome from '../../Views/CashAccountHome';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -125,6 +126,7 @@ import SampleFeature from '../../../features/SampleFeature/components/views/Samp
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
+import CashConfirmScreen from '../../Views/CashAccountHome/CashConfirmScreen';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/WaysToEarn/BonusCodeBottomSheet';
@@ -332,6 +334,21 @@ const BrowserFlow = (props) => (
       name={Routes.BROWSER.ASSET_VIEW}
       component={TokenDetails}
       initialParams={props.route.params}
+    />
+  </Stack.Navigator>
+);
+
+const CashHome = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.CASH_ACCOUNT.HOME}
+      component={CashAccountHome}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+      component={CashConfirmScreen}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -630,6 +647,10 @@ const HomeTabs = () => {
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
     },
+    cash: {
+      tabBarIconKey: TabBarIconKey.Cash,
+      rootScreenName: Routes.CASH_ACCOUNT.HOME,
+    },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
       callback: () => {
@@ -765,6 +786,13 @@ const HomeTabs = () => {
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
         component={WalletTabModalFlow}
+      />
+
+      {/* Cash Tab */}
+      <Tab.Screen
+        name={Routes.CASH_ACCOUNT.HOME}
+        options={options.cash}
+        component={CashHome}
       />
 
       {/* Activity Tab */}

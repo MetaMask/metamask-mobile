@@ -115,6 +115,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           case Routes.TRENDING_VIEW:
             navigation.navigate(Routes.TRENDING_VIEW);
             break;
+          case Routes.CASH_ACCOUNT.HOME:
+            navigation.navigate(Routes.CASH_ACCOUNT.HOME);
+            break;
         }
       };
 

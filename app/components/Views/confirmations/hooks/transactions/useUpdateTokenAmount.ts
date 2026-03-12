@@ -67,6 +67,11 @@ export function useUpdateTokenAmount() {
       const transactionData = parseStandardTokenTransactionData(data);
       const recipient = transactionData?.args?._to;
 
+      if (!recipient) {
+        // Transaction data is not a standard ERC-20 transfer — skip calldata update.
+        return;
+      }
+
       const newData = generateTransferData('transfer', {
         toAddress: recipient,
         amount: newAmountRaw.toString(16),

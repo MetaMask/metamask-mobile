@@ -419,6 +419,9 @@ const Routes = {
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SAMPLE_FEATURE: 'SampleFeature',
   ///: END:ONLY_INCLUDE_IF
+  CASH_ACCOUNT: {
+    HOME: 'CashAccountHome',
+  },
   CARD: {
     ROOT: 'CardScreens',
     CARD_MAIN_ROUTES: 'CardMainRoutes',

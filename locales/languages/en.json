@@ -619,7 +619,8 @@
     "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards",
-    "trending": "Explore"
+    "trending": "Explore",
+    "cash": "Cash"
   },
   "drawer": {
     "send_button": "Send",
