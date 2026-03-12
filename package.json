@@ -184,6 +184,10 @@
     "bn.js@npm:4.11.6": "4.12.3",
     "bn.js@npm:5.2.1": "5.2.3",
     "@metamask/bridge-controller@npm:^67.1.1": "patch:@metamask/bridge-controller@npm%3A67.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-67.2.0-32d3aafe1f.patch",
+    "@metamask/phishing-controller": "file:./../core/packages/phishing-controller",
+    "@metamask/phishing-controller@npm:^16.1.0": "file:./../core/packages/phishing-controller",
+    "@metamask/phishing-controller@npm:^16.3.0": "file:./../core/packages/phishing-controller",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@10.0.0-preview-225638478",
     "@metamask/bridge-status-controller@npm:^67.0.1": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch"
   },
   "dependencies": {
