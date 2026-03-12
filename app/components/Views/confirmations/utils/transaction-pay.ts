@@ -8,6 +8,7 @@ import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import {
+  TransactionFiatPayment,
   TransactionPayRequiredToken,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
@@ -92,12 +93,15 @@ export function getAvailableTokens({
   requiredTokens,
   tokens,
   blockedTokens,
+  fiatPayment,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
   blockedTokens?: BlockedTokensListConfig;
+  fiatPayment?: TransactionFiatPayment;
 }): AssetType[] {
+  const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
   const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
   return tokens
@@ -158,9 +162,10 @@ export function getAvailableTokens({
           ? strings('pay_with_modal.no_gas')
           : undefined;
 
-      const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+      const isSelected = hasFiatPayment
+        ? false
+        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+          payToken?.chainId === token.chainId;
 
       return {
         ...token,

@@ -28,7 +28,7 @@ export interface PredictMarketDetailsActionsProps {
   hasPositivePnl: boolean;
   marketStatus: PredictMarketStatus | undefined;
   singleOutcomeMarket: boolean;
-  isMarketFetching: boolean;
+  isMarketLoading: boolean;
   market: PredictMarket | null;
   openOutcomes: PredictOutcome[];
   yesPercentage: number;
@@ -43,7 +43,7 @@ const PredictMarketDetailsActions = memo(
     hasPositivePnl,
     marketStatus,
     singleOutcomeMarket,
-    isMarketFetching,
+    isMarketLoading,
     market,
     openOutcomes,
     yesPercentage,
@@ -125,7 +125,7 @@ const PredictMarketDetailsActions = memo(
           }
 
           // Show skeleton buttons while loading
-          if (isMarketFetching && !market) {
+          if (isMarketLoading) {
             return <PredictDetailsButtonsSkeleton />;
           }
 

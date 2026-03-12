@@ -92,7 +92,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
@@ -165,7 +165,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
