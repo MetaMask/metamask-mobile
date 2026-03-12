@@ -1,5 +1,4 @@
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
-import type { CaipAssetType } from '@metamask/utils';
 import {
   useNavigation,
   useRoute,
@@ -1262,7 +1261,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 report={perpsInsightsReport}
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
-                caip19Id={market.symbol as CaipAssetType}
               />
             </View>
           ) : null}
