@@ -193,6 +193,11 @@ class Transactions extends PureComponent {
      * Location context for analytics tracking (home or asset_details)
      */
     location: PropTypes.string,
+    /**
+     * When true, the list is embedded in a parent ScrollView (e.g. TokenDetails).
+     * Disables list scrolling and omits ListHeaderComponent (header is rendered above by parent).
+     */
+    embeddedInScrollView: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -410,11 +415,16 @@ class Transactions extends PureComponent {
     }
   };
 
-  getItemLayout = (_data, index) => ({
-    length: ROW_HEIGHT,
-    offset: this.props.headerHeight + ROW_HEIGHT * index,
-    index,
-  });
+  getItemLayout = (_data, index) => {
+    const effectiveHeaderHeight = this.props.embeddedInScrollView
+      ? 0
+      : this.props.headerHeight;
+    return {
+      length: ROW_HEIGHT,
+      offset: effectiveHeaderHeight + ROW_HEIGHT * index,
+      index,
+    };
+  };
 
   keyExtractor = (item) => item.id.toString();
 
@@ -690,6 +700,7 @@ class Transactions extends PureComponent {
       confirmedTransactions,
       header,
       isSigningQRObject,
+      embeddedInScrollView,
     } = this.props;
     const { confirmDisabled } = this.state;
     const { colors } = this.context || mockTheme;
@@ -717,18 +728,20 @@ class Transactions extends PureComponent {
               extraData={this.state}
               keyExtractor={this.keyExtractor}
               refreshControl={
-                <RefreshControl
-                  colors={[colors.primary.default]}
-                  tintColor={colors.icon.default}
-                  refreshing={this.state.refreshing}
-                  onRefresh={this.onRefresh}
-                />
+                embeddedInScrollView ? undefined : (
+                  <RefreshControl
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                    refreshing={this.state.refreshing}
+                    onRefresh={this.onRefresh}
+                  />
+                )
               }
               renderItem={this.renderItem}
               initialNumToRender={10}
               maxToRenderPerBatch={2}
               onEndReachedThreshold={0.5}
-              ListHeaderComponent={header}
+              ListHeaderComponent={embeddedInScrollView ? null : header}
               ListFooterComponent={
                 filteredTransactions.length > 0
                   ? this.footer
@@ -738,7 +751,9 @@ class Transactions extends PureComponent {
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}
               onScroll={this.onScroll}
-              scrollEnabled={!isChartBeingTouched}
+              scrollEnabled={
+                embeddedInScrollView ? false : !isChartBeingTouched
+              }
             />
           )}
         </PriceChartContext.Consumer>
