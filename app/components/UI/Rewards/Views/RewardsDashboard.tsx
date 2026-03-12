@@ -188,11 +188,13 @@ const RewardsDashboard: React.FC = () => {
 
   // Check if user is in the UK (mUSD not available in UK)
   // geoLocation values are region-suffixed (e.g., 'UK-ENG', 'GB-SCT', 'US-NY')
-  // If geo API failed or location is unknown, treat as UK user (hide mUSD tab)
+  // If geoLocation is null (loading) or 'UNKNOWN' (error), treat as UK user (hide mUSD tab)
+  // This prevents premature analytics events before geolocation resolves
   const isUkUser =
+    geoLocation === null ||
     geoLocation === 'UNKNOWN' ||
-    geoLocation?.startsWith('GB') ||
-    geoLocation?.startsWith('UK');
+    geoLocation.startsWith('GB') ||
+    geoLocation.startsWith('UK');
 
   const tabOptions = useMemo(() => {
     const options: { value: 'musd' | 'season1'; label: string }[] = [];
