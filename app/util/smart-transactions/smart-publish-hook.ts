@@ -16,7 +16,6 @@ import {
 } from '@metamask/smart-transactions-controller';
 import Logger from '../Logger';
 import { decimalToHex } from '../conversions';
-import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
 import { Messenger } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 import { getTransactionById, isLegacyTransaction } from '../transactions';
@@ -100,7 +99,6 @@ class SmartTransactionHook {
     const useRegularTransactionSubmit = { transactionHash: undefined };
     if (
       !this.#shouldUseSmartTransaction ||
-      this.#transactionMeta.origin === RAMPS_SEND ||
       isLegacyTransaction(this.#transactionMeta)
     ) {
       return useRegularTransactionSubmit;
