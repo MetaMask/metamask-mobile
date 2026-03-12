@@ -58,12 +58,10 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
-import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import {
   Box,
@@ -208,8 +206,8 @@ export interface AssetOverviewContentProps {
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 
   // Security & Trust
-  /** Pre-fetched security data from trending/search flows. When absent the hook fetches on demand. */
-  prefetchedSecurityData?: TokenSecurityData;
+  /** Resolved security data owned by the parent (TokenDetails). */
+  securityData?: TokenSecurityData | null;
 }
 
 /**
@@ -249,7 +247,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   inLockPeriodBalance,
   readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
-  prefetchedSecurityData,
+  securityData,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -329,54 +327,99 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
-  const caip19AssetId = useMemo((): CaipAssetType | null => {
-    try {
-      if (isCaipAssetType(token.address)) {
-        return token.address as CaipAssetType;
-      }
-      if (!token.chainId) return null;
-      return (formatAddressToAssetId(token.address, token.chainId) ??
-        null) as CaipAssetType | null;
-    } catch {
-      return null;
-    }
-  }, [token.address, token.chainId]);
-
-  const {
-    securityData,
-    isLoading: isSecurityLoading,
-    fetchedAt: securityFetchedAt,
-  } = useTokenSecurityData({
-    assetId: caip19AssetId,
-    prefetchedData: prefetchedSecurityData,
-  });
 
   const securityBadge = useMemo(() => {
     switch (securityData?.resultType) {
       case 'Verified':
+        return {
+          icon: IconName.VerifiedFilled,
+          iconColor: IconColor.IconDefault,
+          label: null,
+          bg: null,
+          textColor: undefined,
+        };
       case 'Benign':
-        return { icon: IconName.VerifiedFilled, color: IconColor.IconDefault };
+        return null;
       case 'Warning':
       case 'Spam':
-        return { icon: IconName.Warning, color: IconColor.WarningDefault };
+        return {
+          icon: IconName.Warning,
+          iconColor: IconColor.WarningDefault,
+          label: strings('security_trust.risky'),
+          bg: 'bg-warning-muted',
+          textColor: DSTextColor.WarningDefault,
+        };
       case 'Malicious':
-        return { icon: IconName.Danger, color: IconColor.ErrorDefault };
+        return {
+          icon: IconName.Danger,
+          iconColor: IconColor.ErrorDefault,
+          label: strings('security_trust.malicious'),
+          bg: 'bg-error-muted',
+          textColor: DSTextColor.ErrorDefault,
+        };
       default:
         return null;
     }
   }, [securityData?.resultType]);
 
+  const handleSecurityBadgePress = useCallback(() => {
+    if (!securityData?.resultType || securityData.resultType === 'Benign')
+      return;
+
+    const configMap: Record<
+      string,
+      {
+        icon: IconName;
+        iconColor: IconColor;
+        title: string;
+        description: string;
+      }
+    > = {
+      Verified: {
+        icon: IconName.VerifiedFilled,
+        iconColor: IconColor.IconDefault,
+        title: strings('security_trust.verified_token_title'),
+        description: strings('security_trust.verified_token_description'),
+      },
+      Warning: {
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        title: strings('security_trust.risky_token_title'),
+        description: strings('security_trust.risky_token_description', {
+          symbol: token.symbol,
+        }),
+      },
+      Spam: {
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        title: strings('security_trust.risky_token_title'),
+        description: strings('security_trust.risky_token_description', {
+          symbol: token.symbol,
+        }),
+      },
+      Malicious: {
+        icon: IconName.Danger,
+        iconColor: IconColor.ErrorDefault,
+        title: strings('security_trust.malicious_token_title'),
+        description: strings(
+          'security_trust.malicious_token_sheet_description',
+          { symbol: token.symbol },
+        ),
+      },
+    };
+
+    const config = configMap[securityData.resultType];
+    if (config) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: config,
+      });
+    }
+  }, [securityData?.resultType, token.symbol, navigation]);
+
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
     : undefined;
-
-  const securityTimeAgo = useMemo(
-    () =>
-      securityFetchedAt
-        ? formatRelativeTime(securityFetchedAt.toISOString())
-        : '',
-    [securityFetchedAt],
-  );
 
   const marketInsightsCaip19Id = useMemo(() => {
     if (!isMarketInsightsEnabled) {
@@ -590,7 +633,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-1"
+                twClassName="gap-1.5"
               >
                 <DSText
                   variant={DSTextVariant.HeadingMd}
@@ -600,12 +643,38 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 >
                   {token.name || token.symbol}
                 </DSText>
-                {securityBadge && (
-                  <Icon
-                    name={securityBadge.icon}
-                    size={IconSize.Md}
-                    color={securityBadge.color}
-                  />
+                {securityBadge && securityBadge.label === null && (
+                  <TouchableOpacity onPress={handleSecurityBadgePress}>
+                    <Icon
+                      name={securityBadge.icon}
+                      size={IconSize.Md}
+                      color={securityBadge.iconColor}
+                    />
+                  </TouchableOpacity>
+                )}
+                {securityBadge && securityBadge.label !== null && (
+                  <TouchableOpacity onPress={handleSecurityBadgePress}>
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
+                    >
+                      <Icon
+                        name={securityBadge.icon}
+                        size={IconSize.Sm}
+                        color={securityBadge.iconColor}
+                      />
+                      <DSText
+                        variant={DSTextVariant.BodySm}
+                        color={securityBadge.textColor}
+                        fontWeight={FontWeight.Medium}
+                        numberOfLines={1}
+                        twClassName="overflow-hidden text-center"
+                      >
+                        {securityBadge.label}
+                      </DSText>
+                    </Box>
+                  </TouchableOpacity>
                 )}
                 {!token.name && isStockToken(token as BridgeToken) && (
                   <StockBadge token={token as BridgeToken} />
@@ -632,6 +701,39 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               ) : null}
             </Box>
           </Box>
+
+          {securityData?.resultType === 'Malicious' && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              twClassName="self-stretch mx-4 mt-3 min-h-[100px] min-w-[280px] py-3 pl-6 pr-4 gap-4 rounded-2xl bg-error-muted"
+            >
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Xl}
+                color={IconColor.ErrorDefault}
+              />
+              <Box
+                flexDirection={BoxFlexDirection.Column}
+                alignItems={BoxAlignItems.Start}
+                twClassName="flex-1"
+              >
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextDefault}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('security_trust.malicious_token_title')}
+                </DSText>
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextDefault}
+                >
+                  {strings('security_trust.malicious_token_description')}
+                </DSText>
+              </Box>
+            </Box>
+          )}
 
           <PriceChartProvider>
             <Price
@@ -793,9 +895,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           </View>
           <View style={styles.securityTrustWrapper}>
             <SecurityTrustEntryCard
-              securityData={securityData}
-              isLoading={isSecurityLoading}
-              timeAgo={securityTimeAgo}
+              securityData={securityData ?? null}
+              isLoading={false}
               token={token as TokenDetailsRouteParams}
             />
           </View>

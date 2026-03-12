@@ -16,8 +16,8 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { RiskLevel, type TokenSecurityData } from '../../types';
-import { getRiskLevel, getFeatureTags } from '../../utils/securityUtils';
+import type { TokenSecurityData } from '../../types';
+import { getFeatureTags } from '../../utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,44 +25,64 @@ import { strings } from '../../../../../../locales/i18n';
 interface SecurityTrustEntryCardProps {
   securityData: TokenSecurityData | null;
   isLoading: boolean;
-  timeAgo: string;
   token: TokenDetailsRouteParams;
 }
 
-const RISK_CONFIG: Record<RiskLevel, { label: string; textColor: TextColor }> =
-  {
-    [RiskLevel.Low]: {
-      label: strings('security_trust.no_risks_detected'),
-      textColor: TextColor.SuccessDefault,
-    },
-    [RiskLevel.Medium]: {
-      label: strings('security_trust.medium_risk'),
-      textColor: TextColor.WarningDefault,
-    },
-    [RiskLevel.High]: {
-      label: strings('security_trust.high_risk'),
-      textColor: TextColor.ErrorDefault,
-    },
-    [RiskLevel.Unknown]: {
-      label: strings('security_trust.data_unavailable'),
-      textColor: TextColor.TextAlternative,
-    },
-  };
+const RESULT_TYPE_CONFIG: Record<
+  string,
+  { label: string; textColor: TextColor }
+> = {
+  Verified: {
+    label: strings('security_trust.safe'),
+    textColor: TextColor.SuccessDefault,
+  },
+  Benign: {
+    label: strings('security_trust.safe'),
+    textColor: TextColor.SuccessDefault,
+  },
+  Warning: {
+    label: strings('security_trust.medium_risk'),
+    textColor: TextColor.WarningDefault,
+  },
+  Spam: {
+    label: strings('security_trust.medium_risk'),
+    textColor: TextColor.WarningDefault,
+  },
+  Malicious: {
+    label: strings('security_trust.high_risk'),
+    textColor: TextColor.ErrorDefault,
+  },
+};
 
 const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   securityData,
   isLoading,
-  timeAgo,
   token,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
 
-  const riskLevel = getRiskLevel(securityData?.resultType);
-  const config = RISK_CONFIG[riskLevel];
-  const featureTags = securityData
-    ? getFeatureTags(securityData.features ?? [], securityData.fees)
-    : [];
+  const config = securityData?.resultType
+    ? RESULT_TYPE_CONFIG[securityData.resultType]
+    : undefined;
+
+  const tagIcon =
+    securityData?.resultType === 'Malicious'
+      ? IconName.Danger
+      : securityData?.resultType === 'Warning' ||
+          securityData?.resultType === 'Spam'
+        ? IconName.Warning
+        : IconName.SecurityTick;
+  const tagIconColor =
+    securityData?.resultType === 'Malicious'
+      ? IconColor.ErrorDefault
+      : securityData?.resultType === 'Warning' ||
+          securityData?.resultType === 'Spam'
+        ? IconColor.WarningDefault
+        : IconColor.SuccessDefault;
+  const { tags: featureTags, remainingCount } = securityData
+    ? getFeatureTags(securityData.features ?? [], securityData.resultType)
+    : { tags: [], remainingCount: 0 };
 
   const handlePress = () => {
     navigation.navigate(
@@ -113,15 +133,11 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
               {strings('security_trust.loading')}
             </Text>
           </Box>
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={config.textColor}
-            fontWeight={FontWeight.Medium}
-          >
+        ) : config ? (
+          <Text variant={TextVariant.HeadingMd} color={config.textColor}>
             {config.label}
           </Text>
-        )}
+        ) : null}
         {!isLoading && featureTags.length > 0 && (
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -136,19 +152,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
                 twClassName="bg-muted rounded self-start min-w-[22px] px-1.5 py-0.5"
                 gap={1}
               >
-                <Icon
-                  name={
-                    tag.isPositive
-                      ? IconName.SecurityTick
-                      : IconName.SecurityCross
-                  }
-                  size={IconSize.Sm}
-                  color={
-                    tag.isPositive
-                      ? IconColor.SuccessDefault
-                      : IconColor.ErrorDefault
-                  }
-                />
+                <Icon name={tagIcon} size={IconSize.Sm} color={tagIconColor} />
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
@@ -159,6 +163,20 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
                 </Text>
               </Box>
             ))}
+            {remainingCount > 0 && (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                twClassName="rounded self-start px-1.5 py-0.5"
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                >
+                  +{remainingCount} {strings('security_trust.more')}
+                </Text>
+              </Box>
+            )}
           </Box>
         )}
         {isLoading && (
@@ -167,11 +185,6 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
             <View style={tw.style('h-3 rounded bg-muted w-1/2 mt-2')} />
           </Box>
         )}
-        {!isLoading && timeAgo ? (
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {timeAgo}
-          </Text>
-        ) : null}
       </Box>
     </Pressable>
   );

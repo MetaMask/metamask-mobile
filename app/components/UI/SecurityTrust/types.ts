@@ -17,5 +17,4 @@ export enum RiskLevel {
 
 export interface FeatureTag {
   label: string;
-  isPositive: boolean;
 }

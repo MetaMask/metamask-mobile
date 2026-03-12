@@ -3,15 +3,104 @@ import {
   type FeatureTag,
   type TokenSecurityData,
   type TokenSecurityFeature,
-  type TokenSecurityFees,
   type TokenSecurityFinancialStats,
 } from '../types';
 
-/** Map featureId to a human-readable positive label */
-const POSITIVE_FEATURE_LABELS: Record<string, string> = {
-  VERIFIED_CONTRACT: 'Verified Contract',
-  HIGH_REPUTATION_TOKEN: 'High Reputation',
-  LISTED_ON_CENTRALIZED_EXCHANGE: 'Listed on CEX',
+/** Blockaid-assigned feature type, as documented in the Blockaid token-scan API. */
+export type BlockaidFeatureType =
+  | 'Benign'
+  | 'Info'
+  | 'Warning'
+  | 'Spam'
+  | 'Malicious';
+
+interface FeatureDefinition {
+  label: string;
+  type: BlockaidFeatureType;
+}
+
+/** Positive-signal features (Benign / Info) */
+const POSITIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
+  HIGH_REPUTATION_TOKEN: { label: 'High Reputation', type: 'Benign' },
+  LISTED_ON_CENTRALIZED_EXCHANGE: { label: 'Listed on CEX', type: 'Benign' },
+  VERIFIED_CONTRACT: { label: 'Verified Contract', type: 'Info' },
+  HIGH_TRADE_VOLUME: { label: 'High Trade Volume', type: 'Info' },
+};
+
+/** Negative-signal features (Malicious / Spam / Warning / risk-bearing Info) */
+const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
+  // Malicious
+  KNOWN_MALICIOUS: { label: 'Known Malicious', type: 'Malicious' },
+  METADATA: { label: 'Suspicious Metadata', type: 'Malicious' },
+  IMPERSONATOR_SENSITIVE_ASSET: {
+    label: 'Sensitive Asset Impersonator',
+    type: 'Malicious',
+  },
+  STATIC_CODE_SIGNATURE: { label: 'Suspicious Code', type: 'Malicious' },
+  RUGPULL: { label: 'Rugpull Risk', type: 'Malicious' },
+  HIGH_TRANSFER_FEE: { label: 'High Transfer Fee', type: 'Malicious' },
+  HIGH_BUY_FEE: { label: 'High Buy Fee', type: 'Malicious' },
+  HIGH_SELL_FEE: { label: 'High Sell Fee', type: 'Malicious' },
+  UNSELLABLE_TOKEN: { label: 'Unsellable Token', type: 'Malicious' },
+  SANCTIONED_CREATOR: { label: 'Sanctioned Creator', type: 'Malicious' },
+  SIMILAR_MALICIOUS_CONTRACT: {
+    label: 'Similar Malicious Contract',
+    type: 'Malicious',
+  },
+  TOKEN_BACKDOOR: { label: 'Token Backdoor', type: 'Malicious' },
+  POST_DUMP: { label: 'Post Dump', type: 'Malicious' },
+
+  // Spam
+  IMPERSONATOR_HIGH_CONFIDENCE: { label: 'Impersonator (High)', type: 'Spam' },
+  IMPERSONATOR_MEDIUM_CONFIDENCE: {
+    label: 'Impersonator (Medium)',
+    type: 'Spam',
+  },
+
+  // Warning
+  AIRDROP_PATTERN: { label: 'Suspicious Airdrop', type: 'Warning' },
+  IMPERSONATOR: { label: 'Impersonator', type: 'Warning' },
+  INORGANIC_VOLUME: { label: 'Inorganic Volume', type: 'Warning' },
+  DYNAMIC_ANALYSIS: { label: 'Suspicious Behavior', type: 'Warning' },
+  UNSTABLE_TOKEN_PRICE: { label: 'Unstable Price', type: 'Warning' },
+  INAPPROPRIATE_CONTENT: { label: 'Inappropriate Content', type: 'Warning' },
+  HONEYPOT: { label: 'Honeypot Risk', type: 'Warning' },
+  SPAM_TEXT: { label: 'Spam Text', type: 'Warning' },
+  INSUFFICIENT_LOCKED_LIQUIDITY: {
+    label: 'Insufficient Locked Liquidity',
+    type: 'Warning',
+  },
+  CONCENTRATED_SUPPLY_DISTRIBUTION: {
+    label: 'Concentrated Supply',
+    type: 'Warning',
+  },
+  WASH_TRADING: { label: 'Wash Trading', type: 'Warning' },
+  FAKE_VOLUME: { label: 'Fake Volume', type: 'Warning' },
+  HIDDEN_SUPPLY_BY_KEY_HOLDER: { label: 'Hidden Supply', type: 'Warning' },
+  HEAVILY_SNIPED: { label: 'Heavily Sniped', type: 'Warning' },
+  FAKE_TRADE_MAKER_COUNT: { label: 'Fake Maker Count', type: 'Warning' },
+  LOW_REPUTATION_CREATOR: { label: 'Low Reputation Creator', type: 'Warning' },
+  SNIPE_AT_MINT: { label: 'Sniped at Mint', type: 'Warning' },
+
+  // Info – risk-bearing capabilities
+  IMPERSONATOR_LOW_CONFIDENCE: { label: 'Impersonator (Low)', type: 'Info' },
+  IS_MINTABLE: { label: 'Mintable', type: 'Info' },
+  CAN_BLACKLIST: { label: 'Can Blacklist', type: 'Info' },
+  CAN_WHITELIST: { label: 'Can Whitelist', type: 'Info' },
+  HAS_TRADING_COOLDOWN: { label: 'Trading Cooldown', type: 'Info' },
+  EXTERNAL_FUNCTIONS: { label: 'External Calls', type: 'Info' },
+  HIDDEN_OWNER: { label: 'Hidden Owner', type: 'Info' },
+  TRANSFER_PAUSEABLE: { label: 'Transfers Pauseable', type: 'Info' },
+  PROXY_CONTRACT: { label: 'Proxy Contract', type: 'Info' },
+  MODIFIABLE_TAXES: { label: 'Modifiable Taxes', type: 'Info' },
+  OWNER_CAN_CHANGE_BALANCE: { label: 'Owner Can Change Balance', type: 'Info' },
+  TRANSFER_FROM_REVERTS: { label: 'TransferFrom Reverts', type: 'Info' },
+  TRANSFER_HOOK_ENABLED: { label: 'Transfer Hook Enabled', type: 'Info' },
+  CONFIDENTIAL_TRANSFERS_ENABLED: {
+    label: 'Confidential Transfers',
+    type: 'Info',
+  },
+  NON_TRANSERABLE: { label: 'Non-Transferable', type: 'Info' },
 };
 
 /**
@@ -34,35 +123,69 @@ export const getRiskLevel = (
   }
 };
 
+export interface FeatureTagsResult {
+  tags: FeatureTag[];
+  remainingCount: number;
+}
+
+const FEATURE_TAG_DISPLAY_MAX = 3;
+const POSITIVE_FEATURE_TAG_DISPLAY_MAX = 4;
+
 /**
- * Returns up to `max` feature tags for the entry card summary.
+ * Returns up to 3 feature tags for the entry card, filtered by resultType,
+ * plus a count of additional matching features beyond the display limit.
+ *
+ * - Low (Verified/Benign): positive features only, no remainingCount.
+ * - Medium (Warning/Spam): Warning + Spam negative features, with overflow count.
+ * - High (Malicious): Malicious negative features, with overflow count.
  */
 export const getFeatureTags = (
   features: TokenSecurityFeature[],
-  fees: TokenSecurityFees | null | undefined,
-  max = 4,
-): FeatureTag[] => {
+  resultType?: TokenSecurityData['resultType'],
+  showAll = false,
+): FeatureTagsResult => {
   const tags: FeatureTag[] = [];
+  let totalMatching = 0;
 
-  // Positive tags from known positive feature IDs
-  for (const feature of features) {
-    if (POSITIVE_FEATURE_LABELS[feature.featureId]) {
-      tags.push({
-        label: POSITIVE_FEATURE_LABELS[feature.featureId],
-        isPositive: true,
-      });
+  if (resultType === 'Malicious') {
+    for (const feature of features) {
+      const def = NEGATIVE_FEATURE_LABELS[feature.featureId];
+      if (def?.type === 'Malicious') {
+        totalMatching++;
+        if (showAll || tags.length < FEATURE_TAG_DISPLAY_MAX) {
+          tags.push({ label: def.label });
+        }
+      }
     }
-    if (tags.length >= max) return tags;
+  } else if (resultType === 'Warning' || resultType === 'Spam') {
+    for (const feature of features) {
+      const def = NEGATIVE_FEATURE_LABELS[feature.featureId];
+      if (def?.type === 'Warning' || def?.type === 'Spam') {
+        totalMatching++;
+        if (showAll || tags.length < FEATURE_TAG_DISPLAY_MAX) {
+          tags.push({ label: def.label });
+        }
+      }
+    }
+  } else {
+    // Low (Verified/Benign) or no resultType: positive features only
+    for (const feature of features) {
+      const def = POSITIVE_FEATURE_LABELS[feature.featureId];
+      if (def) {
+        if (showAll || tags.length < POSITIVE_FEATURE_TAG_DISPLAY_MAX) {
+          tags.push({ label: def.label });
+        }
+      }
+    }
+    return { tags, remainingCount: 0 };
   }
 
-  // "0% Buy/Sell Tax" if fees are all 0
-  const hasZeroFees =
-    fees != null && fees.buy === 0 && fees.sell === 0 && fees.transfer === 0;
-  if (hasZeroFees && tags.length < max) {
-    tags.push({ label: '0% Buy/Sell Tax', isPositive: true });
-  }
-
-  return tags.slice(0, max);
+  return {
+    tags,
+    remainingCount: showAll
+      ? 0
+      : Math.max(0, totalMatching - FEATURE_TAG_DISPLAY_MAX),
+  };
 };
 
 /**
@@ -180,4 +303,4 @@ export const getSmartContractRisk = (
   }
 };
 
-export { POSITIVE_FEATURE_LABELS };
+export { POSITIVE_FEATURE_LABELS, NEGATIVE_FEATURE_LABELS };
