@@ -7730,7 +7730,7 @@
     "season_1": "Season 1",
     "musd": {
       "title": "mUSD bonus calculator",
-      "description": "See how much you could earn for converting your stablecoins to mUSD.",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
       "estimated_bonus": "Estimated annualized bonus: up to 3%",
       "initial_amount": "Initial amount",

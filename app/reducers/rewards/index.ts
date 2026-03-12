@@ -52,7 +52,7 @@ export interface BulkLinkState {
 }
 
 export interface RewardsState {
-  activeTab: 'overview' | 'snapshots' | 'activity';
+  activeTab: 'musd' | 'season1';
   seasonStatusLoading: boolean;
   seasonStatusError: string | null;
 
@@ -128,7 +128,7 @@ export interface RewardsState {
 }
 
 export const initialState: RewardsState = {
-  activeTab: 'overview',
+  activeTab: 'musd',
   seasonStatusLoading: false,
   seasonStatusError: null,
 
@@ -208,10 +208,7 @@ const rewardsSlice = createSlice({
   name: 'rewards',
   initialState,
   reducers: {
-    setActiveTab: (
-      state,
-      action: PayloadAction<'overview' | 'snapshots' | 'activity'>,
-    ) => {
+    setActiveTab: (state, action: PayloadAction<'musd' | 'season1'>) => {
       state.activeTab = action.payload;
     },
 

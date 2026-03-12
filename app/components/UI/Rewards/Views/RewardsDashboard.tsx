@@ -28,7 +28,6 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
-import { RewardsTab } from '../../../../reducers/rewards/types';
 import {
   selectActiveTab,
   selectHideUnlinkedAccountsBanner,
@@ -109,7 +108,10 @@ const RewardsDashboard: React.FC = () => {
     };
   }, [musdAmount]);
 
-  const formatCurrency = useCallback((value: number) => addCurrencySymbol(value, 'usd'), []);
+  const formatCurrency = useCallback(
+    (value: number) => addCurrencySymbol(value, 'usd'),
+    [],
+  );
 
   const handleMusdAmountChange = useCallback((text: string) => {
     const sanitized = text.replace(/[^0-9.]/g, '');
@@ -181,7 +183,7 @@ const RewardsDashboard: React.FC = () => {
     ({ i }: { i: number }) => {
       const newTab = tabOptions[i]?.value;
       if (newTab && newTab !== activeTab) {
-        dispatch(setActiveTab(newTab as RewardsTab));
+        dispatch(setActiveTab(newTab));
       }
     },
     [dispatch, tabOptions, activeTab],
