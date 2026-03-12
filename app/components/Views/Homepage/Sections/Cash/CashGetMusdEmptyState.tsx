@@ -206,7 +206,7 @@ const CashGetMusdEmptyState = () => {
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {musdPriceFormatted}
+                {musdPriceFormatted} {' \u2022'}
               </Text>
               <Text
                 variant={TextVariant.BodySm}

@@ -83,8 +83,8 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Price should be formatted with currency symbol
-      expect(screen.getByText('$1,234.56')).toBeOnTheScreen();
+      // Price is rendered with dot separator (e.g. "$1,234.56 • ")
+      expect(screen.getByText(/\$1,234\.56/)).toBeOnTheScreen();
     });
 
     it('renders dash when price is undefined', () => {
@@ -92,7 +92,8 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      expect(screen.getByText('—')).toBeOnTheScreen();
+      // Dash is rendered with dot separator (e.g. "— • ")
+      expect(screen.getByText(/—/)).toBeOnTheScreen();
     });
 
     it('renders positive percentage change with plus sign', () => {
@@ -138,8 +139,8 @@ describe('PopularTokenRow', () => {
       renderWithProvider(<PopularTokenRow token={token} />);
 
       expect(screen.getByText('Earn 3% bonus')).toBeOnTheScreen();
-      // Price should not be rendered when description is present
-      expect(screen.queryByText('$100.00')).not.toBeOnTheScreen();
+      // Price and percentage should not be rendered when description is present
+      expect(screen.queryByText(/\$100\.00/)).toBeNull();
     });
 
     it('renders Buy button', () => {
