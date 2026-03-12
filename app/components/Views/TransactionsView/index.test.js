@@ -93,6 +93,7 @@ const createMockStore = (overrides = {}) =>
           },
           TokensController: {
             tokens: [],
+            allTokens: {},
           },
           TransactionController: {
             transactions: [mockTransaction],
@@ -132,6 +133,9 @@ const createMockStore = (overrides = {}) =>
       }),
       fiatOrders: () => ({
         orders: [],
+      }),
+      settings: () => ({
+        showFiatOnTestnets: false,
       }),
     },
   });
