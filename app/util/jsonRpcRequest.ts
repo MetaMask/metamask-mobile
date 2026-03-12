@@ -3,23 +3,32 @@ import ParsedURL from 'url-parse';
 import { Buffer } from 'buffer';
 import { JsonRpcParams } from '@metamask/utils';
 
+export interface JsonRpcRequestOptions {
+  /**
+   * Additional headers to send with the request (merged with Content-Type and any Basic auth).
+   */
+  headers?: Record<string, string>;
+}
+
 /**
  * Makes a JSON RPC request to the given URL, with the given RPC method and params.
  *
  * @param {string} rpcUrl - The RPC endpoint URL to target.
  * @param {string} rpcMethod - The RPC method to request.
  * @param {Array<unknown>} [rpcParams] - The RPC method params.
- * @returns {Promise<unknown|undefined>} Returns the result of the RPC method call,
- * or throws an error in case of failure.
+ * @param {JsonRpcRequestOptions} [options] - Optional settings (e.g. extra headers for Sentinel/Transaction API auth).
+ * @returns {Promise<unknown|undefined>} Returns the result of the RPC method call, or throws an error in case of failure.
  */
 export async function jsonRpcRequest(
   rpcUrl: string,
   rpcMethod: string,
   rpcParams: JsonRpcParams = [],
+  options?: JsonRpcRequestOptions,
 ) {
   let fetchUrl = rpcUrl;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...options?.headers,
   };
 
   // Convert basic auth URL component to Authorization header

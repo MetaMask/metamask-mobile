@@ -6,6 +6,8 @@ import {
   getSendBundleSupportedChains,
   isSendBundleSupported,
   clearSentinelNetworkCache,
+  setSentinelApiAuth,
+  getSentinelApiHeadersAsync,
 } from './sentinel-api';
 
 const fetchMock = jest.fn();
@@ -64,10 +66,56 @@ describe('sentinel-api', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearSentinelNetworkCache();
+    setSentinelApiAuth(undefined);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('setSentinelApiAuth and getSentinelApiHeadersAsync', () => {
+    it('returns empty headers when no auth setter is configured', async () => {
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toEqual({});
+    });
+
+    it('includes Authorization when getter returns a token', async () => {
+      setSentinelApiAuth(async () => 'test-token');
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toMatchObject({ Authorization: 'Bearer test-token' });
+    });
+
+    it('adds Bearer prefix when getter returns raw token', async () => {
+      setSentinelApiAuth(async () => 'raw-token');
+      const headers = await getSentinelApiHeadersAsync();
+      expect((headers as Record<string, string>).Authorization).toBe(
+        'Bearer raw-token',
+      );
+    });
+
+    it('keeps Bearer when getter already returns Bearer token', async () => {
+      setSentinelApiAuth(async () => 'Bearer existing');
+      const headers = await getSentinelApiHeadersAsync();
+      expect((headers as Record<string, string>).Authorization).toBe(
+        'Bearer existing',
+      );
+    });
+
+    it('omits Authorization when getter returns undefined', async () => {
+      setSentinelApiAuth(async () => undefined);
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toEqual({});
+      expect((headers as Record<string, string>).Authorization).toBeUndefined();
+    });
+
+    it('omits Authorization when getter throws', async () => {
+      setSentinelApiAuth(async () => {
+        throw new Error('token error');
+      });
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toEqual({});
+      expect((headers as Record<string, string>).Authorization).toBeUndefined();
+    });
   });
 
   describe('buildUrl', () => {

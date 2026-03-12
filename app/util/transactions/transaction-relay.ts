@@ -1,8 +1,12 @@
 import { AuthorizationList } from '@metamask/transaction-controller';
 import { SentinelMeta } from '@metamask/smart-transactions-controller';
 import { Hex, Json, createProjectLogger } from '@metamask/utils';
-import { buildUrl, getSentinelNetworkFlags } from './sentinel-api';
 import jsonRpcRequest from '../../util/jsonRpcRequest';
+import {
+  buildUrl,
+  getSentinelApiHeadersAsync,
+  getSentinelNetworkFlags,
+} from './sentinel-api';
 
 const log = createProjectLogger('transaction-relay');
 
@@ -49,9 +53,18 @@ export async function submitRelayTransaction(
 
   log('Request', url, request);
 
-  const response = (await jsonRpcRequest(url, RELAY_RPC_METHOD, [
-    request as unknown as Json,
-  ])) as RelaySubmitResponse;
+  const headers = await getSentinelApiHeadersAsync();
+  const headersRecord =
+    typeof headers === 'object' && !Array.isArray(headers)
+      ? (headers as Record<string, string>)
+      : {};
+
+  const response = (await jsonRpcRequest(
+    url,
+    RELAY_RPC_METHOD,
+    [request as unknown as Json],
+    { headers: headersRecord },
+  )) as RelaySubmitResponse;
 
   log('Response', response);
 
@@ -74,7 +87,8 @@ export async function waitForRelayResult(
   return new Promise<RelayWaitResponse>((resolve, reject) => {
     const intervalId = setInterval(async () => {
       try {
-        const result = await pollResult(url);
+        const headers = await getSentinelApiHeadersAsync();
+        const result = await pollResult(url, headers);
         if (result.status !== RelayStatus.Pending) {
           clearInterval(intervalId);
           resolve(result);
@@ -91,10 +105,13 @@ export async function isRelaySupported(chainId: Hex): Promise<boolean> {
   return Boolean(await getRelayUrl(chainId));
 }
 
-async function pollResult(url: string): Promise<RelayWaitResponse> {
+async function pollResult(
+  url: string,
+  headers: HeadersInit = {},
+): Promise<RelayWaitResponse> {
   log('Polling request', url);
 
-  const response = await fetch(url);
+  const response = await fetch(url, { headers });
 
   log('Polling response', response);
 

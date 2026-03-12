@@ -12,6 +12,7 @@ import type { SmartTransactionsControllerInitMessenger } from '../messengers/sma
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
+import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
 
 /**
  * Initialize the smart transactions controller.
@@ -46,6 +47,24 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
     }
   };
 
+  /**
+   * Bearer token for Transaction API (and Sentinel) authentication. Only present when
+   * the user is signed in (AuthenticationController has a valid session). If getBearerToken
+   * returns undefined, no Authorization header is sent on smart transaction API calls.
+   */
+  const getBearerToken = async (): Promise<string | undefined> => {
+    try {
+      return await Promise.resolve(
+        initMessenger.call('AuthenticationController:getBearerToken'),
+      );
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Use same bearer token for Sentinel API (networks, relay) as for Transaction API
+  setSentinelApiAuth(getBearerToken);
+
   const controller = new SmartTransactionsController({
     messenger: controllerMessenger,
     state: persistedState.SmartTransactionsController,
@@ -55,6 +74,7 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),
     trackMetaMetricsEvent,
+    getBearerToken,
 
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,

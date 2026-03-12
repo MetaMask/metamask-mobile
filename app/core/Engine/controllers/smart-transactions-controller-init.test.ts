@@ -51,7 +51,77 @@ describe('SmartTransactionsControllerInit', () => {
       clientId: 'mobile',
       getMetaMetricsProps: expect.any(Function),
       trackMetaMetricsEvent: expect.any(Function),
+      getBearerToken: expect.any(Function),
       trace: expect.any(Function),
+    });
+  });
+
+  describe('getBearerToken', () => {
+    it('passes getter that returns token when AuthenticationController returns one', async () => {
+      const bearerToken = 'test-bearer-token';
+      const mockCall = jest.fn().mockResolvedValue(bearerToken);
+      const request = {
+        ...getInitRequestMock(),
+        initMessenger: { call: mockCall },
+      };
+
+      smartTransactionsControllerInit(request);
+
+      const controllerMock = jest.mocked(SmartTransactionsController);
+      const constructorCall =
+        controllerMock.mock.calls[controllerMock.mock.calls.length - 1][0];
+      const getBearerToken = constructorCall.getBearerToken as () => Promise<
+        string | undefined
+      >;
+
+      const result = await getBearerToken();
+
+      expect(result).toBe(bearerToken);
+      expect(mockCall).toHaveBeenCalledWith(
+        'AuthenticationController:getBearerToken',
+      );
+    });
+
+    it('passes getter that returns undefined when AuthenticationController returns undefined', async () => {
+      const mockCall = jest.fn().mockResolvedValue(undefined);
+      const request = {
+        ...getInitRequestMock(),
+        initMessenger: { call: mockCall },
+      };
+
+      smartTransactionsControllerInit(request);
+
+      const controllerMock = jest.mocked(SmartTransactionsController);
+      const constructorCall =
+        controllerMock.mock.calls[controllerMock.mock.calls.length - 1][0];
+      const getBearerToken = constructorCall.getBearerToken as () => Promise<
+        string | undefined
+      >;
+
+      const result = await getBearerToken();
+
+      expect(result).toBeUndefined();
+    });
+
+    it('passes getter that returns undefined when AuthenticationController throws', async () => {
+      const mockCall = jest.fn().mockRejectedValue(new Error('auth error'));
+      const request = {
+        ...getInitRequestMock(),
+        initMessenger: { call: mockCall },
+      };
+
+      smartTransactionsControllerInit(request);
+
+      const controllerMock = jest.mocked(SmartTransactionsController);
+      const constructorCall =
+        controllerMock.mock.calls[controllerMock.mock.calls.length - 1][0];
+      const getBearerToken = constructorCall.getBearerToken as () => Promise<
+        string | undefined
+      >;
+
+      const result = await getBearerToken();
+
+      expect(result).toBeUndefined();
     });
   });
 });

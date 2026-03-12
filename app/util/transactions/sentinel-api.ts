@@ -5,6 +5,51 @@ import { Hex } from '@metamask/utils';
 const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
 const ENDPOINT_NETWORKS = 'networks';
 
+/**
+ * Optional bearer token getter, set at Engine init to authenticate
+ * Sentinel and Transaction API calls via core-backend (AuthenticationController).
+ */
+let getBearerTokenForSentinel: (() => Promise<string | undefined>) | undefined;
+
+/**
+ * Sets the bearer token getter for authenticating Sentinel and Transaction API calls.
+ * Called once at Engine init (e.g. from smart-transactions-controller-init) with
+ * AuthenticationController.getBearerToken.
+ *
+ * @param getter - Async function that returns the current bearer token, or undefined to clear.
+ */
+export function setSentinelApiAuth(
+  getter: (() => Promise<string | undefined>) | undefined,
+): void {
+  getBearerTokenForSentinel = getter;
+}
+
+/**
+ * Returns headers for Sentinel/Transaction API requests, including Authorization
+ * when the app has set a bearer token getter and it returns a token.
+ * Use this for all outbound Sentinel and relay requests.
+ *
+ * @returns Promise resolving to headers (optional Bearer only when authenticated).
+ */
+export async function getSentinelApiHeadersAsync(): Promise<HeadersInit> {
+  const headers: Record<string, string> = {};
+
+  if (getBearerTokenForSentinel) {
+    try {
+      const token = await getBearerTokenForSentinel();
+      if (token) {
+        headers.Authorization = token.startsWith('Bearer ')
+          ? token
+          : `Bearer ${token}`;
+      }
+    } catch {
+      // Proceed without auth if token retrieval fails
+    }
+  }
+
+  return headers;
+}
+
 // In-memory cache for network flags (matches server's cache-control: max-age=300)
 const CACHE_TTL_MS = 300_000; // 5 minutes
 
@@ -90,7 +135,8 @@ function getAllSentinelNetworkFlags(): Promise<SentinelNetworkMap> {
 async function fetchNetworkFlags(): Promise<SentinelNetworkMap> {
   try {
     const url = `${buildUrl('ethereum-mainnet')}${ENDPOINT_NETWORKS}`;
-    const response = await fetch(url);
+    const headers = await getSentinelApiHeadersAsync();
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       const errorBody = await response.text();

@@ -20,6 +20,7 @@ jest.mock('../../util/jsonRpcRequest');
 jest.mock('./sentinel-api', () => ({
   ...jest.requireActual('./sentinel-api'),
   getSentinelNetworkFlags: jest.fn(),
+  getSentinelApiHeadersAsync: jest.fn().mockResolvedValue({}),
 }));
 
 describe('Transaction Relay (mobile)', () => {
@@ -103,6 +104,7 @@ describe('Transaction Relay (mobile)', () => {
         expect.any(String),
         RELAY_RPC_METHOD,
         [expect.objectContaining(SUBMIT_REQUEST_MOCK)],
+        expect.objectContaining({ headers: expect.any(Object) }),
       );
     });
 
@@ -143,6 +145,7 @@ describe('Transaction Relay (mobile)', () => {
 
       expect(global.fetch).toHaveBeenCalledWith(
         'https://tx-sentinel-mainnet.api.cx.metamask.io/smart-transactions/uuid-123',
+        expect.objectContaining({ headers: expect.any(Object) }),
       );
     });
 
