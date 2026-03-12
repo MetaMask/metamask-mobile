@@ -2,6 +2,12 @@ import { addHexPrefix } from 'ethereumjs-util';
 import BN from 'bnjs4';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
+
+const MAX_DECIMALS_FOR_TOKENS = 36;
+// File-scoped subclass with 36 d.p. — does not mutate the shared BigNumber global default (20 d.p.)
+const ScopedBigNumber = BigNumber.clone({
+  DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS,
+});
 import humanizeDuration from 'humanize-duration';
 import {
   query,
@@ -1773,8 +1779,8 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
  * @returns {BigNumber}
  */
 export function calcTokenAmount(value, decimals) {
-  const divisor = new BigNumber(10).pow(decimals ?? 0);
-  return new BigNumber(String(value)).div(divisor);
+  const divisor = new ScopedBigNumber(10).pow(decimals ?? 0);
+  return new ScopedBigNumber(String(value)).div(divisor);
 }
 
 export function calcTokenValue(value, decimals) {
