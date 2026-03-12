@@ -269,12 +269,12 @@ const CardHome = () => {
       cardDetails
         ? {
             id: cardDetails.id,
-            holderName: cardDetails.holderName,
+            holderName: cardholderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
           }
         : null,
-    [cardDetails],
+    [cardDetails, cardholderName],
   );
 
   const {
@@ -284,6 +284,7 @@ const CardHome = () => {
   } = usePushProvisioning({
     cardDetails: cardDetailsForProvisioning,
     userAddress: userAddressForProvisioning,
+    accountCreatedAt: kycStatus?.userDetails?.createdAt,
     onSuccess: () => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
