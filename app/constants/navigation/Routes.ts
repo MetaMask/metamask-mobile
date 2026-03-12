@@ -261,6 +261,7 @@ const Routes = {
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
     RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
+    CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',

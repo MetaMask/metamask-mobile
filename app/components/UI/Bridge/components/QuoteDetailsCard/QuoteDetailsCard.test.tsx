@@ -602,6 +602,45 @@ describe('QuoteDetailsCard', () => {
     });
   });
 
+  it('does not navigate when price impact is below warning threshold', () => {
+    // priceImpact 0.04 < warning threshold 0.05 → priceImpactIsSafe = true → no navigation
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '0.04' },
+          gasIncluded: false,
+          gasIncluded7702: false,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '0.04%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    fireEvent.press(getByTestId('price-impact-info-button'));
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+      params: expect.anything(),
+    });
+  });
+
   it('opens rate tooltip modal when rate info icon is pressed', () => {
     const { getByLabelText } = renderScreen(
       QuoteDetailsCardTestScreen,

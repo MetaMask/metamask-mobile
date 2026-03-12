@@ -14,6 +14,10 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 - [tests/component-view/AGENTS.md](component-view/AGENTS.md) — Agent index for component view tests: framework, canonical skill, run commands, enforcement.
 
+### E2E Tests (Detox smoke/regression)
+
+- [.agents/skills/e2e-test/SKILL.md](../.agents/skills/e2e-test/SKILL.md) — Canonical skill for adding or fixing E2E specs: workflow, decision tree, references (writing-tests, page-objects, mocking, running-tests).
+
 ## Canonical Sources (read these, do not duplicate)
 
 - [.cursor/rules/e2e-testing-guidelines.mdc](../.cursor/rules/e2e-testing-guidelines.mdc) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
