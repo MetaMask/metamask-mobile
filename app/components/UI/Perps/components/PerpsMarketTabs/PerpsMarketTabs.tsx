@@ -28,8 +28,9 @@ import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import {
   OrderDirection,
-  type Position,
   type Order,
+  type Position,
+  type TPSLTrackingData,
 } from '@metamask/perps-controller';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
@@ -327,9 +328,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       position,
       initialTakeProfitPrice: position.takeProfitPrice,
       initialStopLossPrice: position.stopLossPrice,
-      onConfirm: async () => {
-        // TP/SL is set directly on the position, no need to handle here
-        // The position will update via WebSocket
+      onConfirm: async (
+        _position?: Position,
+        _takeProfitPrice?: string,
+        _stopLossPrice?: string,
+        _trackingData?: TPSLTrackingData,
+      ) => {
+        // TP/SL is set directly on the position via WebSocket; callback signature matches PerpsTPSL route type
       },
     });
   }, [position, currentPrice, navigation]);

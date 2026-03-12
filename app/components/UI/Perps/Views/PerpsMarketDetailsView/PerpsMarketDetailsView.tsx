@@ -747,19 +747,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       initialTakeProfitPrice: existingPosition.takeProfitPrice,
       initialStopLossPrice: existingPosition.stopLossPrice,
       onConfirm: async (
+        positionFromRoute?: Position,
         takeProfitPrice?: string,
         stopLossPrice?: string,
         trackingData?: TPSLTrackingData,
       ) => {
-        // Use ref to get CURRENT position at execution time, not the closure-captured position
-        // This prevents "No position found" errors when the position updates during navigation
-        const currentPosition = currentPositionRef.current;
-        if (!currentPosition) {
+        // Prefer position passed from TPSL view (from route params); fallback to ref to avoid "No position found" when ref is stale
+        const positionToUse = positionFromRoute ?? currentPositionRef.current;
+        if (!positionToUse) {
           return { success: false };
         }
-        // Return value checked for consistency - error toast is shown internally by hook
         const result = await handleUpdateTPSL(
-          currentPosition,
+          positionToUse,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
