@@ -2,13 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
-import { RootState } from '../../../../../../reducers';
 import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
-import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events/musdEvents';
 import {
   AGLAMERKL_ADDRESS_MAINNET,
   AGLAMERKL_ADDRESS_LINEA,
@@ -18,9 +15,6 @@ import {
   getClaimedAmountFromContract,
 } from '../merkl-client';
 import Logger from '../../../../../../util/Logger';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { strings } from '../../../../../../locales/i18n';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
@@ -58,17 +52,13 @@ export const isTokenEligibleForMerklRewards = (
   );
 };
 
-/** Tracks which asset+location combos we've already fired viewed event for (session dedupe) */
-const viewedEventFiredFor = new Set<string>();
-
 interface UseMerklRewardsOptions {
   asset: TokenI | undefined;
-  /** Where the claim CTA is shown; used for analytics. Defaults to token_list_item. */
-  location?: 'token_list_item' | 'asset_overview';
 }
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
+  hasClaimedBefore: boolean;
   refetch: () => void;
 }
 
@@ -77,16 +67,12 @@ interface UseMerklRewardsReturn {
  */
 export const useMerklRewards = ({
   asset,
-  location = 'token_list_item',
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
+  const [hasClaimedBefore, setHasClaimedBefore] = useState(false);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
-  );
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const network = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );
 
   const fetchClaimableRewards = useCallback(
@@ -94,6 +80,7 @@ export const useMerklRewards = ({
       // Guard against undefined asset (can happen when selector returns undefined)
       if (!asset) {
         setClaimableReward(null);
+        setHasClaimedBefore(false);
         return;
       }
 
@@ -104,6 +91,7 @@ export const useMerklRewards = ({
 
       if (!isEligible || !selectedAddress) {
         setClaimableReward(null);
+        setHasClaimedBefore(false);
         return;
       }
 
@@ -124,6 +112,7 @@ export const useMerklRewards = ({
         }
 
         if (!matchingReward) {
+          setHasClaimedBefore(false);
           return;
         }
 
@@ -144,6 +133,10 @@ export const useMerklRewards = ({
           claimedFromContract !== null
             ? claimedFromContract
             : matchingReward.claimed;
+
+        if (!controller.signal.aborted) {
+          setHasClaimedBefore(BigInt(claimedAmount) > 0n);
+        }
 
         // Use unclaimed amount as it represents claimable rewards in the Merkle tree
         // Use token decimals from API response, fallback to asset decimals
@@ -180,29 +173,6 @@ export const useMerklRewards = ({
           ) {
             // Final check before setting state to ensure effect is still active
             if (!controller.signal.aborted) {
-              // Fire viewed event once per asset+location per session (leverages fetch cache)
-              const dedupeKey = `${location}:${asset.chainId}:${asset.address.toLowerCase()}`;
-              if (!viewedEventFiredFor.has(dedupeKey)) {
-                viewedEventFiredFor.add(dedupeKey);
-                trackEvent(
-                  createEventBuilder(
-                    MetaMetricsEvents.MUSD_CLAIM_BONUS_CTA_AVAILABLE,
-                  )
-                    .addProperties({
-                      location:
-                        location === 'asset_overview'
-                          ? MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW
-                          : MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS
-                              .TOKEN_LIST_ITEM,
-                      view_trigger: 'screen_enter',
-                      button_text: strings('earn.claim_bonus'),
-                      network_chain_id: asset.chainId,
-                      network_name: network?.name,
-                      asset_symbol: asset.symbol,
-                    })
-                    .build(),
-                );
-              }
               setClaimableReward(displayAmount);
             }
           }
@@ -222,14 +192,7 @@ export const useMerklRewards = ({
         );
       }
     },
-    [
-      asset,
-      selectedAddress,
-      location,
-      network?.name,
-      trackEvent,
-      createEventBuilder,
-    ],
+    [asset, selectedAddress],
   );
 
   // refetch can be called externally to refresh data
@@ -251,6 +214,7 @@ export const useMerklRewards = ({
 
   return {
     claimableReward,
+    hasClaimedBefore,
     refetch,
   };
 };

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../../Tokens/types';
@@ -10,6 +10,11 @@ import { usePendingMerklClaim } from './usePendingMerklClaim';
 import { useMerklClaimTransaction } from './useMerklClaimTransaction';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../../selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../hooks/useMusdConversionEligibility';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
+import { RootState } from '../../../../../../reducers';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events/musdEvents';
 
 export interface MerklClaimData {
   claimableReward: string | null;
@@ -31,6 +36,18 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   claimRewards: async () => undefined,
 };
 
+export type MerklClaimLocation = 'token_list_item' | 'asset_overview';
+
+const getRewardAmountRange = (reward: string): string => {
+  if (reward.startsWith('<')) return '< 0.01';
+  const value = parseFloat(reward);
+  if (value < 1) return '0.01 - 0.99';
+  if (value < 10) return '1.00 - 9.99';
+  if (value < 100) return '10.00 - 99.99';
+  if (value < 1000) return '100.00 - 999.99';
+  return '1000.00+';
+};
+
 /**
  * Combines `useMerklRewards`, `usePendingMerklClaim`, and `useMerklClaimTransaction`
  * into a single hook that can be called unconditionally in token list items.
@@ -38,16 +55,25 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
  * For ineligible or geo-blocked assets, `undefined` is passed to the underlying
  * hooks which causes them to no-op (no API calls, no side effects).
  *
+ * Fires `MUSD_CLAIM_BONUS_CTA_AVAILABLE` once per mount when the claim CTA
+ * becomes visible (claimable reward exists and no pending claim).
+ *
  * @param asset - The token to check for Merkl bonus claim eligibility
+ * @param location - Where the claim CTA is rendered; used for analytics
  * @returns MerklClaimData with claim state and actions
  */
 export const useMerklBonusClaim = (
   asset: TokenI | undefined,
+  location: MerklClaimLocation = 'token_list_item',
 ): MerklClaimData => {
   const isMerklCampaignClaimingEnabled = useSelector(
     selectMerklCampaignClaimingEnabledFlag,
   );
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
+  );
 
   const isEligible = useMemo(() => {
     if (!isMerklCampaignClaimingEnabled || !isGeoEligible) {
@@ -69,9 +95,47 @@ export const useMerklBonusClaim = (
 
   const eligibleAsset = isEligible ? asset : undefined;
 
-  const { claimableReward } = useMerklRewards({ asset: eligibleAsset });
+  const { claimableReward, hasClaimedBefore } = useMerklRewards({
+    asset: eligibleAsset,
+  });
   const { hasPendingClaim } = usePendingMerklClaim();
   const { claimRewards, isClaiming } = useMerklClaimTransaction(eligibleAsset);
+
+  const hasClaimableBonus = isEligible && !!claimableReward && !hasPendingClaim;
+  const hasFiredCtaAvailableEvent = useRef(false);
+
+  useEffect(() => {
+    if (hasClaimableBonus && !hasFiredCtaAvailableEvent.current) {
+      hasFiredCtaAvailableEvent.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_CTA_AVAILABLE)
+          .addProperties({
+            location:
+              location === 'asset_overview'
+                ? MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW
+                : MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            view_trigger: 'component_mounted',
+            button_text: 'Claim bonus',
+            network_chain_id: asset?.chainId,
+            network_name: network?.name,
+            asset_symbol: asset?.symbol,
+            reward_amount_range: getRewardAmountRange(claimableReward),
+            has_claimed_before: hasClaimedBefore,
+          })
+          .build(),
+      );
+    }
+  }, [
+    hasClaimableBonus,
+    trackEvent,
+    createEventBuilder,
+    location,
+    asset?.chainId,
+    asset?.symbol,
+    network?.name,
+    claimableReward,
+    hasClaimedBefore,
+  ]);
 
   return useMemo(() => {
     if (!isEligible) {
