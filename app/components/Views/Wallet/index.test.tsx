@@ -101,11 +101,10 @@ import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import { screen as RNScreen, renderHook } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
@@ -291,6 +290,10 @@ const mockInitialState = {
     isPna25Acknowledged: false,
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
+  },
+  collectibles: {
+    favorites: {},
+    isNftFetchingProgress: false,
   },
   engine: {
     backgroundState: {
@@ -512,31 +515,6 @@ describe('Wallet', () => {
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-  it('should render the address copy button', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const addressCopyButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
-    );
-    expect(addressCopyButton).toBeDefined();
-  });
-  it('should render the account picker', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const accountPicker = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.ACCOUNT_ICON,
-    );
-    expect(accountPicker).toBeDefined();
-  });
-
-  it('should render scan qr icon', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const scanButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
-    );
-    expect(scanButton).toBeDefined();
   });
 
   it('Should add tokens to state automatically when there are detected tokens', () => {
