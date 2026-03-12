@@ -11,6 +11,7 @@ export const WalletViewSelectorsIDs = {
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   CARD_BUTTON: 'card-button',
   STAKE_BUTTON: 'stake-button',
+  CARD_BUTTON_BADGE: 'card-button-badge',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
   STAKE_MORE_BUTTON: 'stake-more-button',
