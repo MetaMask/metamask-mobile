@@ -15,6 +15,7 @@ import SensitiveText, {
 import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { PredictClaimButtonProps } from './PredictActionButtons.types';
+import { PREDICT_CLAIM_BUTTON_TEST_IDS } from './PredictClaimButton.testIds';
 
 const LoadingContent = () => (
   <Box twClassName="flex-row items-center gap-1">
@@ -58,7 +59,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
   disabled = false,
   isLoading = false,
   isHidden = false,
-  testID = 'predict-claim-button',
+  testID = PREDICT_CLAIM_BUTTON_TEST_IDS.PREDICT_CLAIM_BUTTON,
 }) => {
   const tw = useTailwind();
 
