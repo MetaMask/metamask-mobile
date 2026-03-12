@@ -34,6 +34,7 @@ import {
   selectHideCurrentAccountNotOptedInBannerArray,
   selectSeasonId,
   selectSeasonEndDate,
+  selectGeoLocation,
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -54,6 +55,7 @@ import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSu
 import { addCurrencySymbol } from '../../../../util/number';
 import { KeyValueRowStubs } from '../../../../component-library/components-temp/KeyValueRow';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -69,6 +71,7 @@ const RewardsDashboard: React.FC = () => {
   );
   const seasonId = useSelector(selectSeasonId);
   const seasonEndDate = useSelector(selectSeasonEndDate);
+  const geoLocation = useSelector(selectGeoLocation);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -92,9 +95,9 @@ const RewardsDashboard: React.FC = () => {
   const [musdAmount, setMusdAmount] = useState('1000');
   const ANNUAL_BONUS_RATE = 0.03;
   const BUY_MUSD_URL =
-    'https://link.metamask.io/buy?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&amount=100&chainid=1&sig_params=address%2Camount%2Cchainid&sig=arEDirKWW4knSRTg1_iYWyHuAOg_fPu3GN0VUPSAC7V8uN4TO2B8X7SZqhRwRtcGJh4ErwcxTrz4ADuhtuDfDw&utm_source=rewards-tab';
+    'https://link.metamask.io/buy?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&amount=100&chainid=1&sig_params=address%2Camount%2Cchainid%2Cutm_source&utm_source=rewards&sig=SdHOoh_QvT1bs8B6g-qCyLH5mUEczYzeOfAv9SNRm4CKjR6uBnUp4e1-Vcojb39fWWScBrui2GLftNlJKQlrAQ';
   const SWAP_MUSD_URL =
-    'https://link.metamask.io/swap?amount=32600000000000000&from=eip155%3A1%2Fslip44%3A60&sig_params=amount%2Cfrom&sig=lcKWbD9emSvYcSy4wKZAAZK4IusikSldKuh2SLobJnCxX6_H50c7o4lrxGukMkQAlJXl_Ro-z9GOFjHlijuUSQ&utm_source=rewards-tab';
+    'https://link.metamask.io/swap?from=eip155%3A1%2Fslip44%3A60&sig_params=from%2Cto%2Cutm_source&to=eip155%3A1%2Ferc20%3A0xacA92E438df0B2401fF60dA7E4337B687a2435DA&utm_source=rewards&sig=mCsMuZB-omwEg9WvGOwA8nuc8NvXj7uFfC_Pn-6Nmwlce2GF356tbZbHIgzYHWhmLb4kvUKMTpj4eb0yUrle1Q';
 
   // mUSD Calculator computed values
   const musdCalculations = useMemo(() => {
@@ -171,13 +174,20 @@ const RewardsDashboard: React.FC = () => {
     [optInByWallet],
   );
 
-  const tabOptions = useMemo(
-    () => [
-      { value: 'musd' as const, label: 'mUSD' },
-      { value: 'season1' as const, label: strings('rewards.season_1') },
-    ],
-    [],
-  );
+  // Check if user is in the UK (mUSD not available in UK)
+  const isUkUser = geoLocation === 'GB' || geoLocation === 'UK';
+
+  const tabOptions = useMemo(() => {
+    const options: { value: 'musd' | 'season1'; label: string }[] = [];
+
+    if (!isUkUser) {
+      options.push({ value: 'musd', label: 'mUSD' });
+    }
+
+    options.push({ value: 'season1', label: strings('rewards.season_1') });
+
+    return options;
+  }, [isUkUser]);
 
   const handleTabChange = useCallback(
     ({ i }: { i: number }) => {
@@ -338,117 +348,137 @@ const RewardsDashboard: React.FC = () => {
           ]}
         />
         <Box twClassName="flex-1 gap-4">
-          <TabsList {...tabsListProps}>
-            {/* mUSD Tab - Bonus Calculator */}
-            <Box key="musd" tabLabel="mUSD" twClassName="flex-1">
-              <ScrollView
-                style={tw.style('flex-1')}
-                contentContainerStyle={tw.style('p-4 gap-4')}
-              >
-                {/* Title and Description */}
-                <Box twClassName="gap-2">
-                  <Text variant={TextVariant.HeadingMd}>
-                    {strings('rewards.musd.title')}
-                  </Text>
-                  <Text variant={TextVariant.BodyMd}>
-                    {strings('rewards.musd.description')}
-                  </Text>
-                </Box>
-
-                {/* Amount Input */}
-                <KeyValueRowStubs.Root>
-                  <Box twClassName="w-1/2 justify-center">
-                    <Text variant={TextVariant.BodyMd}>
-                      {strings('rewards.musd.amount_label')}
-                    </Text>
-                  </Box>
-                  <Box twClassName="w-1/2">
-                    <TextField
-                      value={musdAmount}
-                      onChangeText={handleMusdAmountChange}
-                      keyboardType="decimal-pad"
-                      startAccessory={
-                        <Text variant={TextVariant.BodyMd}>$</Text>
-                      }
-                      placeholder="0"
-                    />
-                  </Box>
-                </KeyValueRowStubs.Root>
-
-                {/* Estimated Bonus Rate */}
-                <Text variant={TextVariant.BodyMd}>
-                  {strings('rewards.musd.estimated_bonus')}
-                </Text>
-
-                {/* Results Card */}
-                <Box twClassName="bg-muted rounded-lg p-4 gap-3">
-                  {/* Initial Amount */}
-                  <Box twClassName="flex-row justify-between items-center">
-                    <Text variant={TextVariant.BodyMd}>
-                      {strings('rewards.musd.initial_amount')}
-                    </Text>
-                    <Text variant={TextVariant.BodyMdMedium}>
-                      {formatCurrency(musdCalculations.initialAmount)}
-                    </Text>
-                  </Box>
-
-                  {/* Daily Claimable Bonus */}
-                  <Box twClassName="flex-row justify-between items-center">
-                    <Text variant={TextVariant.BodyMd}>
-                      {strings('rewards.musd.daily_bonus')}
-                    </Text>
-                    <Text variant={TextVariant.BodyMdMedium}>
-                      {formatCurrency(musdCalculations.dailyBonus)}
-                    </Text>
-                  </Box>
-
-                  {/* Annualized Bonus */}
-                  <Box twClassName="flex-row justify-between items-center">
-                    <Text variant={TextVariant.BodyMd}>
-                      {strings('rewards.musd.annualized_bonus')}
-                    </Text>
-                    <Text variant={TextVariant.BodyMdMedium}>
-                      {formatCurrency(musdCalculations.annualizedBonus)}
-                    </Text>
-                  </Box>
-                </Box>
-
-                {/* Disclaimer */}
-                <Box twClassName="flex-row gap-2 items-center">
-                  <Icon name={IconName.Info} size={IconSize.Sm} />
-                  <Text variant={TextVariant.BodySm} twClassName="flex-1">
-                    {strings('rewards.musd.disclaimer')}
-                  </Text>
-                </Box>
-
-                {/* Action Buttons */}
-                <Box twClassName="gap-3">
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    onPress={handleBuyMusd}
-                    twClassName="w-full"
-                  >
-                    {strings('rewards.musd.buy_button')}
-                  </Button>
-                  <Button
-                    variant={ButtonVariant.Secondary}
-                    size={ButtonSize.Lg}
-                    onPress={handleSwapMusd}
-                    twClassName="w-full"
-                  >
-                    {strings('rewards.musd.swap_button')}
-                  </Button>
-                </Box>
-              </ScrollView>
+          {geoLocation === null ? (
+            <Box twClassName="flex-1 p-4">
+              <Skeleton height={200} width="100%" />
             </Box>
+          ) : tabOptions.length > 1 ? (
+            <TabsList {...tabsListProps}>
+              {/* mUSD Tab - Bonus Calculator */}
+              <Box key="musd" tabLabel="mUSD" twClassName="flex-1">
+                <ScrollView
+                  style={tw.style('flex-1')}
+                  contentContainerStyle={tw.style('p-4 gap-4')}
+                >
+                  {/* Title and Description */}
+                  <Box twClassName="gap-2">
+                    <Text variant={TextVariant.HeadingMd}>
+                      {strings('rewards.musd.title')}
+                    </Text>
+                    <Text variant={TextVariant.BodyMd}>
+                      {strings('rewards.musd.description')}
+                    </Text>
+                  </Box>
 
-            {/* Season 1 Tab - Shows previous season summary or current season content */}
-            <Box
-              key="season1"
-              tabLabel={strings('rewards.season_1')}
-              twClassName="flex-1"
-            >
+                  {/* Amount Input */}
+                  <KeyValueRowStubs.Root>
+                    <Box twClassName="w-1/2 justify-center">
+                      <Text variant={TextVariant.BodyMd}>
+                        {strings('rewards.musd.amount_label')}
+                      </Text>
+                    </Box>
+                    <Box twClassName="w-1/2">
+                      <TextField
+                        value={musdAmount}
+                        onChangeText={handleMusdAmountChange}
+                        keyboardType="decimal-pad"
+                        startAccessory={
+                          <Text variant={TextVariant.BodyMd}>$</Text>
+                        }
+                        placeholder="0"
+                      />
+                    </Box>
+                  </KeyValueRowStubs.Root>
+
+                  {/* Estimated Bonus Rate */}
+                  <Text variant={TextVariant.BodyMd}>
+                    {strings('rewards.musd.estimated_bonus')}
+                  </Text>
+
+                  {/* Results Card */}
+                  <Box twClassName="bg-muted rounded-lg p-4 gap-3">
+                    {/* Initial Amount */}
+                    <Box twClassName="flex-row justify-between items-center">
+                      <Text variant={TextVariant.BodyMd}>
+                        {strings('rewards.musd.initial_amount')}
+                      </Text>
+                      <Text variant={TextVariant.BodyMd}>
+                        {formatCurrency(musdCalculations.initialAmount)}
+                      </Text>
+                    </Box>
+
+                    {/* Daily Claimable Bonus */}
+                    <Box twClassName="flex-row justify-between items-center">
+                      <Text variant={TextVariant.BodyMd}>
+                        {strings('rewards.musd.daily_bonus')}
+                      </Text>
+                      <Text variant={TextVariant.BodyMd}>
+                        {formatCurrency(musdCalculations.dailyBonus)}
+                      </Text>
+                    </Box>
+
+                    {/* Annualized Bonus */}
+                    <Box twClassName="flex-row justify-between items-center">
+                      <Text variant={TextVariant.BodyMd}>
+                        {strings('rewards.musd.annualized_bonus')}
+                      </Text>
+                      <Text variant={TextVariant.BodyMd}>
+                        {formatCurrency(musdCalculations.annualizedBonus)}
+                      </Text>
+                    </Box>
+                  </Box>
+
+                  {/* Disclaimer */}
+                  <Box twClassName="flex-row gap-2 items-center">
+                    <Icon name={IconName.Info} size={IconSize.Sm} />
+                    <Text variant={TextVariant.BodySm} twClassName="flex-1">
+                      {strings('rewards.musd.disclaimer')}
+                    </Text>
+                  </Box>
+
+                  {/* Action Buttons */}
+                  <Box twClassName="gap-3">
+                    <Button
+                      variant={ButtonVariant.Primary}
+                      size={ButtonSize.Lg}
+                      onPress={handleBuyMusd}
+                      twClassName="w-full"
+                    >
+                      {strings('rewards.musd.buy_button')}
+                    </Button>
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Lg}
+                      onPress={handleSwapMusd}
+                      twClassName="w-full"
+                    >
+                      {strings('rewards.musd.swap_button')}
+                    </Button>
+                  </Box>
+                </ScrollView>
+              </Box>
+
+              {/* Season 1 Tab - Shows previous season summary or current season content */}
+              <Box
+                key="season1"
+                tabLabel={strings('rewards.season_1')}
+                twClassName="flex-1"
+              >
+                {showPreviousSeasonSummary ? (
+                  <PreviousSeasonSummary />
+                ) : (
+                  <>
+                    <Box twClassName="mx-4">
+                      <SeasonStatus />
+                    </Box>
+                    <RewardsOverview tabLabel="Overview" />
+                  </>
+                )}
+              </Box>
+            </TabsList>
+          ) : (
+            // UK users only see Season 1 content without tabs
+            <Box twClassName="flex-1">
               {showPreviousSeasonSummary ? (
                 <PreviousSeasonSummary />
               ) : (
@@ -460,7 +490,7 @@ const RewardsDashboard: React.FC = () => {
                 </>
               )}
             </Box>
-          </TabsList>
+          )}
         </Box>
       </SafeAreaView>
       <Toast ref={toastRef} />
