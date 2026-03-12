@@ -15,11 +15,6 @@ import {
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -30,7 +25,6 @@ import {
   resetBridgeState,
   selectDestToken,
   selectSourceToken,
-  selectBridgeControllerState,
   selectIsEvmNonEvmBridge,
   selectIsSubmittingTx,
   selectDestAddress,
@@ -75,10 +69,8 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
-import ApprovalTooltip from '../../components/ApprovalText';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { isNullOrUndefined, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -100,6 +92,7 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import type { RootState } from '../../../../../reducers';
 const SCROLL_NEAR_BOTTOM_PX = 160;
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
+import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -130,7 +123,6 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
-  const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
   const { isStockToken } = useRWAToken();
   const selectedAddress = useSelector(
@@ -374,83 +366,6 @@ const BridgeView = () => {
     [],
   );
 
-  const renderBottomContent = () => {
-    if (isLoading && !activeQuote) {
-      return null;
-    }
-
-    // Prevent bottom section from rendering when no active
-    // quotes exist and none are being fetching.
-    // This resolves edge cases when users are redirected back from
-    // Select Quote page due to quotes expiry.
-    if (!activeQuote) {
-      return null;
-    }
-
-    // TODO: remove this once controller types are updated
-    // @ts-expect-error: controller types are not up to date yet
-    const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
-    const feePercentage = !isNullOrUndefined(quoteBpsFee)
-      ? quoteBpsFee / 100
-      : BRIDGE_MM_FEE_RATE;
-
-    const hasFee = activeQuote && feePercentage > 0;
-
-    const approval =
-      activeQuote?.approval && sourceAmount && sourceToken
-        ? { amount: sourceAmount, symbol: sourceToken.symbol }
-        : null;
-
-    return (
-      isValidSourceAmount &&
-      activeQuote &&
-      quotesLastFetched && (
-        <Box style={styles.buttonContainer}>
-          {isHardwareAddress && isSolanaSourced && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              description={strings(
-                'bridge.hardware_wallet_not_supported_solana',
-              )}
-            />
-          )}
-          {blockaidError && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('bridge.blockaid_error_title')}
-              description={blockaidError}
-            />
-          )}
-
-          <SwapsConfirmButton
-            location={location}
-            latestSourceBalance={latestSourceBalance}
-          />
-          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {hasFee
-                ? strings('bridge.fee_disclaimer', {
-                    feePercentage,
-                  })
-                : strings('bridge.no_mm_fee_disclaimer', {
-                    destTokenSymbol: destToken?.symbol,
-                  })}
-              {approval
-                ? ` ${strings('bridge.approval_needed', approval)}`
-                : ''}{' '}
-            </Text>
-            {approval && (
-              <ApprovalTooltip
-                amount={approval.amount}
-                symbol={approval.symbol}
-              />
-            )}
-          </Box>
-        </Box>
-      )
-    );
-  };
-
   return (
     // Need this to be full height of screen
     // @ts-expect-error The type is incorrect, this will work
@@ -553,7 +468,10 @@ const BridgeView = () => {
           </Box>
         </ScrollView>
 
-        {renderBottomContent()}
+        <BridgeViewFooter
+          location={location}
+          latestSourceBalance={latestSourceBalance}
+        />
 
         <SwapsKeypad
           ref={keypadRef}
