@@ -18970,6 +18970,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prompts@npm:^2.4.9":
+  version: 2.4.9
+  resolution: "@types/prompts@npm:2.4.9"
+  dependencies:
+    "@types/node": "npm:*"
+    kleur: "npm:^3.0.3"
+  checksum: 10/69b8372f4c790b45fea16a46ff8d1bcc71b14579481776b67bd6263637118a7ecb1f12e1311506c29fadc81bf618dc64f1a91f903cfd5be67a0455a227b3e462
+  languageName: node
+  linkType: hard
+
 "@types/prop-types@npm:*":
   version: 15.7.4
   resolution: "@types/prop-types@npm:15.7.4"
@@ -35674,6 +35684,7 @@ __metadata:
     "@types/luxon": "npm:^3.4.2"
     "@types/node": "npm:^20.12.8"
     "@types/pako": "npm:^2.0.4"
+    "@types/prompts": "npm:^2.4.9"
     "@types/qs": "npm:^6.9.15"
     "@types/react": "npm:^18.2.6"
     "@types/react-native-background-timer": "npm:^2.0.0"
@@ -35721,6 +35732,7 @@ __metadata:
     bnjs4: "npm:bn.js@^4.12.3"
     bnjs5: "npm:bn.js@^5.2.3"
     buffer: "npm:6.0.3"
+    chalk: "npm:^4.1.2"
     chromedriver: "npm:^123.0.1"
     cockatiel: "npm:^3.1.2"
     compare-versions: "npm:^3.6.0"
@@ -35810,6 +35822,7 @@ __metadata:
     pify: "npm:6.1.0"
     prettier: "npm:^3.6.2"
     prettier-2: "npm:prettier@^2.8.8"
+    prompts: "npm:^2.4.2"
     prop-types: "npm:15.7.2"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"

@@ -307,6 +307,49 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
+    it('resets to loading when null received after having loaded positions (account switch)', async () => {
+      let capturedCallback: (positions: Position[] | null) => void = jest.fn();
+      mockPositionsSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      // First: receive real positions (simulate loaded state)
+      act(() => {
+        capturedCallback([mockPosition]);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isInitialLoading).toBe(false);
+        expect(result.current.positions).toEqual([mockPosition]);
+      });
+
+      // Account switch: receive null (clearCache)
+      act(() => {
+        capturedCallback(null);
+      });
+
+      expect(result.current.isInitialLoading).toBe(true);
+      expect(result.current.positions).toEqual([]);
+
+      // New account data arrives
+      const newAccountPositions: Position[] = [
+        { ...mockPosition, symbol: 'ETH-PERP', size: '5.0' },
+      ];
+
+      act(() => {
+        capturedCallback(newAccountPositions);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isInitialLoading).toBe(false);
+        expect(result.current.positions).toEqual(newAccountPositions);
+      });
+    });
+
     it('replaces entire positions array on each update', async () => {
       let capturedCallback: (positions: Position[]) => void = jest.fn();
       mockPositionsSubscribe.mockImplementation((params) => {

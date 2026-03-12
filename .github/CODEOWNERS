@@ -166,6 +166,7 @@ app/components/UI/WalletAction/*perps* @MetaMask/perps
 app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
+app/core/AgenticService/             @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 
