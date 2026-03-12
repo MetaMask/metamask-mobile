@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { type OrderResult, type Position } from '@metamask/perps-controller';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -18,6 +19,12 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -228,6 +235,28 @@ describe('usePerpsClosePosition', () => {
           result.current.handleClosePosition({ position: mockPosition }),
         ).rejects.toThrow('perps.close_position.error_unknown');
       });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'perps.close_position.error_unknown',
+        }),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'perps',
+            component: 'usePerpsClosePosition',
+            action: 'close_position',
+          }),
+          context: expect.objectContaining({
+            name: 'usePerpsClosePosition',
+            data: expect.objectContaining({
+              symbol: 'BTC',
+              orderType: 'market',
+              isFullClose: true,
+              rawError: undefined,
+            }),
+          }),
+        }),
+      );
     });
 
     it('should handle exceptions thrown by closePosition', async () => {
@@ -248,6 +277,25 @@ describe('usePerpsClosePosition', () => {
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsClosePosition: Error closing position',
         error,
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'perps',
+            component: 'usePerpsClosePosition',
+            action: 'close_position',
+          }),
+          context: expect.objectContaining({
+            name: 'usePerpsClosePosition',
+            data: expect.objectContaining({
+              symbol: 'BTC',
+              requestedSize: undefined,
+              orderType: 'market',
+              isFullClose: true,
+            }),
+          }),
+        }),
       );
     });
 
