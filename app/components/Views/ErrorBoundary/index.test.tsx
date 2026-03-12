@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
@@ -352,8 +352,7 @@ describe('ErrorBoundary', () => {
   describe('Contact Support', () => {
     it('opens support URL with UTM parameter when contact support is pressed', () => {
       const mockOpenURL = jest.fn();
-      const Linking = require('react-native/Libraries/Linking/Linking');
-      Linking.openURL = mockOpenURL;
+      jest.spyOn(Linking, 'openURL').mockImplementation(mockOpenURL);
 
       const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
         state: initialState,

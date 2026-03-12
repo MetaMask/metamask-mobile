@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import RegionAlert from './RegionAlert';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { Linking } from 'react-native';
+import { Linking, TouchableOpacity } from 'react-native';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
@@ -46,9 +46,7 @@ describe('RegionAlert', () => {
     const { UNSAFE_getAllByType } = renderWithProvider(
       <RegionAlert {...defaultProps} />,
     );
-    const touchables = UNSAFE_getAllByType(
-      require('react-native').TouchableOpacity,
-    );
+    const touchables = UNSAFE_getAllByType(TouchableOpacity);
     // First touchable is the close button
     const closeButton = touchables[0];
     fireEvent.press(closeButton);

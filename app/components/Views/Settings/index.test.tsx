@@ -7,6 +7,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import { Alert } from 'react-native';
 
 // Mock Authentication module
 jest.mock('../../../core', () => ({
@@ -371,7 +372,7 @@ describe('Settings', () => {
 
   describe('Lock', () => {
     it('shows alert when lock button is pressed', () => {
-      const alertSpy = jest.spyOn(require('react-native').Alert, 'alert');
+      const alertSpy = jest.spyOn(Alert, 'alert');
       jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
 
       const { getByTestId } = renderWithProvider(<Settings />, {

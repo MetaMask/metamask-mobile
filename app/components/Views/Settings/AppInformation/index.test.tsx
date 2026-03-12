@@ -1,6 +1,6 @@
 import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
-import { Image, TouchableOpacity, InteractionManager } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import renderWithProvider, {
   DeepPartial,
   renderScreen,
