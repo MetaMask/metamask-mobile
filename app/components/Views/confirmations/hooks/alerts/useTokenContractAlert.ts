@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import { toChecksumAddress } from '../../../../../util/address';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -43,8 +44,9 @@ export function useTokenContractAlert(): Alert[] {
         chainId as Hex,
       );
 
+      const checksummedRecipient = toChecksumAddress(recipient);
       const token = await memoizedGetTokenStandardAndDetails({
-        tokenAddress: recipient,
+        tokenAddress: checksummedRecipient,
         networkClientId,
       });
 
