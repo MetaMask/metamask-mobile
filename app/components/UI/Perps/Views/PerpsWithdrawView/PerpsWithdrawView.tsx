@@ -1,5 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
+import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -30,12 +29,15 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  PERPS_CONSTANTS,
   USDC_DECIMALS,
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
@@ -52,7 +54,6 @@ import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
 
 import type { Hex } from '@metamask/utils';
@@ -81,7 +82,7 @@ const MAX_INPUT_LENGTH = 20;
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   // State
   const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
@@ -162,6 +163,7 @@ const PerpsWithdrawView: React.FC = () => {
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.WITHDRAWAL,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.WITHDRAW_BUTTON,
     },
   });
 
@@ -287,26 +289,30 @@ const PerpsWithdrawView: React.FC = () => {
       }
       // Success/error toast will be shown by usePerpsWithdrawStatus hook
     } catch (error) {
-      // Capture exception with withdrawal context
-      captureException(
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          tags: {
-            component: 'PerpsWithdrawView',
-            action: 'financial_withdrawal',
-            operation: 'financial_operations',
-          },
-          extra: {
-            withdrawalContext: {
-              amount: withdrawAmountDetailed,
-              assetId,
-              destination: destToken.address,
-              chainId: destToken.chainId,
-              isTestnet,
-            },
+      Logger.error(ensureError(error, 'PerpsWithdrawView.handleWithdraw'), {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsWithdrawView',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
+        },
+        context: {
+          name: 'PerpsWithdrawView',
+          data: {
+            amount: withdrawAmountDetailed,
+            assetId,
+            destination: destToken.address,
+            chainId: destToken.chainId,
+            isTestnet,
+            rawError:
+              error instanceof Error
+                ? undefined
+                : error === undefined
+                  ? 'undefined'
+                  : String(error),
           },
         },
-      );
+      });
 
       DevLogger.log('Error preparing withdrawal:', error);
     } finally {

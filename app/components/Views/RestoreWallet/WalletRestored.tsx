@@ -18,12 +18,11 @@ import StyledButton from '../../UI/StyledButton';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
 
@@ -36,9 +35,7 @@ const WalletRestored = () => {
   const { colors } = useAppThemeFromContext();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
@@ -59,7 +56,7 @@ const WalletRestored = () => {
       Logger.error(error as Error, 'Failed to clear migration error flag');
     }
 
-    navigation.replace(Routes.ONBOARDING.LOGIN);
+    navigation.dispatch(StackActions.replace(Routes.ONBOARDING.LOGIN));
   }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {

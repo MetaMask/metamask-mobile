@@ -39,13 +39,11 @@ describe(
 
             return new FixtureBuilder()
               .withNetworkController({
-                providerConfig: {
-                  chainId,
-                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                  type: 'custom',
-                  nickname: 'Localhost',
-                  ticker: 'ETH',
-                },
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
               })
               .withMetaMetricsOptIn()
               .build();
@@ -106,13 +104,11 @@ describe(
 
             return new FixtureBuilder()
               .withNetworkController({
-                providerConfig: {
-                  chainId,
-                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                  type: 'custom',
-                  nickname: 'Localhost',
-                  ticker: 'ETH',
-                },
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
               })
               .withMetaMetricsOptIn()
               .build();
@@ -168,13 +164,11 @@ describe(
 
             return new FixtureBuilder()
               .withNetworkController({
-                providerConfig: {
-                  chainId,
-                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                  type: 'custom',
-                  nickname: 'Localhost',
-                  ticker: 'ETH',
-                },
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
               })
               .withMetaMetricsOptIn()
               .build();

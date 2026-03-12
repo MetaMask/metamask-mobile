@@ -75,19 +75,20 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     unlockButton: {
-      marginTop: 16,
+      marginTop: 4,
     },
     metamaskName: {
       width: 160,
       height: 80,
       alignSelf: 'center',
-      marginBottom: 80,
-      marginTop: 40,
+      marginBottom: 60,
+      marginTop: 60,
       tintColor: colors.icon.default,
     },
     goBack: {
       marginVertical: 0,
       alignSelf: 'center',
+      paddingTop: 16,
     },
     biometrics: {
       flexDirection: 'row',

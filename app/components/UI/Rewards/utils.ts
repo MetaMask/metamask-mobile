@@ -65,6 +65,17 @@ export const handleRewardsErrorMessage = (error: unknown) => {
     return strings('rewards.error_messages.cannot_use_own_referral_code');
   }
 
+  // Bonus code errors
+  if (message.toLowerCase().includes('invalid bonus code')) {
+    return strings('rewards.error_messages.invalid_bonus_code');
+  }
+  if (message.toLowerCase().includes('already redeemed')) {
+    return strings('rewards.error_messages.already_redeemed');
+  }
+  if (message.toLowerCase().includes('reached its maximum')) {
+    return strings('rewards.error_messages.reached_maximum');
+  }
+
   return message;
 };
 

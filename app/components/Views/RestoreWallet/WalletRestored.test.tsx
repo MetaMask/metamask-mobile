@@ -3,7 +3,7 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import WalletRestored from './WalletRestored';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -16,6 +16,9 @@ import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+  StackActions: {
+    replace: jest.fn(),
+  },
 }));
 jest.mock('redux-persist-filesystem-storage', () => ({
   removeItem: jest.fn(() => Promise.resolve()),
@@ -53,12 +56,16 @@ describe('WalletRestored', () => {
     replace: jest.fn(),
     navigate: jest.fn(),
     goBack: jest.fn(),
+    dispatch: jest.fn(),
   };
+
+  const mockReplaceAction = { type: 'REPLACE', payload: { name: 'Login' } };
 
   const mockTrackEvent = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (StackActions.replace as jest.Mock).mockReturnValue(mockReplaceAction);
 
     // Create a fresh mock chain each time
     const mockBuild = jest.fn().mockReturnValue({ name: 'test-event' });
@@ -110,6 +117,8 @@ describe('WalletRestored', () => {
 
   it('navigates to LOGIN with vault recovery flag when continue is pressed', async () => {
     // Arrange
+    const mockFilesystemRemoveItem = FilesystemStorage.removeItem as jest.Mock;
+    mockFilesystemRemoveItem.mockResolvedValue(undefined);
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
 
@@ -118,11 +127,12 @@ describe('WalletRestored', () => {
       fireEvent.press(continueButton);
     });
 
-    // Assert
+    // Assert - wait for async finishWalletRestore to complete and dispatch navigation
     await waitFor(() => {
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
+      expect(StackActions.replace).toHaveBeenCalledWith(
         Routes.ONBOARDING.LOGIN,
       );
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(mockReplaceAction);
     });
   });
 
@@ -159,7 +169,7 @@ describe('WalletRestored', () => {
     renderWithProvider(<WalletRestored />);
 
     // Assert
-    expect(mockNavigation.replace).not.toHaveBeenCalled();
+    expect(mockNavigation.dispatch).not.toHaveBeenCalled();
   });
 
   it('clears migration error flag when continue is pressed', async () => {
@@ -220,9 +230,10 @@ describe('WalletRestored', () => {
 
     // Assert - Navigation proceeds to allow user access, recovery will retry on next launch
     await waitFor(() => {
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
+      expect(StackActions.replace).toHaveBeenCalledWith(
         Routes.ONBOARDING.LOGIN,
       );
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(mockReplaceAction);
     });
   });
 });

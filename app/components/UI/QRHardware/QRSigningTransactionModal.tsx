@@ -110,7 +110,6 @@ const QRSigningTransactionModal = () => {
             }}
             cancelCallback={onRejection}
             failureCallback={onRejection}
-            bypassAndroidCameraAccessCheck={false}
             fromAddress={selectedAccount?.address ?? ''}
           />
         )}

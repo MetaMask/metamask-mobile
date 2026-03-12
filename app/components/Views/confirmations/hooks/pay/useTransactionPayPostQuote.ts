@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
-import { createProjectLogger } from '@metamask/utils';
+import { createProjectLogger, type Hex } from '@metamask/utils';
 import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
 
 const log = createProjectLogger('transaction-pay-post-quote');
 
@@ -15,8 +16,7 @@ const log = createProjectLogger('transaction-pay-post-quote');
  * quote retrieval. The UI renders the default token when no payment
  * token is selected.
  *
- * When the withdrawal token picker (MM_PREDICT_WITHDRAW_ANY_TOKEN env var
- * AND predictWithdrawAnyToken feature flag) is disabled via
+ * When the confirmations_pay_post_quote feature flag is disabled via
  * canSelectWithdrawToken, this hook does nothing -
  * withdrawals will use same-token-same-chain flow without bridging.
  */
@@ -37,20 +37,22 @@ export function useTransactionPayPostQuote(): void {
 
     try {
       const { TransactionPayController } = Engine.context;
+      const from = transactionMeta?.txParams?.from as Hex | undefined;
+      const refundTo = from ? computeProxyAddress(from) : undefined;
 
-      // Set isPostQuote=true for post-quote transactions
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isPostQuote = true;
+        config.refundTo = refundTo;
       });
 
       isSet.current = transactionId;
 
-      log('Initialized post-quote transaction', { transactionId });
+      log('Initialized post-quote transaction', { transactionId, refundTo });
     } catch (error) {
       log('Error initializing post-quote transaction', {
         error,
         transactionId,
       });
     }
-  }, [canSelectWithdrawToken, transactionId]);
+  }, [canSelectWithdrawToken, transactionId, transactionMeta?.txParams?.from]);
 }

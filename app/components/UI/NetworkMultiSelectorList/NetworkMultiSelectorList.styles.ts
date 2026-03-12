@@ -27,7 +27,6 @@ const createStyles = (params: { theme: Theme }) => {
     },
     noNetworkFeeContainer: {
       alignSelf: 'center',
-      height: 22,
     },
   });
 };

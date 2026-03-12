@@ -11,7 +11,7 @@ import { Buffer } from 'buffer';
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
-import { MetaMetrics } from '../../core/Analytics';
+import { analytics } from '../analytics/analytics';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -134,9 +134,8 @@ export const downloadStateLogs = async (
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
-  const metrics = MetaMetrics.getInstance();
-  const metaMetricsId = metrics.isEnabled()
-    ? await metrics.getMetaMetricsId()
+  const metaMetricsId = analytics.isEnabled()
+    ? await analytics.getAnalyticsId()
     : undefined;
   const path =
     RNFS.DocumentDirectoryPath +

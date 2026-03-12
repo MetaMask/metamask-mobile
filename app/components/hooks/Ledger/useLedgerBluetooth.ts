@@ -11,7 +11,9 @@ import {
   LedgerCommunicationErrors,
   isEthAppNotOpenStatusCode,
   isEthAppNotOpenErrorMessage,
+  isDisconnectError,
 } from '../../../core/Ledger/ledgerErrors';
+import loadBleTransport from './loadBleTransport';
 
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
@@ -32,7 +34,67 @@ interface UseLedgerBluetoothHook {
   cleanupBluetoothConnection: () => void;
 }
 
+export { isDisconnectError };
+
 const RESTART_LIMIT = 5;
+
+function classifyTransportStatusError(
+  statusCode: number,
+): LedgerCommunicationErrors {
+  switch (statusCode) {
+    case 0x6985:
+    case 0x5501:
+      return LedgerCommunicationErrors.UserRefusedConfirmation;
+    case 0x6b0c:
+      return LedgerCommunicationErrors.LedgerIsLocked;
+    default:
+      return isEthAppNotOpenStatusCode(statusCode)
+        ? LedgerCommunicationErrors.EthAppNotOpen
+        : LedgerCommunicationErrors.UserRefusedConfirmation;
+  }
+}
+
+function classifyErrorByMessage(message: string): LedgerCommunicationErrors {
+  if (message.includes('Only version 4 of typed data signing is supported')) {
+    return LedgerCommunicationErrors.NotSupported;
+  }
+  if (message.includes('Ledger device: Locked device')) {
+    return LedgerCommunicationErrors.LedgerIsLocked;
+  }
+  if (message.includes('nonce too low')) {
+    return LedgerCommunicationErrors.NonceTooLow;
+  }
+  if (
+    message.includes(
+      'Please enable Blind signing or Contract data in the Ethereum app Settings',
+    )
+  ) {
+    return LedgerCommunicationErrors.BlindSignError;
+  }
+  if (isEthAppNotOpenErrorMessage(message)) {
+    return LedgerCommunicationErrors.EthAppNotOpen;
+  }
+  return LedgerCommunicationErrors.UnknownError;
+}
+
+function classifyLedgerError(e: unknown): LedgerCommunicationErrors {
+  if (e instanceof LedgerError) {
+    return e.code;
+  }
+  const err = e as { name?: string; statusCode?: number; message?: string };
+  if (
+    err?.name === 'TransportStatusError' &&
+    typeof err.statusCode === 'number'
+  ) {
+    return classifyTransportStatusError(err.statusCode);
+  }
+  if (err?.name === 'TransportRaceCondition') {
+    return LedgerCommunicationErrors.LedgerHasPendingConfirmation;
+  }
+  return classifyErrorByMessage(
+    typeof err?.message === 'string' ? err.message : '',
+  );
+}
 
 // Assumptions
 // 1. One big code block - logic all encapsulated in logicToRun
@@ -47,22 +109,21 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
   const transportRef = useRef<BluetoothInterface>();
   const restartConnectionState = useRef<{
-    shouldRestartConnection: boolean;
     restartCount: number;
   }>({
-    shouldRestartConnection: false,
     restartCount: 0,
   });
 
   // Due to the async nature of the disconnects after sending an APDU command we load the code to run in a stack
   // with code being pushed and popped off of the stack
   const workflowSteps = useRef<(() => Promise<void>)[]>([]);
+  const isReconnecting = useRef(false);
   const [ledgerError, setLedgerError] = useState<LedgerCommunicationErrors>();
 
   const resetConnectionState = () => {
     restartConnectionState.current.restartCount = 0;
-    restartConnectionState.current.shouldRestartConnection = false;
     workflowSteps.current = [];
+    isReconnecting.current = false;
     setIsSendingLedgerCommands(false);
   };
 
@@ -84,38 +145,17 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
     if (!transportRef.current && deviceId) {
       try {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const BluetoothTransport: any = await import(
-          '@ledgerhq/react-native-hw-transport-ble'
-        );
-        transportRef.current = await BluetoothTransport.default.open(deviceId);
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        transportRef.current = await loadBleTransport(deviceId);
+
         transportRef.current?.on('disconnect', () => {
           transportRef.current = undefined;
-          // Restart connection if more code is to be run
-          if (
-            workflowSteps.current.length > 0 &&
-            restartConnectionState.current.restartCount < RESTART_LIMIT &&
-            restartConnectionState.current.shouldRestartConnection
-          ) {
-            restartConnectionState.current.restartCount += 1;
 
-            const funcAfterDisconnect = workflowSteps.current.pop();
-            if (!funcAfterDisconnect) {
-              return setLedgerError(LedgerCommunicationErrors.UnknownError);
-            }
-
-            return funcAfterDisconnect();
+          // When we're handling an app switch directly via recursive
+          // processLedgerWorkflow, don't interfere with the workflow state.
+          if (isReconnecting.current) {
+            return;
           }
 
-          // In case we somehow end up in an infinite loop or bluetooth connection is faulty
-          if (restartConnectionState.current.restartCount === RESTART_LIMIT) {
-            setLedgerError(LedgerCommunicationErrors.LedgerDisconnected);
-          }
-
-          // Reset all connection states
           resetConnectionState();
         });
 
@@ -129,75 +169,103 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
     }
   };
 
-  const processLedgerWorkflow = async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleOpenEthAppError = (e: any): void => {
+    if (e.name === 'TransportStatusError') {
+      switch (e.statusCode) {
+        case 0x6984:
+        case 0x6807:
+          throw new LedgerError(
+            strings('ledger.ethereum_app_not_installed_error'),
+            LedgerCommunicationErrors.AppIsNotInstalled,
+          );
+        case 0x6985:
+        case 0x5501:
+          throw new LedgerError(
+            strings('ledger.ethereum_app_unconfirmed_error'),
+            LedgerCommunicationErrors.UserRefusedConfirmation,
+          );
+      }
+    }
+
+    if (!isDisconnectError(e)) {
+      throw new LedgerError(
+        strings('ledger.ethereum_app_open_error'),
+        LedgerCommunicationErrors.FailedToOpenApp,
+      );
+    }
+  };
+
+  const handleBolosApp = async (): Promise<void> => {
+    isReconnecting.current = true;
     try {
-      // Must do this at start of every code block to run to ensure transport is set
+      setIsAppLaunchConfirmationNeeded(true);
+      await openEthereumAppOnLedger();
+    } catch (e) {
+      handleOpenEthAppError(e);
+    } finally {
+      setIsAppLaunchConfirmationNeeded(false);
+    }
+  };
+
+  const handleNonEthereumApp = async (): Promise<void> => {
+    isReconnecting.current = true;
+    try {
+      await closeRunningAppOnLedger();
+    } catch (e) {
+      if (!isDisconnectError(e)) {
+        throw new LedgerError(
+          strings('ledger.running_app_close_error'),
+          LedgerCommunicationErrors.FailedToCloseApp,
+        );
+      }
+    }
+  };
+
+  async function waitAndRetry(
+    errorMessage: string,
+    errorCode: LedgerCommunicationErrors,
+  ): Promise<void> {
+    await new Promise((r) => setTimeout(r, 1000));
+    isReconnecting.current = false;
+
+    restartConnectionState.current.restartCount += 1;
+    if (restartConnectionState.current.restartCount >= RESTART_LIMIT) {
+      throw new LedgerError(errorMessage, errorCode);
+    }
+
+    return processLedgerWorkflow();
+  }
+
+  async function processLedgerWorkflow(): Promise<void> {
+    try {
       await setUpBluetoothConnection();
 
       if (!transportRef.current) {
         throw new Error('transportRef.current is undefined');
       }
-      // Initialise the keyring and check for pre-conditions (is the correct app running?)
+
       const appName = await connectLedgerHardware(
         transportRef.current as unknown as BleTransport,
         deviceId,
       );
 
-      // BOLOS is the Ledger main screen app
       if (appName === 'BOLOS') {
-        // Open Ethereum App
-        try {
-          setIsAppLaunchConfirmationNeeded(true);
-          await openEthereumAppOnLedger();
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-          if (e.name === 'TransportStatusError') {
-            switch (e.statusCode) {
-              case 0x6984:
-              case 0x6807:
-                throw new LedgerError(
-                  strings('ledger.ethereum_app_not_installed_error'),
-                  LedgerCommunicationErrors.AppIsNotInstalled,
-                );
-              case 0x6985:
-              case 0x5501:
-                throw new LedgerError(
-                  strings('ledger.ethereum_app_unconfirmed_error'),
-                  LedgerCommunicationErrors.UserRefusedConfirmation,
-                );
-            }
-          }
-
-          throw new LedgerError(
-            strings('ledger.ethereum_app_open_error'),
-            LedgerCommunicationErrors.FailedToOpenApp,
-          );
-        } finally {
-          setIsAppLaunchConfirmationNeeded(false);
-        }
-
-        workflowSteps.current.push(processLedgerWorkflow);
-        restartConnectionState.current.shouldRestartConnection = true;
-
-        return;
-      } else if (appName !== 'Ethereum') {
-        try {
-          await closeRunningAppOnLedger();
-        } catch (e) {
-          throw new LedgerError(
-            strings('ledger.running_app_close_error'),
-            LedgerCommunicationErrors.FailedToCloseApp,
-          );
-        }
-
-        workflowSteps.current.push(processLedgerWorkflow);
-        restartConnectionState.current.shouldRestartConnection = true;
-
-        return;
+        await handleBolosApp();
+        return await waitAndRetry(
+          strings('ledger.ethereum_app_open_error'),
+          LedgerCommunicationErrors.FailedToOpenApp,
+        );
       }
 
-      // Should now be on the Ethereum app if reached this point
+      if (appName !== 'Ethereum') {
+        await handleNonEthereumApp();
+        return await waitAndRetry(
+          strings('ledger.running_app_close_error'),
+          LedgerCommunicationErrors.FailedToCloseApp,
+        );
+      }
+
       if (workflowSteps.current.length === 1) {
         const finalLogicFunc = workflowSteps.current.pop();
         if (!finalLogicFunc) {
@@ -208,52 +276,10 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      if (e.name === 'TransportStatusError') {
-        switch (e.statusCode) {
-          case 0x6985:
-          case 0x5501:
-            setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
-            break;
-          case 0x6b0c:
-            setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
-            break;
-          default:
-            // Check if it's an ETH app not open error before falling back to UserRefusedConfirmation
-            if (isEthAppNotOpenStatusCode(e.statusCode)) {
-              setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
-            } else {
-              setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
-            }
-            break;
-        }
-      } else if (e.name === 'TransportRaceCondition') {
-        setLedgerError(LedgerCommunicationErrors.LedgerHasPendingConfirmation);
-      } else if (e instanceof LedgerError) {
-        // We are throwing thse with the proper error codes already set
-        setLedgerError(e.code);
-      } else if (
-        e.message.includes('Only version 4 of typed data signing is supported')
-      ) {
-        setLedgerError(LedgerCommunicationErrors.NotSupported);
-      } else if (e.message.includes('Ledger device: Locked device')) {
-        setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
-      } else if (e.message.includes('nonce too low')) {
-        setLedgerError(LedgerCommunicationErrors.NonceTooLow);
-      } else if (
-        e.message.includes(
-          'Please enable Blind signing or Contract data in the Ethereum app Settings',
-        )
-      ) {
-        setLedgerError(LedgerCommunicationErrors.BlindSignError);
-      } else if (isEthAppNotOpenErrorMessage(e.message)) {
-        setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
-      } else {
-        setLedgerError(LedgerCommunicationErrors.UnknownError);
-      }
-
+      setLedgerError(classifyLedgerError(e));
       resetConnectionState();
     }
-  };
+  }
 
   return {
     isSendingLedgerCommands,
@@ -266,7 +292,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         func(transportRef.current as BluetoothInterface),
       );
       //  Start off workflow
-      processLedgerWorkflow();
+      await processLedgerWorkflow();
     },
     error: ledgerError,
     cleanupBluetoothConnection: resetConnectionState,

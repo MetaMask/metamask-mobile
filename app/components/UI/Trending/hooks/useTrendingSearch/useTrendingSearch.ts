@@ -104,25 +104,27 @@ export const useTrendingSearch = (opts?: {
       filteredTrendingResults.map((result) => [result.assetId, result]),
     );
 
-    searchResults.forEach((asset) => {
-      if (!resultMap.has(asset.assetId)) {
-        resultMap.set(asset.assetId, {
-          assetId: asset.assetId,
-          symbol: asset.symbol,
-          name: asset.name,
-          decimals: asset.decimals,
-          price: asset.price,
-          aggregatedUsdVolume: asset.aggregatedUsdVolume,
-          marketCap: asset.marketCap,
-          priceChangePct: {
-            h24: asset.pricePercentChange1d,
-          },
-          rwaData: asset.rwaData as unknown as
-            | TrendingAsset['rwaData']
-            | undefined,
-        });
-      }
-    });
+    searchResults
+      .filter((item) => !item.rwaData)
+      .forEach((asset) => {
+        if (!resultMap.has(asset.assetId)) {
+          resultMap.set(asset.assetId, {
+            assetId: asset.assetId,
+            symbol: asset.symbol,
+            name: asset.name,
+            decimals: asset.decimals,
+            price: asset.price,
+            aggregatedUsdVolume: asset.aggregatedUsdVolume,
+            marketCap: asset.marketCap,
+            priceChangePct: {
+              h24: asset.pricePercentChange1d,
+            },
+            rwaData: asset.rwaData as unknown as
+              | TrendingAsset['rwaData']
+              | undefined,
+          });
+        }
+      });
 
     return Array.from(resultMap.values());
   }, [

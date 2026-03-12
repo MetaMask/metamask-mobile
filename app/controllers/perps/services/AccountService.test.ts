@@ -4,10 +4,7 @@ import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import type {
-  PerpsControllerState,
-  PerpsControllerMessenger,
-} from '../PerpsController';
+import type { PerpsControllerState } from '../PerpsController';
 import { PerpsAnalyticsEvent } from '../types';
 import type {
   PerpsProvider,
@@ -42,15 +39,15 @@ jest.mock('../perpsErrorCodes', () => ({
     WITHDRAW_FAILED: 'WITHDRAW_FAILED',
   },
 }));
-// Note: EVM account is now retrieved via dependency injection (deps.controllers.accounts.getSelectedEvmAccount)
-// The mock is set up via createMockInfrastructure() in serviceMocks.ts
+// Note: EVM account is now retrieved via messenger.call('AccountTreeController:getAccountsFromSelectedAccountGroup')
+// The mock is set up via createMockMessenger() in serviceMocks.ts
 
 describe('AccountService', () => {
   let mockProvider: jest.Mocked<PerpsProvider>;
   let mockContext: ServiceContext;
   let mockRefreshAccountState: jest.Mock;
   let mockDeps: PerpsPlatformDependencies;
-  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
+  let mockMessenger: ReturnType<typeof createMockMessenger>;
   let accountService: AccountService;
 
   const mockWithdrawParams: WithdrawParams = {

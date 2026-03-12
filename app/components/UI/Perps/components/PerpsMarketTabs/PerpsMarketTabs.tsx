@@ -5,7 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -21,17 +21,18 @@ import {
 } from '../../../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
-import { captureException } from '@sentry/react-native';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import {
   OrderDirection,
+  PERPS_CONSTANTS,
   type Position,
   type Order,
 } from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
   usePerpsLivePositions,
@@ -220,7 +221,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);
@@ -577,28 +578,32 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
         showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
 
-        // Capture exception with order context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'PerpsMarketTabs',
-              action: 'order_cancellation',
-              operation: 'order_management',
-            },
-            extra: {
-              orderContext: {
-                orderId: orderToCancel.orderId,
-                symbol: orderToCancel.symbol,
-                side: orderToCancel.side,
-                orderType: orderToCancel.orderType,
-                size: orderToCancel.size,
-                price: orderToCancel.price,
-                reduceOnly: orderToCancel.reduceOnly,
-              },
+        Logger.error(ensureError(error, 'PerpsMarketTabs.handleCancelOrder'), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'PerpsMarketTabs',
+            action: 'order_cancellation',
+            operation: 'order_management',
+          },
+          context: {
+            name: 'PerpsMarketTabs',
+            data: {
+              orderId: orderToCancel.orderId,
+              symbol: orderToCancel.symbol,
+              side: orderToCancel.side,
+              orderType: orderToCancel.orderType,
+              size: orderToCancel.size,
+              price: orderToCancel.price,
+              reduceOnly: orderToCancel.reduceOnly,
+              rawError:
+                error instanceof Error
+                  ? undefined
+                  : error === undefined
+                    ? 'undefined'
+                    : String(error),
             },
           },
-        );
+        });
       } finally {
         // Remove from UI loading state
         setCancellingOrderIds((prev) => {

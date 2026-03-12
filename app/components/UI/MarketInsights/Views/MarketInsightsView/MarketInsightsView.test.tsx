@@ -1,15 +1,18 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsView from './MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
+const mockFeedbackBottomSheet = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(
   (eventName: string) =>
@@ -27,7 +30,6 @@ let mockRouteParams = {
   assetSymbol: 'ETH',
   caip19Id: 'eip155:1/erc20:0x123',
   tokenImageUrl: 'https://example.com/eth.png',
-  pricePercentChange: 4.2,
   tokenAddress: '0x123',
   tokenDecimals: 18,
   tokenName: 'Ethereum',
@@ -40,7 +42,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -106,48 +108,6 @@ jest.mock('../../components/MarketInsightsTweetCard', () => {
   return TweetCard;
 });
 
-jest.mock('../../components/MarketInsightsSourcesFooter', () => {
-  const {
-    View: MockView,
-    Pressable: MockPressable,
-    Text: MockText,
-  } = jest.requireActual('react-native');
-
-  const SourcesFooter = ({
-    testID,
-    onSourcePress,
-    onThumbsUp,
-    onThumbsDown,
-  }: {
-    testID?: string;
-    onSourcePress?: (url: string) => void;
-    onThumbsUp?: () => void;
-    onThumbsDown?: () => void;
-  }) => (
-    <MockView testID={testID ?? 'sources-footer'}>
-      <MockPressable
-        testID="market-insights-source-link-button"
-        onPress={() => onSourcePress?.('https://coindesk.com/article-1')}
-      >
-        <MockText>source-link</MockText>
-      </MockPressable>
-      <MockPressable
-        testID="market-insights-thumbs-up-button"
-        onPress={onThumbsUp}
-      >
-        <MockText>thumbs-up</MockText>
-      </MockPressable>
-      <MockPressable
-        testID="market-insights-thumbs-down-button"
-        onPress={onThumbsDown}
-      >
-        <MockText>thumbs-down</MockText>
-      </MockPressable>
-    </MockView>
-  );
-  return SourcesFooter;
-});
-
 jest.mock('../../components/MarketInsightsTrendSourcesBottomSheet', () => {
   const {
     View: MockView,
@@ -175,6 +135,63 @@ jest.mock('../../components/MarketInsightsTrendSourcesBottomSheet', () => {
   return TrendSourcesBottomSheet;
 });
 
+jest.mock('../../components/MarketInsightsFeedbackBottomSheet', () => {
+  const {
+    View: MockView,
+    Pressable: MockPressable,
+    Text: MockText,
+  } = jest.requireActual('react-native');
+  const FeedbackBottomSheet = (
+    props:
+      | {
+          onSubmit?: (payload: {
+            reason: string;
+            feedbackText?: string;
+          }) => void;
+          onClose?: () => void;
+        }
+      | unknown,
+  ) => {
+    mockFeedbackBottomSheet(props);
+    const typedProps = props as {
+      onSubmit?: (payload: { reason: string; feedbackText?: string }) => void;
+      onClose?: () => void;
+    };
+    return (
+      <MockView testID="market-insights-feedback-bottom-sheet">
+        <MockPressable
+          testID="market-insights-feedback-submit-button"
+          onPress={() =>
+            typedProps.onSubmit?.({
+              reason: 'something_else',
+              feedbackText: 'Need confidence score',
+            })
+          }
+        >
+          <MockText>submit-feedback</MockText>
+        </MockPressable>
+        <MockPressable
+          testID="market-insights-feedback-close-button"
+          onPress={typedProps.onClose}
+        >
+          <MockText>close-feedback</MockText>
+        </MockPressable>
+      </MockView>
+    );
+  };
+  return {
+    __esModule: true,
+    default: FeedbackBottomSheet,
+    MarketInsightsFeedbackReason: {
+      NotRelevant: 'not_relevant',
+      NotAccurate: 'not_accurate',
+      HardToUnderstand: 'hard_to_understand',
+      HarmfulOrOffensive: 'harmful_or_offensive',
+      SomethingElse: 'something_else',
+    },
+  };
+});
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
@@ -190,7 +207,6 @@ describe('MarketInsightsView', () => {
       assetSymbol: 'ETH',
       caip19Id: 'eip155:1/erc20:0x123',
       tokenImageUrl: 'https://example.com/eth.png',
-      pricePercentChange: 4.2,
       tokenAddress: '0x123',
       tokenDecimals: 18,
       tokenName: 'Ethereum',
@@ -199,7 +215,66 @@ describe('MarketInsightsView', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
+  });
+
+  it('renders loading skeleton while market insights are loading', () => {
+    jest.useFakeTimers();
+
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      isLoading: true,
+      error: null,
+      timeAgo: '',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON)).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(160);
+    });
+
+    expect(
+      queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
+  });
+
+  it('does not render loading skeleton during error transition', () => {
+    jest.useFakeTimers();
+
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      isLoading: true,
+      error: null,
+      timeAgo: '',
+    });
+
+    const { queryByTestId, rerender } = renderWithProvider(
+      <MarketInsightsView />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(160);
+    });
+
+    expect(
+      queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON),
+    ).toBeOnTheScreen();
+
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      isLoading: false,
+      error: 'request failed',
+      timeAgo: '',
+    });
+
+    rerender(<MarketInsightsView />);
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON)).toBeNull();
   });
 
   it('returns null when market insights report is unavailable', () => {
@@ -256,14 +331,22 @@ describe('MarketInsightsView', () => {
             ],
           },
         ],
-        sources: [],
+        sources: [
+          {
+            name: 'coindesk.com',
+            type: 'article',
+            url: 'https://www.coindesk.com',
+          },
+        ],
       },
       isLoading: false,
       error: null,
       timeAgo: '5m ago',
     });
 
-    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <MarketInsightsView />,
+    );
 
     expect(
       getByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
@@ -277,6 +360,8 @@ describe('MarketInsightsView', () => {
     expect(
       getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER),
     ).toBeOnTheScreen();
+    expect(getByText('Was this helpful?')).toBeOnTheScreen();
+    expect(getByText('AI summary for information only')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TWEET_CARD}-0`));
     expect(Linking.openURL).toHaveBeenCalledWith(
@@ -305,7 +390,10 @@ describe('MarketInsightsView', () => {
 
     fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
     fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON));
-    fireEvent.press(getByTestId('market-insights-source-link-button'));
+    expect(
+      getByTestId('market-insights-feedback-bottom-sheet'),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
     fireEvent.press(getByTestId('market-insights-trend-source-link-button'));
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -344,15 +432,8 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           interaction_type: 'thumbs_down',
-        }),
-      }),
-    );
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-        properties: expect.objectContaining({
-          interaction_type: 'source_click',
-          source: 'https://coindesk.com/article-1',
+          feedback_reason: 'something_else',
+          feedback_text: 'Need confidence score',
         }),
       }),
     );
@@ -365,6 +446,13 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: expect.objectContaining({
+        newTabUrl: 'https://www.coindesk.com/article',
+        fromTrending: true,
+      }),
+    });
   });
 
   it('opens trend sources sheet for tweet-only trend and passes tweet sources', () => {

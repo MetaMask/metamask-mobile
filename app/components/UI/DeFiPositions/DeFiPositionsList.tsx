@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
@@ -31,13 +31,20 @@ import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../DefiEmptyState';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 export interface DeFiPositionsListProps {
   tabLabel: string;
+  isFullView?: boolean;
 }
 
-const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
+const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
+  isFullView = false,
+}) => {
   const { styles } = useStyles(styleSheet, undefined);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedScreenViewRef = useRef(false);
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
   const defiPositionsByEnabledNetworks = useSelector(
@@ -83,6 +90,26 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
 
     return sortAssets(defiPositionsList, defiSortConfig);
   }, [defiPositions, tokenSortConfig, defiPositionsByEnabledNetworks]);
+
+  useEffect(() => {
+    if (
+      !isFullView ||
+      !Array.isArray(formattedDeFiPositions) ||
+      hasTrackedScreenViewRef.current
+    )
+      return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+        .addProperties({
+          item_count: formattedDeFiPositions.length,
+          location: 'homepage',
+          is_empty: formattedDeFiPositions.length === 0,
+          screen_type: 'defi',
+        })
+        .build(),
+    );
+  }, [isFullView, formattedDeFiPositions, trackEvent, createEventBuilder]);
 
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
@@ -132,13 +159,15 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
 
   return (
     <View
-      style={!isHomepageRedesignV1Enabled ? styles.wrapper : undefined}
+      style={
+        isFullView || !isHomepageRedesignV1Enabled ? styles.wrapper : undefined
+      }
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
       {formattedDeFiPositions.length > 0 ? (
         <ConditionalScrollView
-          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          isScrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
           scrollViewProps={{
             testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
           }}

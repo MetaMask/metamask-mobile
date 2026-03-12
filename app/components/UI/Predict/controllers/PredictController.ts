@@ -79,6 +79,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictOrderType,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -106,7 +107,7 @@ import {
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
 import {
-  PredictFeeCollection,
+  PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
@@ -114,6 +115,8 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
+import { unwrapRemoteFeatureFlag } from '../utils/flags';
+import { parse, PredictFeeCollectionSchema } from '../schemas';
 
 /**
  * State shape for PredictController
@@ -138,6 +141,9 @@ export type PredictControllerState = {
   // Deposit management
   pendingDeposits: { [address: string]: string };
 
+  // Claim management (pending claim tracking per account)
+  pendingClaims: { [address: string]: string };
+
   // Withdraw management
   // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
@@ -158,6 +164,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   balances: {},
   claimablePositions: {},
   pendingDeposits: {},
+  pendingClaims: {},
   withdrawTransaction: null,
   accountMeta: {},
 });
@@ -201,6 +208,12 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
     usedInUi: false,
+  },
+  pendingClaims: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
   },
   withdrawTransaction: {
     persist: false,
@@ -326,7 +339,9 @@ export class PredictController extends BaseController<
       state: { ...getDefaultPredictControllerState(), ...state },
     });
 
-    this.provider = new PolymarketProvider();
+    this.provider = new PolymarketProvider({
+      getFeatureFlags: () => this.resolveFeatureFlags(),
+    });
 
     this.messenger.subscribe(
       'TransactionController:transactionStatusUpdated',
@@ -409,6 +424,54 @@ export class PredictController extends BaseController<
     };
   }
 
+  private resolveFeatureFlags(): PredictFeatureFlags {
+    const remoteFeatureFlagState = this.messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+    const flags = remoteFeatureFlagState.remoteFeatureFlags;
+
+    const liveSportsFlag =
+      unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(flags.predictLiveSports) ??
+      DEFAULT_LIVE_SPORTS_FLAG;
+    const liveSportsLeagues = liveSportsFlag.enabled
+      ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
+      : [];
+
+    const rawMarketHighlightsFlag =
+      unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
+        flags.predictMarketHighlights,
+      );
+    const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
+      rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+    );
+    const marketHighlightsFlag =
+      isHighlightsFlagValid && rawMarketHighlightsFlag
+        ? rawMarketHighlightsFlag
+        : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+    const feeCollection = parse(
+      unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
+        flags.predictFeeCollection,
+      ),
+      PredictFeeCollectionSchema,
+      DEFAULT_FEE_COLLECTION_FLAG,
+    );
+
+    const fakOrdersEnabled =
+      validatedVersionGatedFeatureFlag(
+        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+          flags.predictFakOrders,
+        ),
+      ) ?? false;
+
+    return {
+      feeCollection,
+      liveSportsLeagues,
+      marketHighlightsFlag,
+      fakOrdersEnabled,
+    };
+  }
+
   private getEvmAccountAddress(): string {
     const accounts = this.messenger.call(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -466,57 +529,28 @@ export class PredictController extends BaseController<
     });
 
     try {
-      const remoteFeatureFlagState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const liveSportsFlag =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
-        DEFAULT_LIVE_SPORTS_FLAG;
-      const liveSportsLeagues = liveSportsFlag.enabled
-        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
-        : [];
+      const featureFlags = this.resolveFeatureFlags();
 
-      const rawMarketHighlightsFlag = remoteFeatureFlagState.remoteFeatureFlags
-        .predictMarketHighlights as unknown as
-        | PredictMarketHighlightsFlag
-        | undefined;
-
-      const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
-        rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
-      );
-
-      const marketHighlightsFlag: PredictMarketHighlightsFlag =
-        isHighlightsFlagValid && rawMarketHighlightsFlag
-          ? rawMarketHighlightsFlag
-          : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
-
-      const paramsWithLiveSports = { ...params, liveSportsLeagues };
-
-      const allMarkets = await this.provider.getMarkets(paramsWithLiveSports);
+      const allMarkets = await this.provider.getMarkets(params);
 
       let markets = allMarkets.filter(
         (market): market is PredictMarket => market !== undefined,
       );
 
       const isFirstPage = !params.offset || params.offset === 0;
+      const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
       const shouldFetchHighlights =
-        isHighlightsFlagValid && isFirstPage && params.category && !params.q;
+        highlights.length > 0 && isFirstPage && params.category && !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
-          (marketHighlightsFlag.highlights ?? []).find(
-            (h) => h.category === params.category,
-          )?.markets ?? [];
+          highlights.find((h) => h.category === params.category)?.markets ?? [];
 
         if (highlightedMarketIds.length > 0) {
           const provider = this.provider;
 
           const fetchedHighlightedMarkets =
-            (await provider.getMarketsByIds?.(
-              highlightedMarketIds,
-              liveSportsLeagues,
-            )) ?? [];
+            (await provider.getMarketsByIds?.(highlightedMarketIds)) ?? [];
 
           const highlightedMarkets = fetchedHighlightedMarkets.filter(
             (market) => market.status === 'open',
@@ -606,21 +640,8 @@ export class PredictController extends BaseController<
 
     try {
       const provider = this.provider;
-
-      const remoteFeatureFlagState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const liveSportsFlag =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
-        DEFAULT_LIVE_SPORTS_FLAG;
-      const liveSportsLeagues = liveSportsFlag.enabled
-        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
-        : [];
-
       const market = await provider.getMarketDetails({
         marketId: resolvedMarketId,
-        liveSportsLeagues,
       });
 
       this.update((state) => {
@@ -1040,6 +1061,7 @@ export class PredictController extends BaseController<
     failureReason,
     sharePrice,
     pnl,
+    orderType,
   }: {
     status: PredictTradeStatusValue;
     amountUsd?: number;
@@ -1048,6 +1070,7 @@ export class PredictController extends BaseController<
     failureReason?: string;
     sharePrice?: number;
     pnl?: number;
+    orderType?: PredictOrderType;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -1100,6 +1123,9 @@ export class PredictController extends BaseController<
       }),
       ...(analyticsProperties.gameClock && {
         [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
+      }),
+      ...(orderType && {
+        [PredictEventProperties.ORDER_TYPE]: orderType,
       }),
     };
 
@@ -1368,18 +1394,9 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
 
-      const remoteFeatureFlagState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const feeCollection =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictFeeCollection as unknown as
-          | PredictFeeCollection
-          | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
-
       const signer = this.getSigner();
 
-      return provider.previewOrder({ ...params, signer, feeCollection });
+      return provider.previewOrder({ ...params, signer });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(
@@ -1439,6 +1456,7 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
+        orderType: preview.orderType,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1499,6 +1517,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
+        orderType: preview.orderType,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1518,6 +1537,7 @@ export class PredictController extends BaseController<
         sharePrice,
         completionDuration,
         failureReason: errorMessage,
+        orderType: preview.orderType,
       });
 
       // Update error state for Sentry integration
@@ -1584,10 +1604,20 @@ export class PredictController extends BaseController<
       },
     });
 
+    const signer = this.getSigner();
+
     try {
       const provider = this.provider;
 
-      const signer = this.getSigner();
+      // Skip if there's already a pending claim for this account
+      if (this.state.pendingClaims[signer.address]) {
+        traceData = { success: false, reason: 'already_pending' };
+        return {
+          batchId: this.state.pendingClaims[signer.address],
+          chainId: 0,
+          status: PredictClaimStatus.PENDING,
+        };
+      }
 
       // Get claimable positions from state
       const claimablePositions = this.state.claimablePositions[signer.address];
@@ -1595,6 +1625,11 @@ export class PredictController extends BaseController<
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
       }
+
+      // Set pending claim placeholder before preparing the transaction
+      this.update((state) => {
+        state.pendingClaims[signer.address] = 'pending';
+      });
 
       // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
       const prepareClaimResult = await provider.prepareClaim({
@@ -1648,6 +1683,11 @@ export class PredictController extends BaseController<
 
       const { batchId } = batchResult;
 
+      // Store the real batchId for pending claim tracking
+      this.update((state) => {
+        state.pendingClaims[signer.address] = batchId;
+      });
+
       const predictClaim: PredictClaim = {
         batchId,
         chainId,
@@ -1662,6 +1702,8 @@ export class PredictController extends BaseController<
       traceData = { success: true, positionCount: claimablePositions.length };
       return predictClaim;
     } catch (error) {
+      this.clearPendingClaimForAddress({ address: signer.address });
+
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
         traceData = { success: false, reason: 'user_cancelled' };
@@ -1995,6 +2037,19 @@ export class PredictController extends BaseController<
     });
   }
 
+  private clearPendingClaimForAddress({ address }: { address: string }): void {
+    const normalizedAddress = address.toLowerCase();
+    this.update((state) => {
+      const matchedAddress = Object.keys(state.pendingClaims).find(
+        (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+      );
+
+      if (matchedAddress) {
+        delete state.pendingClaims[matchedAddress];
+      }
+    });
+  }
+
   private handleTransactionStatusUpdate({
     transactionMeta,
   }: {
@@ -2074,6 +2129,10 @@ export class PredictController extends BaseController<
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    if (type === 'claim' && isTerminal) {
+      this.clearPendingClaimForAddress({ address });
     }
 
     if (type === 'claim' && status === 'confirmed') {

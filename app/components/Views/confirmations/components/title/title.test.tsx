@@ -28,6 +28,12 @@ import Title from './title';
 
 jest.mock('../../hooks/useGetTokenStandardAndDetails');
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(() => ({
+    isFullScreenConfirmation: false,
+  })),
+}));
+
 describe('Confirm Title', () => {
   const typedSignRequestId = 'fb2029e1-b0ab-11ef-9227-05a11087c334';
   const daiPermitAllowedStringFalseData = JSON.stringify({
@@ -166,8 +172,8 @@ describe('Confirm Title', () => {
     ).toBeTruthy();
   });
 
-  it('renders correct title for transfer', () => {
-    const { getByText } = renderWithProvider(<Title />, {
+  it('renders no title for transfer', () => {
+    const { queryByText } = renderWithProvider(<Title />, {
       state: merge(transferConfirmationState, {
         engine: {
           backgroundState: {
@@ -182,7 +188,7 @@ describe('Confirm Title', () => {
         },
       }),
     });
-    expect(getByText('Transfer request')).toBeTruthy();
+    expect(queryByText('Transfer request')).toBeNull();
   });
 
   it('renders correct title and subtitle for upgrade smart account', () => {
@@ -321,6 +327,28 @@ describe('Confirm Title', () => {
     });
     expect(getByText('Claim bonus')).toBeTruthy();
     expect(getByText('Bonus will be paid out on Linea Mainnet.')).toBeTruthy();
+  });
+
+  it('renders max conversion title for musdMaxConversion', () => {
+    const musdMaxConversionState = merge({}, generateContractInteractionState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                type: TransactionType.musdConversion,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const { getByText } = renderWithProvider(<Title />, {
+      state: musdMaxConversionState,
+    });
+
+    expect(getByText('Convert max')).toBeOnTheScreen();
   });
 
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(

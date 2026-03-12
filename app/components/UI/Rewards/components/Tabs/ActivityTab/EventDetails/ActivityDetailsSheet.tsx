@@ -13,6 +13,7 @@ import {
   PointsEventDto,
   SeasonActivityTypeDto,
 } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
+import { BonusCodeEventDetails } from './BonusCodeEventDetails';
 
 interface ActivityDetailsSheetProps {
   event: PointsEventDto;
@@ -45,6 +46,13 @@ export const ActivityDetailsSheet: React.FC<ActivityDetailsSheetProps> = ({
       return (
         <MusdDepositEventDetails
           event={event as Extract<PointsEventDto, { type: 'MUSD_DEPOSIT' }>}
+          accountName={accountName}
+        />
+      );
+    case 'BONUS_CODE':
+      return (
+        <BonusCodeEventDetails
+          event={event as Extract<PointsEventDto, { type: 'BONUS_CODE' }>}
           accountName={accountName}
         />
       );

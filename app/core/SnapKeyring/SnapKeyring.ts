@@ -18,7 +18,7 @@ import {
 import { endTrace, TraceName } from '../../util/trace';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
-import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
+import { trackSnapAccountEvent } from '../../util/analytics/helpers/snapKeyring/trackSnapAccountEvent';
 import { endPerformanceTrace } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { areAddressesEqual } from '../../util/address';

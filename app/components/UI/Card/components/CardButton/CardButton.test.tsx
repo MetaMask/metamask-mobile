@@ -24,8 +24,6 @@ function renderWithProvider(component: React.ComponentType) {
         engine: { backgroundState },
         card: {
           cardholderAccounts: [],
-          priorityTokensByAddress: {},
-          lastFetchedByAddress: {},
           hasViewedCardButton: false,
           isLoaded: false,
         },

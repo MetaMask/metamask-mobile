@@ -219,15 +219,12 @@ jest.mock('../../hooks/useApplyReferralCode', () => ({
   useApplyReferralCode: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { muted: '#f5f5f5' },
-      border: { muted: '#e0e0e0' },
-      error: { default: '#ff0000' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn((callback) => callback()),

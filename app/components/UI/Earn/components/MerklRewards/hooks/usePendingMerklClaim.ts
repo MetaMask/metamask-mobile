@@ -1,8 +1,7 @@
 import { useMemo, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { TransactionStatus } from '@metamask/transaction-controller';
-import { selectTransactions } from '../../../../../../selectors/transactionController';
-import { MERKL_CLAIM_ORIGIN } from '../constants';
+import { selectMerklClaimTransactions } from '../../../selectors/merklClaimTransactions';
 
 /**
  * Transaction statuses that indicate a claim is "in flight"
@@ -34,19 +33,15 @@ export const usePendingMerklClaim = (
   options: UsePendingMerklClaimOptions = {},
 ) => {
   const { onClaimConfirmed } = options;
-  const transactions = useSelector(selectTransactions);
+  const claimTransactions = useSelector(selectMerklClaimTransactions);
 
   // Track the IDs of pending claims we've seen
   const pendingClaimIdsRef = useRef<Set<string>>(new Set());
 
   const hasPendingClaim = useMemo(
     () =>
-      transactions.some(
-        (tx) =>
-          tx.origin === MERKL_CLAIM_ORIGIN &&
-          IN_FLIGHT_STATUSES.includes(tx.status),
-      ),
-    [transactions],
+      claimTransactions.some((tx) => IN_FLIGHT_STATUSES.includes(tx.status)),
+    [claimTransactions],
   );
 
   // Stable callback ref to avoid effect re-running
@@ -57,19 +52,13 @@ export const usePendingMerklClaim = (
 
   // Detect when a pending claim becomes confirmed
   useEffect(() => {
-    const merklClaimTxs = transactions.filter(
-      (tx) => tx.origin === MERKL_CLAIM_ORIGIN,
-    );
-
-    // Get current pending claim IDs
     const currentPendingIds = new Set(
-      merklClaimTxs
+      claimTransactions
         .filter((tx) => IN_FLIGHT_STATUSES.includes(tx.status))
         .map((tx) => tx.id),
     );
 
-    // Check if any previously pending claims are now confirmed
-    const confirmedIds = merklClaimTxs
+    const confirmedIds = claimTransactions
       .filter((tx) => tx.status === TransactionStatus.confirmed)
       .map((tx) => tx.id);
 
@@ -84,7 +73,7 @@ export const usePendingMerklClaim = (
     if (hadPendingThatConfirmed && onClaimConfirmedRef.current) {
       onClaimConfirmedRef.current();
     }
-  }, [transactions]);
+  }, [claimTransactions]);
 
   return { hasPendingClaim };
 };

@@ -38,6 +38,7 @@ interface PaymentMethodListItemProps {
   paymentMethod: PaymentMethod;
   onPress?: () => void;
   isSelected?: boolean;
+  showQuote?: boolean;
   quote: Quote | null;
   quoteLoading: boolean;
   quoteError: boolean;
@@ -49,6 +50,7 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   paymentMethod,
   onPress,
   isSelected = false,
+  showQuote = true,
   quote,
   quoteLoading,
   quoteError,
@@ -102,14 +104,16 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
           </Text>
         ) : null}
       </ListItemColumn>
-      <ListItemColumn widthType={WidthType.Auto}>
-        <QuoteDisplay
-          cryptoAmount={cryptoAmount}
-          fiatAmount={fiatAmount}
-          isLoading={quoteLoading}
-          showWarningIcon={quoteError}
-        />
-      </ListItemColumn>
+      {showQuote ? (
+        <ListItemColumn widthType={WidthType.Auto}>
+          <QuoteDisplay
+            cryptoAmount={cryptoAmount}
+            fiatAmount={fiatAmount}
+            isLoading={quoteLoading}
+            showWarningIcon={quoteError}
+          />
+        </ListItemColumn>
+      ) : null}
     </ListItemSelect>
   );
 };

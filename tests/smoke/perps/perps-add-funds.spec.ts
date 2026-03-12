@@ -4,16 +4,22 @@ import { LocalNodeType, TestSuiteParams } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
 import { SmokePerps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Assertions from '../../framework/Assertions';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
-import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
 import { createLogger, LogLevel } from '../../framework/logger';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',
@@ -33,13 +39,11 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
           .withPerpsFirstTimeUser(false)
           .withKeyringControllerOfMultipleAccounts()
           .withNetworkController({
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0xa4b1',
-              rpcUrl: 'https://arb1.arbitrum.io/rpc',
-              nickname: 'Arbitrum One',
-              ticker: 'ETH',
-            },
+            type: 'rpc',
+            chainId: '0xa4b1',
+            rpcUrl: 'https://arb1.arbitrum.io/rpc',
+            nickname: 'Arbitrum One',
+            ticker: 'ETH',
           })
           .withTokensForAllPopularNetworks([
             {
@@ -65,7 +69,16 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
           )
           .build(),
         restartDevice: true,
-        testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+          await PERPS_ARBITRUM_MOCKS(mockServer);
+          await mockPerpsGeolocation(
+            mockServer,
+            RampsRegions[RampsRegionsEnum.SPAIN],
+          );
+        },
         useCommandQueueServer: true,
         localNodeOptions: [
           {
@@ -88,13 +101,13 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         );
 
         // Go to Perps tab
-        await PerpsHelpers.navigateToPerpsTab();
+        await WalletView.scrollAndTapPerpsSection();
 
         // Read initial balance text for later comparison
         const initialBalance = await PerpsTabView.getBalance();
 
         // Open Add Funds from balance menu
-        await PerpsTabView.tapBalanceButton();
+        //await PerpsTabView.tapBalanceButton();
         await PerpsTabView.tapAddFundsButton();
 
         // If a network-added toast appears, wait for it to disappear before interacting

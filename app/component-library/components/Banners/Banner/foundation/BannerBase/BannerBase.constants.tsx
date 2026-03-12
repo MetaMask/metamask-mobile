@@ -18,8 +18,8 @@ import { BannerBaseProps } from './BannerBase.types';
 export const TESTID_BANNER_CLOSE_BUTTON_ICON = 'banner-close-button-icon';
 
 // Defaults
-export const DEFAULT_BANNERBASE_TITLE_TEXTVARIANT = TextVariant.BodyLGMedium;
-export const DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT = TextVariant.BodyMD;
+export const DEFAULT_BANNERBASE_TITLE_TEXTVARIANT = TextVariant.BodyMDMedium;
+export const DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT = TextVariant.BodySM;
 export const DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT = ButtonVariants.Link;
 export const DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE = ButtonSize.Auto;
 export const DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONCOLOR =

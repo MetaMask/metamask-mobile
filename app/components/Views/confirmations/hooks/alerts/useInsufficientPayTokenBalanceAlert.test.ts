@@ -358,6 +358,29 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
       expect(result.current).toStrictEqual([]);
     });
+
+    it('uses the standard message (with network switch hint) for non-post-quote flows', () => {
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '99',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenNative,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_native.message',
+            { ticker: 'ETH' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
   });
 
   describe('for post-quote (withdrawal) flows', () => {
@@ -461,7 +484,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           isBlocking: true,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_native.message',
+            'alert_system.insufficient_pay_token_native_post_quote.message',
             { ticker: 'POL' },
           ),
           severity: Severity.Danger,
@@ -491,7 +514,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           isBlocking: true,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_native.message',
+            'alert_system.insufficient_pay_token_native_post_quote.message',
             { ticker: 'POL' },
           ),
           severity: Severity.Danger,
@@ -528,7 +551,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           isBlocking: true,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_native.message',
+            'alert_system.insufficient_pay_token_native_post_quote.message',
             { ticker: 'POL' },
           ),
           severity: Severity.Danger,

@@ -5,7 +5,7 @@ import {
   selectMinimumBalanceForRentExemptionInSOL,
 } from '@metamask/bridge-controller';
 import { selectRemoteFeatureFlags } from '../featureFlagController';
-import { MetaMetrics } from '../../core/Analytics';
+import { analytics } from '../../util/analytics/analytics';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState.BridgeController;
@@ -25,7 +25,7 @@ export const selectBridgeAppState = (state: RootState) => ({
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
-  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
   },

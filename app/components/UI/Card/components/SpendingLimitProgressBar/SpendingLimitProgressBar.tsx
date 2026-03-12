@@ -7,7 +7,7 @@ import Text, {
 import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 
 interface SpendingLimitProgressBarProps {

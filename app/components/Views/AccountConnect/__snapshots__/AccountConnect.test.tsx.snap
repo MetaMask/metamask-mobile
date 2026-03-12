@@ -23,7 +23,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
     style={
       [
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#0a0d135c",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -72,8 +72,8 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
       style={
         [
           {
-            "backgroundColor": "#f3f5f9",
-            "borderColor": "#b7bbc866",
+            "backgroundColor": "#f3f3f4",
+            "borderColor": "#b4b4b566",
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
@@ -110,7 +110,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
         <View
           style={
             {
-              "backgroundColor": "#b7bbc866",
+              "backgroundColor": "#b4b4b566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -121,7 +121,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
       <RCTSafeAreaView
         style={
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           }
         }
       >
@@ -129,7 +129,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
           style={
             [
               {
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
@@ -210,7 +210,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       style={
                         [
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
@@ -251,9 +251,9 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -266,7 +266,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -351,7 +351,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                           style={
                             {
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
+                              "borderColor": "#949596",
                               "borderRadius": 4,
                               "borderWidth": 0,
                               "height": 75,
@@ -403,7 +403,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -417,7 +417,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -448,7 +448,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -505,6 +505,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }
@@ -549,7 +550,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Wallet"
@@ -574,7 +575,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -606,7 +607,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -619,7 +620,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -744,7 +745,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Data"
@@ -769,7 +770,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -801,7 +802,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -813,7 +814,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -951,7 +952,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       },
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#686e7d",
+                        "borderColor": "#66676a",
                         "borderWidth": 1,
                       },
                       [
@@ -985,7 +986,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                           "textAlign": "center",
                         },
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                         },
                         undefined,
                       ],
@@ -1089,7 +1090,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
     style={
       [
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#0a0d135c",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -1138,8 +1139,8 @@ exports[`AccountConnect renders correctly with base request when there is no exi
       style={
         [
           {
-            "backgroundColor": "#f3f5f9",
-            "borderColor": "#b7bbc866",
+            "backgroundColor": "#f3f3f4",
+            "borderColor": "#b4b4b566",
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
@@ -1176,7 +1177,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
         <View
           style={
             {
-              "backgroundColor": "#b7bbc866",
+              "backgroundColor": "#b4b4b566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -1187,7 +1188,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
       <RCTSafeAreaView
         style={
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           }
         }
       >
@@ -1195,7 +1196,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
           style={
             [
               {
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
@@ -1276,7 +1277,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       style={
                         [
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
@@ -1317,9 +1318,9 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1332,7 +1333,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1417,7 +1418,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                           style={
                             {
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
+                              "borderColor": "#949596",
                               "borderRadius": 4,
                               "borderWidth": 0,
                               "height": 75,
@@ -1469,7 +1470,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1483,7 +1484,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1514,7 +1515,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1571,6 +1572,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }
@@ -1615,7 +1617,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Wallet"
@@ -1640,7 +1642,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -1672,7 +1674,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -1685,7 +1687,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -1810,7 +1812,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Data"
@@ -1835,7 +1837,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -1867,7 +1869,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -1879,7 +1881,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -2017,7 +2019,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       },
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#686e7d",
+                        "borderColor": "#66676a",
                         "borderWidth": 1,
                       },
                       [
@@ -2051,7 +2053,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                           "textAlign": "center",
                         },
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                         },
                         undefined,
                       ],
@@ -2155,7 +2157,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
     style={
       [
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#0a0d135c",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -2204,8 +2206,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
       style={
         [
           {
-            "backgroundColor": "#f3f5f9",
-            "borderColor": "#b7bbc866",
+            "backgroundColor": "#f3f3f4",
+            "borderColor": "#b4b4b566",
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
@@ -2242,7 +2244,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
         <View
           style={
             {
-              "backgroundColor": "#b7bbc866",
+              "backgroundColor": "#b4b4b566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -2253,7 +2255,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
       <RCTSafeAreaView
         style={
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           }
         }
       >
@@ -2261,7 +2263,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
           style={
             [
               {
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
@@ -2342,7 +2344,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       style={
                         [
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
@@ -2383,9 +2385,9 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -2398,7 +2400,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2483,7 +2485,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                           style={
                             {
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
+                              "borderColor": "#949596",
                               "borderRadius": 4,
                               "borderWidth": 0,
                               "height": 75,
@@ -2535,7 +2537,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2549,7 +2551,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2580,7 +2582,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2637,6 +2639,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }
@@ -2681,7 +2684,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Wallet"
@@ -2706,7 +2709,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -2738,7 +2741,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -2751,7 +2754,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -2876,7 +2879,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Data"
@@ -2901,7 +2904,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -2933,7 +2936,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -2945,7 +2948,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -3083,7 +3086,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       },
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#686e7d",
+                        "borderColor": "#66676a",
                         "borderWidth": 1,
                       },
                       [
@@ -3117,7 +3120,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                           "textAlign": "center",
                         },
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                         },
                         undefined,
                       ],
@@ -3221,7 +3224,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
     style={
       [
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#0a0d135c",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -3270,8 +3273,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
       style={
         [
           {
-            "backgroundColor": "#f3f5f9",
-            "borderColor": "#b7bbc866",
+            "backgroundColor": "#f3f3f4",
+            "borderColor": "#b4b4b566",
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
@@ -3308,7 +3311,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
         <View
           style={
             {
-              "backgroundColor": "#b7bbc866",
+              "backgroundColor": "#b4b4b566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -3319,7 +3322,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
       <RCTSafeAreaView
         style={
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           }
         }
       >
@@ -3327,7 +3330,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           style={
             [
               {
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
@@ -3408,7 +3411,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       style={
                         [
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
@@ -3449,9 +3452,9 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -3464,7 +3467,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -3549,7 +3552,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                           style={
                             {
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
+                              "borderColor": "#949596",
                               "borderRadius": 4,
                               "borderWidth": 0,
                               "height": 75,
@@ -3601,7 +3604,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -3615,7 +3618,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -3646,7 +3649,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -3703,6 +3706,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }
@@ -3747,7 +3751,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Wallet"
@@ -3772,7 +3776,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -3804,7 +3808,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -3817,7 +3821,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -3942,7 +3946,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       }
                     >
                       <SvgMock
-                        color="#686e7d"
+                        color="#66676a"
                         fill="currentColor"
                         height={20}
                         name="Data"
@@ -3967,7 +3971,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -3999,7 +4003,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -4011,7 +4015,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -4149,7 +4153,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       },
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#686e7d",
+                        "borderColor": "#66676a",
                         "borderWidth": 1,
                       },
                       [
@@ -4183,7 +4187,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                           "textAlign": "center",
                         },
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                         },
                         undefined,
                       ],

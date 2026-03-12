@@ -34,7 +34,7 @@ jest.mock('../framework/quality-gates', () => ({
   clearQualityGateFailures: jest.fn(),
 }));
 
-jest.mock('../teams-config.js', () => ({
+jest.mock('../framework/utils/teams', () => ({
   getTeamInfoFromTags: jest.fn(() => ({
     teamId: '@performance-team',
     teamName: 'Performance Team',

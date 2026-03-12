@@ -3,19 +3,15 @@
 
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import {
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import HeaderStackedStandard from '../../../../component-library/components-temp/HeaderStackedStandard';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import TitleStandard from '../../../../component-library/components-temp/TitleStandard';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -160,21 +156,20 @@ const SelectHardwareWallet = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <HeaderStackedStandard
-        onBack={navigation.goBack}
-        titleStandardProps={{
-          title: strings('connect_hardware.title_select_hardware'),
-          bottomAccessory: (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.subtitle}
-            >
-              {strings('connect_hardware.select_hardware')}
-            </Text>
-          ),
-        }}
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+      <HeaderCompactStandard includesTopInset onBack={navigation.goBack} />
+      <TitleStandard
+        title={strings('connect_hardware.title_select_hardware')}
+        bottomAccessory={
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.subtitle}
+          >
+            {strings('connect_hardware.select_hardware')}
+          </Text>
+        }
+        twClassName="px-4 pt-1 pb-3"
       />
       <View style={styles.buttonsContainer}>
         <LedgerButton />

@@ -35,7 +35,7 @@ exports[`FoxRiveLoaderAnimation displays Rive animation and ActivityIndicator 1`
     }
   >
     <ActivityIndicator
-      color="#121314"
+      color="#131416"
       size="large"
     />
   </View>

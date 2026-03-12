@@ -1,5 +1,5 @@
 import Engine from '../../core/Engine';
-import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { getAddressAccountType } from '../address';
 import NotificationManager from '../../core/NotificationManager';
 import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
@@ -12,7 +12,8 @@ import { getBlockaidMetricsParams } from '../blockaid';
 import Device from '../device';
 import { getDecimalChainId } from '../networks';
 import Logger from '../Logger';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { analytics } from '../analytics/analytics';
+import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -114,8 +115,8 @@ export const handleSignatureAction = async (
 ) => {
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
-  MetaMetrics.getInstance().trackEvent(
-    MetricsEventBuilder.createEventBuilder(
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(
       confirmation
         ? MetaMetricsEvents.SIGNATURE_APPROVED
         : MetaMetricsEvents.SIGNATURE_REJECTED,

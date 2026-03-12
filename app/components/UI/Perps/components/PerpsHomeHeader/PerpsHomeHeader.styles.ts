@@ -44,6 +44,22 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       marginRight: 8,
     },
+    testnetBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 16,
+      backgroundColor: theme.colors.warning.muted,
+      marginLeft: 8,
+      gap: 4,
+    },
+    testnetDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: theme.colors.warning.default,
+    },
   });
 };
 

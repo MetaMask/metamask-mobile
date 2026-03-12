@@ -110,9 +110,11 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               </Box>
             }
             onPress={() => {
-              navigation.navigate(Routes.BROWSER.VIEW, {
-                newTabUrl: srcExplorerData.explorerTxUrl,
-                timestamp: Date.now(),
+              navigation.navigate(Routes.WEBVIEW.MAIN, {
+                screen: Routes.WEBVIEW.SIMPLE,
+                params: {
+                  url: srcExplorerData.explorerTxUrl,
+                },
               });
             }}
           />
@@ -139,9 +141,11 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               </Box>
             }
             onPress={() => {
-              navigation.navigate(Routes.BROWSER.VIEW, {
-                newTabUrl: bridgeDestExplorerData.explorerTxUrl,
-                timestamp: Date.now(),
+              navigation.navigate(Routes.WEBVIEW.MAIN, {
+                screen: Routes.WEBVIEW.SIMPLE,
+                params: {
+                  url: bridgeDestExplorerData.explorerTxUrl,
+                },
               });
             }}
           />

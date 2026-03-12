@@ -1,47 +1,63 @@
+import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { usePredictAccountState } from './usePredictAccountState';
+import { predictAccountStateKeys } from '../queries/accountState';
 
-// Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       getAccountState: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {
+          '0x89': {},
+        },
+      },
+    },
+    NetworkEnablementController: {
+      enableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
+    },
   },
 }));
 
-// Mock @react-navigation/native
-jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn(() => {
-    // Mock implementation
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+jest.mock('../../../../core/redux', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => true),
   }),
-}));
+);
 
-// Mock DevLogger
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: {
-    log: jest.fn(),
-  },
-}));
-
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-
-const mockDevLoggerLog = DevLogger.log as jest.Mock;
-
-// Mock usePredictNetworkManagement
-const mockEnsurePolygonNetworkExists = jest.fn().mockResolvedValue(undefined);
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: () => ({
-    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
-  }),
-}));
-
-import { useFocusEffect } from '@react-navigation/native';
+jest.mock('../utils/predictErrorHandler', () => {
+  const actual = jest.requireActual('../utils/predictErrorHandler');
+  return {
+    ensureError: actual.ensureError,
+  };
+});
 
 const mockGetAccountState = Engine.context.PredictController
   .getAccountState as jest.Mock;
-const mockUseFocusEffect = useFocusEffect as jest.Mock;
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  return { Wrapper, queryClient };
+};
 
 describe('usePredictAccountState', () => {
   const mockAccountState = {
@@ -52,618 +68,222 @@ describe('usePredictAccountState', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseFocusEffect.mockImplementation(() => {
-      // Default no-op implementation
-    });
     mockGetAccountState.mockResolvedValue(mockAccountState);
-    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('initialization', () => {
-    it('starts with loading state set to true initially', () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // Assert - initially loading is true (initial state)
-      expect(result.current.isLoading).toBe(true);
-    });
-
     it('loads account state on mount by default', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
 
-      // Act
-      const { result } = renderHook(() => usePredictAccountState());
-
-      // Assert
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
       expect(mockGetAccountState).toHaveBeenCalledWith({});
-      expect(result.current.address).toEqual(mockAccountState.address);
+      expect(result.current.data?.address).toEqual(mockAccountState.address);
     });
 
-    it('does not load account state on mount when loadOnMount is false', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
+    it('does not load account state when enabled is false', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictAccountState({ enabled: false }),
+        { wrapper: Wrapper },
       );
 
-      // Assert - wait a bit to ensure it doesn't load
+      // Wait a bit to ensure it doesn't load
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
       expect(mockGetAccountState).not.toHaveBeenCalled();
-      expect(result.current.address).toBeUndefined();
+      expect(result.current.data).toBeUndefined();
     });
   });
 
-  describe('loadAccountState function', () => {
-    it('loads account state successfully', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({});
-      expect(result.current.address).toEqual(mockAccountState.address);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
-    });
-
-    it('loads account state when requested', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({
-          loadOnMount: false,
-        }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({});
-    });
-
-    it('handles errors when loading account state', async () => {
-      // Arrange
-      const mockError = new Error('Failed to load account state');
-      mockGetAccountState.mockRejectedValue(mockError);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.error).toBe('Failed to load account state');
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.address).toBeUndefined();
-    });
-
-    it('handles non-Error exceptions', async () => {
-      // Arrange
-      mockGetAccountState.mockRejectedValue('String error');
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.error).toBe('Failed to load account state');
-    });
-
-    it('sets isLoading true during load', async () => {
-      // Arrange
-      let resolver: (value: typeof mockAccountState) => void = () => {
-        // Initial no-op
-      };
-      const promise = new Promise<typeof mockAccountState>((resolve) => {
-        resolver = resolve;
-      });
-      mockGetAccountState.mockReturnValue(promise);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // Start loading without awaiting
-      result.current.loadAccountState();
-
-      // Assert - loading should be true during the call
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(true);
-      });
-
-      // Complete the promise
-      await act(async () => {
-        resolver(mockAccountState);
-        await promise;
-      });
-
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('clears previous error on successful load', async () => {
-      // Arrange
-      mockGetAccountState
-        .mockRejectedValueOnce(new Error('First error'))
-        .mockResolvedValueOnce(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // First call - should fail
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      expect(result.current.error).toBe('First error');
-
-      // Second call - should succeed and clear error
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.error).toBeNull();
-      expect(result.current.address).toEqual(mockAccountState.address);
-    });
-
-    it('calls ensurePolygonNetworkExists before loading account state', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
-      expect(mockGetAccountState).toHaveBeenCalled();
-    });
-
-    it('continues loading account state when ensurePolygonNetworkExists fails', async () => {
-      // Arrange
-      const networkError = new Error('Failed to add Polygon network');
-      mockEnsurePolygonNetworkExists.mockRejectedValue(networkError);
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert - account state should still be loaded despite network error
-      expect(result.current.address).toEqual(mockAccountState.address);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
-    });
-
-    it('logs error when ensurePolygonNetworkExists fails', async () => {
-      // Arrange
-      const networkError = new Error('Failed to add Polygon network');
-      mockEnsurePolygonNetworkExists.mockRejectedValue(networkError);
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert - DevLogger should have been called with network error
-      expect(mockDevLoggerLog).toHaveBeenCalledWith(
-        'usePredictAccountState: Failed to ensure Polygon network exists',
-        networkError,
-      );
-    });
-  });
-
-  describe('refresh functionality', () => {
-    it('uses isRefreshing flag when loading with isRefresh option', async () => {
-      // Arrange
-      let resolver: (value: typeof mockAccountState) => void = () => {
-        // Initial no-op
-      };
-      const promise = new Promise<typeof mockAccountState>((resolve) => {
-        resolver = resolve;
-      });
-      mockGetAccountState.mockReturnValue(promise);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // Start refreshing without awaiting
-      await act(async () => {
-        result.current.loadAccountState({ isRefresh: true });
-        // Allow state to update
-        await Promise.resolve();
-      });
-
-      // Assert - isRefreshing should be true during refresh
-      expect(result.current.isRefreshing).toBe(true);
-
-      // Complete the promise
-      await act(async () => {
-        resolver(mockAccountState);
-        await promise;
-      });
-
-      expect(result.current.isRefreshing).toBe(false);
-    });
-
-    it('refreshes on focus when refreshOnFocus is true', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-      let focusCallback: (() => void) | null = null;
-
-      // Capture the focus callback
-      mockUseFocusEffect.mockImplementation((callback) => {
-        focusCallback = callback;
-      });
-
-      // Act
-      renderHook(() =>
-        usePredictAccountState({
-          loadOnMount: false,
-          refreshOnFocus: true,
-        }),
-      );
-
-      // Clear the initial call
-      mockGetAccountState.mockClear();
-
-      // Assert - useFocusEffect should have been called
-      expect(mockUseFocusEffect).toHaveBeenCalledTimes(1);
-      expect(focusCallback).not.toBeNull();
-
-      // Simulate screen focus
-      act(() => {
-        if (focusCallback) {
-          focusCallback();
-        }
+  describe('data fetching', () => {
+    it('returns account state data on success', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
       });
 
       await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(1);
+        expect(result.current.isLoading).toBe(false);
       });
+
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
+      expect(result.current.data?.address).toEqual(mockAccountState.address);
+      expect(result.current.data?.isDeployed).toBe(true);
+      expect(result.current.data?.hasAllowances).toBe(true);
+      expect(result.current.error).toBeNull();
     });
 
-    it('does not refresh on focus when refreshOnFocus is false', () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-      let focusCallback: (() => void) | null = null;
+    it('exposes error when loading fails', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetAccountState.mockRejectedValue(
+        new Error('Failed to load account state'),
+      );
 
-      // Capture the focus callback
-      mockUseFocusEffect.mockImplementation((callback) => {
-        focusCallback = callback;
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
       });
 
-      // Act
-      renderHook(() =>
-        usePredictAccountState({
-          loadOnMount: false,
-          refreshOnFocus: false,
+      await waitFor(() => {
+        expect(result.current.error).toBeTruthy();
+      });
+
+      expect(result.current.error?.message).toBe(
+        'Failed to load account state',
+      );
+      expect(result.current.data).toBeUndefined();
+    });
+
+    it('clears error on successful refetch', async () => {
+      const { Wrapper, queryClient } = createWrapper();
+      mockGetAccountState.mockRejectedValue(new Error('First error'));
+
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.error?.message).toBe('First error');
+      });
+
+      // Switch to success for the refetch
+      mockGetAccountState.mockResolvedValue(mockAccountState);
+
+      await act(async () => {
+        await queryClient.invalidateQueries({
+          queryKey: predictAccountStateKeys.all(),
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeNull();
+        expect(result.current.data?.address).toEqual(mockAccountState.address);
+      });
+    });
+  });
+
+  describe('error logging', () => {
+    it('logs error via Logger.error when query fails', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetAccountState.mockRejectedValue(
+        new Error('Failed to load account state'),
+      );
+
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeTruthy();
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'Predict',
+            component: 'usePredictAccountState',
+          }),
         }),
       );
-
-      // Clear any initial calls
-      mockGetAccountState.mockClear();
-
-      // Assert - useFocusEffect should have been called but callback shouldn't refresh
-      expect(mockUseFocusEffect).toHaveBeenCalledTimes(1);
-
-      // Simulate screen focus if callback was provided
-      act(() => {
-        if (focusCallback) {
-          focusCallback();
-        }
-      });
-
-      // Should not have called getAccountState because refreshOnFocus is false
-      expect(mockGetAccountState).not.toHaveBeenCalled();
     });
   });
 
-  describe('computed values', () => {
-    it('returns address from account state', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.address).toBe(mockAccountState.address);
-    });
-
-    it('returns isDeployed from account state', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.isDeployed).toBe(true);
-    });
-
-    it('returns false for isDeployed when account state is null', () => {
-      // Arrange & Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // Assert
-      expect(result.current.isDeployed).toBe(false);
-    });
-
-    it('returns hasAllowances from account state', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.hasAllowances).toBe(true);
-    });
-
-    it('returns false for hasAllowances when account state is null', () => {
-      // Arrange & Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // Assert
-      expect(result.current.hasAllowances).toBe(false);
-    });
-
-    it('returns undefined for address when account state is null', () => {
-      // Arrange & Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // Assert
-      expect(result.current.address).toBeUndefined();
-    });
-  });
-
-  describe('edge cases', () => {
-    it('handles account state with isDeployed false', async () => {
-      // Arrange
-      const undeployedState = {
+  describe('account state values', () => {
+    it('returns isDeployed as false when account is not deployed', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetAccountState.mockResolvedValue({
         ...mockAccountState,
         isDeployed: false,
-      };
-      mockGetAccountState.mockResolvedValue(undeployedState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
       });
 
-      // Assert
-      expect(result.current.isDeployed).toBe(false);
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toBeDefined();
+      });
+
+      expect(result.current.data?.isDeployed).toBe(false);
     });
 
-    it('handles account state with hasAllowances false', async () => {
-      // Arrange
-      const noAllowancesState = {
+    it('returns hasAllowances as false when account lacks allowances', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetAccountState.mockResolvedValue({
         ...mockAccountState,
         hasAllowances: false,
-      };
-      mockGetAccountState.mockResolvedValue(noAllowancesState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
       });
 
-      // Assert
-      expect(result.current.hasAllowances).toBe(false);
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toBeDefined();
+      });
+
+      expect(result.current.data?.hasAllowances).toBe(false);
     });
 
-    it('handles multiple rapid calls to loadAccountState', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
+    it('has undefined data when query is disabled', () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictAccountState({ enabled: false }),
+        { wrapper: Wrapper },
       );
 
-      await act(async () => {
-        await Promise.all([
-          result.current.loadAccountState(),
-          result.current.loadAccountState(),
-          result.current.loadAccountState(),
-        ]);
-      });
-
-      // Assert
-      expect(mockGetAccountState).toHaveBeenCalledTimes(3);
-      expect(result.current.address).toEqual(mockAccountState.address);
+      expect(result.current.data).toBeUndefined();
     });
   });
 
-  describe('hook stability', () => {
-    it('returns stable loadAccountState function reference', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
+  describe('query invalidation', () => {
+    it('refetches when refetch is called', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
 
-      // Act
-      const { result, rerender } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-      const initialLoadAccountState = result.current.loadAccountState;
+      expect(result.current.data?.address).toBe(mockAccountState.address);
+      expect(mockGetAccountState).toHaveBeenCalledTimes(1);
 
-      // Trigger a re-render
-      rerender({ loadOnMount: false });
-
-      // Assert
-      expect(result.current.loadAccountState).toBe(initialLoadAccountState);
-    });
-
-    it('computed values update when account state changes', async () => {
-      // Arrange
-      const updatedAccountState = {
+      const updatedState = {
         ...mockAccountState,
         address: '0x9876543210987654321098765432109876543210',
       };
-
-      mockGetAccountState
-        .mockResolvedValueOnce(mockAccountState)
-        .mockResolvedValueOnce(updatedAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
+      mockGetAccountState.mockResolvedValue(updatedState);
 
       await act(async () => {
-        await result.current.loadAccountState();
+        await result.current.refetch();
       });
 
-      const initialAddress = result.current.address;
+      expect(mockGetAccountState).toHaveBeenCalledTimes(2);
 
-      await act(async () => {
-        await result.current.loadAccountState();
+      await waitFor(() => {
+        expect(result.current.data?.address).toBe(updatedState.address);
       });
-
-      const updatedAddress = result.current.address;
-
-      // Assert
-      expect(initialAddress).toBe(mockAccountState.address);
-      expect(updatedAddress).toBe(updatedAccountState.address);
     });
   });
 
   describe('default parameters', () => {
-    it('uses empty options object by default', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
+    it('enables the query by default', async () => {
+      const { Wrapper } = createWrapper();
+      renderHook(() => usePredictAccountState(), { wrapper: Wrapper });
 
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({});
-    });
-
-    it('uses true as default for loadOnMount', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      renderHook(() => usePredictAccountState());
-
-      // Assert
       await waitFor(() => {
         expect(mockGetAccountState).toHaveBeenCalled();
       });
-    });
-
-    it('uses true as default for refreshOnFocus', () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Just capture the callback, don't execute it
-      mockUseFocusEffect.mockImplementation((callback) => callback);
-
-      // Act
-      renderHook(() => usePredictAccountState({ loadOnMount: false }));
-
-      // Assert - useFocusEffect should have been called
-      expect(mockUseFocusEffect).toHaveBeenCalled();
     });
   });
 });

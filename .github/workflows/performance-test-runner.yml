@@ -31,6 +31,20 @@ on:
         required: true
         type: string
         description: 'Unified BrowserStack build name for all sessions'
+      browserstack_playground_url:
+        required: false
+        type: string
+        description: 'BrowserStack URL for the RN playground APK (mm-connect tests only)'
+      sentry_target:
+        required: false
+        type: string
+        default: test
+        description: 'Sentry DSN target: test or real'
+      build_variant:
+        required: false
+        type: string
+        default: rc
+        description: 'Build variant for app artifacts (rc or exp)'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -46,6 +60,10 @@ on:
         required: true
       E2E_PASSWORD:
         required: true
+      MM_SENTRY_DSN_TEST:
+        required: false
+      MM_SENTRY_DSN:
+        required: false
 
 jobs:
   run-tests:
@@ -58,7 +76,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Restore node_modules cache
         id: cache
         uses: actions/cache@v4
@@ -70,13 +88,12 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-      
 
       - name: Install dependencies
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -85,52 +102,112 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn --immutable
-        ## This installs dependencies and creates the node_modules state file
-      
+        ## This installs dependencies and creates the node_modules state file      
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
       - name: Setup project
         run: yarn setup:github-ci
         working-directory: '.'
         ## This will apply the patches for appwright
-      
+
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
           username: ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
-      
+
+      - name: Compute BrowserStack Local Identifier
+        id: bs-local-id
+        run: |
+          # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
+          BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
+          DEVICE_SAFE=$(printf '%s' "${{ matrix.device.name }}" | tr -c 'a-zA-Z0-9-' '_')
+          if [ -z "$BUILD_TYPE_SAFE" ]; then
+            echo "❌ Error: inputs.build_type is empty — cannot build a valid BrowserStack Local identifier"
+            exit 1
+          fi
+          if [ -z "$DEVICE_SAFE" ]; then
+            echo "❌ Error: matrix.device.name is empty — cannot build a valid BrowserStack Local identifier"
+            exit 1
+          fi
+          echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
+
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
-          local-identifier: ${{ github.run_id }}
+          local-identifier: ${{ steps.bs-local-id.outputs.value }}
           # Use same args for all build types. Do not use --include-hosts for mm-connect:
           # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
           local-args: '--force-local --verbose'
-      
+
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
           # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090; allow extra time
           sleep ${{ inputs.build_type == 'mm-connect' && 15 || 10 }}
           echo "BrowserStack Local should be ready now"
-      
+
       - name: Set Test Environment
         run: |
           echo "Setting ${{ inputs.build_type }} test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Platform: ${{ inputs.platform }}"
-          
+
+          SENTRY_TARGET="${{ inputs.sentry_target }}"
+          SENTRY_TEST_DSN="${{ secrets.MM_SENTRY_DSN_TEST }}"
+          SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
+          SELECTED_SENTRY_DSN=""
+          SENTRY_ENVIRONMENT="github-actions-performance-e2e"
+          BUILD_VARIANT="${{ inputs.build_variant }}"
+
+          if [[ "$BUILD_VARIANT" != "rc" && "$BUILD_VARIANT" != "exp" ]]; then
+            echo "❌ Invalid build_variant '$BUILD_VARIANT'. Expected 'rc' or 'exp'."
+            exit 1
+          fi
+
           # Validate that we have a BrowserStack URL
           if [ -z "${{ inputs.browserstack_app_url }}" ]; then
             echo "❌ Error: No ${{ inputs.platform }} BrowserStack URL available"
             exit 1
           fi
-          
+
+          case "$SENTRY_TARGET" in
+            real)
+              SELECTED_SENTRY_DSN="$SENTRY_REAL_DSN"
+              SENTRY_ENVIRONMENT="github-actions-performance-e2e-real"
+              if [ -z "$SELECTED_SENTRY_DSN" ]; then
+                echo "⚠️ MM_SENTRY_DSN is empty. Sentry uploads will be skipped."
+              fi
+              ;;
+            test)
+              SELECTED_SENTRY_DSN="$SENTRY_TEST_DSN"
+              if [ -z "$SELECTED_SENTRY_DSN" ]; then
+                echo "⚠️ MM_SENTRY_DSN_TEST is empty. Sentry uploads will be skipped."
+              fi
+              ;;
+            *)
+              echo "❌ Invalid sentry_target '$SENTRY_TARGET'. Expected 'test' or 'real'."
+              exit 1
+              ;;
+          esac
+
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.browserstack_app_url }}"
+            if [ -n "${{ inputs.browserstack_playground_url }}" ]; then
+              echo "BROWSERSTACK_RN_PLAYGROUND_URL=${{ inputs.browserstack_playground_url }}"
+            fi
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
             echo "BROWSERSTACK_BUILD_NAME=${{ inputs.browserstack_build_name }}"
@@ -141,13 +218,17 @@ jobs:
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
             echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+            echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
+            echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
+            echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
+            echo "E2E_PERFORMANCE_BUILD_VARIANT=$BUILD_VARIANT"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
-      
+
       - name: Run Tests
         env:
           BROWSERSTACK_LOCAL: 'true'
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ steps.bs-local-id.outputs.value }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
         run: |
@@ -157,7 +238,7 @@ jobs:
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
           echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
-          
+
           # Run the appropriate test command based on build_type flag
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
             yarn run-appwright:${{ inputs.platform }}-onboarding-bs
@@ -166,9 +247,9 @@ jobs:
           else
             yarn run-appwright:${{ inputs.platform }}-bs
           fi
-          
+
           echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
-      
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
