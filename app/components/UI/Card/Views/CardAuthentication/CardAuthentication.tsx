@@ -4,6 +4,7 @@ import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
   Box,
   FontWeight,
+  Label,
   Text,
   TextVariant,
   Icon,
@@ -11,7 +12,6 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 
 import Button, {
   ButtonSize,

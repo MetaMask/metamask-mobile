@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { debounce } from 'lodash';
 import Engine from '../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
+
+export const REFERRAL_CODE_LENGTH = 6;
 
 export interface UseValidateReferralCodeResult {
   /**
@@ -16,7 +18,7 @@ export interface UseValidateReferralCodeResult {
    */
   validateCode: (code: string) => Promise<string>;
   /**
-   * Whether validation is currently in progress (during debounce period)
+   * Whether validation is currently in progress
    */
   isValidating: boolean;
   /**
@@ -31,22 +33,22 @@ export interface UseValidateReferralCodeResult {
 }
 
 /**
- * Custom hook for validating referral codes with debounced validation.
- * Validates 6-character base32 encoded strings following RFC 4648 standard.
+ * Custom hook for validating referral codes.
+ * Validates immediately when the code is exactly 6 Base32 characters.
+ * Stale responses from older requests are automatically discarded.
  *
  * @param initialValue - Initial referral code value (default: '')
- * @param debounceMs - Debounce delay in milliseconds (default: 300)
  * @returns UseValidateReferralCodeResult object with validation state and methods
  */
 export const useValidateReferralCode = (
   initialValue: string = '',
-  debounceMs: number = 1000,
 ): UseValidateReferralCodeResult => {
   const [referralCode, setReferralCodeState] = useState(initialValue);
   const [error, setError] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [unknownError, setUnknownError] = useState(false);
   const hasInitialized = useRef(false);
+  const requestIdRef = useRef(0);
 
   const validateCode = useCallback(async (code: string): Promise<string> => {
     try {
@@ -55,46 +57,50 @@ export const useValidateReferralCode = (
         code,
       );
       if (!valid) {
-        return 'Invalid code';
+        return strings('rewards.error_messages.invalid_referral_code');
       }
       return '';
-    } catch (err) {
-      setUnknownError(true);
+    } catch {
       return 'Unknown error';
     }
   }, []);
 
-  // Debounced validation
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedValidation = useCallback(
-    debounce(async (code: string) => {
+  const triggerValidation = useCallback(
+    async (code: string) => {
+      const currentRequestId = ++requestIdRef.current;
+
       setUnknownError(false);
       setError('');
+      setIsValidating(true);
+
       const validationError = await validateCode(code);
+
+      if (currentRequestId !== requestIdRef.current) return;
+
+      if (validationError === 'Unknown error') {
+        setUnknownError(true);
+      }
       setError(validationError);
       setIsValidating(false);
-    }, debounceMs),
-    [debounceMs, validateCode],
+    },
+    [validateCode],
   );
 
-  // Function to update referral code and trigger validation
   const setReferralCode = useCallback(
     (code: string) => {
       const refinedCode = code.trim().toUpperCase();
       setReferralCodeState(refinedCode);
-      // If not at minLength, do NOT validate; keep referral code state but clear error/validating state
-      if (refinedCode.length < 6) {
-        debouncedValidation.cancel();
+
+      if (refinedCode.length !== REFERRAL_CODE_LENGTH) {
+        ++requestIdRef.current;
         setIsValidating(false);
-        setError('minLength 6 characters');
+        setError(strings('rewards.error_messages.invalid_referral_code'));
         return;
       }
-      if (refinedCode) {
-        setIsValidating(true);
-      }
-      debouncedValidation(refinedCode);
+
+      triggerValidation(refinedCode);
     },
-    [debouncedValidation],
+    [triggerValidation],
   );
 
   useEffect(() => {
@@ -102,17 +108,13 @@ export const useValidateReferralCode = (
       setReferralCode(initialValue);
       hasInitialized.current = true;
     } else if (initialValue !== referralCode) {
-      // Only update if initialValue actually changed from current referralCode
       setReferralCode(initialValue);
     }
-    // only run on mount or when initialValue changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValue]);
 
-  // Cleanup debounced function on unmount
-  useEffect(() => () => debouncedValidation.cancel(), [debouncedValidation]);
-
-  const isValid = !!referralCode && !error && !isValidating;
+  const isValid =
+    referralCode.length === REFERRAL_CODE_LENGTH && !error && !isValidating;
 
   return {
     referralCode,

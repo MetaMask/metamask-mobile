@@ -128,7 +128,6 @@ const renderComponent = ({
               ...(hash ? { hash } : {}),
             }}
             navigation={navigationMock}
-            chainId={networkId}
           />
         )}
       </Stack.Screen>
@@ -346,6 +345,82 @@ describe('TransactionDetails', () => {
       buttonText: 'View on Custom-block-explorer',
       expectedUrl: 'https://custom-block-explorer.net/tx/0x3',
     });
+  });
+
+  it('should display explorer link for arbitrum (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0xa4b1';
+      },
+      buttonText: 'View on Arbiscan',
+      expectedUrl: 'https://arbiscan.io/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for polygon (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x89';
+      },
+      buttonText: 'View on Polygonscan',
+      expectedUrl: 'https://polygonscan.com/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for bnb chain (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x38';
+      },
+      buttonText: 'View on Bscscan',
+      expectedUrl: 'https://bscscan.com/tx/0x3',
+    });
+  });
+
+  it('renders speed up and cancel buttons', async () => {
+    const { getByText } = renderComponent({
+      state: {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              smartTransactionsOptInStatus: false,
+            },
+          },
+        },
+      },
+      hash: '0x3',
+      txParams: {
+        multiLayerL1FeeTotal: '0x1',
+      },
+      status: 'submitted',
+    });
+
+    expect(getByText('Speed up')).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
   });
 
   it('should render `Batched transactions` tag if there are nested transactions', async () => {

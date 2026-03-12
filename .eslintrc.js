@@ -91,7 +91,11 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
+      files: [
+        'scripts/**/*.{js,ts}',
+        'tests/tools/**/*.{js,ts}',
+        'app.config.js',
+      ],
       rules: {
         'no-console': 'off',
         'import/no-commonjs': 'off',
@@ -99,11 +103,37 @@ module.exports = {
       },
     },
     {
+      files: ['tests/module-mocking/**/*.{js,ts}'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+    {
+      // Temporary rollout strategy:
+      // Keep color-no-hex disabled for all tests by default, then re-enable it
+      // for specific folders in small PR batches. Once migration is complete,
+      // remove this override and enforce across all tests in:
+      // - app/components/
+      // - app/component-library/
       files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'off',
       },
     },
+    {
+      files: [
+        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
+        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+      ],
+      rules: {
+        '@metamask/design-tokens/color-no-hex': 'error',
+      },
+    },
+
     {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',

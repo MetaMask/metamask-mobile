@@ -12,7 +12,7 @@ import type {
 } from '../types/perps-types';
 
 // Network constants
-export const ARBITRUM_MAINNET_CHAIN_ID_HEX = '0xa4b1';
+export const ARBITRUM_MAINNET_CHAIN_ID_HEX = '0xa4b1' as const;
 export const ARBITRUM_MAINNET_CHAIN_ID = '42161';
 export const ARBITRUM_TESTNET_CHAIN_ID = '421614';
 export const ARBITRUM_MAINNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_MAINNET_CHAIN_ID}`;
@@ -189,7 +189,7 @@ export const REFERRAL_CONFIG = {
 
 // Deposit constants
 export const DEPOSIT_CONFIG = {
-  EstimatedGasLimit: 150000, // Estimated gas limit for bridge deposit
+  EstimatedGasLimit: 100000, // Estimated gas limit for bridge deposit
   DefaultSlippage: 1, // 1% default slippage for bridge quotes
   BridgeQuoteTimeout: 1000, // 1 second timeout for bridge quotes
   RefreshRate: 30000, // 30 seconds quote refresh rate
@@ -201,6 +201,7 @@ export const DEPOSIT_CONFIG = {
 
 // Withdrawal constants (HyperLiquid-specific)
 export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
+export const ESTIMATED_FEE_RATE = 0.0009; // 0.09% taker fee estimate for flip operations (close + open)
 
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
@@ -277,6 +278,13 @@ export const HIP3_ASSET_ID_CONFIG = {
  * Used for fee discount calculations (e.g., 6500 bps = 65%)
  */
 export const BASIS_POINTS_DIVISOR = 10000;
+
+/**
+ * Offset added to spot market pair index to derive the spot asset ID
+ * used in HyperLiquid order routing.
+ * Per HyperLiquid protocol: spotAssetId = SPOT_ASSET_ID_OFFSET + pairIndex
+ */
+export const SPOT_ASSET_ID_OFFSET = 10000;
 
 /**
  * HIP-3 asset market type classifications (PRODUCTION DEFAULT)

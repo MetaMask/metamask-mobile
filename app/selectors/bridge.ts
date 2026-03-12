@@ -1,16 +1,24 @@
 import { createSelector } from 'reselect';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  isNonEvmChainId,
+  formatChainIdToHex,
+} from '@metamask/bridge-controller';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { RootState } from '../reducers';
 import {
   selectSourceToken,
   selectDestToken,
+  selectIsSwap,
+  selectIsGasIncludedSTXSendBundleSupported,
+  selectIsGasIncluded7702Supported,
 } from '../core/redux/slices/bridge';
 import { selectInternalAccountsByScope } from '../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { createDeepEqualSelector } from './util';
 import { KnownCaipNamespace } from '@metamask/utils';
+import { getGaslessBridgeWith7702EnabledForChain } from './smartTransactionsController';
 
 /**
  * Gets the wallet address for a given source token by finding the selected account
@@ -50,5 +58,49 @@ export const selectValidDestInternalAccountIds = createDeepEqualSelector(
     return new Set<AccountId>(
       [...byDestScope, ...evmWildcard].map((a) => a.id),
     );
+  },
+);
+
+export const selectIsGasIncluded7702BridgeEnabled = (
+  state: RootState,
+): boolean => {
+  const sourceToken = selectSourceToken(state);
+  if (!sourceToken?.chainId || isNonEvmChainId(sourceToken.chainId))
+    return false;
+
+  const hexChainId = formatChainIdToHex(sourceToken.chainId);
+  return getGaslessBridgeWith7702EnabledForChain(state, hexChainId);
+};
+
+/**
+ * Selector that returns the gas included quote params for bridge and swap transactions.
+ * Combines isSwap, STX/SendBundle support, and 7702 support to determine the correct
+ * gas included parameters.
+ */
+export const selectGasIncludedQuoteParams = createSelector(
+  [
+    selectIsSwap,
+    selectIsGasIncludedSTXSendBundleSupported,
+    selectIsGasIncluded7702Supported,
+    selectIsGasIncluded7702BridgeEnabled,
+  ],
+  (
+    isSwap,
+    gasIncludedSTXSendBundleSupport,
+    gasIncluded7702Support,
+    gasIncluded7702BridgeEnabled,
+  ) => {
+    if (gasIncludedSTXSendBundleSupport) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
+
+    const gasIncludedWith7702Enabled =
+      (Boolean(isSwap) || gasIncluded7702BridgeEnabled) &&
+      gasIncluded7702Support;
+
+    return {
+      gasIncluded: gasIncludedWith7702Enabled,
+      gasIncluded7702: gasIncludedWith7702Enabled,
+    };
   },
 );

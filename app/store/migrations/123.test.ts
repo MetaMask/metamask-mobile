@@ -1,6 +1,9 @@
 import { captureException } from '@sentry/react-native';
-import migrate from './123';
+import { cloneDeep } from 'lodash';
+
 import { ensureValidState } from './util';
+import migrate, { migrationVersion, HYPEREVM_CHAIN_ID } from './123';
+import { Hex } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -8,390 +11,600 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
+  addFailoverUrlToNetworkConfiguration:
+    jest.requireActual('./util').addFailoverUrlToNetworkConfiguration, // Actual one
 }));
 
-interface TestState {
-  engine: {
-    backgroundState: {
-      PerpsController?: {
-        withdrawalRequests?: unknown[];
-        depositRequests?: unknown[];
-        withdrawalProgress?: {
-          progress: number;
-          lastUpdated: number;
-          activeWithdrawalId: string | null;
-        };
-        withdrawInProgress?: boolean;
-        depositInProgress?: boolean;
-        activeProvider?: string;
-        isTestnet?: boolean;
-        [key: string]: unknown;
-      };
-      [key: string]: unknown;
-    };
-  };
+jest.mock('uuid', () => ({ v4: () => 'mock-uuid' }));
+
+const mockedCaptureException = jest.mocked(captureException);
+const mockedEnsureValidState = jest.mocked(ensureValidState);
+
+const QUICKNODE_HYPEREVM_URL = 'https://failover.com';
+
+const mainnetConfiguration = {
+  '0x1': {
+    chainId: '0x1',
+    name: 'Ethereum',
+    nativeCurrency: 'ETH',
+    blockExplorerUrls: ['https://explorer.com'],
+    defaultRpcEndpointIndex: 0,
+    defaultBlockExplorerUrlIndex: 0,
+    rpcEndpoints: [
+      {
+        networkClientId: 'mainnet',
+        type: 'custom',
+        url: 'https://mainnet.com',
+      },
+    ],
+  },
+};
+
+const hyperevmInitialConfiguration = {
+  [HYPEREVM_CHAIN_ID]: {
+    chainId: HYPEREVM_CHAIN_ID,
+    name: 'HyperEVM',
+    nativeCurrency: 'HYPE',
+    blockExplorerUrls: ['https://hyperevmscan.io/'],
+    defaultRpcEndpointIndex: 0,
+    defaultBlockExplorerUrlIndex: 0,
+    rpcEndpoints: [
+      {
+        networkClientId: 'hyperevm',
+        type: 'custom',
+        url: 'https://rpc.hyperliquid.xyz/evm',
+      },
+    ],
+  },
+};
+
+interface RpcEndpoint {
+  failoverUrls?: string[];
+  name?: string;
+  networkClientId: string;
+  url: string;
+  type: string;
 }
 
-const mockedEnsureValidState = jest.mocked(ensureValidState);
-const mockedCaptureException = jest.mocked(captureException);
+interface NetworkConfiguration {
+  blockExplorerUrls: string[];
+  chainId: Hex;
+  defaultBlockExplorerUrlIndex?: number;
+  defaultRpcEndpointIndex: number;
+  name: string;
+  nativeCurrency: string;
+  rpcEndpoints: RpcEndpoint[];
+}
 
-describe('Migration 123: Clear deposit and withdrawal request queues from PerpsController', () => {
+const unitTestInfuraId = 'unitTestInfuraId';
+
+const NEW_TEST_INFURA_ENDPOINT = `https://hyperevm-mainnet.infura.io/v3/${unitTestInfuraId}`;
+
+export const HYPEREVM_CLEAN_CONFIG: NetworkConfiguration = {
+  chainId: HYPEREVM_CHAIN_ID,
+  name: 'HyperEVM',
+  nativeCurrency: 'HYPE',
+  blockExplorerUrls: ['https://hyperevmscan.io/'],
+  defaultRpcEndpointIndex: 0,
+  defaultBlockExplorerUrlIndex: 0,
+  rpcEndpoints: [
+    {
+      failoverUrls: [QUICKNODE_HYPEREVM_URL],
+      networkClientId: 'hyperevm',
+      type: 'custom',
+      url: NEW_TEST_INFURA_ENDPOINT,
+    },
+  ],
+};
+
+describe(`migration #${migrationVersion}`, () => {
+  let originalEnv: NodeJS.ProcessEnv;
+
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
+
+    originalEnv = { ...process.env };
+    process.env.MM_INFURA_PROJECT_ID = unitTestInfuraId;
+    process.env.QUICKNODE_HYPEREVM_URL = QUICKNODE_HYPEREVM_URL;
   });
 
-  it('returns state unchanged if ensureValidState returns false', () => {
+  afterEach(() => {
+    for (const key of new Set([
+      ...Object.keys(originalEnv),
+      ...Object.keys(process.env),
+    ])) {
+      if (originalEnv[key]) {
+        process.env[key] = originalEnv[key];
+      } else {
+        delete process.env[key];
+      }
+    }
+  });
+
+  it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
     mockedEnsureValidState.mockReturnValue(false);
 
-    const result = migrate(state);
+    const migratedState = migrate(state);
 
-    expect(result).toBe(state);
-  });
-
-  it('returns state unchanged if PerpsController does not exist', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          OtherController: { someData: true },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(result).toBe(state);
-    expect(result.engine.backgroundState.PerpsController).toBeUndefined();
+    expect(migratedState).toStrictEqual({ some: 'state' });
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged if PerpsController is not an object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PerpsController: 'invalid',
+  const invalidStates = [
+    {
+      state: {
+        engine: {},
+      },
+      scenario: 'empty engine state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {},
         },
       },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state);
-
-    expect(result).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  describe('clears request queues', () => {
-    it('clears withdrawalRequests to empty array', () => {
-      const state: TestState = {
+      scenario: 'empty backgroundState',
+    },
+    {
+      state: {
         engine: {
           backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [
-                { id: 'withdrawal-1', status: 'pending', amount: '100' },
-                { id: 'withdrawal-2', status: 'completed', amount: '200' },
-              ],
-              activeProvider: 'hyperliquid',
+            NetworkController: 'invalid',
+          },
+        },
+      },
+      scenario: 'invalid NetworkController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {},
+          },
+        },
+      },
+      scenario: 'missing networkConfigurationsByChainId property',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: 'invalid',
             },
           },
         },
-      };
-
-      mockedEnsureValidState.mockReturnValue(true);
-
-      const result = migrate(state) as TestState;
-
-      expect(
-        result.engine.backgroundState.PerpsController?.withdrawalRequests,
-      ).toEqual([]);
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
-
-    it('clears depositRequests to empty array', () => {
-      const state: TestState = {
+      },
+      scenario: 'invalid networkConfigurationsByChainId state',
+    },
+    {
+      state: {
         engine: {
           backgroundState: {
-            PerpsController: {
-              depositRequests: [
-                { id: 'deposit-1', status: 'pending', amount: '100' },
-                { id: 'deposit-2', status: 'completed', amount: '200' },
-              ],
-              activeProvider: 'hyperliquid',
-            },
-          },
-        },
-      };
-
-      mockedEnsureValidState.mockReturnValue(true);
-
-      const result = migrate(state) as TestState;
-
-      expect(
-        result.engine.backgroundState.PerpsController?.depositRequests,
-      ).toEqual([]);
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
-
-    it('clears both withdrawalRequests and depositRequests', () => {
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [
-                { id: 'withdrawal-1', status: 'pending' },
-                { id: 'withdrawal-2', status: 'bridging' },
-                { id: 'withdrawal-3', status: 'completed' },
-              ],
-              depositRequests: [
-                { id: 'deposit-1', status: 'pending' },
-                { id: 'deposit-2', status: 'completed' },
-              ],
-              activeProvider: 'hyperliquid',
-            },
-          },
-        },
-      };
-
-      mockedEnsureValidState.mockReturnValue(true);
-
-      const result = migrate(state) as TestState;
-
-      expect(
-        result.engine.backgroundState.PerpsController?.withdrawalRequests,
-      ).toEqual([]);
-      expect(
-        result.engine.backgroundState.PerpsController?.depositRequests,
-      ).toEqual([]);
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('resets progress and flags', () => {
-    it('resets withdrawalProgress', () => {
-      const mockNow = 1700000000000;
-      jest.spyOn(Date, 'now').mockReturnValue(mockNow);
-
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [],
-              withdrawalProgress: {
-                progress: 75,
-                lastUpdated: 1234567800,
-                activeWithdrawalId: 'withdrawal-1',
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [HYPEREVM_CHAIN_ID]: {
+                  chainId: HYPEREVM_CHAIN_ID,
+                  name: 'HyperEVM',
+                  nativeCurrency: 'HYPE',
+                  blockExplorerUrls: ['https://hyperevmscan.io/'],
+                  defaultRpcEndpointIndex: 0,
+                  defaultBlockExplorerUrlIndex: 0,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'hyperevm',
+                      type: 'custom',
+                      url: 'https://rpc.hyperliquid.xyz/evm',
+                    },
+                  ],
+                },
               },
-              activeProvider: 'hyperliquid',
             },
           },
         },
-      };
-
-      mockedEnsureValidState.mockReturnValue(true);
-
-      const result = migrate(state) as TestState;
-
-      expect(
-        result.engine.backgroundState.PerpsController?.withdrawalProgress,
-      ).toEqual({
-        progress: 0,
-        lastUpdated: mockNow,
-        activeWithdrawalId: null,
-      });
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
-
-    it('resets withdrawInProgress to false', () => {
-      const state: TestState = {
+      },
+      scenario: 'selectedNetworkClientId is missing',
+    },
+    {
+      state: {
         engine: {
           backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [],
-              withdrawInProgress: true,
-              activeProvider: 'hyperliquid',
+            NetworkController: {
+              selectedNetworkClientId: {},
+              networkConfigurationsByChainId: {
+                [HYPEREVM_CHAIN_ID]: {
+                  chainId: HYPEREVM_CHAIN_ID,
+                  name: 'HyperEVM',
+                  nativeCurrency: 'HYPE',
+                  blockExplorerUrls: ['https://hyperevmscan.io/'],
+                  defaultRpcEndpointIndex: 0,
+                  defaultBlockExplorerUrlIndex: 0,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'HYPE',
+                      type: 'custom',
+                      url: 'https://rpc.hyperliquid.xyz/evm',
+                    },
+                  ],
+                },
+              },
             },
           },
         },
-      };
+      },
+      scenario: 'selectedNetworkClientId is not a string',
+    },
+  ];
 
-      mockedEnsureValidState.mockReturnValue(true);
+  it.each(invalidStates)('captures exception if $scenario', ({ state }) => {
+    const orgState = cloneDeep(state);
+    mockedEnsureValidState.mockReturnValue(true);
 
-      const result = migrate(state) as TestState;
+    const migratedState = migrate(state);
 
-      expect(
-        result.engine.backgroundState.PerpsController?.withdrawInProgress,
-      ).toBe(false);
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
-
-    it('resets depositInProgress to false', () => {
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              depositRequests: [],
-              depositInProgress: true,
-              activeProvider: 'hyperliquid',
-            },
-          },
-        },
-      };
-
-      mockedEnsureValidState.mockReturnValue(true);
-
-      const result = migrate(state) as TestState;
-
-      expect(
-        result.engine.backgroundState.PerpsController?.depositInProgress,
-      ).toBe(false);
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
   });
 
-  describe('handles missing properties', () => {
-    it('handles missing withdrawalRequests property', () => {
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              depositRequests: [{ id: 'deposit-1', status: 'pending' }],
-              activeProvider: 'hyperliquid',
+  it('keeps config as is without error, if already clean', async () => {
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              [HYPEREVM_CHAIN_ID]: HYPEREVM_CLEAN_CONFIG,
             },
           },
         },
-      };
+      },
+    };
 
-      mockedEnsureValidState.mockReturnValue(true);
+    const expectedState = cloneDeep(orgState);
 
-      const result = migrate(state) as TestState;
+    mockedEnsureValidState.mockReturnValue(true);
 
-      expect(
-        result.engine.backgroundState.PerpsController?.withdrawalRequests,
-      ).toBeUndefined();
-      expect(
-        result.engine.backgroundState.PerpsController?.depositRequests,
-      ).toEqual([]);
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
+    const migratedState = await migrate(orgState);
 
-    it('does not add withdrawalProgress if not present', () => {
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [],
-              activeProvider: 'hyperliquid',
-            },
-          },
-        },
-      };
+    expect(mockedCaptureException).not.toHaveBeenCalled();
 
-      mockedEnsureValidState.mockReturnValue(true);
-
-      const result = migrate(state) as TestState;
-
-      expect(
-        result.engine.backgroundState.PerpsController?.withdrawalProgress,
-      ).toBeUndefined();
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
+    expect(migratedState).toStrictEqual(expectedState);
   });
 
-  describe('preserves other properties', () => {
-    it('preserves other PerpsController properties', () => {
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [{ id: 'withdrawal-1', status: 'pending' }],
-              depositRequests: [{ id: 'deposit-1', status: 'pending' }],
-              activeProvider: 'hyperliquid',
-              isTestnet: false,
-              someOtherProperty: 'preserved',
+  it('merges the existing HyperEVM network configuration if there is one', async () => {
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              ...hyperevmInitialConfiguration,
             },
           },
         },
-      };
+      },
+    };
 
-      mockedEnsureValidState.mockReturnValue(true);
-
-      const result = migrate(state) as TestState;
-
-      expect(
-        result.engine.backgroundState.PerpsController?.activeProvider,
-      ).toBe('hyperliquid');
-      expect(result.engine.backgroundState.PerpsController?.isTestnet).toBe(
-        false,
-      );
-      expect(
-        result.engine.backgroundState.PerpsController?.someOtherProperty,
-      ).toBe('preserved');
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
-
-    it('preserves other controllers in backgroundState', () => {
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [{ id: 'withdrawal-1', status: 'pending' }],
-            },
-            OtherController: {
-              shouldStayUntouched: true,
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'hyperevm',
+                    url: 'https://rpc.hyperliquid.xyz/evm',
+                    type: 'custom',
+                  },
+                  {
+                    ...HYPEREVM_CLEAN_CONFIG.rpcEndpoints[0],
+                    networkClientId: 'mock-uuid',
+                  },
+                ],
+                defaultRpcEndpointIndex: 1,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://hyperevmscan.io/'],
+              },
             },
           },
         },
-      };
+      },
+    };
 
-      mockedEnsureValidState.mockReturnValue(true);
+    mockedEnsureValidState.mockReturnValue(true);
 
-      const result = migrate(state) as TestState;
+    const migratedState = await migrate(orgState);
 
-      expect(result.engine.backgroundState.OtherController).toEqual({
-        shouldStayUntouched: true,
-      });
-      expect(mockedCaptureException).not.toHaveBeenCalled();
-    });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+
+    expect(migratedState).toStrictEqual(expectedState);
   });
 
-  describe('error handling', () => {
-    it('handles error during migration and captures exception', () => {
-      const state: TestState = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              withdrawalRequests: [],
+  it('keeps original RPC if no infura key is found, and does not add failover', async () => {
+    delete process.env.MM_INFURA_PROJECT_ID;
+
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              ...hyperevmInitialConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                name: 'HyperEVM',
+                nativeCurrency: 'HYPE',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'hyperevm',
+                    url: 'https://rpc.hyperliquid.xyz/evm',
+                    type: 'custom',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://hyperevmscan.io/'],
+              },
             },
           },
         },
-      };
+      },
+    };
 
-      Object.defineProperty(
-        state.engine.backgroundState.PerpsController,
-        'withdrawalRequests',
-        {
-          set() {
-            throw new Error('Test error');
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                rpcEndpoints: hyperevmInitialConfiguration[
+                  HYPEREVM_CHAIN_ID
+                ].rpcEndpoints.map((endpoint) => ({
+                  ...endpoint,
+                })),
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://hyperevmscan.io/'],
+              },
+            },
           },
-          configurable: true,
         },
-      );
+      },
+    };
 
-      mockedEnsureValidState.mockReturnValue(true);
+    mockedEnsureValidState.mockReturnValue(true);
 
-      const result = migrate(state);
+    const migratedState = await migrate(orgState);
 
-      expect(result).toBe(state);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'Migration 123: Failed to clear transaction request queues',
-          ),
-        }),
-      );
-    });
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          'Infura project ID is not set, skip the HyperEVM RPC migration',
+        ),
+      }),
+    );
+
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('does not add failover URL if there is already a failover URL', async () => {
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              ...hyperevmInitialConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                name: 'HyperEVM',
+                nativeCurrency: 'HYPE',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'hyperevm',
+                    url: 'https://rpc.hyperliquid.xyz/evm',
+                    type: 'custom',
+                    failoverUrls: ['https://existingFailover'],
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://hyperevmscan.io/'],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                rpcEndpoints: [
+                  {
+                    // Untouched first endpoint, including existing failover
+                    networkClientId: 'hyperevm',
+                    url: 'https://rpc.hyperliquid.xyz/evm',
+                    type: 'custom',
+                    failoverUrls: ['https://existingFailover'],
+                  },
+                  {
+                    // New endpoint, including QuickNode failover
+                    networkClientId: 'mock-uuid',
+                    url: NEW_TEST_INFURA_ENDPOINT,
+                    type: 'custom',
+                    failoverUrls: [QUICKNODE_HYPEREVM_URL],
+                  },
+                ],
+                defaultRpcEndpointIndex: 1,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://hyperevmscan.io/'],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = await migrate(orgState);
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('does not add failover URL if QUICKNODE_HYPEREVM_URL env variable is not set', async () => {
+    delete process.env.QUICKNODE_HYPEREVM_URL;
+
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              ...hyperevmInitialConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                name: 'HyperEVM',
+                nativeCurrency: 'HYPE',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'hyperevm',
+                    url: 'https://rpc.hyperliquid.xyz/evm',
+                    type: 'custom',
+                    failoverUrls: ['https://existingFailover'],
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://hyperevmscan.io/'],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                rpcEndpoints: [
+                  {
+                    // Untouched first endpoint, including existing failover
+                    networkClientId: 'hyperevm',
+                    url: 'https://rpc.hyperliquid.xyz/evm',
+                    type: 'custom',
+                    failoverUrls: ['https://existingFailover'],
+                  },
+                  {
+                    // New endpoint, missing QuickNode failover because of the missing env var
+                    networkClientId: 'mock-uuid',
+                    url: NEW_TEST_INFURA_ENDPOINT,
+                    type: 'custom',
+                    failoverUrls: [],
+                  },
+                ],
+                defaultRpcEndpointIndex: 1,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://hyperevmscan.io/'],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = await migrate(orgState);
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('returns the original state if the HyperEVM network configuration exists but is invalid', async () => {
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                name: 'HyperEVM',
+                nativeCurrency: 'HYPE',
+                rpcEndpoints: 'invalid',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [HYPEREVM_CHAIN_ID]: {
+                ...HYPEREVM_CLEAN_CONFIG,
+                name: 'HyperEVM',
+                nativeCurrency: 'HYPE',
+                rpcEndpoints: 'invalid',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = await migrate(orgState);
+
+    expect(migratedState).toStrictEqual(expectedState);
   });
 });

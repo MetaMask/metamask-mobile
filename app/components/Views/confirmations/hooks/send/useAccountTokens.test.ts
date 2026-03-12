@@ -8,6 +8,8 @@ import { TokenStandard } from '../../types/token';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { isTestNet } from '../../../../../util/networks';
+import { selectAllTokens } from '../../../../../selectors/tokensController';
+import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -36,6 +38,14 @@ jest.mock('../../../../../selectors/assets/assets-list', () => ({
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/tokensController', () => ({
+  selectAllTokens: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/tokenListController', () => ({
+  selectERC20TokensByChain: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -93,6 +103,12 @@ describe('useAccountTokens', () => {
       }
       if (selector === selectCurrentCurrency) {
         return 'USD';
+      }
+      if (selector === selectAllTokens) {
+        return {};
+      }
+      if (selector === selectERC20TokensByChain) {
+        return {};
       }
       return undefined;
     });
@@ -521,6 +537,12 @@ describe('useAccountTokens', () => {
         if (selector === selectCurrentCurrency) {
           return 'USD';
         }
+        if (selector === selectAllTokens) {
+          return {};
+        }
+        if (selector === selectERC20TokensByChain) {
+          return {};
+        }
         return undefined;
       });
 
@@ -531,6 +553,116 @@ describe('useAccountTokens', () => {
       expect(result.current).toHaveLength(2);
       expect(result.current[0].symbol).toBe('TOKEN1');
       expect(result.current[1].symbol).toBe('TOKEN2');
+    });
+  });
+
+  describe('includeAllTokens', () => {
+    const catalogTokens = {
+      '0x1': {
+        data: {
+          '0xusdc': {
+            name: 'USD Coin',
+            symbol: 'USDC',
+            decimals: 6,
+            iconUrl: 'https://example.com/usdc.png',
+          },
+          '0xtoken1': {
+            name: 'Token One',
+            symbol: 'TOKEN1',
+            decimals: 18,
+            iconUrl: 'https://example.com/token1.png',
+          },
+        },
+      },
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function setupAllTokensMocks(accountAssets: any = mockAssets) {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(accountAssets);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return accountAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        if (selector === selectAllTokens) {
+          return {};
+        }
+        if (selector === selectERC20TokensByChain) {
+          return catalogTokens;
+        }
+        return undefined;
+      });
+    }
+
+    it('adds catalog tokens not already in account', () => {
+      const accountAssets = {
+        '0x1': [
+          {
+            chainId: '0x1',
+            address: '0xtoken1',
+            fiat: { balance: '50' },
+            rawBalance: '0x1234',
+            symbol: 'TOKEN1',
+          },
+        ],
+      };
+
+      setupAllTokensMocks(accountAssets);
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ includeAllTokens: true }),
+      );
+
+      const symbols = result.current.map((a) => a.symbol);
+      expect(symbols).toContain('TOKEN1');
+      expect(symbols).toContain('USDC');
+    });
+
+    it('does not duplicate tokens already in account', () => {
+      const accountAssets = {
+        '0x1': [
+          {
+            chainId: '0x1',
+            address: '0xusdc',
+            fiat: { balance: '100' },
+            rawBalance: '0x1234',
+            symbol: 'USDC',
+          },
+        ],
+      };
+
+      setupAllTokensMocks(accountAssets);
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ includeAllTokens: true }),
+      );
+
+      const usdcEntries = result.current.filter((a) => a.symbol === 'USDC');
+      expect(usdcEntries).toHaveLength(1);
+      expect(usdcEntries[0].balance).not.toBe('0');
+    });
+
+    it('sets zero balance on catalog tokens', () => {
+      setupAllTokensMocks({});
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ includeAllTokens: true }),
+      );
+
+      const usdc = result.current.find((a) => a.symbol === 'USDC');
+      expect(usdc?.balance).toBe('0');
+    });
+
+    it('does not add catalog tokens when includeAllTokens is false', () => {
+      setupAllTokensMocks({});
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ includeAllTokens: false }),
+      );
+
+      expect(result.current).toHaveLength(0);
     });
   });
 });

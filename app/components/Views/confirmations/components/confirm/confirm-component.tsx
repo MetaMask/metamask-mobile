@@ -56,6 +56,7 @@ export enum ConfirmationLoader {
 export interface ConfirmationParams {
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
+  forceBottomSheet?: boolean;
 }
 
 const ConfirmWrapped = ({

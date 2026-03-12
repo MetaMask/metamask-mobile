@@ -32,6 +32,7 @@ import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthenti
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
+import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
@@ -39,11 +40,12 @@ import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
+  analyticsLocation?: 'settings' | 'onboarding_default_settings';
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
-> = ({ hideMarketingSection = false }) => {
+> = ({ hideMarketingSection = false, analyticsLocation = 'settings' }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -63,6 +65,8 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
+
+  const accountType = useSelector(selectOnboardingAccountType);
 
   const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
@@ -117,7 +121,8 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           .addProperties({
             is_metrics_opted_in: true,
             updated_after_onboarding: true,
-            location: 'settings',
+            location: analyticsLocation,
+            ...(accountType && { account_type: accountType }),
           })
           .build(),
       );
@@ -129,8 +134,22 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         dispatch(storePna25Acknowledged());
       }
     } else {
+      // Track opt-out event before calling optOut() to ensure it gets sent
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.METRICS_OPT_OUT,
+        )
+          .addProperties({
+            updated_after_onboarding: true,
+            location: analyticsLocation,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
+
       await analytics.optOut();
       setAnalyticsEnabled(false);
+
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
       }

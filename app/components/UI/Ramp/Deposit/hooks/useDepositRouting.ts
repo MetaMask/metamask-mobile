@@ -24,6 +24,7 @@ import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderP
 import { useDepositSDK, DEPOSIT_ENVIRONMENT } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
 import useAnalytics from '../../hooks/useAnalytics';
+import { registerCheckoutCallback } from '../../utils/checkoutCallbackRegistry';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 import Logger from '../../../../../../app/util/Logger';
 import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
@@ -374,10 +375,11 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
       });
 
       popToBuildQuote();
+      const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
       navigation.navigate(
         ...createWebviewModalNavigationDetails({
           sourceUrl: paymentUrl,
-          handleNavigationStateChange,
+          callbackKey,
         }),
       );
     },

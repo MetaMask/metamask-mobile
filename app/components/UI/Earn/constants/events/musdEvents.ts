@@ -4,11 +4,18 @@ const EVENT_PROVIDERS = {
 
 const EVENT_LOCATIONS = {
   HOME_SCREEN: 'home',
+  /** Cash section on homepage (aggregated mUSD row or empty state "Get mUSD") */
+  HOME_CASH_SECTION: 'home_cash_section',
   TOKEN_LIST_ITEM: 'token_list_item',
   ASSET_OVERVIEW: 'asset_overview',
   CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
+  QUICK_CONVERT_HOME_SCREEN: 'quick_convert_home_screen',
+  QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN:
+    'quick_convert_max_bottom_sheet_confirmation_screen',
+  CUSTOM_AMOUNT_NAVBAR: 'custom_amount_navbar',
+  PERCENTAGE_ROW: 'percentage_row',
 };
 
 const MUSD_CTA_TYPES = {

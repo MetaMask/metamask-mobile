@@ -8,7 +8,7 @@ import {
   selectIsSelectingToken,
   selectIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface Params {
@@ -21,6 +21,7 @@ export const useRenderQuoteExpireModal = ({
   latestSourceBalance,
 }: Params) => {
   const navigation = useNavigation();
+  const isBridgeViewFocused = useIsFocused();
   const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
   const isSelectingToken = useSelector(selectIsSelectingToken);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
@@ -46,6 +47,7 @@ export const useRenderQuoteExpireModal = ({
     if (
       isExpired &&
       !willRefresh &&
+      isBridgeViewFocused &&
       !isSelectingRecipient &&
       !isSelectingToken &&
       !isSubmittingTx &&
@@ -62,6 +64,7 @@ export const useRenderQuoteExpireModal = ({
     isExpired,
     willRefresh,
     navigation,
+    isBridgeViewFocused,
     isSelectingRecipient,
     isSelectingToken,
     isSubmittingTx,

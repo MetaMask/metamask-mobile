@@ -114,6 +114,12 @@ const mockUseRampsControllerInitialValues: ReturnType<
   paymentMethodsError: null,
   getQuotes: jest.fn(),
   getWidgetUrl: jest.fn(),
+  orders: [],
+  getOrderById: jest.fn(),
+  addOrder: jest.fn(),
+  removeOrder: jest.fn(),
+  refreshOrder: jest.fn(),
+  getOrderFromCallback: jest.fn(),
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;

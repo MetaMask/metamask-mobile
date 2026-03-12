@@ -12,6 +12,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import AutoDetectNFTSettings from './index';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
@@ -47,27 +48,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics');
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 
-(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: jest.fn(() => ({
-    addProperties: jest.fn().mockReturnThis(),
-    addSensitiveProperties: jest.fn().mockReturnThis(),
-    removeProperties: jest.fn().mockReturnThis(),
-    removeSensitiveProperties: jest.fn().mockReturnThis(),
-    setSaveDataRecording: jest.fn().mockReturnThis(),
-    build: jest.fn(),
-  })) as ReturnType<typeof useAnalytics>['createEventBuilder'],
-  enable: jest.fn(),
-  addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getAnalyticsId: jest.fn(),
-});
-
 jest.mock('../../../../util/general', () => ({
   timeoutFetch: jest.fn(),
 }));
@@ -75,6 +55,12 @@ jest.mock('../../../../util/general', () => ({
 describe('AutoDetectNFTSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        addTraitsToUser: mockAddTraitsToUser,
+      }),
+    );
     (useNavigation as jest.Mock).mockImplementation(() => mockNavigation);
   });
 

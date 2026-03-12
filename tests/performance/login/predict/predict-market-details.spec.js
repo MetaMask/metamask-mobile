@@ -1,14 +1,14 @@
-import { test } from '../../../framework/fixtures/performance-test.js';
+import { test } from '../../../framework/fixtures/performance';
 
 import TimerHelper from '../../../framework/TimerHelper';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
-import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
-import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import PredictMarketListScreen from '../../../../wdio/screen-objects/PredictMarketListScreen.js';
 import PredictDetailsScreen from '../../../../wdio/screen-objects/PredictDetailsScreen.js';
 import { login } from '../../../framework/utils/Flows.js';
 import { PerformancePredict } from '../../../tags.performance.js';
+import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
+import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 
 /*
  * Scenario: Predict Market Details Performance Test
@@ -17,13 +17,14 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * under 4G network conditions (default for e2e tests).
  *
  * The test measures:
- * 1. Time to open predictions tab from wallet
+ * 1. Time to open predictions from homepage section (scroll + tap)
  * 2. Time to load market list
  * 3. Time to open market details
  * 4. Time to load and verify About tab content
  * 5. Time to load and verify Outcomes tab content
  */
 test.describe(PerformancePredict, () => {
+  test.setTimeout(10 * 60 * 1000); // 10 minutes
   test(
     'Predict Market Details - Load Time Performance',
     { tag: '@team-predict' },
@@ -31,21 +32,20 @@ test.describe(PerformancePredict, () => {
       // Setup screen objects with device
       LoginScreen.device = device;
       WalletMainScreen.device = device;
-      TabBarModal.device = device;
-      WalletActionModal.device = device;
       PredictMarketListScreen.device = device;
       PredictDetailsScreen.device = device;
+      TabBarModal.device = device;
+      WalletActionModal.device = device;
 
       // Login to the app
       await login(device);
-      await TabBarModal.tapActionButton();
 
-      // Timer 2: Open predictions tab (threshold: 5000ms + 10% = 5500ms)
       const timer2 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',
         { ios: 2800, android: 4000 },
         device,
       );
+      await TabBarModal.tapActionButton();
       await WalletActionModal.tapPredictButton();
       await timer2.measure(async () => {
         await PredictMarketListScreen.isContainerDisplayed();

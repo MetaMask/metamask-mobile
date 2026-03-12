@@ -114,6 +114,8 @@ jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: jest.fn(() => false),
 }));
 
+jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
+
 const mockGoToBuy = jest.fn();
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
@@ -156,15 +158,16 @@ describe('AccountsMenu', () => {
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      // Mock state object
       const mockState = {
-        fiatOrders: { detectedGeolocation: 'US' },
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'US' },
+          },
+        },
       };
 
-      // Try to call the selector with mock state
       try {
         const result = selector(mockState);
-        // If it's the geolocation selector, return 'US'
         if (result === 'US') {
           return 'US';
         }
@@ -318,7 +321,7 @@ describe('AccountsMenu', () => {
 
       // Verify properties were added
       expect(mockAddProperties).toHaveBeenCalledWith({
-        text: 'Buy',
+        button_text: 'Buy',
         location: 'AccountsMenu',
         ramp_type: 'UNIFIED_BUY',
         chain_id_destination: null,
@@ -431,7 +434,11 @@ describe('AccountsMenu', () => {
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
-          fiatOrders: { detectedGeolocation: 'US' },
+          engine: {
+            backgroundState: {
+              GeolocationController: { location: 'US' },
+            },
+          },
         };
 
         try {

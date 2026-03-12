@@ -20,6 +20,11 @@ const mockReplace = jest.fn();
 
 const mockNavigation = {
   replace: mockReplace,
+  dispatch: jest.fn((action) => {
+    if (action.type === 'REPLACE') {
+      mockReplace(action.payload.name, action.payload.params);
+    }
+  }),
 };
 
 jest.mock('@react-navigation/native', () => ({

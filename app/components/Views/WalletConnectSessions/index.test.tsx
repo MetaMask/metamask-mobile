@@ -4,6 +4,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import { ExperimentalSelectorsIDs } from '../Settings/ExperimentalSettings/ExperimentalView.testIds';
 import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
+import { strings } from '../../../../locales/i18n';
 
 const mockGetSessions = jest.fn();
 
@@ -63,7 +64,6 @@ describe('WalletConnectSessions', () => {
   });
 
   it('should render active sessions', async () => {
-    // V2 session structure
     const sessions = [
       {
         topic: 'topic1',
@@ -89,6 +89,28 @@ describe('WalletConnectSessions', () => {
       const viewID = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
       expect(viewID).toBeTruthy();
       expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  it('renders inline HeaderCompactStandard with title and back button', async () => {
+    mockGetSessions.mockReturnValue([]);
+
+    const { getByTestId, getByText } = renderScreen(WalletConnectSessions, {
+      name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
+    });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_BACK_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('experimental_settings.wallet_connect_dapps')),
+      ).toBeOnTheScreen();
     });
   });
 });

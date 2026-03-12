@@ -12,7 +12,6 @@ export enum FeatureFlagNames {
   fullPageAccountList = 'fullPageAccountList',
   importSrpWordSuggestion = 'importSrpWordSuggestion',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
-  tokenDetailsV2 = 'tokenDetailsV2',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
 }
@@ -21,7 +20,6 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
 > = {
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
-  [FeatureFlagNames.tokenDetailsV2]: false,
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
 };

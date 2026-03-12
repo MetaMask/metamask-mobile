@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import PerpsCard from './PerpsCard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
@@ -19,6 +20,15 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false), // Default: privacy mode off
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({ track: jest.fn() })),
+}));
 
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({
@@ -50,6 +60,8 @@ describe('PerpsCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: privacy mode off
+    (useSelector as jest.Mock).mockReturnValue(false);
     // Set up default mock return value
     mockUsePerpsMarkets.mockReturnValue({
       markets: [
@@ -210,8 +222,10 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH long')).toBeDefined();
-      expect(getByText('1.0 ETH')).toBeDefined();
+      expect(getByText('Limit long')).toBeDefined();
+      expect(getByText('1 ETH')).toBeDefined();
+      expect(getByText('$3,000')).toBeDefined();
+      expect(getByText('perps.order.limit_price')).toBeDefined();
     });
 
     it('returns null when neither position nor order is provided', () => {
@@ -288,7 +302,157 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH short')).toBeDefined();
+      expect(getByText('Limit short')).toBeDefined();
+    });
+
+    it('uses trigger price label for trigger orders', () => {
+      const triggerOrder = {
+        ...mockOrder,
+        isTrigger: true,
+        triggerPrice: '3100',
+        detailedOrderType: 'Take Profit Limit',
+      };
+
+      const { getByText } = render(
+        <PerpsCard order={triggerOrder} testID="test-card" />,
+      );
+
+      expect(getByText('$3,100')).toBeDefined();
+      expect(getByText('perps.order.trigger_price')).toBeDefined();
+    });
+
+    it('falls back to market price label when trigger order has no valid trigger price', () => {
+      const triggerMarketOrderWithoutPrice = {
+        ...mockOrder,
+        isTrigger: true,
+        triggerPrice: '0',
+        price: '0',
+        detailedOrderType: 'Stop Market',
+      };
+
+      const { getByText, queryByText } = render(
+        <PerpsCard order={triggerMarketOrderWithoutPrice} testID="test-card" />,
+      );
+
+      expect(getByText('perps.order.market')).toBeDefined();
+      expect(getByText('perps.order.market_price')).toBeDefined();
+      expect(queryByText('perps.order.trigger_price')).toBeNull();
+    });
+
+    it('uses limit price label when trigger-limit order has invalid trigger price', () => {
+      const triggerLimitOrderWithoutValidTriggerPrice = {
+        ...mockOrder,
+        isTrigger: true,
+        orderType: 'limit' as const,
+        detailedOrderType: 'Take Profit Limit',
+        triggerPrice: '0',
+        price: '2800',
+      };
+
+      const { getByText, queryByText } = render(
+        <PerpsCard
+          order={triggerLimitOrderWithoutValidTriggerPrice}
+          testID="test-card"
+        />,
+      );
+
+      expect(getByText('$2,800')).toBeDefined();
+      expect(getByText('perps.order.limit_price')).toBeDefined();
+      expect(queryByText('perps.order.trigger_price')).toBeNull();
+    });
+
+    it('keeps limit price label for non-trigger limit orders when triggerPrice is "0"', () => {
+      const limitOrderWithZeroTriggerPrice = {
+        ...mockOrder,
+        isTrigger: false,
+        orderType: 'limit' as const,
+        detailedOrderType: 'Limit',
+        triggerPrice: '0',
+        price: '2000',
+      };
+
+      const { getByText, queryByText } = render(
+        <PerpsCard order={limitOrderWithZeroTriggerPrice} testID="test-card" />,
+      );
+
+      expect(getByText('$2,000')).toBeDefined();
+      expect(getByText('perps.order.limit_price')).toBeDefined();
+      expect(queryByText('perps.order.market_price')).toBeNull();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const DOTS_SHORT = '•'.repeat(6); // SensitiveTextLength.Short
+
+    it('hides position value and PnL label when privacy mode is enabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(true);
+      const positivePosition = {
+        ...mockPosition,
+        positionValue: '4350.00',
+        unrealizedPnl: '150.00',
+        returnOnEquity: '10.3',
+      };
+
+      // Act
+      const { queryByText, getAllByText } = render(
+        <PerpsCard position={positivePosition} testID="test-card" />,
+      );
+
+      // Assert - right-side financial values replaced with dots
+      expect(queryByText('$4,350')).toBeNull();
+      expect(queryByText(/\+\$150/)).toBeNull();
+      const hiddenElements = getAllByText(DOTS_SHORT);
+      expect(hiddenElements.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('shows position value and PnL label when privacy mode is disabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(false);
+      const positivePosition = {
+        ...mockPosition,
+        unrealizedPnl: '100.50',
+        returnOnEquity: '0.05',
+      };
+
+      // Act
+      const { getByText, queryByText } = render(
+        <PerpsCard position={positivePosition} testID="test-card" />,
+      );
+
+      // Assert - actual values visible, no hiding dots
+      expect(getByText('+$100.50 (+5.0%)')).toBeOnTheScreen();
+      expect(queryByText(DOTS_SHORT)).toBeNull();
+    });
+
+    it('hides order price value but not the order type label when privacy mode is enabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      // Act
+      const { queryByText, getAllByText, getByText } = render(
+        <PerpsCard order={mockOrder} testID="test-card" />,
+      );
+
+      // Assert - price value is hidden, but non-financial order type label is not
+      expect(queryByText('$3,000')).toBeNull();
+      const hiddenElements = getAllByText(DOTS_SHORT);
+      expect(hiddenElements.length).toBeGreaterThanOrEqual(1);
+      expect(getByText('perps.order.limit_price')).toBeOnTheScreen();
+    });
+
+    it('does not hide non-financial labels (symbol, direction) when privacy mode is enabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      // Act
+      const { getByText } = render(
+        <PerpsCard position={mockPosition} testID="test-card" />,
+      );
+
+      // Assert - left-side non-financial content is unaffected
+      expect(getByText('ETH 3x long')).toBeOnTheScreen();
+      expect(getByText('1.5 ETH')).toBeOnTheScreen();
     });
   });
 });

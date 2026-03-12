@@ -69,7 +69,11 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import Label from '../../../component-library/components/Form/Label';
+import {
+  Label,
+  FontWeight,
+  TextColor as DSTextColor,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
@@ -87,13 +91,7 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import createStyles from './ChoosePassword.styles';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  ParamListBase,
-} from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 interface KeyringState {
   type: string;
@@ -119,7 +117,7 @@ const ChoosePassword = () => {
   const { colors, themeAppearance } = useContext(ThemeContext);
   const styles = createStyles(colors);
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
@@ -481,7 +479,7 @@ const ChoosePassword = () => {
       url: learnMoreUrl,
     });
 
-    navigation.push('Webview', {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: learnMoreUrl,
@@ -667,8 +665,8 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    fontWeight={FontWeight.Medium}
+                    color={DSTextColor.TextDefault}
                     style={styles.label}
                   >
                     {strings('choose_password.password')}
@@ -718,8 +716,8 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    fontWeight={FontWeight.Medium}
+                    color={DSTextColor.TextDefault}
                     style={styles.label}
                   >
                     {strings('choose_password.confirm_password')}

@@ -382,7 +382,6 @@ export interface RootStackParamList extends ParamListBase {
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: undefined;
   ConfirmTurnOnBackupAndSync: undefined;
-  ResetNotifications: undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   DataCollection: undefined;
@@ -442,7 +441,9 @@ export interface RootStackParamList extends ParamListBase {
   WalletConnectSessionsView: undefined;
   NftFullView: undefined;
   TokensFullView: undefined;
+  CashTokensFullView: undefined;
   TrendingTokensFullView: undefined;
+  RWATokensFullView: undefined;
 
   // Vault recovery routes
   RestoreWallet: undefined;

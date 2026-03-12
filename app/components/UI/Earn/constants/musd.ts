@@ -7,8 +7,8 @@ import { Hex } from '@metamask/utils';
 import MusdIcon from '../../../../images/musd-icon-2x.png';
 
 export const MUSD_TOKEN = {
-  symbol: 'MUSD',
-  name: 'MUSD',
+  symbol: 'mUSD',
+  name: 'MetaMask USD',
   decimals: 6,
   imageSource: MusdIcon,
 } as const;

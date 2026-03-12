@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixtures/performance-test.js';
+import { test } from '../../framework/fixtures/performance';
 
 import TimerHelper from '../../framework/TimerHelper';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
@@ -55,11 +55,11 @@ test.describe(PerformancePreps, () => {
 
       await login(device);
       await TabBarModal.tapActionButton();
-
+      await WalletActionModal.tapPerpsButton();
       // Open Perps Main Screen
-      await selectPerpsMainScreenTimer.measure(() =>
-        WalletActionModal.tapPerpsButton(),
-      );
+      await selectPerpsMainScreenTimer.measure(async () => {
+        await PerpsTutorialScreen.isContainerDisplayed();
+      });
 
       // Skip tutorial
       await PerpsTutorialScreen.tapSkip();

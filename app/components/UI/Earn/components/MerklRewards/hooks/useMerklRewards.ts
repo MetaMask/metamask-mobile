@@ -33,7 +33,7 @@ export const eligibleTokens: Record<Hex, Hex[]> = {
  * Compares addresses case-insensitively since Ethereum addresses are case-insensitive
  * Returns false for native tokens (undefined/null address)
  */
-export const isEligibleForMerklRewards = (
+export const isTokenEligibleForMerklRewards = (
   chainId: Hex,
   address: Hex | undefined | null,
 ): boolean => {
@@ -81,7 +81,7 @@ export const useMerklRewards = ({
         return;
       }
 
-      const isEligible = isEligibleForMerklRewards(
+      const isEligible = isTokenEligibleForMerklRewards(
         asset.chainId as Hex,
         asset.address as Hex | undefined,
       );

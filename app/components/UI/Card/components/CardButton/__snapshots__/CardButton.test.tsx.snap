@@ -313,8 +313,55 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                     }
                   >
                     <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 0,
+                          "left": 0,
+                          "right": 0,
+                          "top": 0,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
+                          },
+                          undefined,
                           {
                             "transform": [
                               {
@@ -322,82 +369,24 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                               },
                             ],
                           },
-                          {
-                            "alignItems": "center",
-                            "justifyContent": "center",
-                          },
                         ]
                       }
+                      testID="card-button"
                     >
-                      <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 0,
-                            "left": 0,
-                            "right": 0,
-                            "top": 0,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
+                      <SvgMock
+                        fill="currentColor"
+                        name="Card"
                         style={
                           [
                             {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
+                              "color": "#131416",
+                              "height": 24,
+                              "width": 24,
                             },
                             undefined,
                           ]
                         }
-                        testID="card-button"
-                      >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Card"
-                          style={
-                            [
-                              {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
-                              },
-                              undefined,
-                            ]
-                          }
-                        />
-                      </View>
+                      />
                     </View>
                   </View>
                 </View>

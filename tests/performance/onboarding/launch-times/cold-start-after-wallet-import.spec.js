@@ -1,4 +1,4 @@
-import { test } from '../../../framework/fixtures/performance-test.js';
+import { test } from '../../../framework/fixtures/performance';
 import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';

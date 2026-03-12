@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   Text,
@@ -11,7 +11,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictPosition as PredictPositionType } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictPositionsSelectorsIDs } from '../../Predict.testIds';
 import PredictPosition from '../PredictPosition/PredictPosition';
@@ -27,8 +26,7 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
   activePositions,
   claimablePositions,
 }) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const privacyMode = useSelector(selectPrivacyMode);
 
   const handlePositionPress = useCallback(

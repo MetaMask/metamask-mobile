@@ -1,1 +1,5 @@
-export * from './ramps-controller-messenger';
+export {
+  getRampsControllerMessenger,
+  getRampsControllerInitMessenger,
+  type RampsControllerInitMessenger,
+} from './ramps-controller-messenger';

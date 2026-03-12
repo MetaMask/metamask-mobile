@@ -13,6 +13,7 @@ import {
   selectCountries,
   selectPaymentMethods,
   selectRampsControllerState,
+  selectRampsOrders,
   selectTransak,
 } from './index';
 
@@ -268,6 +269,48 @@ describe('RampsController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectRampsControllerState(state)).toBeUndefined();
+    });
+  });
+
+  describe('selectRampsOrders', () => {
+    it('returns orders when they exist', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-1',
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+        {
+          providerOrderId: 'order-2',
+          status: 'PENDING',
+          createdAt: 2000,
+        },
+      ];
+      const state = createMockState({
+        orders: mockOrders,
+      } as never);
+
+      const result = selectRampsOrders(state);
+      expect(result).toEqual(mockOrders);
+    });
+
+    it('returns empty array when orders are undefined', () => {
+      const state = createMockState();
+      const result = selectRampsOrders(state);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when RampsController is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RampsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRampsOrders(state);
+      expect(result).toEqual([]);
     });
   });
 

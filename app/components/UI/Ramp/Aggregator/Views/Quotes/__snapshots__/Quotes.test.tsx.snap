@@ -24,7 +24,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 8,
               "padding": 16,
             },
@@ -66,7 +66,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -112,7 +112,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -167,7 +167,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -213,7 +213,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -264,7 +264,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 8,
               "padding": 16,
             },
@@ -306,7 +306,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -352,7 +352,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -401,7 +401,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 8,
               "padding": 16,
             },
@@ -443,7 +443,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -489,7 +489,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -580,8 +580,47 @@ exports[`Quotes custom action renders correctly after animation with the recomme
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -589,74 +628,24 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -690,7 +679,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -824,7 +813,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={23}
+              handlerTag={26}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -916,7 +905,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -957,7 +946,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={22}
+                          handlerTag={25}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -966,7 +955,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1003,7 +992,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1063,7 +1052,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -1083,8 +1072,47 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -1092,74 +1120,24 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -1169,7 +1147,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               {
                                 "alignItems": "center",
                                 "alignSelf": "center",
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#b4b4b528",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "marginBottom": 8,
@@ -1182,7 +1160,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -1200,7 +1178,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -1224,7 +1202,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
@@ -1242,7 +1220,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                     },
                                     undefined,
                                     undefined,
@@ -1287,7 +1265,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={24}
+                              handlerTag={27}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1314,7 +1292,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       style={
                                         [
                                           {
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderRadius": 8,
                                             "padding": 16,
                                           },
@@ -1379,7 +1357,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                       "fontSize": 12,
                                                     },
                                                     {
-                                                      "color": "#686e7d",
+                                                      "color": "#66676a",
                                                       "marginLeft": 8,
                                                     },
                                                     {
@@ -1444,7 +1422,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                   {
                                                     "alignItems": "center",
                                                     "alignSelf": "stretch",
-                                                    "backgroundColor": "#121314",
+                                                    "backgroundColor": "#131416",
                                                     "borderRadius": 12,
                                                     "flexDirection": "row",
                                                     "height": 48,
@@ -1602,8 +1580,47 @@ exports[`Quotes renders animation on first fetching 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -1611,74 +1628,24 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -1712,7 +1679,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1938,7 +1905,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1988,7 +1955,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2025,7 +1992,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2055,7 +2022,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
@@ -2650,8 +2617,47 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -2659,74 +2665,24 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -2760,7 +2716,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2986,7 +2942,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -3036,7 +2992,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -3114,7 +3070,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -3134,8 +3090,47 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -3143,74 +3138,24 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -3257,7 +3202,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderRadius": 20,
                                       "flexDirection": "row",
                                       "marginBottom": 8,
@@ -3270,7 +3215,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -3288,7 +3233,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                         },
                                         undefined,
                                         undefined,
@@ -3312,7 +3257,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 30,
                                             "marginVertical": 2,
@@ -3330,7 +3275,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                           },
                                           undefined,
                                           undefined,
@@ -3377,7 +3322,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -3391,7 +3336,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                         },
                                         undefined,
                                         undefined,
@@ -3432,7 +3377,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   style={
                                     [
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#949596",
                                         "height": 1,
                                         "width": "100%",
                                       },
@@ -3493,7 +3438,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               style={
                                                 [
                                                   {
-                                                    "backgroundColor": "#3c4d9d0f",
+                                                    "backgroundColor": "#b4b4b528",
                                                     "borderRadius": 8,
                                                     "padding": 16,
                                                   },
@@ -3604,7 +3549,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               "fontSize": 12,
                                                             },
                                                             {
-                                                              "color": "#686e7d",
+                                                              "color": "#66676a",
                                                               "marginLeft": 8,
                                                             },
                                                             {
@@ -3641,9 +3586,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#121314",
+                                                          "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 18,
+                                                          "fontSize": 20,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -3675,9 +3620,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#121314",
+                                                          "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 18,
+                                                          "fontSize": 20,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -3730,7 +3675,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           {
                                                             "alignItems": "center",
                                                             "alignSelf": "stretch",
-                                                            "backgroundColor": "#121314",
+                                                            "backgroundColor": "#131416",
                                                             "borderRadius": 12,
                                                             "flexDirection": "row",
                                                             "height": 48,
@@ -3795,7 +3740,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               style={
                                                 [
                                                   {
-                                                    "backgroundColor": "#3c4d9d0f",
+                                                    "backgroundColor": "#b4b4b528",
                                                     "borderRadius": 8,
                                                     "padding": 16,
                                                   },
@@ -3935,7 +3880,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               "fontSize": 12,
                                                             },
                                                             {
-                                                              "color": "#686e7d",
+                                                              "color": "#66676a",
                                                               "marginLeft": 8,
                                                             },
                                                             {
@@ -3972,9 +3917,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#121314",
+                                                          "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 18,
+                                                          "fontSize": 20,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4006,9 +3951,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#121314",
+                                                          "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 18,
+                                                          "fontSize": 20,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4061,7 +4006,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           {
                                                             "alignItems": "center",
                                                             "alignSelf": "stretch",
-                                                            "backgroundColor": "#121314",
+                                                            "backgroundColor": "#131416",
                                                             "borderRadius": 12,
                                                             "flexDirection": "row",
                                                             "height": 48,
@@ -4126,7 +4071,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               style={
                                                 [
                                                   {
-                                                    "backgroundColor": "#3c4d9d0f",
+                                                    "backgroundColor": "#b4b4b528",
                                                     "borderRadius": 8,
                                                     "padding": 16,
                                                   },
@@ -4191,7 +4136,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               "fontSize": 12,
                                                             },
                                                             {
-                                                              "color": "#686e7d",
+                                                              "color": "#66676a",
                                                               "marginLeft": 8,
                                                             },
                                                             {
@@ -4228,9 +4173,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#121314",
+                                                          "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 18,
+                                                          "fontSize": 20,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4262,9 +4207,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#121314",
+                                                          "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 18,
+                                                          "fontSize": 20,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4317,7 +4262,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           {
                                                             "alignItems": "center",
                                                             "alignSelf": "stretch",
-                                                            "backgroundColor": "#121314",
+                                                            "backgroundColor": "#131416",
                                                             "borderRadius": 12,
                                                             "flexDirection": "row",
                                                             "height": 48,
@@ -4430,8 +4375,47 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -4439,74 +4423,24 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -4540,7 +4474,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -4766,7 +4700,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -4816,7 +4750,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -4853,7 +4787,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -4913,7 +4847,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -4933,8 +4867,47 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -4942,74 +4915,24 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -5019,7 +4942,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               {
                                 "alignItems": "center",
                                 "alignSelf": "center",
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#b4b4b528",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "marginBottom": 8,
@@ -5032,7 +4955,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -5050,7 +4973,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -5074,7 +4997,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
@@ -5092,7 +5015,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                     },
                                     undefined,
                                     undefined,
@@ -5174,7 +5097,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#3c4d9d0f",
+                                              "backgroundColor": "#b4b4b528",
                                               "borderRadius": 8,
                                               "padding": 16,
                                             },
@@ -5317,7 +5240,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                         "fontSize": 12,
                                                       },
                                                       {
-                                                        "color": "#686e7d",
+                                                        "color": "#66676a",
                                                         "marginLeft": 8,
                                                       },
                                                       {
@@ -5354,9 +5277,9 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#121314",
+                                                    "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
-                                                    "fontSize": 18,
+                                                    "fontSize": 20,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -5388,9 +5311,9 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#121314",
+                                                    "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
-                                                    "fontSize": 18,
+                                                    "fontSize": 20,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -5443,7 +5366,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                     {
                                                       "alignItems": "center",
                                                       "alignSelf": "stretch",
-                                                      "backgroundColor": "#121314",
+                                                      "backgroundColor": "#131416",
                                                       "borderRadius": 12,
                                                       "flexDirection": "row",
                                                       "height": 48,
@@ -5602,8 +5525,47 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -5611,74 +5573,24 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -5712,7 +5624,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -5938,7 +5850,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -5988,7 +5900,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -6025,7 +5937,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -6101,7 +6013,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
@@ -6125,7 +6037,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
@@ -6139,7 +6051,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                       },
                                       undefined,
                                       undefined,
@@ -6182,7 +6094,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -6284,8 +6196,47 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -6293,74 +6244,24 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -6394,7 +6295,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -6528,7 +6429,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={80}
+              handlerTag={86}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6620,7 +6521,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6661,7 +6562,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={79}
+                          handlerTag={85}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -6670,7 +6571,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -6707,7 +6608,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -6783,7 +6684,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
@@ -6807,7 +6708,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
@@ -6821,7 +6722,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                       },
                                       undefined,
                                       undefined,
@@ -6864,7 +6765,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -6966,8 +6867,47 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -6975,74 +6915,24 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -7076,7 +6966,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -7210,7 +7100,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={76}
+              handlerTag={82}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7302,7 +7192,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -7343,7 +7233,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={75}
+                          handlerTag={81}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -7352,7 +7242,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -7389,7 +7279,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -7465,7 +7355,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
@@ -7489,7 +7379,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
@@ -7503,7 +7393,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                       },
                                       undefined,
                                       undefined,
@@ -7546,7 +7436,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -7648,8 +7538,47 @@ exports[`Quotes renders quotes expired screen 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -7657,74 +7586,24 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -7758,7 +7637,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -7892,7 +7771,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={68}
+              handlerTag={71}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7984,7 +7863,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -8025,7 +7904,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={67}
+                          handlerTag={70}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -8034,7 +7913,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -8071,7 +7950,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -8147,7 +8026,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
@@ -8171,7 +8050,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
@@ -8185,7 +8064,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                       },
                                       undefined,
                                       undefined,
@@ -8228,7 +8107,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -8277,7 +8156,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8290,7 +8169,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8308,7 +8187,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#121314",
+          "color": "#131416",
         },
         undefined,
         undefined,
@@ -8332,7 +8211,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8350,7 +8229,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#121314",
+            "color": "#131416",
           },
           undefined,
           undefined,
@@ -8387,7 +8266,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8400,7 +8279,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8418,7 +8297,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#121314",
+          "color": "#131416",
         },
         undefined,
         undefined,
@@ -8442,7 +8321,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8460,7 +8339,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#121314",
+            "color": "#131416",
           },
           undefined,
           undefined,
@@ -8497,7 +8376,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8510,7 +8389,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8528,7 +8407,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#121314",
+          "color": "#131416",
         },
         undefined,
         undefined,
@@ -8552,7 +8431,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8570,7 +8449,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#121314",
+            "color": "#131416",
           },
           undefined,
           undefined,
@@ -8607,7 +8486,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8620,7 +8499,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8638,7 +8517,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#121314",
+          "color": "#131416",
         },
         undefined,
         undefined,
@@ -8662,7 +8541,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8680,7 +8559,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#121314",
+            "color": "#131416",
           },
           undefined,
           undefined,
@@ -8717,7 +8596,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8730,7 +8609,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8748,7 +8627,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#121314",
+          "color": "#131416",
         },
         undefined,
         undefined,
@@ -8772,7 +8651,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8790,7 +8669,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#121314",
+            "color": "#131416",
           },
           undefined,
           undefined,
@@ -8827,7 +8706,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8843,7 +8722,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8887,7 +8766,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8903,7 +8782,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8947,7 +8826,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8963,7 +8842,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -9007,7 +8886,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -9023,7 +8902,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,

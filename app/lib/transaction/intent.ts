@@ -104,6 +104,7 @@ function isBytes32Hex(value: string): boolean {
 export async function handleIntentTransaction(
   quoteResponse: BridgeQuoteResponse,
   selectedAccountAddress: string | undefined,
+  abTests?: Record<string, string>,
 ) {
   const signatureControllerMessenger = getSignatureControllerMessenger(
     Engine.controllerMessenger,
@@ -170,6 +171,7 @@ export async function handleIntentTransaction(
       >[0]['quoteResponse'],
       signature,
       accountAddress,
+      abTests,
     });
   }
 

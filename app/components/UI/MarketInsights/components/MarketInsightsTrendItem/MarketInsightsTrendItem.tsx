@@ -1,42 +1,19 @@
 import React, { useMemo } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
+  Text,
+  FontWeight,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import type { MarketInsightsTrendItemProps } from './MarketInsightsTrendItem.types';
-import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
-
-const SOURCE_ICON_IMAGE_STYLE = { width: 16, height: 16, borderRadius: 8 };
-
-// StackedSourceIcons renders overlapping circular favicons for article sources.
-const StackedSourceIcons: React.FC<{ sources: string[] }> = ({ sources }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="mt-2"
-  >
-    {sources.map((source, index) => (
-      <Box
-        key={source}
-        twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
-          index > 0 ? '-ml-1.5' : ''
-        }`}
-      >
-        <Image
-          source={{ uri: getFaviconUrl(source) }}
-          style={SOURCE_ICON_IMAGE_STYLE}
-        />
-      </Box>
-    ))}
-  </Box>
-);
+import { getUniqueSourcesByFavicon } from '../../utils/marketInsightsFormatting';
+import SourceLogoGroup from '../SourceLogoGroup';
 
 const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
   trend,
@@ -45,20 +22,33 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
 }) => {
   const tw = useTailwind();
   const uniqueSources = useMemo(() => {
-    const seen = new Set<string>();
-    const fromArticles = trend.articles
-      .filter((article) => {
-        if (seen.has(article.source)) return false;
-        seen.add(article.source);
-        return true;
-      })
-      .map((article) => article.source);
-    const hasTweets = (trend.tweets?.length ?? 0) > 0;
-    if (hasTweets && !seen.has('x.com')) {
-      return [...fromArticles, 'x.com'];
-    }
-    return fromArticles;
+    const articleSources: MarketInsightsSource[] = trend.articles.map(
+      (article) => ({
+        name: article.source,
+        type: 'news',
+        url: article.url || article.source,
+      }),
+    );
+    const tweetSources: MarketInsightsSource[] = (trend.tweets ?? []).map(
+      (tweet) => ({
+        name: 'X',
+        type: 'social',
+        url: tweet.url || 'https://x.com',
+      }),
+    );
+
+    return getUniqueSourcesByFavicon([...articleSources, ...tweetSources]);
   }, [trend.articles, trend.tweets]);
+
+  const firstSource = uniqueSources[0];
+  const remainingCount = Math.max(0, uniqueSources.length - 1);
+  const sourceLabel = (() => {
+    if (!firstSource) return null;
+    if (firstSource.name === 'X' && remainingCount === 0) return null;
+    return remainingCount > 0
+      ? `${firstSource.name} +${remainingCount}`
+      : firstSource.name;
+  })();
 
   return (
     <Pressable
@@ -70,7 +60,7 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       accessibilityRole={onPress ? 'button' : undefined}
     >
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.HeadingSm}
         fontWeight={FontWeight.Medium}
         twClassName="mb-2"
       >
@@ -79,9 +69,23 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {trend.description}
       </Text>
-      {uniqueSources.length > 0 ? (
-        <StackedSourceIcons sources={uniqueSources} />
-      ) : null}
+      {uniqueSources.length > 0 && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="pt-2 gap-2"
+        >
+          <SourceLogoGroup sources={uniqueSources} />
+          {sourceLabel ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {sourceLabel}
+            </Text>
+          ) : null}
+        </Box>
+      )}
     </Pressable>
   );
 };

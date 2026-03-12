@@ -28,6 +28,7 @@ jest.mock('react-redux', () => ({
 }));
 
 import { ExploreFeed } from './TrendingView';
+import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   selectChainId,
   selectPopularNetworkConfigurationsByCaipChainId,
@@ -36,7 +37,6 @@ import {
 } from '../../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
@@ -95,7 +95,6 @@ jest.mock(
       solanaNetworks: [],
       selectedEvmAccount: null,
       selectedSolanaAccount: null,
-      isMultichainAccountsState2Enabled: false,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
@@ -128,7 +127,6 @@ describe('TrendingView', () => {
     (
       overrides: {
         browserTabsCount?: number;
-        multichainEnabled?: boolean;
         basicFunctionalityEnabled?: boolean;
       } = {},
     ) =>
@@ -170,9 +168,6 @@ describe('TrendingView', () => {
       }
       if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
         return [];
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return overrides.multichainEnabled ?? false;
       }
       if (selector === selectBasicFunctionalityEnabled) {
         return overrides.basicFunctionalityEnabled ?? true;
@@ -321,6 +316,30 @@ describe('TrendingView', () => {
     );
 
     expect(getByText('Explore')).toBeOnTheScreen();
+  });
+
+  it('wraps screen in SafeAreaView', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders HeaderRoot', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
+    ).toBeOnTheScreen();
   });
 
   it('renders search bar button', () => {

@@ -13,7 +13,7 @@ import {
 } from '../../../selectors/networkInfos';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ConnectedAccountsSelectorsIDs } from '../../Views/AccountConnect/ConnectedAccountModal.testIds';
 import AppConstants from '../../../core/AppConstants';
@@ -21,7 +21,7 @@ import styles from './ManageNetworks.styles';
 
 export default function ManageNetworksComponent() {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const networkName = useSelector(selectNetworkName);

@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixtures/performance-test.js';
+import { test } from '../../framework/fixtures/performance';
 
 import TimerHelper from '../../framework/TimerHelper';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
@@ -67,8 +67,7 @@ test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
         device,
       );
 
-      await WalletMainScreen.tapNetworkNavBar();
-      await NetworksScreen.selectNetwork('Ethereum');
+      await WalletMainScreen.tapOnTokensSection();
 
       await WalletMainScreen.tapOnToken('USDC');
       await assetViewScreen.measure(async () => {

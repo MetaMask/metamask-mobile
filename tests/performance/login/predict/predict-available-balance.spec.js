@@ -1,4 +1,4 @@
-import { test } from '../../../framework/fixtures/performance-test.js';
+import { test } from '../../../framework/fixtures/performance';
 
 import TimerHelper from '../../../framework/TimerHelper';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
@@ -44,10 +44,10 @@ test.describe(PerformancePredict, () => {
         { ios: 4500, android: 8000 },
         device,
       );
-      timer1.start();
-      await PredictMarketListScreen.isBalanceCardDisplayed();
-      await PredictMarketListScreen.isAvailableBalanceDisplayed();
-      timer1.stop();
+      await timer1.measure(async () => {
+        await PredictMarketListScreen.isBalanceCardDisplayed();
+        await PredictMarketListScreen.isAvailableBalanceDisplayed();
+      });
 
       // Add timer to performance tracker
       await performanceTracker.addTimer(timer1);

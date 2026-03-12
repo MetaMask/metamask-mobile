@@ -6,6 +6,7 @@ import { processNotification } from '@metamask/notification-services-controller/
 import { createMockNotificationEthReceived } from '@metamask/notification-services-controller/notification-services/mocks';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 jest.mock('../../../../../util/notifications/methods/common', () => ({
   getNetworkFees: () =>
@@ -36,19 +37,11 @@ describe('NetworkFeeField', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: jest.fn(),
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getAnalyticsId: jest.fn(),
-    });
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
+      );
   });
 
   it('renders correctly when type has "ModalField-NetworkFee"', () => {

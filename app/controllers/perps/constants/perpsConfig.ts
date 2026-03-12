@@ -30,6 +30,8 @@ export const PERPS_CONSTANTS = {
   ReconnectionDelayAndroidMs: 300, // Android-specific reconnection delay for better reliability on slower devices
   ReconnectionDelayIosMs: 100, // iOS-specific reconnection delay for optimal performance
   ReconnectionRetryDelayMs: 5_000, // 5 seconds delay between reconnection attempts
+  NetworkRestoreMaxRetries: 8, // Max retry attempts when reconnecting after WiFi/network restore
+  NetworkRestoreRetryBaseMs: 1_500, // Base delay (ms) between network restore retries (multiplied by attempt number)
 
   // Connection manager timing constants
   BalanceUpdateThrottleMs: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
@@ -339,5 +341,5 @@ export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
   /** Force MYX to testnet only (mainnet credentials not yet available) */
-  MYX_TESTNET_ONLY: true,
+  MYX_TESTNET_ONLY: false,
 } as const;

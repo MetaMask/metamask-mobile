@@ -24,6 +24,42 @@ import type {
   SDKOrderParams,
 } from '../types/hyperliquid-types';
 
+type FrontendOrderWithParentTpsl = FrontendOrder & {
+  takeProfitPrice?: unknown;
+  stopLossPrice?: unknown;
+  takeProfitOrderId?: unknown;
+  stopLossOrderId?: unknown;
+};
+
+const readOptionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.length > 0 ? value : undefined;
+
+const readOptionalOrderId = (value: unknown): string | undefined => {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value.toString();
+  }
+
+  return undefined;
+};
+
+const getParentTpslMetadata = (
+  rawOrder: FrontendOrderWithParentTpsl,
+): {
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  takeProfitOrderId?: string;
+  stopLossOrderId?: string;
+} => ({
+  takeProfitPrice: readOptionalString(rawOrder.takeProfitPrice),
+  stopLossPrice: readOptionalString(rawOrder.stopLossPrice),
+  takeProfitOrderId: readOptionalOrderId(rawOrder.takeProfitOrderId),
+  stopLossOrderId: readOptionalOrderId(rawOrder.stopLossOrderId),
+});
+
 /**
  * HyperLiquid SDK Adapter Utilities
  *
@@ -105,6 +141,13 @@ export function adaptOrderFromSDK(
   rawOrder: FrontendOrder,
   position?: Position,
 ): Order {
+  // TODO: Remove this widened boundary type when FrontendOrder includes
+  // takeProfitPrice/stopLossPrice and takeProfitOrderId/stopLossOrderId.
+  const parentTpslMetadata = getParentTpslMetadata(
+    rawOrder as FrontendOrderWithParentTpsl,
+  );
+
+  // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();
   const symbol = rawOrder.coin;
   const side: 'buy' | 'sell' = rawOrder.side === 'B' ? 'buy' : 'sell';
@@ -156,6 +199,13 @@ export function adaptOrderFromSDK(
     });
   }
 
+  // Fallback: preserve parent-level TP/SL metadata when children are absent.
+  takeProfitPrice ??= parentTpslMetadata.takeProfitPrice;
+  stopLossPrice ??= parentTpslMetadata.stopLossPrice;
+  takeProfitOrderId ??= parentTpslMetadata.takeProfitOrderId;
+  stopLossOrderId ??= parentTpslMetadata.stopLossOrderId;
+
+  // Build the order object
   const order: Order = {
     orderId,
     symbol,
@@ -172,6 +222,10 @@ export function adaptOrderFromSDK(
     isTrigger,
     reduceOnly,
   };
+
+  if (typeof rawOrder.isPositionTpsl === 'boolean') {
+    order.isPositionTpsl = rawOrder.isPositionTpsl;
+  }
 
   if (takeProfitPrice) {
     order.takeProfitPrice = takeProfitPrice;
