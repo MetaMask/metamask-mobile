@@ -11,7 +11,7 @@ import {
   SeasonWayToEarnDto,
   CampaignDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
-import { OnboardingStep } from './types';
+import { OnboardingStep, RewardsTab } from './types';
 import { AccountGroupId } from '@metamask/account-api';
 
 // Saga action types - defined here to avoid circular dependency with saga file
@@ -52,7 +52,7 @@ export interface BulkLinkState {
 }
 
 export interface RewardsState {
-  activeTab: 'musd' | 'season1';
+  activeTab: RewardsTab;
   seasonStatusLoading: boolean;
   seasonStatusError: string | null;
 
@@ -208,7 +208,7 @@ const rewardsSlice = createSlice({
   name: 'rewards',
   initialState,
   reducers: {
-    setActiveTab: (state, action: PayloadAction<'musd' | 'season1'>) => {
+    setActiveTab: (state, action: PayloadAction<RewardsTab>) => {
       state.activeTab = action.payload;
     },
 

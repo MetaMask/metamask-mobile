@@ -1368,9 +1368,9 @@ describe('RewardsDashboard', () => {
   describe('edge cases', () => {
     it('should handle invalid activeTab gracefully', () => {
       // Arrange
-      mockSelectActiveTab.mockReturnValue('overview');
+      mockSelectActiveTab.mockReturnValue('musd');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'overview';
+        if (selector === selectActiveTab) return 'musd';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -2382,9 +2382,9 @@ describe('RewardsDashboard', () => {
       mockBuild.mockClear();
 
       // Act - change active tab
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      mockSelectActiveTab.mockReturnValue('season1');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'season1';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -2419,10 +2419,10 @@ describe('RewardsDashboard', () => {
       mockBuild.mockClear();
       mockAddProperties.mockClear();
 
-      // Act - change to snapshots tab
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      // Act - change to season1 tab
+      mockSelectActiveTab.mockReturnValue('season1');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'season1';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -2440,13 +2440,13 @@ describe('RewardsDashboard', () => {
       });
       rerender(<RewardsDashboard />);
 
-      // Assert - snapshots tab
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'snapshots' });
+      // Assert - season1 tab
+      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'season1' });
 
-      // Act - change to activity tab
-      mockSelectActiveTab.mockReturnValue('activity');
+      // Act - change to musd tab
+      mockSelectActiveTab.mockReturnValue('musd');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'activity';
+        if (selector === selectActiveTab) return 'musd';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -2472,13 +2472,13 @@ describe('RewardsDashboard', () => {
   describe('TabsList ref functionality', () => {
     it('handles Redux state changes for activeTab without crashing', () => {
       // Arrange
-      mockSelectActiveTab.mockReturnValue('overview');
+      mockSelectActiveTab.mockReturnValue('musd');
       const { rerender } = render(<RewardsDashboard />);
 
-      // Act - change activeTab in Redux to snapshots
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      // Act - change activeTab in Redux to season1
+      mockSelectActiveTab.mockReturnValue('season1');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'season1';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;

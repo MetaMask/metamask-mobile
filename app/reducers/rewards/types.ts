@@ -1,4 +1,9 @@
-export type RewardsTab = 'musd' | 'season1';
+export type RewardsTab =
+  | 'musd'
+  | 'season1'
+  | 'overview'
+  | 'snapshots'
+  | 'activity';
 
 /**
  * Rewards onboarding step enumeration
