@@ -1347,8 +1347,8 @@ describe('Rewards selectors', () => {
   describe('Direct selector calls', () => {
     describe('selectActiveTab direct calls', () => {
       it('returns correct active tab directly', () => {
-        const state = createMockRootState({ activeTab: 'season1' });
-        expect(selectActiveTab(state)).toBe('season1');
+        const state = createMockRootState({ activeTab: 'activity' });
+        expect(selectActiveTab(state)).toBe('activity');
       });
     });
 
@@ -1842,7 +1842,7 @@ describe('Rewards selectors', () => {
 
     describe('All selectors with comprehensive state', () => {
       const comprehensiveState = createMockRootState({
-        activeTab: 'season1',
+        activeTab: 'activity',
         seasonStatusLoading: true,
         seasonId: 'season-2024-q1',
         seasonName: 'Q1 2024 Season',
