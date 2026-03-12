@@ -16,6 +16,7 @@ import type {
 } from '@nktkas/hyperliquid';
 
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { WebSocketConnectionState } from '../types';
 import type {
   PriceUpdate,
   Position,
@@ -33,7 +34,6 @@ import type {
   OrderBookLevel,
   PerpsPlatformDependencies,
   PerpsLogger,
-  WebSocketConnectionState,
 } from '../types';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
