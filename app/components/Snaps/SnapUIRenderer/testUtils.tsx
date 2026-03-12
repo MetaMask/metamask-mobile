@@ -174,6 +174,7 @@ export function renderInterface(
                   state: action.payload.state ?? state,
                   context: null,
                   contentType: null,
+                  displayed: true,
                 },
               },
             },
