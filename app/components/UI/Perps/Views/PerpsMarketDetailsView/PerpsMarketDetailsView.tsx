@@ -392,6 +392,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isLoading: isLoadingPosition,
     existingPosition,
     positionOpenedTimestamp,
+    isPositionDataReady,
   } = useHasExistingPosition({
     asset: market?.symbol || '',
     loadOnMount: true,
@@ -1043,9 +1044,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [market?.marketSource]);
 
   // Determine if any action buttons will be visible
+  // Only show buttons once position data is confirmed to prevent Long/Short flash
   const hasLongShortButtons = useMemo(
-    () => !isLoadingPosition,
-    [isLoadingPosition],
+    () => !isLoadingPosition && isPositionDataReady,
+    [isLoadingPosition, isPositionDataReady],
   );
 
   // Define navigation items for the card

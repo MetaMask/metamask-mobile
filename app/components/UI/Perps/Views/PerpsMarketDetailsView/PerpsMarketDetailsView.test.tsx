@@ -708,6 +708,7 @@ describe('PerpsMarketDetailsView', () => {
       existingPosition: null,
       refreshPosition: jest.fn(),
       positionOpenedTimestamp: undefined,
+      isPositionDataReady: true,
     });
 
     mockUsePerpsLiveOrders.mockImplementation(() => {
@@ -1123,6 +1124,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -1208,6 +1210,7 @@ describe('PerpsMarketDetailsView', () => {
         existingPosition: null,
         refreshPosition: mockRefreshPosition, // No-op function for WebSocket positions
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1260,6 +1263,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: mockRefreshPosition,
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1297,6 +1301,7 @@ describe('PerpsMarketDetailsView', () => {
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1362,6 +1367,7 @@ describe('PerpsMarketDetailsView', () => {
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1595,6 +1601,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: jest.fn(),
+        isPositionDataReady: true,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -1650,6 +1657,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: jest.fn(),
+        isPositionDataReady: true,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -1699,6 +1707,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -1752,6 +1761,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -1799,6 +1809,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+        isPositionDataReady: true,
       });
 
       // Mock useStopLossPrompt to return add_margin variant
@@ -1865,6 +1876,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+        isPositionDataReady: true,
       });
 
       // Mock useStopLossPrompt to return stop_loss variant
@@ -2256,6 +2268,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: timestamp, // Hook now provides this
+        isPositionDataReady: true,
       });
 
       // Act
@@ -2299,6 +2312,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined, // No timestamp available yet
+        isPositionDataReady: true,
       });
 
       // Act
@@ -2736,6 +2750,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       mockUsePerpsOpenOrdersImpl.mockReturnValue({
@@ -2804,6 +2819,7 @@ describe('PerpsMarketDetailsView', () => {
         existingPosition: undefined,
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       mockUsePerpsOpenOrdersImpl.mockReturnValue({
@@ -2892,6 +2908,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       mockUsePerpsOpenOrdersImpl.mockReturnValue({
@@ -2978,6 +2995,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       mockUsePerpsOpenOrdersImpl.mockReturnValue({
@@ -3053,6 +3071,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         refreshPosition: jest.fn(),
         positionOpenedTimestamp: undefined,
+        isPositionDataReady: true,
       });
 
       mockUsePerpsOpenOrdersImpl.mockReturnValue({

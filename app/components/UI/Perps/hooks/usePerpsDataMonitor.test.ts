@@ -101,6 +101,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
   });
 
@@ -342,6 +344,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({});
 
@@ -462,6 +466,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -478,6 +484,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({});
 
@@ -495,6 +503,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -511,6 +521,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({});
 
@@ -528,6 +540,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -545,6 +559,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [modifiedPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({});
 
@@ -562,6 +578,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -578,6 +596,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockETHPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({});
 
@@ -597,6 +617,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -633,6 +655,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -670,6 +694,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -686,6 +712,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({});
 
@@ -707,6 +735,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       const { rerender } = renderHook(() =>
@@ -727,6 +757,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({});
 
@@ -865,6 +897,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: true,
+
+        isPositionDataReady: false,
       });
 
       const { rerender } = renderHook(() =>
@@ -895,6 +929,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: undefined,
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       expect(() => {

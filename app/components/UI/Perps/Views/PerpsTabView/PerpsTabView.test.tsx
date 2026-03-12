@@ -320,6 +320,8 @@ describe('PerpsTabView', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
@@ -440,6 +442,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       render(<PerpsTabView />);
@@ -462,6 +466,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       render(<PerpsTabView />);
@@ -487,6 +493,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       render(<PerpsTabView />);
@@ -509,6 +517,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({
@@ -539,6 +549,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
@@ -565,6 +577,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
@@ -587,6 +601,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({
@@ -686,6 +702,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
@@ -700,6 +718,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({
@@ -716,6 +736,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
@@ -739,6 +761,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       render(<PerpsTabView />);
@@ -771,6 +795,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       render(<PerpsTabView />);
@@ -804,6 +830,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       render(<PerpsTabView />);
@@ -837,6 +865,8 @@ describe('PerpsTabView', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });

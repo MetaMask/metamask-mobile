@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
@@ -20,6 +20,8 @@ export interface UsePerpsLivePositionsReturn {
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Whether position data has been confirmed by at least one subscription callback */
+  isPositionDataReady: boolean;
 }
 
 /**
@@ -99,11 +101,13 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
-  const [positions, setPositions] = useState<Position[]>(
-    () => getPreloadedData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS,
-  );
   const [isInitialLoading, setIsInitialLoading] = useState(
     () => !hasPreloadedData('cachedPositions'),
+  );
+  const [isPositionDataReady, setIsPositionDataReady] = useState(
+    () =>
+      hasPreloadedData('cachedPositions') &&
+      (getPreloadedData<Position[]>('cachedPositions') ?? []).length > 0,
   );
   const hasReceivedFirstUpdate = useRef(false);
 
@@ -113,22 +117,18 @@ export function usePerpsLivePositions(
   );
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
-  // Enrich and update positions whenever raw positions or prices change
-  useEffect(() => {
+  // Derive enriched positions synchronously to prevent render flash
+  const positions = useMemo(() => {
     if (rawPositions.length === 0) {
-      setPositions(EMPTY_POSITIONS);
-      return;
+      return EMPTY_POSITIONS;
     }
-
-    const enrichedPositions = enrichPositionsWithLivePnL(
-      rawPositions,
-      priceData,
-    );
-    setPositions(enrichedPositions);
+    return enrichPositionsWithLivePnL(rawPositions, priceData);
   }, [rawPositions, priceData]);
 
   // Subscribe to position updates
   useEffect(() => {
+    let readyTimer: ReturnType<typeof setTimeout> | undefined;
+
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         if (newPositions === null) {
@@ -145,12 +145,26 @@ export function usePerpsLivePositions(
         }
 
         setRawPositions(newPositions);
+
+        if (newPositions.length > 0) {
+          // Non-empty positions are always trustworthy — mark ready immediately
+          if (readyTimer) clearTimeout(readyTimer);
+          setIsPositionDataReady(true);
+        } else if (!readyTimer) {
+          // Empty positions might be stale cache. Defer "ready" briefly
+          // to let WebSocket deliver authoritative data. If no update
+          // arrives, accept empty as genuine "no positions."
+          readyTimer = setTimeout(() => {
+            setIsPositionDataReady(true);
+          }, 150);
+        }
       },
       throttleMs,
     });
 
     return () => {
       unsubscribe();
+      if (readyTimer) clearTimeout(readyTimer);
     };
   }, [stream, throttleMs]);
 
@@ -175,5 +189,6 @@ export function usePerpsLivePositions(
   return {
     positions,
     isInitialLoading,
+    isPositionDataReady,
   };
 }
