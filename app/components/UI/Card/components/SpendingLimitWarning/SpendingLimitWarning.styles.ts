@@ -23,15 +23,7 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     mainText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text.default,
       marginBottom: 4,
-    },
-    subText: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: theme.colors.text.alternative,
     },
     buttonsRow: {
       flexDirection: 'row',
@@ -55,11 +47,6 @@ const createStyles = (theme: Theme) =>
       paddingVertical: 8,
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-    },
-    buttonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.text.default,
     },
   });
 
