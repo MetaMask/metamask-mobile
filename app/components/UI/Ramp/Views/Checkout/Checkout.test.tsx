@@ -21,7 +21,7 @@ const mockNavigation = {
   navigate: mockNavigate,
   reset: mockReset,
   setOptions: mockSetOptions,
-  dangerouslyGetParent: mockDangerouslyGetParent,
+  getParent: mockDangerouslyGetParent,
 };
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

@@ -1,4 +1,5 @@
 import { BackendWebSocketService } from '@metamask/core-backend';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { ControllerInitFunction } from '../../types';
 import {
   BackendWebSocketServiceMessenger,
@@ -44,7 +45,7 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
       try {
         const remoteFeatureFlagState = initMessenger?.call(
           'RemoteFeatureFlagController:getState',
-        );
+        ) as RemoteFeatureFlagControllerState | undefined;
         const { backendWebSocketConnection } =
           remoteFeatureFlagState?.remoteFeatureFlags || {};
 

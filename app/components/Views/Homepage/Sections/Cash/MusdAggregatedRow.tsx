@@ -88,13 +88,10 @@ const MusdAggregatedRow = () => {
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
-    NavigationService.navigation.navigate(
-      'Asset' as never,
-      {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
-      } as never,
-    );
+    NavigationService.navigation.navigate('Asset', {
+      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+      source: TokenDetailsSource.MobileTokenListPage,
+    });
   }, []);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {

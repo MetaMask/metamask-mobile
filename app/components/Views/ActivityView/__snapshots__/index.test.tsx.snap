@@ -20,33 +20,191 @@ exports[`ActivityView matches snapshot 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  Amount
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -54,49 +212,62 @@ exports[`ActivityView matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -105,474 +276,326 @@ exports[`ActivityView matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                Amount
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
+                    <View
+                      style={
                         {
-                          "bottom": "additive",
-                          "left": "off",
-                          "right": "off",
-                          "top": "off",
+                          "flex": 1,
                         }
                       }
-                      style={
-                        [
-                          {
-                            "flexBasis": "0%",
-                            "flexGrow": 1,
-                            "flexShrink": 1,
-                          },
-                          {
-                            "backgroundColor": "#ffffff",
-                          },
-                        ]
-                      }
-                      testID="activity-view-safe-area"
                     >
-                      <View
+                      <RNCSafeAreaView
+                        edges={
+                          {
+                            "bottom": "additive",
+                            "left": "off",
+                            "right": "off",
+                            "top": "off",
+                          }
+                        }
                         style={
                           [
                             {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "gap": 16,
-                              "minHeight": 56,
-                              "paddingLeft": 16,
-                              "paddingRight": 8,
+                              "flexBasis": "0%",
+                              "flexGrow": 1,
+                              "flexShrink": 1,
                             },
                             {
-                              "marginTop": 0,
+                              "backgroundColor": "#ffffff",
                             },
-                            undefined,
                           ]
                         }
-                        testID="activity-view-header-root"
+                        testID="activity-view-safe-area"
                       >
                         <View
                           style={
                             [
                               {
-                                "alignItems": "flex-start",
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "minHeight": 56,
+                                "paddingLeft": 16,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="activity-view-header-root"
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "flex-start",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 24,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 32,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Activity
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
                                 "display": "flex",
                                 "flexBasis": "0%",
                                 "flexGrow": 1,
                                 "flexShrink": 1,
+                                "gap": 16,
                               },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                  "flexDirection": "row",
-                                },
-                                undefined,
-                              ]
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 24,
-                                    "fontWeight": 700,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 32,
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              Activity
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "display": "flex",
-                              "flexBasis": "0%",
-                              "flexGrow": 1,
-                              "flexShrink": 1,
-                              "gap": 16,
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
-                        <View
-                          testID="tabs-list"
-                        >
-                          <View
-                            testID="tab-transactions"
+                            testID="tabs-list"
                           >
                             <View
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flex": 1,
-                                }
-                              }
-                              tabLabel="Transactions"
+                              testID="tab-transactions"
                             >
                               <View
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "justifyContent": "space-between",
-                                    "marginVertical": 8,
-                                    "paddingHorizontal": 16,
-                                    "width": "100%",
+                                    "backgroundColor": "#ffffff",
+                                    "flex": 1,
                                   }
                                 }
+                                tabLabel="Transactions"
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#b4b4b566",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "maxWidth": "80%",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 12,
+                                      "justifyContent": "space-between",
+                                      "marginVertical": 8,
+                                      "paddingHorizontal": 16,
+                                      "width": "100%",
                                     }
                                   }
-                                  testID="tokens-network-filter"
                                 >
-                                  <View
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={1}
+                                    disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "display": "flex",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b4b4b566",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "flexDirection": "row",
-                                        "gap": 4,
+                                        "height": 40,
+                                        "justifyContent": "center",
+                                        "maxWidth": "80%",
+                                        "overflow": "hidden",
+                                        "paddingHorizontal": 12,
                                       }
                                     }
+                                    testID="tokens-network-filter"
                                   >
                                     <View
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 4,
-                                          "height": 16,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "width": 16,
+                                          "display": "flex",
+                                          "flexDirection": "row",
+                                          "gap": 4,
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 4,
                                             "height": 16,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 16,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={1}
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
+                                      <Text
+                                        accessibilityRole="text"
+                                        numberOfLines={1}
+                                        style={
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Popular networks
+                                      </Text>
                                     </View>
-                                    <Text
-                                      accessibilityRole="text"
-                                      numberOfLines={1}
+                                    <SvgMock
+                                      color="#131416"
+                                      fill="currentColor"
+                                      height={16}
+                                      name="ArrowDown"
                                       style={
                                         {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
+                                          "height": 16,
+                                          "marginLeft": 8,
+                                          "width": 16,
                                         }
                                       }
-                                    >
-                                      Popular networks
-                                    </Text>
-                                  </View>
-                                  <SvgMock
-                                    color="#131416"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="ArrowDown"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "marginLeft": 8,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
+                                      width={16}
+                                    />
+                                  </TouchableOpacity>
+                                </View>
+                                <View
+                                  testID="unified-transactions-view-mock"
+                                />
                               </View>
-                              <View
-                                testID="unified-transactions-view-mock"
-                              />
                             </View>
-                          </View>
-                          <View
-                            testID="tab-orders"
-                          >
                             <View
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flex": 1,
-                                }
-                              }
-                              tabLabel="Transfers"
+                              testID="tab-orders"
                             >
                               <View
-                                testID="ramp-orders-list"
-                              />
+                                style={
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "flex": 1,
+                                  }
+                                }
+                                tabLabel="Transfers"
+                              >
+                                <View
+                                  testID="ramp-orders-list"
+                                />
+                              </View>
                             </View>
+                            <View
+                              testID="tab-2"
+                            />
+                            <View
+                              testID="tab-3"
+                            />
                           </View>
-                          <View
-                            testID="tab-2"
-                          />
-                          <View
-                            testID="tab-3"
-                          />
                         </View>
-                      </View>
-                    </RNCSafeAreaView>
+                      </RNCSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

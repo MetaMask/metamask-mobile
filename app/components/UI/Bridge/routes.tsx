@@ -22,10 +22,12 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScreenComponent = React.ComponentType<any>;
+
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
   <Stack.Navigator
-    headerMode="screen"
     screenOptions={{
       headerShown: true,
     }}
@@ -51,8 +53,7 @@ export const BridgeScreenStack = () => (
 const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
@@ -64,7 +65,7 @@ export const BridgeModalStack = () => (
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
-      component={BlockExplorersModal}
+      component={BlockExplorersModal as ScreenComponent}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}

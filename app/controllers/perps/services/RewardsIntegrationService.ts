@@ -1,9 +1,15 @@
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { NetworkState, NetworkClient } from '@metamask/network-controller';
+
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsPlatformDependencies } from '../types';
+import type { PerpsPlatformDependencies, PerpsInternalAccount } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+
+/** Type alias for account array from AccountTreeController */
+type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 
 /**
  * RewardsIntegrationService
@@ -43,7 +49,7 @@ export class RewardsIntegrationService {
       const networkClient = this.#messenger.call(
         'NetworkController:getNetworkClientById',
         networkClientId,
-      );
+      ) as NetworkClient;
       return networkClient.configuration.chainId;
     } catch {
       // Network client may not exist
@@ -62,7 +68,7 @@ export class RewardsIntegrationService {
       const evmAccount = getSelectedEvmAccount(
         this.#messenger.call(
           'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
+        ) as AccountGroupAccounts,
       );
 
       if (!evmAccount) {
@@ -73,7 +79,9 @@ export class RewardsIntegrationService {
       }
 
       // Get the chain ID via DI network controller
-      const networkState = this.#messenger.call('NetworkController:getState');
+      const networkState = this.#messenger.call(
+        'NetworkController:getState',
+      ) as NetworkState;
       const { selectedNetworkClientId } = networkState;
       const chainId = this.#getChainIdForNetwork(selectedNetworkClientId);
 

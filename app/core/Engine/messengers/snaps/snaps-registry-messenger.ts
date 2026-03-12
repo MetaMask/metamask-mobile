@@ -6,7 +6,7 @@ import {
 import { SnapsRegistryMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type SnapsRegistryMessenger };
+export type { SnapsRegistryMessenger };
 
 /**
  * Get a messenger for the Snaps registry. This is scoped to the

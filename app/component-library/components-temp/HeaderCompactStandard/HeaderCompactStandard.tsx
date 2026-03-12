@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React, { useMemo } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies.
 import {
@@ -12,6 +13,7 @@ import {
   IconName,
   ButtonIconProps,
 } from '@metamask/design-system-react-native';
+import { useTheme } from '../../../util/theme';
 
 // Internal dependencies.
 import HeaderBase from '../../components/HeaderBase';
@@ -51,8 +53,10 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
   startButtonIconProps,
   twClassName = '',
   testID,
+  includesTopInset,
   ...headerBaseProps
 }) => {
+  const { colors } = useTheme();
   // Build the startButtonIconProps with back button if needed
   const resolvedStartButtonIconProps = useMemo(() => {
     if (startButtonIconProps) {
@@ -129,7 +133,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
     return null;
   };
 
-  return (
+  const headerContent = (
     <HeaderBase
       testID={testID}
       startButtonIconProps={resolvedStartButtonIconProps}
@@ -140,6 +144,19 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
       {renderContent()}
     </HeaderBase>
   );
+
+  if (includesTopInset) {
+    return (
+      <SafeAreaView
+        style={{ backgroundColor: colors.background.default }}
+        edges={['top']}
+      >
+        {headerContent}
+      </SafeAreaView>
+    );
+  }
+
+  return headerContent;
 };
 
 export default HeaderCompactStandard;

@@ -6,6 +6,7 @@ import {
 } from '@metamask/base-controller';
 import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { addBreadcrumb } from '@sentry/react-native';
@@ -108,6 +109,7 @@ import type {
   PerpsRemoteFeatureFlagState,
   PerpsTransactionParams,
   PerpsAddTransactionOptions,
+  PerpsInternalAccount,
 } from './types';
 import type {
   PerpsControllerAllowedActions,
@@ -125,6 +127,9 @@ import { wait } from './utils/wait';
 
 /** Derived type for logger options from PerpsLogger interface */
 type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
+
+/** Type alias for account array from AccountTreeController */
+type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 // PaymentToken: minimal interface for deposit flow (replaces mobile-only AssetType)
 
 /**
@@ -709,7 +714,7 @@ export class PerpsController extends BaseController<
     try {
       const remoteState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
-      );
+      ) as PerpsRemoteFeatureFlagState;
       const remoteFlag =
         remoteState.remoteFeatureFlags?.perpsMyxProviderEnabled;
 
@@ -829,7 +834,7 @@ export class PerpsController extends BaseController<
     try {
       const currentRemoteFeatureFlagState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
-      );
+      ) as PerpsRemoteFeatureFlagState;
 
       this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
     } catch (error) {
@@ -984,7 +989,7 @@ export class PerpsController extends BaseController<
       const evmAccount = getSelectedEvmAccount(
         this.messenger.call(
           'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
+        ) as AccountGroupAccounts,
       );
       currentAddress = evmAccount?.address ?? null;
     } catch {
@@ -1154,7 +1159,7 @@ export class PerpsController extends BaseController<
     return this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       chainId as `0x${string}`,
-    );
+    ) as string | undefined;
   }
 
   /**
@@ -1188,7 +1193,10 @@ export class PerpsController extends BaseController<
       txParams as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       options as any,
-    );
+    ) as Promise<{
+      result: Promise<string>;
+      transactionMeta: { id: string; hash?: string };
+    }>;
   }
 
   /**
@@ -1977,7 +1985,7 @@ export class PerpsController extends BaseController<
       const evmAccount = getSelectedEvmAccount(
         this.messenger.call(
           'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
+        ) as AccountGroupAccounts,
       );
       const accountAddress = evmAccount?.address ?? 'unknown';
 
@@ -2699,7 +2707,7 @@ export class PerpsController extends BaseController<
       const evmAccount = getSelectedEvmAccount(
         this.messenger.call(
           'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
+        ) as AccountGroupAccounts,
       );
       const currentAddress = evmAccount?.address ?? null;
 
@@ -2910,7 +2918,7 @@ export class PerpsController extends BaseController<
     const evmAccount = getSelectedEvmAccount(
       this.messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
+      ) as AccountGroupAccounts,
     );
     if (!evmAccount?.address) {
       return;
@@ -3927,9 +3935,9 @@ export class PerpsController extends BaseController<
     const versionAtStart = this.#blockedRegionListVersion;
 
     try {
-      const geoLocation = await this.messenger.call(
+      const geoLocation = (await this.messenger.call(
         'GeolocationController:getGeolocation',
-      );
+      )) as string;
 
       const isEligible = await this.#eligibilityService.checkEligibility({
         blockedRegions: this.blockedRegionList.list,

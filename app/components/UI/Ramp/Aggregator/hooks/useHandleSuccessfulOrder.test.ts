@@ -12,7 +12,7 @@ const mockTrackEvent = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
-    dangerouslyGetParent: () => ({
+    getParent: () => ({
       pop: mockPop,
     }),
   }),

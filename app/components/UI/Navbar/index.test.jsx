@@ -280,7 +280,7 @@ describe('getOnboardingNavbarOptions', () => {
 
 describe('getBridgeNavbar', () => {
   const mockNavigation = {
-    dangerouslyGetParent: jest.fn(() => ({
+    getParent: jest.fn(() => ({
       pop: jest.fn(),
     })),
   };
@@ -474,7 +474,7 @@ describe('getNavigationOptionsTitle', () => {
 describe('getSwapsQuotesNavbar', () => {
   const mockNavigation = {
     pop: jest.fn(),
-    dangerouslyGetParent: jest.fn(() => ({
+    getParent: jest.fn(() => ({
       pop: jest.fn(),
     })),
   };

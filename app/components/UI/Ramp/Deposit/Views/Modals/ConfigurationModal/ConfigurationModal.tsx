@@ -67,7 +67,7 @@ function ConfigurationModal() {
       preferred_provider: buttonClickData.preferred_provider,
       order_count: buttonClickData.order_count,
     });
-    navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
+    navigation.getParent()?.getParent()?.goBack();
     goToAggregator();
   }, [
     navigation,

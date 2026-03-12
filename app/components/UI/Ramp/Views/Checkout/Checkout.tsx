@@ -199,7 +199,7 @@ const Checkout = () => {
         const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
           // @ts-expect-error navigation prop mismatch
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           return;
         }
 

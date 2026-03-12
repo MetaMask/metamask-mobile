@@ -176,7 +176,9 @@ const clearStackNavigatorOptions = {
 };
 
 const WalletModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+  >
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
@@ -240,7 +242,13 @@ const WalletTabStackFlow = () => (
 );
 
 const WalletTabModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'modal',
+      cardStyle: { backgroundColor: importedColors.white },
+    }}
+  >
     <Stack.Screen
       name={Routes.WALLET.TAB_STACK_FLOW}
       component={WalletTabStackFlow}
@@ -249,7 +257,9 @@ const WalletTabModalFlow = () => (
 );
 
 const TransactionsHome = () => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{ cardStyle: { backgroundColor: importedColors.white } }}
+  >
     <Stack.Screen
       name={Routes.TRANSACTIONS_VIEW}
       component={ActivityView}
@@ -284,7 +294,13 @@ const TransactionsHome = () => (
 );
 
 const RewardsHome = () => (
-  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+      cardStyle: { backgroundColor: importedColors.white },
+    }}
+  >
     <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
@@ -314,9 +330,9 @@ const RewardsHome = () => (
 const BrowserFlow = (props) => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
-    mode={'modal'}
     screenOptions={{
-      cardStyle: { backgroundColor: importedColors.transparent },
+      presentation: 'modal',
+      cardStyle: { backgroundColor: importedColors.white },
     }}
   >
     <Stack.Screen
@@ -338,7 +354,13 @@ const BrowserFlow = (props) => (
 );
 
 const ExploreHome = () => (
-  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} mode="modal">
+  <Stack.Navigator
+    initialRouteName={Routes.TRENDING_FEED}
+    screenOptions={{
+      presentation: 'modal',
+      cardStyle: { backgroundColor: importedColors.white },
+    }}
+  >
     <Stack.Screen
       name={Routes.TRENDING_FEED}
       component={ExploreFeed}
@@ -367,10 +389,9 @@ const SnapsSettingsStack = () => (
 const NotificationsOptInStack = () => (
   <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
     <Stack.Screen
-      mode={'modal'}
       name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, presentation: 'modal' }}
     />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
@@ -729,7 +750,11 @@ const HomeTabs = () => {
   };
 
   return (
-    <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+    <Tab.Navigator
+      initialRouteName={Routes.WALLET.HOME}
+      tabBar={renderTabBar}
+      screenOptions={{ headerShown: false }}
+    >
       {/* Home Tab */}
       <Tab.Screen
         name={Routes.WALLET.HOME}
@@ -792,7 +817,7 @@ const Webview = () => (
     <Stack.Screen
       name="SimpleWebview"
       component={SimpleWebview}
-      mode={'modal'}
+      options={{ presentation: 'modal' }}
     />
   </Stack.Navigator>
 );
@@ -872,10 +897,9 @@ const NotificationsModeView = (props) => (
       options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen
-      mode={'modal'}
       name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
-      options={OptIn.navigationOptions}
+      options={{ ...OptIn.navigationOptions, presentation: 'modal' }}
     />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
@@ -955,8 +979,8 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        presentation: 'transparentModal',
       }}
-      mode={'modal'}
       initialRouteName={'Home'}
     >
       <Stack.Screen

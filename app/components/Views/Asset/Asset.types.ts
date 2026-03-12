@@ -18,4 +18,15 @@ export interface AssetViewParams {
   image?: string;
   pricePercentChange1d?: number;
   isFromTrending?: boolean;
+  balance?: string;
+  balanceFiat?: string;
+  isNative?: boolean;
+  isETH?: boolean;
+  aggregators?: string[];
+  source?: string;
+  scrollToMerklRewards?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rwaData?: any;
+  // Additional properties from token spread
+  [key: string]: unknown;
 }
