@@ -210,6 +210,8 @@ export interface AssetOverviewContentProps {
   securityData?: TokenSecurityData | null;
   /** Whether security data is still being fetched. */
   isSecurityDataLoading?: boolean;
+  /** Whether the security data fetch failed. Hides the card when true. */
+  hasSecurityDataError?: boolean;
 }
 
 /**
@@ -251,6 +253,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onMarketInsightsDisplayResolved,
   securityData,
   isSecurityDataLoading = false,
+  hasSecurityDataError = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -896,13 +899,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>
-          <View style={styles.securityTrustWrapper}>
-            <SecurityTrustEntryCard
-              securityData={securityData ?? null}
-              isLoading={isSecurityDataLoading}
-              token={token as TokenDetailsRouteParams}
-            />
-          </View>
+          {!hasSecurityDataError && (
+            <View style={styles.securityTrustWrapper}>
+              <SecurityTrustEntryCard
+                securityData={securityData ?? null}
+                isLoading={isSecurityDataLoading}
+                token={token as TokenDetailsRouteParams}
+              />
+            </View>
+          )}
           {isEligibilityModalVisible && (
             <View>
               <Modal
