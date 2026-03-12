@@ -54,7 +54,7 @@ class LoginView {
     return encapsulated({
       detox: () => Matchers.getElementByID(LoginViewSelectors.TITLE_ID),
       appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.LOGIN_BUTTON_ID),
+        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID),
     });
   }
 
@@ -85,8 +85,8 @@ class LoginView {
   async waitForScreenToDisplay(): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.title);
-        await element.waitForDisplayed({ timeout: 15000 });
+        const titleEl = await asPlaywrightElement(this.title);
+        await titleEl.waitForDisplayed({ timeout: 15000 });
       },
     });
   }

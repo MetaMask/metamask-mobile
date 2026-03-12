@@ -5,6 +5,11 @@ import {
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class PerpsMarketListView {
   // Main container
@@ -32,8 +37,14 @@ class PerpsMarketListView {
     );
   }
 
-  get listHeader() {
-    return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER);
+  /** List header - wdio PerpsMarketListView uses 'perps-home' for isHeaderVisible */
+  get listHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER),
+      appium: () =>
+        PlaywrightMatchers.getElementById('perps-home', { exact: true }),
+    });
   }
 
   get marketRowItemBTC() {
