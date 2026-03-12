@@ -12,6 +12,8 @@ const EVENT_LOCATIONS = {
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
   QUICK_CONVERT_HOME_SCREEN: 'quick_convert_home_screen',
+  /** CTA on full page Cash token list */
+  MOBILE_TOKEN_LIST_PAGE: 'mobile-token-list-page',
 };
 
 const MUSD_CTA_TYPES = {
