@@ -277,6 +277,7 @@ describe('usePerpsHomeData', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+      isPositionDataReady: true,
     });
 
     mockUsePerpsLiveOrders.mockReturnValue({
@@ -359,6 +360,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: manyPositions,
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveOrders.mockReturnValue({
         orders: manyOrders,
@@ -385,6 +387,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: manyPositions,
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result } = renderHook(() =>
@@ -427,6 +430,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: true,
+        isPositionDataReady: false,
       });
 
       const { result } = renderHook(() => usePerpsHomeData());
@@ -653,6 +657,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [positionWithoutCoin],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result } = renderHook(() =>
@@ -710,6 +715,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result } = renderHook(() => usePerpsHomeData());
@@ -759,6 +765,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveOrders.mockReturnValue({
         orders: [],
@@ -899,6 +906,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: newPositions,
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       rerender();
@@ -978,6 +986,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: manyPositions,
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result } = renderHook(() =>

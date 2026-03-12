@@ -187,6 +187,7 @@ describe('PerpsCloseAllPositionsView', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+      isPositionDataReady: true,
     });
     mockUsePerpsCloseAllCalculations.mockReturnValue(mockCalculations);
     mockUsePerpsCloseAllPositions.mockReturnValue(mockCloseAllHook);
@@ -201,6 +202,7 @@ describe('PerpsCloseAllPositionsView', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: true,
+      isPositionDataReady: false,
     });
 
     // Act
@@ -215,6 +217,7 @@ describe('PerpsCloseAllPositionsView', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+      isPositionDataReady: true,
     });
 
     // Act
@@ -277,6 +280,7 @@ describe('PerpsCloseAllPositionsView', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+      isPositionDataReady: true,
     });
 
     // Act

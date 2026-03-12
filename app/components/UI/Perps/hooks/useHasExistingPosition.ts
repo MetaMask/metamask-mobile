@@ -24,6 +24,8 @@ interface UseHasExistingPositionReturn {
   refreshPosition: () => Promise<void>;
   /** Timestamp when the position was opened (from order fills) */
   positionOpenedTimestamp: number | undefined;
+  /** Whether position data has been confirmed (cache with positions or first subscription callback) */
+  isPositionDataReady: boolean;
 }
 
 /**
@@ -39,7 +41,8 @@ export function useHasExistingPosition(
   // loadOnMount is ignored since WebSocket subscriptions load from cache immediately
 
   // Get real-time positions via WebSocket
-  const { positions, isInitialLoading } = usePerpsLivePositions();
+  const { positions, isInitialLoading, isPositionDataReady } =
+    usePerpsLivePositions();
 
   // Get real-time fills via WebSocket for position opened timestamp
   const { fills: orderFills } = usePerpsLiveFills();
@@ -180,5 +183,6 @@ export function useHasExistingPosition(
     existingPosition,
     refreshPosition,
     positionOpenedTimestamp,
+    isPositionDataReady,
   };
 }

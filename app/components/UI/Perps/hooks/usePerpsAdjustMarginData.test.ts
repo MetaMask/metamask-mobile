@@ -80,6 +80,7 @@ describe('usePerpsAdjustMarginData', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [mockPosition],
       isInitialLoading: false,
+      isPositionDataReady: true,
     });
 
     mockUsePerpsLiveAccount.mockReturnValue({
@@ -130,6 +131,7 @@ describe('usePerpsAdjustMarginData', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: true,
+        isPositionDataReady: false,
       });
 
       const { result } = renderHook(() =>
@@ -223,6 +225,7 @@ describe('usePerpsAdjustMarginData', () => {
           },
         ],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result } = renderHook(() =>
@@ -278,6 +281,7 @@ describe('usePerpsAdjustMarginData', () => {
           },
         ],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result } = renderHook(() =>
@@ -376,6 +380,7 @@ describe('usePerpsAdjustMarginData', () => {
           },
         ],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result } = renderHook(() =>

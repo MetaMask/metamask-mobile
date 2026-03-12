@@ -95,6 +95,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result } = renderHook(() =>
@@ -111,6 +113,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result } = renderHook(() =>
@@ -127,6 +131,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result } = renderHook(() =>
@@ -143,6 +149,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result } = renderHook(() =>
@@ -159,6 +167,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result } = renderHook(() =>
@@ -173,6 +183,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result } = renderHook(() =>
@@ -188,6 +200,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result, rerender } = renderHook(() =>
@@ -200,6 +214,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     rerender();
@@ -211,6 +227,8 @@ describe('useHasExistingPosition', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+
+      isPositionDataReady: true,
     });
 
     const { result } = renderHook(() =>
@@ -253,6 +271,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveFills.mockReturnValue({
         fills: mockFills,
@@ -270,6 +290,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [mockFills[1]], // Only ETH fill
@@ -288,6 +310,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveFills.mockReturnValue({
         fills: mockFills,
@@ -306,6 +330,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [], // No WebSocket fills
@@ -347,6 +373,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveFills.mockReturnValue({
         fills: mockFills, // Has BTC fill with wsTimestamp
@@ -370,6 +398,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPositions[0]], // BTC only
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
@@ -404,6 +434,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPositions[1]], // ETH only
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockGetOrderFills.mockResolvedValueOnce([
         {
@@ -436,6 +468,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPositions[0]], // BTC
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [], // No WebSocket fills
@@ -473,6 +507,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
       rerender({ asset: 'BTC' });
 
@@ -484,6 +520,8 @@ describe('useHasExistingPosition', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPositions[0]], // BTC again
         isInitialLoading: false,
+
+        isPositionDataReady: true,
       });
 
       // Second REST fetch returns new timestamp

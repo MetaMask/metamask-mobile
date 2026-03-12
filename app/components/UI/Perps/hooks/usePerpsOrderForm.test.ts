@@ -151,6 +151,7 @@ describe('usePerpsOrderForm', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
+      isPositionDataReady: true,
     });
     mockUsePerpsMarketData.mockReturnValue({
       marketData: {
@@ -189,6 +190,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [createMockPosition('BTC', 10)],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       // Create a wrapper with saved config for BTC at 5x leverage
@@ -297,6 +299,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [createMockPosition('BTC', 10)],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       // Render with both navigation param (12x) and existing position leverage (10x)
@@ -318,6 +321,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result, rerender } = renderHook(
@@ -336,6 +340,7 @@ describe('usePerpsOrderForm', () => {
         mockUsePerpsLivePositions.mockReturnValue({
           positions: [createMockPosition('BTC', 10)],
           isInitialLoading: false,
+          isPositionDataReady: true,
         });
       });
 
@@ -351,6 +356,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       const { result, rerender } = renderHook(
@@ -369,6 +375,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [createMockPosition('BTC', 10)],
         isInitialLoading: false,
+        isPositionDataReady: true,
       });
 
       // Re-render the existing hook instance to trigger useEffect
