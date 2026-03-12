@@ -2,6 +2,7 @@ import enContent from '../../../../locales/languages/en.json';
 
 export const NetworkEducationModalSelectorsText = {
   ADD_TOKEN: enContent.network_information.add_token,
+  GOT_IT: enContent.network_information.got_it,
 };
 
 export const NetworkEducationModalSelectorsIDs = {
