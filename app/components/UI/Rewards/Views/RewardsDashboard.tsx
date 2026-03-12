@@ -212,14 +212,18 @@ const RewardsDashboard: React.FC = () => {
   }, [isUkUser]);
 
   // Reset activeTab if it's not available in current tabOptions (e.g., UK users can't see mUSD)
+  // Skip while geolocation is loading to avoid resetting non-UK users' default tab
   useEffect(() => {
+    if (geoLocation === null) {
+      return; // Don't reset tab while geolocation is loading
+    }
     const isActiveTabAvailable = tabOptions.some(
       (tab) => tab.value === activeTab,
     );
     if (!isActiveTabAvailable && tabOptions.length > 0) {
       dispatch(setActiveTab(tabOptions[0].value));
     }
-  }, [activeTab, tabOptions, dispatch]);
+  }, [activeTab, tabOptions, dispatch, geoLocation]);
 
   const handleTabChange = useCallback(
     ({ i }: { i: number }) => {
