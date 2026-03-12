@@ -46,7 +46,7 @@ jest.mock(
 );
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroupForChainIds: (
+  selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance: (
     state: unknown,
     chainIds: string[],
   ) => mockSortedTokenKeys(state, chainIds),
@@ -76,6 +76,15 @@ jest.mock('../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../selectors/networkController'),
   selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
   selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
+}));
+
+jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
+  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+}));
+
+const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
+jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
 const mockRefreshTokens = jest.fn().mockResolvedValue(undefined);
@@ -349,6 +358,11 @@ describe('TokensSection', () => {
       error: null,
       refetch: jest.fn(),
     });
+    // Cash section disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
   });
 
   it('renders section title for account with balance', () => {
@@ -407,7 +421,7 @@ describe('TokensSection', () => {
     });
   });
 
-  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIds)', () => {
+  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance)', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     const popularChainIds = ['eip155:1', '0xa'];
     mockPopularNetworks = popularChainIds;
@@ -458,6 +472,30 @@ describe('TokensSection', () => {
     expect(screen.getByTestId('token-item-0xtoken5')).toBeOnTheScreen();
     expect(screen.queryByTestId('token-item-0xtoken6')).toBeNull();
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
+  });
+
+  it('filters out mUSD from displayed tokens (mUSD is shown only in Cash section)', () => {
+    const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.queryByTestId(`token-item-${MUSD_ADDRESS}`)).toBeNull();
+    expect(screen.queryByTestId(`token-item-v2-${MUSD_ADDRESS}`)).toBeNull();
+    const otherToken =
+      screen.queryByTestId('token-item-0xtoken1') ??
+      screen.queryByTestId('token-item-v2-0xtoken1');
+    expect(otherToken).toBeOnTheScreen();
   });
 
   it('navigates to tokens full view on title press', () => {
