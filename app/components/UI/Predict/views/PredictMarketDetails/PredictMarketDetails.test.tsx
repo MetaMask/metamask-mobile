@@ -618,10 +618,10 @@ const extractText = (node: React.ReactNode): string => {
 const getActionButtonText = (button: ReactTestInstance) =>
   collapseWhitespace(extractText(button.props.children));
 
-const getActionButtons = () =>
-  screen
-    .getAllByTestId(PredictMarketDetailsSelectorsIDs.ACTION_BUTTON)
-    .filter((button) => getActionButtonText(button).includes('¢'));
+const getActionButtons = () => [
+  screen.getByTestId(PredictMarketDetailsSelectorsIDs.ACTION_BUTTON_YES),
+  screen.getByTestId(PredictMarketDetailsSelectorsIDs.ACTION_BUTTON_NO),
+];
 
 const findActionButtonByPrice = (price: number) =>
   getActionButtons().find(

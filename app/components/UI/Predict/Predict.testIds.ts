@@ -126,7 +126,8 @@ export const PredictMarketDetailsSelectorsIDs = {
     'predict-market-details-resolved-outcomes-icon-expanded',
 
   // Action buttons (Yes/No for single outcome markets)
-  ACTION_BUTTON: 'predict-market-details-action-button',
+  ACTION_BUTTON_YES: 'predict-market-details-action-button-yes',
+  ACTION_BUTTON_NO: 'predict-market-details-action-button-no',
 } as const;
 
 export const getPredictMarketDetailsSelector = {

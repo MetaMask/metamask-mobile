@@ -84,7 +84,7 @@ const PredictMarketDetailsActions = memo(
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
                   style={tw.style('flex-1 bg-success-muted')}
-                  testID={PredictMarketDetailsSelectorsIDs.ACTION_BUTTON}
+                  testID={PredictMarketDetailsSelectorsIDs.ACTION_BUTTON_YES}
                   label={
                     <Text
                       style={tw.style('font-bold')}
@@ -105,7 +105,7 @@ const PredictMarketDetailsActions = memo(
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
                   style={tw.style('flex-1 bg-error-muted')}
-                  testID={PredictMarketDetailsSelectorsIDs.ACTION_BUTTON}
+                  testID={PredictMarketDetailsSelectorsIDs.ACTION_BUTTON_NO}
                   label={
                     <Text
                       style={tw.style('font-bold')}
