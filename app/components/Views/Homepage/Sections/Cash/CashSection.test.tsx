@@ -33,7 +33,7 @@ jest.mock('../../../../UI/Earn/hooks/useMusdBalance', () => ({
 
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: jest.fn(() => ({ onLayout: jest.fn() })),
   HomeSectionNames: {
     CASH: 'cash',
     TOKENS: 'tokens',

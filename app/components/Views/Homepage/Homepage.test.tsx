@@ -14,8 +14,8 @@ jest.mock('@react-navigation/native', () => {
       navigate: jest.fn(),
     }),
     useFocusEffect: (callback: () => void) => {
-      const React = jest.requireActual('react');
-      React.useEffect(callback, [callback]);
+      const ReactLib = jest.requireActual('react');
+      ReactLib.useEffect(callback, [callback]);
     },
   };
 });
@@ -134,6 +134,37 @@ jest.mock(
   }),
 );
 
+/** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
+interface UseHomeViewedEventParamsSnapshot {
+  sectionName?: string;
+  sectionIndex?: number;
+  totalSectionsLoaded?: number;
+}
+
+// Mock useHomeViewedEvent to avoid analytics side-effects in
+// Homepage-level tests — section-level analytics are covered by the hook tests.
+const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
+jest.mock('./hooks/useHomeViewedEvent', () => ({
+  __esModule: true,
+  default: (params: UseHomeViewedEventParamsSnapshot) =>
+    (mockUseHomeViewedEvent as jest.Mock)(params),
+  HomeSectionNames: {
+    CASH: 'cash',
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
+/** Returns mock useHomeViewedEvent calls with typed first argument. */
+function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
+  return mockUseHomeViewedEvent.mock.calls as unknown as [
+    UseHomeViewedEventParamsSnapshot,
+  ][];
+}
+
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectPooledStakingEnabledFlag: jest.fn(() => false),
@@ -159,22 +190,6 @@ const mockUseMusdConversionTokens = jest.fn(() => ({
 }));
 jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
   useMusdConversionTokens: () => mockUseMusdConversionTokens(),
-}));
-
-// Mock useHomeViewedEvent to avoid analytics side-effects in
-// Homepage-level tests — section-level analytics are covered by the hook tests.
-const mockUseHomeViewedEvent = jest.fn();
-jest.mock('./hooks/useHomeViewedEvent', () => ({
-  __esModule: true,
-  default: (...args: unknown[]) => mockUseHomeViewedEvent(...args),
-  HomeSectionNames: {
-    CASH: 'cash',
-    TOKENS: 'tokens',
-    PERPS: 'perps',
-    DEFI: 'defi',
-    PREDICT: 'predict',
-    NFTS: 'nfts',
-  },
 }));
 
 const mockEnableAllPopularNetworks = jest.fn();
@@ -268,7 +283,7 @@ describe('Homepage', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       // Tokens=0, Perps=1, Predict=2, DeFi=3, NFTs=4 → total=5
-      const calls = mockUseHomeViewedEvent.mock.calls;
+      const calls = getUseHomeViewedEventCalls();
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
@@ -282,7 +297,7 @@ describe('Homepage', () => {
     it('passes totalSectionsLoaded=5 when all flags are enabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomeViewedEvent.mock.calls;
+      const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(5);
       });
@@ -299,7 +314,7 @@ describe('Homepage', () => {
     it('shifts indices when Perps is disabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomeViewedEvent.mock.calls;
+      const calls = getUseHomeViewedEventCalls();
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
@@ -312,7 +327,7 @@ describe('Homepage', () => {
     it('passes totalSectionsLoaded=4 when Perps is disabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomeViewedEvent.mock.calls;
+      const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(4);
       });
@@ -337,7 +352,7 @@ describe('Homepage', () => {
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomeViewedEvent.mock.calls;
+      const calls = getUseHomeViewedEventCalls();
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
@@ -358,7 +373,7 @@ describe('Homepage', () => {
     it('passes sectionIndex 0 to Cash and shifts others when Cash is enabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomeViewedEvent.mock.calls;
+      const calls = getUseHomeViewedEventCalls();
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
