@@ -20,6 +20,7 @@ export enum AlertKeys {
   PerpsDepositMinimum = 'perps_deposit_minimum',
   PerpsHardwareAccount = 'perps_hardware_account',
   SignedOrSubmitted = 'signed_or_submitted',
+  TokenContractAddress = 'token_contract_address',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',
   TokenTrustSignalWarning = 'token_trust_signal_warning',
 }

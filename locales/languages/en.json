@@ -119,6 +119,10 @@
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
       "title": "Gas sponsorship unavailable"
@@ -689,7 +693,11 @@
     "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
     "could_not_resolve_name": "Couldn't resolve name",
     "invalid_address": "Invalid address",
-    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
+    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "I understand",
+    "cancel": "Cancel"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -3395,8 +3403,7 @@
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation":
-      "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
+    "seed_phrase_warning_explanation": "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
     "reveal_srp_description": "Your Secret Recovery Phrase gives full access to your wallet. Do not share it with anyone.",
     "reveal_credential_modal": [

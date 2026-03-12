@@ -20,6 +20,7 @@ interface ValidationResult {
   error?: string;
   warning?: string;
   resolvedAddress?: string;
+  allowAcknowledge?: boolean;
 }
 
 export const useToAddressValidation = () => {
@@ -109,15 +110,17 @@ export const useToAddressValidation = () => {
 
   const {
     toAddressValidated,
-    error: toAddressError,
+    error,
     warning: toAddressWarning,
     resolvedAddress,
+    allowAcknowledge,
   } = result ?? {};
 
   return {
     loading,
     resolvedAddress,
-    toAddressError,
+    toAddressError: error,
+    toAddressErrorAllowAcknowledge: allowAcknowledge === true,
     toAddressValidated,
     toAddressWarning,
   };

@@ -38,6 +38,7 @@ export const validateHexAddress = async (
 ): Promise<{
   error?: string;
   warning?: string;
+  allowAcknowledge?: boolean;
 }> => {
   if (LOWER_CASED_BURN_ADDRESSES.includes(toAddress?.toLowerCase())) {
     return {
@@ -68,6 +69,7 @@ export const validateHexAddress = async (
       if (token?.standard) {
         return {
           error: strings('send.token_contract_warning'),
+          allowAcknowledge: true,
         };
       }
     } catch {
