@@ -57,7 +57,6 @@ import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboa
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
-  SeedlessOnboardingIncorrectPasswordRegex,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
@@ -86,6 +85,7 @@ import {
 } from 'expo-local-authentication';
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
+import { containsErrorMessage } from '../../util/errorHandling';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1179,7 +1179,7 @@ class AuthenticationService {
           error instanceof Error ? error.message : 'Unknown error';
 
         // trace only if error is not an incorrect password error
-        if (!SeedlessOnboardingIncorrectPasswordRegex.test(errorMessage)) {
+        if (!containsErrorMessage(error as Error, 'Incorrect password')) {
           trace({
             name: TraceName.OnboardingFetchSrpsError,
             op: TraceOperation.OnboardingError,
