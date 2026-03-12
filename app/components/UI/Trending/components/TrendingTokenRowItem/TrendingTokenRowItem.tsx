@@ -124,8 +124,13 @@ const getPriceChangePrefix = (
   return isPositive ? '+' : '-';
 };
 
+/** Extends TrendingAsset with optional baseToken data present in the API response */
+type TrendingAssetWithBaseToken = TrendingAsset & {
+  baseToken?: { imageUrl?: string };
+};
+
 interface TrendingTokenRowItemProps {
-  token: TrendingAsset;
+  token: TrendingAssetWithBaseToken;
   selectedTimeOption?: TimeOption;
   /** 0-indexed position in the list for analytics */
   position?: number;
@@ -284,6 +289,7 @@ const TrendingTokenRowItem = ({
           <TrendingTokenLogo
             assetId={token.assetId}
             symbol={token.symbol}
+            fallbackImageUri={token.baseToken?.imageUrl}
             size={40}
             recyclingKey={token.assetId}
           />
