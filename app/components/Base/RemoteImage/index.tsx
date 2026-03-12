@@ -150,7 +150,13 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   }
 
   const defaultImage = (
-    <Image {...props} source={{ uri }} onLoad={onImageLoad} onError={onError} />
+    <Image
+      {...props}
+      source={{ uri }}
+      recyclingKey={uri}
+      onLoad={onImageLoad}
+      onError={onError}
+    />
   );
 
   if (props.fadeIn) {
@@ -167,6 +173,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
             {showFullRatioImage ? (
               <Image
                 source={{ uri }}
+                recyclingKey={uri}
                 style={{
                   width: dimensions.width,
                   height: dimensions.height,
@@ -181,6 +188,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
                   style={styles.imageStyle}
                   {...restProps}
                   source={{ uri }}
+                  recyclingKey={uri}
                   onLoad={onImageLoad}
                   onError={onError}
                 />
