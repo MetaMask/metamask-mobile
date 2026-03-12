@@ -10,7 +10,7 @@ interface PredictHomeFeaturedProps {
 }
 
 const PredictHomeFeatured: React.FC<PredictHomeFeaturedProps> = ({
-  testID = PREDICT_HOME_FEATURED_TEST_IDS.CAROUSEL,
+  testID = PREDICT_HOME_FEATURED_TEST_IDS.FEATURED,
 }) => {
   const variant = useSelector(selectPredictHomeFeaturedVariant);
 
