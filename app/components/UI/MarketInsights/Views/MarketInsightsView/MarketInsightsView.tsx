@@ -46,7 +46,10 @@ import type {
   MarketInsightsTweet,
   MarketInsightsTrend,
 } from '@metamask/ai-controllers';
-import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
+import {
+  selectMarketInsightsEnabled,
+  selectMarketInsightsPerpsEnabled,
+} from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
@@ -118,7 +121,8 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
 
 interface MarketInsightsRouteParams {
   assetSymbol: string;
-  caip19Id: string;
+  /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
+  assetIdentifier: string;
   tokenImageUrl?: string;
   /** Token address for swap navigation */
   tokenAddress?: string;
@@ -128,6 +132,8 @@ interface MarketInsightsRouteParams {
   tokenName?: string;
   /** Token chainId for swap navigation */
   tokenChainId?: string;
+  /** When true, indicates the view was opened from the Perps market details view */
+  isPerps?: boolean;
 }
 
 /**
@@ -144,21 +150,27 @@ const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const isTokenInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
   const route =
     useRoute<RouteProp<{ params: MarketInsightsRouteParams }, 'params'>>();
   const {
     assetSymbol,
-    caip19Id,
+    assetIdentifier,
     tokenImageUrl,
     tokenAddress,
     tokenDecimals,
     tokenName,
     tokenChainId,
+    isPerps = false,
   } = route.params;
 
+  const isMarketInsightsEnabled = isPerps
+    ? isPerpsInsightsEnabled
+    : isTokenInsightsEnabled;
+
   const { report, isLoading, error } = useMarketInsights(
-    caip19Id,
+    assetIdentifier,
     isMarketInsightsEnabled,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -219,14 +231,32 @@ const MarketInsightsView: React.FC = () => {
       MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
     )
       .addProperties({
-        caip19: caip19Id,
+        caip19: assetIdentifier,
         interaction_type: 'trade',
       })
       .build();
     trackEvent(event);
 
-    goToSwaps();
-  }, [goToSwaps, trackEvent, createEventBuilder, caip19Id]);
+    if (isPerps) {
+      navigation.navigate(
+        Routes.PERPS.ROOT as never,
+        {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: { market: { symbol: assetSymbol } },
+        } as never,
+      );
+    } else {
+      goToSwaps();
+    }
+  }, [
+    goToSwaps,
+    isPerps,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    assetIdentifier,
+    assetSymbol,
+  ]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -275,7 +305,7 @@ const MarketInsightsView: React.FC = () => {
       },
     ) => {
       const properties = {
-        caip19: caip19Id,
+        caip19: assetIdentifier,
         interaction_type: interactionType,
         ...(options?.source ? { source: options.source } : {}),
         ...(options?.feedbackReason
@@ -292,7 +322,7 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
     },
-    [trackEvent, createEventBuilder, caip19Id],
+    [trackEvent, createEventBuilder, assetIdentifier],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -308,7 +338,7 @@ const MarketInsightsView: React.FC = () => {
 
   useEffect(() => {
     hasTrackedViewRef.current = false;
-  }, [caip19Id]);
+  }, [assetIdentifier]);
 
   const handleThumbsUpPress = useCallback(() => {
     trackMarketInsightsInteraction('thumbs_up');
@@ -371,12 +401,12 @@ const MarketInsightsView: React.FC = () => {
 
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
-        caip19: caip19Id,
+        caip19: assetIdentifier,
       })
       .build();
     trackEvent(event);
     hasTrackedViewRef.current = true;
-  }, [report, caip19Id, trackEvent, createEventBuilder]);
+  }, [report, assetIdentifier, trackEvent, createEventBuilder]);
 
   if (showLoadingSkeleton && !report && !error) {
     return (

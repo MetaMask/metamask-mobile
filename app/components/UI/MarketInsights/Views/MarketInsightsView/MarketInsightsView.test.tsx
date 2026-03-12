@@ -26,9 +26,18 @@ const mockUseSwapBridgeNavigation = jest.fn((_options: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
 
-let mockRouteParams = {
+let mockRouteParams: {
+  assetSymbol: string;
+  assetIdentifier: string;
+  tokenImageUrl?: string;
+  tokenAddress?: string;
+  tokenDecimals?: number;
+  tokenName?: string;
+  tokenChainId?: string;
+  isPerps?: boolean;
+} = {
   assetSymbol: 'ETH',
-  caip19Id: 'eip155:1/erc20:0x123',
+  assetIdentifier: 'eip155:1/erc20:0x123',
   tokenImageUrl: 'https://example.com/eth.png',
   tokenAddress: '0x123',
   tokenDecimals: 18,
@@ -55,7 +64,8 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('../../hooks/useMarketInsights', () => ({
-  useMarketInsights: (caip19Id: string) => mockUseMarketInsights(caip19Id),
+  useMarketInsights: (assetIdentifier: string) =>
+    mockUseMarketInsights(assetIdentifier),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -205,7 +215,7 @@ describe('MarketInsightsView', () => {
     jest.clearAllMocks();
     mockRouteParams = {
       assetSymbol: 'ETH',
-      caip19Id: 'eip155:1/erc20:0x123',
+      assetIdentifier: 'eip155:1/erc20:0x123',
       tokenImageUrl: 'https://example.com/eth.png',
       tokenAddress: '0x123',
       tokenDecimals: 18,
@@ -505,9 +515,9 @@ describe('MarketInsightsView', () => {
     );
   });
 
-  it('tracks viewed event again when caip19Id changes on mounted view', () => {
-    mockUseMarketInsights.mockImplementation((caip19Id: string) => {
-      if (caip19Id === 'eip155:1/erc20:0x456') {
+  it('tracks viewed event again when assetIdentifier changes on mounted view', () => {
+    mockUseMarketInsights.mockImplementation((assetIdentifier: string) => {
+      if (assetIdentifier === 'eip155:1/erc20:0x456') {
         return {
           report: {
             asset: 'usdc',
@@ -552,7 +562,7 @@ describe('MarketInsightsView', () => {
     mockRouteParams = {
       ...mockRouteParams,
       assetSymbol: 'USDC',
-      caip19Id: 'eip155:1/erc20:0x456',
+      assetIdentifier: 'eip155:1/erc20:0x456',
       tokenAddress: '0x456',
       tokenName: 'USD Coin',
     };
@@ -566,6 +576,38 @@ describe('MarketInsightsView', () => {
           caip19: 'eip155:1/erc20:0x456',
         }),
       }),
+    );
+  });
+
+  it('navigates to perps market details when trade button is pressed in perps context', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+    };
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.TRADE_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market: { symbol: 'ETH' } },
+      }),
+    );
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+  });
+
+  it('navigates to swaps when trade button is pressed in token context', () => {
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.TRADE_BUTTON));
+
+    expect(mockGoToSwaps).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.anything(),
     );
   });
 });
