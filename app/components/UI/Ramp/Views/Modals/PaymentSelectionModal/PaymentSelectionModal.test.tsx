@@ -350,4 +350,27 @@ describe('PaymentSelectionModal', () => {
       forceRefresh: true,
     });
   });
+
+  it('shows payment method without quote when only custom-action quote matches', () => {
+    const customActionQuote = {
+      provider: '/providers/transak',
+      quote: {
+        paymentMethod: '/payments/debit-credit-card-1',
+        isCustomAction: true,
+      },
+    };
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [customActionQuote],
+        error: [],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
+    expect(getAllByText('Debit or Credit').length).toBeGreaterThan(0);
+  });
 });

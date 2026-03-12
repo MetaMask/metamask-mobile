@@ -256,6 +256,40 @@ describe('ProviderSelection', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('filters out custom-action quotes when displaying provider quote', async () => {
+    const transakQuote = createMockQuote('/providers/transak', 'Transak');
+    const customActionQuote = {
+      ...transakQuote,
+      quote: { ...transakQuote.quote, isCustomAction: true },
+    };
+
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: mockProviders,
+      selectedProvider: mockProviders[0],
+    });
+
+    const { getByText, toJSON } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      {
+        quotes: {
+          success: [customActionQuote, transakQuote],
+          sorted: [],
+          error: [],
+          customActions: [],
+        },
+      },
+    );
+
+    await waitFor(() => {
+      expect(getByText('Transak')).toBeTruthy();
+    });
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('filters out quotes for providers not in the providers array', async () => {
     const transakQuote = createMockQuote('/providers/transak', 'Transak');
     const stripeQuote = createMockQuote('/providers/stripe', 'Stripe');
