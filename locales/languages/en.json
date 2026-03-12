@@ -7092,7 +7092,8 @@
         "ssn_label": "Social Security Number",
         "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
-        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
+        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Add your address",
