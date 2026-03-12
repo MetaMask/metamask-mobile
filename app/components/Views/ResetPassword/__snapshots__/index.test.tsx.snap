@@ -261,16 +261,20 @@ exports[`ResetPassword render matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 4,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 4,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   Enter your current password
                 </Text>
