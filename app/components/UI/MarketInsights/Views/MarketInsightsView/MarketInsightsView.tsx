@@ -245,27 +245,31 @@ const MarketInsightsView: React.FC = () => {
       })
       .build();
     trackEvent(event);
+    goToSwaps();
+  }, [goToSwaps, trackEvent, createEventBuilder, assetIdProperty]);
 
-    if (isPerps) {
+  const handlePerpsDirectionPress = useCallback(
+    (direction: 'long' | 'short') => {
+      const event = createEventBuilder(
+        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      )
+        .addProperties({
+          ...assetIdProperty,
+          interaction_type: direction,
+        })
+        .build();
+      trackEvent(event);
+
       navigation.navigate(
         Routes.PERPS.ROOT as never,
         {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: { market: { symbol: assetSymbol } },
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: { direction, asset: assetSymbol },
         } as never,
       );
-    } else {
-      goToSwaps();
-    }
-  }, [
-    goToSwaps,
-    isPerps,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    assetIdProperty,
-    assetSymbol,
-  ]);
+    },
+    [navigation, trackEvent, createEventBuilder, assetIdProperty, assetSymbol],
+  );
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -555,15 +559,38 @@ const MarketInsightsView: React.FC = () => {
       <Box
         twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
       >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleTradePress}
-          testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
-        >
-          {strings('market_insights.trade_button')}
-        </Button>
+        {isPerps ? (
+          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              twClassName="flex-1"
+              onPress={() => handlePerpsDirectionPress('long')}
+              testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
+            >
+              {strings('perps.market.long')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              twClassName="flex-1"
+              onPress={() => handlePerpsDirectionPress('short')}
+              testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
+            >
+              {strings('perps.market.short')}
+            </Button>
+          </Box>
+        ) : (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleTradePress}
+            testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
+          >
+            {strings('market_insights.trade_button')}
+          </Button>
+        )}
         <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('market_insights.footer_disclaimer')}
