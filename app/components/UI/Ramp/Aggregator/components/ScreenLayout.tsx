@@ -100,7 +100,7 @@ const Header = ({
     <View style={[styles.header, style]} {...props}>
       {title && (
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodyLg}
           color={TextColor.TextDefault}
           fontWeight={bold ? FontWeight.Bold : undefined}
           twClassName="text-center"
