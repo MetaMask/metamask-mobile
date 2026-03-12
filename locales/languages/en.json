@@ -7187,7 +7187,8 @@
         "close_spending_limit": {
           "title": "You're close to your spending limit",
           "description": "Update to avoid declines",
-          "confirm_button_label": "Set new limit"
+          "confirm_button_label": "Set new limit",
+          "dismiss_button_label": "Dismiss"
         },
         "need_delegation": {
           "title": "You need to enable your card",

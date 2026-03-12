@@ -45,7 +45,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
 
         <View style={styles.textContent}>
           <Text
-            variant={TextVariant.BodyLg}
+            variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Bold}
             style={styles.mainText}
           >
