@@ -163,8 +163,7 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
             'utf-8',
           );
 
-          // TODO: Change console.warn to throw once fixture validation is stable
-          console.warn(
+          throw new Error(
             `Committed fixture is out of date.\n` +
               `  New keys: ${diff.newKeys.length}\n` +
               `  Missing keys: ${diff.missingKeys.length}\n` +
@@ -172,7 +171,8 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
               `  Auto-updated values: ${autoUpdateMismatches.length}\n\n` +
               `Updated fixture written to: ${fixturePath}\n` +
               `Structural changes and auto-updatable keys were applied.\n` +
-              `Other value mismatches require manual review.`,
+              `Other value mismatches require manual review.\n\n` +
+              `To fix: commit the updated fixture, or add new keys to getMobileFixtureIgnoredKeys() in fixture-validation.ts.`,
           );
         } else if (diff.valueMismatches.length > 0) {
           console.log(

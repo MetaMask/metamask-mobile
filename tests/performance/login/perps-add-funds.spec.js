@@ -55,11 +55,11 @@ test.describe(PerformancePreps, () => {
 
       await login(device);
       await TabBarModal.tapActionButton();
-
+      await WalletActionModal.tapPerpsButton();
       // Open Perps Main Screen
-      await selectPerpsMainScreenTimer.measure(() =>
-        WalletActionModal.tapPerpsButton(),
-      );
+      await selectPerpsMainScreenTimer.measure(async () => {
+        await PerpsTutorialScreen.isContainerDisplayed();
+      });
 
       // Skip tutorial
       await PerpsTutorialScreen.tapSkip();

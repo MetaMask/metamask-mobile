@@ -331,9 +331,9 @@ describe('useHomeViewedEvent', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('fires for a section taller than the viewport when it covers ≥50% of the viewport', () => {
-      // viewportHeight=800, height=2000 → threshold = min(1000, 400) = 400
-      // y=0 → visiblePx = min(2000, 800) - 0 = 800 ≥ 400
+    it('fires for a section taller than the viewport when it covers ≥30% of the viewport', () => {
+      // viewportHeight=800, height=2000 → threshold = min(600, 240) = 240
+      // y=0 → visiblePx = min(2000, 800) - 0 = 800 ≥ 240
       const mockRef = createMockRef(0, 2000);
       renderHook(() =>
         useHomeViewedEvent({
@@ -345,10 +345,10 @@ describe('useHomeViewedEvent', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('does not fire for a tall section covering <50% of the viewport', () => {
-      // viewportHeight=800, height=2000 → threshold = min(1000, 400) = 400
-      // y=450 → visiblePx = min(2450, 800) - 450 = 350 < 400
-      const mockRef = createMockRef(450, 2000);
+    it('does not fire for a tall section covering <30% of the viewport', () => {
+      // viewportHeight=800, height=2000 → threshold = min(600, 240) = 240
+      // y=600 → visiblePx = min(2600, 800) - 600 = 200 < 240
+      const mockRef = createMockRef(600, 2000);
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,

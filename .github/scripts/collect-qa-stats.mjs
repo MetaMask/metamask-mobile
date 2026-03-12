@@ -1,25 +1,32 @@
 #!/usr/bin/env node
 /**
  *
- * Downloads pre-aggregated QA stats artifacts from the triggering CI run via the
- * GitHub API and writes a qa-stats.json file for consumption by downstream workflows.
+ * Collects QA metrics from a CI run and writes qa-stats.json, key: value format.
+ * Metrics that could not be collected (missing artifacts, tests did not run)
+ * are omitted from the output — they will never appear as zero.
  *
  * Required env vars:
  *   GITHUB_TOKEN      — GitHub Actions token for API access
- *   WORKFLOW_RUN_ID   — ID of the CI run that produced the artifacts
- *
- * Example of output format of qa-stats.json:
- *   {
- *     "component_view_tests_count": 34,
- *     "unit_test_count": 679,
- *   }
- *
+ *   WORKFLOW_RUN_ID   — ID of the main CI run that produced tests artifacts
+ * 
  * How to add a new metric:
- *   1. Add a collector function below (see existing example)
- *   2. Call it in main() and assign the result to stats
+ *   1. Add a collector function that returns a plain object
+ *   2. Register it in the collectors array in main()
+ * 
+ * The only rule: never rename existing keys. The DB key is (project, run_id, namespace, metric_key). 
+ * Renaming a key in the JSON creates a new series in the DB while the old name stops getting new data, 
+ * which breaks the Grafana time series continuity. Adding and removing keys is fine.
+ * 
+ * Example output:
+ *   {
+ *     "component_view": { "tests_count": 94 },
+ *     "unit":           { "tests_count": 41957 },
+ *     "e2e":            { "tests_count": 420, "main_tests_count": 276, "confirmations_tests_count": 62, "flask_tests_count": 144 },
+ *     "performance":    { "tests_count": 21, "login_tests_count": 11, "onboarding_tests_count": 4, "mm_connect_tests_count": 6 }
+ *   }
  */
 
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
@@ -37,7 +44,7 @@ if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 let _artifactList = null;
 
 /**
- * Fetches (and caches) the list of artifacts for the triggering CI run.
+ * Fetches (and caches) the list of artifact names for the triggering CI run.
  * First call fetches and stores, every subsequent call returns the cached value.
  * 
  * @returns {Promise<Array>}
@@ -124,18 +131,249 @@ async function downloadArtifact(artifactName) {
 // Collectors — one async function per metric source
 // ---------------------------------------------------------------------------
 
+/**
+ * Extracts a feature folder name from a Jest test file path.
+ *
+ * Priority:
+ *   app/components/UI/<Feature>/  → <Feature> (e.g. Bridge, Perps, Earn)
+ *   app/components/Views/<Feature>/ → <Feature> (e.g. Wallet, AssetDetails)
+ *   app/<folder>/                 → <folder>  (e.g. util, core, hooks)
+ *
+ * @param {string} testFilePath
+ * @returns {string}
+ */
+function getFeatureFolder(testFilePath) {
+  const normalize = (s) => s.toLowerCase().replace(/-/g, '_');
+  // app/components/UI/<Feature>/  → <Feature>
+  const uiMatch = testFilePath.match(/app\/components\/UI\/([^/]+)/);
+  if (uiMatch) return normalize(uiMatch[1]);
+  // app/components/Views/<Feature>/ → <Feature>
+  const viewsMatch = testFilePath.match(/app\/components\/Views\/([^/]+)/);
+  if (viewsMatch) return normalize(viewsMatch[1]);
+  // app/components/<other>/ → components_<other> (e.g. components_snaps, components_hooks)
+  const componentsMatch = testFilePath.match(/app\/components\/([^/]+)/);
+  if (componentsMatch) return `components_${normalize(componentsMatch[1])}`;
+  // app/<folder>/ → <folder> (e.g. core, util, store, selectors, component_library)
+  const appMatch = testFilePath.match(/app\/([^/]+)/);
+  return appMatch ? normalize(appMatch[1]) : 'other';
+}
+
+/**
+ * Downloads all shard artifacts matching artifactPattern, reads the
+ * jest-results.json from each, and returns test counts grouped by feature folder.
+ *
+ * Folders whose total count is below minFolderCount are merged into `other`
+ * to reduce noise (useful for unit tests which have hundreds of component-level folders).
+ *
+ * @param {RegExp} artifactPattern
+ * @param {string} label — used in log messages
+ * @param {number} [minFolderCount=0] — folders with fewer tests are bucketed into `other`
+ * @returns {Promise<Record<string, number>>}
+ */
+async function collectShardCounts(artifactPattern, label, minFolderCount = 0) {
+  const artifacts = await getArtifactList();
+  const shardArtifacts = artifacts.filter((a) => artifactPattern.test(a.name));
+  console.log(`[${label}] found ${shardArtifacts.length} shard artifact(s)`);
+
+  if (shardArtifacts.length === 0) return {};
+
+  const folderCounts = {};
+  let total = 0;
+
+  for (const artifact of shardArtifacts) {
+    const destDir = await downloadArtifact(artifact.name);
+    const raw = await readFile(join(destDir, 'jest-results.json'), 'utf8');
+    const { testResults } = JSON.parse(raw);
+    // Jest --json CLI output uses `name` for the file path and `assertionResults`
+    // for per-test outcomes (not numPassingTests/numFailingTests which are top-level aggregates).
+    for (const { name, assertionResults } of testResults) {
+      const passed = assertionResults.filter((r) => r.status === 'passed').length;
+      const failed = assertionResults.filter((r) => r.status === 'failed').length;
+      const count = passed + failed;
+      total += count;
+      const folder = getFeatureFolder(name);
+      folderCounts[folder] = (folderCounts[folder] ?? 0) + count;
+    }
+  }
+
+  console.log(`[${label}] total: ${total}`);
+  const result = { tests_count: total };
+  for (const [folder, count] of Object.entries(folderCounts)) {
+    if (minFolderCount > 0 && count < minFolderCount) {
+      result.other_tests_count = (result.other_tests_count ?? 0) + count;
+    } else {
+      result[`${folder}_tests_count`] = count;
+    }
+  }
+  return result;
+}
+
 async function collectComponentViewTestCount() {
-  const destDir = await downloadArtifact('cv-test-stats');
-  const raw = await readFile(join(destDir, 'cv-test-stats.json'), 'utf8');
-  const data = JSON.parse(raw);
-  return data.component_view_test_number;
+  console.log('[component-view] collecting per-suite counts from shard artifacts...');
+  return collectShardCounts(/^coverage-cv-\d+$/, 'component-view');
 }
 
 async function collectUnitTestCount() {
-  const destDir = await downloadArtifact('unit-test-stats');
-  const raw = await readFile(join(destDir, 'unit-test-stats.json'), 'utf8');
-  const data = JSON.parse(raw);
-  return data.unit_test_number;
+  console.log('[unit] collecting per-suite counts from shard artifacts...');
+  // minFolderCount=200: buckets individual component-level folders into `other`,
+  // keeping only meaningful team-level categories (bridge, perps, confirmations, etc.)
+  return collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
+}
+
+/**
+ * Parses a JUnit artifact name into canonical E2E dimensions.
+ *
+ * Returns null for non-E2E artifacts.
+ *
+ * @param {string} artifactName
+ * @returns {{ channel: 'main'|'flask', platform: 'android'|'ios', suiteTag: string|null } | null}
+ */
+function getE2EArtifactDimensions(artifactName) {
+  const match = artifactName.match(/^test-e2e-(.+)-junit-results$/);
+  if (!match) return null;
+
+  let jobName = match[1];
+  // Strip the default 'main-' prefix applied by run-e2e-workflow.yml
+  if (jobName.startsWith('main-')) {
+    jobName = jobName.slice('main-'.length);
+  }
+
+  const flaskMatch = jobName.match(/^flask-(android|ios)-smoke-\d+$/);
+  if (flaskMatch) {
+    return { channel: 'flask', platform: flaskMatch[1], suiteTag: null };
+  }
+
+  const mainMatch = jobName.match(/^(.+)-(android|ios)-smoke-\d+$/);
+  if (!mainMatch) return null;
+
+  return {
+    channel: 'main',
+    platform: mainMatch[2],
+    suiteTag: mainMatch[1].replace(/-/g, '_'),
+  };
+}
+
+function getNumericAttribute(tag, name) {
+  const match = tag.match(new RegExp(`${name}="(\\d+)"`));
+  return match ? Number(match[1]) : 0;
+}
+
+function countExecutedTestsFromJUnitXml(rawXml) {
+  const suiteTags = rawXml.match(/<testsuite\b[^>]*>/g) ?? [];
+  return suiteTags.reduce((total, suiteTag) => {
+    const tests = getNumericAttribute(suiteTag, 'tests');
+    const skipped = getNumericAttribute(suiteTag, 'skipped');
+    return total + Math.max(0, tests - skipped);
+  }, 0);
+}
+
+// Collects all E2E test counts from JUnit artifacts.
+async function collectE2ECounts() {
+  const artifacts = await getArtifactList();
+
+  // Per-platform counts for health signalling
+  const platformCounts = {
+    main: { android: 0, ios: 0 },
+    flask: { android: 0, ios: 0 },
+  };
+  // Per-suite counts from Android only (canonical unique count)
+  const suiteCounts = {};
+
+  const e2eArtifacts = artifacts.filter((a) => getE2EArtifactDimensions(a.name));
+  console.log(`[e2e] found ${e2eArtifacts.length} JUnit artifact(s)`);
+
+  if (e2eArtifacts.length === 0) {
+    console.log('[e2e] no JUnit artifacts found — E2E tests did not run, skipping e2e metrics');
+    return {};
+  }
+
+  for (const artifact of e2eArtifacts) {
+    const { channel, platform, suiteTag } = getE2EArtifactDimensions(artifact.name);
+
+    const destDir = await downloadArtifact(artifact.name);
+    const junitXml = await readFile(join(destDir, 'junit.xml'), 'utf8');
+    const count = countExecutedTestsFromJUnitXml(junitXml);
+    console.log(`[e2e] ${artifact.name}: ${count} test(s)`);
+
+    platformCounts[channel][platform] += count;
+
+    // Per-suite breakdown uses Android only to represent unique test count
+    if (channel === 'main' && platform === 'android' && suiteTag) {
+      suiteCounts[suiteTag] = (suiteCounts[suiteTag] ?? 0) + count;
+    }
+  }
+
+  const androidMain = platformCounts.main.android;
+  const iosMain = platformCounts.main.ios;
+  const androidFlask = platformCounts.flask.android;
+  const iosFlask = platformCounts.flask.ios;
+
+  const result = {};
+
+  // Canonical unique counts (Android as source of truth — same tests run on iOS)
+  // A missing key means that channel did not run; present-but-zero means it ran and found nothing.
+  if (androidMain > 0 || iosMain > 0) {
+    result.main_tests_count = androidMain; // unique count
+    result.main_android_tests_count = androidMain; // platform health signal
+    result.main_ios_tests_count = iosMain; // drops to 0 if iOS infrastructure is broken
+  }
+  if (androidFlask > 0 || iosFlask > 0) {
+    result.flask_tests_count = androidFlask; // unique count
+    result.flask_android_tests_count = androidFlask;
+    result.flask_ios_tests_count = iosFlask;
+  }
+  result.tests_count = androidMain + androidFlask;
+
+  for (const [tag, count] of Object.entries(suiteCounts)) {
+    result[`${tag}_tests_count`] = count;
+  }
+
+  return result;
+}
+
+/**
+ * Counts executed performance scenarios by scanning *.spec.js files
+ * under tests/performance/ and counting non-skipped test() calls.
+ *
+ * The top-level subdirectory (login, onboarding, mm-connect) determines the
+ * category for per-category metrics.
+ */
+async function collectPerformanceTestCounts() {
+  console.log('[performance] scanning tests/performance/ for scenarios...');
+
+  const categoryCounts = {};
+
+  async function scanDir(dir, category) {
+    const entries = await readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // Top-level subdirectory determines the category
+        await scanDir(fullPath, category ?? entry.name);
+      } else if (entry.isFile() && entry.name.endsWith('.spec.js')) {
+        const source = await readFile(fullPath, 'utf8');
+        // Count test() calls, excluding test.skip()
+        const matches = source.match(/^\s*test\s*\(/gm) ?? [];
+        const count = matches.length;
+        if (count > 0 && category) {
+          const key = category.replace(/-/g, '_');
+          categoryCounts[key] = (categoryCounts[key] ?? 0) + count;
+        }
+      }
+    }
+  }
+
+  await scanDir('tests/performance', null);
+
+  const total = Object.values(categoryCounts).reduce((s, n) => s + n, 0);
+
+  const result = { tests_count: total };
+  for (const [cat, count] of Object.entries(categoryCounts)) {
+    result[`${cat}_tests_count`] = count;
+    console.log(`[performance] ${cat}: ${count}`);
+  }
+  console.log(`[performance] total: ${total}`);
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -146,22 +384,20 @@ async function main() {
   const stats = {};
 
   const collectors = [
-    {
-      key: 'component_view_tests_count',
-      collect: collectComponentViewTestCount,
-    },
-    {
-      key: 'unit_tests_count',
-      collect: collectUnitTestCount,
-    },
+    { namespace: 'component_view', collect: collectComponentViewTestCount },
+    { namespace: 'unit', collect: collectUnitTestCount },
+    { namespace: 'e2e', collect: collectE2ECounts },
+    { namespace: 'performance', collect: collectPerformanceTestCounts },
   ];
 
-  for (const { key, collect } of collectors) {
+  for (const { namespace, collect } of collectors) {
     try {
-      stats[key] = await collect();
+      const nested = await collect();
+      if (Object.keys(nested).length === 0) continue;
+      stats[namespace] = nested;
     } catch (err) {
-      // stat will not be present in the output file if the collector fails
-      console.error(`[${key}] collector failed, skipping stat:`, err.message);
+      // namespace will not be present in the output if the collector fails
+      console.error(`[${namespace}] collector failed, skipping:`, err.message);
     }
   }
 

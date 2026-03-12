@@ -19,9 +19,8 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
-import FadingScrollContainer from '../../components/FadingScrollContainer';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -31,9 +30,11 @@ import {
 } from '../../../../UI/Perps/hooks';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
-import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
+import {
+  selectPerpsWatchlistMarkets,
+  selectIsFirstTimePerpsUser,
+} from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
-import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard/PerpsPositionCard';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
@@ -95,38 +96,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const showSkeleton = hookLoading || deferredLoading;
 
-    // TP/SL is extracted from orders and merged into positions by the
-    // subscription service. Due to the 5s throttle the merged update can be
-    // delayed — positions appear first without TP/SL. If any position already
-    // has TP/SL the merge is done for all of them; otherwise wait for a
-    // fallback timeout (throttle interval + margin).
-    const anyPositionHasTpSl = useMemo(
-      () =>
-        positions.some(
-          (p) => p.takeProfitPrice != null || p.stopLossPrice != null,
-        ),
-      [positions],
-    );
-
-    const [tpSlSettled, setTpSlSettled] = useState(false);
-
-    useEffect(() => {
-      if (showSkeleton) {
-        setTpSlSettled(false);
-        return undefined;
-      }
-      if (anyPositionHasTpSl) return undefined;
-      const timer = setTimeout(
-        () => setTpSlSettled(true),
-        HOMEPAGE_THROTTLE_MS + 500,
-      );
-      return () => clearTimeout(timer);
-    }, [showSkeleton, anyPositionHasTpSl]);
-
-    const tpSlReady = anyPositionHasTpSl || tpSlSettled;
-
     const { markets, isLoading: marketsLoading } = usePerpsMarkets();
     const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+    const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
     const displayPositions = useMemo(
       () => positions.slice(0, MAX_ITEMS),
@@ -141,8 +113,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
 
-    // When user has no positions/orders, keep skeleton visible until markets
-    // load so the section doesn't flash empty while trending tiles are fetched.
+    // When user has no positions/orders, keep skeleton visible until markets load.
     const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
     const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 
@@ -172,7 +143,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const allCarouselMarkets = useMemo(
       () =>
-        [...watchlistMarkets, ...trendingMarkets].slice(
+        [...(watchlistMarkets ?? []), ...(trendingMarkets ?? [])].slice(
           0,
           MAX_TRENDING_MARKETS,
         ),
@@ -180,12 +151,13 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     const watchlistSymbolSet = useMemo(
-      () => new Set(watchlistMarkets.map((m) => m.symbol)),
+      () => new Set((watchlistMarkets ?? []).map((m) => m.symbol)),
       [watchlistMarkets],
     );
 
     const carouselSymbols = useMemo(
-      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+      () =>
+        showTrending ? (allCarouselMarkets ?? []).map((m) => m.symbol) : [],
       [showTrending, allCarouselMarkets],
     );
     const { sparklines, refresh: refreshSparklines } =
@@ -205,19 +177,32 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       [connectionError, reconnectWithNewContext, refreshSparklines],
     );
 
+    const navigateToTutorialOrScreen = useCallback(
+      (screen: string, params: Record<string, unknown>) => {
+        if (isFirstTimePerpsUser) {
+          navigation.navigate(Routes.PERPS.TUTORIAL, {
+            source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+            redirectScreen: screen,
+            redirectParams: params,
+          });
+        } else {
+          navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+        }
+      },
+      [isFirstTimePerpsUser, navigation],
+    );
+
     const handleViewAllPerps = useCallback(() => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
+      navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       });
-    }, [navigation]);
+    }, [navigateToTutorialOrScreen]);
 
     const handleViewMorePerps = useCallback(() => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
+      navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       });
-    }, [navigation]);
+    }, [navigateToTutorialOrScreen]);
 
     const handlePositionPress = useCallback(
       (position: Position) => {
@@ -230,29 +215,26 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
         });
         const market = markets.find((m) => m.symbol === position.symbol);
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: market ?? {
-              symbol: position.symbol,
-              maxLeverage: position.maxLeverage,
-            },
-            initialTab: 'position',
-            source: 'section_position',
+        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
+          market: market ?? {
+            symbol: position.symbol,
+            maxLeverage: position.maxLeverage,
           },
+          initialTab: 'position',
+          source: 'section_position',
         });
       },
-      [navigation, markets, track],
+      [navigateToTutorialOrScreen, markets, track],
     );
 
     const handleTilePress = useCallback(
       (market: PerpsMarketData) => {
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: { market, source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
+        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
+          market,
+          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
         });
       },
-      [navigation],
+      [navigateToTutorialOrScreen],
     );
 
     // Pass null while loading so the hook uses the immediate-fire path and
@@ -260,7 +242,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const isLoadingSection = hookLoading || deferredLoading || pendingTrending;
     const willRender = !isLoadingSection;
 
-    useHomeViewedEvent({
+    const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading: isLoadingSection,
       sectionName: HomeSectionNames.PERPS,
@@ -272,9 +254,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef}>
+        <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>
-            <SectionTitle title={title} onPress={handleViewAllPerps} />
+            <SectionHeader title={title} onPress={handleViewAllPerps} />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
                 section: title.toLowerCase(),
@@ -287,9 +269,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPerps} />
+          <SectionHeader title={title} onPress={handleViewAllPerps} />
           {showSkeleton || pendingTrending ? (
             <SectionRow>
               <PerpsPositionSkeleton />
@@ -298,12 +280,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             <SectionRow>
               <Box testID="homepage-perps-positions">
                 {displayPositions.map((position) => (
-                  <PerpsPositionCard
+                  <PerpsCard
                     key={position.symbol}
                     position={position}
-                    compact
-                    compactVariant="position"
-                    tpSlLoading={!tpSlReady}
                     onPress={() => handlePositionPress(position)}
                     testID={`perps-position-row-${position.symbol}`}
                   />
@@ -318,32 +297,27 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               </Box>
             </SectionRow>
           ) : allCarouselMarkets.length > 0 ? (
-            <FadingScrollContainer>
-              {(scrollProps) => (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={tw.style('px-4 gap-2.5')}
-                  testID="homepage-trending-perps-carousel"
-                  {...scrollProps}
-                >
-                  {allCarouselMarkets.map((market) => (
-                    <PerpsMarketTileCard
-                      key={market.symbol}
-                      market={market}
-                      sparklineData={sparklines[market.symbol]}
-                      showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
-                      onPress={handleTilePress}
-                    />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewMorePerps}
-                    twClassName="w-[180px] flex-1"
-                    testID="perps-view-more-card"
-                  />
-                </ScrollView>
-              )}
-            </FadingScrollContainer>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-2.5')}
+              testID="homepage-trending-perps-carousel"
+            >
+              {(allCarouselMarkets ?? []).map((market) => (
+                <PerpsMarketTileCard
+                  key={market.symbol}
+                  market={market}
+                  sparklineData={sparklines[market.symbol]}
+                  showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
+                  onPress={handleTilePress}
+                />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewMorePerps}
+                twClassName="w-[180px] flex-1"
+                testID="perps-view-more-card"
+              />
+            </ScrollView>
           ) : null}
         </Box>
       </View>

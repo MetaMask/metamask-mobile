@@ -82,7 +82,7 @@ export const usePerpsMarketFills = ({
     }
 
     try {
-      const provider = controller?.getActiveProvider();
+      const provider = controller?.getActiveProviderOrNull();
       if (!provider) {
         return;
       }
