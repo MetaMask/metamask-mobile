@@ -774,6 +774,24 @@ describe('BuildQuote View', () => {
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toHaveTextContent(`${denomSymbol}2`);
     });
+
+    it('shows and hides the live input cursor based on focus', () => {
+      render(BuildQuote);
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton('Done'));
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('Amount to sell input', () => {
@@ -853,7 +871,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       expect(
         screen.queryByText('This amount is higher than your balance'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('updates the amount input with quick amount buttons', async () => {

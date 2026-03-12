@@ -8,6 +8,7 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 export const LINEA_MAINNET_RPC_URL = `https://linea-mainnet.infura.io/v3/${infuraProjectId}`;
 export const BASE_MAINNET_RPC_URL = `https://base-mainnet.infura.io/v3/${infuraProjectId}`;
+export const MONAD_MAINNET_RPC_URL = `https://monad-mainnet.infura.io/v3/${infuraProjectId}`;
 export const BALANCE_SCANNER_ABI =
   balanceScannerAbi as ethers.ContractInterface;
 export const ARBITRARY_ALLOWANCE = 100000000000;
@@ -19,6 +20,7 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'linea',
   'solana',
   'base',
+  'monad',
 ];
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
 export const NON_PRODUCTION_ENVIRONMENTS = [
@@ -39,6 +41,10 @@ export const cardNetworkInfos: Record<CardNetwork, CardNetworkInfo> = {
     caipChainId: 'eip155:8453',
     rpcUrl: BASE_MAINNET_RPC_URL,
   },
+  monad: {
+    caipChainId: 'eip155:143',
+    rpcUrl: MONAD_MAINNET_RPC_URL,
+  },
   solana: {
     caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   },
@@ -47,6 +53,7 @@ export const cardNetworkInfos: Record<CardNetwork, CardNetworkInfo> = {
 export const caipChainIdToNetwork: Record<CaipChainId, CardNetwork> = {
   'eip155:59144': 'linea',
   'eip155:8453': 'base',
+  'eip155:143': 'monad',
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
 };
 

@@ -65,12 +65,14 @@ describe('PerformanceSentryPublisher', () => {
   const originalSentrySampleRate =
     process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
   const originalSentryEnabled = process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
+  const originalBuildVariant = process.env.E2E_PERFORMANCE_BUILD_VARIANT;
 
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.E2E_PERFORMANCE_SENTRY_DSN;
     delete process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
     delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
+    delete process.env.E2E_PERFORMANCE_BUILD_VARIANT;
     fetchMock = jest.spyOn(global, 'fetch');
   });
 
@@ -91,6 +93,12 @@ describe('PerformanceSentryPublisher', () => {
       delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
     } else {
       process.env.E2E_PERFORMANCE_SENTRY_ENABLED = originalSentryEnabled;
+    }
+
+    if (originalBuildVariant === undefined) {
+      delete process.env.E2E_PERFORMANCE_BUILD_VARIANT;
+    } else {
+      process.env.E2E_PERFORMANCE_BUILD_VARIANT = originalBuildVariant;
     }
 
     fetchMock.mockRestore();
@@ -115,6 +123,7 @@ describe('PerformanceSentryPublisher', () => {
   it('sends performance timers as sentry measurements', async () => {
     process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';
+    process.env.E2E_PERFORMANCE_BUILD_VARIANT = 'exp';
     fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
@@ -158,6 +167,7 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.measurements.step_1_load_2.value).toBe(700);
     expect(payload.measurements.scenario_total_time_ms.value).toBe(1300);
     expect(payload.tags.project_name).toBe('browserstack-android');
+    expect(payload.tags.build_variant).toBe('exp');
     expect(payload.extra.timer_steps).toHaveLength(2);
   });
 
