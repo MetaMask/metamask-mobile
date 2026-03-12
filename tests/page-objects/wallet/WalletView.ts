@@ -969,12 +969,12 @@ class WalletView {
 
   /**
    * Scrolls down on the Asset Overview screen until the mUSD conversion CTA is visible,
-   * then asserts it is visible so the caller can safely tap. Uses the same scroll
-   * container as the Asset/Transactions screen (transactions-container).
+   * then asserts it is visible so the caller can safely tap. Uses the Asset Overview
+   * scroll view (token-details-scroll-view); the transactions list is embedded and not scrollable.
    */
   async scrollDownToAssetOverviewMusdCta(): Promise<void> {
     const assetOverviewScrollContainer = Matchers.getIdentifier(
-      'transactions-container',
+      'token-details-scroll-view',
     );
     await Gestures.scrollToElement(
       this.assetOverviewMusdCta as unknown as DetoxElement,

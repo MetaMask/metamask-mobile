@@ -332,6 +332,7 @@ const TokenDetails: React.FC<{
         renderLoader()
       ) : (
         <Animated.ScrollView
+          testID="token-details-scroll-view"
           onScroll={onScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
