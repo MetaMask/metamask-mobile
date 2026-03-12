@@ -1,16 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
-  Text,
-  TextVariant,
   Button,
   ButtonVariant,
   ButtonSize,
-  BoxFlexDirection,
-  BoxAlignItems,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,12 +13,12 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import {
-  getCampaignStatusInfo,
-  CampaignStatusInfo,
-} from '../components/Campaigns/CampaignTile.utils';
-import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
+import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
+import { handleDeeplink } from '../../../../core/DeeplinkManager';
+
+const SWAP_DEEPLINK = 'https://link.metamask.io/swap';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -33,8 +28,7 @@ type CampaignDetailsRouteParams = {
 
 export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
-  OPT_IN_BUTTON: 'campaign-details-opt-in-button',
-  OPTED_IN_LABEL: 'campaign-details-opted-in-label',
+  CTA_BUTTON: 'campaign-details-cta-button',
 } as const;
 
 const CampaignDetailsView: React.FC = () => {
@@ -44,23 +38,19 @@ const CampaignDetailsView: React.FC = () => {
     useRoute<RouteProp<CampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaign } = route.params;
 
-  const statusInfo: CampaignStatusInfo = useMemo(
-    () => getCampaignStatusInfo(campaign),
-    [campaign],
-  );
-
-  const { optInToCampaign, isOptingIn, optInError, clearOptInError } =
-    useOptInToCampaign();
   const { status: participantStatus, isLoading: isStatusLoading } =
     useGetCampaignParticipantStatus(campaign.id);
+  const { optInToCampaign, isOptingIn } = useOptInToCampaign();
 
   const isOptedIn = participantStatus?.optedIn === true;
-  const canOptIn = statusInfo.status === 'active' && !isOptedIn;
 
-  const handleOptIn = async () => {
-    clearOptInError();
-    await optInToCampaign(campaign.id);
-  };
+  const handleCtaPress = useCallback(async () => {
+    if (isOptedIn) {
+      handleDeeplink({ uri: SWAP_DEEPLINK });
+    } else {
+      await optInToCampaign(campaign.id);
+    }
+  }, [isOptedIn, optInToCampaign, campaign.id]);
 
   return (
     <ErrorBoundary navigation={navigation} view="CampaignDetailsView">
@@ -76,74 +66,29 @@ const CampaignDetailsView: React.FC = () => {
           includesTopInset
         />
         <ScrollView
-          contentContainerStyle={tw.style('p-4 gap-6')}
+          contentContainerStyle={tw.style('gap-6')}
           showsVerticalScrollIndicator={false}
         >
-          {/* Status */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Box twClassName="rounded-full bg-muted px-3 py-1">
-              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-                {statusInfo.statusLabel}
-              </Text>
-            </Box>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {statusInfo.dateLabel}
-            </Text>
+          <Box twClassName="border-b border-border-muted">
+            <CampaignStatus campaign={campaign} />
           </Box>
-
-          {/* Campaign Name */}
-          <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
-            {campaign.name}
-          </Text>
-
-          {/* Date Range */}
-          <Box twClassName="gap-2">
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('rewards.campaign_details.start_date', {
-                date: new Date(campaign.startDate).toLocaleDateString(),
-              })}
-            </Text>
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('rewards.campaign_details.end_date', {
-                date: new Date(campaign.endDate).toLocaleDateString(),
-              })}
-            </Text>
-          </Box>
-
-          {/* Opt-in Section */}
-          {canOptIn && (
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              onPress={handleOptIn}
-              isDisabled={isOptingIn || isStatusLoading}
-              isLoading={isOptingIn}
-              testID={CAMPAIGN_DETAILS_TEST_IDS.OPT_IN_BUTTON}
-            >
-              {strings('rewards.campaign_details.opt_in')}
-            </Button>
-          )}
-
-          {isOptedIn && (
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-success-default"
-              testID={CAMPAIGN_DETAILS_TEST_IDS.OPTED_IN_LABEL}
-            >
-              {strings('rewards.campaign_details.opted_in')}
-            </Text>
-          )}
-
-          {optInError && (
-            <Text variant={TextVariant.BodySm} twClassName="text-error-default">
-              {strings('rewards.campaign_details.opt_in_error')}
-            </Text>
-          )}
         </ScrollView>
+
+        <Box twClassName="px-4 pb-4 pt-2">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleCtaPress}
+            isDisabled={isOptingIn || isStatusLoading}
+            isLoading={isOptingIn}
+            testID={CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON}
+          >
+            {isOptedIn
+              ? strings('rewards.campaign_details.swap')
+              : strings('rewards.campaign_details.join_campaign')}
+          </Button>
+        </Box>
       </SafeAreaView>
     </ErrorBoundary>
   );
