@@ -65,7 +65,10 @@ const styleSheet = (params: { theme: Theme }) => {
  */
 const TokenDetails: React.FC<{
   token: TokenDetailsRouteParams;
-  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+  onMarketInsightsDisplayResolved?: (params: {
+    isDisplayed: boolean;
+    severity: string | undefined;
+  }) => void;
 }> = ({ token, onMarketInsightsDisplayResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -213,7 +216,15 @@ const TokenDetails: React.FC<{
         onSend={onSend}
         onReceive={onReceive}
         goToSwaps={goToSwaps}
-        onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        onMarketInsightsDisplayResolved={
+          onMarketInsightsDisplayResolved
+            ? (isDisplayed: boolean) =>
+                onMarketInsightsDisplayResolved({
+                  isDisplayed,
+                  severity: securityData?.resultType,
+                })
+            : undefined
+        }
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
@@ -307,7 +318,13 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
 
   return useCallback(
-    ({ isMarketInsightsDisplayed }: { isMarketInsightsDisplayed: boolean }) => {
+    ({
+      isMarketInsightsDisplayed,
+      severity,
+    }: {
+      isMarketInsightsDisplayed: boolean;
+      severity: string | undefined;
+    }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
       const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
 
@@ -333,6 +350,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         token_name: params.name,
         has_balance: hasBalance,
         market_insights_displayed: isMarketInsightsDisplayed,
+        severity,
         // A/B test attribution — each experiment is independent
         ...((isTestActive || isFromTokenList) && {
           ab_tests: {
@@ -380,9 +398,16 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
   const handleMarketInsightsDisplayResolved = useCallback(
-    (isDisplayed: boolean) => {
+    ({
+      isDisplayed,
+      severity,
+    }: {
+      isDisplayed: boolean;
+      severity: string | undefined;
+    }) => {
       trackTokenDetailsOpened({
         isMarketInsightsDisplayed: isDisplayed,
+        severity,
       });
     },
     [trackTokenDetailsOpened],
