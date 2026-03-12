@@ -88,7 +88,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             value={props.searchQuery}
             onChangeText={props.onSearchChange}
             onSubmitEditing={props.onSubmit}
-            returnKeyType="go"
+            returnKeyType="search"
             placeholder={placeholder}
             placeholderTextColor={colors.text.muted}
             style={tw.style('flex-1 text-base text-default')}
