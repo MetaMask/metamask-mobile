@@ -1,11 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import nock from 'nock';
-
-export const getTrendingTokensMock = jest.fn();
-
-const TRENDING_API_BASE = 'https://token.api.cx.metamask.io';
-const TRENDING_PATH = '/v3/tokens/trending';
-
 export interface MockTrendingToken {
   assetId: string;
   name: string;
@@ -94,8 +88,8 @@ export function setupTrendingApiFetchMock(
       ? (uri: string) => customReply(uri)
       : () => responseData;
 
-  nock(TRENDING_API_BASE)
-    .get(TRENDING_PATH)
+  nock('https://token.api.cx.metamask.io')
+    .get('/v3/tokens/trending')
     .query(true)
     .reply(200, (uri) => replyBody(uri))
     .persist();
