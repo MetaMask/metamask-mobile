@@ -254,10 +254,16 @@ jobs:
           fi
           
           # Set environment variables for without-SRP build
+          # E2E_MOCK_OAUTH enables mock OAuth for seedless onboarding performance tests
           ENV_VARS='[
             {
               "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
               "value": "true", 
+              "is_expand": true
+            },
+            {
+              "mapped_to": "E2E_MOCK_OAUTH",
+              "value": "true",
               "is_expand": true
             }
           ]'
