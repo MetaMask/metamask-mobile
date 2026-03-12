@@ -44,12 +44,18 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
 
+interface CashGetMusdEmptyStateProps {
+  isFullView?: boolean;
+}
+
 /**
  * Empty state for the Cash (mUSD) full view when the user has no mUSD.
  * Shows a "Get mUSD" card: token row (navigates to Mainnet mUSD Asset Details) + Get mUSD button.
  * Button routes to Buy flow (empty wallet + mUSD buyable) or Convert flow (non-empty + has convertible tokens).
  */
-const CashGetMusdEmptyState = () => {
+const CashGetMusdEmptyState = ({
+  isFullView = false,
+}: CashGetMusdEmptyStateProps) => {
   const tw = useTailwind();
   const { goToBuy } = useRampNavigation();
   const {
@@ -117,7 +123,9 @@ const CashGetMusdEmptyState = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
         .addProperties({
-          location: EVENT_LOCATIONS.HOME_CASH_SECTION,
+          location: isFullView
+            ? EVENT_LOCATIONS.MOBILE_TOKEN_LIST_PAGE
+            : EVENT_LOCATIONS.MOBILE_TOKEN_LIST,
           redirects_to: getRedirectLocation(),
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: strings('earn.musd_conversion.get_musd'),
@@ -166,6 +174,7 @@ const CashGetMusdEmptyState = () => {
     isMusdBuyableOnAnyChain,
     hasConvertibleTokens,
     hasSeenConversionEducationScreen,
+    isFullView,
     isQuickConvertEnabled,
     getPaymentTokenForSelectedNetwork,
     goToBuy,
