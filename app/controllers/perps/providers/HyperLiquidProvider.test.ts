@@ -3832,6 +3832,79 @@ describe('HyperLiquidProvider', () => {
           jest.useRealTimers();
         }
       });
+
+      it('excludes a cached-meta DEX when assetCtx refresh fails and no aligned ctx cache exists', async () => {
+        const xyzMeta = {
+          universe: [{ name: 'xyz:XYZ100', szDecimals: 2, maxLeverage: 20 }],
+        };
+        const xyzAssetCtx = {
+          funding: '0.0002',
+          openInterest: '250',
+          prevDayPx: '40',
+          dayNtlVlm: '20000',
+          markPx: '42',
+          midPx: '42',
+          oraclePx: '42',
+        };
+        const mainMeta = {
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        };
+        const mainAssetCtx = {
+          funding: '0.001',
+          openInterest: '1000000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        };
+
+        const xyzMetaFetches = { count: 0 };
+        const mockInfoClient = createMockInfoClient({
+          perpDexs: jest
+            .fn()
+            .mockResolvedValue([null, { name: 'xyz', url: 'https://xyz.com' }]),
+          metaAndAssetCtxs: jest
+            .fn()
+            .mockImplementation((params?: { dex?: string }) => {
+              if (params?.dex === 'xyz') {
+                xyzMetaFetches.count += 1;
+                if (xyzMetaFetches.count === 1) {
+                  return Promise.resolve([xyzMeta, [xyzAssetCtx]]);
+                }
+
+                return Promise.reject(
+                  new Error('xyz assetCtxs refresh unavailable'),
+                );
+              }
+
+              return Promise.resolve([mainMeta, [mainAssetCtx]]);
+            }),
+          allMids: jest.fn().mockImplementation((params?: { dex?: string }) => {
+            if (params?.dex === 'xyz') {
+              return Promise.resolve({ 'xyz:XYZ100': '42' });
+            }
+
+            return Promise.resolve({ BTC: '50000' });
+          }),
+        });
+
+        mockClientService.getInfoClient = jest
+          .fn()
+          .mockReturnValue(mockInfoClient);
+
+        const hip3Provider = createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:*'],
+        });
+
+        const result = await hip3Provider.getMarketDataWithPrices();
+
+        expect(result.map((market) => market.symbol)).toEqual(['BTC']);
+        expect(mockInfoClient.metaAndAssetCtxs).toHaveBeenCalledWith({
+          dex: 'xyz',
+        });
+      });
     });
 
     describe('withdrawal edge cases', () => {

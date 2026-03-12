@@ -6194,24 +6194,55 @@ export class HyperLiquidProvider implements PerpsProvider {
           { universeSize: cachedMeta.universe.length },
         );
 
+        let metaForDex = cachedMeta;
         let assetCtxs =
           this.#subscriptionService.getDexAssetCtxsCache(dexKey) ?? [];
         let failedStep: DexFetchFailureStep | undefined;
         let errorMessage: string | undefined;
 
-        if (assetCtxs.length === 0) {
+        if (assetCtxs.length !== metaForDex.universe.length) {
           try {
             const freshResult = await infoClient.metaAndAssetCtxs(
               dexParam ? { dex: dexParam } : undefined,
             );
-            assetCtxs = freshResult?.[1] ?? [];
+            const freshMeta = freshResult?.[0] ?? null;
+            const freshAssetCtxs = freshResult?.[1] ?? [];
+
+            if (
+              !freshMeta?.universe ||
+              freshAssetCtxs.length !== freshMeta.universe.length
+            ) {
+              return {
+                dex,
+                meta: null,
+                assetCtxs: [],
+                allMids: {},
+                success: false,
+                failedStep: 'metaAndAssetCtxs' as const,
+                errorMessage:
+                  'metaAndAssetCtxs returned mismatched universe/assetCtxs lengths',
+              };
+            }
+
+            metaForDex = freshMeta;
+            assetCtxs = freshAssetCtxs;
+            this.#cachedMetaByDex.set(dexKey, freshMeta);
+            this.#subscriptionService.setDexMetaCache(dexKey, freshMeta);
             this.#subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
+            await this.#backfillAssetMapForDex(dex, freshMeta);
           } catch (error) {
-            failedStep = 'metaAndAssetCtxs';
-            errorMessage = ensureError(
-              error,
-              'HyperLiquidProvider.getMarketDataWithPrices.metaAndAssetCtxs',
-            ).message;
+            return {
+              dex,
+              meta: null,
+              assetCtxs: [],
+              allMids: {},
+              success: false,
+              failedStep: 'metaAndAssetCtxs' as const,
+              errorMessage: ensureError(
+                error,
+                'HyperLiquidProvider.getMarketDataWithPrices.metaAndAssetCtxs',
+              ).message,
+            };
           }
         }
 
@@ -6231,7 +6262,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
         return {
           dex,
-          meta: cachedMeta,
+          meta: metaForDex,
           assetCtxs,
           allMids: dexAllMids,
           success: true,
