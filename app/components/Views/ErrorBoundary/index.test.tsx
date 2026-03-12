@@ -34,6 +34,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
+  openURL: jest.fn(),
 }));
 
 jest.mock('../../../util/sentry/utils', () => ({
@@ -351,9 +352,6 @@ describe('ErrorBoundary', () => {
 
   describe('Contact Support', () => {
     it('opens support URL with UTM parameter when contact support is pressed', () => {
-      const mockOpenURL = jest.fn();
-      jest.spyOn(Linking, 'openURL').mockImplementation(mockOpenURL);
-
       const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
         state: initialState,
       });
@@ -361,7 +359,7 @@ describe('ErrorBoundary', () => {
       const contactSupportButton = getByText('Contact support');
       fireEvent.press(contactSupportButton);
 
-      expect(mockOpenURL).toHaveBeenCalledWith(
+      expect(Linking.openURL).toHaveBeenCalledWith(
         'https://support.metamask.io?utm_source=mobile_app',
       );
     });
