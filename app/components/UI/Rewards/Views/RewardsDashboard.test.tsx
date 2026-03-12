@@ -1170,6 +1170,127 @@ describe('RewardsDashboard', () => {
     });
   });
 
+  describe('mUSD calculator functionality', () => {
+    it('calls handleDeeplink with BUY_MUSD_URL when Buy button is pressed', async () => {
+      // Arrange
+      const { handleDeeplink } = jest.requireMock(
+        '../../../../core/DeeplinkManager',
+      );
+
+      // Act
+      const { getByText } = render(<RewardsDashboard />);
+      await waitFor(() => {
+        expect(getByText('rewards.musd.buy_button')).toBeOnTheScreen();
+      });
+      fireEvent.press(getByText('rewards.musd.buy_button'));
+
+      // Assert
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: expect.stringContaining('link.metamask.io/buy'),
+      });
+    });
+
+    it('calls handleDeeplink with SWAP_MUSD_URL when Swap button is pressed', async () => {
+      // Arrange
+      const { handleDeeplink } = jest.requireMock(
+        '../../../../core/DeeplinkManager',
+      );
+
+      // Act
+      const { getByText } = render(<RewardsDashboard />);
+      await waitFor(() => {
+        expect(getByText('rewards.musd.swap_button')).toBeOnTheScreen();
+      });
+      fireEvent.press(getByText('rewards.musd.swap_button'));
+
+      // Assert
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: expect.stringContaining('link.metamask.io/swap'),
+      });
+    });
+
+    it('updates calculator values when amount input changes', async () => {
+      // Act
+      const { getByTestId, getByText } = render(<RewardsDashboard />);
+      await waitFor(() => {
+        expect(getByText('rewards.musd.title')).toBeOnTheScreen();
+      });
+
+      const input = getByTestId('musd-amount-input');
+      fireEvent.changeText(input, '5000');
+
+      // Assert - the input should accept the new value
+      // (actual calculation display would depend on the TextField implementation)
+      expect(input.props.value).toBe('5000');
+    });
+
+    it('sanitizes non-numeric input in amount field', async () => {
+      // Act
+      const { getByTestId, getByText } = render(<RewardsDashboard />);
+      await waitFor(() => {
+        expect(getByText('rewards.musd.title')).toBeOnTheScreen();
+      });
+
+      const input = getByTestId('musd-amount-input');
+      fireEvent.changeText(input, 'abc123def');
+
+      // Assert - only numeric characters should be kept
+      expect(input.props.value).toBe('123');
+    });
+
+    it('allows decimal input in amount field', async () => {
+      // Act
+      const { getByTestId, getByText } = render(<RewardsDashboard />);
+      await waitFor(() => {
+        expect(getByText('rewards.musd.title')).toBeOnTheScreen();
+      });
+
+      const input = getByTestId('musd-amount-input');
+      fireEvent.changeText(input, '1000.50');
+
+      // Assert - decimal should be allowed
+      expect(input.props.value).toBe('1000.50');
+    });
+
+    it('rejects multiple decimal points in amount field', async () => {
+      // Act
+      const { getByTestId, getByText } = render(<RewardsDashboard />);
+      await waitFor(() => {
+        expect(getByText('rewards.musd.title')).toBeOnTheScreen();
+      });
+
+      const input = getByTestId('musd-amount-input');
+      // First set a valid value
+      fireEvent.changeText(input, '1000.50');
+      // Then try to add another decimal
+      fireEvent.changeText(input, '1000.50.25');
+
+      // Assert - second decimal should be rejected, original value kept
+      expect(input.props.value).toBe('1000.50');
+    });
+
+    it('calculates correct bonus values for $5000 input', async () => {
+      // Arrange & Act
+      const { getByTestId, getByText } = render(<RewardsDashboard />);
+      await waitFor(() => {
+        expect(getByText('rewards.musd.title')).toBeOnTheScreen();
+      });
+
+      const input = getByTestId('musd-amount-input');
+      fireEvent.changeText(input, '5000');
+
+      // Assert - verify the calculated values are displayed
+      // Initial amount: $5,000.00
+      // Daily bonus: $5000 * 0.03 / 365 = $0.41
+      // Annualized bonus: $5000 * 0.03 = $150.00
+      await waitFor(() => {
+        expect(getByText('$5,000.00')).toBeOnTheScreen();
+        expect(getByText('$0.41')).toBeOnTheScreen();
+        expect(getByText('$150.00')).toBeOnTheScreen();
+      });
+    });
+  });
+
   describe('previous season summary', () => {
     it('should evaluate showPreviousSeasonSummary in useFocusEffect when screen comes into focus', () => {
       // Arrange

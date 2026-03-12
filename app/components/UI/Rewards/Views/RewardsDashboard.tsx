@@ -426,6 +426,7 @@ const RewardsDashboard: React.FC = () => {
                     </Box>
                     <Box twClassName="w-1/2">
                       <TextField
+                        testID="musd-amount-input"
                         value={musdAmount}
                         onChangeText={handleMusdAmountChange}
                         keyboardType="decimal-pad"
