@@ -124,6 +124,14 @@ export const useStopLossPrompt = ({
     return roeValue * 100;
   }, [position?.returnOnEquity]);
 
+  // Keep a ref so the debounce timer closure can read the latest roePercent
+  // without needing it in the effect dependency array (which would restart the timer
+  // on every WebSocket price tick and prevent it from ever completing).
+  const roePercentRef = useRef<number | null>(roePercent);
+  useEffect(() => {
+    roePercentRef.current = roePercent;
+  }, [roePercent]);
+
   // Callback to finish debounce (from main - for server timestamp bypass)
   const finishDebounce = useCallback(() => {
     setRoeDebounceComplete(true);
@@ -198,6 +206,9 @@ export const useStopLossPrompt = ({
   }, [enabled, position?.symbol]);
 
   // Handle ROE debounce logic
+  // roePercent is used directly for threshold checks (starts/stops tracking).
+  // The timer callback reads roePercentRef instead of closing over roePercent,
+  // so the timer is not cancelled and restarted on every WebSocket price tick.
   useEffect(() => {
     if (!enabled || roePercent === null) {
       roeBelowThresholdSinceRef.current = null;
@@ -219,12 +230,21 @@ export const useStopLossPrompt = ({
       if (elapsed >= STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs) {
         finishDebounce();
       } else {
-        // Set up timer to check again
+        // Set up timer to check again.
+        // The callback reads roePercentRef (not roePercent) so this timer is not
+        // cancelled when roePercent changes on the next WebSocket tick.
         const remainingTime = STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs - elapsed;
         const timer = setTimeout(() => {
-          // Re-check if still below threshold
-          if (roeBelowThresholdSinceRef.current !== null) {
+          // Re-check via ref so the latest value is used without restarting this timer
+          if (
+            roeBelowThresholdSinceRef.current !== null &&
+            roePercentRef.current !== null &&
+            roePercentRef.current <= STOP_LOSS_PROMPT_CONFIG.RoeThreshold
+          ) {
             finishDebounce();
+          } else {
+            // ROE recovered before debounce completed — reset tracking
+            roeBelowThresholdSinceRef.current = null;
           }
         }, remainingTime);
 
@@ -237,7 +257,7 @@ export const useStopLossPrompt = ({
     }
 
     return undefined;
-  }, [enabled, roePercent, position, positionOpenedTimestamp, finishDebounce]);
+  }, [enabled, roePercent, finishDebounce]);
 
   // Calculate suggested stop loss price as midpoint between current price and liquidation price
   // This provides a balanced protection point that limits losses while avoiding premature triggers
