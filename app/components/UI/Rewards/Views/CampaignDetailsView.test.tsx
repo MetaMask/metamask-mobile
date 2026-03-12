@@ -11,8 +11,9 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import { CAMPAIGN_STATUS_TEST_IDS } from '../components/Campaigns/CampaignStatus';
+import { CAMPAIGN_HOW_IT_WORKS_TEST_IDS } from '../components/Campaigns/CampaignHowItWorks';
 
-const mockCampaign: CampaignDto = {
+let mockCampaign: CampaignDto = {
   id: 'campaign-1',
   type: CampaignType.ONDO_HOLDING,
   name: 'Test Campaign',
@@ -87,6 +88,24 @@ jest.mock('../components/Campaigns/CampaignStatus', () => {
   };
 });
 
+jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  const actual = jest.requireActual(
+    '../components/Campaigns/CampaignHowItWorks',
+  );
+  return {
+    __esModule: true,
+    CAMPAIGN_HOW_IT_WORKS_TEST_IDS: actual.CAMPAIGN_HOW_IT_WORKS_TEST_IDS,
+    default: ({ howItWorks }: { howItWorks: { title: string } }) =>
+      ReactActual.createElement(
+        View,
+        { testID: actual.CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER },
+        ReactActual.createElement(Text, null, howItWorks.title),
+      ),
+  };
+});
+
 jest.mock('../hooks/useGetCampaignParticipantStatus');
 jest.mock('../hooks/useOptInToCampaign');
 jest.mock('../../../../core/DeeplinkManager');
@@ -136,6 +155,17 @@ function setupHooks({
 describe('CampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCampaign = {
+      id: 'campaign-1',
+      type: CampaignType.ONDO_HOLDING,
+      name: 'Test Campaign',
+      startDate: '2027-01-01T00:00:00.000Z',
+      endDate: '2027-12-31T23:59:59.999Z',
+      termsAndConditions: null,
+      excludedRegions: [],
+      statusLabel: 'Active',
+      details: null,
+    };
     setupHooks();
   });
 
@@ -205,6 +235,37 @@ describe('CampaignDetailsView', () => {
       const { getByTestId } = render(<CampaignDetailsView />);
       fireEvent.press(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON));
       expect(mockHandleDeeplink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('CampaignHowItWorks', () => {
+    it('renders CampaignHowItWorks when campaign has howItWorks details', () => {
+      mockCampaign.details = {
+        image: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
+        howItWorks: {
+          title: 'How it works',
+          description: 'Description',
+          phases: [],
+        },
+      };
+      const { getByTestId } = render(<CampaignDetailsView />);
+      expect(
+        getByTestId(CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+      expect(
+        getByTestId(CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER),
+      ).toHaveTextContent('How it works');
+    });
+
+    it('does not render CampaignHowItWorks when details is null', () => {
+      mockCampaign.details = null;
+      const { queryByTestId } = render(<CampaignDetailsView />);
+      expect(
+        queryByTestId(CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER),
+      ).toBeNull();
     });
   });
 });

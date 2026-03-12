@@ -17,6 +17,7 @@ import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
+import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 
 const SWAP_DEEPLINK = 'https://link.metamask.io/swap';
 
@@ -65,13 +66,15 @@ const CampaignDetailsView: React.FC = () => {
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
-        <ScrollView
-          contentContainerStyle={tw.style('gap-6')}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView showsVerticalScrollIndicator={false}>
           <Box twClassName="border-b border-border-muted">
             <CampaignStatus campaign={campaign} />
           </Box>
+          {campaign.details?.howItWorks && (
+            <Box twClassName="border-b border-border-muted">
+              <CampaignHowItWorks howItWorks={campaign.details.howItWorks} />
+            </Box>
+          )}
         </ScrollView>
 
         <Box twClassName="px-4 pb-4 pt-2">

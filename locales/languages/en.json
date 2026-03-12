@@ -7791,7 +7791,8 @@
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again.",
       "join_campaign": "Join the campaign",
-      "swap": "Swap"
+      "swap": "Swap",
+      "how_it_works": "How it works"
     },
     "campaigns_preview": {
       "title": "Campaigns",
