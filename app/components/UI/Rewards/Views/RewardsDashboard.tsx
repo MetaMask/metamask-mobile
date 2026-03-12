@@ -46,7 +46,10 @@ import {
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import RewardsOverview from '../components/Tabs/RewardsOverview';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
-import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+import {
+  TabsListRef,
+  TabViewProps,
+} from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
@@ -395,7 +398,11 @@ const RewardsDashboard: React.FC = () => {
           ) : tabOptions.length > 1 ? (
             <TabsList {...tabsListProps}>
               {/* mUSD Tab - Bonus Calculator */}
-              <Box key="musd" tabLabel="mUSD" twClassName="flex-1">
+              <Box
+                key="musd"
+                {...({ tabLabel: 'mUSD' } as TabViewProps)}
+                twClassName="flex-1"
+              >
                 <ScrollView
                   style={tw.style('flex-1')}
                   contentContainerStyle={tw.style('p-4 gap-4')}
@@ -501,7 +508,7 @@ const RewardsDashboard: React.FC = () => {
               {/* Season 1 Tab - Shows previous season summary or current season content */}
               <Box
                 key="season1"
-                tabLabel={strings('rewards.season_1')}
+                {...({ tabLabel: strings('rewards.season_1') } as TabViewProps)}
                 twClassName="flex-1"
               >
                 {showPreviousSeasonSummary ? (
