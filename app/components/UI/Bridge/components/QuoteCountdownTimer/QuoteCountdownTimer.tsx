@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import Text, {
+import {
+  Box,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { Box } from '@metamask/design-system-react-native';
+} from '@metamask/design-system-react-native';
 import {
   selectBridgeControllerState,
   selectBridgeFeatureFlags,
@@ -68,7 +69,7 @@ const QuoteCountdownTimer: React.FC = () => {
 
   return (
     <Box style={styles.container}>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {`0:${formattedSeconds}`}
       </Text>
     </Box>

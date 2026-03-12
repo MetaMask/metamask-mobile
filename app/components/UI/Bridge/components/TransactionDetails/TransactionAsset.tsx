@@ -1,8 +1,10 @@
 import React from 'react';
-import Text, {
+import {
+  FontWeight,
   TextColor,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import {
   AlignItems,
   FlexDirection,
@@ -110,13 +112,14 @@ const TransactionAsset = ({
         flexDirection={FlexDirection.Column}
         gap={2}
       >
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
           {tokenAmount} {token.symbol}
         </Text>
         {txType === TransactionType.bridge && (
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
             style={styles.networkName}
           >
             {networkName}
