@@ -14,6 +14,7 @@ import { useTheme } from '../../../../../util/theme';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
+import { DefiEmptyState } from '../../../../UI/DefiEmptyState';
 import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsForHomepage, DeFiPositionEntry } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -95,10 +96,6 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    // Always pass sectionViewRef once loading is done so the viewport check
-    // decides when to fire. When the section returns null (empty, no error),
-    // sectionViewRef.current is null and the viewport check returns early —
-    // no premature immediate fire via the null path.
     const willRender = !isLoading;
 
     useHomeViewedEvent({
@@ -113,11 +110,6 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     // Don't render if DeFi is disabled
     if (!isDeFiEnabled) {
-      return null;
-    }
-
-    // Don't render if empty and not loading (200 with no data)
-    if (!isLoading && isEmpty) {
       return null;
     }
 
@@ -142,12 +134,18 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       <View ref={sectionViewRef}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={handleViewAllDeFi} />
-          <SectionRow>
-            <Box>
-              {isLoading ? (
+          {isLoading ? (
+            <SectionRow>
+              <Box>
                 <DeFiPositionsSkeleton />
-              ) : (
-                positions.map((position: DeFiPositionEntry) => (
+              </Box>
+            </SectionRow>
+          ) : isEmpty ? (
+            <DefiEmptyState twClassName="mx-auto mt-2" />
+          ) : (
+            <SectionRow>
+              <Box>
+                {positions.map((position: DeFiPositionEntry) => (
                   <DeFiPositionsListItem
                     key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
                     chainId={position.chainId}
@@ -155,10 +153,10 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
                     protocolAggregate={position.protocolAggregate}
                     privacyMode={privacyMode}
                   />
-                ))
-              )}
-            </Box>
-          </SectionRow>
+                ))}
+              </Box>
+            </SectionRow>
+          )}
         </Box>
       </View>
     );

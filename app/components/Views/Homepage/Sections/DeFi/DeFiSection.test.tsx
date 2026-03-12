@@ -54,6 +54,24 @@ jest.mock('./hooks', () => ({
   DeFiPositionEntry: {},
 }));
 
+jest.mock('../../../../UI/DefiEmptyState', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  const MockDefiEmptyState = ({ onAction }: { onAction?: () => void }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'defi-empty-state' },
+      ReactActual.createElement(Text, null, 'Lend, borrow, and trade'),
+      ReactActual.createElement(
+        TouchableOpacity,
+        { onPress: onAction },
+        ReactActual.createElement(Text, null, 'Explore DeFi'),
+      ),
+    );
+  MockDefiEmptyState.displayName = 'DefiEmptyState';
+  return { DefiEmptyState: MockDefiEmptyState };
+});
+
 // Mock DeFiPositionsListItem to avoid deep import chain issues
 jest.mock('../../../../UI/DeFiPositions/DeFiPositionsListItem', () => {
   const { Text } = jest.requireActual('react-native');
@@ -132,7 +150,7 @@ describe('DeFiSection', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('returns null when positions are empty and not loading', () => {
+  it('renders empty state when positions are empty and not loading', () => {
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [],
       isLoading: false,
@@ -140,11 +158,12 @@ describe('DeFiSection', () => {
       isEmpty: true,
     });
 
-    const { toJSON } = renderWithProvider(
+    renderWithProvider(
       <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(toJSON()).toBeNull();
+    expect(screen.getByTestId('defi-empty-state')).toBeOnTheScreen();
+    expect(screen.getByText('DeFi')).toBeOnTheScreen();
   });
 
   it('renders error state with retry when there is an error and not loading', () => {
