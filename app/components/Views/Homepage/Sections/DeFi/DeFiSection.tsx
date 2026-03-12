@@ -101,7 +101,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // no premature immediate fire via the null path.
     const willRender = !isLoading;
 
-    useHomeViewedEvent({
+    const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.DEFI,
@@ -124,7 +124,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // Show retry UI on error
     if (!isLoading && hasError) {
       return (
-        <View ref={sectionViewRef}>
+        <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>
             <SectionHeader title={title} onPress={handleViewAllDeFi} />
             <ErrorState

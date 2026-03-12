@@ -163,7 +163,7 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 
 // Mock useHomeViewedEvent to avoid analytics side-effects in
 // Homepage-level tests — section-level analytics are covered by the hook tests.
-const mockUseHomeViewedEvent = jest.fn();
+const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
 jest.mock('./hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: (...args: unknown[]) => mockUseHomeViewedEvent(...args),
