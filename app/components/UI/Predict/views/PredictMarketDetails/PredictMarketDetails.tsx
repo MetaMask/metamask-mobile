@@ -58,7 +58,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { colors } = useTheme();
-  const { claim } = usePredictClaim();
+  const { claim, isClaimPending } = usePredictClaim();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketDetails'>>();
   const tw = useTailwind();
@@ -76,13 +76,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   const {
-    market,
+    data: marketData,
+    isLoading: isMarketLoading,
     isFetching: isMarketFetching,
     refetch: refetchMarket,
   } = usePredictMarket({
-    id: resolvedMarketId,
+    id: resolvedMarketId ?? '',
     enabled: Boolean(resolvedMarketId),
   });
+  const market = marketData ?? null;
 
   // Track screen load performance (market details + chart)
   usePredictMeasurement({
@@ -97,11 +99,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // calculate sticky header indices based on content structure
   const stickyHeaderIndices = useMemo(() => {
-    if (isMarketFetching && !market) {
+    if (isMarketLoading) {
       return [];
     }
     return [1];
-  }, [isMarketFetching, market]);
+  }, [isMarketLoading]);
 
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
@@ -116,7 +118,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: false,
-    enabled: !isMarketFetching && Boolean(resolvedMarketId),
+    enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });
 
   // "claimable" positions
@@ -127,7 +129,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: true,
-    enabled: !isMarketFetching && Boolean(resolvedMarketId),
+    enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });
 
   const feeCollectionConfig = useSelector(selectPredictFeeCollectionFlag);
@@ -139,10 +141,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
     () =>
-      !isMarketFetching &&
+      !isMarketLoading &&
       !isActivePositionsLoading &&
       !isClaimablePositionsLoading,
-    [isMarketFetching, isActivePositionsLoading, isClaimablePositionsLoading],
+    [isMarketLoading, isActivePositionsLoading, isClaimablePositionsLoading],
   );
 
   const {
@@ -349,6 +351,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           0,
         )}
         isLoading={isClaimablePositionsLoading}
+        isClaimPending={isClaimPending}
       />
     );
   }
@@ -361,7 +364,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     >
       <Box twClassName="px-3 gap-4">
         <PredictMarketDetailsHeader
-          isLoading={isMarketFetching && !market}
+          isLoading={isMarketLoading}
           market={market}
           title={title}
           image={image}
@@ -408,7 +411,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
-        {isMarketFetching && !market ? (
+        {isMarketLoading ? (
           <Box twClassName="px-3">
             <PredictDetailsContentSkeleton />
           </Box>
@@ -422,7 +425,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
 
         {/* Tab content - only show when market is loaded */}
-        {!isMarketFetching && market && (
+        {!isMarketLoading && market && (
           <PredictMarketDetailsTabContent
             activeTab={activeTab}
             tabsReady={tabsReady}
@@ -455,12 +458,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           hasPositivePnl={hasPositivePnl}
           marketStatus={market?.status as PredictMarketStatus | undefined}
           singleOutcomeMarket={singleOutcomeMarket}
-          isMarketFetching={isMarketFetching}
+          isMarketLoading={isMarketLoading}
           market={market}
           openOutcomes={openOutcomes}
           yesPercentage={yesPercentage}
           onClaimPress={handleClaimPress}
           onBuyPress={handleBuyPress}
+          isClaimPending={isClaimPending}
         />
       </Box>
       {isFeeExemption && (

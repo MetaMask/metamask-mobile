@@ -8,16 +8,19 @@ import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await POLYMARKET_API_DOWN(mockServer);
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+  });
 };
 
 describe(SmokePredictions('Prediction markets'), () => {

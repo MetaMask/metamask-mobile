@@ -23,9 +23,11 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
+import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 
 export const CustomSlippageModal = () => {
   const dispatch = useDispatch();
+  useModalCloseOnQuoteExpiry();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { sourceChainId, destChainId } =
     useParams<DefaultSlippageModalParams>();

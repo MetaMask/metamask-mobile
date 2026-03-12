@@ -147,6 +147,9 @@ const BridgeView = () => {
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
 
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
+  const location = route.params?.location;
+
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -419,7 +422,10 @@ const BridgeView = () => {
             />
           )}
 
-          <SwapsConfirmButton latestSourceBalance={latestSourceBalance} />
+          <SwapsConfirmButton
+            location={location}
+            latestSourceBalance={latestSourceBalance}
+          />
           <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {hasFee
@@ -536,6 +542,7 @@ const BridgeView = () => {
             {contentMode === 'quote' ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard
+                  location={location}
                   hasInsufficientBalance={hasInsufficientBalance}
                 />
               </Box>
@@ -557,6 +564,7 @@ const BridgeView = () => {
         >
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsConfirmButton
+              location={location}
               latestSourceBalance={latestSourceBalance}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />

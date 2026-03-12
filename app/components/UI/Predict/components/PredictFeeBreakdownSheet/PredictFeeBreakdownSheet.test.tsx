@@ -87,6 +87,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'predict.fee_summary.close') {
       return 'Close';
     }
+    if (key === 'predict.fee_summary.fak_partial_fill_note') {
+      return 'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.';
+    }
     return key;
   }),
 }));
@@ -323,6 +326,57 @@ describe('PredictFeeBreakdownSheet', () => {
       };
 
       render(<TestComponent />);
+    });
+  });
+
+  describe('FAK partial fill note', () => {
+    it('displays partial fill note when fakOrdersEnabled is true', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            fakOrdersEnabled
+          />
+        );
+      };
+
+      const { getByTestId } = render(<TestComponent />);
+
+      expect(getByTestId('predict-fak-partial-fill-note')).toBeOnTheScreen();
+    });
+
+    it('does not display partial fill note when fakOrdersEnabled is false', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            fakOrdersEnabled={false}
+          />
+        );
+      };
+
+      const { queryByTestId } = render(<TestComponent />);
+
+      expect(
+        queryByTestId('predict-fak-partial-fill-note'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not display partial fill note by default', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
+      };
+
+      const { queryByTestId } = render(<TestComponent />);
+
+      expect(
+        queryByTestId('predict-fak-partial-fill-note'),
+      ).not.toBeOnTheScreen();
     });
   });
 });

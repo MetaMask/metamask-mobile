@@ -37,6 +37,17 @@ jest.mock('../../UI/Predict/views/PredictTabView', () => ({
   default: jest.fn(() => null),
 }));
 
+// Mock AssetPollingProvider to assert chainIds when homepage sections are disabled
+const mockAssetPollingProvider = jest.fn<null, [{ chainIds?: string[] }]>(
+  () => null,
+);
+jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: (props: { chainIds?: string[] }) => {
+    mockAssetPollingProvider(props as { chainIds?: string[] });
+    return null;
+  },
+}));
+
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -90,11 +101,7 @@ import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import {
-  screen as RNScreen,
-  renderHook,
-  waitFor,
-} from '@testing-library/react-native';
+import { screen as RNScreen, renderHook } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -208,6 +215,9 @@ jest.mock('../../../core/Engine', () => {
         setDisabledNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: jest.fn(),
+        listPopularEvmNetworks: jest.fn(() => ['0x1']),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       },
     },
   };
@@ -397,6 +407,22 @@ jest.mock('../../../util/address', () => ({
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 
+// Mock core first so useIsFocused/useNavigation work when Wallet or children use them
+jest.mock('@react-navigation/core', () => {
+  const actualCore = jest.requireActual('@react-navigation/core');
+  return {
+    ...actualCore,
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: () => true,
+      dangerouslyGetParent: jest.fn(),
+    })),
+    useIsFocused: jest.fn(() => true),
+  };
+});
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -420,6 +446,7 @@ jest.mock('@react-navigation/native', () => {
       params: {},
     })),
     useFocusEffect: jest.fn(),
+    useIsFocused: jest.fn(() => true),
   };
 });
 
@@ -530,43 +557,6 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
-  });
-
-  it('calls AccountTrackerController.refresh when selectedInternalAccount changes', async () => {
-    const refreshMock = jest.mocked(
-      Engine.context.AccountTrackerController.refresh,
-    );
-
-    //@ts-expect-error we are ignoring the navigation params on purpose
-    render(Wallet);
-    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
-    refreshMock.mockClear();
-
-    renderScreen(
-      // @ts-expect-error we are ignoring the navigation params on purpose
-      Wallet,
-      { name: Routes.WALLET_VIEW },
-      {
-        state: {
-          ...mockInitialState,
-          engine: {
-            backgroundState: {
-              ...mockInitialState.engine.backgroundState,
-              AccountsController: {
-                ...mockInitialState.engine.backgroundState.AccountsController,
-                internalAccounts: {
-                  ...mockInitialState.engine.backgroundState.AccountsController
-                    .internalAccounts,
-                  selectedAccount: 'different-account-id',
-                },
-              },
-            },
-          },
-        },
-      },
-    );
-
-    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
   });
 
   // Simple test to verify mock setup
@@ -1083,7 +1073,7 @@ describe('Wallet', () => {
       mockPredictGTMModalEnabled = false; // Reset to default
     });
 
-    it('should register visibility callback when Perps is enabled', () => {
+    it('renders PerpsTabView without visibility props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1109,20 +1099,17 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Debug: Check if TabsList was rendered
       expect(mockTabsListComponent).toHaveBeenCalled();
-
-      // Check that PerpsTabView was rendered
       expect(mockPerpsTabView).toHaveBeenCalled();
 
-      // Check the props it was called with
+      // With PerpsAlwaysOnProvider managing lifecycle, PerpsTabView no longer
+      // receives visibility props — lifecycle is centralized at the wallet root.
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.onVisibilityChange).toBeDefined();
-      expect(typeof perpsTabViewProps.onVisibilityChange).toBe('function');
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.onVisibilityChange).toBeUndefined();
+      expect(perpsTabViewProps.isVisible).toBeUndefined();
     });
 
-    it('should calculate correct perpsTabIndex when Perps is enabled', () => {
+    it('renders PerpsTabView with only tab-related props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1148,9 +1135,10 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Perps should be at index 1 when enabled (after Tokens at index 0)
+      expect(mockPerpsTabView).toHaveBeenCalled();
+      // tabLabel and key are the only props passed — no isVisible or onVisibilityChange
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.tabLabel).toBeDefined();
     });
 
     it('should not render PerpsTabView when Perps is disabled', () => {

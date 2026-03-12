@@ -73,7 +73,13 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const onCloseCB = useCallback(() => {
       if (shouldNavigateBack && !didNavigateBackRef.current) {
         didNavigateBackRef.current = true;
-        navigation.goBack();
+        if (navigation.isFocused()) {
+          navigation.goBack();
+        } else {
+          Logger.log(
+            '[BottomSheet] navigation.goBack skipped (screen not focused)',
+          );
+        }
       } else if (shouldNavigateBack && didNavigateBackRef.current) {
         Logger.log('[BottomSheet] navigation.goBack skipped (duplicate close)');
       }
@@ -92,6 +98,9 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
       const hardwareBackPress = () => {
+        if (!navigation.isFocused()) {
+          return false;
+        }
         isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
         return true;
       };
@@ -99,7 +108,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
       };
-    }, [onCloseCB, isInteractable]);
+    }, [onCloseCB, isInteractable, navigation]);
 
     useImperativeHandle(ref, () => ({
       onCloseBottomSheet: (callback) => {

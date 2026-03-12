@@ -39,6 +39,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   onClaimPress,
   claimableAmount = 0,
   isLoading = false,
+  isClaimPending = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -133,6 +134,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         onInfoPress={handleInfoPress}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
+        isClaimPending={isClaimPending}
       />
 
       {isVisible && (
