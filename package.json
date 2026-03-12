@@ -135,10 +135,15 @@
     "feature-flags:sync:check": "ts-node tests/feature-flags/sync-production-flags.ts --check",
     "feature-flags:sync:update": "ts-node tests/feature-flags/sync-production-flags.ts --update",
     "a:start": "scripts/perps/agentic/start-metro.sh",
+    "a:watch": "scripts/perps/agentic/interactive-start.sh",
     "a:stop": "scripts/perps/agentic/stop-metro.sh",
     "a:status": "scripts/perps/agentic/app-state.sh status",
     "a:reload": "scripts/perps/agentic/reload-metro.sh",
-    "a:navigate": "scripts/perps/agentic/app-navigate.sh"
+    "a:navigate": "scripts/perps/agentic/app-navigate.sh",
+    "a:ios": "scripts/perps/agentic/preflight.sh --platform ios --wallet-setup",
+    "a:android": "scripts/perps/agentic/preflight.sh --platform android --wallet-setup",
+    "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --clean --wallet-setup",
+    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

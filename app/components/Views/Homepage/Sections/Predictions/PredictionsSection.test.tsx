@@ -43,7 +43,7 @@ jest.mock('./hooks', () => ({
 
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: jest.fn(() => ({ onLayout: jest.fn() })),
   HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
