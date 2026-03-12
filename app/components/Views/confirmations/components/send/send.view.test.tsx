@@ -295,6 +295,7 @@ describeForPlatforms('Send', () => {
       ),
     ).toBeOnTheScreen();
 
+    const avatarElements: ReturnType<typeof getByTestId>[] = [];
     for (const address of contactAddresses) {
       const recipientRow = await waitFor(
         () => screen.getByTestId(getRecipientRowTestId(address)),
@@ -303,6 +304,17 @@ describeForPlatforms('Send', () => {
       expect(recipientRow).toBeOnTheScreen();
       const avatar = getByTestId(getRecipientAvatarTestId(address));
       expect(avatar).toBeOnTheScreen();
+      avatarElements.push(avatar);
     }
+
+    // Regression guard for #22806: all contacts rendered the same avatar.
+    // Extract the accountAddress fed to each Avatar and verify they differ.
+    const avatarAddresses = avatarElements.map((el) => {
+      const nodes = el.findAll((node) => 'accountAddress' in node.props);
+      return nodes[0]?.props.accountAddress;
+    });
+    expect(avatarAddresses[0]).toBeDefined();
+    expect(avatarAddresses[1]).toBeDefined();
+    expect(avatarAddresses[0]).not.toEqual(avatarAddresses[1]);
   });
 });
