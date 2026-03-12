@@ -211,10 +211,16 @@ const RewardsDashboard: React.FC = () => {
     [dispatch, tabOptions, activeTab],
   );
 
+  // Compute initial tab index from Redux activeTab to stay in sync on remount
+  const initialActiveIndex = useMemo(() => {
+    const index = tabOptions.findIndex((tab) => tab.value === activeTab);
+    return index >= 0 ? index : 0;
+  }, [tabOptions, activeTab]);
+
   const tabsListProps = useMemo(
     () => ({
       ref: tabsListRef,
-      initialActiveIndex: 0,
+      initialActiveIndex,
       onChangeTab: handleTabChange,
       testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
       tabsBarProps: {
@@ -222,7 +228,7 @@ const RewardsDashboard: React.FC = () => {
       },
       tabsListContentTwClassName: 'px-0',
     }),
-    [handleTabChange],
+    [handleTabChange, initialActiveIndex],
   );
 
   // Auto-resume interrupted bulk link process when screen comes into focus.
