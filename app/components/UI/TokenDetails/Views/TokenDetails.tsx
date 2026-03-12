@@ -83,10 +83,11 @@ const TokenDetails: React.FC<{
     }
   }, [token.address, token.chainId]);
 
-  const { securityData } = useTokenSecurityData({
-    assetId: caip19AssetId,
-    prefetchedData: token.securityData,
-  });
+  const { securityData, isLoading: isSecurityDataLoading } =
+    useTokenSecurityData({
+      assetId: caip19AssetId,
+      prefetchedData: token.securityData,
+    });
 
   // A/B test hook for layout selection
   const { useNewLayout } = useTokenDetailsABTest();
@@ -206,6 +207,7 @@ const TokenDetails: React.FC<{
         goToSwaps={goToSwaps}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
         securityData={securityData}
+        isSecurityDataLoading={isSecurityDataLoading}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}

@@ -208,6 +208,8 @@ export interface AssetOverviewContentProps {
   // Security & Trust
   /** Resolved security data owned by the parent (TokenDetails). */
   securityData?: TokenSecurityData | null;
+  /** Whether security data is still being fetched. */
+  isSecurityDataLoading?: boolean;
 }
 
 /**
@@ -248,6 +250,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
   securityData,
+  isSecurityDataLoading = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -896,7 +899,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.securityTrustWrapper}>
             <SecurityTrustEntryCard
               securityData={securityData ?? null}
-              isLoading={false}
+              isLoading={isSecurityDataLoading}
               token={token as TokenDetailsRouteParams}
             />
           </View>

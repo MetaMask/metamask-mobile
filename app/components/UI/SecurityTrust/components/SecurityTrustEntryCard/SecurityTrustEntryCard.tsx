@@ -118,7 +118,6 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
           />
         </Box>
 
-        {/* Row 2: Risk label or loading indicator */}
         {isLoading ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
