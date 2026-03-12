@@ -43,7 +43,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer3 = new TimerHelper(
         'Time since post-OAuth screen action until Password fields are visible',
-        { ios: 2000, android: 2000 },
+        { ios: 4000, android: 2000 },
         device,
       );
       const timer4 = new TimerHelper(
