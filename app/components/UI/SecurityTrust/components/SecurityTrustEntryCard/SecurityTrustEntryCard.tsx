@@ -18,7 +18,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { TokenSecurityData } from '../../types';
-import { getFeatureTags } from '../../utils/securityUtils';
+import { getFeatureTags, getResultTypeConfig } from '../../utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,32 +29,6 @@ interface SecurityTrustEntryCardProps {
   token: TokenDetailsRouteParams;
 }
 
-const RESULT_TYPE_CONFIG: Record<
-  string,
-  { label: string; textColor: TextColor }
-> = {
-  Verified: {
-    label: strings('security_trust.safe'),
-    textColor: TextColor.SuccessDefault,
-  },
-  Benign: {
-    label: strings('security_trust.safe'),
-    textColor: TextColor.SuccessDefault,
-  },
-  Warning: {
-    label: strings('security_trust.medium_risk'),
-    textColor: TextColor.WarningDefault,
-  },
-  Spam: {
-    label: strings('security_trust.medium_risk'),
-    textColor: TextColor.WarningDefault,
-  },
-  Malicious: {
-    label: strings('security_trust.high_risk'),
-    textColor: TextColor.ErrorDefault,
-  },
-};
-
 const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   securityData,
   isLoading,
@@ -63,24 +37,9 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation();
 
-  const config = securityData?.resultType
-    ? RESULT_TYPE_CONFIG[securityData.resultType]
-    : undefined;
-
-  const tagIcon =
-    securityData?.resultType === 'Malicious'
-      ? IconName.Danger
-      : securityData?.resultType === 'Warning' ||
-          securityData?.resultType === 'Spam'
-        ? IconName.Warning
-        : IconName.SecurityTick;
-  const tagIconColor =
-    securityData?.resultType === 'Malicious'
-      ? IconColor.ErrorDefault
-      : securityData?.resultType === 'Warning' ||
-          securityData?.resultType === 'Spam'
-        ? IconColor.WarningDefault
-        : IconColor.SuccessDefault;
+  const config = getResultTypeConfig(securityData?.resultType);
+  const tagIcon = config.icon;
+  const tagIconColor = config.iconColor;
   const { tags: featureTags, remainingCount } = securityData
     ? getFeatureTags(securityData.features ?? [], securityData.resultType)
     : { tags: [], remainingCount: 0 };
@@ -128,11 +87,9 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
               color={IconColor.IconAlternative}
             />
           </Box>
-          {config && (
-            <Text variant={TextVariant.HeadingMd} color={config.textColor}>
-              {config.label}
-            </Text>
-          )}
+          <Text variant={TextVariant.HeadingMd} color={config.textColor}>
+            {config.label}
+          </Text>
           {featureTags.length > 0 && (
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -147,11 +104,13 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
                   twClassName="bg-muted rounded self-start min-w-[22px] px-1.5 py-0.5"
                   gap={1}
                 >
-                  <Icon
-                    name={tagIcon}
-                    size={IconSize.Sm}
-                    color={tagIconColor}
-                  />
+                  {tagIcon && tagIconColor && (
+                    <Icon
+                      name={tagIcon}
+                      size={IconSize.Sm}
+                      color={tagIconColor}
+                    />
+                  )}
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}

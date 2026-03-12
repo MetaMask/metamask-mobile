@@ -3580,6 +3580,7 @@
     "confirm_action_title": "Before you proceed",
     "confirm_action_description": "This token has been flagged with security concerns. Make sure you trust this token before continuing.",
     "data_unavailable": "Security data unavailable",
+    "unknown": "Unknown",
     "subtitle_safe": "No known security issues detected. The asset shows normal behavior with no active risk signals.",
     "subtitle_medium_risk": "Some cautionary signals detected. The asset may have risk factors that users should review before interacting.",
     "subtitle_high_risk": "Significant risk signals detected. The asset may pose security or scam risks and should be approached with extreme caution.",

@@ -899,15 +899,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>
-          {!hasSecurityDataError && (
-            <View style={styles.securityTrustWrapper}>
-              <SecurityTrustEntryCard
-                securityData={securityData ?? null}
-                isLoading={isSecurityDataLoading}
-                token={token as TokenDetailsRouteParams}
-              />
-            </View>
-          )}
+          {!hasSecurityDataError &&
+            (isSecurityDataLoading || securityData?.resultType) && (
+              <View style={styles.securityTrustWrapper}>
+                <SecurityTrustEntryCard
+                  securityData={securityData ?? null}
+                  isLoading={isSecurityDataLoading}
+                  token={token as TokenDetailsRouteParams}
+                />
+              </View>
+            )}
           {isEligibilityModalVisible && (
             <View>
               <Modal

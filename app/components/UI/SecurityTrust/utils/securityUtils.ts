@@ -1,10 +1,58 @@
 import {
+  IconColor,
+  IconName,
+  TextColor,
+} from '@metamask/design-system-react-native';
+import {
   RiskLevel,
   type FeatureTag,
   type TokenSecurityData,
   type TokenSecurityFeature,
   type TokenSecurityFinancialStats,
 } from '../types';
+import { strings } from '../../../../../locales/i18n';
+
+export interface ResultTypeConfig {
+  label: string;
+  textColor: TextColor;
+  icon?: IconName;
+  iconColor?: IconColor;
+}
+
+export const getResultTypeConfig = (
+  resultType: string | undefined,
+): ResultTypeConfig => {
+  switch (resultType) {
+    case 'Verified':
+    case 'Benign':
+      return {
+        label: strings('security_trust.safe'),
+        textColor: TextColor.SuccessDefault,
+        icon: IconName.SecurityTick,
+        iconColor: IconColor.SuccessDefault,
+      };
+    case 'Warning':
+    case 'Spam':
+      return {
+        label: strings('security_trust.medium_risk'),
+        textColor: TextColor.WarningDefault,
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+      };
+    case 'Malicious':
+      return {
+        label: strings('security_trust.high_risk'),
+        textColor: TextColor.ErrorDefault,
+        icon: IconName.Danger,
+        iconColor: IconColor.ErrorDefault,
+      };
+    default:
+      return {
+        label: strings('security_trust.unknown'),
+        textColor: TextColor.TextDefault,
+      };
+  }
+};
 
 /** Blockaid-assigned feature type, as documented in the Blockaid token-scan API. */
 export type BlockaidFeatureType =

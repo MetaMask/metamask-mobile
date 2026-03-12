@@ -27,6 +27,7 @@ import {
   formatFeePercent,
   getTop10HoldingPct,
   formatCompactSupply,
+  getResultTypeConfig,
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 
@@ -63,20 +64,9 @@ const SecurityTrustScreen: React.FC = () => {
     true,
   );
 
-  const tagIcon =
-    securityData?.resultType === 'Malicious'
-      ? IconName.Danger
-      : securityData?.resultType === 'Warning' ||
-          securityData?.resultType === 'Spam'
-        ? IconName.Warning
-        : IconName.SecurityTick;
-  const tagIconColor =
-    securityData?.resultType === 'Malicious'
-      ? IconColor.ErrorDefault
-      : securityData?.resultType === 'Warning' ||
-          securityData?.resultType === 'Spam'
-        ? IconColor.WarningDefault
-        : IconColor.SuccessDefault;
+  const { icon: tagIcon, iconColor: tagIconColor } = getResultTypeConfig(
+    securityData?.resultType,
+  );
   const financialStats = securityData?.financialStats ?? null;
   const metadata = securityData?.metadata ?? null;
 
@@ -229,11 +219,13 @@ const SecurityTrustScreen: React.FC = () => {
                   twClassName="w-full h-10 py-2"
                   gap={3}
                 >
-                  <Icon
-                    name={tagIcon}
-                    size={IconSize.Sm}
-                    color={tagIconColor}
-                  />
+                  {tagIcon && tagIconColor && (
+                    <Icon
+                      name={tagIcon}
+                      size={IconSize.Sm}
+                      color={tagIconColor}
+                    />
+                  )}
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
