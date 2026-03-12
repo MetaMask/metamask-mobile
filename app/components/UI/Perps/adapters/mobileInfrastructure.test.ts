@@ -1,8 +1,10 @@
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
+import Logger from '../../../../util/Logger';
 import type { PerpsAnalyticsEvent } from '@metamask/perps-controller';
 import { createMobileInfrastructure } from './mobileInfrastructure';
+import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
@@ -27,7 +29,10 @@ jest.mock('../../../../core/Analytics', () => ({
 }));
 
 jest.mock('../../../../util/Logger', () => ({
-  error: jest.fn(),
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -55,7 +60,7 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
-      getPerpsDiscountForAccount: jest.fn(),
+      getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
     },
   },
 }));
@@ -157,6 +162,53 @@ describe('createMobileInfrastructure', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith({
         name: 'fallback-event',
       });
+    });
+  });
+
+  describe('logger', () => {
+    it('preserves logger options and injects the perps feature tag', () => {
+      const infra = createMobileInfrastructure();
+      const error = new Error('boom');
+
+      infra.logger.error(error, {
+        tags: { component: 'test_component' },
+        context: {
+          name: 'test_context',
+          data: { foo: 'bar' },
+        },
+        extras: { traceId: '123' },
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: expect.any(String),
+            component: 'test_component',
+          }),
+          context: {
+            name: 'test_context',
+            data: { foo: 'bar' },
+          },
+          extras: { traceId: '123' },
+        }),
+      );
+    });
+  });
+
+  describe('rewards', () => {
+    it('delegates getPerpsDiscountForAccount to RewardsController', async () => {
+      const infra = createMobileInfrastructure();
+      const caipAccountId =
+        'eip155:42161:0x1234' as `${string}:${string}:${string}`;
+
+      const result =
+        await infra.rewards.getPerpsDiscountForAccount(caipAccountId);
+
+      expect(
+        Engine.context.RewardsController.getPerpsDiscountForAccount,
+      ).toHaveBeenCalledWith(caipAccountId);
+      expect(result).toBe(5);
     });
   });
 });

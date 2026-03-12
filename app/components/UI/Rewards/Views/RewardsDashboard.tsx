@@ -6,21 +6,13 @@ import React, {
   useState,
 } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
-  Text,
-  TextVariant,
-  IconName as IconNameDS,
-} from '@metamask/design-system-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Box, IconName } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
+import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import { useTheme } from '../../../../util/theme';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
@@ -54,9 +46,8 @@ import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSu
 import BenefitsSummary from "../components/Benefits/BenefitsSummary.tsx";
 
 const RewardsDashboard: React.FC = () => {
+  const tw = useTailwind();
   const navigation = useNavigation();
-  const theme = useTheme();
-  const { colors } = theme;
   const toastRef = useRef<ToastRef>(null);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
@@ -83,7 +74,10 @@ const RewardsDashboard: React.FC = () => {
     }
     return false;
   }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
-  const insets = useSafeAreaInsets();
+
+  const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
+    boolean | null
+  >(null);
 
   // Ref for TabsList to control active tab programmatically
   const tabsListRef = useRef<TabsListRef>(null);
@@ -125,18 +119,6 @@ const RewardsDashboard: React.FC = () => {
       ),
     [optInByWallet],
   );
-
-  // Set navigation title
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('rewards.main_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [colors, navigation]);
 
   const tabOptions = useMemo(() => {
     const options: {
@@ -242,10 +224,6 @@ const RewardsDashboard: React.FC = () => {
 
     return tabs;
   }, [isSnapshotsEnabled]);
-
-  const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
-    boolean | null
-  >(null);
 
   // Auto-resume interrupted bulk link process when screen comes into focus.
   // This handles the case where the app was closed during a bulk opt-in process.
@@ -353,54 +331,48 @@ const RewardsDashboard: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
-      <Box
-        twClassName="flex-1 bg-default gap-4 relative"
-        style={{ marginTop: insets.top }}
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+        testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
-        {/* Header row */}
-        <Box twClassName="flex-row justify-between px-4">
-          <Text variant={TextVariant.HeadingLg} twClassName="text-default">
-            {strings('rewards.main_title')}
-          </Text>
-
-          <Box flexDirection={BoxFlexDirection.Row}>
-            {showPreviousSeasonSummary === false && (
-              <ButtonIcon
-                iconName={IconNameDS.UserCircleAdd}
-                size={ButtonIconSize.Lg}
-                disabled={!subscriptionId}
-                testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-                onPress={() => {
-                  navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
-                }}
-              />
-            )}
-
-            <ButtonIcon
-              iconName={IconNameDS.Setting}
-              size={ButtonIconSize.Lg}
-              disabled={!subscriptionId}
-              testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
-              onPress={() => {
-                navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
-              }}
-            />
-          </Box>
+        <HeaderRoot
+          title={strings('rewards.main_title')}
+          includesTopInset
+          endButtonIconProps={[
+            {
+              iconName: IconName.Setting,
+              onPress: () => navigation.navigate(Routes.REWARDS_SETTINGS_VIEW),
+              disabled: !subscriptionId,
+              testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
+            },
+            ...(showPreviousSeasonSummary === false
+              ? [
+                  {
+                    iconName: IconName.UserCircleAdd,
+                    onPress: () =>
+                      navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
+                    disabled: !subscriptionId,
+                    testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
+                  },
+                ]
+              : []),
+          ]}
+        />
+        <Box twClassName="flex-1 gap-4">
+          {showPreviousSeasonSummary ? (
+            <PreviousSeasonSummary />
+          ) : (
+            <>
+              <Box twClassName="mx-4">
+                <SeasonStatus />
+              </Box>
+              <TabsList {...tabsListProps}>{tabComponents}</TabsList>
+            </>
+          )}
         </Box>
-        {showPreviousSeasonSummary ? (
-          <PreviousSeasonSummary />
-        ) : (
-          <>
-            <Box twClassName="mx-4">
-              <SeasonStatus />
-            </Box>
-
-            {/* Tab View */}
-            <TabsList {...tabsListProps}>{tabComponents}</TabsList>
-          </>
-        )}
         <BenefitsSummary/>
-      </Box>
+      </SafeAreaView>
       <Toast ref={toastRef} />
     </ErrorBoundary>
   );

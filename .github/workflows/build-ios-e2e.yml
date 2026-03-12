@@ -31,6 +31,9 @@ jobs:
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
+      # Bump these to bust the respective caches and force a full rebuild
+      XCODE_CACHE_VERSION: 1
+      IOS_APP_CACHE_VERSION: 2
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
@@ -76,8 +79,6 @@ jobs:
         id: xcode-restore-cache
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        env:
-          XCODE_CACHE_VERSION: 1
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -89,8 +90,6 @@ jobs:
         id: xcode-restore-cache-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        env:
-          XCODE_CACHE_VERSION: 1
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -123,6 +122,16 @@ jobs:
       - name: Clean iOS plist files
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -149,7 +158,7 @@ jobs:
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Restore iOS app matching fingerprint from main cache
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
@@ -159,7 +168,7 @@ jobs:
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
@@ -235,6 +244,33 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      # Xcode on case-insensitive APFS can store the bundle executable with wrong case (e.g. "metamask"
+      # vs CFBundleExecutable "MetaMask"), causing xcrun simctl install to fail with a case-sensitive
+      # directory lookup on the test runner. actions/upload-artifact also strips execute permissions.
+      - name: Fix iOS bundle executable case and permissions before upload
+        run: |
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "Could not read CFBundleExecutable from Info.plist"
+            exit 1
+          fi
+
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "Bundle executable not found: $BUNDLE_EXEC"
+            exit 1
+          fi
+
+          # Two-step rename to fix case on case-insensitive APFS (direct rename is a no-op)
+          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+          fi
+
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
+        shell: bash
 
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)

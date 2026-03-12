@@ -16,7 +16,10 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -82,6 +85,7 @@ import {
 } from 'expo-local-authentication';
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
+import { containsErrorMessage } from '../../util/errorHandling';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -489,7 +493,11 @@ class AuthenticationService {
   requestBiometricsAccessControlForIOS = async (
     authType: AUTHENTICATION_TYPE,
   ): Promise<AUTHENTICATION_TYPE> => {
-    if (Platform.OS === 'ios' && authType === AUTHENTICATION_TYPE.BIOMETRIC) {
+    if (
+      Platform.OS === 'ios' &&
+      (authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+        authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION)
+    ) {
       try {
         // Prompt user for biometrics access control
         const result = await authenticateAsync({ disableDeviceFallback: true });
@@ -1170,14 +1178,22 @@ class AuthenticationService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        trace({
-          name: TraceName.OnboardingFetchSrpsError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({
-          name: TraceName.OnboardingFetchSrpsError,
-        });
+        // trace only if error is not an incorrect password error
+        if (
+          !containsErrorMessage(
+            error as Error,
+            SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+          )
+        ) {
+          trace({
+            name: TraceName.OnboardingFetchSrpsError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({
+            name: TraceName.OnboardingFetchSrpsError,
+          });
+        }
 
         throw error;
       } finally {
@@ -1197,7 +1213,6 @@ class AuthenticationService {
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
-        const entropySources: EntropySourceId[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
@@ -1209,9 +1224,7 @@ class AuthenticationService {
                 });
               } else if (item.type === SecretType.Mnemonic) {
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                const entropySource =
-                  await this.importSeedlessMnemonicToVault(mnemonic);
-                entropySources.push(entropySource);
+                await this.importSeedlessMnemonicToVault(mnemonic);
               } else {
                 Logger.error(
                   new Error(
@@ -1231,10 +1244,6 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        for (const entropySource of entropySources) {
-          // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-          this.attemptMultichainAccountWalletDiscovery(entropySource);
-        }
         this.dispatchOauthReset();
         ReduxService.store.dispatch(setExistingUser(true));
 
@@ -1342,9 +1351,6 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
-      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });
@@ -1449,6 +1455,7 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding completion
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
+    ReduxService.store.dispatch(clearAccountType());
   };
 
   /**

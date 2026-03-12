@@ -7,6 +7,8 @@ export enum Side {
   SELL = 'SELL',
 }
 
+export type PredictOrderType = 'FOK' | 'FAK';
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
@@ -153,7 +155,9 @@ export type PredictGamePeriod =
   | 'End Q4' // End of Fourth Quarter
   | 'OT' // Overtime
   | 'FT' // Final
-  | 'VFT'; // Verified fulltime (when closed=true)
+  | 'VFT' // Verified fulltime (when closed=true)
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  | (string & {}); // Escape hatch for future sports with different period formats
 
 // Game data attached to market
 export interface PredictMarketGame {
@@ -470,6 +474,7 @@ export interface OrderPreview {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+  orderType?: PredictOrderType;
 }
 
 export type OrderResult = Result<{

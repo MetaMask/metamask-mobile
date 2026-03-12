@@ -20,7 +20,7 @@ import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethod
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import Logger from '../../util/Logger';
 import { isSnapPreinstalled } from './utils/snaps';
-import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
+import { trackSnapAccountEvent } from '../../util/analytics/helpers/snapKeyring/trackSnapAccountEvent';
 
 const mockAddRequest = jest.fn();
 const mockStartFlow = jest.fn();
@@ -172,9 +172,12 @@ jest.mock('./utils/snaps', () => ({
 }));
 
 // Mock the trackSnapAccountEvent function
-jest.mock('../Analytics/helpers/SnapKeyring/trackSnapAccountEvent', () => ({
-  trackSnapAccountEvent: jest.fn(),
-}));
+jest.mock(
+  '../../util/analytics/helpers/snapKeyring/trackSnapAccountEvent',
+  () => ({
+    trackSnapAccountEvent: jest.fn(),
+  }),
+);
 
 describe('Snap Keyring Methods', () => {
   afterEach(() => {

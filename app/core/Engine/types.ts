@@ -303,6 +303,14 @@ import {
   EarnControllerState,
 } from '@metamask/earn-controller';
 import {
+  GeolocationController,
+  GeolocationControllerState,
+  GeolocationControllerActions,
+  GeolocationControllerEvents,
+  GeolocationApiService,
+  GeolocationApiServiceActions,
+} from '@metamask/geolocation-controller';
+import {
   PerpsController,
   PerpsControllerState,
   PerpsControllerActions,
@@ -324,6 +332,12 @@ import {
   PredictControllerActions,
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
+import { CardController } from './controllers/card-controller/CardController';
+import type {
+  CardControllerState,
+  CardControllerActions,
+  CardControllerEvents,
+} from './controllers/card-controller/types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -421,6 +435,7 @@ import {
 type RequiredControllers = Omit<
   Controllers,
   | 'ErrorReportingService'
+  | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
@@ -433,6 +448,7 @@ type RequiredControllers = Omit<
 type OptionalControllers = Pick<
   Controllers,
   | 'ErrorReportingService'
+  | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
@@ -516,8 +532,11 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
+  | GeolocationControllerActions
+  | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | CardControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
@@ -596,8 +615,10 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
+  | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | CardControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
@@ -717,8 +738,11 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  GeolocationController: GeolocationController;
+  GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  CardController: CardController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
@@ -797,8 +821,10 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  CardController: CardControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -880,6 +906,8 @@ export type ControllersToInitialize =
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
+  | 'GeolocationController'
+  | 'GeolocationApiService'
   | 'KeyringController'
   | 'MultichainNetworkController'
   | 'NftController'
@@ -901,6 +929,7 @@ export type ControllersToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'CardController'
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'

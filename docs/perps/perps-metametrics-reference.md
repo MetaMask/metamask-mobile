@@ -162,7 +162,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `limit_price` (optional): Limit order price (for limit orders) (number)
 - `trade_with_token` (optional): Whether the user paid with a token other than Perps balance (boolean)
-- `mm_pay_token_selected` (optional): Token symbol selected for pay-with (e.g. `'USDC'`), included when `trade_with_token` is true
+- `mm_pay_token_selected` (optional): Token symbol selected for pay-with (e.g. `'USDC'`); when `trade_with_token` is true, the selected token symbol; when user uses Perps balance, `'Perps Balance'`
 - `mm_pay_network_selected` (optional): Network/chain for pay-with (e.g. `'ethereum'`), included when `trade_with_token` is true
 - `error_message` (optional): Error description when status is 'failed'
 

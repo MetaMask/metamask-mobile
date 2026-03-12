@@ -27,6 +27,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
     /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
     showPerpsHeader?: boolean;
+    /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
+    source?: string;
   };
 
   PerpsOrderSuccess: {
@@ -77,7 +79,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     title?: string;
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
-    defaultSearchVisible?: boolean;
     showWatchlistOnly?: boolean;
     defaultMarketTypeFilter?:
       | 'all'
@@ -157,6 +158,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+    /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
+    source?: string;
+    /** Screen to navigate to after tutorial completion instead of the default PerpsHome */
+    redirectScreen?: string;
+    /** Params to pass to the redirect screen */
+    redirectParams?: Record<string, unknown>;
   };
 
   // TP/SL screen

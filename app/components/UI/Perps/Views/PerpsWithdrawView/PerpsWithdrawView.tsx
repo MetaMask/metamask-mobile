@@ -1,5 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
 import React, {
   useCallback,
   useEffect,
@@ -30,12 +29,15 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  PERPS_CONSTANTS,
   USDC_DECIMALS,
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
@@ -161,6 +163,7 @@ const PerpsWithdrawView: React.FC = () => {
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.WITHDRAWAL,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.WITHDRAW_BUTTON,
     },
   });
 
@@ -286,26 +289,30 @@ const PerpsWithdrawView: React.FC = () => {
       }
       // Success/error toast will be shown by usePerpsWithdrawStatus hook
     } catch (error) {
-      // Capture exception with withdrawal context
-      captureException(
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          tags: {
-            component: 'PerpsWithdrawView',
-            action: 'financial_withdrawal',
-            operation: 'financial_operations',
-          },
-          extra: {
-            withdrawalContext: {
-              amount: withdrawAmountDetailed,
-              assetId,
-              destination: destToken.address,
-              chainId: destToken.chainId,
-              isTestnet,
-            },
+      Logger.error(ensureError(error, 'PerpsWithdrawView.handleWithdraw'), {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsWithdrawView',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
+        },
+        context: {
+          name: 'PerpsWithdrawView',
+          data: {
+            amount: withdrawAmountDetailed,
+            assetId,
+            destination: destToken.address,
+            chainId: destToken.chainId,
+            isTestnet,
+            rawError:
+              error instanceof Error
+                ? undefined
+                : error === undefined
+                  ? 'undefined'
+                  : String(error),
           },
         },
-      );
+      });
 
       DevLogger.log('Error preparing withdrawal:', error);
     } finally {

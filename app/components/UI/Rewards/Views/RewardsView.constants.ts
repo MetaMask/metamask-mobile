@@ -2,6 +2,7 @@
  * Test identifiers for RewardsView component
  */
 export const REWARDS_VIEW_SELECTORS = {
+  SAFE_AREA_VIEW: 'rewards-view-safe-area',
   REFERRAL_BUTTON: 'rewards-view-referral-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',

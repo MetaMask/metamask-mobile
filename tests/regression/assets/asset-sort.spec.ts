@@ -10,6 +10,8 @@ import ImportTokensView from '../../page-objects/wallet/ImportTokenFlow/ImportTo
 import { MockApiEndpoint } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const AAVE_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
@@ -70,6 +72,9 @@ describe(RegressionAssets('Import Tokens'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: TOKEN_RESPONSE.urlEndpoint,
@@ -80,6 +85,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapImportTokensButton();
         await ImportTokensView.searchToken('AAVE');
         await ImportTokensView.tapOnToken(); // taps the first token in the returned list
@@ -105,6 +111,9 @@ describe(RegressionAssets('Import Tokens'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: TOKEN_RESPONSE.urlEndpoint,
@@ -115,6 +124,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapSortBy();
         await SortModal.tapSortAlphabetically();
 
@@ -143,6 +153,9 @@ describe(RegressionAssets('Import Tokens'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: TOKEN_RESPONSE.urlEndpoint,
@@ -153,6 +166,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapSortBy();
         await SortModal.tapSortFiatAmount();
 

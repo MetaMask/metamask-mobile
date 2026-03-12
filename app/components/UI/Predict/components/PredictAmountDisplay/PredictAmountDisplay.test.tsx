@@ -3,20 +3,12 @@ import React from 'react';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
 import PredictAmountDisplay from './PredictAmountDisplay';
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#141618',
-        alternative: '#9fa6ae',
-      },
-      primary: {
-        default: '#037DD6',
-      },
-    },
-    themeAppearance: 'light',
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 describe('PredictAmountDisplay', () => {
   beforeEach(() => {

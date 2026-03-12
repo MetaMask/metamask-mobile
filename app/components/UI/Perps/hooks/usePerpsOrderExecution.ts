@@ -1,10 +1,12 @@
-import { captureException } from '@sentry/react-native';
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type OrderParams,
@@ -109,6 +111,9 @@ export function usePerpsOrderExecution(
                 partialProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
                   orderParams.trackingData.mmPayNetworkSelected;
               }
+            } else if (orderParams.trackingData !== undefined) {
+              partialProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+                PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
             }
             track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, partialProps);
           }
@@ -172,12 +177,19 @@ export function usePerpsOrderExecution(
               failedProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
                 orderParams.trackingData.mmPayNetworkSelected;
             }
+          } else if (orderParams.trackingData !== undefined) {
+            failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+              PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
           }
           track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, failedProps);
 
           onError?.(errorMessage);
         }
       } catch (err) {
+        const errorObject = ensureError(
+          err,
+          'usePerpsOrderExecution.placeOrder',
+        );
         const errorMessage =
           err instanceof Error
             ? err.message
@@ -185,15 +197,16 @@ export function usePerpsOrderExecution(
         setError(errorMessage);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
 
-        // Capture exception with order context
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        Logger.error(errorObject, {
           tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
             component: 'usePerpsOrderExecution',
             action: 'order_creation',
             operation: 'order_management',
           },
-          extra: {
-            orderContext: {
+          context: {
+            name: 'usePerpsOrderExecution',
+            data: {
               symbol: orderParams.symbol,
               isBuy: orderParams.isBuy,
               orderType: orderParams.orderType,
@@ -228,6 +241,9 @@ export function usePerpsOrderExecution(
             exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
               orderParams.trackingData.mmPayNetworkSelected;
           }
+        } else if (orderParams.trackingData !== undefined) {
+          exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
         }
         track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, exceptionProps);
 
