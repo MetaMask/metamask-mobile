@@ -33,9 +33,18 @@
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
 
-# Source port config so WATCHER_PORT is in env for cdp-bridge.js
-# Any developer sources their .js.env which sets WATCHER_PORT for their setup.
-[[ -f .js.env ]] && source .js.env
+# Source port config so WATCHER_PORT is in env for cdp-bridge.js.
+# Only set vars not already defined, so caller env takes precedence.
+if [ -f .js.env ]; then
+  while IFS= read -r _line || [ -n "$_line" ]; do
+    [[ "$_line" =~ ^[[:space:]]*(#|$) ]] && continue
+    _line="${_line#export }"
+    _key="${_line%%=*}"
+    _key="${_key//[[:space:]]/}"
+    [[ -n "$_key" && -z "${!_key+x}" ]] && eval "export $_line" 2>/dev/null || true
+  done < .js.env
+  unset _line _key
+fi
 export WATCHER_PORT="${WATCHER_PORT:-8081}"
 
 SD="scripts/perps/agentic"
@@ -218,7 +227,9 @@ while IFS= read -r sj; do
         echo "  [SKIPPED - manual step]"; SKIPPED=$((SKIPPED + 1)); echo ""; continue
       fi
       read -rp "  Press ENTER when done, or 's' to skip: " input
-      [ "${input:-}" = "s" ] && echo "  [SKIPPED by user]"
+      if [ "${input:-}" = "s" ]; then
+        echo "  [SKIPPED by user]"; SKIPPED=$((SKIPPED + 1)); echo ""; continue
+      fi
       PASSED=$((PASSED + 1)); echo "  ✅ PASS"; echo ""; continue
       ;;
     *)

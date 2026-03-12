@@ -20,7 +20,17 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
-[ -f .js.env ] && source .js.env
+# Source .js.env but only for vars not already set, so caller env takes precedence.
+if [ -f .js.env ]; then
+  while IFS= read -r _line || [ -n "$_line" ]; do
+    [[ "$_line" =~ ^[[:space:]]*(#|$) ]] && continue
+    _line="${_line#export }"
+    _key="${_line%%=*}"
+    _key="${_key//[[:space:]]/}"
+    [[ -n "$_key" && -z "${!_key+x}" ]] && eval "export $_line" 2>/dev/null || true
+  done < .js.env
+  unset _line _key
+fi
 
 PORT="${WATCHER_PORT:-8081}"
 SCRIPTS="$(dirname "$0")"
@@ -73,8 +83,6 @@ for i in $(seq 0 $((ACCOUNT_COUNT - 1))); do
 done
 echo "Fixture OK: password + ${ACCOUNT_COUNT} account(s)"
 
-ESCAPED_PW=$(echo "$PASSWORD" | sed "s/'/\\\\\\\\'/g")
-
 # -- Check CDP --
 $CDP eval "JSON.stringify({ok:true})" >/dev/null 2>&1 || { echo "ERROR: CDP not reachable"; exit 1; }
 echo "CDP bridge connected."
@@ -97,11 +105,11 @@ else
   # -- Call AgenticService.setupWallet() --
   echo "Calling __AGENTIC__.setupWallet()..."
 
-  # Read fixture JSON and pass it to setupWallet via CDP
+  # Read fixture JSON and escape it for safe embedding in a JS string literal
   FIXTURE_JSON=$(jq -c '.' "$FIXTURE_PATH")
-  ESCAPED_FIXTURE=$(echo "$FIXTURE_JSON" | sed "s/'/\\\\'/g")
+  ESCAPED_FIXTURE=$(node -p "JSON.stringify(JSON.stringify(JSON.parse(process.argv[1])))" "$FIXTURE_JSON")
 
-  SETUP_RESULT=$(cdp_eval_async "(function(){ var fixture = JSON.parse('$ESCAPED_FIXTURE'); return globalThis.__AGENTIC__.setupWallet(fixture).then(function(r){ return JSON.stringify(r); }).catch(function(e){ return JSON.stringify({ok:false, error: e.message || String(e)}); }); })()")
+  SETUP_RESULT=$(cdp_eval_async "(function(){ var fixture = JSON.parse($ESCAPED_FIXTURE); return globalThis.__AGENTIC__.setupWallet(fixture).then(function(r){ return JSON.stringify(r); }).catch(function(e){ return JSON.stringify({ok:false, error: e.message || String(e)}); }); })()")
 
   SETUP_OK=$(echo "$SETUP_RESULT" | jq -r '.ok')
   if [ "$SETUP_OK" != "true" ]; then

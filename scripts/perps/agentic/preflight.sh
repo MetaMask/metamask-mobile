@@ -37,7 +37,17 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
-[ -f .js.env ] && source .js.env
+# Source .js.env but only for vars not already set, so caller env takes precedence.
+if [ -f .js.env ]; then
+  while IFS= read -r _line || [ -n "$_line" ]; do
+    [[ "$_line" =~ ^[[:space:]]*(#|$) ]] && continue
+    _line="${_line#export }"
+    _key="${_line%%=*}"
+    _key="${_key//[[:space:]]/}"
+    [[ -n "$_key" && -z "${!_key+x}" ]] && eval "export $_line" 2>/dev/null || true
+  done < .js.env
+  unset _line _key
+fi
 
 PORT="${WATCHER_PORT:-8081}"
 SCRIPTS="scripts/perps/agentic"
