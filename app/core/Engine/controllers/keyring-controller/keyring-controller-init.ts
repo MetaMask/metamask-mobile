@@ -75,7 +75,11 @@ export const keyringControllerInit: ControllerInitFunction<
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
 
+  const preferencesController = getController('PreferencesController');
+
   const controller = new KeyringController({
+    removeIdentity: (address: string) =>
+      preferencesController.removeIdentity(address),
     encryptor,
     messenger: controllerMessenger,
     state: initialKeyringState || persistedState.KeyringController,

@@ -21,9 +21,7 @@ class WalletConnectPort extends EventEmitter {
   postMessage = (msg: any) => {
     try {
       if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
-        const { internalAccounts } = Engine.context.AccountsController.state;
-        const selectedAddress =
-          internalAccounts.accounts[internalAccounts.selectedAccount]?.address;
+        const { selectedAddress } = Engine.context.PreferencesController.state;
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(msg.data.params.chainId, 16),
           accounts: [selectedAddress],

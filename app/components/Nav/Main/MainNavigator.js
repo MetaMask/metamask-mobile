@@ -180,7 +180,7 @@ const WalletModalFlow = () => (
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
-      options={{ headerShown: false, animationEnabled: false }}
+      options={{ headerShown: true, animationEnabled: false }}
     />
   </Stack.Navigator>
 );

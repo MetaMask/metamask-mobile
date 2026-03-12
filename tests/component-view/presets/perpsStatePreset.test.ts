@@ -31,18 +31,8 @@ describe('initialStatePerps', () => {
     expect(network?.selectedNetworkClientId).toBe('mainnet');
 
     const prefs = state?.engine?.backgroundState?.PreferencesController as
-      | {
-          tokenSortConfig?: {
-            key: string;
-            order: string;
-            sortCallback: string;
-          };
-        }
+      | { selectedAddress?: string }
       | undefined;
-    expect(prefs?.tokenSortConfig).toStrictEqual({
-      key: 'tokenFiatAmount',
-      order: 'dsc',
-      sortCallback: 'stringNumeric',
-    });
+    expect(prefs?.selectedAddress).toBe('0x1234567890abcdef');
   });
 });

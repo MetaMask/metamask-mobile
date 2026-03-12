@@ -246,6 +246,7 @@ describe('EngineService', () => {
     (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
       backgroundState: {
         KeyringController: { vault: 'encrypted_vault_data' },
+        PreferencesController: { selectedAddress: '0x123' },
       },
     });
 

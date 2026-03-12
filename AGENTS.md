@@ -224,3 +224,12 @@ bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-complianc
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
+
+## E2E Performance Testing Standard
+
+For creating or reviewing Appwright-based E2E performance tests that measure real user flows on real devices:
+
+- `.agents/skills/performance-testing/SKILL.md` (`$performance-testing`)
+- Full reference guide: `.agents/skills/performance-testing/reference.md`
+
+The skill is auto-detected by all harnesses (Cursor, Claude Code, etc.) when working on files in `tests/performance/`.
