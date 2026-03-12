@@ -47,6 +47,7 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectSeasonEndDate: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
+  selectGeoLocation: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -70,6 +71,7 @@ import {
   selectSeasonEndDate,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
+  selectGeoLocation,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -96,6 +98,9 @@ const mockSelectHideCurrentAccountNotOptedInBannerArray =
   selectHideCurrentAccountNotOptedInBannerArray as jest.MockedFunction<
     typeof selectHideCurrentAccountNotOptedInBannerArray
   >;
+const mockSelectGeoLocation = selectGeoLocation as jest.MockedFunction<
+  typeof selectGeoLocation
+>;
 const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
@@ -381,6 +386,11 @@ jest.mock('../utils', () => ({
   convertInternalAccountToCaipAccountId: jest.fn(),
 }));
 
+// Mock DeeplinkManager
+jest.mock('../../../../core/DeeplinkManager', () => ({
+  handleDeeplink: jest.fn(),
+}));
+
 // Mock TabsList with ref support
 jest.mock('../../../../component-library/components-temp/Tabs', () => {
   const ReactActual = jest.requireActual('react');
@@ -557,6 +567,7 @@ describe('RewardsDashboard', () => {
     selectedAccount: mockSelectedAccount,
     selectedAccountGroup: mockSelectedAccountGroup,
     isSnapshotsEnabled: true, // Enable snapshots by default in tests
+    geoLocation: 'US', // Default to non-UK location
   };
 
   const defaultHookValues = {
@@ -652,6 +663,7 @@ describe('RewardsDashboard', () => {
     mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(
       defaultSelectorValues.isSnapshotsEnabled,
     );
+    mockSelectGeoLocation.mockReturnValue(defaultSelectorValues.geoLocation);
 
     // Setup hook mocks
     mockUseRewardOptinSummary.mockReturnValue(
@@ -684,6 +696,8 @@ describe('RewardsDashboard', () => {
         return defaultSelectorValues.selectedAccountGroup;
       if (selector === selectSnapshotsRewardsEnabledFlag)
         return defaultSelectorValues.isSnapshotsEnabled;
+      if (selector === selectGeoLocation)
+        return defaultSelectorValues.geoLocation;
       return undefined;
     });
   });
@@ -699,14 +713,13 @@ describe('RewardsDashboard', () => {
 
     it('should render all child components when user is opted in', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { getByTestId, getByText } = render(<RewardsDashboard />);
 
-      // Assert
-      expect(getByTestId('season-status')).toBeTruthy();
+      // Assert - mUSD tab is shown by default for non-UK users
       expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
       expect(getByTestId('tab-headers')).toBeTruthy();
       expect(getByTestId('tab-content')).toBeTruthy();
-      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
+      expect(getByText('rewards.musd.title')).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
     });
@@ -720,7 +733,8 @@ describe('RewardsDashboard', () => {
     });
 
     it('should render previous season summary when season has ended', () => {
-      // Arrange
+      // Arrange - Season ended, but for non-UK users, tabs are still shown
+      // PreviousSeasonSummary is inside the Season 1 tab
       const pastDateObj = new Date(pastDate);
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
       mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
@@ -739,18 +753,23 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation)
+          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
       // Act
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert
+      // Switch to Season 1 tab to see PreviousSeasonSummary
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
+
+      // Assert - PreviousSeasonSummary is shown in Season 1 tab
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeTruthy();
       expect(queryByTestId('season-status')).toBeNull();
-      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
     });
 
     it('should render season status and tabs when season is active', () => {
@@ -773,18 +792,24 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation)
+          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
       // Act
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert
-      expect(getByTestId('season-status')).toBeTruthy();
+      // Assert - tabs are shown (mUSD + Season 1)
       expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
+
+      // Switch to Season 1 tab to see SeasonStatus
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
+      expect(getByTestId('season-status')).toBeTruthy();
     });
 
     it('should not render previous season summary when seasonId is null', () => {
@@ -807,13 +832,17 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation)
+          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
       // Act
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert
+      // Assert - tabs shown, switch to Season 1 to see SeasonStatus
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
       expect(getByTestId('season-status')).toBeTruthy();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
@@ -839,17 +868,190 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation)
+          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
       // Act
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert
+      // Assert - tabs shown, switch to Season 1 to see SeasonStatus
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
       expect(getByTestId('season-status')).toBeTruthy();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
+    });
+  });
+
+  describe('geolocation-based content', () => {
+    it('hides mUSD tab and shows only Season 1 content for UK users (GB)', () => {
+      // Arrange
+      mockSelectGeoLocation.mockReturnValue('GB');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag)
+          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation) return 'GB';
+        return undefined;
+      });
+
+      // Act
+      const { queryByTestId, queryByText } = render(<RewardsDashboard />);
+
+      // Assert - tabs should not be visible for UK users
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      // mUSD content should not be visible
+      expect(queryByText('rewards.musd.title')).toBeNull();
+      // Season 1 content should be visible
+      expect(queryByTestId('season-status')).toBeOnTheScreen();
+    });
+
+    it('hides mUSD tab and shows only Season 1 content for UK users (UK)', () => {
+      // Arrange
+      mockSelectGeoLocation.mockReturnValue('UK');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag)
+          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation) return 'UK';
+        return undefined;
+      });
+
+      // Act
+      const { queryByTestId, queryByText } = render(<RewardsDashboard />);
+
+      // Assert - tabs should not be visible for UK users
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      // mUSD content should not be visible
+      expect(queryByText('rewards.musd.title')).toBeNull();
+      // Season 1 content should be visible
+      expect(queryByTestId('season-status')).toBeOnTheScreen();
+    });
+
+    it('displays mUSD calculator content and tabs for non-UK users', () => {
+      // Arrange - US location (default)
+      mockSelectGeoLocation.mockReturnValue('US');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag)
+          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation) return 'US';
+        return undefined;
+      });
+
+      // Act
+      const { getByTestId, getByText } = render(<RewardsDashboard />);
+
+      // Assert - tabs should be visible for non-UK users
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeOnTheScreen();
+      // mUSD tab content should be visible (mUSD is first/default tab)
+      expect(getByText('rewards.musd.title')).toBeOnTheScreen();
+      expect(getByText('rewards.musd.description')).toBeOnTheScreen();
+      expect(getByText('rewards.musd.buy_button')).toBeOnTheScreen();
+      expect(getByText('rewards.musd.swap_button')).toBeOnTheScreen();
+    });
+
+    it('displays skeleton loader while geolocation is loading', () => {
+      // Arrange - geoLocation is null (loading)
+      mockSelectGeoLocation.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag)
+          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation) return null;
+        return undefined;
+      });
+
+      // Act
+      const { queryByTestId, queryByText } = render(<RewardsDashboard />);
+
+      // Assert - tabs should not be visible while loading
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      // mUSD content should not be visible
+      expect(queryByText('rewards.musd.title')).toBeNull();
+      // Season status should not be visible (skeleton is shown instead)
+      expect(queryByTestId('season-status')).toBeNull();
+    });
+
+    it('resets activeTab to season1 for UK users when activeTab is musd', () => {
+      // Arrange - UK user with activeTab set to 'musd' (which is unavailable for them)
+      mockSelectGeoLocation.mockReturnValue('GB');
+      mockSelectActiveTab.mockReturnValue('musd');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab) return 'musd';
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag)
+          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation) return 'GB';
+        return undefined;
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert - should dispatch setActiveTab('season1') to reset the invalid tab
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('season1'));
     });
   });
 
@@ -911,50 +1113,41 @@ describe('RewardsDashboard', () => {
     it('should handle tab change when user selects different tab', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
 
-      // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('snapshots'));
+      // Assert - dispatches setActiveTab with 'season1'
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('season1'));
     });
 
     it('should render all tab options', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - verify tab headers and individual tabs are rendered
+      // Assert - verify tab headers and individual tabs are rendered (mUSD + Season 1)
       expect(getByTestId('tab-headers')).toBeTruthy();
       expect(getByTestId('tab-0')).toBeTruthy();
       expect(getByTestId('tab-1')).toBeTruthy();
-      expect(getByTestId('tab-2')).toBeTruthy();
+      // Only 2 tabs now (musd, season1)
+      expect(queryByTestId('tab-2')).toBeNull();
     });
 
-    it('should show overview tab content by default', () => {
+    it('should show mUSD tab content by default', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { getByText } = render(<RewardsDashboard />);
 
-      // Assert
-      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
+      // Assert - mUSD is the default tab for non-UK users
+      expect(getByText('rewards.musd.title')).toBeTruthy();
     });
 
-    it('switches to snapshots tab when snapshots tab is pressed', () => {
+    it('switches to Season 1 tab when Season 1 tab is pressed', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
 
-      // Assert
-      expect(getByTestId('rewards-snapshots-tab')).toBeTruthy();
-    });
-
-    it('should switch to activity tab when activity tab is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-2');
-      fireEvent.press(activityTab);
-
-      // Assert
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
+      // Assert - Season 1 content is shown (SeasonStatus or RewardsOverview)
+      expect(getByTestId('season-status')).toBeTruthy();
     });
 
     it('allows tab switching when user is not opted in', () => {
@@ -970,143 +1163,62 @@ describe('RewardsDashboard', () => {
         if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation)
+          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
 
-      // Assert - tab change occurred
-      expect(getByTestId('rewards-snapshots-tab')).toBeTruthy();
+      // Assert - tab change occurred, Season 1 content shown
+      expect(getByTestId('season-status')).toBeTruthy();
     });
   });
 
-  describe('tabComponents when isSnapshotsEnabled is false', () => {
-    beforeEach(() => {
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
-        return undefined;
-      });
-    });
-
-    it('renders only overview and activity tabs when snapshots is disabled', () => {
+  describe('mUSD and Season 1 tabs behavior', () => {
+    it('renders mUSD and Season 1 tabs for non-UK users', () => {
       // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      const { getByTestId, queryByTestId, getByText } = render(
+        <RewardsDashboard />,
+      );
 
-      // Assert - verify only 2 tabs are rendered
+      // Assert - verify 2 tabs are rendered (mUSD + Season 1)
       expect(getByTestId('tab-headers')).toBeTruthy();
       expect(getByTestId('tab-0')).toBeTruthy();
       expect(getByTestId('tab-1')).toBeTruthy();
       expect(queryByTestId('tab-2')).toBeNull();
+      // mUSD is the first/default tab
+      expect(getByText('rewards.musd.title')).toBeTruthy();
     });
 
-    it('does not render snapshots tab when snapshots is disabled', () => {
+    it('renders mUSD calculator UI elements', () => {
       // Act
-      const { queryByTestId } = render(<RewardsDashboard />);
+      const { getByText } = render(<RewardsDashboard />);
 
-      // Assert - snapshots tab should not be visible by default
-      expect(queryByTestId('rewards-snapshots-tab')).toBeNull();
+      // Assert - mUSD calculator UI elements are visible
+      expect(getByText('rewards.musd.title')).toBeTruthy();
+      expect(getByText('rewards.musd.description')).toBeTruthy();
+      expect(getByText('rewards.musd.amount_label')).toBeTruthy();
+      expect(getByText('rewards.musd.estimated_bonus')).toBeTruthy();
+      expect(getByText('rewards.musd.initial_amount')).toBeTruthy();
+      expect(getByText('rewards.musd.daily_bonus')).toBeTruthy();
+      expect(getByText('rewards.musd.annualized_bonus')).toBeTruthy();
+      expect(getByText('rewards.musd.disclaimer')).toBeTruthy();
+      expect(getByText('rewards.musd.buy_button')).toBeTruthy();
+      expect(getByText('rewards.musd.swap_button')).toBeTruthy();
     });
 
-    it('renders overview tab as first tab when snapshots is disabled', () => {
+    it('dispatches setActiveTab with season1 when Season 1 tab is pressed', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
 
       // Assert
-      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
-    });
-
-    it('switches directly to activity tab at index 1 when snapshots is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert - activity tab is now at index 1 instead of index 2
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
-    });
-
-    it('dispatches setActiveTab with activity when tab-1 is pressed and snapshots is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert - tab-1 should now be activity, not snapshots
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('activity'));
-    });
-
-    it('resets activeTab to overview when snapshots tab becomes unavailable', () => {
-      // Arrange - activeTab is 'snapshots' but isSnapshotsEnabled is false
-      mockSelectActiveTab.mockReturnValue('snapshots');
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert - should dispatch setActiveTab('overview') to reset the invalid tab
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('overview'));
-    });
-
-    it('does not reset activeTab when current tab is still available', () => {
-      // Arrange - activeTab is 'activity' and isSnapshotsEnabled is false
-      // activity tab should still be available
-      mockSelectActiveTab.mockReturnValue('activity');
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'activity';
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert - should NOT dispatch setActiveTab since 'activity' is still valid
-      expect(mockDispatch).not.toHaveBeenCalledWith(setActiveTab('overview'));
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('season1'));
     });
   });
 
@@ -1131,11 +1243,17 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.selectedAccountGroup;
         if (selector === selectSnapshotsRewardsEnabledFlag)
           return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectGeoLocation)
+          return defaultSelectorValues.geoLocation;
         return undefined;
       });
 
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
+
+      // Switch to Season 1 tab to see PreviousSeasonSummary
+      const season1Tab = getByTestId('tab-1');
+      fireEvent.press(season1Tab);
 
       // Assert - useFocusEffect should evaluate and show previous season summary
       // when seasonId exists and seasonEndDate is in the past

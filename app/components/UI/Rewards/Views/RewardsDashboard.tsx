@@ -189,6 +189,16 @@ const RewardsDashboard: React.FC = () => {
     return options;
   }, [isUkUser]);
 
+  // Reset activeTab if it's not available in current tabOptions (e.g., UK users can't see mUSD)
+  useEffect(() => {
+    const isActiveTabAvailable = tabOptions.some(
+      (tab) => tab.value === activeTab,
+    );
+    if (!isActiveTabAvailable && tabOptions.length > 0) {
+      dispatch(setActiveTab(tabOptions[0].value));
+    }
+  }, [activeTab, tabOptions, dispatch]);
+
   const handleTabChange = useCallback(
     ({ i }: { i: number }) => {
       const newTab = tabOptions[i]?.value;
