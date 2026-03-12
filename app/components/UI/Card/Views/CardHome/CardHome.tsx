@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Platform,
   RefreshControl,
   ScrollView,
@@ -67,6 +68,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
+  CARD_SUPPORT_EMAIL,
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../constants';
@@ -689,6 +691,10 @@ const CardHome = () => {
       ],
     );
   }, [logoutFromProvider, navigation]);
+
+  const contactSupportAction = useCallback(() => {
+    Linking.openURL(`mailto:${CARD_SUPPORT_EMAIL}`);
+  }, []);
 
   const userShippingAddress: ShippingAddress | undefined = useMemo(
     () => buildShippingAddress(kycStatus?.userDetails),
@@ -1589,6 +1595,18 @@ const CardHome = () => {
               twClassName="text-text-alternative"
             >
               {strings('card.card_home.manage_card_options.card_tos_title')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={contactSupportAction}
+            testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}
+            style={tw.style('py-4 px-4')}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {strings('card.card_home.contact_support')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

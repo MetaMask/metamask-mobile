@@ -11,6 +11,7 @@ export const CardHomeSelectors = {
   CARD_TOS_ITEM: 'card-tos-item',
   LOGOUT_ITEM: 'logout-item',
   ENABLE_CARD_BUTTON: 'enable-card-button',
+  CONTACT_SUPPORT_ITEM: 'contact-support-item',
   ENABLE_ASSETS_BUTTON: 'enable-assets-button',
   MANAGE_SPENDING_LIMIT_ITEM: 'manage-spending-limit-item',
   CARD_VIEW_TITLE: 'card-view-title',
