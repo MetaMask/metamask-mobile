@@ -34,7 +34,10 @@ import Text, {
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CommonActions } from '@react-navigation/native';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 
 const ManualBackupStep2 = ({
@@ -147,6 +150,7 @@ const ManualBackupStep2 = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
+            accountType: AccountType.Metamask,
           });
         }
       }
@@ -314,15 +318,14 @@ const ManualBackupStep2 = ({
   const renderGridItemText = useCallback(
     (item, index, isEmpty) => (
       <>
-        <Text style={styles.gridItemIndex}>{index + 1}.</Text>
+        <Text style={styles.gridItemIndex} maxFontSizeMultiplier={1}>
+          {index + 1}.
+        </Text>
         <Text
           variant={TextVariant.BodySM}
           color={TextColor.Default}
           style={styles.gridItemText}
-          adjustsFontSizeToFit
-          allowFontScaling
-          minimumFontScale={0.05}
-          maxFontSizeMultiplier={0}
+          maxFontSizeMultiplier={1}
         >
           {isEmpty ? item : '••••••'}
         </Text>
@@ -404,10 +407,7 @@ const ManualBackupStep2 = ({
                 variant={TextVariant.BodyMDMedium}
                 color={isUsed ? TextColor.Alternative : TextColor.Primary}
                 testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
-                adjustsFontSizeToFit
-                allowFontScaling
-                minimumFontScale={0.1}
-                maxFontSizeMultiplier={0}
+                maxFontSizeMultiplier={1}
               >
                 {word}
               </Text>

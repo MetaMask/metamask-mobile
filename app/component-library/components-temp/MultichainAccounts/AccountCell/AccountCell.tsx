@@ -6,6 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../components/Texts/SensitiveText';
 import { Box } from '../../../../components/UI/Box/Box';
 import {
   AlignItems,
@@ -26,6 +29,7 @@ import {
   selectIconSeedAddressByAccountGroupId,
   selectInternalAccountByAccountGroupAndScope,
 } from '../../../../selectors/multichainAccounts/accounts';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -68,6 +72,7 @@ const BalanceEndContainer = ({
   const groupBalance = useSelector(selectBalanceForGroup);
   const totalBalance = groupBalance?.totalBalanceInUserCurrency;
   const userCurrency = groupBalance?.userCurrency;
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {
@@ -83,13 +88,17 @@ const BalanceEndContainer = ({
     <>
       <TouchableOpacity onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
-          <Text
+          <SensitiveText
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
+            length={SensitiveTextLength.Long}
+            isHidden={
+              privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
+            }
             testID={AccountCellIds.BALANCE}
           >
             {totalBalance ? displayBalance : null}
-          </Text>
+          </SensitiveText>
           {networkImageSource && (
             <Avatar
               variant={AvatarVariant.Network}

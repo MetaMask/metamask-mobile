@@ -159,8 +159,19 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         });
 
         queryClient.invalidateQueries({
-          queryKey: predictQueries.activity.keys.all(),
+          queryKey: predictQueries.unrealizedPnL.keys.all(),
         });
+
+        // Deposit/Withdraw should not invalidate positions/activity
+        if (type === 'claim') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.activity.keys.all(),
+          });
+        }
       }
 
       if (type === 'deposit') {
@@ -246,10 +257,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          queryClient.invalidateQueries({
-            queryKey: predictQueries.positions.keys.all(),
-          });
-
           showSuccessToast({
             showToast,
             title: strings('predict.deposit.account_ready'),

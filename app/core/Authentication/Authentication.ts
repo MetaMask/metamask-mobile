@@ -16,7 +16,10 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -1201,7 +1204,6 @@ class AuthenticationService {
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
-        const entropySources: EntropySourceId[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
@@ -1213,9 +1215,7 @@ class AuthenticationService {
                 });
               } else if (item.type === SecretType.Mnemonic) {
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                const entropySource =
-                  await this.importSeedlessMnemonicToVault(mnemonic);
-                entropySources.push(entropySource);
+                await this.importSeedlessMnemonicToVault(mnemonic);
               } else {
                 Logger.error(
                   new Error(
@@ -1235,10 +1235,6 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        for (const entropySource of entropySources) {
-          // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-          this.attemptMultichainAccountWalletDiscovery(entropySource);
-        }
         this.dispatchOauthReset();
         ReduxService.store.dispatch(setExistingUser(true));
 
@@ -1346,9 +1342,6 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
-      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });
@@ -1453,6 +1446,7 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding completion
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
+    ReduxService.store.dispatch(clearAccountType());
   };
 
   /**
