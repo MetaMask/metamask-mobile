@@ -6,6 +6,7 @@ import {
   type Position,
   type TrackingData,
 } from '@metamask/perps-controller';
+import { captureException } from '@sentry/react-native';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -202,6 +203,17 @@ export const usePerpsClosePosition = (
           'usePerpsClosePosition: Error closing position',
           closeError,
         );
+        captureException(closeError, {
+          tags: {
+            component: 'usePerpsClosePosition',
+            action: 'close_position',
+          },
+          extra: {
+            symbol: params.position?.symbol,
+            size: params.size,
+            orderType: params.orderType,
+          },
+        });
         setError(closeError);
 
         // Call error callback
