@@ -1,5 +1,8 @@
-import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import { BridgeQuoteResponse } from '../../../components/UI/Bridge/types';
+import type {
+  MetaMetricsSwapsEventSource,
+  QuoteMetadata,
+  QuoteResponse,
+} from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
@@ -22,7 +25,7 @@ export default function useSubmitBridgeTx() {
     quoteResponse,
     location,
   }: {
-    quoteResponse: BridgeQuoteResponse;
+    quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
   }) => {
@@ -30,26 +33,14 @@ export default function useSubmitBridgeTx() {
       throw new Error('Wallet address is not set');
     }
 
-    const intentData = quoteResponse.quote.intent ?? quoteResponse.intent;
-
     // check whether quoteResponse is an intent transaction
-    if (intentData) {
+    if (quoteResponse.quote.intent) {
       return Engine.context.BridgeStatusController.submitIntent({
-        quoteResponse: {
-          ...quoteResponse,
-          quote: {
-            ...quoteResponse.quote,
-            intent: intentData,
-          },
-        } as unknown as Parameters<
-          typeof Engine.context.BridgeStatusController.submitIntent
-        >[0]['quoteResponse'],
+        quoteResponse,
         accountAddress: walletAddress,
         location,
         abTests,
-      } as unknown as Parameters<
-        typeof Engine.context.BridgeStatusController.submitIntent
-      >[0]);
+      });
     }
     return Engine.context.BridgeStatusController.submitTx(
       walletAddress,
@@ -60,6 +51,7 @@ export default function useSubmitBridgeTx() {
       stxEnabled,
       undefined, // quotesReceivedContext
       location,
+      abTests,
     );
   };
 

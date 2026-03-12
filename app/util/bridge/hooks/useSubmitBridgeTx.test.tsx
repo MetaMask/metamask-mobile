@@ -12,11 +12,12 @@ import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
-import { BridgeQuoteResponse } from '../../../components/UI/Bridge/types';
+
+type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
 
 let mockSubmitTx: jest.Mock<
   Promise<TransactionMeta>,
-  [string, QuoteResponse & QuoteMetadata, boolean]
+  [string, BridgeQuoteResponse, boolean]
 >;
 let mockSubmitIntent: jest.Mock<
   Promise<TransactionMeta>,
@@ -151,8 +152,6 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     mockSubmitTx.mockResolvedValueOnce({
@@ -200,8 +199,6 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     mockSubmitTx.mockResolvedValueOnce({
@@ -249,8 +246,6 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     const error = new Error('Approval failed');
@@ -271,8 +266,6 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     const error = new Error('Bridge transaction failed');
@@ -294,8 +287,6 @@ describe('useSubmitBridgeTx', () => {
     const invalidQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
       sentAmount: {
         amount: 'NaN', // This will cause serialization to fail
         valueInCurrency: '0',
@@ -323,8 +314,6 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     await expect(
@@ -356,8 +345,6 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...baseQuote,
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
       quote: {
         ...baseQuote.quote,
         intent: {
@@ -505,8 +492,6 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...baseQuote,
       ...DummyQuoteMetadata,
-      aggregator: 'test-aggregator',
-      walletAddress: '0x1234567890123456789012345678901234567890',
       intent,
       quote: {
         ...baseQuote.quote,
