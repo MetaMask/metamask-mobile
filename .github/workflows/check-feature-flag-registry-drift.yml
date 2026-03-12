@@ -61,7 +61,7 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ""text": "[MetaMask Mobile] Feature Flags Drift Detected in E2E tests vs Prod :warning:\n\nCheck the workflow run for details: download the drift report JSON artifact and review the report.\n\nRun `yarn feature-flags:sync:update` locally to update the registry.\n\nView workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"",
+              "text": "*[MetaMask Mobile] Feature Flags Drift Detected in E2E tests vs Prod* :warning:\n\nCheck the workflow run for details: download the drift report JSON artifact and review the report.\n\nYou can run command `yarn feature-flags:sync:update` locally to update the registry.\n\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>",
               "blocks": [
                 {
                   "type": "section",
