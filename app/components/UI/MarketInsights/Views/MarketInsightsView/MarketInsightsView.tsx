@@ -211,6 +211,15 @@ const MarketInsightsView: React.FC = () => {
     sourceToken,
   });
 
+  // Sends the identifier under the right analytics property name.
+  // Token flow uses caip19 (a real CAIP-19 ID); perps flow uses perps_market
+  // (a plain market symbol like "ETH") to keep the two dimensions clean.
+  const assetIdProperty = useMemo(
+    () =>
+      isPerps ? { perps_market: assetIdentifier } : { caip19: assetIdentifier },
+    [isPerps, assetIdentifier],
+  );
+
   // Collect all tweets from all trends for the "What people are saying" section
   const allTweets: MarketInsightsTweet[] = useMemo(() => {
     if (!report) return [];
@@ -231,7 +240,7 @@ const MarketInsightsView: React.FC = () => {
       MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
     )
       .addProperties({
-        caip19: assetIdentifier,
+        ...assetIdProperty,
         interaction_type: 'trade',
       })
       .build();
@@ -254,7 +263,7 @@ const MarketInsightsView: React.FC = () => {
     navigation,
     trackEvent,
     createEventBuilder,
-    assetIdentifier,
+    assetIdProperty,
     assetSymbol,
   ]);
 
@@ -305,7 +314,7 @@ const MarketInsightsView: React.FC = () => {
       },
     ) => {
       const properties = {
-        caip19: assetIdentifier,
+        ...assetIdProperty,
         interaction_type: interactionType,
         ...(options?.source ? { source: options.source } : {}),
         ...(options?.feedbackReason
@@ -322,7 +331,7 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
     },
-    [trackEvent, createEventBuilder, assetIdentifier],
+    [trackEvent, createEventBuilder, assetIdProperty],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -401,12 +410,12 @@ const MarketInsightsView: React.FC = () => {
 
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
-        caip19: assetIdentifier,
+        ...assetIdProperty,
       })
       .build();
     trackEvent(event);
     hasTrackedViewRef.current = true;
-  }, [report, assetIdentifier, trackEvent, createEventBuilder]);
+  }, [report, assetIdProperty, trackEvent, createEventBuilder]);
 
   if (showLoadingSkeleton && !report && !error) {
     return (

@@ -610,4 +610,91 @@ describe('MarketInsightsView', () => {
       expect.anything(),
     );
   });
+
+  it('sends perps_market analytics property (not caip19) in perps context', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps gaining traction',
+        summary: 'Open interest rises as funding rates normalise',
+        trends: [
+          {
+            title: 'Funding rates',
+            description: 'Funding rates returning to neutral',
+            articles: [],
+            tweets: [],
+          },
+        ],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '2m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          perps_market: 'ETH',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          caip19: expect.anything(),
+        }),
+      }),
+    );
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.TRADE_BUTTON));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          perps_market: 'ETH',
+          interaction_type: 'trade',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: expect.anything(),
+          interaction_type: 'trade',
+        }),
+      }),
+    );
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          perps_market: 'ETH',
+          interaction_type: 'thumbs_up',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: expect.anything(),
+          interaction_type: 'thumbs_up',
+        }),
+      }),
+    );
+  });
 });

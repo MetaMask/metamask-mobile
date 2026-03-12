@@ -44,7 +44,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import { TraceName } from '../../../../../util/trace';
+import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
@@ -1009,6 +1009,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Handler for market insights card tap - navigates to full market insights view
   const handleMarketInsightsPress = useCallback(() => {
     if (!market?.symbol) return;
+    trace({
+      name: TraceName.MarketInsightsViewLoad,
+      op: TraceOperation.MarketInsightsLoad,
+    });
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: market.symbol,
       assetIdentifier: market.symbol,
