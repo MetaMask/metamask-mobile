@@ -59,11 +59,9 @@ describe('SmartTransactionsControllerInit', () => {
   describe('getBearerToken', () => {
     it('passes getter that returns token when AuthenticationController returns one', async () => {
       const bearerToken = 'test-bearer-token';
+      const request = getInitRequestMock();
       const mockCall = jest.fn().mockResolvedValue(bearerToken);
-      const request = {
-        ...getInitRequestMock(),
-        initMessenger: { call: mockCall },
-      };
+      jest.spyOn(request.initMessenger, 'call').mockImplementation(mockCall);
 
       smartTransactionsControllerInit(request);
 
@@ -83,11 +81,9 @@ describe('SmartTransactionsControllerInit', () => {
     });
 
     it('passes getter that returns undefined when AuthenticationController returns undefined', async () => {
+      const request = getInitRequestMock();
       const mockCall = jest.fn().mockResolvedValue(undefined);
-      const request = {
-        ...getInitRequestMock(),
-        initMessenger: { call: mockCall },
-      };
+      jest.spyOn(request.initMessenger, 'call').mockImplementation(mockCall);
 
       smartTransactionsControllerInit(request);
 
@@ -104,11 +100,9 @@ describe('SmartTransactionsControllerInit', () => {
     });
 
     it('passes getter that returns undefined when AuthenticationController throws', async () => {
+      const request = getInitRequestMock();
       const mockCall = jest.fn().mockRejectedValue(new Error('auth error'));
-      const request = {
-        ...getInitRequestMock(),
-        initMessenger: { call: mockCall },
-      };
+      jest.spyOn(request.initMessenger, 'call').mockImplementation(mockCall);
 
       smartTransactionsControllerInit(request);
 
