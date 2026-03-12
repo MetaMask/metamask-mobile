@@ -44,7 +44,6 @@ import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
-  type RampsOrder,
   RampsOrderStatus,
   normalizeProviderCode,
 } from '@metamask/ramps-controller';
@@ -467,117 +466,6 @@ function BuildQuote() {
     [navigation],
   );
 
-  const openExternalBrowserAndNavigate = useCallback(
-    async (opts: {
-      buyWidgetUrl: string;
-      deeplinkRedirectUrl: string;
-      effectiveOrderId: string | null;
-      effectiveWallet: string;
-      providerCode: string;
-      network: string;
-      addPrecreatedOrder: (o: {
-        orderId: string;
-        providerCode: string;
-        walletAddress: string;
-        chainId?: string;
-      }) => void;
-      getOrderFromCallback: (
-        providerCode: string,
-        callbackUrl: string,
-        wallet: string,
-      ) => Promise<RampsOrder>;
-      addOrder: (order: RampsOrder) => void;
-      navigateAfterBrowser: (
-        n:
-          | { returnDestination: 'buildQuote' }
-          | {
-              returnDestination: 'order';
-              orderCode: string;
-              providerCode: string;
-              walletAddress?: string;
-            },
-      ) => void;
-    }) => {
-      const {
-        buyWidgetUrl,
-        deeplinkRedirectUrl,
-        effectiveOrderId,
-        effectiveWallet,
-        providerCode,
-        network,
-        addPrecreatedOrder: addPrecreated,
-        getOrderFromCallback: getOrder,
-        addOrder: addOrderFn,
-        navigateAfterBrowser: navigateAfter,
-      } = opts;
-
-      if (effectiveOrderId && effectiveWallet) {
-        addPrecreated({
-          orderId: effectiveOrderId,
-          providerCode,
-          walletAddress: effectiveWallet,
-          chainId: network || undefined,
-        });
-      }
-
-      const isAndroid = Device.isAndroid();
-      const inAppBrowserAvailable =
-        !isAndroid && (await InAppBrowser.isAvailable());
-
-      if (isAndroid || !inAppBrowserAvailable) {
-        await Linking.openURL(buyWidgetUrl);
-        navigateAfter({ returnDestination: 'buildQuote' });
-        return;
-      }
-
-      try {
-        const result = await InAppBrowser.openAuth(
-          buyWidgetUrl,
-          deeplinkRedirectUrl,
-        );
-
-        if (result.type !== 'success' || !result.url) {
-          navigateAfter({ returnDestination: 'buildQuote' });
-          return;
-        }
-
-        try {
-          const order = await getOrder(
-            providerCode,
-            result.url,
-            effectiveWallet,
-          );
-
-          if (!order || isBailedOrderStatus(order.status)) {
-            navigateAfter({ returnDestination: 'buildQuote' });
-            return;
-          }
-
-          addOrderFn(order);
-
-          const rawOrderId = order.providerOrderId ?? effectiveOrderId;
-          if (!rawOrderId) {
-            navigateAfter({ returnDestination: 'buildQuote' });
-            return;
-          }
-
-          const orderCode = extractOrderCode(rawOrderId);
-          navigateAfter({
-            returnDestination: 'order',
-            orderCode,
-            providerCode,
-            walletAddress: effectiveWallet || undefined,
-          });
-        } catch {
-          navigateAfter({ returnDestination: 'buildQuote' });
-        }
-      } finally {
-        InAppBrowser.closeAuth();
-      }
-    },
-    [],
-  );
-
   const handlePaymentPillPress = useCallback(() => {
     trackEvent(
       createEventBuilder(
@@ -699,18 +587,70 @@ function BuildQuote() {
 
       if (useExternalBrowser) {
         const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
-        await openExternalBrowserAndNavigate({
-          buyWidgetUrl: buyWidget.url,
-          deeplinkRedirectUrl,
-          effectiveOrderId,
-          effectiveWallet,
-          providerCode,
-          network,
-          addPrecreatedOrder,
-          getOrderFromCallback,
-          addOrder,
-          navigateAfterBrowser: navigateAfterExternalBrowser,
-        });
+
+        if (effectiveOrderId && effectiveWallet) {
+          addPrecreatedOrder({
+            orderId: effectiveOrderId,
+            providerCode,
+            walletAddress: effectiveWallet,
+            chainId: network || undefined,
+          });
+        }
+
+        const isAndroid = Device.isAndroid();
+        const inAppBrowserAvailable =
+          !isAndroid && (await InAppBrowser.isAvailable());
+
+        if (isAndroid || !inAppBrowserAvailable) {
+          await Linking.openURL(buyWidget.url);
+          navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+          return;
+        }
+
+        try {
+          const result = await InAppBrowser.openAuth(
+            buyWidget.url,
+            deeplinkRedirectUrl,
+          );
+
+          if (result.type !== 'success' || !result.url) {
+            navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+            return;
+          }
+
+          try {
+            const order = await getOrderFromCallback(
+              providerCode,
+              result.url,
+              effectiveWallet,
+            );
+
+            if (!order || isBailedOrderStatus(order.status)) {
+              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+              return;
+            }
+
+            addOrder(order);
+
+            const rawOrderId = order.providerOrderId ?? effectiveOrderId;
+            if (!rawOrderId) {
+              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+              return;
+            }
+
+            const orderCode = extractOrderCode(rawOrderId);
+            navigateAfterExternalBrowser({
+              returnDestination: 'order',
+              orderCode,
+              providerCode,
+              walletAddress: effectiveWallet || undefined,
+            });
+          } catch {
+            navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+          }
+        } finally {
+          InAppBrowser.closeAuth();
+        }
         return;
       }
 
@@ -755,7 +695,6 @@ function BuildQuote() {
     getOrderFromCallback,
     addOrder,
     navigateAfterExternalBrowser,
-    openExternalBrowserAndNavigate,
   ]);
 
   const handleContinuePress = useCallback(async () => {

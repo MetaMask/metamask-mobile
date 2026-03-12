@@ -100,7 +100,10 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
 
   rootMessenger.delegate({
     actions: ['RemoteFeatureFlagController:getState'],
-    events: ['RampsController:orderStatusChanged'],
+    events: [
+      'RampsController:orderStatusChanged',
+      'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)
+    ],
     messenger,
   });
 
