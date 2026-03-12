@@ -540,6 +540,7 @@ describe('useMusdConversionTokens', () => {
 
       expect(mockUseAccountTokens).toHaveBeenCalledWith({
         includeNoBalance: false,
+        chainIds: ['0x1', '0xe708', '0x38'],
       });
     });
 

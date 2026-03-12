@@ -7,8 +7,18 @@ import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { useTransactionPayBlockedTokens } from './useTransactionPayBlockedTokens';
 
 export function useTransactionPayAvailableTokens() {
-  const tokens = useAccountTokens({ includeNoBalance: true });
   const transactionMeta = useTransactionMetadataRequest();
+
+  // For single-chain transactions (like mUSD conversion), only fetch tokens for that chain
+  // This significantly improves performance by avoiding processing tokens on irrelevant chains
+  const chainIds = transactionMeta?.chainId
+    ? [transactionMeta.chainId]
+    : undefined;
+
+  const tokens = useAccountTokens({
+    includeNoBalance: true,
+    chainIds,
+  });
   const isPostQuote = isTransactionPayWithdraw(transactionMeta);
   const blockedTokens = useTransactionPayBlockedTokens();
 

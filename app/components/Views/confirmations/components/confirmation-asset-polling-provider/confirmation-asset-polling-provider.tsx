@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { AssetPollingProvider } from '../../../../hooks/AssetPolling/AssetPollingProvider';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
@@ -24,6 +25,16 @@ export const ConfirmationAssetPollingProvider = ({
   const bridgeChains = useSelector(selectEnabledSourceChains);
 
   const pollChainIds = useMemo(() => {
+    const txChainId = transactionMeta?.chainId as Hex | undefined;
+
+    // For mUSD conversion, only poll the transaction chain for better performance
+    // mUSD conversions are single-chain operations and don't need cross-chain data
+    const isMusdConversion =
+      transactionMeta?.type === TransactionType.musdConversion;
+    if (isMusdConversion && txChainId) {
+      return [txChainId];
+    }
+
     const bridgeChainIds = bridgeChains
       .filter((chain) => chain.isEvm)
       .map((chain) => chain.chainId as Hex);
@@ -31,13 +42,12 @@ export const ConfirmationAssetPollingProvider = ({
     // Always include the transaction's chain to ensure balance is available
     // This is critical when a user adds a new network from a dapp and immediately
     // attempts to transact - the new network may not be in the bridge chains list
-    const txChainId = transactionMeta?.chainId as Hex | undefined;
     if (txChainId && !bridgeChainIds.includes(txChainId)) {
       return [...bridgeChainIds, txChainId];
     }
 
     return bridgeChainIds;
-  }, [bridgeChains, transactionMeta?.chainId]);
+  }, [bridgeChains, transactionMeta?.chainId, transactionMeta?.type]);
 
   if (!transactionMeta) {
     return children;
