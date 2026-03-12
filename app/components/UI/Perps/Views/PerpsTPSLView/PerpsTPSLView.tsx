@@ -383,7 +383,13 @@ const PerpsTPSLView: React.FC = () => {
         isEditingExistingPosition,
         entryPrice: effectiveEntryPrice,
       };
-      await onConfirm(parseTakeProfitPrice, parseStopLossPrice, trackingData);
+      // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
+      await onConfirm(
+        position,
+        parseTakeProfitPrice,
+        parseStopLossPrice,
+        trackingData,
+      );
       navigation.goBack();
     } finally {
       setIsUpdating(false);

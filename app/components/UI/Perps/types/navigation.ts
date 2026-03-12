@@ -175,11 +175,16 @@ export interface PerpsNavigationParamList extends ParamListBase {
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
+     * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
+     */
     onConfirm: (
+      position?: Position,
       takeProfitPrice?: string,
       stopLossPrice?: string,
       trackingData?: TPSLTrackingData,
-    ) => Promise<void>;
+    ) => Promise<{ success: boolean } | void>;
   };
 
   // PnL Hero Card screen
