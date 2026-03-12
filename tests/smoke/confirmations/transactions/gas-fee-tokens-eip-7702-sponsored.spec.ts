@@ -130,13 +130,11 @@ const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {
     node instanceof AnvilManager ? (node.getPort() ?? AnvilPort()) : undefined;
   return new FixtureBuilder()
     .withNetworkController({
-      providerConfig: {
-        chainId: '0x539',
-        rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-        type: 'custom',
-        nickname: 'Local RPC',
-        ticker: 'ETH',
-      },
+      chainId: '0x539',
+      rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+      type: 'custom',
+      nickname: 'Local RPC',
+      ticker: 'ETH',
     })
     .withDisabledSmartTransactions()
     .build();
@@ -166,12 +164,12 @@ const performSendTransaction = async () => {
     RowComponents.NetworkFeePaidByMetaMask,
   );
   await Utilities.waitForElementToBeVisible(FooterActions.confirmButton);
-  // Silenced errors from confirm button not being tappable due to toast overlapping
-  try {
-    await FooterActions.tapConfirmButton();
-  } catch {
-    console.log('Confirm button not tappable');
-  }
+  await Utilities.waitForElementToStopMoving(FooterActions.confirmButton, {
+    timeout: 5000,
+    interval: 500,
+    stableCount: 6,
+  });
+  await FooterActions.tapConfirmButton();
   await TabBarComponent.tapActivity();
 };
 

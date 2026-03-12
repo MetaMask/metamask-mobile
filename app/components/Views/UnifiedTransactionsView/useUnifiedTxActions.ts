@@ -1,11 +1,9 @@
 import { providerErrors } from '@metamask/rpc-errors';
 import {
-  GasFeeEstimateLevel,
-  GasFeeEstimateType,
-  type FeeMarketGasFeeEstimates,
-  type GasFeeEstimates,
-  type GasPriceGasFeeEstimates,
-  type LegacyGasFeeEstimates,
+  CANCEL_RATE,
+  SPEED_UP_RATE,
+  type FeeMarketEIP1559Values,
+  type GasPriceValue,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
@@ -18,8 +16,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { isHardwareAccount } from '../../../util/address';
-import { decGWEIToHexWEI } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
+import { getMediumGasPriceHex } from '../../../util/confirmation/gas';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import {
@@ -31,24 +28,23 @@ import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/Q
 
 type Maybe<T> = T | null | undefined;
 
-interface LegacyExistingGas {
+export interface LegacyExistingGas {
   isEIP1559Transaction?: false;
   gasPrice?: string | number;
 }
 
-interface Eip1559ExistingGas {
+export interface Eip1559ExistingGas {
   isEIP1559Transaction: true;
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
 }
 
-type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
+export type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
 
-interface ReplacementGasParams {
+/** Params for speed-up/cancel: controller shape only; optional error for UI flow */
+export type SpeedUpCancelParams = (GasPriceValue | FeeMarketEIP1559Values) & {
   error?: string;
-  suggestedMaxFeePerGasHex?: string;
-  suggestedMaxPriorityFeePerGasHex?: string;
-}
+};
 
 interface LedgerSignRequest {
   id: string;
@@ -60,6 +56,15 @@ interface LedgerSignRequest {
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : undefined;
+
+export const SpeedUpCancelModalState = {
+  Closed: 'closed',
+  SpeedUp: 'speedUp',
+  Cancel: 'cancel',
+} as const;
+
+export type SpeedUpCancelModalState =
+  (typeof SpeedUpCancelModalState)[keyof typeof SpeedUpCancelModalState];
 
 export function useUnifiedTxActions() {
   const navigation = useNavigation();
@@ -74,13 +79,9 @@ export function useUnifiedTxActions() {
   const [retryErrorMsg, setRetryErrorMsg] = useState<string | undefined>(
     undefined,
   );
-  const [speedUpIsOpen, setSpeedUpIsOpen] = useState(false);
-  const [cancelIsOpen, setCancelIsOpen] = useState(false);
-  const [speedUp1559IsOpen, setSpeedUp1559IsOpen] = useState(false);
-  const [cancel1559IsOpen, setCancel1559IsOpen] = useState(false);
-  const [speedUpConfirmDisabled, setSpeedUpConfirmDisabled] = useState(false);
-  const [cancelConfirmDisabled, setCancelConfirmDisabled] = useState(false);
-  const [existingGas, setExistingGas] = useState<ExistingGas | null>(null);
+  const [speedUpCancelModalState, setSpeedUpCancelModalState] =
+    useState<SpeedUpCancelModalState>(SpeedUpCancelModalState.Closed);
+  const [confirmDisabled, setConfirmDisabled] = useState(false);
   const [existingTx, setExistingTx] = useState<TransactionMeta | null>(null);
   const [speedUpTxId, setSpeedUpTxId] = useState<Maybe<string>>(null);
   const [cancelTxId, setCancelTxId] = useState<Maybe<string>>(null);
@@ -94,21 +95,16 @@ export function useUnifiedTxActions() {
     setRetryErrorMsg(msg);
   };
 
-  const onSpeedUpCompleted = useCallback(() => {
-    setSpeedUp1559IsOpen(false);
-    setSpeedUpIsOpen(false);
-    setExistingGas(null);
+  const closeSpeedUpCancelModal = useCallback(() => {
+    setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     setSpeedUpTxId(null);
-    setExistingTx(null);
-  }, []);
-
-  const onCancelCompleted = useCallback(() => {
-    setCancel1559IsOpen(false);
-    setCancelIsOpen(false);
-    setExistingGas(null);
     setCancelTxId(null);
     setExistingTx(null);
   }, []);
+
+  const onSpeedUpCancelCompleted = useCallback(() => {
+    closeSpeedUpCancelModal();
+  }, [closeSpeedUpCancelModal]);
 
   const signLedgerTransaction = useCallback(
     async (transaction: LedgerSignRequest) => {
@@ -117,12 +113,7 @@ export function useUnifiedTxActions() {
         // Clean up modal state regardless of whether the user confirmed or rejected.
         // Without this, rejecting on the Ledger modal leaves stale state that can
         // cause the speed up/cancel modal to reappear unexpectedly.
-        const isSpeedUp = transaction.speedUpParams?.type === 'SpeedUp';
-        if (isSpeedUp) {
-          onSpeedUpCompleted();
-        } else {
-          onCancelCompleted();
-        }
+        onSpeedUpCancelCompleted();
       };
       navigation.navigate(
         ...createLedgerTransactionModalNavDetails({
@@ -133,179 +124,97 @@ export function useUnifiedTxActions() {
         }),
       );
     },
-    [navigation, onSpeedUpCompleted, onCancelCompleted],
+    [navigation, onSpeedUpCancelCompleted],
   );
 
-  const getGasPriceEstimate = () => {
-    if (!gasFeeEstimates) {
-      return addHexPrefix(String(decGWEIToHexWEI('0')));
-    }
+  const getGasPriceEstimate = () => getMediumGasPriceHex(gasFeeEstimates);
 
-    if ('type' in (gasFeeEstimates as object)) {
-      const typedEstimates = gasFeeEstimates as GasFeeEstimates;
-      let estimateGweiDecimalRaw: string;
-
-      switch (typedEstimates.type) {
-        case GasFeeEstimateType.FeeMarket: {
-          const level = (typedEstimates as FeeMarketGasFeeEstimates)[
-            GasFeeEstimateLevel.Medium
-          ];
-          // suggestedMaxFeePerGas exists at medium level in FeeMarket estimates
-          estimateGweiDecimalRaw = (
-            level as unknown as { suggestedMaxFeePerGas: string }
-          ).suggestedMaxFeePerGas;
-          break;
-        }
-        case GasFeeEstimateType.Legacy: {
-          estimateGweiDecimalRaw = (typedEstimates as LegacyGasFeeEstimates)[
-            GasFeeEstimateLevel.Medium
-          ] as unknown as string;
-          break;
-        }
-        case GasFeeEstimateType.GasPrice: {
-          estimateGweiDecimalRaw = (typedEstimates as GasPriceGasFeeEstimates)
-            .gasPrice as string;
-          break;
-        }
-        default: {
-          estimateGweiDecimalRaw = '0';
-        }
+  const getCancelOrSpeedupValues = ():
+    | GasPriceValue
+    | FeeMarketEIP1559Values
+    | undefined => {
+    const txParams = existingTx?.txParams;
+    const existingGasPriceHex = txParams?.gasPrice;
+    if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
+      const existingGasPriceDecimal = parseInt(String(existingGasPriceHex), 16);
+      if (existingGasPriceDecimal !== 0) {
+        return undefined;
       }
-
-      return addHexPrefix(
-        String(decGWEIToHexWEI(String(estimateGweiDecimalRaw))),
-      );
-    }
-
-    const maybeFeeMarket = (
-      gasFeeEstimates as {
-        medium?: { suggestedMaxFeePerGas?: string } | string;
-      }
-    ).medium;
-
-    if (
-      maybeFeeMarket &&
-      typeof maybeFeeMarket === 'object' &&
-      'suggestedMaxFeePerGas' in maybeFeeMarket
-    ) {
-      return addHexPrefix(
-        String(
-          decGWEIToHexWEI(
-            String(
-              (maybeFeeMarket as { suggestedMaxFeePerGas?: string })
-                .suggestedMaxFeePerGas ?? '0',
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (
-      maybeFeeMarket &&
-      typeof maybeFeeMarket === 'string' &&
-      maybeFeeMarket.length > 0
-    ) {
-      return addHexPrefix(String(decGWEIToHexWEI(maybeFeeMarket)));
-    }
-
-    const maybeGasPrice = (gasFeeEstimates as { gasPrice?: string }).gasPrice;
-    if (maybeGasPrice) {
-      return addHexPrefix(String(decGWEIToHexWEI(String(maybeGasPrice))));
-    }
-
-    return addHexPrefix(String(decGWEIToHexWEI('0')));
-  };
-
-  const getCancelOrSpeedupValues = (
-    transactionObject?: ReplacementGasParams,
-  ) => {
-    const { suggestedMaxFeePerGasHex, suggestedMaxPriorityFeePerGasHex } =
-      transactionObject ?? {};
-
-    if (suggestedMaxFeePerGasHex) {
-      return {
-        maxFeePerGas: `0x${suggestedMaxFeePerGasHex}`,
-        maxPriorityFeePerGas: `0x${suggestedMaxPriorityFeePerGasHex}`,
-      };
-    }
-    if (
-      existingGas &&
-      'gasPrice' in existingGas &&
-      existingGas.gasPrice !== 0
-    ) {
-      // Transaction controller will multiply existing gas price by the rate.
-      return undefined;
     }
     return { gasPrice: getGasPriceEstimate() };
   };
 
-  const onSpeedUpAction = (
-    open: boolean,
-    nextExistingGas?: ExistingGas,
-    tx?: TransactionMeta,
-  ) => {
+  const onSpeedUpAction = (open: boolean, tx?: TransactionMeta) => {
     if (!open) {
-      setSpeedUpIsOpen(false);
-      setSpeedUp1559IsOpen(false);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
-    setExistingTx(tx ?? null);
-    setSpeedUpTxId(tx?.id ?? null);
-    if (nextExistingGas?.isEIP1559Transaction) {
-      setSpeedUp1559IsOpen(true);
-    } else {
-      if (!tx) {
-        return;
-      }
-      const disabled = Boolean(
-        validateTransactionActionBalance(tx, '1.1', accounts),
-      );
-      setSpeedUpConfirmDisabled(disabled);
-      setSpeedUpIsOpen(true);
-    }
-  };
-
-  const onCancelAction = (
-    open: boolean,
-    nextExistingGas?: ExistingGas,
-    tx?: TransactionMeta,
-  ) => {
-    if (!open) {
-      setCancelIsOpen(false);
-      setCancel1559IsOpen(false);
+    if (!tx) {
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
-    setExistingTx(tx ?? null);
-    setCancelTxId(tx?.id ?? null);
-    if (nextExistingGas?.isEIP1559Transaction) {
-      setCancel1559IsOpen(true);
-    } else {
-      if (!tx) {
-        return;
-      }
-      const disabled = Boolean(
-        validateTransactionActionBalance(tx, '1.1', accounts),
-      );
-      setCancelConfirmDisabled(disabled);
-      setCancelIsOpen(true);
-    }
+    setExistingTx(tx);
+    setSpeedUpTxId(tx.id ?? null);
+    setConfirmDisabled(
+      Boolean(
+        validateTransactionActionBalance(
+          tx,
+          SPEED_UP_RATE.toString(),
+          accounts,
+        ),
+      ),
+    );
+    setSpeedUpCancelModalState(SpeedUpCancelModalState.SpeedUp);
   };
 
-  const speedUpTransaction = async (
-    transactionObject?: ReplacementGasParams,
-  ) => {
+  const onCancelAction = (open: boolean, tx?: TransactionMeta) => {
+    if (!open) {
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
+      return;
+    }
+    if (!tx) {
+      return;
+    }
+    setExistingTx(tx);
+    setCancelTxId(tx.id ?? null);
+    setConfirmDisabled(
+      Boolean(
+        validateTransactionActionBalance(tx, CANCEL_RATE.toString(), accounts),
+      ),
+    );
+    setSpeedUpCancelModalState(SpeedUpCancelModalState.Cancel);
+  };
+
+  const getParamsToSend = (
+    params?: SpeedUpCancelParams,
+  ): GasPriceValue | FeeMarketEIP1559Values | undefined => {
+    if (params?.error) {
+      return undefined;
+    }
+    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
+    if (
+      params &&
+      'gasPrice' in params &&
+      (params.gasPrice === '0x0' || parseInt(String(params.gasPrice), 16) === 0)
+    ) {
+      return getCancelOrSpeedupValues();
+    }
+    if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
+      return params;
+    }
+    return getCancelOrSpeedupValues();
+  };
+
+  const speedUpTransaction = async (params?: SpeedUpCancelParams) => {
     try {
-      if (transactionObject?.error) {
-        throw new Error(transactionObject.error);
+      if (params && 'error' in params && params.error) {
+        throw new Error(params.error);
       }
       if (!speedUpTxId) {
         throw new Error('Missing transaction id for speed up');
       }
 
       if (isLedgerAccount) {
-        const gasValues = getCancelOrSpeedupValues(transactionObject);
+        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -321,28 +230,25 @@ export function useUnifiedTxActions() {
         return;
       }
 
-      await speedUpTx(speedUpTxId, getCancelOrSpeedupValues(transactionObject));
-      onSpeedUpCompleted();
+      await speedUpTx(speedUpTxId, getParamsToSend(params));
+      onSpeedUpCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setSpeedUp1559IsOpen(false);
-      setSpeedUpIsOpen(false);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
 
-  const cancelTransaction = async (
-    transactionObject?: ReplacementGasParams,
-  ) => {
+  const cancelTransaction = async (params?: SpeedUpCancelParams) => {
     try {
-      if (transactionObject?.error) {
-        throw new Error(transactionObject.error);
+      if (params && 'error' in params && params.error) {
+        throw new Error(params.error);
       }
       if (!cancelTxId) {
         throw new Error('Missing transaction id for cancel');
       }
 
       if (isLedgerAccount) {
-        const gasValues = getCancelOrSpeedupValues(transactionObject);
+        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -359,13 +265,12 @@ export function useUnifiedTxActions() {
 
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
-        getCancelOrSpeedupValues(transactionObject),
+        getParamsToSend(params),
       );
-      onCancelCompleted();
+      onSpeedUpCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setCancel1559IsOpen(false);
-      setCancelIsOpen(false);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
 
@@ -393,21 +298,16 @@ export function useUnifiedTxActions() {
   return {
     retryIsOpen,
     retryErrorMsg,
-    speedUpIsOpen,
-    cancelIsOpen,
-    speedUp1559IsOpen,
-    cancel1559IsOpen,
-    speedUpConfirmDisabled,
-    cancelConfirmDisabled,
-    existingGas,
+    speedUpIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.SpeedUp,
+    cancelIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.Cancel,
+    confirmDisabled,
     existingTx,
     speedUpTxId,
     cancelTxId,
     toggleRetry,
     onSpeedUpAction,
     onCancelAction,
-    onSpeedUpCompleted,
-    onCancelCompleted,
+    onSpeedUpCancelCompleted,
     speedUpTransaction,
     cancelTransaction,
     signQRTransaction,

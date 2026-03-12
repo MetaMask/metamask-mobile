@@ -104,8 +104,8 @@
       "title": "Ανεπαρκές ποσό"
     },
     "insufficient_pay_token_native_post_quote": {
-      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
-      "title": "Insufficient funds for post quote"
+      "message": "Μη επαρκές υπόλοιπο σε {{ticker}} για την κάλυψη των χρεώσεων. Προσθέστε {{ticker}} για να συνεχίσετε.",
+      "title": "Ανεπαρκές υπόλοιπο για την υποβολή της προσφοράς"
     },
     "no_pay_token_quotes": {
       "message": "Αυτή η διαδρομή πληρωμής δεν είναι διαθέσιμη αυτή τη στιγμή. Δοκιμάστε να αλλάξετε το ποσό, το δίκτυο ή το token και θα βρούμε την καλύτερη επιλογή.",
@@ -2077,12 +2077,12 @@
     "title": "Πληροφορίες αγοράς",
     "a_closer_look": "Μια πιο προσεκτική ματιά",
     "whats_being_said": "Τι συζητιέται",
-    "footer_disclaimer": "AI summary for information only",
+    "footer_disclaimer": "Περίληψη από ΤΝ, μόνο για ενημερωτικούς σκοπούς",
     "trade_button": "Συναλλαγές",
     "sources_count": "+{{count}} πηγές",
-    "sources_title": "News sources",
+    "sources_title": "Πηγές ειδήσεων",
     "feedback_submitted": "Το σχόλιό σας υποβλήθηκε",
-    "helpful_prompt": "Was this helpful?",
+    "helpful_prompt": "Ήταν χρήσιμο;",
     "feedback": {
       "title": "Ανατροφοδότηση",
       "description": "Βοηθήστε μας να βελτιώσουμε τις αναλύσεις αγοράς που δημιουργεί η τεχνητή νοημοσύνη.",
@@ -2197,6 +2197,7 @@
     "available_balance": "Διαθέσιμο υπόλοιπο",
     "claim_amount_text": "Εξαργυρώστε ${{amount}}",
     "claim_winnings_text": "Εξαργύρωση κερδών",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Μη οριστικοποιημένα κέρδη & ζημίες",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Δεν ήταν δυνατή η φόρτωση",
@@ -2275,6 +2276,9 @@
           "title": "Κάτι πήγε στραβά",
           "description": "Αποτυχία συνέχισης της αξίωσης",
           "try_again": "Προσπαθήστε ξανά"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2333,7 +2337,8 @@
       "exchange_fee": "Τέλη ανταλλαγής",
       "exchange_fee_description": "Τέλη που καταβάλλονται στην πλατφόρμα συναλλαγών ή στην αγορά",
       "total_incl_fees": "συμπερ. τέλη",
-      "close": "Κλείσιμο"
+      "close": "Κλείσιμο",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Δεν ήταν δυνατή η σύνδεση με την πλατφόρμα προβλέψεων",
@@ -2915,10 +2920,6 @@
     "enabling_notifications": "Ενεργοποίηση ειδοποιήσεων...",
     "updating_notifications": "Ενημέρωση ειδοποιήσεων...",
     "updating_account_settings": "Ενημέρωση ρυθμίσεων λογαριασμού...",
-    "reset_notifications_title": "Επαναφορά ειδοποιήσεων",
-    "reset_notifications_description": "Η επαναφορά των ειδοποιήσεων σημαίνει ότι διαγράφετε τα κλειδιά αποθήκευσης ειδοποιήσεων και επαναφέρετε όλο το ιστορικό ειδοποιήσεων. Είστε σίγουροι ότι θέλετε να προχωρήσετε;",
-    "reset_notifications": "Επαναφορά ειδοποιήσεων",
-    "reset_notifications_success": "Διαγραφή/δημιουργία εκ νέου κλειδιού αποθήκευσης ειδοποιήσεων και επαναφορά ιστορικού ειδοποιήσεων.",
     "notifications_dismiss_modal": "Απόρριψη",
     "select_rpc_url": "Επιλέξτε την διεύθυνση URL του RPC",
     "title": "Ρυθμίσεις",
@@ -3705,10 +3706,10 @@
     "speedup_tx_title": "Προσπάθεια για επιτάχυνση;",
     "speedup_tx_message": "Η υποβολή αυτής της προσπάθειας δεν εγγυάται ότι η αρχική σας συναλλαγή θα επιταχυνθεί. Εάν η προσπάθεια επιτάχυνσης είναι επιτυχής, θα χρεωθείτε με το παραπάνω τέλος συναλλαγής.",
     "nevermind": "Άκυρο",
-    "cancel_speedup_speedup_title": "Speed up Transaction",
-    "cancel_speedup_cancel_title": "Cancel Transaction",
-    "cancel_speedup_speedup_message": "This network fee will replace the original.",
-    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
+    "cancel_speedup_speedup_title": "Επιτάχυνση συναλλαγής",
+    "cancel_speedup_cancel_title": "Ακύρωση συναλλαγής",
+    "cancel_speedup_speedup_message": "Αυτά τα τέλη δικτύου θα αντικαταστήσουν τα αρχικά.",
+    "cancel_speedup_cancel_message": "Αυτή η συναλλαγή θα ακυρωθεί και αυτά τα τέλη δικτύου θα αντικαταστήσουν τα αρχικά.",
     "edit_network_fee": "Επεξεργασία τέλους συναλλαγής",
     "edit_priority": "Επεξεργασία προτεραιότητας",
     "gas_cancel_fee": "Τέλος ακύρωσης συναλλαγής",
@@ -4841,7 +4842,7 @@
     "quote_unavailable": "Δεν υπάρχει διαθέσιμη προσφορά.",
     "providers": "Πάροχοι",
     "quotes_displayed_for": "Οι προσφορές που εμφανίζονται για το {{paymentMethodName}}.",
-    "other_options": "Other options",
+    "other_options": "Άλλες επιλογές",
     "previously_used": "Χρησιμοποιήθηκε στο παρελθόν",
     "best_rate": "Καλύτερη τιμή",
     "most_reliable": "Πιο αξιόπιστο",
@@ -4952,10 +4953,10 @@
     "provider_picker_modal": {
       "title": "Επιλέξτε πάροχο"
     },
-    "contact_provider_support": "Contact {{provider}} support",
+    "contact_provider_support": "Επικοινωνήστε με την υποστήριξη του {{provider}}",
     "got_it": "Κατανοητό",
-    "encountered_error": "We've encountered an error",
-    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "encountered_error": "Παρουσιάστηκε σφάλμα",
+    "no_quotes_error": "Παρουσιάστηκε πρόβλημα κατά την ανάκτηση προσφορών από {{provider}}. Προσπαθήστε με διαφορετικό ποσό ή αλλάξτε πάροχο.",
     "change_provider_button": "Αλλαγή παρόχου"
   },
   "fiat_on_ramp_aggregator": {
@@ -5918,7 +5919,7 @@
     "error_description": "Η εγκατάσταση του {{snap}} απέτυχε."
   },
   "earn": {
-    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "claimable_bonus_tooltip": "Το ετήσιο μπόνους που έχετε κερδίσει επειδή διατηρήσατε τα mUSD. Το μπόνους σας μπορείτε να το εξαργυρώσετε καθημερινά στο δίκτυο Linea.",
     "earn_a_percentage_bonus": "Κερδίστε ένα μπόνους {{percentage}}%",
     "claimable_bonus": "Μπόνους προς εξαργύρωση",
     "claim_bonus": "Εξαργύρωση του μπόνους",
@@ -6026,21 +6027,21 @@
       "toasts": {
         "converting": "Μετατροπή {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "mUSD conversion successful",
-        "delivered_description": "Bonus will be claimable within a day.",
+        "delivered": "Η μετατροπή σε mUSD ολοκληρώθηκε με επιτυχία",
+        "delivered_description": "Το μπόνους θα είναι διαθέσιμο για εξαργύρωση μέσα σε μία ημέρα.",
         "failed": "Η μετατροπή σε mUSD απέτυχε"
       },
       "education": {
         "heading": "ΚΕΡΔΙΣΤΕ {{percentage}}% ΣΤΑ\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Μετατρέψτε τα stablecoins σε mUSD και θα κερδίσετε έως και {{percentage}}% μπόνους ετησίως που μπορείτε να εξαργυρώσετε καθημερινά.",
         "terms_apply": "Ισχύουν όροι.",
         "primary_button": "Ξεκινήστε",
         "secondary_button": "Όχι τώρα"
       },
       "buy_musd": "Αγοράστε mUSD",
       "get_musd": "Αποκτήστε mUSD",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "bonus_title": "Λάβετε {{percentage}}% σε stablecoins",
+      "bonus_description": "Μετατρέψτε τα stablecoins σε mUSD και θα έχετε {{percentage}}% μπόνους ετησίως.",
       "powered_by_relay": "Υποστηρίζεται από το Relay",
       "max": "Μεγ",
       "quick_convert_button": "Μετατροπή",
@@ -6048,14 +6049,14 @@
       "tooltip_title": "Κερδίστε απόδοση με τα mUSD",
       "tooltip_content": "Μετατρέψτε USDC, USDT ή DAI σε mUSD, το stablecoin του MetaMask που υποστηρίζεται από το δολάριο. Κερδίστε απόδοση {{apy}} για κάθε δολάριο που διατηρείτε.",
       "quick_convert": {
-        "title": "Convert and get {{percentage}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "title": "Μετατρέψτε και κερδίστε {{percentage}}%",
+        "subtitle": "Μετατρέψτε τα stablecoins σε mUSD και θα λάβετε έως και {{percentage}}% μπόνους ετησίως που μπορείτε να εξαργυρώσετε καθημερινά.",
         "inline_failed_message": "Η μετατροπή απέτυχε. Προσπαθήστε ξανά.",
         "confirmation": {
           "title": "Μετατροπή μέγιστου ποσού"
         }
       },
-      "percentage_bonus": "{{percentage}}% bonus",
+      "percentage_bonus": "{{percentage}}% μπόνους",
       "rate": "Χρέωση"
     },
     "bonus_claim": {
@@ -6096,7 +6097,9 @@
       "fee": "Τέλη",
       "errors": {
         "insufficient_balance": "Δεν έχετε αρκετό υπόλοιπο πόρων για να εκτελέσετε αυτή την ενέργεια."
-      }
+      },
+      "trx_unstaking_in_progress": "Η αποδέσμευση {{amount}} TRX βρίσκεται σε εξέλιξη. Η διαδικασία διαρκεί 14 ημέρες.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "Ποντάρισμα σε ETH",
     "unstake_eth": "Ακύρωση πονταρίσματος σε ETH",
@@ -6347,7 +6350,8 @@
       "metamask_fee": "Χρεώσεις στο MetaMask",
       "network_fee": "Τέλη δικτύου",
       "bridge_fee": "Τέλος παρόχου για την μεταφορά",
-      "provider_fee": "Τέλη παρόχου"
+      "provider_fee": "Τέλη παρόχου",
+      "sending": "Αποστολή"
     },
     "title": {
       "signature": "Αίτημα υπογραφής",
@@ -6385,10 +6389,10 @@
         "transaction_fee": "Θα ανταλλάξουμε τα tokens σας με USDC.e στο δίκτυο Polygon, που χρησιμοποιείται για τις Προβλέψεις. Οι πάροχοι ανταλλαγών ενδέχεται να χρεώσουν προμήθεια, αλλά το MetaMask δεν χρεώνει."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "transaction_fee": "Το MetaMask θα κάνει ανταλλαγή στο token που θέλετε. Δεν υπάρχει χρέωση στο MetaMask όταν κάνετε ανταλλαγή σε mUSD."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+        "transaction_fee": "Τα τέλη μετατροπής σε mUSD περιλαμβάνουν τα έξοδα δικτύου και ενδέχεται να περιλαμβάνουν τα τέλη παρόχου. Δεν υπάρχει χρέωση στο MetaMask όταν μετατρέπετε σε mUSD."
       },
       "title": {
         "transaction_fee": "Τέλη"
@@ -6574,12 +6578,12 @@
     "hardware_wallet_not_supported": "Τα πορτοφόλια υλικού δεν υποστηρίζονται ακόμη. Χρησιμοποιήστε ένα θερμό πορτοφόλι για να συνεχίσετε.",
     "hardware_wallet_not_supported_solana": "Τα πορτοφόλια υλικού δεν υποστηρίζουν ακόμα την Solana. Χρησιμοποιήστε ένα θερμό πορτοφόλι για να συνεχίσετε.",
     "price_impact_info_title": "Αντίκτυπος στην τιμή",
-    "price_impact_info_description": "Η επίδραση στη τιμή (price impact) δείχνει πόσο επηρεάζει η εντολή ανταλλαγής σας την τιμή του περιουσιακού στοιχείου στην αγορά. Εξαρτάται από το μέγεθος της συναλλαγής και τη διαθέσιμη ρευστότητα στη δεξαμενή (pool). Το MetaMask δεν επηρεάζει ούτε ελέγχει την επίδραση στη τιμή.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Η επίδραση στην τιμή αντικατοπτρίζει το πώς η εντολή ανταλλαγής σας επηρεάζει την τιμή αγοράς του περιουσιακού στοιχείου. Αν δεν διαθέτετε αρκετά κεφάλαια για τα τέλη συναλλαγής, μέρος του αρχικού σας token κατανέμεται αυτόματα για την κάλυψη των χρεώσεων, γεγονός που αυξάνει την επίδραση στην τιμή. Το MetaMask δεν επηρεάζει ούτε ελέγχει την επίδραση στην τιμή.",
-    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
-    "price_impact_high": "High price impact",
-    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
-    "proceed": "Proceed",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_high": "Υψηλή επίδραση στην τιμή",
+    "price_impact_execution_description": "Θα χάσετε περίπου {{priceImpact}} από την αξία του token σας σε αυτή την ανταλλαγή. Προσπαθήστε να μειώσετε το ποσό ή να επιλέξετε ένα κανάλι με μεγαλύτερη ρευστότητα.",
+    "proceed": "Συνεχίστε",
     "cancel": "Άκυρο",
     "slippage_info_title": "Απόκλιση",
     "slippage_info_description": "Το ποσοστό μεταβολής στην τιμή που είστε διατεθειμένοι να αποδεχθείτε πριν ακυρωθεί η συναλλαγή.",
@@ -6607,7 +6611,14 @@
     "exceeding_upper_slippage_error": "Δεν μπορείτε να εισαγάγετε τιμή μεγαλύτερη από {{value}}%",
     "custom": "Προσαρμογή",
     "invalid_recipient_address": "Μη έγκυρη διεύθυνση",
-    "got_it": "Got it"
+    "select_quote": "Επιλέξτε προσφορά",
+    "select_quote_info": "Οι προσφορές ταξινομούνται βάσει του εκτιμώμενου συνολικού κόστους, το οποίο περιλαμβάνει την ισοτιμία και τα τέλη δικτύου.",
+    "lowest_cost": "Χαμηλότερο κόστος",
+    "total_cost": "Συνολικό κόστος",
+    "got_it": "Κατανοητό",
+    "price_impact_warning_title": "Υψηλή επίδραση στην τιμή",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "Υπάρχουν διαθέσιμες νέες προσφορές",
@@ -6904,7 +6915,7 @@
       "title": "Πληκτρολογήστε τον κωδικό πρόσβασης",
       "description": "Πληκτρολογήστε τον κωδικό του πορτοφολιού σας για να δείτε τα στοιχεία της κάρτας.",
       "description_unfreeze": "Εισαγάγετε τον κωδικό πρόσβασης του πορτοφολιού σας για να συνεχίσετε τις δαπάνες με την κάρτα σας.",
-      "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_view_pin": "Πληκτρολογήστε τον κωδικό πρόσβασης του πορτοφολιού σας για να δείτε το PIN.",
       "placeholder": "Κωδικός πρόσβασης",
       "confirm": "Επιβεβαίωση",
       "cancel": "Ακύρωση",
@@ -6912,7 +6923,7 @@
       "error_incorrect": "Λανθασμένος κωδικός. Παρακαλούμε δοκιμάστε ξανά."
     },
     "view_pin_bottomsheet": {
-      "title": "Your Card PIN"
+      "title": "Το PIN της κάρτας σας"
     },
     "choose_your_card": {
       "title": "Επιλέξτε την κάρτα σας",
@@ -7229,9 +7240,9 @@
         "view_card_details": "Προβολή στοιχείων κάρτας",
         "hide_card_details": "Απόκρυψη στοιχείων κάρτας",
         "view_card_details_description": "Αριθμός κάρτας, ημερομηνία λήξης και CVV",
-        "view_pin": "View PIN",
-        "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin": "Δείτε το PIN",
+        "view_pin_description": "Δείτε με ασφάλεια το PIN της κάρτας σας",
+        "view_pin_error": "Αποτυχία φόρτωσης του PIN. Παρακαλούμε προσπαθήστε ξανά.",
         "manage_spending_limit": "Διαχείριση ορίου",
         "manage_spending_limit_description_restricted": "Ο περιορισμός συναλλαγών είναι ενεργός",
         "manage_spending_limit_description_full": "Η πλήρης πρόσβαση είναι ενεργή",
@@ -7244,7 +7255,7 @@
         "order_metal_card_description": "Παραγγείλετε τώρα τη φυσική Metal Card σας",
         "cashback": "Επιστροφή χρημάτων",
         "cashback_description": "Κερδίστε 1% επιστροφή σε κάθε συναλλαγή",
-        "cashback_description_metal": "Earn 3% back on all spending",
+        "cashback_description_metal": "Κερδίστε 3% επιστροφή σε κάθε συναλλαγή",
         "freeze_card": "Πάγωμα κάρτας",
         "unfreeze_card": "Ξεπάγωμα κάρτας",
         "freeze_card_description": "Παύση όλων των δαπανών στην κάρτα σας",
@@ -7398,7 +7409,8 @@
   "pay_with_modal": {
     "title": "Επιλέξτε μέθοδο πληρωμής",
     "title_receive": "Επιλέξτε το token που θα λάβετε",
-    "no_gas": "Δεν υπάρχει διαθέσιμο υπόλοιπο για τα τέλη συναλλαγών"
+    "no_gas": "Δεν υπάρχει διαθέσιμο υπόλοιπο για τα τέλη συναλλαγών",
+    "not_supported": "Δεν υποστηρίζεται"
   },
   "connection_removed_modal": {
     "title": "Οι συνδέσεις αφαιρέθηκαν",
@@ -7636,12 +7648,12 @@
       "environment_selector": "Περιβάλλον",
       "environment_cancel": "Άκυρο",
       "environment_default": "Προεπιλογή",
-      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
-      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
-      "off_device_accounts_banner_cta": "View",
-      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
-      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
-      "off_device_accounts_sheet_let_us_know": "Let us know"
+      "off_device_accounts_banner_title": "Δεν υπάρχουν καταχωρημένοι λογαριασμοί",
+      "off_device_accounts_banner_description": "Υπάρχουν λογαριασμοί που είχαν εγγραφεί στο πρόγραμμα ανταμοιβών, αλλά δεν εντοπίζονται σε αυτήν τη συσκευή.",
+      "off_device_accounts_banner_cta": "Προβολή",
+      "off_device_accounts_sheet_title": "Δεν υπάρχουν καταχωρημένοι λογαριασμοί",
+      "off_device_accounts_sheet_description": "Αυτοί οι λογαριασμοί μπορεί να ανήκουν σε πορτοφόλι που δεν έχει προστεθεί ακόμη μετά την επανεγκατάσταση του MetaMask. Δεν αναγνωρίζετε καμία από αυτές τις διευθύνσεις;",
+      "off_device_accounts_sheet_let_us_know": "Ενημερώστε μας"
     },
     "referred_by_code": {
       "title": "Κωδικός παραπομπής",
@@ -7839,12 +7851,12 @@
       "description": "Παρακαλούμε δημιουργήστε μια νέα σύνδεση από την εφαρμογή για να συνεχίσετε."
     },
     "show_internal_error": {
-      "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "title": "Κάτι πήγε στραβά",
+      "description": "Παρουσιάστηκε ένα απρόβλεπτο σφάλμα. Προσπαθήστε ξανά."
     },
     "show_method_error": {
-      "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "title": "Αποτυχία αιτήματος",
+      "description": "Το αίτημα δεν μπόρεσε να ολοκληρωθεί. Παρακαλούμε προσπαθήστε ξανά."
     }
   },
   "network_connection_banner": {
@@ -7985,7 +7997,7 @@
       "scanning": "Σάρωση για συσκευές...",
       "no_devices_found": "Δεν βρέθηκαν συσκευές",
       "no_devices_hint": "Βεβαιωθείτε ότι το {{device}} είναι ξεκλείδωτο και ότι το Bluetooth είναι ενεργοποιημένο",
-      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "tips": "Ξεκλειδώστε το {{device}}, ενεργοποιήστε το Bluetooth και βεβαιωθείτε ότι η λειτουργία Μην Ενοχλείτε είναι απενεργοποιημένη",
       "connect": "Σύνδεση",
       "rescan": "Σάρωση ξανά",
       "unknown_device": "Άγνωστη συσκευή",
@@ -8001,7 +8013,7 @@
       "nfts": "NFT",
       "import_nfts": "Εισαγωγή NFT",
       "import_nfts_description": "Προσθέστε εύκολα τα συλλεκτικά σας αντικείμενα",
-      "view_more": "View more",
+      "view_more": "Δείτε περισσότερα",
       "positions": {
         "no_tp_sl": "Δεν έχουν οριστεί ΛΚ/ΠΖ"
       }

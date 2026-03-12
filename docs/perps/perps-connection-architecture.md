@@ -4,19 +4,21 @@
 
 The Perps connection system uses a layered architecture where each layer has clear responsibilities and ownership boundaries.
 
+Connection lifecycle is managed by a single top-level `PerpsAlwaysOnProvider` mounted at the wallet root. Per-section `PerpsConnectionProvider` instances provide React context to consumers but do **not** manage connect/disconnect — that responsibility belongs exclusively to `PerpsAlwaysOnProvider`.
+
 ## Layer Stack
 
 ```mermaid
 graph TD
+    AOProv[PerpsAlwaysOnProvider<br/>Wallet root - always on] -->|calls connect/disconnect| Manager[PerpsConnectionManager]
     UI[UI Components] -->|uses| Hook[usePerpsConnection]
-    Hook -->|reads context from| Provider[PerpsConnectionProvider]
-    Provider -->|delegates to| Manager[PerpsConnectionManager]
+    Hook -->|reads context from| Provider[PerpsConnectionProvider<br/>manageLifecycle=false]
+    Provider -.polls state from.-> Manager
     Manager -->|orchestrates| Controller[PerpsController]
     Controller -->|manages| HP[HyperLiquidProvider]
     HP -->|REST API| API[HyperLiquid API]
     HP -->|WebSocket| WS[WebSocket Subscriptions]
 
-    Provider -.polls state from.-> Manager
     Controller -.stores data in.-> Redux[Redux State]
 ```
 
@@ -48,34 +50,68 @@ graph TD
 
 ---
 
+### Lifecycle Layer: PerpsAlwaysOnProvider
+
+**What it is**: Top-level React component mounted once at the wallet root that owns the entire WebSocket connection lifecycle
+
+**File**: `app/components/UI/Perps/providers/PerpsAlwaysOnProvider.tsx`
+
+**Mounted at**: `app/components/Views/Wallet/index.tsx` — wraps `ErrorBoundary` and all wallet content
+
+**Owns**:
+
+- Single `AppState` listener for foreground/background transitions
+- The only caller of `PerpsConnectionManager.connect()` and `PerpsConnectionManager.disconnect()`
+
+**Responsibilities**:
+
+- Call `connect()` on mount (when `isPerpsEnabled`)
+- Call `disconnect()` when app goes to background (triggers 20s grace period in Manager)
+- Call `connect()` when app returns to foreground (with `ReconnectionDelayAndroidMs` stabilization delay)
+- Call `disconnect()` on unmount
+
+**Does NOT**:
+
+- Provide React context (no `createContext`)
+- Know about individual screens or tab visibility
+- Manage stream subscriptions
+
+**Result**: `connectionRefCount` in `PerpsConnectionManager` stays exactly 1 throughout the app lifetime, eliminating all reference-count edge cases from multiple simultaneous providers.
+
+---
+
 ### UI Layer: PerpsConnectionProvider
 
 **What it is**: React Context provider that exposes connection state and methods to UI components
 
 **Owns**:
 
-- Local React state (polled from Manager)
+- Local React state (polled from Manager every 100ms)
 - Polling interval for state synchronization
-- UI-level error handling decisions (show error screen vs skeleton)
-- Internal visibility lifecycle management (via `usePerpsConnectionLifecycle` hook)
+- UI-level error handling decisions (show error screen vs content)
+- Retry attempt tracking
 
 **Responsibilities**:
 
 - Translate singleton Manager state into React state
-- Provide stable callback functions to UI
-- Decide when to show loading skeleton vs error screen vs content
-- Handle app/tab visibility changes (connect when visible, disconnect when hidden)
+- Provide stable callback functions to UI (`connect`, `disconnect`, `reconnectWithNewContext`, `resetError`)
+- Decide when to show error screen vs content
 - Handle E2E mode with mock state
 
 **Does NOT**:
 
-- Manage actual connection lifecycle (delegates to Manager)
-- Know about WebSockets or providers
+- Manage connection lifecycle when `manageLifecycle={false}` (the default for all section-level instances)
+- Know about app state or background/foreground transitions
 - Handle race conditions or reconnection logic
 
 **Exposes**: Connection context via `PerpsConnectionContext` that `usePerpsConnection` hook reads from
 
-**Note**: Internally uses `usePerpsConnectionLifecycle` to automatically connect/disconnect based on app state and tab visibility (with 300ms stabilization delay on app foreground), but this is an implementation detail not exposed to UI components. Account and network change monitoring is handled by the Manager layer via Redux subscriptions, not by the Provider.
+**`manageLifecycle` prop**:
+
+- `true` (default, used only by the perps stack navigator internally for historical reasons): passes `isVisible` to `usePerpsConnectionLifecycle` — **not used in practice since `PerpsAlwaysOnProvider` is the single lifecycle owner**
+- `false`: suppresses all connect/disconnect calls; provider acts as context source only
+
+All current `PerpsConnectionProvider` instances use `manageLifecycle={false}` — lifecycle is owned exclusively by `PerpsAlwaysOnProvider`.
 
 ---
 
@@ -204,20 +240,17 @@ The Perps system preloads market data and user data in the background before the
 
 The controller stores preloaded user data in transient (non-persisted) state fields:
 
-| Field                       | Type                        | Description                           |
-| --------------------------- | --------------------------- | ------------------------------------- |
-| `cachedMarketData`          | `PerpsMarketData[] \| null` | Preloaded market data from REST       |
-| `cachedMarketDataTimestamp` | `number`                    | Timestamp of last market data preload |
-| `cachedPositions`           | `Position[] \| null`        | Preloaded positions from REST         |
-| `cachedOrders`              | `Order[] \| null`           | Preloaded open orders from REST       |
-| `cachedAccountState`        | `AccountState \| null`      | Preloaded account state from REST     |
-| `cachedUserDataTimestamp`   | `number`                    | Timestamp of last user data preload   |
-| `cachedUserDataAddress`     | `string \| null`            | Address the cached data belongs to    |
+| Field                       | Type                        | Description                                                                                                       |
+| --------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `cachedMarketData`          | `PerpsMarketData[] \| null` | Preloaded market data from REST                                                                                   |
+| `cachedMarketDataTimestamp` | `number`                    | Timestamp of last market data preload                                                                             |
+| `cachedUserDataByProvider`  | `Record<string, {...}>`     | Per-provider cached user data (positions, orders, accountState, timestamp, address) keyed by `providerId:network` |
 
 User data cache is automatically cleared when:
 
-- The selected account changes (detected in preload state handler)
-- Network or HIP-3 config changes (cleared alongside market data cache)
+- The selected account changes (all entries cleared since all provider data is stale for new account)
+
+Network and testnet toggle do NOT clear the cache — different network keys prevent collisions.
 
 ### Hook Behavior When Not Connected
 
@@ -484,8 +517,8 @@ The Manager's `pendingReconnectPromise` ensures only one reconnection happens at
 | User retry button | `reconnectWithNewContext()` | `{ force: true }` | UI → Provider → Manager                    | Cancels pending operations + timeout timer    |
 | Account switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Clears caches immediately before reconnection |
 | Network switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Same as account switch                        |
-| App background    | `disconnect()`              | -                 | Provider lifecycle hook → Manager          | Grace period (20s) before actual disconnect   |
-| App foreground    | `connect()`                 | -                 | Provider lifecycle hook → Manager          | 300ms stabilization delay to prevent races    |
+| App background    | `disconnect()`              | -                 | PerpsAlwaysOnProvider → Manager            | Grace period (20s) before actual disconnect   |
+| App foreground    | `connect()`                 | -                 | PerpsAlwaysOnProvider → Manager            | ReconnectionDelayAndroidMs stabilization      |
 
 ---
 

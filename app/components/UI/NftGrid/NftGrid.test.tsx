@@ -1063,4 +1063,172 @@ describe('NftGrid', () => {
 
     expect(mockAbortDetection).not.toHaveBeenCalled();
   });
+
+  it('tracks Position Screen Viewed event when isFullView is true and data is loaded', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    const store = mockStore(initialState);
+
+    // Simulate fetch cycle: fetching true (detection started) then false (data loaded)
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: true,
+    });
+    const { rerender } = render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+    act(() => {
+      jest.advanceTimersByTime(0);
+    });
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: false,
+    });
+    rerender(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            item_count: 1,
+            location: 'homepage',
+            is_empty: false,
+            screen_type: 'nfts',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('tracks Position Screen Viewed with is_empty true when user has no NFTs', async () => {
+    const store = mockStore(initialState);
+
+    // Simulate fetch cycle: fetching true then false (data loaded, empty)
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: {},
+      isNftFetching: true,
+    });
+    const { rerender } = render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+    act(() => {
+      jest.advanceTimersByTime(0);
+    });
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: {},
+      isNftFetching: false,
+    });
+    rerender(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            item_count: 0,
+            is_empty: true,
+            screen_type: 'nfts',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('does not track Position Screen Viewed on initial mount before any fetch has run', async () => {
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: {},
+      isNftFetching: false,
+    });
+    const store = mockStore(initialState);
+
+    render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    const positionScreenViewedCalls = mockTrackEvent.mock.calls.filter(
+      (call) =>
+        call[0]?.properties?.screen_type === 'nfts' &&
+        call[0]?.properties?.location === 'homepage',
+    );
+    expect(positionScreenViewedCalls).toHaveLength(0);
+  });
+
+  it('does not track Position Screen Viewed when isFullView is false', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: false,
+    });
+    const store = mockStore(initialState);
+
+    render(
+      <Provider store={store}>
+        <NftGrid isFullView={false} />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      const positionScreenViewedCalls = mockTrackEvent.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.screen_type === 'nfts' &&
+          call[0]?.properties?.location === 'homepage',
+      );
+      expect(positionScreenViewedCalls).toHaveLength(0);
+    });
+  });
+
+  it('does not track Position Screen Viewed while NFTs are still fetching', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: true,
+    });
+    const store = mockStore(initialState);
+
+    render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      const positionScreenViewedCalls = mockTrackEvent.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.screen_type === 'nfts' &&
+          call[0]?.properties?.location === 'homepage',
+      );
+      expect(positionScreenViewedCalls).toHaveLength(0);
+    });
+  });
 });

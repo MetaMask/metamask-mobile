@@ -13,6 +13,7 @@ import {
   CardAuthorizeResponse,
   CardExchangeTokenResponse,
   CardLocation,
+  CardType,
   CreateOnboardingConsentRequest,
   UserResponse,
   DelegationSettingsNetwork,
@@ -20,6 +21,8 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawResponse,
 } from '../types';
+import { CARD_DETAILS_CSS } from '../hooks/useCardDetailsToken';
+import { PIN_CSS } from '../hooks/useCardPinToken';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import AppConstants from '../../../../core/AppConstants';
@@ -618,90 +621,6 @@ describe('CardSDK', () => {
       expectedUrl.searchParams.set('label', 'card_user');
 
       expect(global.fetch).toHaveBeenCalledWith(expectedUrl);
-    });
-  });
-
-  describe('getGeoLocation', () => {
-    it('returns UNKNOWN when API call fails', async () => {
-      const error = new Error('Network error');
-      (global.fetch as jest.Mock).mockRejectedValueOnce(error);
-
-      const result = await cardSDK.getGeoLocation();
-
-      expect(result).toBe('UNKNOWN');
-      expect(Logger.error).toHaveBeenCalledWith(
-        error,
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            feature: 'card',
-            operation: 'getGeoLocation',
-          }),
-        }),
-      );
-    });
-
-    it('returns UNKNOWN when fetch throws an error', async () => {
-      const fetchError = new Error('Fetch failed');
-      (global.fetch as jest.Mock).mockRejectedValueOnce(fetchError);
-
-      const result = await cardSDK.getGeoLocation();
-
-      expect(result).toBe('UNKNOWN');
-      expect(Logger.error).toHaveBeenCalledWith(
-        fetchError,
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            feature: 'card',
-            operation: 'getGeoLocation',
-          }),
-        }),
-      );
-    });
-
-    it('returns UNKNOWN when response.text() throws an error', async () => {
-      const textError = new Error('Failed to read response text');
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        text: jest.fn().mockRejectedValue(textError),
-      });
-
-      const result = await cardSDK.getGeoLocation();
-
-      expect(result).toBe('UNKNOWN');
-      expect(Logger.error).toHaveBeenCalledWith(
-        textError,
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            feature: 'card',
-            operation: 'getGeoLocation',
-          }),
-        }),
-      );
-    });
-
-    it('handles different country codes correctly', async () => {
-      const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'UNKNOWN'];
-
-      for (const code of countryCodes) {
-        (global.fetch as jest.Mock).mockResolvedValueOnce({
-          ok: true,
-          text: jest.fn().mockResolvedValue(code),
-        });
-
-        const result = await cardSDK.getGeoLocation();
-        expect(result).toBe(code);
-      }
-    });
-
-    it('handles empty string response from API', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        text: jest.fn().mockResolvedValue(''),
-      });
-
-      const result = await cardSDK.getGeoLocation();
-
-      expect(result).toBe('');
     });
   });
 
@@ -3986,12 +3905,7 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockTokenResponse),
       });
 
-      const customCss = {
-        cardBackgroundColor: '#FF5C16',
-        cardTextColor: '#FFFFFF',
-        panBackgroundColor: '#EFEFEF',
-        panTextColor: '#000000',
-      };
+      const customCss = CARD_DETAILS_CSS[CardType.VIRTUAL];
 
       // When: generateCardDetailsToken is called with custom CSS
       const result = await cardSDK.generateCardDetailsToken({ customCss });
@@ -4136,10 +4050,7 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockPinTokenResponse),
       });
 
-      const customCss = {
-        backgroundColor: '#FFFFFF',
-        textColor: '#000000',
-      };
+      const customCss = PIN_CSS.light;
 
       const result = await cardSDK.generateCardPinToken({ customCss });
 

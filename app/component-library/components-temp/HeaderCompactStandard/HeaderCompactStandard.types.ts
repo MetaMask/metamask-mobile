@@ -1,4 +1,5 @@
 // External dependencies.
+import React from 'react';
 import {
   ButtonIconProps,
   TextProps,
@@ -12,24 +13,28 @@ import { HeaderBaseProps } from '../../components/HeaderBase';
  */
 export interface HeaderCompactStandardProps extends HeaderBaseProps {
   /**
-   * Title text to display in the header.
+   * Title to display in the header. Can be a string or a React node.
    * Used as children if children prop is not provided.
-   * Rendered with TextVariant.BodyMd and FontWeight.Bold by default.
+   * When string: rendered with TextVariant.BodyMd and FontWeight.Bold by default; titleProps apply.
+   * When node: rendered as-is; titleProps are not applied.
    */
-  title?: string;
+  title?: string | React.ReactNode;
   /**
    * Additional props to pass to the title Text component.
    * Props are spread to the Text component and can override default values.
+   * Only applied when title is a string.
    */
   titleProps?: Partial<TextProps>;
   /**
-   * Subtitle text to display below the title.
-   * Rendered with TextVariant.BodySm and TextColor.TextAlternative by default.
+   * Subtitle to display below the title. Can be a string or a React node.
+   * When string: rendered with TextVariant.BodySm and TextColor.TextAlternative by default; subtitleProps apply.
+   * When node: rendered inside the same -mt-0.5 container; subtitleProps are not applied.
    */
-  subtitle?: string;
+  subtitle?: string | React.ReactNode;
   /**
    * Additional props to pass to the subtitle Text component.
    * Props are spread to the Text component and can override default values.
+   * Only applied when subtitle is a string.
    */
   subtitleProps?: Partial<TextProps>;
   /**

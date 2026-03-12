@@ -6,8 +6,8 @@ import React, {
   useState,
   useRef,
 } from 'react';
+import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
-import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import {
@@ -33,27 +33,20 @@ export const PerpsConnectionContext =
 
 interface PerpsConnectionProviderProps {
   children: React.ReactNode;
-  isVisible?: boolean;
   isFullScreen?: boolean;
   /** When true, silently renders children instead of showing the error view on connection failure. */
   suppressErrorView?: boolean;
 }
 
 /**
- * Provider that manages WebSocket connections for Perps components.
+ * Provider that exposes WebSocket connection state and methods to Perps components.
  * Uses a singleton connection manager to share state between screen and modal stacks.
- * When the tab is explicitly hidden, unmount children so stream hooks stop
- * background retry/subscription work. isVisible === undefined (fullscreen/modal
- * contexts) always renders children.
+ * Connection lifecycle (connect/disconnect) is managed exclusively by PerpsAlwaysOnProvider
+ * at the wallet root.
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
-> = ({
-  children,
-  isVisible,
-  isFullScreen = false,
-  suppressErrorView = false,
-}) => {
+> = ({ children, isFullScreen = false, suppressErrorView = false }) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );
@@ -109,9 +102,15 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.connect();
     } catch (err) {
+      const providerName = PerpsConnectionManager.getActiveProviderName();
       Logger.error(ensureError(err, 'PerpsConnectionProvider.connect'), {
-        message: 'PerpsConnectionProvider: Error during connect',
-        context: 'PerpsConnectionProvider.connect',
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsConnectionManager',
+          action: 'connection_connection',
+          ...(providerName && { provider: providerName }),
+        },
+        context: { name: 'PerpsConnectionProvider.connect', data: {} },
       });
     }
     // Always update state after connect attempt
@@ -137,9 +136,15 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.disconnect();
     } catch (err) {
+      const providerName = PerpsConnectionManager.getActiveProviderName();
       Logger.error(ensureError(err, 'PerpsConnectionProvider.disconnect'), {
-        message: 'PerpsConnectionProvider: Error during disconnect',
-        context: 'PerpsConnectionProvider.disconnect',
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsConnectionManager',
+          action: 'connection_disconnection',
+          ...(providerName && { provider: providerName }),
+        },
+        context: { name: 'PerpsConnectionProvider.disconnect', data: {} },
       });
     }
     // Always update state after disconnect attempt
@@ -175,11 +180,20 @@ export const PerpsConnectionProvider: React.FC<
         // Use the existing reconnectWithNewContext method from the singleton
         await PerpsConnectionManager.reconnectWithNewContext(options);
       } catch (err) {
+        const providerName = PerpsConnectionManager.getActiveProviderName();
         Logger.error(
           ensureError(err, 'PerpsConnectionProvider.reconnectWithNewContext'),
           {
-            message: 'PerpsConnectionProvider: Error during reconnect',
-            context: 'PerpsConnectionProvider.reconnectWithNewContext',
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'PerpsConnectionManager',
+              action: 'connection_reconnection',
+              ...(providerName && { provider: providerName }),
+            },
+            context: {
+              name: 'PerpsConnectionProvider.reconnectWithNewContext',
+              data: {},
+            },
           },
         );
       }
@@ -189,49 +203,6 @@ export const PerpsConnectionProvider: React.FC<
     },
     [],
   );
-
-  // Use the connection lifecycle hook to manage visibility and app state
-  usePerpsConnectionLifecycle({
-    isVisible,
-    onConnect: async () => {
-      try {
-        await PerpsConnectionManager.connect();
-      } catch (err) {
-        Logger.error(
-          ensureError(err, 'PerpsConnectionProvider.lifecycle.onConnect'),
-          {
-            message: 'PerpsConnectionProvider: Error in lifecycle onConnect',
-            context:
-              'PerpsConnectionProvider.usePerpsConnectionLifecycle.onConnect',
-          },
-        );
-      }
-      const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
-    },
-    onDisconnect: async () => {
-      try {
-        await PerpsConnectionManager.disconnect();
-      } catch (err) {
-        Logger.error(
-          ensureError(err, 'PerpsConnectionProvider.lifecycle.onDisconnect'),
-          {
-            message: 'PerpsConnectionProvider: Error in lifecycle onDisconnect',
-            context:
-              'PerpsConnectionProvider.usePerpsConnectionLifecycle.onDisconnect',
-          },
-        );
-      }
-      const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
-    },
-    onError: () => {
-      // Errors are now managed by connection manager
-      // Just update state to get the latest error
-      const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
-    },
-  });
 
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
@@ -257,6 +228,25 @@ export const PerpsConnectionProvider: React.FC<
     ],
   );
 
+  // Sentry breadcrumb: makes error screen appearance visible in issue timelines
+  // Placed in useEffect to avoid firing on every re-render (polling is 100ms)
+  // retryAttempts intentionally excluded — breadcrumb should fire once per error
+  // appearance, not on every retry (retries are tracked in handleRetry breadcrumb)
+  useEffect(() => {
+    if (connectionState.error) {
+      addBreadcrumb({
+        category: 'perps.connection',
+        message: 'PerpsConnectionErrorView shown',
+        level: 'error',
+        data: {
+          errorCode: connectionState.error,
+          retryAttempts,
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionState.error]);
+
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error
   // When suppressErrorView is true, skip the error view and render children normally
@@ -280,17 +270,17 @@ export const PerpsConnectionProvider: React.FC<
         // Reset retry attempts and let polling update the state
         setRetryAttempts(0);
       } catch (err) {
-        // Keep retry attempts count for showing back button after failed attempts
-        Logger.error(
-          ensureError(err, 'PerpsConnectionProvider.initializePerps'),
-          {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: {
-              name: 'PerpsConnectionProvider.initializePerps',
-              data: { retryAttempts },
-            },
+        // Breadcrumb only — avoid flooding Sentry with a new event on every retry
+        addBreadcrumb({
+          category: 'perps.connection',
+          message: 'Retry failed',
+          level: 'warning',
+          data: {
+            error: ensureError(err, 'PerpsConnectionProvider.handleRetry')
+              .message,
+            retryAttempts,
           },
-        );
+        });
       }
 
       // Force update to get the latest error state
@@ -313,7 +303,7 @@ export const PerpsConnectionProvider: React.FC<
 
   return (
     <PerpsConnectionContext.Provider value={contextValue}>
-      {isVisible === false ? null : children}
+      {children}
     </PerpsConnectionContext.Provider>
   );
 };

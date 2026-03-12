@@ -142,7 +142,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 30,
                                 "marginVertical": 2,
@@ -154,14 +154,14 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               },
                               undefined,
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                               },
                               undefined,
                               undefined,
                               undefined,
                               undefined,
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                               },
                               undefined,
                               undefined,
@@ -193,7 +193,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 30,
                                 "marginVertical": 2,
@@ -205,7 +205,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               {
-                                "color": "#686e7d",
+                                "color": "#66676a",
                               },
                               undefined,
                               undefined,
@@ -241,7 +241,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 30,
                                 "marginVertical": 2,
@@ -253,7 +253,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               {
-                                "color": "#686e7d",
+                                "color": "#66676a",
                               },
                               undefined,
                               undefined,
@@ -289,7 +289,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -364,7 +364,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#131416",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -381,7 +381,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#131416",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -396,7 +396,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#131416",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,

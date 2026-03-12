@@ -124,7 +124,32 @@ For `render: shell` fields, wrap the value in a code fence:
 - Output the issue URL so the user can view it
 - Ask the user: "Would you like me to investigate the codebase for the possible root cause? (yes/no)"
 - Default is **no** — only proceed if the user explicitly says yes
-- If yes, investigate the codebase (research only — no code changes) and add a comment using:
+- If yes, perform the full **Root Cause Analysis** (Step 6)
+
+## Step 6: Root Cause Analysis
+
+When the user opts in, perform all three phases below and post a single comment on the issue with the combined findings.
+
+### 6a: Investigate the root cause
+
+- Trace the bug through the code to identify the exact files, lines, and logic causing the issue
+- Research only — no code changes
+
+### 6b: Identify regression PRs
+
+- Check `git log` history of affected files, comparing the release branch against the previous release branch
+- Identify which PRs introduced or surfaced the bug (new code, removed compensating mechanisms, refactors, etc.)
+- Note whether the issue is a new regression or pre-existing
+
+### 6c: Scope analysis
+
+- Search the codebase for the same pattern, function, or anti-pattern causing the bug
+- Identify all affected areas beyond the originally reported bug
+- If other features are impacted, file separate bug issues for each and link them
+
+### Comment format
+
+Post findings as a comment using:
 
 ```bash
 gh issue comment <issue-number> --repo MetaMask/metamask-mobile --body "..."
@@ -132,7 +157,10 @@ gh issue comment <issue-number> --repo MetaMask/metamask-mobile --body "..."
 
 The comment should include:
 
-- A summary of the possible root cause
-- The error flow with relevant file paths and line numbers
-- Key files table (file, line(s), description)
-- A suggested fix approach
+- **Summary** of the root cause
+- **Likely Regression PR(s)** — PR numbers, titles, authors, and explanation of what changed (or note if pre-existing)
+- **Error flow** with relevant file paths and line numbers
+- **Full scope of impact** — all affected files, hooks, and components beyond the reported bug
+- **Key files table** (file, line(s), description)
+- **Suggested fix approach**
+- **Links to related bugs** filed from the scope analysis

@@ -26,6 +26,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   onInfoPress,
   claimableAmount = 0,
   isLoading = false,
+  isClaimPending = false,
   testID = 'predict-game-details-footer',
 }) => {
   const insets = useSafeAreaInsets();
@@ -95,6 +96,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         onClaimPress={onClaimPress}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
+        isClaimPending={isClaimPending}
         testID={`${testID}-action-buttons`}
       />
     </Box>

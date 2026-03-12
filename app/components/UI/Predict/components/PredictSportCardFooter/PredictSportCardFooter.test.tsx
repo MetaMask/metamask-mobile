@@ -238,6 +238,7 @@ describe('PredictSportCardFooter', () => {
 
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
+      isClaimPending: false,
     });
 
     mockExecuteGuardedAction.mockImplementation((callback) => callback());

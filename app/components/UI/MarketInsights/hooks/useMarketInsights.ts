@@ -32,7 +32,7 @@ export const useMarketInsights = (
   isEnabled = false,
 ): UseMarketInsightsResult => {
   const [report, setReport] = useState<MarketInsightsReport | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(isEnabled && caip19Id));
   const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = useCallback(async () => {

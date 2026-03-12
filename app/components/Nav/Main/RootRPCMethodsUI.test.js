@@ -34,14 +34,18 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
+const mockIsHardwareAccount = jest.fn((_, types) =>
+  types.includes('Ledger Hardware'),
+);
 jest.mock('../../../util/address', () => ({
-  isHardwareAccount: jest.fn((_, types) => types.includes('Ledger Hardware')),
+  isHardwareAccount: (...args) => mockIsHardwareAccount(...args),
 }));
 
+const mockGetDeviceId = jest.fn(() => {
+  throw new Error('KeystoneError#Tx_canceled');
+});
 jest.mock('../../../core/Ledger/Ledger', () => ({
-  getDeviceId: jest.fn(() => {
-    throw new Error('KeystoneError#Tx_canceled');
-  }),
+  getDeviceId: (...args) => mockGetDeviceId(...args),
 }));
 
 jest.mock('../../Approvals/WatchAssetApproval', () => 'WatchAssetApproval');
@@ -71,6 +75,34 @@ describe('RootRPCMethodsUI', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedAutoSign = undefined;
+    mockIsHardwareAccount.mockImplementation((_, types) =>
+      types.includes('Ledger Hardware'),
+    );
+  });
+
+  describe('autoSign', () => {
+    it('does not navigate or open signing when from account is not Ledger or QR', async () => {
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockNavigate = jest.fn();
+      render(<RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />);
+
+      const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+      const handleUnapprovedTransaction = subscribeCall[1];
+      handleUnapprovedTransaction({
+        id: 'tx-1',
+        txParams: { from: '0xSoftwareWalletAddress' },
+      });
+
+      await capturedAutoSign({
+        id: 'tx-1',
+        txParams: { from: '0xSoftwareWalletAddress' },
+      });
+
+      expect(mockIsHardwareAccount).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGetDeviceId).not.toHaveBeenCalled();
+    });
   });
 
   it('calls trackEvent for DAPP_TRANSACTION_CANCELLED on keystone cancel', async () => {

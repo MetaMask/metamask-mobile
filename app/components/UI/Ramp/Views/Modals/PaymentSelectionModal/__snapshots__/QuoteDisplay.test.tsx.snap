@@ -57,7 +57,7 @@ exports[`QuoteDisplay matches snapshot when quote is unavailable 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Regular",
         "fontSize": 14,
         "letterSpacing": 0,
@@ -86,7 +86,7 @@ exports[`QuoteDisplay matches snapshot with crypto and fiat 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -100,7 +100,7 @@ exports[`QuoteDisplay matches snapshot with crypto and fiat 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Regular",
         "fontSize": 14,
         "letterSpacing": 0,
@@ -129,7 +129,7 @@ exports[`QuoteDisplay matches snapshot with crypto only 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,

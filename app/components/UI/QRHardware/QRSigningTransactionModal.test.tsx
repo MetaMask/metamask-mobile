@@ -232,9 +232,6 @@ describe('QRSigningTransactionModal', () => {
     expect(qrSigningDetailsElement.props.tighten).toBe(true);
     expect(qrSigningDetailsElement.props.showHint).toBe(true);
     expect(qrSigningDetailsElement.props.shouldStartAnimated).toBe(true);
-    expect(qrSigningDetailsElement.props.bypassAndroidCameraAccessCheck).toBe(
-      false,
-    );
     expect(qrSigningDetailsElement.props.fromAddress).toBe(
       mockSelectedAccount.address,
     );

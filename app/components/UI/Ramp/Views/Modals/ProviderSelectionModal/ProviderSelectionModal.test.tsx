@@ -14,9 +14,29 @@ const mockGetQuotes = jest.mocked(Engine.context.RampsController.getQuotes);
 const mockGoBack = jest.fn();
 const mockSetSelectedProvider = jest.fn();
 
+const mockNavigationState = {
+  routes: [
+    { name: Routes.RAMP.MODALS.PAYMENT_SELECTION, key: 'payment' },
+    { name: Routes.RAMP.MODALS.PROVIDER_SELECTION, key: 'provider' },
+  ],
+  index: 1,
+  key: 'modals',
+  routeNames: [
+    Routes.RAMP.MODALS.PAYMENT_SELECTION,
+    Routes.RAMP.MODALS.PROVIDER_SELECTION,
+  ],
+  type: 'stack' as const,
+  stale: false as const,
+};
+
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useNavigationState: (
+    selector: (state: typeof mockNavigationState) => unknown,
+  ) => selector(mockNavigationState),
 }));
 
 const mockUseParams = jest.fn<ProviderSelectionModalParams, []>(() => ({
@@ -107,15 +127,26 @@ jest.mock('../../../hooks/useRampAccountAddress', () => ({
   default: () => '0x123',
 }));
 
+let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
+
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ReactActual = jest.requireActual('react');
     return ReactActual.forwardRef(
       (
-        { children }: { children: React.ReactNode },
+        {
+          children,
+          onClose,
+        }: {
+          children: React.ReactNode;
+          onClose?: (hasPendingAction?: boolean) => void;
+        },
         _ref: React.Ref<unknown>,
-      ) => <>{children}</>,
+      ) => {
+        capturedOnClose = onClose;
+        return <>{children}</>;
+      },
     );
   },
 );
@@ -242,5 +273,28 @@ describe('ProviderSelectionModal', () => {
     expect(getByText('Transak')).toBeOnTheScreen();
     expect(getByText('MoonPay')).toBeOnTheScreen();
     expect(queryByText('Other')).toBeNull();
+  });
+
+  it('navigates to token selection when dismissed without action and skipQuotes is true', () => {
+    mockUseParams.mockReturnValue({
+      assetId: 'eip155:1/slip44:60',
+      skipQuotes: true,
+    });
+    renderWithProvider(ProviderSelectionModal);
+
+    capturedOnClose?.(false);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+    });
+  });
+
+  it('does not navigate to token selection when dismissed without action and skipQuotes is false', () => {
+    mockUseParams.mockReturnValue({ amount: 100 });
+    renderWithProvider(ProviderSelectionModal);
+
+    capturedOnClose?.(false);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

@@ -4,14 +4,12 @@
 # Usage:
 #   - CI reads this file to configure builds
 #   - Local dev can override via .js.env (takes precedence)
-#   - LaunchDarkly overrides remote_feature_flags at runtime
 #
 # Structure:
 #   - env: sets environment variables directly (servers, build config, etc.)
 #   - secrets: maps env var names to GitHub Secret names
 #   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
 #   - code_fencing: features to include via code fencing
-#   - remote_feature_flags: build-time defaults for LaunchDarkly flags (seeded into RemoteFeatureFlagController)
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
 # Signing: AWS Secrets Manager (Account 363762752069) - see Mobile Signer Roles & Secrets doc.
@@ -27,6 +25,7 @@ _public_envs: &public_envs # Servers (production)
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
+  DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   RAMPS_ENVIRONMENT: 'production'
@@ -41,6 +40,9 @@ _public_envs: &public_envs # Servers (production)
   MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
   MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
   MM_PERPS_HIP3_ENABLED: 'true'
+  # Temporary flag to enable builds with GitHub Actions, remove it when deprecating bitrise
+  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
+  MM_CHARTING_LIBRARY_URL: 'https://va-mmcx-terminal.s3.us-east-2.amazonaws.com/charting_library/'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -79,8 +81,6 @@ _secrets: &secrets # Infrastructure
   QUICKNODE_MONAD_URL: 'QUICKNODE_MONAD_URL'
   QUICKNODE_OPTIMISM_URL: 'QUICKNODE_OPTIMISM_URL'
   QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
-  QUICKNODE_BSC_URL: 'QUICKNODE_BSC_URL'
-  QUICKNODE_SEI_URL: 'QUICKNODE_SEI_URL'
   QUICKNODE_HYPEREVM_URL: 'QUICKNODE_HYPEREVM_URL'
   # OAuth
   IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
@@ -90,6 +90,8 @@ _secrets: &secrets # Infrastructure
   ANDROID_GOOGLE_SERVER_CLIENT_ID: 'ANDROID_GOOGLE_SERVER_CLIENT_ID'
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: 'MM_CARD_BAANX_API_CLIENT_KEY'
+  # Expo
+  EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
@@ -156,157 +158,6 @@ _code_fencing_flask: &code_fencing_flask
   - tron
 
 # =============================================================================
-# Remote Feature Flags - Build-time defaults (seeded into RemoteFeatureFlagController)
-# LaunchDarkly will override these at runtime
-# Production (conservative) defaults - override in dev/exp builds as needed
-# =============================================================================
-_remote_feature_flags: &remote_feature_flags
-  # Bitcoin/Tron/Multichain accounts (prod LD values — each uses a custom type-guard validator)
-  bitcoinAccounts:
-    enabled: true
-    minimumVersion: '7.59.0'
-  tronAccounts:
-    enabled: true
-    minimumVersion: '7.61.6'
-  # enableMultichainAccounts requires the extra featureVersion field (assertMultichainAccountsFeatureFlagType)
-  enableMultichainAccounts:
-    enabled: true
-    featureVersion: '1'
-    minimumVersion: '7.53.0'
-  enableMultichainAccountsState2:
-    enabled: true
-    featureVersion: '2'
-    minimumVersion: '7.57.0'
-  # Perps (prod LD values — version gates preserved for safety)
-  perpsPerpTradingEnabled:
-    enabled: true
-    minimumVersion: '7.56.2'
-  perpsPerpTradingServiceInterruptionBannerEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  perpsPerpGtmOnboardingModalEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  perpsOrderBookEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  perpsFeedbackEnabled:
-    enabled: true
-    minimumVersion: '7.62.0'
-  perpsHip3Enabled:
-    enabled: true
-    minimumVersion: '7.60.4'
-  # LD sends { enabled: false } without minimumVersion — keeping minimumVersion for selector type-guard
-  perpsTradeWithAnyTokenIsEnabled:
-    enabled: false
-    minimumVersion: '7.66.0'
-  perpsMyxProviderEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  rewardsReferralCodeEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  # Earn/Staking
-  earnPooledStakingEnabled:
-    enabled: true
-    minimumVersion: '7.47.0'
-  earnPooledStakingServiceInterruptionBannerEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  earnStablecoinLendingEnabled:
-    enabled: true
-    minimumVersion: '7.51.0'
-  earnStablecoinLendingServiceInterruptionBannerEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  earnMusdConversionFlowEnabled:
-    enabled: true
-    minimumVersion: '7.65.0'
-  earnMusdCtaEnabled:
-    enabled: true
-    minimumVersion: '7.65.0'
-  earnMusdConversionAssetOverviewCtaEnabled:
-    enabled: true
-    minimumVersion: '7.65.0'
-  earnMusdConversionTokenListItemCtaEnabled:
-    enabled: true
-    minimumVersion: '7.65.0'
-  earnMusdConversionRewardsUiEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  earnMerklCampaignClaiming:
-    enabled: false
-    minimumVersion: '0.0.0'
-  # Predict
-  predictHotTab:
-    enabled: false
-    minimumVersion: '0.0.0'
-  # predictHomeFeaturedVariant has an extended structure: variant controls which layout is shown
-  predictHomeFeaturedVariant:
-    enabled: true
-    minimumVersion: '7.65.0'
-    variant: 'carousel'
-  predictGtmOnboardingModalEnabled:
-    enabled: true
-    minimumVersion: '7.60.0'
-  predictTradingEnabled:
-    enabled: true
-    minimumVersion: '7.60.0'
-  # Market Insights
-  aiSocialMarketAnalysisEnabled:
-    enabled: true
-    minimumVersion: '7.66.0'
-  # Card Features
-  # displayCardButton is a phased rollout in LD (10% enabled) — conservative disabled default
-  displayCardButton:
-    enabled: false
-    minimumVersion: '0.0.0'
-  cardExperimentalSwitch2:
-    enabled: true
-    minimumVersion: '7.58.1'
-  metalCardCheckoutEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  galileoAppleWalletInAppProvisioningEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  galileoGoogleWalletInAppProvisioningEnabled:
-    enabled: false
-    minimumVersion: '0.0.0'
-  # Homepage
-  homepageRedesignV1:
-    enabled: true
-    minimumVersion: '7.59.0'
-  homepageSectionsV1:
-    enabled: false
-    minimumVersion: '0.0.0'
-  # OTA Updates
-  otaUpdatesEnabled:
-    enabled: true
-    minimumVersion: '7.63.90'
-  # Token Details
-  tokenDetailsV2ButtonLayout:
-    enabled: false
-    minimumVersion: '7.67.0'
-  tokenListItemV2AbtestVersioned:
-    enabled: false
-    minimumVersion: '7.67.0'
-  # Tron Staking
-  trxStakingEnabled:
-    enabled: true
-    minimumVersion: '7.61.6'
-  # Assets
-  assetsAccountApiBalances:
-    - '0x1'
-    - '0xe708'
-    - '0x2105'
-    - '0x89'
-    - '0xa4b1'
-    - '0xa'
-    - '0x38'
-  additionalNetworksBlacklist: []
-
-# =============================================================================
 # Build Configurations
 # =============================================================================
 # Based on client distribution matrix - see docs for full mapping
@@ -327,7 +178,6 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # Beta (production APIs, RC signing; TestFlight / Play Store beta track)
   main-beta:
@@ -339,7 +189,6 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_beta
-    remote_feature_flags: *remote_feature_flags
 
   # Release candidate
   main-rc:
@@ -351,7 +200,6 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # Test builds (QA)
   main-test:
@@ -364,6 +212,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -372,7 +221,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # E2E test builds (no Sentry)
   main-e2e:
@@ -385,6 +233,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -393,7 +242,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # Experimental builds
   main-exp:
@@ -406,6 +254,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -413,7 +262,6 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
-    remote_feature_flags: *remote_feature_flags
 
   # Local development / Expo development build (Runway .app for simulator)
   main-dev:
@@ -425,6 +273,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -435,7 +284,6 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # ---------------------------------------------------------------------------
   # FLASK BUILDS
@@ -451,7 +299,6 @@ builds:
       METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags: *remote_feature_flags
 
   # Flask test builds (QA)
   flask-test:
@@ -464,6 +311,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -472,7 +320,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags: *remote_feature_flags
 
   # Flask E2E test builds (no Sentry)
   flask-e2e:
@@ -485,6 +332,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -493,7 +341,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags: *remote_feature_flags
 
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
@@ -505,6 +352,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -515,7 +363,6 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags: *remote_feature_flags
 
   # ─────────────────────────────────────────────────────────────────────────────
   # QA Builds (legacy - for internal testing)
@@ -544,7 +391,6 @@ builds:
       ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
       MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # QA dev build / Expo development build (Runway .app for simulator)
   qa-dev:
@@ -556,6 +402,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       RAMPS_ENVIRONMENT: 'staging'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -579,5 +426,3 @@ builds:
       ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
       MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
-

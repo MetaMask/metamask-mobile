@@ -5,11 +5,11 @@ import {
   Text,
   TextVariant,
   TextColor,
+  Skeleton,
 } from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -26,6 +26,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
 import { CashbackSelectors } from './Cashback.testIds';
+import { useNavigation } from '@react-navigation/native';
 
 const CURRENCY_DISPLAY_MAP: Record<string, string> = {
   musd: 'mUSD',
@@ -45,6 +46,7 @@ const formatAmount = (value: string | number): string => {
 };
 
 const Cashback: React.FC = () => {
+  const { goBack } = useNavigation();
   const tw = useTailwind();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -94,8 +96,9 @@ const Cashback: React.FC = () => {
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
       });
+      goBack();
     }
-  }, [monitoringStatus, toastRef, theme]);
+  }, [monitoringStatus, toastRef, theme, goBack]);
 
   useEffect(() => {
     if (monitoringStatus === 'failed' || monitoringError) {
@@ -189,7 +192,7 @@ const Cashback: React.FC = () => {
         </Box>
 
         {error ? (
-          <Box twClassName="rounded-xl bg-background-alternative p-4 items-center">
+          <Box twClassName="rounded-xl bg-background-muted p-4 items-center">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -199,7 +202,7 @@ const Cashback: React.FC = () => {
           </Box>
         ) : (
           <Box
-            twClassName="rounded-xl bg-background-alternative p-4"
+            twClassName="rounded-xl bg-background-muted p-4"
             testID={CashbackSelectors.DETAILS_CARD}
           >
             <Box twClassName="gap-3">

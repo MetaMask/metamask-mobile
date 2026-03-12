@@ -1,6 +1,6 @@
 import { RootState } from '../../reducers';
 import { selectIsPna25FlagEnabled } from '../featureFlagController/legalNotices';
-import { MetaMetrics } from '../../core/Analytics';
+import { analytics } from '../../util/analytics/analytics';
 import { newPrivacyPolicyDate } from '../../reducers/legalNotices';
 import { selectCompletedOnboarding } from '../onboarding';
 
@@ -59,7 +59,7 @@ export const selectShouldShowPna25Notice = (state: RootState): boolean => {
     return false;
   }
 
-  const areMetametricsEnabled = MetaMetrics.getInstance().isEnabled();
+  const areMetametricsEnabled = analytics.isEnabled();
 
   if (areMetametricsEnabled === false) {
     return false;

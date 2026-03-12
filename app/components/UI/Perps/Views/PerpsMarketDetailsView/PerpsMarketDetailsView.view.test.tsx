@@ -136,7 +136,7 @@ describe('PerpsMarketDetailsView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  describe('Bug #25315: Geo-restriction for Close and Modify actions', () => {
+  describe('Bug 25315: Geo-restriction for Close and Modify actions', () => {
     it('shows geo block bottom sheet when Close is pressed (geo-restricted user)', async () => {
       renderPerpsMarketDetailsView();
 

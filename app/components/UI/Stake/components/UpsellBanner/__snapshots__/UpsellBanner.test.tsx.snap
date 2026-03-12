@@ -4,7 +4,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 8,
       "flexDirection": "row",
       "gap": 8,
@@ -25,9 +25,9 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -62,7 +62,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -76,7 +76,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         onPress={[MockFunction]}
       >
         <SvgMock
-          color="#686e7d"
+          color="#66676a"
           fill="currentColor"
           height={16}
           name="Info"
@@ -109,7 +109,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -125,7 +125,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -145,7 +145,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 8,
       "gap": 8,
       "paddingHorizontal": 16,
@@ -157,9 +157,9 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Bold",
-        "fontSize": 18,
+        "fontSize": 20,
         "letterSpacing": 0,
         "lineHeight": 24,
       }
@@ -185,7 +185,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -206,7 +206,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -222,7 +222,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,

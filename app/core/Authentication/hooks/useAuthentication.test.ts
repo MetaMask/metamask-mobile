@@ -22,6 +22,7 @@ describe('useAuthentication', () => {
       expect(result.current.updateAuthPreference).toBeDefined();
       expect(result.current.getAuthCapabilities).toBeDefined();
       expect(result.current.updateOsAuthEnabled).toBeDefined();
+      expect(result.current.requestBiometricsAccessControlForIOS).toBeDefined();
       expect(result.current.checkIsSeedlessPasswordOutdated).toBeDefined();
 
       expect(typeof result.current.unlockWallet).toBe('function');
@@ -36,6 +37,9 @@ describe('useAuthentication', () => {
       expect(typeof result.current.updateAuthPreference).toBe('function');
       expect(typeof result.current.getAuthCapabilities).toBe('function');
       expect(typeof result.current.updateOsAuthEnabled).toBe('function');
+      expect(typeof result.current.requestBiometricsAccessControlForIOS).toBe(
+        'function',
+      );
       expect(typeof result.current.checkIsSeedlessPasswordOutdated).toBe(
         'function',
       );
