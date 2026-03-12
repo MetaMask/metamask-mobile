@@ -8,6 +8,7 @@ import React, {
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
+import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import PerpsSection from './Sections/Perpetuals';
 import PredictionsSection from './Sections/Predictions';
@@ -18,6 +19,8 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -38,6 +41,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+  const isMusdConversionEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
+  );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+  const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
 
   const { enableAllPopularNetworks } = useNetworkEnablement();
 
@@ -52,19 +60,20 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 
   /**
-   * Compute the ordered list of enabled sections. Tokens and NFTs are always
-   * present; Perps, Predictions, and DeFi are feature-flagged.
+   * Compute the ordered list of enabled sections. Cash is first when enabled;
+   * Tokens and NFTs are always present; Perps, Predictions, and DeFi are feature-flagged.
    */
   const enabledSections = useMemo(
     () =>
       [
+        { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled),
-    [isPerpsEnabled, isPredictEnabled, isDeFiEnabled],
+    [isCashSectionEnabled, isPerpsEnabled, isPredictEnabled, isDeFiEnabled],
   );
 
   const totalSectionsLoaded = enabledSections.length;
@@ -93,9 +102,13 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
     <Box
       gap={10}
       marginBottom={8}
-      marginTop={4}
+      paddingTop={4}
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
     >
+      <CashSection
+        sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
       <TokensSection
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
