@@ -3685,6 +3685,39 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
+      it('prefers the last WebSocket allMids snapshot over REST when available', async () => {
+        const mockInfoClient = createMockInfoClient({
+          metaAndAssetCtxs: jest.fn().mockResolvedValue([
+            { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+            [
+              {
+                funding: '0.0001',
+                openInterest: '1000',
+                prevDayPx: '49000',
+                dayNtlVlm: '1000000',
+                markPx: '50000',
+                midPx: '50000',
+                oraclePx: '50000',
+              },
+            ],
+          ]),
+          allMids: jest.fn().mockResolvedValue({ BTC: '49999' }),
+        });
+
+        mockClientService.getInfoClient = jest
+          .fn()
+          .mockReturnValue(mockInfoClient);
+        mockSubscriptionService.getLastAllMidsSnapshot.mockReturnValue({
+          BTC: '51000',
+        });
+
+        const freshProvider = createTestProvider();
+        const result = await freshProvider.getMarketDataWithPrices();
+
+        expect(result[0].price).toBe('$51000.00');
+        expect(mockInfoClient.allMids).not.toHaveBeenCalled();
+      });
+
       it('includes diagnostic context in error when all DEX fetches fail', async () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -3828,6 +3861,73 @@ describe('HyperLiquidProvider', () => {
 
           expect(staleMarketData[0].symbol).toBe(freshMarketData[0].symbol);
           expect(staleMarketData[0].isStale).toBe(true);
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      it('recovers on retry when cached meta refresh initially returns mismatched asset contexts', async () => {
+        jest.useFakeTimers();
+
+        try {
+          const mainMeta = {
+            universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+          };
+          const mainAssetCtx = {
+            funding: '0.001',
+            openInterest: '1000000',
+            prevDayPx: '49000',
+            dayNtlVlm: '1000000',
+            markPx: '50000',
+            midPx: '50000',
+            oraclePx: '50000',
+          };
+          let metaAndAssetCtxsCallCount = 0;
+
+          const mockInfoClient = createMockInfoClient({
+            metaAndAssetCtxs: jest.fn().mockImplementation(() => {
+              metaAndAssetCtxsCallCount += 1;
+
+              if (metaAndAssetCtxsCallCount === 1) {
+                return Promise.resolve([mainMeta, [mainAssetCtx]]);
+              }
+
+              if (metaAndAssetCtxsCallCount === 2) {
+                return Promise.resolve([mainMeta, []]);
+              }
+
+              return Promise.resolve([mainMeta, [mainAssetCtx]]);
+            }),
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          });
+
+          mockClientService.getInfoClient = jest
+            .fn()
+            .mockReturnValue(mockInfoClient);
+          mockSubscriptionService.getDexAssetCtxsCache.mockReturnValue([]);
+
+          const freshProvider = createTestProvider();
+          const resultPromise = freshProvider.getMarketDataWithPrices();
+
+          await jest.advanceTimersByTimeAsync(2000);
+
+          const result = await resultPromise;
+
+          expect(result).toEqual([
+            expect.objectContaining({
+              symbol: 'BTC',
+              price: '$50000.00',
+              isStale: false,
+            }),
+          ]);
+          expect(metaAndAssetCtxsCallCount).toBe(3);
+          expect(mockInfoClient.allMids).toHaveBeenCalledTimes(1);
+          expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
+            '[getMarketDataWithPrices] Retry succeeded',
+            expect.objectContaining({
+              marketCount: 1,
+            }),
+          );
         } finally {
           jest.useRealTimers();
         }

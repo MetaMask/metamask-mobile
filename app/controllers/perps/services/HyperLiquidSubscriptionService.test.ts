@@ -3476,6 +3476,39 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(result).toBeNull();
     });
 
+    it('getLastAllMidsSnapshot returns a defensive copy and null for unknown dexes', async () => {
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+      });
+
+      await jest.runAllTimersAsync();
+
+      const snapshot = service.getLastAllMidsSnapshot();
+      expect(snapshot).toEqual(
+        expect.objectContaining({
+          BTC: 50000,
+          ETH: 3000,
+        }),
+      );
+
+      if (!snapshot) {
+        throw new Error('Expected allMids snapshot to be populated');
+      }
+
+      delete snapshot.BTC;
+
+      expect(service.getLastAllMidsSnapshot()).toEqual(
+        expect.objectContaining({
+          BTC: 50000,
+          ETH: 3000,
+        }),
+      );
+      expect(service.getLastAllMidsSnapshot('missing-dex')).toBeNull();
+
+      unsubscribe();
+    });
+
     it('getFillsCacheIfInitialized returns null when cache not initialized', () => {
       const result = service.getFillsCacheIfInitialized();
 
