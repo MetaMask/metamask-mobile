@@ -6,6 +6,7 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { expect } from '@playwright/test';
 
 class BrowserPlaygroundDapp {
   private getByDataTestId(testId: string): EncapsulatedElementType {

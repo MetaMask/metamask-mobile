@@ -131,6 +131,7 @@ export class PlaywrightElement {
     contentVisibilityAuto?: boolean;
     opacityProperty?: boolean;
     visibilityProperty?: boolean;
+    reverse?: boolean;
   }): Promise<void> {
     await this.elem.waitForDisplayed(options);
   }
