@@ -52,7 +52,7 @@ const NON_FLAG_NAMES = new Set([
 
 const PR_COMMENT_MARKER = '<!-- check-feature-flag-registry -->';
 
-type FlagReference = { flagName: string; filePath: string };
+export type FlagReference = { flagName: string; filePath: string };
 
 function getRegisteredFlagNames(): string[] {
   const registryPath = path.resolve(REPO_ROOT, REGISTRY_FILE);
@@ -280,7 +280,7 @@ function findOrphanedFlags(flagNames: string[]): string[] {
   return orphaned.sort();
 }
 
-function parseDiff(diff: string): DiffResult {
+export function parseDiff(diff: string): DiffResult {
   const added = new Map<string, string[][]>();
   const removed = new Map<string, string[]>();
   let currentFile = '', pendingFile = '', lastWasAdded = false;
@@ -306,7 +306,7 @@ function parseDiff(diff: string): DiffResult {
   return { added, removed };
 }
 
-function extractFlagReferences(
+export function extractFlagReferences(
   line: string,
   filePath: string,
   skipDestructuring = false,
@@ -369,7 +369,7 @@ function extractFlagReferences(
   return refs;
 }
 
-function extractMultiLineDestructuring(chunk: string[], filePath: string): FlagReference[] {
+export function extractMultiLineDestructuring(chunk: string[], filePath: string): FlagReference[] {
   const refs: FlagReference[] = [];
   for (let i = 0; i < chunk.length; i++) {
     if (!chunk[i].includes('selectRemoteFeatureFlags')) continue;
@@ -393,7 +393,7 @@ function extractMultiLineDestructuring(chunk: string[], filePath: string): FlagR
   return refs;
 }
 
-function extractDestructuredIdentifiers(content: string): string[] {
+export function extractDestructuredIdentifiers(content: string): string[] {
   const ids: string[] = [];
   for (const part of content.split(/[,;]/)) {
     const t = part.trim();
@@ -641,7 +641,9 @@ async function findMarkerComment(
   return undefined;
 }
 
-main().catch((error) => {
-  console.error('Feature flag registry check failed:', error);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error('Feature flag registry check failed:', error);
+    process.exit(1);
+  });
+}
