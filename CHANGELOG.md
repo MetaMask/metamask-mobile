@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.68.2]
+
+### Fixed
+
+- Fixed a bug that permanently locked some seedless onboarding users out of their wallets after a background token refresh (#27382)
+
 ## [7.66.1]
 
 ### Fixed
@@ -10621,7 +10627,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...HEAD
+[7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.68.2
 [7.66.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...v7.66.1
 [7.66.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.65.0...v7.66.0
 [7.65.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...v7.65.0
