@@ -396,7 +396,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [candleData, selectedCandlePeriod, visibleCandleCount]);
 
   // Check if user has an existing position for this market
-  // Also provides positionOpenedTimestamp for stop loss prompt timing
   const {
     isLoading: isLoadingPosition,
     existingPosition,
