@@ -6,6 +6,7 @@ import {
   type CandleData,
 } from '@metamask/perps-controller';
 import TradingViewChart, { TPSLLines } from './TradingViewChart';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock WebView - using a string name to avoid out-of-scope issues
 jest.mock('@metamask/react-native-webview', () => ({
@@ -18,33 +19,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
     styles: {
       webView: { flex: 1 },
     },
-    theme: {
-      colors: {
-        background: { default: '#FFFFFF' },
-        border: {
-          muted: '#E5E5E5',
-          default: '#D1D5DB',
-        },
-        text: {
-          muted: '#6B7280',
-          default: '#111827',
-          alternative: '#374151',
-        },
-        error: {
-          muted: '#FEF2F2',
-          default: '#EF4444',
-          alternative: '#DC2626',
-        },
-        success: {
-          muted: '#F0FDF4',
-          default: '#22C55E',
-          alternative: '#16A34A',
-        },
-        icon: {
-          alternative: '#6B7280',
-        },
-      },
-    },
+    theme: mockTheme,
   }),
 }));
 

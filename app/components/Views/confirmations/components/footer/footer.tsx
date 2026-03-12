@@ -21,7 +21,6 @@ import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -39,6 +38,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { useQRHardwareContext } from '../../context/qr-hardware-context';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -59,7 +59,6 @@ export const Footer = () => {
   const { onConfirm, onReject } = useConfirmActions();
   const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
@@ -113,7 +112,6 @@ export const Footer = () => {
   }, [alerts, trackAlertMetrics]);
 
   const { styles } = useStyles(styleSheet, {
-    confirmDisabled,
     isStakingConfirmationBool,
     isFullScreenConfirmation,
   });
@@ -196,7 +194,7 @@ export const Footer = () => {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
   ) {
-    return <PredictClaimFooter onPress={onConfirm} />;
+    return <PredictClaimFooter onPress={onConfirm} onError={onReject} />;
   }
 
   return (
@@ -253,7 +251,6 @@ export const Footer = () => {
 export function FooterSkeleton() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { styles } = useStyles(styleSheet, {
-    confirmDisabled: false,
     isStakingConfirmationBool: false,
     isFullScreenConfirmation,
   });

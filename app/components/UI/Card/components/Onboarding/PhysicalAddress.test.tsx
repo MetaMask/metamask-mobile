@@ -147,8 +147,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   const Icon = ({ name, size, ...props }: { name: string; size: string }) =>
     React.createElement(View, { testID: 'icon', ...props });
 
+  const Label = ({
+    children,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) =>
+    React.createElement(RNText, props, children);
+
   return {
     Box,
+    Label,
     Text,
     Icon,
     TextVariant: {
@@ -205,19 +212,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     __esModule: true,
     default: MockTextField,
   };
-});
-
-// Mock Label
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) =>
-    React.createElement(Text, props, children);
 });
 
 // Mock Button

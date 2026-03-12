@@ -99,6 +99,8 @@ export interface UseTokenActionsResult {
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
   handleSellPress: () => void;
+  /** Whether the user has any tokens with positive balance that can be used as a swap source */
+  hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
 }
 
@@ -176,10 +178,11 @@ export const useTokenActions = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    const accountForChain =
-      isNonEvmToken && token.chainId
-        ? getAccountByScope(token.chainId as CaipChainId)
-        : selectedInternalAccount;
+    const accountForChain = token.chainId
+      ? (getAccountByScope(
+          formatChainIdToCaip(token.chainId as Hex) as CaipChainId,
+        ) ?? selectedInternalAccount)
+      : selectedInternalAccount;
 
     const addressForChain = accountForChain?.address;
 
@@ -309,7 +312,7 @@ export const useTokenActions = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
@@ -436,7 +439,11 @@ export const useTokenActions = ({
     }
 
     if (!goToSwaps) return;
-    goToSwaps(buySourceToken, currentTokenAsBridgeToken);
+    goToSwaps(
+      buySourceToken,
+      currentTokenAsBridgeToken,
+      strings('asset_overview.buy_button'),
+    );
   }, [
     goToSwaps,
     goToBuy,
@@ -449,7 +456,11 @@ export const useTokenActions = ({
   // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {
     if (!goToSwaps) return;
-    goToSwaps(currentTokenAsBridgeToken, undefined);
+    goToSwaps(
+      currentTokenAsBridgeToken,
+      undefined,
+      strings('asset_overview.sell_button'),
+    );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
   return {
@@ -459,6 +470,7 @@ export const useTokenActions = ({
     goToSwaps,
     handleBuyPress,
     handleSellPress,
+    hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };
 };

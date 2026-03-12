@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useMemo } from 'react';
+import React, { PropsWithChildren, useContext, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -12,16 +12,18 @@ import {
   filterMarketsByQuery,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
-import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import {
+  PerpsConnectionContext,
+  PerpsConnectionProvider,
+} from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import { IconName as DSIconName } from '@metamask/design-system-react-native';
+import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
@@ -34,9 +36,13 @@ import {
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
-import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
+import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 
-export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
+export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
+
+export type SectionIcon =
+  | { source: 'local'; name: LocalIconName }
+  | { source: 'design-system'; name: DSIconName };
 
 interface SectionData {
   data: unknown[];
@@ -46,7 +52,7 @@ interface SectionData {
 interface SectionConfig {
   id: SectionId;
   title: string;
-  icon: IconName;
+  icon: SectionIcon;
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
   RowItem: React.ComponentType<{
     item: unknown;
@@ -160,7 +166,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
     title: strings('trending.trending_tokens'),
-    icon: IconName.Ethereum,
+    icon: { source: 'design-system', name: DSIconName.Ethereum },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
@@ -202,7 +208,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   perps: {
     id: 'perps',
     title: strings('trending.perps'),
-    icon: IconName.Candlestick,
+    icon: { source: 'design-system', name: DSIconName.Candlestick },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
@@ -230,56 +236,78 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
     Skeleton: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
-      <PerpsConnectionProvider>
+      <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
     Section: SectionCard,
     useSectionData: (searchQuery) => {
+      const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
       const filteredMarkets = useMemo(() => {
+        if (connectionContext?.error) return [];
         if (!searchQuery) {
           return markets;
         }
         const filteredByQuery = filterMarketsByQuery(markets, searchQuery);
         return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
-      }, [markets, searchQuery]);
+      }, [markets, searchQuery, connectionContext?.error]);
 
       return {
         data: filteredMarkets,
-        isLoading: isLoading || isRefreshing,
+        isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
         refetch: refresh,
       };
+    },
+  },
+  stocks: {
+    id: 'stocks',
+    title: strings('trending.stocks'),
+    icon: { source: 'local', name: LocalIconName.CorporateFare },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
+    },
+    RowItem: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
+      />
+    ),
+    Skeleton: TrendingTokensSkeleton,
+    Section: SectionCard,
+    useSectionData: (searchQuery) => {
+      const { data, isLoading, refetch } = useRwaTokens({ searchQuery });
+      return { data, isLoading, refetch };
     },
   },
   predictions: {
     id: 'predictions',
     title: strings('wallet.predict'),
-    icon: IconName.Speedometer,
+    icon: { source: 'design-system', name: DSIconName.Speedometer },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
     RowItem: ({ item, index: _index }) => (
-      <Box twClassName="py-2">
-        <PredictMarket
-          market={item as PredictMarketType}
-          isCarousel
-          testID={`predict-market-list-trending-card-${
-            (item as PredictMarketType).id
-          }`}
-        />
-      </Box>
+      <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     OverrideRowItemSearch: ({ item }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
-    Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    Skeleton: SiteSkeleton,
     // Using sites skeleton cause PredictMarketSkeleton has too much spacing
     OverrideSkeletonSearch: SiteSkeleton,
-    Section: SectionCarrousel,
+    Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
         category: 'trending',
@@ -298,7 +326,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   sites: {
     id: 'sites',
     title: strings('trending.sites'),
-    icon: IconName.Global,
+    icon: { source: 'design-system', name: DSIconName.Global },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.SITES_FULL_VIEW);
     },
@@ -316,15 +344,17 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 
 // Sorted by order on the main screen
 const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
 const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
@@ -371,6 +401,9 @@ export const useSectionsData = (
   const { data: perpsMarkets, isLoading: isPerpsLoading } =
     SECTIONS_CONFIG.perps.useSectionData(searchQuery);
 
+  const { data: stocks, isLoading: isStocksLoading } =
+    SECTIONS_CONFIG.stocks.useSectionData(searchQuery);
+
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
     SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
 
@@ -385,6 +418,11 @@ export const useSectionsData = (
     perps: {
       data: perpsMarkets,
       isLoading: isPerpsLoading,
+    },
+    stocks: {
+      // Avoids making 2 API calls to the search endpoint when searching on the main search
+      data: stocks,
+      isLoading: isStocksLoading,
     },
     predictions: {
       data: predictionMarkets,

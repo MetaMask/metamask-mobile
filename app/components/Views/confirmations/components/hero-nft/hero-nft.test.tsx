@@ -27,6 +27,10 @@ jest.mock('../../hooks/transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: () => ({ isFullScreenConfirmation: false }),
+}));
+
 describe('HeroNft', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -62,6 +66,7 @@ describe('HeroNft', () => {
       }),
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(queryAllByText('#12345')).toHaveLength(2);
     expect(getByTestId('hero-nft-placeholder')).toBeOnTheScreen();
 
@@ -104,6 +109,7 @@ describe('HeroNft', () => {
     expect(getByTestId('nft-image')).toBeDefined();
     expect(getByTestId('network-avatar-image')).toBeDefined();
     expect(getByText('Test Dapp NFTs')).toBeDefined();
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#12345')).toBeDefined();
 
     fireEvent.press(getByTestId('nft-image'));
@@ -111,6 +117,20 @@ describe('HeroNft', () => {
     expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
       collectible: mockNft,
     });
+  });
+
+  it('renders horizontal layout with Sending label, name and tokenId', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <HeroNft layout="horizontal" />,
+      {
+        state: MOCK_STATE_NFT,
+      },
+    );
+
+    expect(getByText('Sending')).toBeOnTheScreen();
+    expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
+    expect(getByText('#12345')).toBeOnTheScreen();
+    expect(getByTestId('nft-image')).toBeOnTheScreen();
   });
 
   it('renders NFT image correctly when image is defined in collection.imageUrl', () => {
@@ -139,6 +159,7 @@ describe('HeroNft', () => {
     expect(getByTestId('nft-image')).toBeDefined();
     expect(getByTestId('network-avatar-image')).toBeDefined();
     expect(getByText('Test Dapp NFTs')).toBeDefined();
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#12345')).toBeDefined();
 
     fireEvent.press(getByTestId('nft-image'));

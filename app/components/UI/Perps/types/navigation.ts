@@ -27,6 +27,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
     /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
     showPerpsHeader?: boolean;
+    /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
+    source?: string;
   };
 
   PerpsOrderSuccess: {
@@ -77,7 +79,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     title?: string;
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
-    defaultSearchVisible?: boolean;
     showWatchlistOnly?: boolean;
     defaultMarketTypeFilter?:
       | 'all'
@@ -157,6 +158,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+    /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
+    source?: string;
   };
 
   // TP/SL screen
@@ -220,6 +223,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrderRedirect: {
     direction: 'long' | 'short';
     asset: string;
+    /** When true, the order was initiated from the token details screen */
+    fromTokenDetails?: boolean;
     /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
     assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };

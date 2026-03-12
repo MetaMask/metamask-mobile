@@ -9,6 +9,10 @@ on:
       platform:
         required: true
         type: string # android, ios, or both
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       build_name:
@@ -32,14 +36,20 @@ on:
         required: true
         type: choice
         options: [android, ios, both]
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  # Bump version in repo (bitrise.yml, package.json, ios/android) before building
+  # Bump version in repo (bitrise.yml, package.json, ios/android) before building.
+  # Skipped when skip_version_bump=true (e.g. nightly builds where Bitrise owns the bump).
   update-build-version:
+    if: ${{ !inputs.skip_version_bump }}
     uses: ./.github/workflows/update-latest-build-version.yml
     permissions:
       contents: write
@@ -52,6 +62,7 @@ jobs:
   # Load config
   prepare:
     needs: [update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -61,9 +72,10 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
       - run: yarn install --immutable
       - run: node scripts/validate-build-config.js
 
@@ -83,9 +95,28 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
 
+  # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
+  setup-dependencies:
+    name: Setup Dependencies (${{ matrix.platform }})
+    needs: [prepare]
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      checkout-submodules: true
+      platform: ${{ matrix.platform }}
+      build_name: ${{ inputs.build_name }}
+      use-tarball: true
+      upload-artifact: true
+      artifact-name: node-modules-${{ matrix.platform }}
+      artifact-retention-days: 1
+
   # Build
   build:
-    needs: [prepare, update-build-version]
+    needs: [prepare, setup-dependencies, update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
+    timeout-minutes: 120 # Must allow build step (115min) + setup; comment at Build step documents this
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -94,6 +125,7 @@ jobs:
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
+        if: ${{ !inputs.skip_version_bump }}
         run: |
           COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
           if [ -z "$COMMIT_HASH" ]; then
@@ -102,26 +134,109 @@ jobs:
           fi
           echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
+        if: ${{ !inputs.skip_version_bump }}
         with:
           ref: ${{ needs.update-build-version.outputs.commit-hash }}
-      - uses: actions/setup-node@v4
+          submodules: recursive
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump }}
         with:
-          node-version: '20'
-          cache: 'yarn'
-      - run: yarn install --immutable
+          submodules: recursive
+
+      # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ matrix.platform }}
+
+      - name: Extract tarball (preserves symlinks)
+        run: |
+          echo "📦 Extracting tarball..."
+          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
+          rm node-modules-${{ matrix.platform }}.tar.gz
+          echo "✅ Tarball extracted"
+
+      - name: Verify artifacts and symlinks
+        run: |
+          echo "✅ Verifying artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+
+          # Verify symlinks in .bin directory
+          echo "🔍 Checking .bin symlinks..."
+          if [ -e "node_modules/.bin/react-native" ]; then
+            echo "✅ react-native symlink exists and target is valid"
+            find node_modules/.bin -maxdepth 1 -name 'react-native' -ls
+          else
+            echo "❌ react-native symlink missing or broken"
+            find node_modules/.bin -maxdepth 1 -ls | head -10
+            exit 1
+          fi
+
+          # Check React Native scripts
+          if [ -d "node_modules/react-native/scripts" ]; then
+            echo "✅ React Native scripts found"
+          else
+            echo "❌ React Native scripts missing"
+            exit 1
+          fi
+
+          echo "✅ All artifacts verified with working symlinks!"
+
+      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from tarball). Signing is in Configure signing certificates below.
+      - name: Setup Ruby (iOS)
+        if: matrix.platform == 'ios'
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Select Xcode (iOS)
+        if: matrix.platform == 'ios'
+        env:
+          XCODE_VERSION: '16.3'
+        run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
 
       - name: Apply build config
         run: |
           # Load env vars from builds.yml (this step only)
-          eval "$(node scripts/apply-build-config.js "${{ inputs.build_name }}" --export)"
+          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
-          node scripts/apply-build-config.js "${{ inputs.build_name }}" --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
       - name: Validate secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
+
+      # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
+      - name: Install CocoaPods dependencies (iOS)
+        if: matrix.platform == 'ios'
+        env:
+          BUNDLE_GEMFILE: ios/Gemfile
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            node -e "require('fs').writeFileSync('ios/debug.xcconfig',''); require('fs').writeFileSync('ios/release.xcconfig','');"
+            yarn pod:install
 
       - name: Set secrets
         env:
@@ -143,6 +258,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # iOS: Clean up any existing keychains from previous runs
+      - name: Clean up existing keychains
+        if: matrix.platform == 'ios' && needs.prepare.outputs.signing_aws_role != ''
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "🧹 Removing existing keychain..."
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
@@ -154,31 +279,18 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
-      # iOS: install Ruby, Bundler, and CocoaPods so setup:github-ci has a working Ruby (fixes self-hosted runners)
-      - name: Installing iOS Environment Setup
+      # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
+      - name: Configure Node path for Xcode
         if: matrix.platform == 'ios'
-        timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
-        with:
-          platform: ios
-          configure-keystores: false
-          setup-simulator: false
-          ruby-version: '3.1.6'
+        run: |
+          NODE_BINARY=$(command -v node)
+          echo "Node binary: $NODE_BINARY"
+          echo "export NODE_BINARY=\"$NODE_BINARY\"" > ios/.xcode.env.local
+          echo "✅ Created ios/.xcode.env.local"
+          cat ios/.xcode.env.local
+          node --version
 
-      - name: Setup project dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            if [ "${{ matrix.platform }}" = "ios" ]; then
-              yarn setup:github-ci --build-ios --no-build-android
-            else
-              yarn setup:github-ci --no-build-ios
-            fi
-
+      # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -193,26 +305,64 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts
+      # Rename build artifacts (also zips simulator .app and writes ios_deploy_path / ios_archive_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
+        if: success()
+        id: rename
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      - name: Upload iOS artifacts
-        if: matrix.platform == 'ios'
+      - name: Upload iOS simulator artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          if-no-files-found: error
+
+      - name: Upload iOS device artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
           path: |
-            ios/build/Build/Products/
-            ios/build/output/
-            ios/build/*.xcarchive
+            ${{ steps.rename.outputs.ios_deploy_path }}
+            ${{ steps.rename.outputs.ios_archive_path }}
           if-no-files-found: error
 
-      - name: Upload Android artifacts
-        if: matrix.platform == 'android' && success()
+      - name: Upload iOS sourcemap
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sourcemaps-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_sourcemap_path }}
+          if-no-files-found: warn
+
+      # Dev builds (CONFIGURATION=Debug): APK only — mirrors Bitrise IS_DEV_BUILD behavior
+      - name: Upload Android dev artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.build_name }}
-          path: android/app/build/outputs/
+          path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
+
+      # Release builds: APK + AAB — mirrors Bitrise Deploy APK + Deploy AAB
+      - name: Upload Android release artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: |
+            ${{ steps.rename.outputs.android_apk_path }}
+            ${{ steps.rename.outputs.android_aab_path }}
+          if-no-files-found: error
+
+      # Non-Debug builds (prod, RC, beta, test, e2e, exp): sourcemaps — mirrors Bitrise Deploy Android Sourcemaps step
+      - name: Upload Android sourcemaps
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemaps-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_sourcemap_dir }}
+          if-no-files-found: warn

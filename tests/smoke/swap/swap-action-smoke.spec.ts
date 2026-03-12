@@ -51,13 +51,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
-            },
+            chainId: '0x1',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Localhost',
+            ticker: 'ETH',
           })
           .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
@@ -75,6 +73,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         ],
         testSpecificMock,
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await loginToApp();
@@ -190,11 +189,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     );
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfArrayHasLength(
+        // if the UI re-renders, it'll fetch extra quotes, so we need to check
+        // for at least 3 events
+        await Assertions.checkIfArrayHasMinLength(
           unifiedSwapBridgeQuotesRequested,
           3,
         ),
-      'Unified SwapBridge Quotes Requested: Should have 3 events',
+      'Unified SwapBridge Quotes Requested: Should have at least 3 events',
     );
     for (const event of unifiedSwapBridgeQuotesRequested) {
       await softAssert.checkAndCollect(

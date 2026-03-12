@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import {
@@ -34,7 +33,7 @@ const PerpsSelectModifyActionView: React.FC<
   onClose: onExternalClose,
   onReversePosition,
 }) => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -92,6 +91,7 @@ const PerpsSelectModifyActionView: React.FC<
               asset: position.symbol,
               existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
+              source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
             });
           }
           break;
@@ -117,6 +117,7 @@ const PerpsSelectModifyActionView: React.FC<
               asset: position.symbol,
               amount: positionSize.toString(),
               leverage: positionLeverage,
+              source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
             });
           }
           break;

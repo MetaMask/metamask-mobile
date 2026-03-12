@@ -75,6 +75,14 @@ jest.mock('@metamask/design-system-react-native', () => {
     }) => React.createElement(Text, { testID, ...props }, children),
     Icon: ({ name, size, ...props }: { name: string; size: string }) =>
       React.createElement(View, { testID: 'icon', ...props }),
+    Label: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(Text, { testID, ...props }, children),
     TextVariant,
     IconName,
     IconSize,
@@ -180,19 +188,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     ButtonVariants,
     ButtonWidthTypes,
   };
-});
-
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => React.createElement(Text, { testID }, children);
 });
 
 jest.mock('../../../Ramp/Deposit/components/DepositDateField', () => {

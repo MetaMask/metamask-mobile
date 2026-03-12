@@ -60,6 +60,10 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
 
   stopDeviceDiscovery(): void {}
 
+  async ensurePermissions(): Promise<boolean> {
+    return true;
+  }
+
   async isTransportAvailable(): Promise<boolean> {
     return true;
   }
@@ -77,9 +81,5 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
 
   getTransportDisabledErrorCode(): ErrorCode | null {
     return null;
-  }
-
-  getConnectionTips(): string[] {
-    return [];
   }
 }

@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictActionButtons from './PredictActionButtons';
+import PredictBetButton from './PredictBetButton';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import {
   PredictMarket,
   PredictOutcome,
@@ -79,7 +81,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       },
       homeTeam: {
@@ -87,7 +89,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
-        color: '#FB4F14',
+        color: TEST_HEX_COLORS.TEAM_DEN,
         alias: 'Broncos',
       },
     },
@@ -236,6 +238,19 @@ describe('PredictActionButtons', () => {
       expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
       expect(screen.queryByText('NO · 35¢')).not.toBeOnTheScreen();
     });
+
+    it('passes carousel mode to bet buttons', () => {
+      const props = createDefaultProps({ isCarousel: true });
+
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <PredictActionButtons {...props} />,
+      );
+
+      const betButtons = UNSAFE_getAllByType(PredictBetButton);
+
+      expect(betButtons[0].props.size).toBe('md');
+      expect(betButtons[1].props.size).toBe('md');
+    });
   });
 
   describe('bet buttons for game markets', () => {
@@ -311,6 +326,17 @@ describe('PredictActionButtons', () => {
   });
 
   describe('edge cases', () => {
+    it('uses default testID when testID is not provided', () => {
+      const props = createDefaultProps();
+      delete (props as Partial<typeof props>).testID;
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(
+        screen.getByTestId('predict-action-buttons-bet-yes'),
+      ).toBeOnTheScreen();
+    });
+
     it('renders nothing when outcome has less than 2 tokens', () => {
       const outcomeWithOneToken = createMockOutcome({
         tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
