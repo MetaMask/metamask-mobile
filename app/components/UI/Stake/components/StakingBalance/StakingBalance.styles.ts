@@ -1,8 +1,4 @@
 import { StyleSheet, TextStyle } from 'react-native';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
@@ -32,7 +28,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     tokenAmount: {
       ...params.theme.typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
       color: params.theme.colors.text.alternative,
     } as TextStyle,
     bannerStyles: {

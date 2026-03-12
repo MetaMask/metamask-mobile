@@ -48,6 +48,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text as DesignSystemText,
 } from '@metamask/design-system-react-native';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
@@ -276,7 +277,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
                 {receiptToken.name}
               </Text>
               <SensitiveText
-                variant={TextVariant.BodySMMedium}
+                variant={TextVariant.BodySM}
                 style={styles.tokenAmount}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
@@ -298,7 +299,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               onPress={handleNavigateToWithdrawalInputScreen}
               testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             >
-              <Text>{strings('earn.withdraw')}</Text>
+              <DesignSystemText>{strings('earn.withdraw')}</DesignSystemText>
             </Button>
           )}
           {userHasUnderlyingTokensAvailableToLend &&
@@ -311,7 +312,9 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
                 onPress={handleNavigateToDepositInputScreen}
                 testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
               >
-                <Text>{strings('earn.deposit_more')}</Text>
+                <DesignSystemText>
+                  {strings('earn.deposit_more')}
+                </DesignSystemText>
               </Button>
             )}
         </View>

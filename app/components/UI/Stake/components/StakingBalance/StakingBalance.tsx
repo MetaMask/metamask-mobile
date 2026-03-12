@@ -248,7 +248,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               {strings('stake.staked_ethereum')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySMMedium}
+              variant={TextVariant.BodySM}
               style={styles.tokenAmount}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}

@@ -1,8 +1,4 @@
 import { StyleSheet, TextStyle } from 'react-native';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: {
@@ -37,7 +33,6 @@ const styleSheet = (params: {
     },
     tokenAmount: {
       ...theme.typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
       color: theme.colors.text.alternative,
     } as TextStyle,
     musdConversionCta: {
