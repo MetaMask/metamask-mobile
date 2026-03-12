@@ -15,6 +15,7 @@ import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import PredictSportWinner from '../PredictSportWinner/PredictSportWinner';
 import { PredictMarketGame } from '../../types';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { PREDICT_SPORT_SCOREBOARD_TEST_IDS } from './PredictSportScoreboard.testIds';
 
 export interface PredictSportScoreboardProps {
   game: PredictMarketGame;
@@ -237,14 +238,14 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           <config.TeamIcon
             color={game.awayTeam.color}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}-away-team-icon`}
+            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON}`}
           />
         ) : (
           <PredictSportTeamLogo
             uri={game.awayTeam.logo}
             color={game.awayTeam.color}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}-away-team-icon`}
+            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON}`}
           />
         )}
 
@@ -255,14 +256,14 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             color={game.homeTeam.color}
             size={TEAM_ICON_SIZE}
             flipped
-            testID={`${testID}-home-team-icon`}
+            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON}`}
           />
         ) : (
           <PredictSportTeamLogo
             uri={game.homeTeam.logo}
             color={game.homeTeam.color}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}-home-team-icon`}
+            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON}`}
           />
         )}
       </Box>
@@ -289,7 +290,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="ml-1">
               <config.PossessionIcon
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}-away-possession`}
+                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION}`}
               />
             </Box>
           )}
@@ -297,7 +298,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="ml-1">
               <PredictSportWinner
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}-away-winner`}
+                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER}`}
               />
             </Box>
           )}
@@ -311,7 +312,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="mr-1">
               <config.PossessionIcon
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}-home-possession`}
+                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION}`}
               />
             </Box>
           )}
@@ -319,7 +320,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="mr-1">
               <PredictSportWinner
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}-home-winner`}
+                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER}`}
               />
             </Box>
           )}
