@@ -13,7 +13,10 @@ import type {
   SubscribePositionsParams,
   SubscribePricesParams,
 } from '../types';
-import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
+import {
+  adaptAccountStateFromSDK,
+  parseAssetName,
+} from '../utils/hyperLiquidAdapter';
 
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
@@ -106,6 +109,10 @@ describe('HyperLiquidSubscriptionService', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     mockDeps = createMockInfrastructure();
+    jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+      symbol,
+      dex: null,
+    }));
 
     // Mock subscription client
     const mockSubscription: MockSubscription = {
@@ -113,7 +120,11 @@ describe('HyperLiquidSubscriptionService', () => {
     };
 
     mockSubscriptionClient = {
-      allMids: jest.fn((callback: any) => {
+      allMids: jest.fn((paramsOrCallback: any, maybeCallback?: any) => {
+        const callback =
+          typeof paramsOrCallback === 'function'
+            ? paramsOrCallback
+            : maybeCallback;
         // Simulate allMids data
         setTimeout(() => {
           callback({
@@ -365,6 +376,7 @@ describe('HyperLiquidSubscriptionService', () => {
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       isTestnetMode: jest.fn(() => false),
       ensureTransportReady: jest.fn().mockResolvedValue(undefined),
+      getConnectionState: jest.fn(() => 'connected'),
     } as any;
 
     // Mock wallet service
@@ -3122,6 +3134,61 @@ describe('HyperLiquidSubscriptionService', () => {
         : 0;
       expect(finalCallCount).toBe(initialCallCount);
     });
+
+    it('cleans up failed assetCtxs subscriptions so later HIP-3 resubscribes reconnect cleanly', async () => {
+      const mockCallback = jest.fn();
+      jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+        symbol,
+        dex: symbol === 'BTC:UNISWAP' ? 'UNISWAP' : null,
+      }));
+
+      mockClientService.getInfoClient = jest.fn(
+        () =>
+          ({
+            meta: jest.fn().mockResolvedValue({
+              universe: [{ name: 'BTC:UNISWAP' }],
+            }),
+          }) as any,
+      );
+
+      mockSubscriptionClient.assetCtxs = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Subscription failed'))
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        })
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
+
+      const failedUnsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+      failedUnsubscribe();
+      await jest.runAllTimersAsync();
+
+      const recoveredUnsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+      recoveredUnsubscribe();
+      await jest.runAllTimersAsync();
+
+      const finalUnsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      expect(mockSubscriptionClient.assetCtxs).toHaveBeenCalledTimes(3);
+      finalUnsubscribe();
+    });
   });
 
   describe('Market Data Cache Initialization', () => {
@@ -3407,6 +3474,39 @@ describe('HyperLiquidSubscriptionService', () => {
       const result = service.getCachedFills();
 
       expect(result).toBeNull();
+    });
+
+    it('getLastAllMidsSnapshot returns a defensive copy and null for unknown dexes', async () => {
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+      });
+
+      await jest.runAllTimersAsync();
+
+      const snapshot = service.getLastAllMidsSnapshot();
+      expect(snapshot).toEqual(
+        expect.objectContaining({
+          BTC: 50000,
+          ETH: 3000,
+        }),
+      );
+
+      if (!snapshot) {
+        throw new Error('Expected allMids snapshot to be populated');
+      }
+
+      delete snapshot.BTC;
+
+      expect(service.getLastAllMidsSnapshot()).toEqual(
+        expect.objectContaining({
+          BTC: 50000,
+          ETH: 3000,
+        }),
+      );
+      expect(service.getLastAllMidsSnapshot('missing-dex')).toBeNull();
+
+      unsubscribe();
     });
 
     it('getFillsCacheIfInitialized returns null when cache not initialized', () => {
@@ -3986,43 +4086,30 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
 
-    // TODO: Refactor to test through public disconnect/reconnect API
-    it.skip('handles errors during assetCtxs subscription restoration', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const { parseAssetName } = require('../utils/hyperLiquidAdapter');
-      jest.mocked(parseAssetName).mockImplementation((symbol: string) => {
-        if (symbol === 'BTC:UNISWAP') {
-          return { symbol, dex: 'UNISWAP' };
-        }
-        return { symbol, dex: null };
-      });
+    it('schedules retry when assetCtxs restoration fails', async () => {
+      jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+        symbol,
+        dex: symbol === 'BTC:UNISWAP' ? 'UNISWAP' : null,
+      }));
 
-      const mockUnsubscribe = jest.fn();
-      const mockSubscription = { unsubscribe: mockUnsubscribe };
-
-      mockSubscriptionClient.activeAssetCtx.mockImplementation(
-        (params: any, callback: any) => {
-          setTimeout(() => {
-            callback({
-              coin: params.coin,
-              ctx: {
-                prevDayPx: '49000',
-                funding: '0.01',
-                openInterest: '1000000',
-                dayNtlVlm: '50000000',
-                oraclePx: '50100',
-                midPx: '50000',
-              },
-            });
-          }, 10);
-          return Promise.resolve(mockSubscription);
-        },
+      mockClientService.getInfoClient = jest.fn(
+        () =>
+          ({
+            meta: jest.fn().mockResolvedValue({
+              universe: [{ name: 'BTC:UNISWAP' }],
+            }),
+          }) as any,
       );
 
-      // Make assetCtxs fail
-      mockSubscriptionClient.assetCtxs.mockRejectedValueOnce(
-        new Error('Subscription failed'),
-      );
+      mockSubscriptionClient.assetCtxs = jest
+        .fn()
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        })
+        .mockRejectedValueOnce(new Error('Subscription failed'))
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
 
       const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC:UNISWAP'],
@@ -4032,12 +4119,13 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await jest.runAllTimersAsync();
 
-      // Clear subscriptions to simulate reconnection
-      (service as any).assetCtxsSubscriptions.clear();
-      (service as any).assetCtxsSubscriptionPromises.clear();
-
-      // Restore subscriptions should not throw
       await expect(service.restoreSubscriptions()).resolves.not.toThrow();
+      expect(mockSubscriptionClient.assetCtxs).toHaveBeenCalledTimes(2);
+
+      await jest.advanceTimersByTimeAsync(1000);
+
+      expect(mockSubscriptionClient.assetCtxs).toHaveBeenCalledTimes(3);
+      expect(mockDeps.logger.error).toHaveBeenCalled();
 
       unsubscribe();
     });
