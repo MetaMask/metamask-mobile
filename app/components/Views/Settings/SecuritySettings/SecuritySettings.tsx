@@ -414,7 +414,7 @@ const Settings: React.FC = () => {
                 },
               );
             }}
-            label={strings('login.refresh_auth_tokens')}
+            label={'REFRESH AUTH TOKENS'}
             disabled={loading}
             size={ButtonSize.Lg}
           />
