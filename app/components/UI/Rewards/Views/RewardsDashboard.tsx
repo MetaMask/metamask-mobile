@@ -57,6 +57,13 @@ import { KeyValueRowStubs } from '../../../../component-library/components-temp/
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 
+// mUSD Calculator constants
+const ANNUAL_BONUS_RATE = 0.03;
+const BUY_MUSD_URL =
+  'https://link.metamask.io/buy?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&amount=100&chainid=1&sig_params=address%2Camount%2Cchainid%2Cutm_source&utm_source=rewards&sig=SdHOoh_QvT1bs8B6g-qCyLH5mUEczYzeOfAv9SNRm4CKjR6uBnUp4e1-Vcojb39fWWScBrui2GLftNlJKQlrAQ';
+const SWAP_MUSD_URL =
+  'https://link.metamask.io/swap?from=eip155%3A1%2Fslip44%3A60&sig_params=from%2Cto%2Cutm_source&to=eip155%3A1%2Ferc20%3A0xacA92E438df0B2401fF60dA7E4337B687a2435DA&utm_source=rewards&sig=mCsMuZB-omwEg9WvGOwA8nuc8NvXj7uFfC_Pn-6Nmwlce2GF356tbZbHIgzYHWhmLb4kvUKMTpj4eb0yUrle1Q';
+
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -93,11 +100,6 @@ const RewardsDashboard: React.FC = () => {
 
   // mUSD Calculator state
   const [musdAmount, setMusdAmount] = useState('1000');
-  const ANNUAL_BONUS_RATE = 0.03;
-  const BUY_MUSD_URL =
-    'https://link.metamask.io/buy?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&amount=100&chainid=1&sig_params=address%2Camount%2Cchainid%2Cutm_source&utm_source=rewards&sig=SdHOoh_QvT1bs8B6g-qCyLH5mUEczYzeOfAv9SNRm4CKjR6uBnUp4e1-Vcojb39fWWScBrui2GLftNlJKQlrAQ';
-  const SWAP_MUSD_URL =
-    'https://link.metamask.io/swap?from=eip155%3A1%2Fslip44%3A60&sig_params=from%2Cto%2Cutm_source&to=eip155%3A1%2Ferc20%3A0xacA92E438df0B2401fF60dA7E4337B687a2435DA&utm_source=rewards&sig=mCsMuZB-omwEg9WvGOwA8nuc8NvXj7uFfC_Pn-6Nmwlce2GF356tbZbHIgzYHWhmLb4kvUKMTpj4eb0yUrle1Q';
 
   // mUSD Calculator computed values
   const musdCalculations = useMemo(() => {
@@ -327,13 +329,18 @@ const RewardsDashboard: React.FC = () => {
     }
   }, [trackEvent, createEventBuilder]);
 
+  // Only track tab viewed if activeTab is valid for the current user's tabOptions
+  // This prevents spurious analytics events for UK users before the reset effect fires
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
-        .addProperties({ tab: activeTab })
-        .build(),
-    );
-  }, [activeTab, trackEvent, createEventBuilder]);
+    const isActiveTabValid = tabOptions.some((tab) => tab.value === activeTab);
+    if (isActiveTabValid) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
+          .addProperties({ tab: activeTab })
+          .build(),
+      );
+    }
+  }, [activeTab, tabOptions, trackEvent, createEventBuilder]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
