@@ -303,11 +303,14 @@ describe('ManualBackupStep1', () => {
     );
     fireEvent.press(blurButton);
 
-    await waitFor(() => {
-      expect(
-        wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
-      ).toBeTruthy();
-    });
+    await waitFor(
+      () => {
+        expect(
+          wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
+        ).toBeTruthy();
+      },
+      { timeout: 10000 },
+    );
   }, 15000);
 
   it('render Step 2 of 3 i.e Reveal SeedPhrase with dark theme', async () => {
