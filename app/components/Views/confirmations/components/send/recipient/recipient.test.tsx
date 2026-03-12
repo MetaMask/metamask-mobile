@@ -205,6 +205,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -307,6 +308,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: 'some_dummy_address',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -399,6 +401,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -426,6 +429,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -463,6 +467,7 @@ describe('Recipient', () => {
       loading: true,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -530,6 +535,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xother',
       toAddressWarning: undefined,
     });
@@ -545,6 +551,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: 'Invalid address',
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -560,6 +567,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: 'Warning',
     });
@@ -575,6 +583,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: true,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -591,6 +600,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -624,6 +634,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -661,6 +672,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
