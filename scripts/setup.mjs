@@ -6,10 +6,7 @@ import path from 'path';
 
 const IS_CI = process.env.CI;
 
-// In CI, pipe stdout/stderr directly to the parent process so logs are visible.
-// execa v8's $ captures output by default; shared options propagate stdio: 'inherit'
-// to every command created from this instance.
-const $$ = IS_CI ? $({ stdio: 'inherit' }) : $;
+const $$ = $;
 
 const IS_OSX = process.platform === 'darwin';
 // iOS builds are enabled by default on macOS only but can be enabled or disabled explicitly
@@ -400,7 +397,7 @@ const concurrentTasks = {
 const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
   exitOnError: true,
-  renderer: IS_CI ? 'verbose' : 'default',
+  renderer: 'default',
   rendererOptions,
 });
 
