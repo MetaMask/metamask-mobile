@@ -66,6 +66,7 @@ import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -322,6 +323,7 @@ const TokenDetails: React.FC<{
         title={headerTitle}
         subtitle={headerSubtitle}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: CommonSelectorsIDs.BACK_ARROW_BUTTON }}
         endButtonIconProps={
           shouldShowMoreOptionsInNavBar && !useNewLayout
             ? [{ iconName: IconName.MoreVertical, onPress: openAssetOptions }]
