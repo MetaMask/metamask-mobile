@@ -85,4 +85,32 @@ describe('applyKeyAtCursor', () => {
       cursorPosition: 0,
     });
   });
+
+  it('normalizes leading zeros after backspace deletion', () => {
+    expect(
+      applyKeyAtCursor({
+        currentValue: '100',
+        pressedKey: Keys.Back,
+        cursorPosition: 1,
+        decimals: 18,
+      }),
+    ).toEqual({
+      value: '0',
+      cursorPosition: 0,
+    });
+  });
+
+  it('normalizes leading zeros after digit insertion', () => {
+    expect(
+      applyKeyAtCursor({
+        currentValue: '10',
+        pressedKey: Keys.Digit0,
+        cursorPosition: 0,
+        decimals: 18,
+      }),
+    ).toEqual({
+      value: '10',
+      cursorPosition: 0,
+    });
+  });
 });

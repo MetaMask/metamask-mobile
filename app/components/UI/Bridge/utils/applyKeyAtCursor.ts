@@ -13,6 +13,41 @@ const normalizeLeadingDecimal = (
     ? { value: `0${value}`, cursorPosition: cursorPosition + 1 }
     : { value, cursorPosition };
 
+const normalizeLeadingZeros = (
+  value: string,
+  cursorPosition: number,
+): { value: string; cursorPosition: number } => {
+  const decimalIndex = value.indexOf('.');
+  const integerPart =
+    decimalIndex === -1 ? value : value.slice(0, decimalIndex);
+  const normalizedIntegerPart = integerPart.replace(/^0+(?=\d)/u, '');
+  const removedCount = integerPart.length - normalizedIntegerPart.length;
+
+  if (removedCount === 0) {
+    return { value, cursorPosition };
+  }
+
+  const normalizedValue =
+    normalizedIntegerPart +
+    (decimalIndex === -1 ? '' : value.slice(decimalIndex));
+
+  return {
+    value: normalizedValue,
+    cursorPosition: cursorPosition - Math.min(cursorPosition, removedCount),
+  };
+};
+
+const normalizeValue = (
+  value: string,
+  cursorPosition: number,
+): { value: string; cursorPosition: number } => {
+  const normalizedDecimal = normalizeLeadingDecimal(value, cursorPosition);
+  return normalizeLeadingZeros(
+    normalizedDecimal.value,
+    normalizedDecimal.cursorPosition,
+  );
+};
+
 export const applyKeyAtCursor = ({
   currentValue,
   pressedKey,
@@ -44,10 +79,7 @@ export const applyKeyAtCursor = ({
       return { value: '0', cursorPosition: 0 };
     }
 
-    const normalized = normalizeLeadingDecimal(nextValue, boundedCursor - 1);
-    return normalized.value === '.'
-      ? { value: '0', cursorPosition: 0 }
-      : normalized;
+    return normalizeValue(nextValue, boundedCursor - 1);
   }
 
   if (pressedKey === Keys.Period) {
@@ -60,7 +92,7 @@ export const applyKeyAtCursor = ({
       '.' +
       normalizedCurrentValue.slice(boundedCursor);
 
-    return normalizeLeadingDecimal(insertedValue, boundedCursor + 1);
+    return normalizeValue(insertedValue, boundedCursor + 1);
   }
 
   if (!isDigitKey(pressedKey)) {
@@ -84,5 +116,5 @@ export const applyKeyAtCursor = ({
     }
   }
 
-  return { value: insertedValue, cursorPosition: boundedCursor + 1 };
+  return normalizeValue(insertedValue, boundedCursor + 1);
 };
