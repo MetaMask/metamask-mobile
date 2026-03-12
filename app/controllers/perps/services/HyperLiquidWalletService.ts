@@ -1,3 +1,5 @@
+import type { KeyringControllerState } from '@metamask/keyring-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
@@ -6,9 +8,13 @@ import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type {
   PerpsPlatformDependencies,
   PerpsTypedMessageParams,
+  PerpsInternalAccount,
 } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
+
+/** Type alias for account array from AccountTreeController */
+type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -38,7 +44,11 @@ export class HyperLiquidWalletService {
    * @returns True if the keyring is unlocked and available for signing.
    */
   public isKeyringUnlocked(): boolean {
-    return this.#messenger.call('KeyringController:getState').isUnlocked;
+    return (
+      this.#messenger.call(
+        'KeyringController:getState',
+      ) as KeyringControllerState
+    ).isUnlocked;
   }
 
   /**
@@ -53,13 +63,13 @@ export class HyperLiquidWalletService {
     }
     // Cast needed: PerpsTypedMessageParams uses loose `data: unknown` type
     // while KeyringController uses strict TypedMessageParams / SignTypedDataVersion
-    return this.#messenger.call(
+    return (await this.#messenger.call(
       'KeyringController:signTypedMessage',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       msgParams as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       'V4' as any,
-    );
+    )) as string;
   }
 
   /**
@@ -89,7 +99,7 @@ export class HyperLiquidWalletService {
     const evmAccount = getSelectedEvmAccount(
       this.#messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
+      ) as AccountGroupAccounts,
     );
 
     if (!evmAccount?.address) {
@@ -118,7 +128,7 @@ export class HyperLiquidWalletService {
         const currentEvmAccount = getSelectedEvmAccount(
           this.#messenger.call(
             'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ),
+          ) as AccountGroupAccounts,
         );
 
         if (!currentEvmAccount?.address) {
@@ -166,7 +176,7 @@ export class HyperLiquidWalletService {
     const evmAccount = getSelectedEvmAccount(
       this.#messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
+      ) as AccountGroupAccounts,
     );
 
     if (!evmAccount?.address) {

@@ -1,132 +1,281 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import ProtectWalletMandatoryModal from './ProtectWalletMandatoryModal';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { InteractionManager } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
 
-// Mock Device utility
-const mockIsIphoneX = jest.fn();
-jest.mock('../../../util/device', () => ({
-  isIphoneX: () => mockIsIphoneX(),
-  isAndroid: () => false,
-  isIos: () => true,
-  getDeviceWidth: () => 375,
-  getDeviceHeight: () => 812,
+const mockNavigate = jest.fn();
+const mockGetState = jest.fn(() => ({
+  routes: [{ name: 'Home' }],
 }));
 
-// Mock the navigation
-const mockNavigate = jest.fn();
-const mockDangerouslyGetState = jest.fn();
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      getState: mockDangerouslyGetState,
-    }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    getState: mockGetState,
+  }),
+}));
 
-// Mock the metrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+
 jest.mock('../../hooks/useMetrics', () => ({
   MetaMetricsEvents: {
     WALLET_SECURITY_PROTECT_VIEWED: 'WALLET_SECURITY_PROTECT_VIEWED',
     WALLET_SECURITY_PROTECT_ENGAGED: 'WALLET_SECURITY_PROTECT_ENGAGED',
   },
   useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn(),
-      }),
-    }),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
-// Mock Engine
 jest.mock('../../../core/Engine', () => ({
-  hasFunds: jest.fn().mockReturnValue(true),
+  hasFunds: jest.fn(() => true),
 }));
 
-// Mock InteractionManager
-jest.mock('react-native', () => {
-  const actualRN = jest.requireActual('react-native');
-  return {
-    ...actualRN,
-    InteractionManager: {
-      runAfterInteractions: jest.fn((callback) => callback()),
-    },
+jest.mock('react-native-modal', () => {
+  const MockModal = ({
+    children,
+    isVisible,
+    ...props
+  }: {
+    children: React.ReactNode;
+    isVisible: boolean;
+  }) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const { View } = require('react-native');
+    return isVisible ? (
+      <View testID="modal-container" {...props}>
+        {children}
+      </View>
+    ) : null;
   };
+  MockModal.displayName = 'MockModal';
+  return MockModal;
 });
 
-const initialState = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      SeedlessOnboardingController: {
-        vault: undefined,
-      },
+const createMockStore = (
+  passwordSet = false,
+  seedphraseBackedUp = false,
+  isSeedlessOnboarding = false,
+) =>
+  configureStore({
+    reducer: {
+      user: () => ({
+        passwordSet,
+        seedphraseBackedUp,
+      }),
+      engine: () => ({
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {},
+          },
+          TokensController: {
+            allTokens: {},
+          },
+          NftController: {
+            allNfts: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: '0x123',
+            },
+          },
+          SeedlessOnboardingController: {
+            isSeedlessOnboardingLoginFlow: isSeedlessOnboarding,
+          },
+        },
+      }),
     },
-  },
-  user: {
-    passwordSet: false,
-    seedphraseBackedUp: false,
-  },
-};
+  });
 
 describe('ProtectWalletMandatoryModal', () => {
   beforeEach(() => {
-    mockDangerouslyGetState.mockReturnValue({
+    jest.clearAllMocks();
+    mockGetState.mockReturnValue({
       routes: [{ name: 'Home' }],
     });
-    jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<ProtectWalletMandatoryModal />, {
-      state: initialState,
+  it('does not show modal when password is set and seedphrase is backed up', async () => {
+    const store = createMockStore(true, true);
+
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly on iPhoneX', () => {
-    mockIsIphoneX.mockReturnValue(true);
+  it('does not show modal for seedless onboarding flow', async () => {
+    const store = createMockStore(false, false, true);
 
-    const { toJSON } = renderWithProvider(<ProtectWalletMandatoryModal />, {
-      state: initialState,
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('tracks metrics event after interactions when securing wallet', () => {
-    const { getByText } = renderWithProvider(<ProtectWalletMandatoryModal />, {
-      state: initialState,
+  it('does not show modal when on SetPasswordFlow route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'SetPasswordFlow' }],
     });
 
-    const secureButton = getByText('Protect wallet');
-    fireEvent.press(secureButton);
+    const store = createMockStore(false, false);
+
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('does not show modal when on ChoosePassword route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'ChoosePassword' }],
+    });
+
+    const store = createMockStore(false, false);
+
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('does not show modal when on ManualBackupStep routes', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'ManualBackupStep1' }],
+    });
+
+    const store = createMockStore(true, false);
+
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('shows modal when password not set', async () => {
+    const store = createMockStore(false, false);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('modal-container')).toBeTruthy();
+    });
+  });
+
+  it('tracks WALLET_SECURITY_PROTECT_VIEWED event when modal is shown', async () => {
+    const store = createMockStore(false, false);
+
+    render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  it('navigates to SetPasswordFlow when Secure Wallet button is pressed', async () => {
+    const store = createMockStore(false, false);
+
+    const { getByText } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      const secureButton = getByText('Secure wallet');
+      fireEvent.press(secureButton);
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith('SetPasswordFlow', undefined);
-    expect(InteractionManager.runAfterInteractions).toHaveBeenCalled();
   });
 
-  it('does not render when in seedless onboarding login flow', () => {
-    const { queryByText } = renderWithProvider(
-      <ProtectWalletMandatoryModal />,
-      {
-        state: {
-          ...initialState,
-          engine: {
-            backgroundState: {
-              ...initialState.engine.backgroundState,
-              SeedlessOnboardingController: { vault: 'encrypted-vault-data' },
-            },
-          },
-        },
-      },
+  it('navigates to AccountBackupStep1 when password is already set', async () => {
+    const store = createMockStore(true, false);
+
+    const { getByText } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
     );
-    expect(queryByText('Protect wallet')).toBeNull();
+
+    await waitFor(() => {
+      const secureButton = getByText('Secure wallet');
+      fireEvent.press(secureButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('SetPasswordFlow', {
+      screen: 'AccountBackupStep1',
+    });
+  });
+
+  it('shows password-specific message when password not set', async () => {
+    const store = createMockStore(false, false);
+
+    const { getByText } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText(/create a password to protect your wallet/i),
+      ).toBeTruthy();
+    });
+  });
+
+  it('shows seedphrase-specific message when password is set but seedphrase not backed up', async () => {
+    const store = createMockStore(true, false);
+
+    const { getByText } = render(
+      <Provider store={store}>
+        <ProtectWalletMandatoryModal />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(getByText(/back up your Secret Recovery Phrase/i)).toBeTruthy();
+    });
   });
 });

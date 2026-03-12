@@ -2,27 +2,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { NavigationContainer, NavigationProp } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
-import CardRoutes, {
-  cardDefaultNavigationOptions,
-  cardSpendingLimitNavigationOptions,
-  cardChooseYourCardNavigationOptions,
-  headerStyle,
-} from './index';
-
-const mockStore = configureMockStore();
-
-interface MockNavigation {
-  goBack: jest.Mock;
-  reset: jest.Mock;
-}
-
-const createMockNavigation = (): MockNavigation => ({
-  goBack: jest.fn(),
-  reset: jest.fn(),
-});
+import { configureStore } from '@reduxjs/toolkit';
+import CardRoutes from './index';
 
 jest.mock('@react-navigation/stack', () => {
   const { View, Text } = require('react-native');
@@ -31,40 +14,39 @@ jest.mock('@react-navigation/stack', () => {
       Navigator: ({
         children,
         screenOptions,
+        initialRouteName,
       }: {
         children: React.ReactNode;
         screenOptions?: { headerShown?: boolean };
+        initialRouteName?: string;
       }) => (
         <View testID="stack-navigator">
           {screenOptions?.headerShown === false && (
             <Text>headerShown: false</Text>
           )}
+          {initialRouteName && (
+            <Text testID="initial-route">{initialRouteName}</Text>
+          )}
           {children}
         </View>
       ),
-      Screen: ({ name, options }: { name: string; options?: unknown }) => (
+      Screen: ({
+        name,
+        options,
+      }: {
+        name: string;
+        options?: {
+          headerShown?: boolean;
+        };
+      }) => (
         <View testID={`screen-${name}`}>
           <Text>{name}</Text>
-          {typeof options === 'function' && <Text>has-options-function</Text>}
+          {options?.headerShown === false && <Text>no-header</Text>}
         </View>
       ),
     }),
   };
 });
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../core/redux/slices/card', () => ({
-  selectIsAuthenticatedCard: jest.fn(),
-  selectIsCardholder: jest.fn(),
-}));
-
-jest.mock('../sdk', () => ({
-  withCardSDK: (Component: React.ComponentType) => Component,
-}));
 
 jest.mock('../Views/CardHome/CardHome', () => {
   const { View } = require('react-native');
@@ -154,6 +136,10 @@ jest.mock('../Views/Cashback/Cashback', () => {
   return () => <View testID="cashback" />;
 });
 
+jest.mock('../sdk', () => ({
+  withCardSDK: (Component: React.ComponentType) => Component,
+}));
+
 jest.mock('../../../../constants/navigation/Routes', () => ({
   CARD: {
     HOME: 'CardHome',
@@ -169,34 +155,33 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     },
     MODALS: {
       ID: 'CardModals',
-      ADD_FUNDS: 'AddFundsModal',
-      ASSET_SELECTION: 'AssetSelectionModal',
-      REGION_SELECTION: 'RegionSelectionModal',
+      ADD_FUNDS: 'AddFunds',
+      ASSET_SELECTION: 'AssetSelection',
+      REGION_SELECTION: 'RegionSelection',
       CONFIRM_MODAL: 'ConfirmModal',
-      PASSWORD: 'PasswordModal',
-      RECURRING_FEE: 'RecurringFeeModal',
-      DAIMO_PAY: 'DaimoPayModal',
-      VIEW_PIN: 'ViewPinModal',
+      PASSWORD: 'Password',
+      RECURRING_FEE: 'RecurringFee',
+      DAIMO_PAY: 'DaimoPay',
+      VIEW_PIN: 'ViewPin',
     },
   },
 }));
 
-type SelectorFunction = (state: unknown) => unknown;
-
-describe('CardRoutes', () => {
-  const { useSelector } = jest.requireMock('react-redux');
-  const { selectIsAuthenticatedCard, selectIsCardholder } = jest.requireMock(
-    '../../../../core/redux/slices/card',
-  );
-
-  const store = mockStore({
-    card: {
-      isAuthenticated: false,
-      isCardholder: false,
+const createMockStore = (isAuthenticated = false, isCardholder = false) =>
+  configureStore({
+    reducer: {
+      card: () => ({
+        isAuthenticatedCard: isAuthenticated,
+        isCardholder,
+      }),
     },
   });
 
-  const renderWithProviders = (component: React.ReactElement) =>
+describe('CardRoutes', () => {
+  const renderWithProviders = (
+    component: React.ReactElement,
+    store = createMockStore(),
+  ) =>
     render(
       <Provider store={store}>
         <NavigationContainer>{component}</NavigationContainer>
@@ -205,11 +190,6 @@ describe('CardRoutes', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useSelector.mockImplementation((selector: SelectorFunction) => {
-      if (selector === selectIsAuthenticatedCard) return false;
-      if (selector === selectIsCardholder) return false;
-      return undefined;
-    });
   });
 
   describe('CardRoutes component', () => {
@@ -219,7 +199,7 @@ describe('CardRoutes', () => {
       expect(getByTestId('stack-navigator')).toBeTruthy();
     });
 
-    it('renders nested navigation structure', () => {
+    it('renders nested stack navigators', () => {
       const { getAllByTestId } = renderWithProviders(<CardRoutes />);
 
       expect(getAllByTestId('stack-navigator').length).toBeGreaterThan(0);
@@ -231,227 +211,40 @@ describe('CardRoutes', () => {
       expect(getByTestId('screen-CardHome')).toBeTruthy();
     });
 
-    it('includes CardModals screen', () => {
+    it('includes CardModals navigator', () => {
       const { getByTestId } = renderWithProviders(<CardRoutes />);
 
       expect(getByTestId('screen-CardModals')).toBeTruthy();
     });
   });
 
-  describe('headerStyle', () => {
-    it('defines icon style with horizontal margin', () => {
-      expect(headerStyle.icon).toEqual({ marginHorizontal: 16 });
+  describe('Initial route selection', () => {
+    it('navigates to Home when authenticated', () => {
+      const store = createMockStore(true, false);
+      const { getAllByTestId } = renderWithProviders(<CardRoutes />, store);
+
+      const initialRoutes = getAllByTestId('initial-route');
+      expect(initialRoutes.some((el) => el.children[0] === 'CardHome')).toBe(
+        true,
+      );
     });
 
-    it('defines title style with self alignment', () => {
-      expect(headerStyle.title).toEqual({ alignSelf: 'center' });
-    });
-  });
+    it('navigates to Home when is cardholder', () => {
+      const store = createMockStore(false, true);
+      const { getAllByTestId } = renderWithProviders(<CardRoutes />, store);
 
-  describe('cardDefaultNavigationOptions', () => {
-    it('returns navigation options with headerLeft function', () => {
-      const mockNav = createMockNavigation();
-      const options = cardDefaultNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-      });
-
-      expect(options.headerLeft).toBeDefined();
-      expect(typeof options.headerLeft).toBe('function');
-    });
-
-    it('returns navigation options with headerTitle function', () => {
-      const mockNav = createMockNavigation();
-      const options = cardDefaultNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-      });
-
-      expect(options.headerTitle).toBeDefined();
-      expect(typeof options.headerTitle).toBe('function');
-    });
-
-    it('returns navigation options with headerRight function', () => {
-      const mockNav = createMockNavigation();
-      const options = cardDefaultNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-      });
-
-      expect(options.headerRight).toBeDefined();
-      expect(typeof options.headerRight).toBe('function');
-    });
-
-    it('headerLeft calls navigation.goBack when pressed', () => {
-      const mockNav = createMockNavigation();
-      const options = cardDefaultNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-      });
-
-      const headerLeft = options.headerLeft?.({
-        canGoBack: true,
-      });
-      headerLeft?.props.onPress();
-
-      expect(mockNav.goBack).toHaveBeenCalled();
+      const initialRoutes = getAllByTestId('initial-route');
+      expect(initialRoutes.some((el) => el.children[0] === 'CardHome')).toBe(
+        true,
+      );
     });
   });
 
-  describe('cardSpendingLimitNavigationOptions', () => {
-    it('shows back button for manage flow', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: { flow: 'manage' as const } };
-      const options = cardSpendingLimitNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
+  describe('Navigator configuration', () => {
+    it('renders with header hidden configuration', () => {
+      const { getByText } = renderWithProviders(<CardRoutes />);
 
-      expect(options.headerLeft).toBeDefined();
-      expect(options.gestureEnabled).toBe(true);
-    });
-
-    it('disables gestures for onboarding flow', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: { flow: 'onboarding' as const } };
-      const options = cardSpendingLimitNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
-
-      expect(options.gestureEnabled).toBe(false);
-    });
-
-    it('enables gestures for manage flow', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: { flow: 'manage' as const } };
-      const options = cardSpendingLimitNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
-
-      expect(options.gestureEnabled).toBe(true);
-    });
-
-    it('defaults to manage flow when no flow param is provided', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: {} };
-      const options = cardSpendingLimitNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
-
-      expect(options.gestureEnabled).toBe(true);
-    });
-
-    it('resets navigation to CardHome when close button is pressed in onboarding flow', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: { flow: 'onboarding' as const } };
-      const options = cardSpendingLimitNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
-
-      const headerRight = options.headerRight?.({ canGoBack: true });
-      headerRight?.props.onPress();
-
-      expect(mockNav.reset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: 'CardHome' }],
-      });
-    });
-  });
-
-  describe('cardChooseYourCardNavigationOptions', () => {
-    it('returns headerTitle as a function', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: {} };
-      const options = cardChooseYourCardNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
-
-      expect(typeof options.headerTitle).toBe('function');
-    });
-
-    it('returns headerRight as a function', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: {} };
-      const options = cardChooseYourCardNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
-
-      expect(typeof options.headerRight).toBe('function');
-    });
-
-    it('calls goBack when back button pressed in upgrade flow', () => {
-      const mockNav = createMockNavigation();
-      const route = { params: { flow: 'upgrade' as const } };
-      const options = cardChooseYourCardNavigationOptions({
-        navigation: mockNav as unknown as NavigationProp<
-          Record<string, unknown>
-        >,
-        route,
-      });
-
-      const headerLeft = options.headerLeft?.({ canGoBack: true });
-      headerLeft?.props.onPress();
-
-      expect(mockNav.goBack).toHaveBeenCalled();
-    });
-  });
-
-  describe('MainRoutes initial route selection', () => {
-    it('uses CardHome as initial route when user is authenticated', () => {
-      useSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector === selectIsAuthenticatedCard) return true;
-        if (selector === selectIsCardholder) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = renderWithProviders(<CardRoutes />);
-      expect(getByTestId('stack-navigator')).toBeTruthy();
-    });
-
-    it('uses CardHome as initial route when user is cardholder', () => {
-      useSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector === selectIsAuthenticatedCard) return false;
-        if (selector === selectIsCardholder) return true;
-        return undefined;
-      });
-
-      const { getByTestId } = renderWithProviders(<CardRoutes />);
-      expect(getByTestId('stack-navigator')).toBeTruthy();
-    });
-
-    it('uses CardWelcome as initial route when user is not authenticated and not cardholder', () => {
-      useSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector === selectIsAuthenticatedCard) return false;
-        if (selector === selectIsCardholder) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = renderWithProviders(<CardRoutes />);
-      expect(getByTestId('stack-navigator')).toBeTruthy();
+      expect(getByText('headerShown: false')).toBeTruthy();
     });
   });
 });

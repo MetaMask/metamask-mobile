@@ -1,4 +1,5 @@
 import { toHex } from '@metamask/controller-utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { parseCaipAssetId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 
@@ -7,11 +8,15 @@ import type {
   PerpsProvider,
   PerpsPlatformDependencies,
   PerpsTransactionParams,
+  PerpsInternalAccount,
 } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { generateDepositId } from '../utils/idUtils';
 import { generateERC20TransferData } from '../utils/transferData';
+
+/** Type alias for account array from AccountTreeController */
+type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(DEPOSIT_CONFIG.EstimatedGasLimit);
@@ -80,7 +85,7 @@ export class DepositService {
     const evmAccount = getSelectedEvmAccount(
       this.#messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
+      ) as AccountGroupAccounts,
     );
     if (!evmAccount) {
       throw new Error(

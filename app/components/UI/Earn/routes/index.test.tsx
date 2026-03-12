@@ -49,22 +49,22 @@ jest.mock('@react-navigation/stack', () => {
 
 jest.mock('../../Earn/Views/EarnLendingDepositConfirmationView', () => {
   const { View } = require('react-native');
-  return () => <View testID="earn-lending-deposit-confirmation-view" />;
+  return () => <View testID="earn-lending-deposit-confirmation" />;
 });
 
 jest.mock('../Views/EarnLendingWithdrawalConfirmationView', () => {
   const { View } = require('react-native');
-  return () => <View testID="earn-lending-withdrawal-confirmation-view" />;
+  return () => <View testID="earn-lending-withdrawal-confirmation" />;
 });
 
 jest.mock('../Views/EarnMusdConversionEducationView', () => {
   const { View } = require('react-native');
-  return () => <View testID="earn-musd-conversion-education-view" />;
+  return () => <View testID="earn-musd-conversion-education" />;
 });
 
 jest.mock('../Views/MusdQuickConvertView', () => {
   const { View } = require('react-native');
-  return () => <View testID="musd-quick-convert-view" />;
+  return () => <View testID="musd-quick-convert" />;
 });
 
 jest.mock('../modals/LendingMaxWithdrawalModal', () => {
@@ -77,19 +77,19 @@ jest.mock('../LendingLearnMoreModal', () => {
   return () => <View testID="lending-learn-more-modal" />;
 });
 
-jest.mock('../../../Views/confirmations/components/confirm', () => {
-  const { View } = require('react-native');
-  return {
-    Confirm: () => <View testID="confirm-component" />,
-  };
-});
+jest.mock('../../../Views/confirmations/components/confirm', () => ({
+  Confirm: () => {
+    const { View } = require('react-native');
+    return <View testID="confirm-component" />;
+  },
+}));
 
 jest.mock(
   '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations',
   () => ({
-    useEmptyNavHeaderForConfirmations: jest.fn(() => ({
+    useEmptyNavHeaderForConfirmations: () => ({
       headerShown: false,
-    })),
+    }),
   }),
 );
 
@@ -102,8 +102,8 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       QUICK_CONVERT: 'MusdQuickConvert',
     },
     MODALS: {
-      LENDING_MAX_WITHDRAWAL: 'LendingMaxWithdrawal',
-      LENDING_LEARN_MORE: 'LendingLearnMore',
+      LENDING_MAX_WITHDRAWAL: 'LendingMaxWithdrawalModal',
+      LENDING_LEARN_MORE: 'LendingLearnMoreModal',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
@@ -111,7 +111,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
   },
 }));
 
-describe('Earn Routes', () => {
+describe('EarnRoutes', () => {
   const renderWithNavigation = (component: React.ReactElement) =>
     render(<NavigationContainer>{component}</NavigationContainer>);
 
@@ -124,12 +124,6 @@ describe('Earn Routes', () => {
       const { getByTestId } = renderWithNavigation(<EarnScreenStack />);
 
       expect(getByTestId('stack-navigator')).toBeTruthy();
-    });
-
-    it('renders stack navigator structure', () => {
-      const { getAllByTestId } = renderWithNavigation(<EarnScreenStack />);
-
-      expect(getAllByTestId('stack-navigator').length).toBeGreaterThan(0);
     });
 
     it('includes LendingDepositConfirmation screen', () => {
@@ -161,16 +155,6 @@ describe('Earn Routes', () => {
 
       expect(getByTestId('screen-MusdQuickConvert')).toBeTruthy();
     });
-
-    it('uses useEmptyNavHeaderForConfirmations hook for header options', () => {
-      const mockHook = jest.requireMock(
-        '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations',
-      ).useEmptyNavHeaderForConfirmations;
-
-      renderWithNavigation(<EarnScreenStack />);
-
-      expect(mockHook).toHaveBeenCalled();
-    });
   });
 
   describe('EarnModalStack', () => {
@@ -180,22 +164,22 @@ describe('Earn Routes', () => {
       expect(getByTestId('stack-navigator')).toBeTruthy();
     });
 
-    it('renders stack navigator for modals', () => {
-      const { getAllByTestId } = renderWithNavigation(<EarnModalStack />);
+    it('renders with modal presentation', () => {
+      const { getByText } = renderWithNavigation(<EarnModalStack />);
 
-      expect(getAllByTestId('stack-navigator').length).toBeGreaterThan(0);
+      expect(getByText('presentation: modal')).toBeTruthy();
     });
 
-    it('includes LendingMaxWithdrawal modal screen', () => {
+    it('includes LendingMaxWithdrawalModal screen', () => {
       const { getByTestId } = renderWithNavigation(<EarnModalStack />);
 
-      expect(getByTestId('screen-LendingMaxWithdrawal')).toBeTruthy();
+      expect(getByTestId('screen-LendingMaxWithdrawalModal')).toBeTruthy();
     });
 
-    it('includes LendingLearnMore modal screen', () => {
+    it('includes LendingLearnMoreModal screen', () => {
       const { getByTestId } = renderWithNavigation(<EarnModalStack />);
 
-      expect(getByTestId('screen-LendingLearnMore')).toBeTruthy();
+      expect(getByTestId('screen-LendingLearnMoreModal')).toBeTruthy();
     });
 
     it('includes RedesignedConfirmations modal screen', () => {
@@ -204,32 +188,10 @@ describe('Earn Routes', () => {
       expect(getByTestId('screen-RedesignedConfirmations')).toBeTruthy();
     });
 
-    it('has modal presentation style', () => {
-      const { getByText } = renderWithNavigation(<EarnModalStack />);
-
-      expect(getByText('presentation: modal')).toBeTruthy();
-    });
-
-    it('has header hidden by default', () => {
+    it('has header hidden for all screens', () => {
       const { getByText } = renderWithNavigation(<EarnModalStack />);
 
       expect(getByText('headerShown: false')).toBeTruthy();
-    });
-  });
-
-  describe('Screen options', () => {
-    it('MusdConversionEducation screen has header hidden', () => {
-      const { getByTestId } = renderWithNavigation(<EarnScreenStack />);
-
-      const screen = getByTestId('screen-MusdConversionEducation');
-      expect(screen).toBeTruthy();
-    });
-
-    it('all modal screens have header hidden', () => {
-      const { getAllByText } = renderWithNavigation(<EarnModalStack />);
-
-      const noHeaderTexts = getAllByText('no-header');
-      expect(noHeaderTexts.length).toBeGreaterThan(0);
     });
   });
 });

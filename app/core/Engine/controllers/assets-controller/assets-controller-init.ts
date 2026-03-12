@@ -4,6 +4,8 @@ import {
   AssetsControllerFirstInitFetchMetaMetricsPayload,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
+import type { PreferencesState } from '@metamask/preferences-controller';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import {
   isAssetsUnifyStateFeatureEnabled,
   ASSETS_UNIFY_STATE_FLAG,
@@ -36,7 +38,9 @@ async function safeGetBearerToken(
   initMessenger: AssetsControllerInitMessenger,
 ): Promise<string | undefined> {
   try {
-    return await initMessenger.call('AuthenticationController:getBearerToken');
+    return (await initMessenger.call(
+      'AuthenticationController:getBearerToken',
+    )) as string | undefined;
   } catch {
     return undefined;
   }
@@ -54,7 +58,7 @@ function safeGetTokenDetectionEnabled(
   try {
     const preferencesState = initMessenger.call(
       'PreferencesController:getState',
-    );
+    ) as PreferencesState;
     return preferencesState?.useTokenDetection ?? true;
   } catch {
     return true;
@@ -109,7 +113,7 @@ export const assetsControllerInit: ControllerInitFunction<
     try {
       const remoteFeatureFlagState = initMessenger.call(
         'RemoteFeatureFlagController:getState',
-      );
+      ) as RemoteFeatureFlagControllerState;
       const featureFlag =
         remoteFeatureFlagState?.remoteFeatureFlags?.[ASSETS_UNIFY_STATE_FLAG];
 

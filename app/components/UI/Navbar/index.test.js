@@ -1,0 +1,570 @@
+import React from 'react';
+import { render } from '@testing-library/react-native';
+import {
+  getTransactionsNavbarOptions,
+  getNavigationOptionsTitle,
+  getEditableOptions,
+  getPaymentRequestOptionsTitle,
+  getPaymentRequestSuccessOptionsTitle,
+  getTransactionOptionsTitle,
+  getApproveNavbar,
+  getModalNavbarOptions,
+  getOnboardingNavbarOptions,
+  getTransparentOnboardingNavbarOptions,
+  getTransparentBackOnboardingNavbarOptions,
+  getOptinMetricsNavbarOptions,
+  getClosableNavigationOptions,
+  getOfflineModalNavbar,
+  getDepositNavbarOptions,
+  getEditAccountNameNavBarOptions,
+  getNetworkNavbarOptions,
+  getBridgeNavbar,
+  getBridgeTransactionDetailsNavbar,
+  getStakingNavbar,
+  getDeFiProtocolPositionDetailsNavbarOptions,
+  getRampsOrderDetailsNavbarOptions,
+} from './index';
+import { BridgeViewMode } from '../Bridge/types';
+
+const mockThemeColors = {
+  background: {
+    default: '#FFFFFF',
+    primary: '#F5F5F5',
+  },
+  text: {
+    default: '#000000',
+  },
+  primary: {
+    default: '#037DD6',
+  },
+  icon: {
+    default: '#24272A',
+  },
+  overlay: {
+    default: 'rgba(0,0,0,0.5)',
+  },
+};
+
+const mockNavigation = {
+  goBack: jest.fn(),
+  pop: jest.fn(),
+  setOptions: jest.fn(),
+  navigate: jest.fn(),
+  getParent: jest.fn(() => ({
+    pop: jest.fn(),
+  })),
+};
+
+const mockRoute = {
+  params: {},
+  name: 'TestRoute',
+};
+
+describe('Navbar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('getTransactionsNavbarOptions', () => {
+    it('returns correct navbar options with title', () => {
+      const options = getTransactionsNavbarOptions(
+        'Transactions',
+        mockThemeColors,
+        jest.fn(),
+        '0x1234567890abcdef',
+        jest.fn(),
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+      expect(options.headerTintColor).toBe(mockThemeColors.primary.default);
+    });
+
+    it('renders headerTitle component', () => {
+      const options = getTransactionsNavbarOptions(
+        'Transactions',
+        mockThemeColors,
+        jest.fn(),
+        '0x1234567890abcdef',
+        jest.fn(),
+      );
+
+      const { getByText } = render(options.headerTitle());
+      expect(getByText('Transactions')).toBeTruthy();
+    });
+
+    it('renders headerRight component', () => {
+      const handleRightPress = jest.fn();
+      const options = getTransactionsNavbarOptions(
+        'Transactions',
+        mockThemeColors,
+        jest.fn(),
+        '0x1234567890abcdef',
+        handleRightPress,
+      );
+
+      const HeaderRight = options.headerRight;
+      expect(HeaderRight).toBeDefined();
+    });
+  });
+
+  describe('getNavigationOptionsTitle', () => {
+    it('returns correct options with title', () => {
+      const options = getNavigationOptionsTitle(
+        'Settings',
+        mockNavigation,
+        false,
+        mockThemeColors,
+      );
+
+      expect(options.title).toBe('Settings');
+      expect(options.headerTitleAlign).toBe('center');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+    });
+
+    it('shows close button for full screen modal', () => {
+      const options = getNavigationOptionsTitle(
+        'Settings',
+        mockNavigation,
+        true,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      expect(HeaderRight).toBeDefined();
+    });
+
+    it('shows back button for non-full screen modal', () => {
+      const options = getNavigationOptionsTitle(
+        'Settings',
+        mockNavigation,
+        false,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      expect(HeaderLeft).toBeDefined();
+    });
+  });
+
+  describe('getEditableOptions', () => {
+    it('returns correct options for edit mode', () => {
+      const routeWithEditMode = {
+        ...mockRoute,
+        params: { editMode: 'edit', dispatch: jest.fn() },
+      };
+      const options = getEditableOptions(
+        'Contact',
+        mockNavigation,
+        routeWithEditMode,
+        mockThemeColors,
+      );
+
+      expect(options.title).toBe('Contact');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('returns correct options for add mode', () => {
+      const routeWithAddMode = {
+        ...mockRoute,
+        params: { mode: 'add' },
+      };
+      const options = getEditableOptions(
+        'Contact',
+        mockNavigation,
+        routeWithAddMode,
+        mockThemeColors,
+      );
+
+      expect(options.title).toBe('Contact');
+    });
+  });
+
+  describe('getPaymentRequestOptionsTitle', () => {
+    it('returns correct options', () => {
+      const options = getPaymentRequestOptionsTitle(
+        'Payment Request',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options.headerTitleAlign).toBe('center');
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+    });
+
+    it('shows back button when dispatch is present in route params', () => {
+      const routeWithDispatch = {
+        ...mockRoute,
+        params: { dispatch: jest.fn() },
+      };
+      const options = getPaymentRequestOptionsTitle(
+        'Payment Request',
+        mockNavigation,
+        routeWithDispatch,
+        mockThemeColors,
+      );
+
+      expect(options.headerLeft).toBeDefined();
+    });
+  });
+
+  describe('getPaymentRequestSuccessOptionsTitle', () => {
+    it('returns correct options', () => {
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options.title).toBeNull();
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+  });
+
+  describe('getTransactionOptionsTitle', () => {
+    it('returns correct options', () => {
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('returns edit title when mode is edit', () => {
+      const routeWithEditMode = {
+        ...mockRoute,
+        params: { mode: 'edit' },
+      };
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        routeWithEditMode,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+    });
+  });
+
+  describe('getApproveNavbar', () => {
+    it('returns correct options', () => {
+      const options = getApproveNavbar('Approve');
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+    });
+  });
+
+  describe('getModalNavbarOptions', () => {
+    it('returns correct options with title', () => {
+      const options = getModalNavbarOptions('Modal Title');
+
+      expect(options).toHaveProperty('headerTitle');
+    });
+  });
+
+  describe('getOnboardingNavbarOptions', () => {
+    it('returns correct options', () => {
+      const options = getOnboardingNavbarOptions(
+        mockRoute,
+        {},
+        mockThemeColors,
+        true,
+      );
+
+      expect(options).toHaveProperty('headerStyle');
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerLeft');
+    });
+
+    it('hides logo when showLogo is false', () => {
+      const options = getOnboardingNavbarOptions(
+        mockRoute,
+        {},
+        mockThemeColors,
+        false,
+      );
+
+      expect(options.headerTitle).toBeNull();
+    });
+  });
+
+  describe('getTransparentOnboardingNavbarOptions', () => {
+    it('returns correct options', () => {
+      const options = getTransparentOnboardingNavbarOptions(mockThemeColors);
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('uses custom background color when provided', () => {
+      const options = getTransparentOnboardingNavbarOptions(
+        mockThemeColors,
+        '#FF0000',
+      );
+
+      expect(options.headerStyle.backgroundColor).toBe('#FF0000');
+    });
+
+    it('hides logo when showLogo is false', () => {
+      const options = getTransparentOnboardingNavbarOptions(
+        mockThemeColors,
+        undefined,
+        false,
+      );
+
+      expect(options.headerTitle()).toBeNull();
+    });
+  });
+
+  describe('getTransparentBackOnboardingNavbarOptions', () => {
+    it('returns correct options', () => {
+      const options =
+        getTransparentBackOnboardingNavbarOptions(mockThemeColors);
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerBackTitle');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+  });
+
+  describe('getOptinMetricsNavbarOptions', () => {
+    it('returns correct options', () => {
+      const options = getOptinMetricsNavbarOptions(mockThemeColors, true);
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerBackTitle');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('hides logo when showLogo is false', () => {
+      const options = getOptinMetricsNavbarOptions(mockThemeColors, false);
+
+      expect(options.headerTitle()).toBeNull();
+    });
+  });
+
+  describe('getClosableNavigationOptions', () => {
+    it('returns correct options', () => {
+      const options = getClosableNavigationOptions(
+        'Title',
+        'Back',
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options.title).toBe('Title');
+      expect(options).toHaveProperty('headerTitleStyle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerStyle');
+    });
+  });
+
+  describe('getOfflineModalNavbar', () => {
+    it('returns correct options', () => {
+      const options = getOfflineModalNavbar();
+
+      expect(options.headerShown).toBe(false);
+    });
+  });
+
+  describe('getDepositNavbarOptions', () => {
+    it('returns correct options with title', () => {
+      const options = getDepositNavbarOptions(
+        mockNavigation,
+        { title: 'Deposit' },
+        { colors: mockThemeColors },
+      );
+
+      expect(options).toHaveProperty('header');
+    });
+
+    it('shows back button when showBack is true', () => {
+      const options = getDepositNavbarOptions(
+        mockNavigation,
+        { title: 'Deposit', showBack: true },
+        { colors: mockThemeColors },
+      );
+
+      expect(options).toHaveProperty('header');
+    });
+
+    it('shows configuration button when showConfiguration is true', () => {
+      const options = getDepositNavbarOptions(
+        mockNavigation,
+        {
+          title: 'Deposit',
+          showConfiguration: true,
+          onConfigurationPress: jest.fn(),
+        },
+        { colors: mockThemeColors },
+      );
+
+      expect(options).toHaveProperty('header');
+    });
+  });
+
+  describe('getEditAccountNameNavBarOptions', () => {
+    it('returns correct options', () => {
+      const goBack = jest.fn();
+      const options = getEditAccountNameNavBarOptions(goBack, mockThemeColors);
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options.headerLeft).toBeNull();
+      expect(options).toHaveProperty('headerRight');
+    });
+  });
+
+  describe('getNetworkNavbarOptions', () => {
+    it('returns correct options', () => {
+      const options = getNetworkNavbarOptions(
+        'Network',
+        false,
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('header');
+    });
+
+    it('shows right button when onRightPress is provided', () => {
+      const onRightPress = jest.fn();
+      const options = getNetworkNavbarOptions(
+        'Network',
+        false,
+        mockNavigation,
+        mockThemeColors,
+        onRightPress,
+      );
+
+      expect(options).toHaveProperty('header');
+    });
+  });
+
+  describe('getBridgeNavbar', () => {
+    it('returns correct options for Bridge mode', () => {
+      const options = getBridgeNavbar(
+        mockNavigation,
+        BridgeViewMode.Bridge,
+        mockThemeColors,
+      );
+
+      expect(options).toBeDefined();
+    });
+
+    it('returns correct options for Swap mode', () => {
+      const options = getBridgeNavbar(
+        mockNavigation,
+        BridgeViewMode.Swap,
+        mockThemeColors,
+      );
+
+      expect(options).toBeDefined();
+    });
+  });
+
+  describe('getBridgeTransactionDetailsNavbar', () => {
+    it('returns correct options', () => {
+      const options = getBridgeTransactionDetailsNavbar(mockNavigation);
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+    });
+  });
+
+  describe('getStakingNavbar', () => {
+    it('returns correct options', () => {
+      const options = getStakingNavbar(
+        'Staking',
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerStyle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+    });
+
+    it('hides back button when hasBackButton is false', () => {
+      const options = getStakingNavbar(
+        'Staking',
+        mockNavigation,
+        mockThemeColors,
+        { hasBackButton: false },
+      );
+
+      expect(options).toHaveProperty('headerLeft');
+    });
+
+    it('shows icon button when hasIconButton is true', () => {
+      const options = getStakingNavbar(
+        'Staking',
+        mockNavigation,
+        mockThemeColors,
+        {
+          hasCancelButton: false,
+          hasIconButton: true,
+          handleIconPress: jest.fn(),
+        },
+      );
+
+      expect(options).toHaveProperty('headerRight');
+    });
+  });
+
+  describe('getDeFiProtocolPositionDetailsNavbarOptions', () => {
+    it('returns correct options', () => {
+      const options =
+        getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+    });
+  });
+
+  describe('getRampsOrderDetailsNavbarOptions', () => {
+    it('returns correct options', () => {
+      const options = getRampsOrderDetailsNavbarOptions(
+        mockNavigation,
+        { title: 'Order Details' },
+        { colors: mockThemeColors },
+      );
+
+      expect(options).toBeDefined();
+    });
+
+    it('shows back button when showBack is true', () => {
+      const options = getRampsOrderDetailsNavbarOptions(
+        mockNavigation,
+        { title: 'Order Details', showBack: true },
+        { colors: mockThemeColors },
+        jest.fn(),
+      );
+
+      expect(options).toBeDefined();
+    });
+  });
+});

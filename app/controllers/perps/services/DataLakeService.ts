@@ -1,3 +1,4 @@
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { v4 as uuidv4 } from 'uuid';
 
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
@@ -6,11 +7,14 @@ import {
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
 import { PerpsTraceNames, PerpsTraceOperations } from '../types';
-import type { PerpsPlatformDependencies } from '../types';
+import type { PerpsPlatformDependencies, PerpsInternalAccount } from '../types';
 import type { ServiceContext } from './ServiceContext';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
+
+/** Type alias for account array from AccountTreeController */
+type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 
 /**
  * DataLakeService
@@ -46,7 +50,9 @@ export class DataLakeService {
    * @returns The bearer token string for API authentication.
    */
   async #getBearerToken(): Promise<string> {
-    return this.#messenger.call('AuthenticationController:getBearerToken');
+    return (await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    )) as string;
   }
 
   /**
@@ -134,7 +140,7 @@ export class DataLakeService {
       const evmAccount = getSelectedEvmAccount(
         this.#messenger.call(
           'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
+        ) as AccountGroupAccounts,
       );
 
       if (!evmAccount || !token) {
