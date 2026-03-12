@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import {
+  Button,
+  ButtonVariant,
   Text,
   TextVariant,
   TextColor,
@@ -58,24 +60,16 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
       </View>
 
       <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
-          <Text fontWeight={FontWeight.Bold}>
-            {strings(
-              'card.card_home.warnings.close_spending_limit.dismiss_button_label',
-            )}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.setLimitButton}
-          onPress={handleSetNewLimit}
-        >
-          <Text fontWeight={FontWeight.Bold}>
-            {strings(
-              'card.card_home.warnings.close_spending_limit.confirm_button_label',
-            )}
-          </Text>
-        </TouchableOpacity>
+        <Button variant={ButtonVariant.Secondary} onPress={onDismiss}>
+          {strings(
+            'card.card_home.warnings.close_spending_limit.dismiss_button_label',
+          )}
+        </Button>
+        <Button variant={ButtonVariant.Primary} onPress={handleSetNewLimit}>
+          {strings(
+            'card.card_home.warnings.close_spending_limit.confirm_button_label',
+          )}
+        </Button>
       </View>
     </View>
   );

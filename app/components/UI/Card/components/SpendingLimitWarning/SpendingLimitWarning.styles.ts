@@ -32,22 +32,6 @@ const createStyles = (theme: Theme) =>
       marginLeft: 36, // Align with text content (icon width + margin)
       gap: 8, // Space between buttons
     },
-    dismissButton: {
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
-    },
-    setLimitButton: {
-      backgroundColor: theme.colors.background.default,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
-    },
   });
 
 export default createStyles;
