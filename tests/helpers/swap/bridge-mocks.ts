@@ -15,6 +15,20 @@ import {
 } from './constants';
 import { setupSpotPricesMock } from './swap-mocks';
 
+const BRIDGE_TX_STATUS_COMPLETE = {
+  status: 'COMPLETE',
+  srcChain: {
+    chainId: 1,
+    txHash:
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+  },
+  destChain: {
+    chainId: 8453,
+    txHash:
+      '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  },
+};
+
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
@@ -124,6 +138,15 @@ export const testSpecificMock: TestSpecificMock = async (
       ...GET_POPULAR_TOKENS_MAINNET_RESPONSE,
       ...GET_POPULAR_TOKENS_BASE_RESPONSE,
     ],
+    responseCode: 200,
+  });
+
+  // Mock getTxStatus with a full response so the BridgeStatusController
+  // marks the bridge as complete (srcChain + destChain txHash present)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getTxStatus/i,
+    response: BRIDGE_TX_STATUS_COMPLETE,
     responseCode: 200,
   });
 };

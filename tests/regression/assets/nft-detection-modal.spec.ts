@@ -6,6 +6,9 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import NftDetectionModal from '../../page-objects/wallet/NftDetectionModal';
 import { RegressionAssets } from '../../tags';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds.ts';
 
@@ -24,6 +27,11 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+        },
       },
       async () => {
         await loginToApp();
@@ -36,7 +44,7 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is visible
-        await WalletView.tapNftTab();
+        await WalletView.scrollAndTapNftsSection();
         await Assertions.expectTextDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
@@ -53,6 +61,11 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+        },
       },
       async () => {
         await loginToApp();
@@ -65,7 +78,7 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
         await device.disableSynchronization();
 
         // Go to NFTs tab and check that the banner is NOT visible
-        await WalletView.tapNftTab();
+        await WalletView.scrollAndTapNftsSection();
         await Assertions.expectTextNotDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );

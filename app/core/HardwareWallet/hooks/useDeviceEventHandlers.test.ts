@@ -40,6 +40,7 @@ describe('useDeviceEventHandlers', () => {
       resetFlowState: jest.fn(),
       startDeviceDiscovery: jest.fn().mockReturnValue(jest.fn()),
       stopDeviceDiscovery: jest.fn(),
+      ensurePermissions: jest.fn(() => Promise.resolve(true)),
       isTransportAvailable: jest.fn(() => Promise.resolve(true)),
       getRequiredAppName: jest.fn().mockReturnValue('Ethereum'),
       getTransportDisabledErrorCode: jest
