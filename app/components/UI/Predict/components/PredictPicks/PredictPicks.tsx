@@ -10,6 +10,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { strings } from '../../../../../../locales/i18n';
 import PredictPickItem from './PredictPickItem';
+import {
+  PREDICT_PICKS_TEST_ID,
+  PREDICT_PICKS_TEST_IDS,
+} from './PredictPicks.testIds';
 
 interface PredictPicksProps {
   market: PredictMarket;
@@ -21,7 +25,7 @@ interface PredictPicksProps {
 
 const PredictPicks: React.FC<PredictPicksProps> = ({
   market,
-  testID = 'predict-picks',
+  testID = PREDICT_PICKS_TEST_ID,
 }) => {
   const { data: positions = [] } = usePredictPositions({
     marketId: market.id,
@@ -71,7 +75,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
           key={position.id}
           position={position}
           onCashOut={onCashOut}
-          testID={`${testID}-item-${position.id}`}
+          testID={`${testID}${PREDICT_PICKS_TEST_IDS.ITEM}${position.id}`}
         />
       ))}
       {claimablePositions.map((position) => (
@@ -79,7 +83,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
           key={position.id}
           position={position}
           onCashOut={onCashOut}
-          testID={`${testID}-item-${position.id}`}
+          testID={`${testID}${PREDICT_PICKS_TEST_IDS.ITEM}${position.id}`}
         />
       ))}
     </Box>
