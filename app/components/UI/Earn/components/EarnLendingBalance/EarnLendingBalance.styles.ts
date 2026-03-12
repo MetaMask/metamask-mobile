@@ -1,4 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: {
@@ -16,10 +20,7 @@ const styleSheet = (params: {
       gap: 16,
     },
     buttonsContainer: {
-      marginTop: 16,
-      padding: 16,
       borderRadius: 12,
-      backgroundColor: theme.colors.background.section,
     },
     button: {
       flex: 1,
@@ -29,10 +30,16 @@ const styleSheet = (params: {
     },
     balances: {
       flex: 1,
-      justifyContent: 'center',
-      marginLeft: 16,
-      alignSelf: 'center',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      alignContent: 'flex-start',
+      paddingLeft: 16,
     },
+    tokenAmount: {
+      ...theme.typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySM),
+      color: theme.colors.text.alternative,
+    } as TextStyle,
     musdConversionCta: {
       paddingTop: 16,
       paddingBottom: userHasLendingPositions ? 8 : 0,
@@ -41,7 +48,6 @@ const styleSheet = (params: {
       paddingTop: 16,
     },
     earnings: {
-      paddingHorizontal: 16,
       paddingTop: 16,
     },
   });
