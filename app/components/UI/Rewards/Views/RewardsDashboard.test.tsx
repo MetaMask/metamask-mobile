@@ -2585,8 +2585,8 @@ describe('RewardsDashboard', () => {
       });
       rerender(<RewardsDashboard />);
 
-      // Assert - activity tab
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'activity' });
+      // Assert - musd tab
+      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'musd' });
     });
   });
 
