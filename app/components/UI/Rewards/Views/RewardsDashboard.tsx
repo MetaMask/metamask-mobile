@@ -55,7 +55,6 @@ import { ToastRef } from '../../../../component-library/components/Toast/Toast.t
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
-import { addCurrencySymbol } from '../../../../util/number';
 import { KeyValueRowStubs } from '../../../../component-library/components-temp/KeyValueRow';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
@@ -127,7 +126,13 @@ const RewardsDashboard: React.FC = () => {
   }, [musdAmount]);
 
   const formatCurrency = useCallback(
-    (value: number) => addCurrencySymbol(value, 'usd'),
+    (value: number) =>
+      value.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
     [],
   );
 
