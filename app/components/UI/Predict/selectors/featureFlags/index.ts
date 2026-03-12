@@ -148,3 +148,21 @@ export const selectPredictFakOrdersEnabledFlag = createSelector(
       ),
     ) ?? false,
 );
+
+/**
+ * Selector for Predict Pay With Any Token enablement
+ *
+ * Uses version-gated feature flag `predictPayWithAnyToken` from remote config.
+ * Falls back to `false` if remote flag is unavailable or invalid.
+ *
+ * @returns {boolean} True if Pay With Any Token is enabled and version requirement is met
+ */
+export const selectPredictWithAnyTokenEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+        remoteFeatureFlags?.predictWithAnyToken,
+      ),
+    ) ?? false,
+);

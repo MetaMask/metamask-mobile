@@ -23,6 +23,7 @@ import {
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
+  ActiveOrderState,
   type OrderPreview,
   PredictBalance,
   PredictClaimStatus,
@@ -3539,6 +3540,137 @@ describe('PredictController', () => {
 
         // Verify new transaction is set with new batch ID
         expect(controller.state.pendingDeposits[address]).toBe(newBatchId);
+      });
+    });
+  });
+
+  describe('activeOrder and selectedPaymentToken management', () => {
+    it('setActiveOrder updates state with provided order', () => {
+      withController(({ controller }) => {
+        const order: PredictControllerState['activeOrder'] = {
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        };
+
+        controller.setActiveOrder(order);
+
+        expect(controller.state.activeOrder).toEqual(order);
+      });
+    });
+
+    it('clearActiveOrder sets activeOrder to null', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.clearActiveOrder();
+
+        expect(controller.state.activeOrder).toBeNull();
+      });
+    });
+
+    it('setSelectedPaymentToken updates state with provided token', () => {
+      withController(({ controller }) => {
+        const token: PredictControllerState['selectedPaymentToken'] = {
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        };
+
+        controller.setSelectedPaymentToken(token);
+
+        expect(controller.state.selectedPaymentToken).toEqual(token);
+      });
+    });
+
+    it('setSelectedPaymentToken clears token when called with null', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        controller.setSelectedPaymentToken(null);
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+  });
+
+  describe('payWithAnyTokenConfirmation', () => {
+    it('uses predict deposit transaction when setup transactions are present', async () => {
+      const setupTransaction = {
+        params: {
+          to: '0x1000000000000000000000000000000000000001' as `0x${string}`,
+          data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+        },
+        type: TransactionType.contractInteraction,
+      };
+      const depositTransaction = {
+        params: {
+          to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+          data: '0xa9059cbb000000000000000000000000' as `0x${string}`,
+        },
+        type: TransactionType.predictDeposit,
+      };
+
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [setupTransaction, depositTransaction],
+        chainId: '0x89',
+      });
+
+      (addTransaction as jest.Mock).mockResolvedValue({
+        transactionMeta: {
+          id: 'tx-pay-with-any-token',
+        },
+      });
+
+      await withController(async ({ controller }) => {
+        const result = await controller.payWithAnyTokenConfirmation();
+
+        expect(result).toEqual({
+          success: true,
+          response: {
+            batchId: 'tx-pay-with-any-token',
+          },
+        });
+
+        expect(addTransaction).toHaveBeenCalledWith(
+          {
+            to: depositTransaction.params.to,
+            from: '0x1234567890123456789012345678901234567890',
+            data: depositTransaction.params.data,
+          },
+          expect.objectContaining({
+            type: 'predictDepositAndOrder',
+          }),
+        );
+      });
+    });
+
+    it('throws when deposit transaction is missing from preparation response', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x1000000000000000000000000000000000000001' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+            type: TransactionType.contractInteraction,
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
+          'No predict deposit transaction returned from deposit preparation',
+        );
+
+        expect(addTransaction).not.toHaveBeenCalled();
       });
     });
   });

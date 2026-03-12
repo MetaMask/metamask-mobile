@@ -1,3 +1,4 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 export const PREDICT_CURRENCY = 'usd';
@@ -9,3 +10,7 @@ export const POLYGON_USDCE = {
   name: 'USD Coin (PoS)',
   symbol: 'USDC.e',
 };
+
+// TODO: Remove once predictDepositAndOrder is added to @metamask/transaction-controller
+export const PREDICT_DEPOSIT_AND_ORDER_TYPE =
+  'predictDepositAndOrder' as unknown as TransactionType;

@@ -1,5 +1,6 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from './predict';
 
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
@@ -17,6 +18,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
   TransactionType.stakingClaim,
@@ -49,6 +51,7 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
@@ -70,7 +73,10 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
  * Transaction types for which the Pay With modal hides the network filter.
  * Used when pay token selection is constrained to a single network (e.g. Perps).
  */
-export const HIDE_NETWORK_FILTER_TYPES = [TransactionType.perpsDepositAndOrder];
+export const HIDE_NETWORK_FILTER_TYPES = [
+  TransactionType.perpsDepositAndOrder,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
+];
 
 /**
  * Post-quote transaction types that use a "Receive as" token picker

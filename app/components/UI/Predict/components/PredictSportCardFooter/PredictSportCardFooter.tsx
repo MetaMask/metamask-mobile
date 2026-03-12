@@ -13,7 +13,6 @@ import {
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint } from '../../contexts';
-import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
@@ -21,6 +20,7 @@ import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 
 interface PredictSportCardFooterProps {
   market: PredictMarketType;
@@ -66,6 +66,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   });
 
   const { claim, isClaimPending } = usePredictClaim();
+  const { navigateToBuyPreview } = usePredictNavigation();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -78,27 +79,19 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         () => {
           // When accessed from Carousel, we're outside the Predict navigator,
           // so we need to navigate through the ROOT first
-          if (
+          const throughRoot =
             isCarousel ||
-            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL
-          ) {
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-              params: {
-                market,
-                outcome,
-                outcomeToken: token,
-                entryPoint: resolvedEntryPoint,
-              },
-            });
-          } else {
-            navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
+
+          navigateToBuyPreview(
+            {
               market,
               outcome,
               outcomeToken: token,
               entryPoint: resolvedEntryPoint,
-            });
-          }
+            },
+            { throughRoot },
+          );
         },
         {
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -109,7 +102,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       executeGuardedAction,
       isCarousel,
       resolvedEntryPoint,
-      navigation,
+      navigateToBuyPreview,
       market,
       outcome,
     ],
