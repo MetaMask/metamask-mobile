@@ -230,7 +230,7 @@ export function useUnifiedTxActions() {
         return;
       }
 
-      await speedUpTx(speedUpTxId, getParamsToSend(params));
+      await speedUpTx(speedUpTxId, gasValues);
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
