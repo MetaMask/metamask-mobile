@@ -91,7 +91,7 @@ const CampaignDetailsView: React.FC = () => {
               </Text>
             </Box>
             <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {statusInfo.statusDescription}
+              {statusInfo.dateLabel}
             </Text>
           </Box>
 
