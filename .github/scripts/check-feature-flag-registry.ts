@@ -110,7 +110,9 @@ async function main(): Promise<void> {
           const endIdx = line.indexOf('*/');
           if (endIdx === -1) continue;
           inBlock = false;
-          allReferences.push(...extractFlagReferences(line.slice(endIdx + 2), filePath));
+          const afterBlock = line.slice(endIdx + 2);
+          allReferences.push(...extractFlagReferences(afterBlock, filePath));
+          if (opensBlockComment(afterBlock)) inBlock = true;
           continue;
         }
         allReferences.push(...extractFlagReferences(line, filePath));
