@@ -1,53 +1,15 @@
-import {
-  RiskLevel,
-  type TokenSecurityFeature,
-  type TokenSecurityFinancialStats,
+import type {
+  TokenSecurityFeature,
+  TokenSecurityFinancialStats,
 } from '../types';
 import {
-  getRiskLevel,
   getFeatureTags,
   formatFeePercent,
   getTop10HoldingPct,
-  getTotalLiquidityUSD,
-  formatCompactUSD,
   formatCompactSupply,
-  getWhaleConcentrationRisk,
-  hasFeature,
-  getSmartContractRisk,
-  POSITIVE_FEATURE_LABELS,
 } from './securityUtils';
 
 describe('securityUtils', () => {
-  describe('getRiskLevel', () => {
-    it('returns Low for Verified', () => {
-      expect(getRiskLevel('Verified')).toBe(RiskLevel.Low);
-    });
-
-    it('returns Low for Benign', () => {
-      expect(getRiskLevel('Benign')).toBe(RiskLevel.Low);
-    });
-
-    it('returns Medium for Warning', () => {
-      expect(getRiskLevel('Warning')).toBe(RiskLevel.Medium);
-    });
-
-    it('returns Medium for Spam', () => {
-      expect(getRiskLevel('Spam')).toBe(RiskLevel.Medium);
-    });
-
-    it('returns High for Malicious', () => {
-      expect(getRiskLevel('Malicious')).toBe(RiskLevel.High);
-    });
-
-    it('returns Unknown for undefined', () => {
-      expect(getRiskLevel(undefined)).toBe(RiskLevel.Unknown);
-    });
-
-    it('returns Unknown for unrecognized resultType', () => {
-      expect(getRiskLevel('SomethingElse' as never)).toBe(RiskLevel.Unknown);
-    });
-  });
-
   describe('getFeatureTags', () => {
     const makeFeature = (featureId: string): TokenSecurityFeature =>
       ({ featureId }) as TokenSecurityFeature;
@@ -80,7 +42,13 @@ describe('securityUtils', () => {
       });
 
       it('caps display at 4 positive tags with no remainingCount', () => {
-        const features = Object.keys(POSITIVE_FEATURE_LABELS).map(makeFeature);
+        const features = [
+          makeFeature('HIGH_REPUTATION_TOKEN'),
+          makeFeature('LISTED_ON_CENTRALIZED_EXCHANGE'),
+          makeFeature('VERIFIED_CONTRACT'),
+          makeFeature('HIGH_TRADE_VOLUME'),
+          makeFeature('UNKNOWN_EXTRA'),
+        ].map((f) => f);
 
         const { tags, remainingCount } = getFeatureTags(features, 'Verified');
 
@@ -262,62 +230,6 @@ describe('securityUtils', () => {
     });
   });
 
-  describe('getTotalLiquidityUSD', () => {
-    it('sums market reserves', () => {
-      const stats = {
-        markets: [{ reserveUSD: 1000 }, { reserveUSD: 2500 }],
-      } as unknown as TokenSecurityFinancialStats;
-
-      expect(getTotalLiquidityUSD(stats)).toBe(3500);
-    });
-
-    it('treats missing reserveUSD as 0', () => {
-      const stats = {
-        markets: [{ reserveUSD: 1000 }, { reserveUSD: undefined }],
-      } as unknown as TokenSecurityFinancialStats;
-
-      expect(getTotalLiquidityUSD(stats)).toBe(1000);
-    });
-
-    it('returns null when no markets', () => {
-      expect(
-        getTotalLiquidityUSD({
-          markets: [],
-        } as unknown as TokenSecurityFinancialStats),
-      ).toBeNull();
-    });
-
-    it('returns null for null stats', () => {
-      expect(getTotalLiquidityUSD(null)).toBeNull();
-    });
-
-    it('returns null for undefined stats', () => {
-      expect(getTotalLiquidityUSD(undefined)).toBeNull();
-    });
-  });
-
-  describe('formatCompactUSD', () => {
-    it('formats billions', () => {
-      expect(formatCompactUSD(2_500_000_000)).toBe('$2.50B');
-    });
-
-    it('formats millions', () => {
-      expect(formatCompactUSD(1_230_000)).toBe('$1.23M');
-    });
-
-    it('formats thousands', () => {
-      expect(formatCompactUSD(45_600)).toBe('$45.6K');
-    });
-
-    it('formats small values', () => {
-      expect(formatCompactUSD(999)).toBe('$999.00');
-    });
-
-    it('formats zero', () => {
-      expect(formatCompactUSD(0)).toBe('$0.00');
-    });
-  });
-
   describe('formatCompactSupply', () => {
     it('returns N/A for null', () => {
       expect(formatCompactSupply(null)).toBe('N/A');
@@ -359,77 +271,6 @@ describe('securityUtils', () => {
 
     it('does not adjust when decimals is 0', () => {
       expect(formatCompactSupply(5_000_000, 0)).toBe('5.00M');
-    });
-  });
-
-  describe('getWhaleConcentrationRisk', () => {
-    it('returns Low when top10 < 20%', () => {
-      expect(getWhaleConcentrationRisk(10)).toBe(RiskLevel.Low);
-    });
-
-    it('returns Medium when top10 is 20%', () => {
-      expect(getWhaleConcentrationRisk(20)).toBe(RiskLevel.Medium);
-    });
-
-    it('returns Medium when top10 is between 20% and 50%', () => {
-      expect(getWhaleConcentrationRisk(35)).toBe(RiskLevel.Medium);
-    });
-
-    it('returns Medium when top10 is exactly 50%', () => {
-      expect(getWhaleConcentrationRisk(50)).toBe(RiskLevel.Medium);
-    });
-
-    it('returns High when top10 > 50%', () => {
-      expect(getWhaleConcentrationRisk(75)).toBe(RiskLevel.High);
-    });
-
-    it('returns Unknown for null', () => {
-      expect(getWhaleConcentrationRisk(null)).toBe(RiskLevel.Unknown);
-    });
-  });
-
-  describe('hasFeature', () => {
-    const features = [
-      { featureId: 'VERIFIED_CONTRACT' },
-      { featureId: 'HIGH_REPUTATION_TOKEN' },
-    ] as TokenSecurityFeature[];
-
-    it('returns true when feature is present', () => {
-      expect(hasFeature(features, 'VERIFIED_CONTRACT')).toBe(true);
-    });
-
-    it('returns false when feature is absent', () => {
-      expect(hasFeature(features, 'HONEYPOT')).toBe(false);
-    });
-
-    it('returns false for empty features array', () => {
-      expect(hasFeature([], 'VERIFIED_CONTRACT')).toBe(false);
-    });
-  });
-
-  describe('getSmartContractRisk', () => {
-    it('returns Low for Verified', () => {
-      expect(getSmartContractRisk('Verified')).toBe(RiskLevel.Low);
-    });
-
-    it('returns Low for Benign', () => {
-      expect(getSmartContractRisk('Benign')).toBe(RiskLevel.Low);
-    });
-
-    it('returns Medium for Warning', () => {
-      expect(getSmartContractRisk('Warning')).toBe(RiskLevel.Medium);
-    });
-
-    it('returns High for Malicious', () => {
-      expect(getSmartContractRisk('Malicious')).toBe(RiskLevel.High);
-    });
-
-    it('returns Unknown for undefined', () => {
-      expect(getSmartContractRisk(undefined)).toBe(RiskLevel.Unknown);
-    });
-
-    it('returns Unknown for Spam (not mapped in smart contract risk)', () => {
-      expect(getSmartContractRisk('Spam' as never)).toBe(RiskLevel.Unknown);
     });
   });
 });
