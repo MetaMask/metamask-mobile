@@ -529,6 +529,51 @@ describe('MarketInsightsView', () => {
     );
   });
 
+  it('closes trend sources bottom sheet when a source is pressed', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH extends gains',
+        summary: 'Momentum improves on macro risk-on signals',
+        trends: [
+          {
+            title: 'ETF inflows',
+            description: 'Spot ETF inflows remain elevated',
+            articles: [
+              {
+                title: 'ETF demand remains high',
+                source: 'coindesk.com',
+                date: '2026-02-17T08:00:00.000Z',
+                url: 'https://www.coindesk.com/article',
+              },
+            ],
+            tweets: [],
+          },
+        ],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MarketInsightsView />,
+    );
+
+    fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
+    expect(
+      getByTestId('market-insights-trend-sources-bottom-sheet'),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('market-insights-trend-source-link-button'));
+
+    expect(
+      queryByTestId('market-insights-trend-sources-bottom-sheet'),
+    ).toBeNull();
+  });
+
   it('tracks viewed event again when caip19Id changes on mounted view', () => {
     mockUseMarketInsights.mockImplementation((caip19Id: string) => {
       if (caip19Id === 'eip155:1/erc20:0x456') {

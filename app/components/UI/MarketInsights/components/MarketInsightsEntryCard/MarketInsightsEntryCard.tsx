@@ -57,7 +57,6 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <SparkleIcon />
           <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {strings('market_insights.title')}
           </Text>
@@ -77,6 +76,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
             alignItems={BoxAlignItems.Center}
             gap={1}
           >
+            <SparkleIcon />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}

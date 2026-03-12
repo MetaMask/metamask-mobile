@@ -78,7 +78,7 @@ import { getDecimalChainId } from '../../../../../util/networks';
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
-const BACKGROUND_ANIMATION_HEIGHT = 77;
+const BACKGROUND_ANIMATION_HEIGHT = 47;
 const SECTION_ANIMATION_DELAYS_MS = {
   topArticle: 50,
   closerLook: 130,
@@ -426,6 +426,7 @@ const MarketInsightsView: React.FC = () => {
         return;
       }
       trackMarketInsightsInteraction('source_click', { source: url });
+      setSelectedTrend(null);
       navigation.navigate(
         Routes.BROWSER.HOME as never,
         {
@@ -438,7 +439,7 @@ const MarketInsightsView: React.FC = () => {
         } as never,
       );
     },
-    [trackMarketInsightsInteraction, navigation],
+    [trackMarketInsightsInteraction, navigation, setSelectedTrend],
   );
 
   useEffect(() => {
@@ -495,7 +496,7 @@ const MarketInsightsView: React.FC = () => {
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style(`pt-4 pb-4`)}
+        contentContainerStyle={tw.style(`pt-2 pb-4`)}
         showsVerticalScrollIndicator={false}
       >
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
