@@ -246,12 +246,21 @@ export class OAuthService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        trace({
-          name: TraceName.OnboardingOAuthProviderLoginError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        // trace only if error is not a user cancelled error
+        if (
+          !(
+            error instanceof OAuthError &&
+            (error.code === OAuthErrorType.UserCancelled ||
+              error.code === OAuthErrorType.UserDismissed)
+          )
+        ) {
+          trace({
+            name: TraceName.OnboardingOAuthProviderLoginError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        }
 
         this.#trackSocialLoginFailure({
           authConnection: loginHandler.authConnection,

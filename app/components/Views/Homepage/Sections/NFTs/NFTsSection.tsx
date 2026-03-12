@@ -132,7 +132,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const isLoadingSection = isNftFetchingProgress && !hasNfts;
     const willRender = !isLoadingSection;
 
-    useHomeViewedEvent({
+    const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading: isLoadingSection,
       sectionName: HomeSectionNames.NFTS,
@@ -143,7 +143,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     });
 
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={handleViewAllNfts} />
           {hasNfts ? (
