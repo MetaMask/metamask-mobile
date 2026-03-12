@@ -34,7 +34,7 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 
-// ─── Fiber tree types ───────────────────────────────────────────────────────
+// ─── Fiber tree types ──────────────────────────────────────────────────────
 
 /**
  * Minimal React fiber node shape used to walk the component tree
