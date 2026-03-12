@@ -1,10 +1,14 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import { Animated as RNAnimated, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Label,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
