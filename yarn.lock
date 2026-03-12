@@ -7617,15 +7617,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@7.0.1-preview-aae9a022a":
-  version: 7.0.1-preview-aae9a022a
-  resolution: "@metamask-previews/address-book-controller@npm:7.0.1-preview-aae9a022a"
+"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@7.0.1-preview-cd2daacf2":
+  version: 7.0.1-preview-cd2daacf2
+  resolution: "@metamask-previews/address-book-controller@npm:7.0.1-preview-cd2daacf2"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/4f5731fbef91c7063f5de06ba44bbedf1ef265e70211bd93147c754f76aa905f369a0b5a330ae740ef0c0162c2c34dd79b89253a79ec8d14ce8e64270c9284ae
+  checksum: 10/956fcbe51f2ebe6f6b06804e28b09743615eb3013fd2db565f18f389c71f2b314fa03f1790550296ff92689df1f880ec136cc82aff84bbf04b0783b97a47e145
   languageName: node
   linkType: hard
 
@@ -7669,16 +7669,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/approval-controller@npm:@metamask-previews/approval-controller@8.0.0-preview-aae9a022a":
-  version: 8.0.0-preview-aae9a022a
-  resolution: "@metamask-previews/approval-controller@npm:8.0.0-preview-aae9a022a"
+"@metamask/approval-controller@npm:@metamask-previews/approval-controller@8.0.0-preview-cd2daacf2":
+  version: 8.0.0-preview-cd2daacf2
+  resolution: "@metamask-previews/approval-controller@npm:8.0.0-preview-cd2daacf2"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/utils": "npm:^11.9.0"
     nanoid: "npm:^3.3.8"
-  checksum: 10/509c07f5664b0cf87da83dde1a52b190091ffcde22cc886d10f4f2a5c34a7393f3e8949448141a60db6bd29d184a4ad578f862a846b5b8a67d9825f93699e673
+  checksum: 10/0ee5038dbc6825160b357cf6f59514e7dc967c0fde3a513b8040cf8516398f251634266b56962c1f49cd90ea2729b5537f0075de589023b5e451adf0fe942330
   languageName: node
   linkType: hard
 
@@ -7717,9 +7717,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@100.2.1-preview-aae9a022a":
-  version: 100.2.1-preview-aae9a022a
-  resolution: "@metamask-previews/assets-controllers@npm:100.2.1-preview-aae9a022a"
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@100.2.1-preview-cd2daacf2":
+  version: 100.2.1-preview-cd2daacf2
+  resolution: "@metamask-previews/assets-controllers@npm:100.2.1-preview-cd2daacf2"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7769,7 +7769,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/a5fd473601fb136513253720fa45ae3667822a7011feb236a6947c9c24a56cf28076821a4352d238054f3e6b4b3209bf9ba1cd4c928e9e781d42838a5c0eda7e
+  checksum: 10/b7eb673f650a46f0622335a45b38201cb5603c8d5a23189080f68ae279d542f4a007ce016e0d46a98d83e4018ab24b8dac87f179c3e7a787171b8114b3dc94c9
   languageName: node
   linkType: hard
 
@@ -8549,9 +8549,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:@metamask-previews/gas-fee-controller@26.0.3-preview-aae9a022a":
-  version: 26.0.3-preview-aae9a022a
-  resolution: "@metamask-previews/gas-fee-controller@npm:26.0.3-preview-aae9a022a"
+"@metamask/gas-fee-controller@npm:@metamask-previews/gas-fee-controller@26.0.3-preview-cd2daacf2":
+  version: 26.0.3-preview-cd2daacf2
+  resolution: "@metamask-previews/gas-fee-controller@npm:26.0.3-preview-cd2daacf2"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
@@ -8566,7 +8566,7 @@ __metadata:
     uuid: "npm:^8.3.2"
   peerDependencies:
     "@babel/runtime": ^7.0.0
-  checksum: 10/a234a419020e9d9054a79d5257fe165155709d04bfd17f8c2b44dcf6981ffba639cdb0b4b321f7af2c18af9a8c3f2633e7219b5fc442a9c1d86ac2a74f2b30dd
+  checksum: 10/a5aa9eb415853b44fe19bb72e5c6b5fb7ccd3bfa8701c778180a702eefcfef1bb4d89d6b62a0caa1db128e8967633b765f629e2ba73e2ce430f701cec4591e57
   languageName: node
   linkType: hard
 
@@ -8795,15 +8795,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/logging-controller@npm:@metamask-previews/logging-controller@7.0.1-preview-aae9a022a":
-  version: 7.0.1-preview-aae9a022a
-  resolution: "@metamask-previews/logging-controller@npm:7.0.1-preview-aae9a022a"
+"@metamask/logging-controller@npm:@metamask-previews/logging-controller@7.0.1-preview-cd2daacf2":
+  version: 7.0.1-preview-cd2daacf2
+  resolution: "@metamask-previews/logging-controller@npm:7.0.1-preview-cd2daacf2"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/a10c336b49b0a70a1046edf42cbfba9a9873b25a6bfc9c50c1da418aa108da5a0d4796b8b082dc82fb636aab74a168619ecf07af3d4c92e18b4a57eb132291ed
+  checksum: 10/f200390f374e096d7b2c5eff1331cad6346dadc85fab84e17b72c6a1dc8c4c5773e24ddf1861de14ac426892fdaaf45cc4e6fb212d95b1ac333054a29bf097bd
   languageName: node
   linkType: hard
 
@@ -9146,9 +9146,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/permission-controller@npm:@metamask-previews/permission-controller@12.2.0-preview-aae9a022a":
-  version: 12.2.0-preview-aae9a022a
-  resolution: "@metamask-previews/permission-controller@npm:12.2.0-preview-aae9a022a"
+"@metamask/permission-controller@npm:@metamask-previews/permission-controller@12.2.0-preview-cd2daacf2":
+  version: 12.2.0-preview-cd2daacf2
+  resolution: "@metamask-previews/permission-controller@npm:12.2.0-preview-cd2daacf2"
   dependencies:
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -9161,7 +9161,7 @@ __metadata:
     deep-freeze-strict: "npm:^1.1.1"
     immer: "npm:^9.0.6"
     nanoid: "npm:^3.3.8"
-  checksum: 10/17e16ff284cf68a19bf7817efb7776279831f112a15397f2bfdd1e1908d2b72d1431bb58d8767771c5ddf9dd1991d87e4e9d0f01ad295e157e9456a8281a4442
+  checksum: 10/7065fd40845308ca2d3e22434cf93fb56223890c4c3ec8eddff6391e098e3b02011bab740d76f7b3b18d45eec48c5eed711f75fb1973947257eac1b29ad23656
   languageName: node
   linkType: hard
 
@@ -9544,9 +9544,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/signature-controller@npm:@metamask-previews/signature-controller@39.0.5-preview-aae9a022a":
-  version: 39.0.5-preview-aae9a022a
-  resolution: "@metamask-previews/signature-controller@npm:39.0.5-preview-aae9a022a"
+"@metamask/signature-controller@npm:@metamask-previews/signature-controller@39.0.5-preview-cd2daacf2":
+  version: 39.0.5-preview-cd2daacf2
+  resolution: "@metamask-previews/signature-controller@npm:39.0.5-preview-cd2daacf2"
   dependencies:
     "@metamask/accounts-controller": "npm:^37.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
@@ -9562,7 +9562,7 @@ __metadata:
     jsonschema: "npm:^1.4.1"
     lodash: "npm:^4.17.21"
     uuid: "npm:^8.3.2"
-  checksum: 10/9647f1e4680779510a76ab172e2ff47072c7e1dba39bdbe5cbb8f99b1e35c8326a082fc71c7fa80bea6d0ea56d284b9406204e7fef36c0a49029f637e398ed74
+  checksum: 10/67a2e5b6b7c2787df1b5fdebf4912a1e5ce32bd2b68d062862a3bd546195d132a4752939a22e5027a36a31aefd10a41e3f32dd1d3253b05543bb7f05f1a0322a
   languageName: node
   linkType: hard
 
@@ -10004,9 +10004,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@62.21.0-preview-aae9a022a":
-  version: 62.21.0-preview-aae9a022a
-  resolution: "@metamask-previews/transaction-controller@npm:62.21.0-preview-aae9a022a"
+"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@62.21.0-preview-cd2daacf2":
+  version: 62.21.0-preview-cd2daacf2
+  resolution: "@metamask-previews/transaction-controller@npm:62.21.0-preview-cd2daacf2"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10039,7 +10039,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/7fd024abbc7b798dd8828c4fead717d97ca8558098594107deb43a0d5ba992c213645537f33f8371c495097d925ed8bc504a56b6b44e9fe4994176d31bfe67f3
+  checksum: 10/22e75d5f5c22f4753e017b8d1bcab8758b0282c9215ba0341b76f7fdbe30ed3567406b276f8ec13b32c525fd7a71871a7d67e2a1a278a0f0b66be44603b0f50e
   languageName: node
   linkType: hard
 
@@ -10082,9 +10082,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@16.4.1-preview-aae9a022a":
-  version: 16.4.1-preview-aae9a022a
-  resolution: "@metamask-previews/transaction-pay-controller@npm:16.4.1-preview-aae9a022a"
+"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@16.4.1-preview-cd2daacf2":
+  version: 16.4.1-preview-cd2daacf2
+  resolution: "@metamask-previews/transaction-pay-controller@npm:16.4.1-preview-cd2daacf2"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10105,7 +10105,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/6bcc6ac01530e9a48e0f3ae63b03f1ae2a4892d7f88d45cac3e1344b534ed8d23f8690a555c9411fa7f5de7b22098a5adf12db98002536ef40f54cde1e880111
+  checksum: 10/42e2643fe4f53795589652223cef7597665121096ffd04f465032a2f56994c0d19f4d0d3c425306e163d05c4ab66f74edb7df812351f3373deec06b391150847
   languageName: node
   linkType: hard
 
