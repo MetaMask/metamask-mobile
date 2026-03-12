@@ -18,6 +18,6 @@ export const getSelectedRecipientTestId = (address: string) =>
 export const getRecipientAvatarTestId = (address: string) =>
   `recipient-avatar-${address}`;
 
-/** TestID for NFT row in asset list (name or tokenId). */
-export const getNftRowTestId = (nameOrTokenId: string) =>
-  `nft-${nameOrTokenId}`;
+/** TestID for NFT row in asset list. Includes tokenId for uniqueness. */
+export const getNftRowTestId = (name: string, tokenId: string) =>
+  `nft-${name}-${tokenId}`;

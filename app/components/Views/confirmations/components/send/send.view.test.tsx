@@ -173,7 +173,7 @@ describeForPlatforms('Send', () => {
     );
 
     const nftRow = await findByTestId(
-      getNftRowTestId('Test ERC721 NFT'),
+      getNftRowTestId('Test ERC721 NFT', '42'),
       {},
       { timeout: 5000 },
     );
