@@ -9,9 +9,10 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
@@ -115,7 +116,7 @@ const PredictionsSection = forwardRef<
   // itemCount/isEmpty values before data arrives.
   const willRender = isPredictEnabled && !isLoading && !isEmpty;
 
-  useHomeViewedEvent({
+  const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.PREDICT,
@@ -159,9 +160,15 @@ const PredictionsSection = forwardRef<
 
   if (hasError) {
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPredictions}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'predictions',
+            )}
+          />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
               section: title.toLowerCase(),
@@ -176,9 +183,15 @@ const PredictionsSection = forwardRef<
   // Render positions if user has any
   if (hasPositions || isLoadingPositions) {
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPredictions}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'predictions',
+            )}
+          />
           <Box>
             {isLoadingPositions ? (
               <>
@@ -217,9 +230,13 @@ const PredictionsSection = forwardRef<
 
   // Render trending markets if no positions
   return (
-    <View ref={sectionViewRef}>
+    <View ref={sectionViewRef} onLayout={onLayout}>
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllPredictions}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+        />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
