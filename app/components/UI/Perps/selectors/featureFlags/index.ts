@@ -278,3 +278,20 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
 );
+
+/**
+ * Selector for default pay token when no perps balance feature flag.
+ * When enabled: preselect allowlist token with highest balance in Pay row when user has no perps balance,
+ * and show "Add funds" CTA on market details when no token can be preselected.
+ * When disabled: no default token preselection and no Add funds CTA (legacy behavior).
+ * Controlled only by remote flag; when remote is missing or invalid, defaults to true.
+ *
+ * @returns boolean - true if feature is enabled, false otherwise
+ */
+export const selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsDefaultPayTokenWhenNoBalanceEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
+  });

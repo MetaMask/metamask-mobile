@@ -728,15 +728,23 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
+      // As per Polymarket's team, we should use the first market's description
+      // rather than the event's description. The event's description is not
+      // guaranteed to be accurate. They also do this on their webbsite.
+      //
+      // However, we noticed that the above statement is not correct, at least for game events.
+      const moneylineMarket = event.markets?.find((m) => isMoneylineMarket(m));
+      const description =
+        moneylineMarket?.description ??
+        event.markets?.[0]?.description ??
+        event.description;
+
       return {
         id: event.id,
         slug: event.slug,
         providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
-        // As per Polymarket's team, we should use the first market's description
-        // rather than the event's description. The event's description is not
-        // guaranteed to be accurate. They also do this on their webbsite.
-        description: event.markets?.[0]?.description ?? event.description,
+        description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
@@ -828,9 +836,15 @@ export interface GetParsedMarketsOptions extends GetMarketsParams {
   teamLookup?: PolymarketTeamLookupFn;
 }
 
-export const getParsedMarketsFromPolymarketApi = async (
+export interface FetchEventsResult {
+  events: PolymarketApiEvent[];
+  category: PredictCategory;
+  isSearch: boolean;
+}
+
+export const fetchEventsFromPolymarketApi = async (
   params?: GetParsedMarketsOptions,
-): Promise<PredictMarket[]> => {
+): Promise<FetchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   const {
@@ -838,7 +852,6 @@ export const getParsedMarketsFromPolymarketApi = async (
     q,
     limit = 20,
     offset = 0,
-    teamLookup,
     customQueryParams,
   } = params || {};
   DevLogger.log(
@@ -911,13 +924,23 @@ export const getParsedMarketsFromPolymarketApi = async (
     ? eventsData
     : [];
 
+  return { events, category, isSearch: !!q };
+};
+
+export const getParsedMarketsFromPolymarketApi = async (
+  params?: GetParsedMarketsOptions,
+): Promise<PredictMarket[]> => {
+  const { teamLookup } = params || {};
+  const { events, category, isSearch } =
+    await fetchEventsFromPolymarketApi(params);
+
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
     category,
     sortMarketsBy: 'price',
     teamLookup,
   });
 
-  if (q) {
+  if (isSearch) {
     return parsedMarkets.filter((m) => m.outcomes.length > 0);
   }
 

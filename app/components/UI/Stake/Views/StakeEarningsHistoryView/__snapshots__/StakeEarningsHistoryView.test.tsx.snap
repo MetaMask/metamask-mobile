@@ -830,15 +830,18 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+                undefined,
+              ]
             }
-            testID="label"
           >
             Payout history
           </Text>
@@ -854,15 +857,18 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
-                testID="label"
               >
                 2023
               </Text>
@@ -893,15 +899,18 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
-                  testID="label"
                 >
                   January
                 </Text>
@@ -926,15 +935,18 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#457a39",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#457a39",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     + 
                     2
