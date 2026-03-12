@@ -72,10 +72,13 @@ jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => rampsControllerState,
 }));
 
+const mockAddOrder = jest.fn();
+const mockGetOrderFromCallback = jest.fn();
+
 jest.mock('../../hooks/useRampsOrders', () => ({
   useRampsOrders: () => ({
-    addOrder: jest.fn(),
-    getOrderFromCallback: jest.fn(),
+    addOrder: mockAddOrder,
+    getOrderFromCallback: mockGetOrderFromCallback,
   }),
 }));
 
@@ -424,9 +427,9 @@ jest.mock('../Modals/PaymentSelectionModal', () => ({
 }));
 
 jest.mock('../Modals/TokenNotAvailableModal', () => ({
-  createTokenNotAvailableModalNavigationDetails: () => [
+  createTokenNotAvailableModalNavigationDetails: jest.fn(() => [
     'TokenNotAvailableModal',
-  ],
+  ]),
 }));
 
 jest.mock('../Checkout', () => ({
@@ -538,6 +541,26 @@ describe('BuildQuote', () => {
     expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
       '$150',
     );
+  });
+
+  it('navigates to token not available modal when token is unavailable for selected provider', () => {
+    mockUseParams.mockReturnValue({ assetId: 'eip155:1' });
+    rampsControllerState.selectedProvider = {
+      id: 'paypal',
+      name: 'PayPal',
+      links: [{ name: 'Support', url: 'https://support.paypal.com' }],
+      supportedCryptoCurrencies: { 'eip155:137': true },
+    };
+
+    render();
+
+    const {
+      createTokenNotAvailableModalNavigationDetails,
+    } = require('../Modals/TokenNotAvailableModal');
+    expect(createTokenNotAvailableModalNavigationDetails).toHaveBeenCalledWith({
+      assetId: 'eip155:1',
+    });
+    expect(mockNavigate).toHaveBeenCalledWith('TokenNotAvailableModal');
   });
 
   it('sets nativeFlowError from params and clears it from navigation', () => {
@@ -923,5 +946,65 @@ describe('BuildQuote', () => {
     expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
       '$0',
     );
+  });
+
+  it('navigateAfterExternalBrowser resets to order details when returnDestination is order', () => {
+    expect(
+      require('../../utils/rampsNavigation').createRampsOrderDetailsRoute({
+        orderId: 'ord-123',
+        showCloseButton: true,
+      }),
+    ).toEqual({
+      name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+      params: { orderId: 'ord-123', showCloseButton: true },
+    });
+  });
+
+  it('navigateAfterExternalBrowser resets to build quote when returnDestination is buildQuote', () => {
+    expect(
+      require('../../utils/rampsNavigation').createBuildQuoteRoute(),
+    ).toEqual({
+      name: Routes.RAMP.BUILD_QUOTE,
+      params: {},
+    });
+  });
+
+  it('clears rampsError when selectedProvider changes', () => {
+    rampsControllerState.selectedProvider = {
+      id: 'transak',
+      name: 'Transak',
+      links: [],
+    };
+    mockUseParams.mockReturnValue({ nativeFlowError: 'Transak failed' });
+    quotesState.data = {
+      success: [
+        {
+          provider: 'transak',
+          providerInfo: { id: 'transak', name: 'Transak', type: 'native' },
+          quote: { buyURL: 'https://transak.com/buy' },
+        },
+      ],
+    };
+
+    const { getByTestId, queryByTestId } = render();
+    expect(getByTestId('truncated-error')).toHaveTextContent('Transak failed');
+
+    rampsControllerState.selectedProvider = {
+      id: 'paypal',
+      name: 'PayPal',
+      links: [{ name: 'Support', url: 'https://support.paypal.com' }],
+    };
+    quotesState.data = {
+      success: [
+        {
+          provider: 'paypal',
+          providerInfo: { id: 'paypal', name: 'PayPal', type: 'aggregator' },
+          quote: { buyURL: 'https://paypal.com/buy', isCustomAction: true },
+        },
+      ],
+    };
+
+    fireEvent.press(getByTestId('keypad-trigger'));
+    expect(queryByTestId('truncated-error')).toBeNull();
   });
 });
