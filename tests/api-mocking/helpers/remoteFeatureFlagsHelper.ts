@@ -141,16 +141,16 @@ export const setupRemoteFeatureFlagsMock = async (
       const { urlEndpoint, response, responseCode } =
         createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
 
-      return setupMockRequest(
-        mockServer,
-        {
-          requestMethod: 'GET',
-          url: urlEndpoint,
-          response,
-          responseCode,
-        },
-        priority,
-      );
+      const mockConfig = {
+        requestMethod: 'GET' as const,
+        url: urlEndpoint,
+        response,
+        responseCode,
+      };
+
+      return priority !== undefined
+        ? setupMockRequest(mockServer, mockConfig, priority)
+        : setupMockRequest(mockServer, mockConfig);
     }),
   );
 
