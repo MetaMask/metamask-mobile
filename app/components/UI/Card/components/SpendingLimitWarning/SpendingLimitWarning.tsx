@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import { Text } from '@metamask/design-system-react-native';
+import { FontWeight, Text } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -37,7 +37,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
         </View>
 
         <View style={styles.textContent}>
-          <Text style={styles.mainText}>
+          <Text style={styles.mainText} fontWeight={FontWeight.Medium}>
             {strings('card.card_home.warnings.close_spending_limit.title')}
           </Text>
           <Text style={styles.subText}>
@@ -50,7 +50,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
 
       <View style={styles.buttonsRow}>
         <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
-          <Text style={styles.buttonText}>
+          <Text style={styles.buttonText} fontWeight={FontWeight.Medium}>
             {strings(
               'card.card_home.warnings.close_spending_limit.dismiss_button_label',
             )}
@@ -61,7 +61,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
           style={styles.setLimitButton}
           onPress={handleSetNewLimit}
         >
-          <Text style={styles.buttonText}>
+          <Text style={styles.buttonText} fontWeight={FontWeight.Medium}>
             {strings(
               'card.card_home.warnings.close_spending_limit.confirm_button_label',
             )}
