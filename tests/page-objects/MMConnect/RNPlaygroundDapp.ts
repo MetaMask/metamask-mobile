@@ -10,7 +10,7 @@ import { sleep } from '../../framework/Utilities';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { PlaywrightGestures } from '../../framework';
-import { expect } from '../../framework/fixtures/performance/performance-fixture';
+import { expect } from '@playwright/test';
 
 function escapeTestId(value: string): string {
   return value
