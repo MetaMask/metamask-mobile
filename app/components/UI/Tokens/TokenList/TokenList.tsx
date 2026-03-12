@@ -151,7 +151,7 @@ const TokenListComponent = ({
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation, trackEvent, createEventBuilder]);
 
-  const getItemVisibilityKey = useCallback(
+  const getTokenKey = useCallback(
     (item: FlashListAssetKey): string =>
       `${item.address}-${item.chainId}-${item.isStaked ? 'staked' : 'unstaked'}`,
     [],
@@ -163,10 +163,10 @@ const TokenListComponent = ({
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<FlashListAssetKey>[] }) => {
       setVisibleKeys(
-        new Set(viewableItems.map(({ item }) => getItemVisibilityKey(item))),
+        new Set(viewableItems.map(({ item }) => getTokenKey(item))),
       );
     },
-    [getItemVisibilityKey],
+    [getTokenKey],
   );
 
   const renderTokenListItem = useCallback(
@@ -179,7 +179,7 @@ const TokenListComponent = ({
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
         shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-        isVisible={visibleKeys.has(getItemVisibilityKey(item))}
+        isVisible={visibleKeys.has(getTokenKey(item))}
       />
     ),
     [
@@ -191,7 +191,7 @@ const TokenListComponent = ({
       isFullView,
       shouldShowTokenListItemCta,
       visibleKeys,
-      getItemVisibilityKey,
+      getTokenKey,
     ],
   );
 
@@ -203,7 +203,7 @@ const TokenListComponent = ({
       >
         {displayTokenKeys.map((item, index) => (
           <ListItemComponent
-            key={`${item.address}-${item.chainId}-${item.isStaked ? 'staked' : 'unstaked'}-${index}`}
+            key={`${getTokenKey(item)}-${index}`}
             assetKey={item}
             showRemoveMenu={showRemoveMenu}
             setShowScamWarningModal={setShowScamWarningModal}
@@ -239,10 +239,7 @@ const TokenListComponent = ({
           }}
           onViewableItemsChanged={handleViewableItemsChanged}
           renderItem={renderTokenListItem}
-          keyExtractor={(item, idx) => {
-            const staked = item.isStaked ? 'staked' : 'unstaked';
-            return `${item.address}-${item.chainId}-${staked}-${idx}`;
-          }}
+          keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}
