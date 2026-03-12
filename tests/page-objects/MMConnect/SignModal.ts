@@ -6,17 +6,24 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 class SignModal {
   get confirmButton(): EncapsulatedElementType {
     return encapsulated({
-      appium: () => PlaywrightMatchers.getElementById('confirm-button'),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+        ),
     });
   }
 
   get cancelButton(): EncapsulatedElementType {
     return encapsulated({
-      appium: () => PlaywrightMatchers.getElementById('cancel-button'),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+        ),
     });
   }
 

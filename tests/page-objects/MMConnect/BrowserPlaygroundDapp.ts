@@ -7,6 +7,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { expect } from '@playwright/test';
+import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
 
 class BrowserPlaygroundDapp {
   private getByDataTestId(testId: string): EncapsulatedElementType {
@@ -18,171 +19,197 @@ class BrowserPlaygroundDapp {
 
   // App-level selectors
   get connectLegacyButton(): EncapsulatedElementType {
-    return this.getByDataTestId('app-btn-connect-legacy');
+    return this.getByDataTestId(MMConnectDappTestIds.CONNECT_BUTTON_LEGACY);
   }
 
   get disconnectButton(): EncapsulatedElementType {
-    return this.getByDataTestId('app-btn-disconnect');
+    return this.getByDataTestId(MMConnectDappTestIds.DISCONNECT_BUTTON);
   }
 
   get errorSection(): EncapsulatedElementType {
-    return this.getByDataTestId('app-section-error');
+    return this.getByDataTestId(MMConnectDappTestIds.ERROR_SECTION);
   }
 
   get connectButton(): EncapsulatedElementType {
-    return this.getByDataTestId('app-btn-connect');
+    return this.getByDataTestId(MMConnectDappTestIds.CONNECT_BUTTON);
   }
 
   get connectedScopesSection(): EncapsulatedElementType {
-    return this.getByDataTestId('app-section-scopes');
+    return this.getByDataTestId(MMConnectDappTestIds.SCOPES_SECTION);
   }
 
   // Legacy EVM selectors
   get legacyEvmCard(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-card');
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CARD);
   }
 
   get chainIdValue(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-chain-id-value');
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE);
   }
 
   get accountsValue(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-accounts-value');
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_ACCOUNTS_VALUE);
   }
 
   get activeAccount(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-active-account');
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT);
   }
 
   get responseText(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-response-text');
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
 
   get personalSignButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-personal-sign');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN,
+    );
   }
 
   get signTypedDataV4Button(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-sign-typed-data-v4');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SIGN_TYPED_DATA_V4,
+    );
   }
 
   get sendTransactionButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-send-transaction');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SEND_TRANSACTION,
+    );
   }
 
   get switchToMainnetButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-switch-mainnet');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_MAINNET,
+    );
   }
 
   get switchToPolygonButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-switch-polygon');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_POLYGON,
+    );
   }
 
   get switchToGoerliButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-switch-goerli');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_GOERLI,
+    );
   }
 
   get getBalanceButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-get-balance');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_GET_BALANCE,
+    );
   }
 
   get blockNumberButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-block-number');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_BLOCK_NUMBER,
+    );
   }
 
   get gasPriceButton(): EncapsulatedElementType {
-    return this.getByDataTestId('legacy-evm-btn-gas-price');
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_GAS_PRICE);
   }
 
   // Wagmi selectors
   get connectWagmiButton(): EncapsulatedElementType {
-    return this.getByDataTestId('app-btn-connect-wagmi');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_CONNECT_BUTTON);
   }
 
   get wagmiDisconnectButton(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-btn-disconnect');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_DISCONNECT_BUTTON);
   }
 
   get wagmiCard(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-card');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_CARD);
   }
 
   get wagmiChainIdValue(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-chain-id-value');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_CHAIN_ID_VALUE);
   }
 
   get wagmiAccountValue(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-account-value');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_ACCOUNT_VALUE);
   }
 
   get wagmiActiveAccount(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-active-account');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_ACTIVE_ACCOUNT);
   }
 
   get wagmiBalanceValue(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-balance-value');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_BALANCE_VALUE);
   }
 
   get wagmiSignMessageInput(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-input-message');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_INPUT_MESSAGE);
   }
 
   get wagmiSignMessageButton(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-btn-sign-message');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_BUTTON_SIGN_MESSAGE);
   }
 
   get wagmiSignatureResult(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-signature-result');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_SIGNATURE_RESULT);
   }
 
   get wagmiSendTxToAddressInput(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-input-to-address');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_INPUT_TO_ADDRESS);
   }
 
   get wagmiSendTxAmountInput(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-input-amount');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_INPUT_AMOUNT);
   }
 
   get wagmiSendTransactionButton(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-btn-send-transaction');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.WAGMI_BUTTON_SEND_TRANSACTION,
+    );
   }
 
   get wagmiTxHashResult(): EncapsulatedElementType {
-    return this.getByDataTestId('wagmi-tx-hash-result');
+    return this.getByDataTestId(MMConnectDappTestIds.WAGMI_TX_HASH_RESULT);
   }
 
   getWagmiSwitchChainButton(chainId: number): EncapsulatedElementType {
-    return this.getByDataTestId(`wagmi-btn-switch-chain-${chainId}`);
+    return this.getByDataTestId(
+      `${MMConnectDappTestIds.WAGMI_BTN_SWITCH_CHAIN}-${chainId}`,
+    );
   }
 
   // Solana selectors
   get solanaCard(): EncapsulatedElementType {
-    return this.getByDataTestId('solana-card');
+    return this.getByDataTestId(MMConnectDappTestIds.SOLANA_CARD);
   }
 
   get solanaConnectButton(): EncapsulatedElementType {
-    return this.getByDataTestId('app-btn-connect-solana');
+    return this.getByDataTestId(MMConnectDappTestIds.SOLANA_CONNECT_BUTTON);
   }
 
   get solanaDisconnectButton(): EncapsulatedElementType {
-    return this.getByDataTestId('solana-btn-disconnect');
+    return this.getByDataTestId(MMConnectDappTestIds.SOLANA_DISCONNECT_BUTTON);
   }
 
   get solanaAddressContainer(): EncapsulatedElementType {
-    return this.getByDataTestId('solana-address-container');
+    return this.getByDataTestId(MMConnectDappTestIds.SOLANA_ADDRESS_CONTAINER);
   }
 
   get solanaSignMessageButton(): EncapsulatedElementType {
-    return this.getByDataTestId('solana-btn-sign-message');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.SOLANA_SIGN_MESSAGE_BUTTON,
+    );
   }
 
   get solanaSignedMessageResult(): EncapsulatedElementType {
-    return this.getByDataTestId('solana-signed-message-result');
+    return this.getByDataTestId(
+      MMConnectDappTestIds.SOLANA_SIGNED_MESSAGE_RESULT,
+    );
   }
 
   getScopeCard(scope: string): EncapsulatedElementType {
     const escapedScope = scope.toLowerCase().replace(/:/g, '-');
-    return this.getByDataTestId(`scope-card-${escapedScope}`);
+    return this.getByDataTestId(
+      `${MMConnectDappTestIds.SCOPE_CARD}-${escapedScope}`,
+    );
   }
 
   // Tap actions

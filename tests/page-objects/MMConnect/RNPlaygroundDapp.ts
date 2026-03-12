@@ -11,6 +11,7 @@ import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { PlaywrightGestures } from '../../framework';
 import { expect } from '@playwright/test';
+import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
 
 function escapeTestId(value: string): string {
   return value
@@ -30,64 +31,66 @@ class RNPlaygroundDapp {
 
   // App-level selectors
   get appContainer(): EncapsulatedElementType {
-    return this.getByTestId('app-container');
+    return this.getByTestId(MMConnectDappTestIds.RM_APP_CONTAINER);
   }
 
   get appTitle(): EncapsulatedElementType {
-    return this.getByTestId('app-title');
+    return this.getByTestId(MMConnectDappTestIds.RM_APP_TITLE);
   }
 
   get connectButton(): EncapsulatedElementType {
-    return this.getByTestId('app-btn-connect');
+    return this.getByTestId(MMConnectDappTestIds.CONNECT_BUTTON);
   }
 
   get disconnectButton(): EncapsulatedElementType {
-    return this.getByTestId('app-btn-disconnect');
+    return this.getByTestId(MMConnectDappTestIds.DISCONNECT_BUTTON);
   }
 
   get scopesSection(): EncapsulatedElementType {
-    return this.getByTestId('app-section-scopes');
+    return this.getByTestId(MMConnectDappTestIds.SCOPES_SECTION);
   }
 
   get errorSection(): EncapsulatedElementType {
-    return this.getByTestId('app-section-error');
+    return this.getByTestId(MMConnectDappTestIds.ERROR_SECTION);
   }
 
   get connectLegacyButton(): EncapsulatedElementType {
-    return this.getByTestId('app-btn-connect-legacy');
+    return this.getByTestId(MMConnectDappTestIds.CONNECT_BUTTON_LEGACY);
   }
 
   // Legacy EVM selectors
   get legacyEvmCard(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-card');
+    return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_CARD);
   }
 
   get legacyEvmChainIdValue(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-chain-id-value');
+    return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE);
   }
 
   get legacyEvmAccountsValue(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-accounts-value');
+    return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_ACCOUNTS_VALUE);
   }
 
   get legacyEvmActiveAccount(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-active-account');
+    return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT);
   }
 
   get legacyEvmResponseText(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-response-text');
+    return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
 
   get legacyEvmBtnPersonalSign(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-btn-personal-sign');
+    return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN);
   }
 
   get legacyEvmBtnSendTransaction(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-btn-send-transaction');
+    return this.getByTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SEND_TRANSACTION,
+    );
   }
 
   get legacyEvmBtnSwitchPolygon(): EncapsulatedElementType {
-    return this.getByTestId('legacy-evm-btn-switch-polygon');
+    return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_POLYGON);
   }
 
   // Dynamic selectors
@@ -98,19 +101,27 @@ class RNPlaygroundDapp {
   }
 
   getScopeCard(scope: string): EncapsulatedElementType {
-    return this.getByTestId(`scope-card-${escapeTestId(scope)}`);
+    return this.getByTestId(
+      `${MMConnectDappTestIds.SCOPE_CARD}-${escapeTestId(scope)}`,
+    );
   }
 
   getScopeNetworkName(scope: string): EncapsulatedElementType {
-    return this.getByTestId(`scope-card-network-name-${escapeTestId(scope)}`);
+    return this.getByTestId(
+      `${MMConnectDappTestIds.SCOPE_CARD_NETWORK_NAME}-${escapeTestId(scope)}`,
+    );
   }
 
   getMethodSelect(scope: string): EncapsulatedElementType {
-    return this.getByTestId(`scope-card-method-select-${escapeTestId(scope)}`);
+    return this.getByTestId(
+      `${MMConnectDappTestIds.SCOPE_CARD_METHOD_SELECT}-${escapeTestId(scope)}`,
+    );
   }
 
   getInvokeButton(scope: string): EncapsulatedElementType {
-    return this.getByTestId(`scope-card-invoke-btn-${escapeTestId(scope)}`);
+    return this.getByTestId(
+      `${MMConnectDappTestIds.SCOPE_CARD_INVOKE_BTN}-${escapeTestId(scope)}`,
+    );
   }
 
   getResultCode(
@@ -121,7 +132,7 @@ class RNPlaygroundDapp {
     const escapedScope = escapeTestId(scope);
     const escapedMethod = escapeTestId(method);
     return this.getByTestId(
-      `scope-card-result-code-${escapedScope}-${escapedMethod}-${index}`,
+      `${MMConnectDappTestIds.SCOPE_CARD_RESULT_CODE}-${escapedScope}-${escapedMethod}-${index}`,
     );
   }
 
@@ -133,7 +144,7 @@ class RNPlaygroundDapp {
     const escapedScope = escapeTestId(scope);
     const escapedMethod = escapeTestId(method);
     return this.getByTestId(
-      `scope-card-result-status-${escapedScope}-${escapedMethod}-${index}`,
+      `${MMConnectDappTestIds.SCOPE_CARD_RESULT_STATUS}-${escapedScope}-${escapedMethod}-${index}`,
     );
   }
 

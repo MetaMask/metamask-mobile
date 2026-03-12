@@ -5,15 +5,16 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { TestSnapBottomSheetSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
 
 class SnapSignModal {
   get confirmButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
         PlaywrightMatchers.getElementByXPath(
-          '//*[contains(@resource-id,"snap-footer-button") ' +
+          `//*[contains(@resource-id,"${TestSnapBottomSheetSelectorWebIDS.SNAP_FOOTER_BUTTON_ID}") ` +
             'and not(contains(@resource-id,"cancel")) ' +
-            'and not(contains(@resource-id,"default-snap-footer-button"))]',
+            `and not(contains(@resource-id,"${TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID}"))]`,
         ),
     });
   }
@@ -22,8 +23,8 @@ class SnapSignModal {
     return encapsulated({
       appium: () =>
         PlaywrightMatchers.getElementByXPath(
-          '//*[contains(@resource-id,"cancel") ' +
-            'and contains(@resource-id,"snap-footer-button")]',
+          `//*[contains(@resource-id,"cancel") ` +
+            `and contains(@resource-id,"${TestSnapBottomSheetSelectorWebIDS.SNAP_FOOTER_BUTTON_ID}")]`,
         ),
     });
   }

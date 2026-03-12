@@ -6,11 +6,15 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 class SwitchChainModal {
   get connectButton(): EncapsulatedElementType {
     return encapsulated({
-      appium: () => PlaywrightMatchers.getElementById('connect-button'),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+        ),
     });
   }
 

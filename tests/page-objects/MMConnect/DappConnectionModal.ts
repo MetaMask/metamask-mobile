@@ -7,18 +7,26 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
+import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
+import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
 
 class DappConnectionModal {
   get connectButton(): EncapsulatedElementType {
     return encapsulated({
-      appium: () => PlaywrightMatchers.getElementById('connect-button'),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
+        ),
     });
   }
 
   get updateAccountsButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementById('multiconnect-connect-button'),
+        PlaywrightMatchers.getElementById(
+          ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+        ),
     });
   }
 
@@ -62,7 +70,7 @@ class DappConnectionModal {
     return encapsulated({
       appium: () =>
         PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@resource-id="multichain-account-cell-address" and @text="${accountName}"]`,
+          `//android.widget.TextView[@resource-id="${AccountCellIds.ADDRESS}" and @text="${accountName}"]`,
         ),
     });
   }
@@ -71,7 +79,7 @@ class DappConnectionModal {
     return encapsulated({
       appium: () =>
         PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@resource-id="cellbase-avatar-title" and @text="${networkName}"]`,
+          `//android.widget.TextView[@resource-id="${CellComponentSelectorsIDs.BASE_TITLE}" and @text="${networkName}"]`,
         ),
     });
   }
