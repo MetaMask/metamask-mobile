@@ -18,7 +18,7 @@ import { TokenButton } from '../TokenButton';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';

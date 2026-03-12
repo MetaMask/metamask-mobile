@@ -141,6 +141,9 @@ export type PredictControllerState = {
   // Deposit management
   pendingDeposits: { [address: string]: string };
 
+  // Claim management (pending claim tracking per account)
+  pendingClaims: { [address: string]: string };
+
   // Withdraw management
   // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
@@ -161,6 +164,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   balances: {},
   claimablePositions: {},
   pendingDeposits: {},
+  pendingClaims: {},
   withdrawTransaction: null,
   accountMeta: {},
 });
@@ -204,6 +208,12 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
     usedInUi: false,
+  },
+  pendingClaims: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
   },
   withdrawTransaction: {
     persist: false,
@@ -1594,10 +1604,20 @@ export class PredictController extends BaseController<
       },
     });
 
+    const signer = this.getSigner();
+
     try {
       const provider = this.provider;
 
-      const signer = this.getSigner();
+      // Skip if there's already a pending claim for this account
+      if (this.state.pendingClaims[signer.address]) {
+        traceData = { success: false, reason: 'already_pending' };
+        return {
+          batchId: this.state.pendingClaims[signer.address],
+          chainId: 0,
+          status: PredictClaimStatus.PENDING,
+        };
+      }
 
       // Get claimable positions from state
       const claimablePositions = this.state.claimablePositions[signer.address];
@@ -1605,6 +1625,11 @@ export class PredictController extends BaseController<
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
       }
+
+      // Set pending claim placeholder before preparing the transaction
+      this.update((state) => {
+        state.pendingClaims[signer.address] = 'pending';
+      });
 
       // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
       const prepareClaimResult = await provider.prepareClaim({
@@ -1658,6 +1683,11 @@ export class PredictController extends BaseController<
 
       const { batchId } = batchResult;
 
+      // Store the real batchId for pending claim tracking
+      this.update((state) => {
+        state.pendingClaims[signer.address] = batchId;
+      });
+
       const predictClaim: PredictClaim = {
         batchId,
         chainId,
@@ -1672,6 +1702,8 @@ export class PredictController extends BaseController<
       traceData = { success: true, positionCount: claimablePositions.length };
       return predictClaim;
     } catch (error) {
+      this.clearPendingClaimForAddress({ address: signer.address });
+
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
         traceData = { success: false, reason: 'user_cancelled' };
@@ -2005,6 +2037,19 @@ export class PredictController extends BaseController<
     });
   }
 
+  private clearPendingClaimForAddress({ address }: { address: string }): void {
+    const normalizedAddress = address.toLowerCase();
+    this.update((state) => {
+      const matchedAddress = Object.keys(state.pendingClaims).find(
+        (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+      );
+
+      if (matchedAddress) {
+        delete state.pendingClaims[matchedAddress];
+      }
+    });
+  }
+
   private handleTransactionStatusUpdate({
     transactionMeta,
   }: {
@@ -2084,6 +2129,10 @@ export class PredictController extends BaseController<
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    if (type === 'claim' && isTerminal) {
+      this.clearPendingClaimForAddress({ address });
     }
 
     if (type === 'claim' && status === 'confirmed') {

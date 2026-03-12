@@ -95,18 +95,25 @@ jest.mock('react-redux', () => ({
   Provider: jest.requireActual('react-redux').Provider,
 }));
 
-jest.mock('../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn()),
-  selectInternalAccounts: jest.fn(),
-  selectInternalAccountsById: jest.fn(),
-}));
+jest.mock('../../../selectors/accountsController', () => {
+  const actual = jest.requireActual('../../../selectors/accountsController');
+  return {
+    ...actual,
+    selectSelectedInternalAccountByScope: jest.fn(() => jest.fn()),
+    selectInternalAccounts: jest.fn(),
+    selectInternalAccountsById: jest.fn(),
+  };
+});
 
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
+jest.mock('../../../selectors/multichainAccounts/accountTreeController', () => {
+  const actual = jest.requireActual(
+    '../../../selectors/multichainAccounts/accountTreeController',
+  );
+  return {
+    ...actual,
     selectAccountTreeControllerState: jest.fn(),
-  }),
-);
+  };
+});
 
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => null),
@@ -184,13 +191,7 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 });
 
 // Mock store setup
-const mockStore = createStore(() => ({
-  featureFlags: {
-    multichainAccounts: {
-      enabledMultichainAccounts: true,
-    },
-  },
-}));
+const mockStore = createStore(() => ({}));
 
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
@@ -258,7 +259,6 @@ describe('NetworkMultiSelector', () => {
       : null,
     selectedBitcoinAccount: null,
     selectedTronAccount: null,
-    isMultichainAccountsState2Enabled: true,
     areAllNetworksSelectedCombined: areAllSelected,
     areAllEvmNetworksSelected: false,
     areAllSolanaNetworksSelected: false,
@@ -387,7 +387,6 @@ describe('NetworkMultiSelector', () => {
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
       selectedTronAccount: { id: 'tron-account' } as InternalAccount,
-      isMultichainAccountsState2Enabled: true,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
@@ -718,9 +717,8 @@ describe('NetworkMultiSelector', () => {
       });
     });
 
-    it('calls useNetworksToUse when multichain is enabled', () => {
+    it('calls useNetworksToUse', () => {
       mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
 
@@ -786,7 +784,6 @@ describe('NetworkMultiSelector', () => {
         selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
-        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: true,
         areAllSolanaNetworksSelected: false,
@@ -872,7 +869,6 @@ describe('NetworkMultiSelector', () => {
         selectedTronAccount: null,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
-        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: true,
@@ -951,7 +947,6 @@ describe('NetworkMultiSelector', () => {
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
-        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -1026,7 +1021,6 @@ describe('NetworkMultiSelector', () => {
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
-        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -1154,7 +1148,6 @@ describe('NetworkMultiSelector', () => {
         });
 
       mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })) // selectedSolanaAccount
         .mockReturnValueOnce(() => ({ id: 'bitcoin-account' })); // selectedBitcoinAccount

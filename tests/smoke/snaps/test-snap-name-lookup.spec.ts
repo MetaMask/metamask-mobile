@@ -27,13 +27,11 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x1',
-                rpcUrl: `http://localhost:${node.getPort() ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x1',
+              rpcUrl: `http://localhost:${node.getPort() ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .build();
         },

@@ -161,6 +161,8 @@ import { smartTransactionsControllerInit } from './controllers/smart-transaction
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
+import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
+import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
@@ -313,6 +315,8 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
+        GeolocationApiService: geolocationApiServiceInit,
+        GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
         // MultichainNetworkController and NetworkEnablementController must be initialized before TokenRatesController
@@ -397,6 +401,7 @@ export class Engine {
     const transactionController = controllersByName.TransactionController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
+    const geolocationController = controllersByName.GeolocationController;
     const perpsController = controllersByName.PerpsController;
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
@@ -559,6 +564,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: controllersByName.BridgeStatusController,
       EarnController: earnController,
+      GeolocationController: geolocationController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1205,13 +1211,18 @@ export class Engine {
     }
   }
 
-  // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
+  /**
+   * Method to set the selected account in the accounts-controller.
+   *
+   * @deprecated The accounts-controller should not be used anymore. Use the
+   * account-tree-controller instead.
+   * @param address - Account address
+   */
   setSelectedAccount(address: string) {
-    const { AccountsController, PreferencesController } = this.context;
+    const { AccountsController } = this.context;
     const account = AccountsController.getAccountByAddress(address);
     if (account) {
       AccountsController.setSelectedAccount(account.id);
-      PreferencesController.setSelectedAddress(address);
     } else {
       throw new Error(`No account found for address: ${address}`);
     }
@@ -1223,13 +1234,12 @@ export class Engine {
    * in sync until the migration is complete.
    */
   setAccountLabel(address: string, label: string) {
-    const { AccountsController, PreferencesController } = this.context;
+    const { AccountsController } = this.context;
     const accountToBeNamed = AccountsController.getAccountByAddress(address);
     if (accountToBeNamed === undefined) {
       throw new Error(`No account found for address: ${address}`);
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
-    PreferencesController.setAccountLabel(address, label);
   }
 
   /**
@@ -1306,6 +1316,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GeolocationController,
       GatorPermissionsController,
       KeyringController,
       LoggingController,
@@ -1375,6 +1386,7 @@ export default {
       DelegationController: DelegationController.state,
       EarnController: EarnController.state,
       GasFeeController: GasFeeController.state,
+      GeolocationController: GeolocationController.state,
       GatorPermissionsController: GatorPermissionsController.state,
       KeyringController: KeyringController.state,
       LoggingController: LoggingController.state,

@@ -1,7 +1,7 @@
 import SecureKeychain from '../../../SecureKeychain';
 import {
   CardOnboardingStore,
-  EMPTY_ONBOARDING_DATA,
+  emptyOnboardingData,
 } from './CardOnboardingStore';
 
 jest.mock('../../../SecureKeychain');
@@ -122,7 +122,7 @@ describe('CardOnboardingStore', () => {
       expect(mockSecureKeychain.setSecureItem).toHaveBeenCalledWith(
         'CARD_ONBOARDING_baanx',
         JSON.stringify({
-          ...EMPTY_ONBOARDING_DATA,
+          ...emptyOnboardingData(),
           onboardingId: 'ob-new',
         }),
         expect.objectContaining({
