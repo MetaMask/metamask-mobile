@@ -76,6 +76,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
+  const [loading, setLoading] = useState(false);
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
   const {
     styles,
@@ -403,6 +404,20 @@ const Settings: React.FC = () => {
           <ChangePassword />
           <AutoLock />
           <DeviceSecurityToggle />
+          <Button
+            variant={ButtonVariants.Secondary}
+            onPress={async () => {
+              setLoading(true);
+              await Engine.context.SeedlessOnboardingController.refreshAuthTokens().finally(
+                () => {
+                  setLoading(false);
+                },
+              );
+            }}
+            label={strings('login.refresh_auth_tokens')}
+            disabled={loading}
+            size={ButtonSize.Lg}
+          />
           <BlockaidSettings />
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           <View>
