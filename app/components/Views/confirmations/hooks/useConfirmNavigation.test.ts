@@ -8,13 +8,16 @@ import { ConfirmationLoader } from '../components/confirm/confirm-component';
 import { useConfirmNavigation } from './useConfirmNavigation';
 import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
+import { StackActions } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockDispatch,
   }),
 }));
 
@@ -116,5 +119,23 @@ describe('useConfirmNavigation', () => {
       TRANSACTION_ID_MOCK,
       expect.anything(),
     );
+  });
+
+  it('replaces current route when replace is true', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      headerShown: false,
+      loader: ConfirmationLoader.CustomAmount,
+      replace: true,
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER, {
+        loader: ConfirmationLoader.CustomAmount,
+        animationEnabled: false,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
