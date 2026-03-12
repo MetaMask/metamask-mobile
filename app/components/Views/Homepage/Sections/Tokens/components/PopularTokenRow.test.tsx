@@ -83,7 +83,7 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Price is rendered with dot separator (e.g. "$1,234.56 • ")
+      // Price is rendered with dot separator when percentage exists (e.g. "$1,234.56 • +5.25%")
       expect(screen.getByText(/\$1,234\.56/)).toBeOnTheScreen();
     });
 
@@ -92,7 +92,7 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Dash is rendered with dot separator (e.g. "— • ")
+      // Dash is rendered; with default percentage we get "— • +5.25%"
       expect(screen.getByText(/—/)).toBeOnTheScreen();
     });
 
@@ -125,8 +125,23 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Use regex to match any text containing a percentage value (e.g. +5.25%, -3.50%)
+      // No percentage should be shown
       expect(screen.queryByText(/[+-]?\d+\.\d+%/)).toBeNull();
+      // Price only, no trailing bullet
+      expect(screen.getByText('$100.50')).toBeOnTheScreen();
+    });
+
+    it('does not render trailing bullet when percentage change is undefined', () => {
+      const token = createMockToken({
+        price: 99.99,
+        priceChange1d: undefined,
+      });
+
+      renderWithProvider(<PopularTokenRow token={token} />);
+
+      // Price without trailing bullet (no "•" after it)
+      expect(screen.getByText('$99.99')).toBeOnTheScreen();
+      expect(screen.queryByText(/\$\d+\.\d+\s+•\s*$/)).toBeNull();
     });
 
     it('renders description instead of price when provided', () => {
@@ -294,8 +309,9 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Should not render percentage for Infinity
-      expect(screen.queryByText('Infinity%')).not.toBeOnTheScreen();
+      // Should not render percentage for Infinity; price only, no trailing bullet
+      expect(screen.queryByText('Infinity%')).toBeNull();
+      expect(screen.getByText('$100.50')).toBeOnTheScreen();
     });
 
     it('handles NaN price change gracefully', () => {
@@ -303,8 +319,9 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Should not render percentage for NaN
-      expect(screen.queryByText('NaN%')).not.toBeOnTheScreen();
+      // Should not render percentage for NaN; price only, no trailing bullet
+      expect(screen.queryByText('NaN%')).toBeNull();
+      expect(screen.getByText('$100.50')).toBeOnTheScreen();
     });
   });
 });
