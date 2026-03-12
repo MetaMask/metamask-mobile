@@ -52,7 +52,6 @@ export const initialStatePerps = () =>
             selectedNetworkClientId: 'mainnet',
           },
           PreferencesController: {
-            selectedAddress: '0x1234567890abcdef',
             // useTokensWithBalance -> sortAssets expects tokenSortConfig.key
             tokenSortConfig: {
               key: 'tokenFiatAmount',

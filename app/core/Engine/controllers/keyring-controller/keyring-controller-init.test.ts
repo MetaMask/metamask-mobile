@@ -56,7 +56,6 @@ describe('keyringControllerInit', () => {
       state: undefined,
       encryptor: expect.any(Encryptor),
       keyringBuilders: expect.any(Array),
-      removeIdentity: expect.any(Function),
     });
   });
 });
