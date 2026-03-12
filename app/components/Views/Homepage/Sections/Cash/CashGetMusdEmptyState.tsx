@@ -201,12 +201,12 @@ const CashGetMusdEmptyState = () => {
             >
               {MUSD_TOKEN.name}
             </Text>
-            <Box twClassName="flex-row gap-2">
+            <Box twClassName="flex-row gap-1">
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {musdPriceFormatted} {' \u2022'}
+                {musdPriceFormatted} {'\u2022'}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
