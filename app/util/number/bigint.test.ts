@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import {
   addCurrencySymbol,
   addHexPrefix,
@@ -40,6 +41,13 @@ import {
 describe('Number utils :: bigIntToHex', () => {
   it('bigIntToHex', () => {
     expect(bigIntToHex(BigInt('1337'))).toEqual('0x539');
+  });
+});
+
+describe('BigNumber global isolation', () => {
+  it('does not mutate the global BigNumber DECIMAL_PLACES default', () => {
+    // The bignumber.js library default is 20; importing bigint.ts must not change it
+    expect(BigNumber.config().DECIMAL_PLACES).toBe(20);
   });
 });
 
@@ -207,152 +215,59 @@ describe('Number utils :: fromTokenMinimalUnitString', () => {
     expect(() => fromTokenMinimalUnitString(wrongTypeInput, 18)).toThrow();
   });
 
-  it('fromTokenMinimalUnitString using string', () => {
-    expect(fromTokenMinimalUnitString('1337', 6)).toEqual('0.001337');
-    expect(fromTokenMinimalUnitString('1337', 0)).toEqual('1337');
-    expect(fromTokenMinimalUnitString('1337', 18)).toEqual(
-      '0.000000000000001337',
-    );
-    expect(fromTokenMinimalUnitString('1234560000000000000', 18)).toEqual(
-      '1.23456',
-    );
-    expect(fromTokenMinimalUnitString('1000000000000000000', 18)).toEqual('1');
-    expect(fromTokenMinimalUnitString('1', 18)).toEqual('0.000000000000000001');
-    expect(fromTokenMinimalUnitString('0', 18)).toEqual('0');
-    expect(fromTokenMinimalUnitString('123456789', 5)).toEqual('1234.56789');
-    expect(
-      fromTokenMinimalUnitString('1234567890000000000987654321', 18),
-    ).toEqual('1234567890.000000000987654321');
-    expect(
-      fromTokenMinimalUnitString('10000000000000000000000000000001', 18),
-    ).toEqual('10000000000000.000000000000000001');
-    expect(
-      fromTokenMinimalUnitString('10000000000000000000000000000000', 18),
-    ).toEqual('10000000000000');
-    expect(fromTokenMinimalUnitString('3900229504248293869', 18)).toEqual(
-      '3.900229504248293869',
-    );
-    expect(
-      fromTokenMinimalUnitString('92836465327282987373728723', 18),
-    ).toEqual('92836465.327282987373728723');
-    expect(fromTokenMinimalUnitString('6123512631253', 16)).toEqual(
-      '0.0006123512631253',
-    );
-    expect(fromTokenMinimalUnitString('92836465327282987373728723', 0)).toEqual(
-      '92836465327282987373728723',
-    );
-    expect(
-      fromTokenMinimalUnitString(
-        '9283646532728212312312312312312987373728723',
-        32,
-      ),
-    ).toEqual('92836465327.28212312312312312312987373728723');
-    expect(fromTokenMinimalUnitString('-1234560000000000000', 18)).toEqual(
-      '-1.23456',
-    );
-    expect(fromTokenMinimalUnitString('-1000000000000000000', 18)).toEqual(
-      '-1',
-    );
-    expect(fromTokenMinimalUnitString('-1', 18)).toEqual(
-      '-0.000000000000000001',
-    );
-    expect(fromTokenMinimalUnitString('-0', 18)).toEqual('0');
-    expect(fromTokenMinimalUnitString('-123456789', 5)).toEqual('-1234.56789');
-    expect(
-      fromTokenMinimalUnitString('-1234567890000000000987654321', 18),
-    ).toEqual('-1234567890.000000000987654321');
-    expect(
-      fromTokenMinimalUnitString('-10000000000000000000000000000001', 18),
-    ).toEqual('-10000000000000.000000000000000001');
-    expect(
-      fromTokenMinimalUnitString('-10000000000000000000000000000000', 18),
-    ).toEqual('-10000000000000');
-    expect(fromTokenMinimalUnitString('-3900229504248293869', 18)).toEqual(
-      '-3.900229504248293869',
-    );
-    expect(
-      fromTokenMinimalUnitString('-92836465327282987373728723', 18),
-    ).toEqual('-92836465.327282987373728723');
-    expect(fromTokenMinimalUnitString('-6123512631253', 16)).toEqual(
-      '-0.0006123512631253',
-    );
-    expect(
-      fromTokenMinimalUnitString('-92836465327282987373728723', 0),
-    ).toEqual('-92836465327282987373728723');
-    expect(
-      fromTokenMinimalUnitString(
-        '-9283646532728212312312312312312987373728723',
-        32,
-      ),
-    ).toEqual('-92836465327.28212312312312312312987373728723');
-  });
-
-  it('fromTokenMinimalUnitString using BN number', () => {
-    expect(fromTokenMinimalUnitString(BigInt('1337').toString(10), 6)).toEqual(
-      '0.001337',
-    );
-    expect(fromTokenMinimalUnitString(BigInt('1337').toString(10), 0)).toEqual(
-      '1337',
-    );
-    expect(fromTokenMinimalUnitString(BigInt('1337').toString(10), 18)).toEqual(
-      '0.000000000000001337',
-    );
-    expect(fromTokenMinimalUnitString(BigInt('123456').toString(), 5)).toEqual(
-      '1.23456',
-    );
-    expect(fromTokenMinimalUnitString(BigInt('123456').toString(), 5)).toEqual(
-      '1.23456',
-    );
-    expect(
-      fromTokenMinimalUnitString(BigInt('1234560000000000000').toString(), 18),
-    ).toEqual('1.23456');
-    expect(
-      fromTokenMinimalUnitString(BigInt('1000000000000000000').toString(), 18),
-    ).toEqual('1');
-    expect(fromTokenMinimalUnitString(BigInt('1').toString(), 18)).toEqual(
-      '0.000000000000000001',
-    );
-    expect(fromTokenMinimalUnitString(BigInt('0').toString(), 18)).toEqual('0');
-    expect(
-      fromTokenMinimalUnitString(BigInt('123456789').toString(), 5),
-    ).toEqual('1234.56789');
-    expect(
-      fromTokenMinimalUnitString(
-        BigInt('1234567890000000000987654321').toString(),
-        18,
-      ),
-    ).toEqual('1234567890.000000000987654321');
-    expect(
-      fromTokenMinimalUnitString(
-        BigInt('10000000000000000000000000000001').toString(),
-        18,
-      ),
-    ).toEqual('10000000000000.000000000000000001');
-    expect(
-      fromTokenMinimalUnitString(
-        BigInt('10000000000000000000000000000000').toString(),
-        18,
-      ),
-    ).toEqual('10000000000000');
-    expect(
-      fromTokenMinimalUnitString(BigInt('3900229504248293869').toString(), 18),
-    ).toEqual('3.900229504248293869');
-    expect(
-      fromTokenMinimalUnitString(
-        BigInt('92836465327282987373728723').toString(),
-        18,
-      ),
-    ).toEqual('92836465.327282987373728723');
-    expect(
-      fromTokenMinimalUnitString(BigInt('6123512631253').toString(), 16),
-    ).toEqual('0.0006123512631253');
-    expect(
-      fromTokenMinimalUnitString(
-        BigInt('92836465327282987373728723').toString(),
-        0,
-      ),
-    ).toEqual('92836465327282987373728723');
-  });
+  it.each([
+    ['1337', 6, '0.001337'],
+    ['1337', 0, '1337'],
+    ['1337', 18, '0.000000000000001337'],
+    ['123456', 5, '1.23456'],
+    ['1234560000000000000', 18, '1.23456'],
+    ['1000000000000000000', 18, '1'],
+    ['1', 18, '0.000000000000000001'],
+    ['0', 18, '0'],
+    ['123456789', 5, '1234.56789'],
+    ['1234567890000000000987654321', 18, '1234567890.000000000987654321'],
+    [
+      '10000000000000000000000000000001',
+      18,
+      '10000000000000.000000000000000001',
+    ],
+    ['10000000000000000000000000000000', 18, '10000000000000'],
+    ['3900229504248293869', 18, '3.900229504248293869'],
+    ['92836465327282987373728723', 18, '92836465.327282987373728723'],
+    ['6123512631253', 16, '0.0006123512631253'],
+    ['92836465327282987373728723', 0, '92836465327282987373728723'],
+    [
+      '9283646532728212312312312312312987373728723',
+      32,
+      '92836465327.28212312312312312312987373728723',
+    ],
+    ['-1234560000000000000', 18, '-1.23456'],
+    ['-1000000000000000000', 18, '-1'],
+    ['-1', 18, '-0.000000000000000001'],
+    ['-0', 18, '0'],
+    ['-123456789', 5, '-1234.56789'],
+    ['-1234567890000000000987654321', 18, '-1234567890.000000000987654321'],
+    [
+      '-10000000000000000000000000000001',
+      18,
+      '-10000000000000.000000000000000001',
+    ],
+    ['-10000000000000000000000000000000', 18, '-10000000000000'],
+    ['-3900229504248293869', 18, '-3.900229504248293869'],
+    ['-92836465327282987373728723', 18, '-92836465.327282987373728723'],
+    ['-6123512631253', 16, '-0.0006123512631253'],
+    ['-92836465327282987373728723', 0, '-92836465327282987373728723'],
+    [
+      '-9283646532728212312312312312312987373728723',
+      32,
+      '-92836465327.28212312312312312312987373728723',
+    ],
+  ] as const)(
+    'converts %s with %i decimals to %s',
+    (input, decimals, expected) => {
+      expect(fromTokenMinimalUnitString(input, decimals)).toEqual(expected);
+    },
+  );
 });
 
 describe('Number utils :: toTokenMinimalUnit', () => {
@@ -721,6 +636,19 @@ describe('Number utils :: fastSplit', () => {
     expect(fastSplit('1650000007.7')).toEqual('1650000007');
     expect(fastSplit('1650000007')).toEqual('1650000007');
     expect(fastSplit('test string', ' ')).toEqual('test');
+  });
+
+  it('returns empty string when divider is at position 0', () => {
+    expect(fastSplit('.123')).toEqual('');
+  });
+
+  it('returns the whole string when divider is absent', () => {
+    expect(fastSplit('123')).toEqual('123');
+    expect(fastSplit('nodot', '.')).toEqual('nodot');
+  });
+
+  it('returns everything before divider when divider is at end', () => {
+    expect(fastSplit('123.')).toEqual('123');
   });
 });
 

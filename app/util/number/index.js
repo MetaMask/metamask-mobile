@@ -15,12 +15,15 @@ import { regex } from '../regex';
 import { formatSubscriptNotation } from './subscriptNotation';
 
 const MAX_DECIMALS_FOR_TOKENS = 36;
-BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
+// File-scoped subclass with 36 d.p. — does not mutate the shared BigNumber global default (20 d.p.)
+const ScopedBigNumber = BigNumber.clone({
+  DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS,
+});
 
 // Big Number Constants
-const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
-const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
-const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
+const BIG_NUMBER_WEI_MULTIPLIER = new ScopedBigNumber('1000000000000000000');
+const BIG_NUMBER_GWEI_MULTIPLIER = new ScopedBigNumber('1000000000');
+const BIG_NUMBER_ETH_MULTIPLIER = new ScopedBigNumber('1');
 
 /**
  * Converts a hex string to a BN object.
@@ -50,9 +53,9 @@ export function BNToHex(inputBn) {
 
 // Setter Maps
 export const toBigNumber = {
-  hex: (n) => new BigNumber(stripHexPrefix(n), 16),
-  dec: (n) => new BigNumber(String(n), 10),
-  BN: (n) => new BigNumber(n.toString(16), 16),
+  hex: (n) => new ScopedBigNumber(stripHexPrefix(n), 16),
+  dec: (n) => new ScopedBigNumber(String(n), 10),
+  BN: (n) => new ScopedBigNumber(n.toString(16), 16),
 };
 const toNormalizedDenomination = {
   WEI: (bigNumber) => bigNumber.div(BIG_NUMBER_WEI_MULTIPLIER),
@@ -69,7 +72,7 @@ const toSpecifiedDenomination = {
 };
 const baseChange = {
   hex: (n) => n.toString(16),
-  dec: (n) => new BigNumber(n).toString(10),
+  dec: (n) => new ScopedBigNumber(n).toString(10),
   BN: (n) => new BN4(n.toString(16)),
 };
 
@@ -866,7 +869,7 @@ const converter = ({
     }
     let rate = toBigNumber.dec(conversionRate);
     if (invertConversionRate) {
-      rate = new BigNumber(1.0).div(conversionRate);
+      rate = new ScopedBigNumber(1.0).div(conversionRate);
     }
     convertedValue = convertedValue.times(rate);
   }
@@ -944,8 +947,8 @@ export const calculateEthFeeForMultiLayer = ({
     fromDenomination: 'WEI',
     toDenomination: 'ETH',
   });
-  return new BigNumber(multiLayerL1FeeTotalDecEth)
-    .plus(new BigNumber(ethFee ?? 0))
+  return new ScopedBigNumber(multiLayerL1FeeTotalDecEth)
+    .plus(new ScopedBigNumber(ethFee ?? 0))
     .toString(10);
 };
 

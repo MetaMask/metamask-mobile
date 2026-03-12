@@ -22,12 +22,15 @@ type CurrencyCode = keyof typeof currencySymbols;
 type SignedHex = `0x${string}` | `-0x${string}`;
 
 const MAX_DECIMALS_FOR_TOKENS = 36;
-BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
+// File-scoped subclass with 36 d.p. — does not mutate the shared BigNumber global default (20 d.p.)
+const ScopedBigNumber = BigNumber.clone({
+  DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS,
+});
 
 // Big Number Constants
-const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
-const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
-const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
+const BIG_NUMBER_WEI_MULTIPLIER = new ScopedBigNumber('1000000000000000000');
+const BIG_NUMBER_GWEI_MULTIPLIER = new ScopedBigNumber('1000000000');
+const BIG_NUMBER_ETH_MULTIPLIER = new ScopedBigNumber('1');
 
 export const hexToBigInt = (inputHex: string | number | bigint): bigint => {
   if (typeof inputHex !== 'string') {
@@ -48,10 +51,10 @@ export const toBigInt = {
   dec: (n: string | number): bigint => BigInt(String(n)),
 };
 export const toBigNumber = {
-  hex: (n: string): BigNumber => new BigNumber(stripHexPrefix(n), 16),
-  dec: (n: string | number): BigNumber => new BigNumber(String(n), 10),
+  hex: (n: string): BigNumber => new ScopedBigNumber(stripHexPrefix(n), 16),
+  dec: (n: string | number): BigNumber => new ScopedBigNumber(String(n), 10),
   BN: (n: bigint | BigNumber | string | number): BigNumber =>
-    new BigNumber(n.toString(16), 16),
+    new ScopedBigNumber(n.toString(16), 16),
 };
 type NumericBase = keyof typeof toBigNumber;
 
@@ -710,8 +713,8 @@ export function safeNumberToBigInt(value: number | string | bigint): bigint {
 export function fastSplit(valueInput: string | number, divider = '.') {
   const value =
     typeof valueInput === 'string' ? valueInput : valueInput.toString();
-  const [from, to] = [value.indexOf(divider), 0];
-  return value.substring(from, to) || value;
+  const index = value.indexOf(divider);
+  return index === -1 ? value : value.slice(0, index);
 }
 
 /**
@@ -861,7 +864,7 @@ const converter = ({
 }) => {
   let convertedValue: BigNumber | string = fromNumericBase
     ? toBigNumber[fromNumericBase](value as unknown as string)
-    : BigNumber(value);
+    : new ScopedBigNumber(value as unknown as string);
 
   if (fromDenomination) {
     convertedValue = toNormalizedDenomination[fromDenomination](convertedValue);
@@ -875,7 +878,7 @@ const converter = ({
     }
     let rate = toBigNumber.dec(conversionRate);
     if (invertConversionRate) {
-      rate = new BigNumber(1.0).div(conversionRate);
+      rate = new ScopedBigNumber(1.0).div(conversionRate);
     }
     convertedValue = convertedValue.times(rate);
   }
@@ -973,8 +976,8 @@ export const calculateEthFeeForMultiLayer = ({
     fromDenomination: 'WEI',
     toDenomination: 'ETH',
   });
-  return new BigNumber(multiLayerL1FeeTotalDecEth)
-    .plus(new BigNumber(ethFee ?? 0))
+  return new ScopedBigNumber(multiLayerL1FeeTotalDecEth)
+    .plus(new ScopedBigNumber(ethFee ?? 0))
     .toString(10);
 };
 
