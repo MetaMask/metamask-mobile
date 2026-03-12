@@ -84,9 +84,7 @@ const expectedEventNames = [
   expectedEvents.RampsTokenSelected,
 ];
 
-// Disabling as the test is currently hanging in CI
-// https://github.com/MetaMask/metamask-mobile/actions/runs/23006374721
-describe.skip(SmokeRamps('Onramp Unified Buy'), () => {
+describe(SmokeRamps('Onramp Unified Buy'), () => {
   beforeEach(async () => {
     await device.clearKeychain();
   });
