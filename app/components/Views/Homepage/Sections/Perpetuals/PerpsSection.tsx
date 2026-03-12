@@ -30,7 +30,10 @@ import {
 } from '../../../../UI/Perps/hooks';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
-import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
+import {
+  selectPerpsWatchlistMarkets,
+  selectIsFirstTimePerpsUser,
+} from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
@@ -95,6 +98,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const { markets, isLoading: marketsLoading } = usePerpsMarkets();
     const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+    const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
     const displayPositions = useMemo(
       () => positions.slice(0, MAX_ITEMS),
@@ -173,19 +177,32 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       [connectionError, reconnectWithNewContext, refreshSparklines],
     );
 
+    const navigateToTutorialOrScreen = useCallback(
+      (screen: string, params: Record<string, unknown>) => {
+        if (isFirstTimePerpsUser) {
+          navigation.navigate(Routes.PERPS.TUTORIAL, {
+            source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+            redirectScreen: screen,
+            redirectParams: params,
+          });
+        } else {
+          navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+        }
+      },
+      [isFirstTimePerpsUser, navigation],
+    );
+
     const handleViewAllPerps = useCallback(() => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
+      navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       });
-    }, [navigation]);
+    }, [navigateToTutorialOrScreen]);
 
     const handleViewMorePerps = useCallback(() => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
+      navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       });
-    }, [navigation]);
+    }, [navigateToTutorialOrScreen]);
 
     const handlePositionPress = useCallback(
       (position: Position) => {
@@ -198,29 +215,26 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
         });
         const market = markets.find((m) => m.symbol === position.symbol);
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: market ?? {
-              symbol: position.symbol,
-              maxLeverage: position.maxLeverage,
-            },
-            initialTab: 'position',
-            source: 'section_position',
+        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
+          market: market ?? {
+            symbol: position.symbol,
+            maxLeverage: position.maxLeverage,
           },
+          initialTab: 'position',
+          source: 'section_position',
         });
       },
-      [navigation, markets, track],
+      [navigateToTutorialOrScreen, markets, track],
     );
 
     const handleTilePress = useCallback(
       (market: PerpsMarketData) => {
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: { market, source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
+        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
+          market,
+          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
         });
       },
-      [navigation],
+      [navigateToTutorialOrScreen],
     );
 
     // Pass null while loading so the hook uses the immediate-fire path and
