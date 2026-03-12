@@ -1,5 +1,5 @@
 import React from 'react';
-import { waitFor, fireEvent } from '@testing-library/react-native';
+import { waitFor, fireEvent, act } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
 import renderWithProvider, {
   DeepPartial,
@@ -558,11 +558,11 @@ describe('AppInformation', () => {
         expect(getByText('Visit our support center')).toBeTruthy();
       });
 
-      fireEvent.press(getByText('Visit our support center'));
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.press(getByText('Visit our support center'));
       });
+
+      expect(mockNavigate).toHaveBeenCalled();
     });
 
     it('calls navigation when contact us link is pressed', async () => {
@@ -579,11 +579,11 @@ describe('AppInformation', () => {
         expect(getByText('Contact us')).toBeTruthy();
       });
 
-      fireEvent.press(getByText('Contact us'));
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.press(getByText('Contact us'));
       });
+
+      expect(mockNavigate).toHaveBeenCalled();
     });
   });
 });
