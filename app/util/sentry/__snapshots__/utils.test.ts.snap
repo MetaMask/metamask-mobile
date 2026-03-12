@@ -148,13 +148,10 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
       "PreferencesController": {
         "displayNftMedia": true,
         "featureFlags": {},
-        "identities": "object",
         "ipfsGateway": "string",
         "isIpfsGatewayEnabled": true,
         "isMultiAccountBalancesEnabled": "boolean",
-        "lostIdentities": "object",
         "securityAlertsEnabled": "boolean",
-        "selectedAddress": "string",
         "showTestNetworks": "boolean",
         "smartTransactionsOptInStatus": "boolean",
         "useNftDetection": true,

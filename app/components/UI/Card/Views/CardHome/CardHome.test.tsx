@@ -74,7 +74,7 @@ jest.mock('@tanstack/react-query', () => ({
 }));
 
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -440,6 +440,7 @@ jest.mock('../../../../../core/Engine', () => ({
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
 import { CardHomeSelectors } from './CardHome.testIds';
+import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 
 // Get references to the mocked functions
@@ -724,6 +725,8 @@ describe('CardHome Component', () => {
         }
       });
 
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined as never);
+
     // Clear SDK mocks
     mockLogoutFromProvider.mockClear();
     mockSetIsAuthenticated.mockClear();
@@ -979,6 +982,24 @@ describe('CardHome Component', () => {
 
     await waitFor(() => {
       expect(mockNavigateToCardTosPage).toHaveBeenCalled();
+    });
+  });
+
+  it('opens mailto link when contact support item is pressed', async () => {
+    setupMockSelectors({ isAuthenticated: true });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    const contactSupportItem = screen.getByTestId(
+      CardHomeSelectors.CONTACT_SUPPORT_ITEM,
+    );
+    fireEvent.press(contactSupportItem);
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        `mailto:${CARD_SUPPORT_EMAIL}`,
+      );
     });
   });
 
