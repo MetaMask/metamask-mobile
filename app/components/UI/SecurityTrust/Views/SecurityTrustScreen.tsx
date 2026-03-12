@@ -428,63 +428,6 @@ const SecurityTrustScreen: React.FC = () => {
           </Box>
         </Box>
 
-        {/* ══ Section 10: On-chain Activity ════════════════════════════════════ */}
-        <SectionHeader title={strings('security_trust.on_chain_activity')} />
-        <Box twClassName="px-4 w-full" gap={2}>
-          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-            <Box twClassName="flex-1 py-1">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings('security_trust.transactions_24h')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('security_trust.na')}
-              </Text>
-            </Box>
-            <Box twClassName="flex-1 py-1">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings('security_trust.active_wallets_24h')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('security_trust.na')}
-              </Text>
-            </Box>
-          </Box>
-          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-            <Box twClassName="flex-1 py-1">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings('security_trust.avg_tx_value')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('security_trust.na')}
-              </Text>
-            </Box>
-            <Box twClassName="flex-1 py-1">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings('security_trust.gas_avg')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('security_trust.na')}
-              </Text>
-            </Box>
-          </Box>
-        </Box>
-
         {/* ══ Section 11: Official Links ═══════════════════════════════════════ */}
         {metadata?.externalLinks && (
           <>
@@ -493,7 +436,7 @@ const SecurityTrustScreen: React.FC = () => {
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               gap={3}
-              twClassName="px-4 w-full py-1 flex-wrap content-center"
+              twClassName="px-4 w-full py-3 flex-wrap content-center"
             >
               {metadata.externalLinks.homepage && (
                 <ButtonBase
@@ -590,6 +533,17 @@ const SecurityTrustScreen: React.FC = () => {
             </Box>
           </>
         )}
+
+        <Divider />
+        <Box
+          justifyContent={BoxJustifyContent.Center}
+          alignItems={BoxAlignItems.Center}
+          twClassName="px-4 py-3 self-stretch"
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('security_trust.evaluation_disclaimer')}
+          </Text>
+        </Box>
       </ScrollView>
       <TokenDetailsStickyFooter
         token={params}

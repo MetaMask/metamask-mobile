@@ -3591,11 +3591,6 @@
     "token_age": "Token age",
     "network": "Network",
     "type": "Type",
-    "on_chain_activity": "On-chain Activity",
-    "transactions_24h": "24h Transactions",
-    "active_wallets_24h": "Active Wallets (24h)",
-    "avg_tx_value": "Avg Tx Value",
-    "gas_avg": "Gas (avg)",
     "official_links": "Official Links",
     "website": "Website",
     "twitter_x": "Twitter / X",
@@ -3605,7 +3600,8 @@
     "safe": "Safe",
     "medium_risk": "Medium risk",
     "high_risk": "High risk",
-    "more": "more"
+    "more": "more",
+    "evaluation_disclaimer": "This security review is for evaluation only and does not constitute an endorsement or recommendation to trade."
   },
   "account_details": {
     "title": "Account details",
