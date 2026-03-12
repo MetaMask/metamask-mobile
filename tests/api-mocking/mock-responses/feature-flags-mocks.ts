@@ -121,6 +121,13 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   },
 });
 
+export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
+  homepageSectionsV1: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});
+
 export const remoteFeatureFlagRampsUnifiedV1Enabled = (active = true) => ({
   rampsUnifiedBuyV1: {
     active,

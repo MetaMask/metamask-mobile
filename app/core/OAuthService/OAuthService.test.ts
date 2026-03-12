@@ -1,8 +1,10 @@
+import { Platform } from 'react-native';
 import { AuthConnection } from './OAuthInterface';
 import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { signOut as acmSignOut } from '@metamask/react-native-acm';
 
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
@@ -38,6 +40,11 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
     },
   },
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
+}));
+
+jest.mock('@metamask/react-native-acm', () => ({
+  signOut: jest.fn().mockResolvedValue(undefined),
+  signInWithGoogle: jest.fn(),
 }));
 
 jest.mock('../../util/analytics/whenEngineReady', () => ({
@@ -260,6 +267,97 @@ describe('OAuth login service', () => {
       expect(mockAuthenticate).toHaveBeenCalledTimes(0);
     });
   }
+
+  describe('acmSignOut on Android Google login', () => {
+    const originalPlatform = Platform.OS;
+
+    beforeEach(() => {
+      mockLoginHandlerResponse.mockImplementation(() => ({
+        idToken: MOCK_JWT_TOKEN,
+        authConnection: AuthConnection.Google,
+        clientId: 'clientId',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      }));
+      mockGetAuthTokens.mockImplementation(() => ({
+        id_token: MOCK_JWT_TOKEN,
+        access_token: 'mock-access-token',
+        indexes: [1, 2, 3],
+        endpoints: { endpoint1: 'value1' },
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+      }));
+      mockAuthenticate.mockImplementation(() => ({
+        nodeAuthTokens: [],
+        isNewUser: true,
+      }));
+    });
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+      (acmSignOut as jest.Mock).mockClear();
+    });
+
+    it('calls acmSignOut after successful Google login on Android', async () => {
+      Platform.OS = 'android';
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(acmSignOut).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call acmSignOut on iOS Google login', async () => {
+      Platform.OS = 'ios';
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(acmSignOut).not.toHaveBeenCalled();
+    });
+
+    it('does not call acmSignOut for Apple login on Android', async () => {
+      Platform.OS = 'android';
+      const loginHandler = {
+        ...mockCreateLoginHandler(),
+        authConnection: AuthConnection.Apple,
+      };
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(acmSignOut).not.toHaveBeenCalled();
+    });
+
+    it('calls acmSignOut even when provider login fails on Android', async () => {
+      Platform.OS = 'android';
+      mockLoginHandlerResponse.mockImplementation(() => {
+        throw new OAuthError('User cancelled', OAuthErrorType.UserCancelled);
+      });
+      const loginHandler = mockCreateLoginHandler();
+
+      await expect(
+        OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      ).rejects.toThrow();
+
+      expect(acmSignOut).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles acmSignOut failure gracefully', async () => {
+      Platform.OS = 'android';
+      (acmSignOut as jest.Mock).mockRejectedValueOnce(
+        new Error('signOut failed'),
+      );
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result).toBeDefined();
+      expect(result.type).toBe('success');
+      expect(acmSignOut).toHaveBeenCalledTimes(1);
+    });
+  });
 });
 
 describe('updateMarketingOptInStatus', () => {
