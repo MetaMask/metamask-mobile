@@ -8,6 +8,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
@@ -15,6 +16,11 @@ const mockTrack = jest.fn();
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: () => false,
+}));
+
+jest.mock('../../../../UI/Perps/selectors/perpsController', () => ({
+  ...jest.requireActual('../../../../UI/Perps/selectors/perpsController'),
+  selectIsFirstTimePerpsUser: jest.fn(),
 }));
 
 jest.mock('../../../../UI/Perps/hooks/usePerpsEventTracking', () => ({
@@ -232,6 +238,11 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (
+      selectIsFirstTimePerpsUser as jest.MockedFunction<
+        typeof selectIsFirstTimePerpsUser
+      >
+    ).mockReturnValue(false);
     usePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
@@ -1058,6 +1069,114 @@ describe('PerpsSection', () => {
       expect(
         screen.queryByTestId('homepage-trending-perps-carousel'),
       ).toBeNull();
+    });
+  });
+
+  describe('first-time user tutorial', () => {
+    beforeEach(() => {
+      (
+        selectIsFirstTimePerpsUser as jest.MockedFunction<
+          typeof selectIsFirstTimePerpsUser
+        >
+      ).mockReturnValue(true);
+      usePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isConnecting: false,
+        isInitialized: true,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+        reconnectWithNewContext: mockReconnectWithNewContext,
+      });
+    });
+
+    it('navigates to tutorial with redirect to perps home on title press', () => {
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByText('Perpetuals'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+        source: 'home_section',
+        redirectScreen: Routes.PERPS.PERPS_HOME,
+        redirectParams: { source: 'home_section' },
+      });
+    });
+
+    it('navigates to tutorial with redirect to market details on tile press', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'SOL', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-market-tile-SOL'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+        source: 'home_section',
+        redirectScreen: Routes.PERPS.MARKET_DETAILS,
+        redirectParams: expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'SOL' }),
+          source: 'home_section',
+        }),
+      });
+    });
+
+    it('navigates to tutorial with redirect to market details on position press', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-position-row-BTC'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+        source: 'home_section',
+        redirectScreen: Routes.PERPS.MARKET_DETAILS,
+        redirectParams: {
+          market: { symbol: 'BTC', maxLeverage: 50 },
+          initialTab: 'position',
+          source: 'section_position',
+        },
+      });
+    });
+
+    it('navigates to tutorial with redirect to market list on "View more" press', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-view-more-card'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+        source: 'home_section',
+        redirectScreen: Routes.PERPS.MARKET_LIST,
+        redirectParams: { source: 'home_section' },
+      });
     });
   });
 
