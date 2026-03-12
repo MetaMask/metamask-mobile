@@ -1284,9 +1284,9 @@ describe('RewardsDashboard', () => {
       // Daily bonus: $5000 * 0.03 / 365 = $0.41
       // Annualized bonus: $5000 * 0.03 = $150.00
       await waitFor(() => {
-        expect(getByText('$5,000.00')).toBeOnTheScreen();
+        expect(getByText('$5,000')).toBeOnTheScreen();
         expect(getByText('$0.41')).toBeOnTheScreen();
-        expect(getByText('$150.00')).toBeOnTheScreen();
+        expect(getByText('$150')).toBeOnTheScreen();
       });
     });
   });

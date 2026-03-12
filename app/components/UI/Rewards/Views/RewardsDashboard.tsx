@@ -58,6 +58,8 @@ import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSu
 import { KeyValueRowStubs } from '../../../../component-library/components-temp/KeyValueRow';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
+import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { BigNumber } from 'bignumber.js';
 
 // mUSD Calculator constants
 const ANNUAL_BONUS_RATE = 0.03;
@@ -125,15 +127,10 @@ const RewardsDashboard: React.FC = () => {
     };
   }, [musdAmount]);
 
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const formatCurrency = useCallback(
-    (value: number) =>
-      value.toLocaleString('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-    [],
+    (value: number) => formatFiat(new BigNumber(value)),
+    [formatFiat],
   );
 
   const handleMusdAmountChange = useCallback((text: string) => {
