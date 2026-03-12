@@ -92,7 +92,7 @@ PLAT=$(detect_platform)
 # ── Platform-specific vars ─────────────────────────────────────────
 if [ "$PLAT" = "ios" ]; then
   BUNDLE_ID="io.metamask.MetaMask"
-  SIM_TARGET="${SIM_UDID:-booted}"
+  SIM_TARGET="${SIM_UDID:-${IOS_SIMULATOR:-booted}}"
 else
   PACKAGE_ID="io.metamask"
   # Auto-resolve device serial: use first connected USB device, or first device
@@ -205,21 +205,26 @@ fi
 if [ "$PLAT" = "ios" ]; then
 
   # ── Step: Simulator ──────────────────────────────────────────────
-  step "Checking simulator" "Looking for a booted iOS simulator"
-  BOOTED=$(xcrun simctl list devices | grep "Booted" | head -1 || true)
+  # Require IOS_SIMULATOR or SIM_UDID from .js.env — never guess which simulator to use.
+  SIM_LABEL="${IOS_SIMULATOR:-${SIM_UDID:-}}"
+  if [ -z "$SIM_LABEL" ]; then
+    fail "Neither IOS_SIMULATOR nor SIM_UDID is set in .js.env — add one to identify your simulator"
+  fi
+  step "Checking simulator" "Looking for $SIM_LABEL"
+  BOOTED=$(xcrun simctl list devices | grep "$SIM_LABEL" | grep "Booted" || true)
   if [ -z "$BOOTED" ]; then
-    $CHECK_ONLY && fail "No booted simulator"
-    SIM_UDID="${SIM_UDID:-}"
-    if [ -n "$SIM_UDID" ]; then
-      echo "  Booting $SIM_UDID..."
-      xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
-      sleep 3
-      ok "Simulator booted"
-    else
-      fail "No booted simulator and SIM_UDID not set in .js.env"
+    $CHECK_ONLY && fail "Simulator $SIM_LABEL is not booted"
+    echo "  Booting $SIM_LABEL..."
+    xcrun simctl boot "$SIM_TARGET" 2>/dev/null || true
+    sleep 3
+    # Verify it actually booted
+    BOOTED=$(xcrun simctl list devices | grep "$SIM_LABEL" | grep "Booted" || true)
+    if [ -z "$BOOTED" ]; then
+      fail "Failed to boot simulator $SIM_LABEL"
     fi
+    ok "Simulator booted: $SIM_LABEL"
   else
-    ok "Simulator booted: $(echo "$BOOTED" | sed 's/(Booted).*//' | xargs)"
+    ok "Simulator already booted: $SIM_LABEL"
   fi
 
   # ── Step: App build / install ────────────────────────────────────
