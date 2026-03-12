@@ -115,7 +115,7 @@ export const snapControllerInit: ControllerInitFunction<
     state: persistedState.SnapController,
 
     // @ts-expect-error: `controllerMessenger` is not compatible with the
-    // expected type.
+    // expected type due to action handler type differences.
     // TODO: Look into the type mismatch.
     messenger: controllerMessenger,
     maxIdleTime: inMilliseconds(5, Duration.Minute),

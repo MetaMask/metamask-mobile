@@ -28,7 +28,8 @@ export const icon: UIComponentFactory<IconElement> = ({
   };
 
   const getIconColor = () => {
-    switch (element.props.color) {
+    const color = element.props.color as string | undefined;
+    switch (color) {
       case 'muted':
         return IconColor.Muted;
       case 'primary':

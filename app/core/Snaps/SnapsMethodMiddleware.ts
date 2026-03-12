@@ -133,10 +133,10 @@ const snapMethodMiddlewareBuilder = (
       ).context,
     getInterfaceState: (id: string) =>
       controllerMessenger.call(
-        'SnapInterfaceController:getInterfaceState',
+        'SnapInterfaceController:getInterface',
         origin as SnapId,
         id,
-      ),
+      ).state,
     resolveInterface: controllerMessenger.call.bind(
       controllerMessenger,
       SnapInterfaceControllerResolveInterfaceAction,
