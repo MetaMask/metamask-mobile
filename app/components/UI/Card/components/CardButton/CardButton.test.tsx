@@ -54,7 +54,9 @@ describe('CardButton Component', () => {
       />
     ));
 
-    expect(getByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeTruthy();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
+    ).toBeOnTheScreen();
     expect(toJSON()).toMatchSnapshot();
   });
 
