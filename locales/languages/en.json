@@ -7779,7 +7779,9 @@
       "ends_date": "Ends {{date}}",
       "pill_up_next": "Up next",
       "pill_active": "Live",
-      "pill_complete": "Complete"
+      "pill_complete": "Complete",
+      "enter_now": "Enter now",
+      "participant_count": "#{{count}}"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",

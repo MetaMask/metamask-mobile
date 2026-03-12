@@ -50,6 +50,9 @@ import {
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
+  selectCampaignParticipantStatuses,
+  selectCampaignParticipantStatusById,
+  selectCampaignParticipantCount,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
@@ -3127,7 +3130,6 @@ describe('Rewards selectors', () => {
     termsAndConditions: null,
     excludedRegions: [],
     statusLabel: 'Active',
-    participantCount: 0,
     details: null,
   };
 
@@ -3218,6 +3220,94 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({ campaignsError: true });
         expect(selectCampaignsError(state)).toBe(true);
       });
+    });
+  });
+
+  describe('selectCampaignParticipantStatuses', () => {
+    it('returns empty object when no statuses exist', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual({});
+    });
+
+    it('returns all participant statuses', () => {
+      const statuses = {
+        'campaign-1': { optedIn: true, participantCount: 42 },
+        'campaign-2': { optedIn: false, participantCount: 0 },
+      };
+      const state = createMockRootState({
+        campaignParticipantStatuses: statuses,
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual(statuses);
+    });
+  });
+
+  describe('selectCampaignParticipantStatusById', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantStatusById(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantStatusById('campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns status for a specific campaign', () => {
+      const status = { optedIn: true, participantCount: 42 };
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': status,
+        },
+      });
+      expect(selectCampaignParticipantStatusById('campaign-1')(state)).toEqual(
+        status,
+      );
+    });
+  });
+
+  describe('selectCampaignParticipantCount', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBeNull();
+    });
+
+    it('returns participantCount for a specific campaign', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(42);
+    });
+
+    it('returns 0 when participantCount is zero', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
     });
   });
 });

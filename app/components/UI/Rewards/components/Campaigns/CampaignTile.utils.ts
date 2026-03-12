@@ -133,8 +133,8 @@ function getStatusIcon(status: CampaignStatus): IconName {
 export interface CampaignStatusInfo {
   status: CampaignStatus;
   statusLabel: string;
-  statusDescription: string;
-  statusDescriptionIcon: IconName;
+  dateLabel: string;
+  dateLabelIcon: IconName;
 }
 
 /**
@@ -150,7 +150,7 @@ export function getCampaignStatusInfo(
   return {
     status,
     statusLabel: getCampaignPillLabel(status),
-    statusDescription: formatCampaignStatusLabel(status, campaign),
-    statusDescriptionIcon: getStatusIcon(status),
+    dateLabel: formatCampaignStatusLabel(status, campaign),
+    dateLabelIcon: getStatusIcon(status),
   };
 }

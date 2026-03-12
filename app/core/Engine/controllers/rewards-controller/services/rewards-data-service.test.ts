@@ -4322,7 +4322,6 @@ describe('RewardsDataService', () => {
         termsAndConditions: null,
         excludedRegions: [],
         statusLabel: 'Active',
-        participantCount: 0,
         details: null,
       },
     ];
@@ -4388,7 +4387,7 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-456';
     const mockCampaignId = 'campaign-789';
     const mockToken = 'test-bearer-token';
-    const mockStatusResponse = { optedIn: true };
+    const mockStatusResponse = { optedIn: true, participantCount: 42 };
 
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
@@ -4432,7 +4431,7 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-456';
     const mockCampaignId = 'campaign-789';
     const mockToken = 'test-bearer-token';
-    const mockStatusResponse = { optedIn: false };
+    const mockStatusResponse = { optedIn: false, participantCount: 0 };
 
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({

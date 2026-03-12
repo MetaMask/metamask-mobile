@@ -42,7 +42,6 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     termsAndConditions: null,
     excludedRegions: [],
     statusLabel: 'Active',
-    participantCount: 0,
     details: null,
     ...overrides,
   };
@@ -236,10 +235,8 @@ describe('CampaignTile.utils', () => {
       expect(result).toEqual({
         status: 'upcoming',
         statusLabel: 'rewards.campaign.pill_up_next',
-        statusDescription: expect.stringContaining(
-          'rewards.campaign.starts_date',
-        ),
-        statusDescriptionIcon: 'Speed',
+        dateLabel: expect.stringContaining('rewards.campaign.starts_date'),
+        dateLabelIcon: 'Speed',
       });
     });
 
@@ -258,10 +255,8 @@ describe('CampaignTile.utils', () => {
       expect(result).toEqual({
         status: 'active',
         statusLabel: 'rewards.campaign.pill_active',
-        statusDescription: expect.stringContaining(
-          'rewards.campaign.ends_date',
-        ),
-        statusDescriptionIcon: 'Clock',
+        dateLabel: expect.stringContaining('rewards.campaign.ends_date'),
+        dateLabelIcon: 'Clock',
       });
     });
 
@@ -280,8 +275,8 @@ describe('CampaignTile.utils', () => {
       expect(result).toEqual({
         status: 'complete',
         statusLabel: 'rewards.campaign.pill_complete',
-        statusDescription: 'December 31',
-        statusDescriptionIcon: 'Confirmation',
+        dateLabel: 'December 31',
+        dateLabelIcon: 'Confirmation',
       });
     });
   });

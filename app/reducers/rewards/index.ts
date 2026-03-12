@@ -9,6 +9,7 @@ import {
   SeasonActivityTypeDto,
   SeasonWayToEarnDto,
   CampaignDto,
+  CampaignParticipantStatusDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -119,6 +120,9 @@ export interface RewardsState {
   campaigns: CampaignDto[];
   campaignsLoading: boolean;
   campaignsError: boolean;
+
+  // Campaign participant status (keyed by campaignId)
+  campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
 }
 
 export const initialState: RewardsState = {
@@ -185,6 +189,9 @@ export const initialState: RewardsState = {
   campaigns: [],
   campaignsLoading: false,
   campaignsError: false,
+
+  // Campaign participant statuses initial state
+  campaignParticipantStatuses: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -452,6 +459,17 @@ const rewardsSlice = createSlice({
       state.campaignsError = action.payload;
     },
 
+    setCampaignParticipantStatus: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        status: CampaignParticipantStatusDto;
+      }>,
+    ) => {
+      state.campaignParticipantStatuses[action.payload.campaignId] =
+        action.payload.status;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -608,6 +626,7 @@ export const {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignParticipantStatus,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

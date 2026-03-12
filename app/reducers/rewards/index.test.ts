@@ -27,6 +27,7 @@ import rewardsReducer, {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignParticipantStatus,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -2132,6 +2133,7 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignParticipantStatuses: {},
       };
       const action = resetRewardsState();
 
@@ -2235,6 +2237,7 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignParticipantStatuses: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -4457,7 +4460,6 @@ const mockCampaign: CampaignDto = {
   termsAndConditions: null,
   excludedRegions: [],
   statusLabel: 'Active',
-  participantCount: 0,
   details: null,
 };
 
@@ -4599,5 +4601,71 @@ describe('setCampaignsError', () => {
     action = setCampaignsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(true);
+  });
+});
+
+describe('setCampaignParticipantStatus', () => {
+  it('should set participant status for a campaign', () => {
+    const action = setCampaignParticipantStatus({
+      campaignId: 'campaign-1',
+      status: { optedIn: true, participantCount: 42 },
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignParticipantStatuses['campaign-1']).toEqual({
+      optedIn: true,
+      participantCount: 42,
+    });
+  });
+
+  it('should update existing participant status for a campaign', () => {
+    const stateWithStatus: RewardsState = {
+      ...initialState,
+      campaignParticipantStatuses: {
+        'campaign-1': { optedIn: false, participantCount: 10 },
+      },
+    };
+
+    const action = setCampaignParticipantStatus({
+      campaignId: 'campaign-1',
+      status: { optedIn: true, participantCount: 50 },
+    });
+
+    const state = rewardsReducer(stateWithStatus, action);
+
+    expect(state.campaignParticipantStatuses['campaign-1']).toEqual({
+      optedIn: true,
+      participantCount: 50,
+    });
+  });
+
+  it('should store statuses for multiple campaigns independently', () => {
+    let currentState = initialState;
+
+    currentState = rewardsReducer(
+      currentState,
+      setCampaignParticipantStatus({
+        campaignId: 'campaign-1',
+        status: { optedIn: true, participantCount: 42 },
+      }),
+    );
+
+    currentState = rewardsReducer(
+      currentState,
+      setCampaignParticipantStatus({
+        campaignId: 'campaign-2',
+        status: { optedIn: false, participantCount: 0 },
+      }),
+    );
+
+    expect(currentState.campaignParticipantStatuses['campaign-1']).toEqual({
+      optedIn: true,
+      participantCount: 42,
+    });
+    expect(currentState.campaignParticipantStatuses['campaign-2']).toEqual({
+      optedIn: false,
+      participantCount: 0,
+    });
   });
 });

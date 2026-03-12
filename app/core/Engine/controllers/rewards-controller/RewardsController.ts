@@ -3433,7 +3433,7 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
     if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
-      return { optedIn: false };
+      return { optedIn: false, participantCount: 0 };
     }
     const result = await this.#withAuthRetry(async () => {
       Logger.log('RewardsController: Opting into campaign', campaignId);
@@ -3466,7 +3466,7 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
     if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
-      return { optedIn: false };
+      return { optedIn: false, participantCount: 0 };
     }
     const key = `${subscriptionId}:${campaignId}`;
     const result = await wrapWithCache<CampaignParticipantStatusDto>({
@@ -3476,7 +3476,10 @@ export class RewardsController extends BaseController<
         const cached = this.state.campaignParticipantStatus[k];
         if (!cached) return undefined;
         return {
-          payload: { optedIn: cached.optedIn },
+          payload: {
+            optedIn: cached.optedIn,
+            participantCount: cached.participantCount,
+          },
           lastFetched: cached.lastFetched,
         };
       },
@@ -3495,6 +3498,7 @@ export class RewardsController extends BaseController<
         this.update((state: RewardsControllerState) => {
           state.campaignParticipantStatus[k] = {
             optedIn: payload.optedIn,
+            participantCount: payload.participantCount,
             lastFetched: Date.now(),
           };
         });

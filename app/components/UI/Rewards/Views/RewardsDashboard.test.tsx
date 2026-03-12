@@ -775,17 +775,15 @@ describe('RewardsDashboard', () => {
     });
 
     it('should not render previous season summary when season is active', () => {
-      // Arrange
+      // Arrange - active season: end date in the future
       const futureDateObj = new Date(futureDate);
-      mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectOptinAllowedForGeo) return true;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
@@ -799,11 +797,13 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - TabsList with mUSD calculator and Previous Season Summary
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
-      expect(getByTestId('musd-calculator-tab')).toBeTruthy();
+      // Assert - no previous season summary or tabs when season is active
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
+      ).toBeNull();
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
     });
 
     it('should render season status and tabs when season is active', () => {
@@ -898,8 +898,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
         return undefined;
       });
 
@@ -928,8 +926,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
         return undefined;
       });
 
@@ -944,13 +940,13 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId('musd-calculator-tab')).toBeNull();
     });
 
-    it('shows season content when season is active regardless of geo', () => {
-      // Act - defaults have active season
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+    it('shows campaigns preview when season is active regardless of geo', () => {
+      // Act - defaults have active season with campaigns enabled
+      const { queryByTestId, getByTestId } = render(<RewardsDashboard />);
 
-      // Assert - SeasonStatus + overview tabs, no mUSD calculator
-      expect(getByTestId('season-status')).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
+      // Assert - CampaignsPreview shown, no previous season content
+      expect(getByTestId('campaigns-preview')).toBeTruthy();
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
       expect(queryByTestId('musd-calculator-tab')).toBeNull();
     });
   });

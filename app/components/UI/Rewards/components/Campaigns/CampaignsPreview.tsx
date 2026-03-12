@@ -52,7 +52,10 @@ const CampaignsPreview: React.FC = () => {
   }
 
   return (
-    <Box twClassName="gap-3" testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}>
+    <Box
+      twClassName="gap-3 p-4"
+      testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}
+    >
       <Pressable onPress={handleNavigateToCampaigns}>
         <Box
           flexDirection={BoxFlexDirection.Row}

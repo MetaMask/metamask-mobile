@@ -159,3 +159,20 @@ export const selectCampaignsLoading = (state: RootState) =>
 
 export const selectCampaignsError = (state: RootState) =>
   state.rewards.campaignsError;
+
+// Campaign participant status selectors
+export const selectCampaignParticipantStatuses = (state: RootState) =>
+  state.rewards.campaignParticipantStatuses;
+
+export const selectCampaignParticipantStatusById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId] ?? null)
+      : null;
+
+export const selectCampaignParticipantCount =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId]
+          ?.participantCount ?? null)
+      : null;

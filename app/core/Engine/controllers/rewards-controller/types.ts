@@ -146,12 +146,6 @@ export interface CampaignDto {
   statusLabel: string;
 
   /**
-   * The number of participants in the campaign
-   * @example 100
-   */
-  participantCount: number;
-
-  /**
    * The details of the campaign
    * @example { image: { lightModeUrl: 'https://example.com/image.png', darkModeUrl: 'https://example.com/image-dark.png' }, howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
    */
@@ -169,7 +163,6 @@ export type CampaignsState = {
     termsAndConditions: Json | null;
     excludedRegions: string[];
     statusLabel: string;
-    participantCount: number;
     details: {
       image: {
         lightModeUrl: string;
@@ -201,11 +194,18 @@ export type CampaignsState = {
 export interface CampaignParticipantStatusDto {
   /** Whether the subscription has opted into the campaign */
   optedIn: boolean;
+
+  /**
+   * The number of participants in the campaign
+   * @example 100
+   */
+  participantCount: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignParticipantStatusState = {
   optedIn: boolean;
+  participantCount: number;
   lastFetched: number;
 };
 

@@ -31,9 +31,6 @@ import {
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
-import RewardsOverview from '../components/Tabs/RewardsOverview';
-import { CampaignsTab } from '../components/Tabs/CampaignsTab/CampaignsTab';
-import RewardsActivity from '../components/Tabs/RewardsActivity';
 import MusdCalculatorTab from '../components/Tabs/MusdCalculatorTab/MusdCalculatorTab';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import {
@@ -80,6 +77,7 @@ const RewardsDashboard: React.FC = () => {
   const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
     boolean | null
   >(null);
+  const tabsListRef = useRef<TabsListRef>(null);
 
   // Use the reward dashboard modals hook
   const {
@@ -254,41 +252,37 @@ const RewardsDashboard: React.FC = () => {
               : []),
           ]}
         />
-        <Box twClassName="flex-1 gap-4 p-4">
+        <Box twClassName="flex-1 gap-4">
           {isCampaignsEnabled && <CampaignsPreview />}
-          {showPreviousSeasonSummary && optinAllowedForGeo ? (
-            <TabsList
-              ref={tabsListRef}
-              initialActiveIndex={0}
-              testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
-              tabsBarProps={{ twClassName: 'px-4' }}
-              tabsListContentTwClassName="px-0"
-            >
-              <Box
-                key="musd"
-                {...({ tabLabel: 'mUSD' } as TabViewProps)}
-                twClassName="flex-1"
+          {showPreviousSeasonSummary &&
+            (optinAllowedForGeo ? (
+              <TabsList
+                ref={tabsListRef}
+                initialActiveIndex={0}
+                testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
+                tabsBarProps={{ twClassName: 'px-4' }}
+                tabsListContentTwClassName="px-0"
               >
-                <MusdCalculatorTab />
-              </Box>
-              <Box
-                key="previous-season"
-                {...({ tabLabel: strings('rewards.season_1') } as TabViewProps)}
-                twClassName="flex-1"
-              >
-                <PreviousSeasonSummary />
-              </Box>
-            </TabsList>
-          ) : showPreviousSeasonSummary ? (
-            <PreviousSeasonSummary />
-          ) : (
-            <>
-              <Box twClassName="mx-4">
-                <SeasonStatus />
-              </Box>
-              <TabsList {...tabsListProps}>{tabComponents}</TabsList>
-            </>
-          )}
+                <Box
+                  key="musd"
+                  {...({ tabLabel: 'mUSD' } as TabViewProps)}
+                  twClassName="flex-1"
+                >
+                  <MusdCalculatorTab />
+                </Box>
+                <Box
+                  key="previous-season"
+                  {...({
+                    tabLabel: strings('rewards.season_1'),
+                  } as TabViewProps)}
+                  twClassName="flex-1"
+                >
+                  <PreviousSeasonSummary />
+                </Box>
+              </TabsList>
+            ) : (
+              <PreviousSeasonSummary />
+            ))}
         </Box>
       </SafeAreaView>
       <Toast ref={toastRef} />

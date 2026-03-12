@@ -30,7 +30,7 @@ const PreviousSeasonSummary = () => {
 
   return (
     <Box
-      twClassName="gap-4"
+      twClassName="gap-4 p-4"
       testID={REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY}
     >
       <Text

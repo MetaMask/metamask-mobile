@@ -18611,7 +18611,6 @@ describe('RewardsController', () => {
         termsAndConditions: Json | null;
         excludedRegions: string[];
         statusLabel: string;
-        participantCount: number;
         details: null;
       }> = {},
     ) => ({
@@ -18623,7 +18622,6 @@ describe('RewardsController', () => {
       termsAndConditions: null,
       excludedRegions: [],
       statusLabel: 'Active',
-      participantCount: 0,
       details: null,
       ...overrides,
     });
@@ -18798,7 +18796,7 @@ describe('RewardsController', () => {
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';
     const mockCampaignId = 'campaign-456';
-    const mockStatus = { optedIn: true };
+    const mockStatus = { optedIn: true, participantCount: 42 };
 
     beforeEach(() => {
       mockMessenger = {
@@ -18813,7 +18811,7 @@ describe('RewardsController', () => {
       } as unknown as jest.Mocked<RewardsControllerMessenger>;
     });
 
-    it('returns { optedIn: false } when rewards feature flag is disabled', async () => {
+    it('returns { optedIn: false, participantCount: 0 } when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -18825,7 +18823,7 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
-      expect(result).toEqual({ optedIn: false });
+      expect(result).toEqual({ optedIn: false, participantCount: 0 });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:optInToCampaign',
         expect.anything(),
@@ -18833,7 +18831,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns { optedIn: false } when campaigns feature flag is disabled', async () => {
+    it('returns { optedIn: false, participantCount: 0 } when campaigns feature flag is disabled', async () => {
       const disabledController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -18845,7 +18843,7 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
-      expect(result).toEqual({ optedIn: false });
+      expect(result).toEqual({ optedIn: false, participantCount: 0 });
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
@@ -18896,7 +18894,11 @@ describe('RewardsController', () => {
         state: {
           ...getRewardsControllerDefaultState(),
           campaignParticipantStatus: {
-            [cacheKey]: { optedIn: false, lastFetched: Date.now() },
+            [cacheKey]: {
+              optedIn: false,
+              participantCount: 0,
+              lastFetched: Date.now(),
+            },
           },
         },
         isCampaignsEnabled: () => true,
@@ -18914,7 +18916,7 @@ describe('RewardsController', () => {
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';
     const mockCampaignId = 'campaign-456';
-    const mockStatus = { optedIn: true };
+    const mockStatus = { optedIn: true, participantCount: 42 };
 
     beforeEach(() => {
       mockMessenger = {
@@ -18929,7 +18931,7 @@ describe('RewardsController', () => {
       } as unknown as jest.Mocked<RewardsControllerMessenger>;
     });
 
-    it('returns { optedIn: false } when rewards feature flag is disabled', async () => {
+    it('returns { optedIn: false, participantCount: 0 } when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -18941,11 +18943,11 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
-      expect(result).toEqual({ optedIn: false });
+      expect(result).toEqual({ optedIn: false, participantCount: 0 });
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('returns { optedIn: false } when campaigns feature flag is disabled', async () => {
+    it('returns { optedIn: false, participantCount: 0 } when campaigns feature flag is disabled', async () => {
       const disabledController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -18957,7 +18959,7 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
-      expect(result).toEqual({ optedIn: false });
+      expect(result).toEqual({ optedIn: false, participantCount: 0 });
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
@@ -18998,7 +19000,11 @@ describe('RewardsController', () => {
         state: {
           ...getRewardsControllerDefaultState(),
           campaignParticipantStatus: {
-            [cacheKey]: { optedIn: false, lastFetched: recentTime },
+            [cacheKey]: {
+              optedIn: false,
+              participantCount: 10,
+              lastFetched: recentTime,
+            },
           },
         },
         isCampaignsEnabled: () => true,
@@ -19009,7 +19015,7 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
-      expect(result).toEqual({ optedIn: false });
+      expect(result).toEqual({ optedIn: false, participantCount: 10 });
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
@@ -19022,7 +19028,11 @@ describe('RewardsController', () => {
         state: {
           ...getRewardsControllerDefaultState(),
           campaignParticipantStatus: {
-            [cacheKey]: { optedIn: false, lastFetched: staleTime },
+            [cacheKey]: {
+              optedIn: false,
+              participantCount: 0,
+              lastFetched: staleTime,
+            },
           },
         },
         isCampaignsEnabled: () => true,
