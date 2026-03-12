@@ -37,6 +37,9 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingVertical: 16,
       paddingHorizontal: 16,
     },
+    marketInsightsWrapper: {
+      paddingTop: 8,
+    },
     sectionTitle: {
       marginBottom: 12,
     },
