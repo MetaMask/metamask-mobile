@@ -44,7 +44,6 @@ test.describe(PerformancePredict, () => {
 
       // Login to the app
       await login(device);
-      await TabBarModal.tapActionButton();
 
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
@@ -52,7 +51,7 @@ test.describe(PerformancePredict, () => {
         { ios: 2300, android: 2600 },
         device,
       );
-
+      await TabBarModal.tapActionButton();
       await WalletActionModal.tapPredictButton();
       await timer1.measure(async () => {
         await PredictMarketListScreen.isContainerDisplayed();

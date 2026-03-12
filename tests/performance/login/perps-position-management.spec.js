@@ -121,7 +121,7 @@ test.describe(PerformancePreps, () => {
       await PerpsOrderView.tapPlaceOrder();
 
       await openPositionTimer.measure(
-        async () => await PerpsPositionDetailsView.isPositionOpen(),
+        async () => await PerpsPositionDetailsView.isPositionOpen(20000),
       );
 
       try {

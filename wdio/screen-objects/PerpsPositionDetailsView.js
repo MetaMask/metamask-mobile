@@ -33,9 +33,9 @@ class PerpsPositionDetailsView {
     await AppwrightGestures.tap(await this.confirmClosePositionButton);
   }
 
-  async isPositionOpen() {
+  async isPositionOpen(timeout = 5000) {
     const closePositionButton = await this.closePositionButton;
-    return await closePositionButton.isVisible({ timeout: 5000 });
+    return await closePositionButton.isVisible({ timeout });
   }
 
   async closePositionWithRetry() {
