@@ -57,7 +57,7 @@ function UnsupportedRegionModal() {
 
   const handleSupportLinkPress = useCallback(() => {
     const SUPPORT_URL =
-      'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/';
+      'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/?utm_source=mobile_app';
     Linking.openURL(SUPPORT_URL);
   }, []);
 

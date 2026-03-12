@@ -180,7 +180,7 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl = 'https://support.metamask.io';
+    let supportUrl = 'https://support.metamask.io?utm_source=mobile_app';
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';

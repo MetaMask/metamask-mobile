@@ -177,36 +177,36 @@ export default {
     TERMS_OF_USE: 'https://metamask.io/terms',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     PROFILE_SYNC:
-      'https://support.metamask.io/privacy-and-security/profile-privacy',
+      'https://support.metamask.io/privacy-and-security/profile-privacy/?utm_source=mobile_app',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
-      'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/',
+      'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/?utm_source=mobile_app',
     SECURITY:
-      'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+      'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/?utm_source=mobile_app',
     TOKEN_BALANCE:
-      'https://support.metamask.io/troubleshooting/what-to-do-when-your-balance-of-tokens-is-incorrect/',
+      'https://support.metamask.io/troubleshooting/what-to-do-when-your-balance-of-tokens-is-incorrect/?utm_source=mobile_app',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     TESTNET_ETH_SCAMS:
-      'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/',
+      'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/?utm_source=mobile_app',
     WHAT_IS_SRP:
       'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
     PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
     PRIVACY_BEST_PRACTICES:
-      'https://support.metamask.io/privacy-and-security/privacy-best-practices',
+      'https://support.metamask.io/privacy-and-security/privacy-best-practices/?utm_source=mobile_app',
     SMART_TXS:
-      'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+      'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/?utm_source=mobile_app',
     SMART_ACCOUNTS:
-      'https://support.metamask.io/configure/accounts/what-is-a-smart-account/#what-are-metamask-smart-accounts',
+      'https://support.metamask.io/configure/accounts/what-is-a-smart-account/?utm_source=mobile_app#what-are-metamask-smart-accounts',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
-      'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
+      'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/?utm_source=mobile_app#solana-accounts',
     TERMS_OF_USE_URL: 'https://consensys.io/terms-of-use',
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
     MULTICHAIN_ACCOUNTS:
-      'https://support.metamask.io/configure/accounts/multichain-accounts/',
+      'https://support.metamask.io/configure/accounts/multichain-accounts/?utm_source=mobile_app',
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
   },
@@ -249,12 +249,12 @@ export default {
   },
   REVIEW_PROMPT: {
     HIGH_GAS_FEES:
-      'https://support.metamask.io/transactions-and-gas/gas-fees/why-are-my-gas-fees-so-high/',
+      'https://support.metamask.io/transactions-and-gas/gas-fees/why-are-my-gas-fees-so-high/?utm_source=mobile_app',
     MISSING_TOKENS:
-      'https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/',
+      'https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/?utm_source=mobile_app',
     SWAP_ISSUES:
-      'https://support.metamask.io/token-swaps/error-fetching-quote/',
-    SUPPORT: 'https://support.metamask.io',
+      'https://support.metamask.io/token-swaps/error-fetching-quote/?utm_source=mobile_app',
+    SUPPORT: 'https://support.metamask.io?utm_source=mobile_app',
   },
   BUNDLE_IDS: {
     IOS: 'io.metamask.MetaMask',

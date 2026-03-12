@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
@@ -34,6 +34,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
+  openURL: jest.fn(),
 }));
 
 jest.mock('../../../util/sentry/utils', () => ({
@@ -346,6 +347,21 @@ describe('ErrorBoundary', () => {
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [{ name: 'OnboardingRootNav' }],
       });
+    });
+  });
+
+  describe('Contact Support', () => {
+    it('opens support URL with UTM parameter when contact support is pressed', () => {
+      const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+        state: initialState,
+      });
+
+      const contactSupportButton = getByText('Contact support');
+      fireEvent.press(contactSupportButton);
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://support.metamask.io?utm_source=mobile_app',
+      );
     });
   });
 });

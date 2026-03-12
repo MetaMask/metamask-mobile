@@ -202,7 +202,7 @@ export const LEARN_MORE_CONFIG = {
  * Contact support button configuration (matches Settings behavior)
  */
 export const SUPPORT_CONFIG = {
-  Url: 'https://support.metamask.io',
+  Url: 'https://support.metamask.io?utm_source=mobile_app',
   TitleKey: 'perps.support.title',
   DescriptionKey: 'perps.support.description',
 } as const;
@@ -222,7 +222,7 @@ export const FEEDBACK_CONFIG = {
  */
 export const PERPS_SUPPORT_ARTICLES_URLS = {
   AdlUrl:
-    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
+    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/?utm_source=mobile_app#what-is-auto-deleveraging-adl',
 } as const;
 
 /**

@@ -473,7 +473,7 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = 'https://support.metamask.io';
+    const url = 'https://support.metamask.io?utm_source=mobile_app';
     Linking.openURL(url);
   };
 

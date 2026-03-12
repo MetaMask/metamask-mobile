@@ -185,7 +185,7 @@ describe('TronStakingLearnMoreModal', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/metamask-portfolio/move-crypto/stake/',
+          url: 'https://support.metamask.io/metamask-portfolio/move-crypto/stake/?utm_source=mobile_app',
         },
       });
     });

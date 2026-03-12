@@ -7,6 +7,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import { Alert } from 'react-native';
 
 // Mock Authentication module
 jest.mock('../../../core', () => ({
@@ -324,6 +325,172 @@ describe('Settings', () => {
       expect(getByTestId(SettingsViewSelectorsIDs.SECURITY)).toBeDefined();
       expect(getByTestId(SettingsViewSelectorsIDs.ADVANCED)).toBeDefined();
       expect(getByTestId(SettingsViewSelectorsIDs.EXPERIMENTAL)).toBeDefined();
+    });
+  });
+
+  describe('Contact Support', () => {
+    it('navigates to support URL when contact support is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const contactButton = getByTestId(SettingsViewSelectorsIDs.CONTACT);
+      fireEvent.press(contactButton);
+
+      // In beta builds, it uses Intercom URL; in production it uses support.metamask.io with UTM
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: expect.objectContaining({
+          title: strings('app_settings.contact_support'),
+        }),
+      });
+    });
+  });
+
+  describe('Request Feature', () => {
+    it('navigates to feature request URL when request feature is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const requestButton = getByTestId(SettingsViewSelectorsIDs.REQUEST);
+      fireEvent.press(requestButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: expect.objectContaining({
+          title: strings('app_settings.request_feature'),
+          url: 'https://community.metamask.io/c/feature-requests-ideas/',
+        }),
+      });
+    });
+  });
+
+  describe('Lock', () => {
+    it('shows alert when lock button is pressed', () => {
+      const alertSpy = jest.spyOn(Alert, 'alert');
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const lockButton = getByTestId(SettingsViewSelectorsIDs.LOCK);
+      fireEvent.press(lockButton);
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        strings('drawer.lock_title'),
+        '',
+        expect.arrayContaining([
+          expect.objectContaining({
+            text: strings('drawer.lock_cancel'),
+          }),
+          expect.objectContaining({
+            text: strings('drawer.lock_ok'),
+          }),
+        ]),
+        { cancelable: false },
+      );
+    });
+  });
+
+  describe('Permissions', () => {
+    it('navigates to permissions when permissions button is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const permissionsButton = getByTestId(
+        SettingsViewSelectorsIDs.PERMISSIONS,
+      );
+      fireEvent.press(permissionsButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('PermissionsManager');
+    });
+  });
+
+  describe('Contacts', () => {
+    it('navigates to contacts when contacts button is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const contactsButton = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
+      fireEvent.press(contactsButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('ContactsSettings');
+    });
+  });
+
+  describe('On Ramp', () => {
+    it('navigates to on ramp when on ramp button is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const onRampButton = getByTestId(SettingsViewSelectorsIDs.ON_RAMP);
+      fireEvent.press(onRampButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('RampSettings');
+    });
+  });
+
+  describe('About MetaMask', () => {
+    it('navigates to company settings when about metamask is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const aboutButton = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
+      fireEvent.press(aboutButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('CompanySettings');
+    });
+  });
+
+  describe('Experimental Settings', () => {
+    it('navigates to experimental settings when experimental button is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const experimentalButton = getByTestId(
+        SettingsViewSelectorsIDs.EXPERIMENTAL,
+      );
+      fireEvent.press(experimentalButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('ExperimentalSettings');
+    });
+  });
+
+  describe('Notifications', () => {
+    it('navigates to notifications when notifications button is pressed', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const notificationButton = getByTestId(
+        SettingsViewSelectorsIDs.NOTIFICATIONS,
+      );
+      fireEvent.press(notificationButton);
+
+      expect(mockNavigate).toHaveBeenCalled();
     });
   });
 });

@@ -162,7 +162,7 @@ describe('ImportPrivateKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/?utm_source=mobile_app#importing-using-a-private-key',
         title: strings('drawer.metamask_support'),
       },
     });
@@ -183,7 +183,7 @@ describe('ImportPrivateKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/?utm_source=mobile_app#import-an-existing-wallet',
         title: strings('drawer.metamask_support'),
       },
     });

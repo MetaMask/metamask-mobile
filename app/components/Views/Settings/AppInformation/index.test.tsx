@@ -10,6 +10,11 @@ import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 
+// Mock InteractionManager
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: jest.fn((callback) => callback()),
+}));
+
 // Mock device info
 const mockGetApplicationName = jest.fn();
 const mockGetVersion = jest.fn();
@@ -515,6 +520,28 @@ describe('AppInformation', () => {
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
       });
+    });
+  });
+
+  describe('Support Links', () => {
+    it('renders support center link', () => {
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(getByText('Visit our support center')).toBeTruthy();
+    });
+
+    it('renders contact us link', () => {
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(getByText('Contact us')).toBeTruthy();
     });
   });
 });
