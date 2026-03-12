@@ -3,7 +3,7 @@ name: Check Feature Flag Registry Drift PROD
 on:
   schedule:
     # Run daily at 01:00 UTC
-    - cron: '0 1 * * *'
+    - cron: "0 1 * * *"
   workflow_dispatch:
 
 permissions:
@@ -12,6 +12,7 @@ permissions:
 jobs:
   check-feature-flag-registry:
     name: Check feature flag registry against production
+    environment: default-branch
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -21,8 +22,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          node-version-file: ".nvmrc"
+          cache: "yarn"
 
       - name: Install dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
