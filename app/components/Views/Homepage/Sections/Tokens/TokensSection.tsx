@@ -219,7 +219,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
             </SectionRow>
           ) : (
             <SectionRow>
-              {displayTokenKeys.length === 0 ? (
+              {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
                 <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
               ) : (
                 displayTokenKeys.map((tokenKey, index) => (
