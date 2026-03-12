@@ -461,12 +461,17 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags — registered at low priority (1) so testSpecificMock rules at
+  // Feature Flags — registered at priority 2 so testSpecificMock rules at
   // priority 999 always win for every subsequent fetch.
   // RemoteFeatureFlagController polls every 1 second in DEV mode; without this
   // priority separation the default mock would override test-specific flag
   // overrides on the second request, breaking flag-dependent flows mid-test.
-  await setupRemoteFeatureFlagsMock(mockServer, undefined, 1);
+  //
+  // Priority 2 (not 1) is intentional: the MockServerE2E catch-all /proxy handler
+  // uses mockttp's DEFAULT priority (1). Priority 2 ensures this default feature
+  // flags mock wins over the catch-all for tests that have no testSpecificMock,
+  // preventing unmocked live requests to client-config.api.cx.metamask.io.
+  await setupRemoteFeatureFlagsMock(mockServer, undefined, 2);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
