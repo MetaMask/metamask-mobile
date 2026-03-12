@@ -85,7 +85,6 @@ import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
-import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
@@ -202,6 +201,7 @@ const BridgeView = () => {
     isNoQuotesAvailable,
     blockaidError,
     shouldShowPriceImpactWarning,
+    needsNewQuote,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -262,8 +262,6 @@ const BridgeView = () => {
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
 
-  // Always show quote details when there's an active quote
-  const shouldDisplayQuoteDetails = !!activeQuote;
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
 
   // Update quote parameters when relevant state changes
@@ -333,8 +331,6 @@ const BridgeView = () => {
       type: 'dest',
     });
 
-  useRenderQuoteExpireModal({ inputRef, latestSourceBalance });
-
   const isRWATokenSelected = useMemo(
     () =>
       (sourceToken && isStockToken(sourceToken as BridgeToken)) ||
@@ -346,11 +342,10 @@ const BridgeView = () => {
     : strings('bridge.error_banner_description');
 
   const getContentMode = () => {
-    if (isLoading && !activeQuote) return 'loading';
+    if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
     if (isError && isErrorBannerVisible) return 'error';
-    if (shouldDisplayQuoteDetails) return 'quote';
     if (isZeroState) return 'zero';
-    return 'none';
+    return 'quote';
   };
   const contentMode = getContentMode();
 

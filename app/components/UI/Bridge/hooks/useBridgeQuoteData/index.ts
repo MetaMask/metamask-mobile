@@ -99,10 +99,27 @@ export const useBridgeQuoteData = ({
       )
     : undefined;
 
-  const activeQuote =
+  const rawActiveQuote =
     isExpired && !willRefresh && !isSubmittingTx
       ? undefined
       : (manuallySelectedQuote ?? bestQuote);
+
+  // When quotes are expired but the user hasn't yet triggered a new fetch,
+  // keep showing the last quotes that are still present in Redux. They are NOT
+  // cleared from the store on expiry — only BridgeController.resetState()
+  // (called on "Get new quote") removes them. Reading from Redux directly means
+  // every consumer of this hook (BridgeView, QuoteSelectorView, …) sees the
+  // same cached data without needing per-instance refs.
+  const isShowingCachedQuote =
+    isExpired &&
+    !willRefresh &&
+    !isSubmittingTx &&
+    quotesLoadingStatus !== RequestStatus.LOADING &&
+    !!(manuallySelectedQuote ?? bestQuote);
+
+  const activeQuote = isShowingCachedQuote
+    ? (manuallySelectedQuote ?? bestQuote)
+    : rawActiveQuote;
 
   // Validate that the quote's source asset matches the selected source token
   // This prevents showing stale quote data when user changes source token on the same chain
@@ -144,16 +161,19 @@ export const useBridgeQuoteData = ({
 
   const isQuoteDestTokenMatch = isQuoteDestTokenMatchForQuote(activeQuote);
 
-  // Filter all quotes to only include valid ones (not expired and matching dest token)
+  // Filter all quotes to only include valid ones (not expired and matching dest token).
+  // When showing cached data the expiry guard is bypassed so the Redux quotes
+  // that are still in the store remain visible until the user requests new ones.
   const validQuotes = useMemo(
     () =>
-      isExpired && !willRefresh && !isSubmittingTx
+      isExpired && !willRefresh && !isSubmittingTx && !isShowingCachedQuote
         ? []
         : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote)),
     [
       isExpired,
       willRefresh,
       isSubmittingTx,
+      isShowingCachedQuote,
       allQuotes,
       isQuoteDestTokenMatchForQuote,
     ],
@@ -228,6 +248,13 @@ export const useBridgeQuoteData = ({
   const isNoQuotesAvailable = Boolean(
     !bestQuote && quotesLastFetched && !isLoading,
   );
+
+  // The quote expired and no fetch is in progress — offer to get a new one.
+  // Also treat the edge-case where a fetch IS running but there is no active
+  // quote to fall back on — the user would otherwise be stuck on a spinner
+  // with no way to retry ("escape hatch").
+  const needsNewQuote =
+    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
@@ -319,5 +346,6 @@ export const useBridgeQuoteData = ({
     blockaidError,
     shouldShowPriceImpactWarning,
     validQuotes,
+    needsNewQuote,
   };
 };
