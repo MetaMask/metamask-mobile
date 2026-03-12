@@ -14,7 +14,7 @@ jest.mock('../../core/Engine', () => ({
   },
   context: {
     ApprovalController: {
-      reject: jest.fn(),
+      rejectRequest: jest.fn(),
       state: {
         pendingApprovals: {},
       },

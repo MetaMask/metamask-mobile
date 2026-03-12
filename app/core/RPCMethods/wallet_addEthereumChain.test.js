@@ -40,7 +40,7 @@ jest.mock('../Engine', () => ({
       setActiveNetwork: jest.fn(),
     },
     ApprovalController: {
-      clear: jest.fn(),
+      clearRequests: jest.fn(),
     },
     PermissionController: {
       hasPermission: jest.fn().mockReturnValue(true),

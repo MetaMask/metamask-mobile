@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     ApprovalController: {
-      reject: jest.fn(),
+      rejectRequest: jest.fn(),
     },
   },
 }));

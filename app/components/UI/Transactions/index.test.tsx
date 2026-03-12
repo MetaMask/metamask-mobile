@@ -59,8 +59,8 @@ jest.mock('../../../util/transaction-controller', () => ({
 jest.mock('../../../core/Engine', () => ({
   context: {
     ApprovalController: {
-      accept: jest.fn(),
-      reject: jest.fn(),
+      acceptRequest: jest.fn(),
+      rejectRequest: jest.fn(),
     },
     TransactionController: {
       stopTransaction: jest.fn(),

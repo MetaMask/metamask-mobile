@@ -89,7 +89,7 @@ interface MockedEngineContext {
     >;
   };
   ApprovalController?: {
-    reject: jest.Mock<void, [string, unknown]>;
+    rejectRequest: jest.Mock<void, [string, unknown]>;
   };
 }
 
