@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import { RedesignedSendViewSelectorsIDs } from '../RedesignedSendView.testIds';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -863,5 +863,55 @@ describe('SendAlertModal integration', () => {
     fireEvent.press(getByTestId('alert-modal-close'));
 
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('auto-submits when pasted recipient matches validated address with no errors', async () => {
+    const mockHandleSubmit = jest.fn();
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmit,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0xvalid',
+      updateTo: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: { address: '0xabc', chainId: '0x1' } as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
+      toAddressValidated: '0xvalid',
+      toAddressWarning: undefined,
+    });
+
+    mockUseAccounts.mockReturnValue(mockAccounts);
+    mockUseContacts.mockReturnValue(mockContacts);
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+    } as ReturnType<typeof useSendType>);
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: jest.fn(),
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId('set-pasted'));
+
+    await waitFor(() => {
+      expect(mockHandleSubmit).toHaveBeenCalledWith('0xvalid');
+    });
   });
 });
