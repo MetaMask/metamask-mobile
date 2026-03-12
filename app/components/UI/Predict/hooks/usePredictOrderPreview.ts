@@ -81,8 +81,9 @@ export function usePredictOrderPreview(
   const isCalculating = query.isFetching;
 
   useEffect(() => {
-    if (!query.error && !params.initialPreview) return;
-    Logger.error(ensureError(query.error ?? params.initialPreview), {
+    if (!query.error) return;
+
+    Logger.error(ensureError(query.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictOrderPreview',
@@ -104,7 +105,6 @@ export function usePredictOrderPreview(
     debouncedParams.side,
     debouncedParams.marketId,
     debouncedParams.outcomeId,
-    params.initialPreview,
   ]);
 
   return {
