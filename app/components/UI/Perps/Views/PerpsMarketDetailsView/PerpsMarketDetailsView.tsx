@@ -1260,13 +1260,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
           {/* Market Insights Section - shown when perps insights flag is enabled and a report is available */}
           {isPerpsInsightsEnabled && perpsInsightsReport && market?.symbol ? (
-            <View style={styles.section}>
-              <MarketInsightsEntryCard
-                report={perpsInsightsReport}
-                timeAgo={perpsInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-              />
-            </View>
+            <MarketInsightsEntryCard
+              report={perpsInsightsReport}
+              timeAgo={perpsInsightsTimeAgo}
+              onPress={handleMarketInsightsPress}
+            />
           ) : null}
 
           {/* Statistics Section - Always shown */}
