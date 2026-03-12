@@ -85,7 +85,7 @@ jest.mock('../Engine', () => ({
   },
   context: {
     ApprovalController: {
-      has: jest.fn(),
+      hasRequest: jest.fn(),
     },
     SelectedNetworkController: {
       getNetworkClientIdForDomain: jest.fn(),

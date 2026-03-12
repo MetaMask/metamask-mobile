@@ -77,7 +77,7 @@ jest.mock('../../core/Engine', () => ({
       updateAccounts: jest.fn(),
     },
     ApprovalController: {
-      clear: jest.fn(),
+      clearRequests: jest.fn(),
     },
     RemoteFeatureFlagController: {
       state: {

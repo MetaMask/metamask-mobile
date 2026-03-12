@@ -33,7 +33,7 @@ jest.mock('../../Engine', () => ({
   context: {
     ApprovalController: {
       getTotalApprovalCount: jest.fn(),
-      clear: jest.fn().mockResolvedValue(undefined),
+      clearRequests: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
