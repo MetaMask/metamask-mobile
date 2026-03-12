@@ -235,7 +235,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       expect.any(Object), // theme.colors
       {
         hasCancelButton: false,
-        backgroundColor: mockTheme.colors.background.alternative,
+        backgroundColor: mockTheme.colors.background.default,
       },
       {
         backButtonEvent: {

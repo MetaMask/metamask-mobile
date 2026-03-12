@@ -1,3 +1,7 @@
+import {
+  predictAccountStateKeys,
+  predictAccountStateOptions,
+} from './accountState';
 import { predictActivityKeys, predictActivityOptions } from './activity';
 import { predictBalanceKeys, predictBalanceOptions } from './balance';
 import { predictMarketKeys, predictMarketOptions } from './market';
@@ -16,6 +20,10 @@ import {
 } from './unrealizedPnL';
 
 export const predictQueries = {
+  accountState: {
+    keys: predictAccountStateKeys,
+    options: predictAccountStateOptions,
+  },
   activity: {
     keys: predictActivityKeys,
     options: predictActivityOptions,
