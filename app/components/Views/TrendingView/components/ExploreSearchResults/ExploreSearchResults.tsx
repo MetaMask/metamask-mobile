@@ -1,8 +1,21 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  TextColor,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Pressable } from 'react-native';
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
@@ -10,6 +23,10 @@ import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter
 import { useSelector } from 'react-redux';
 import { useSearchTracking } from '../../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
+import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
+
+const MAX_ITEMS_PER_SECTION = 3;
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
@@ -17,7 +34,9 @@ interface ExploreSearchResultsProps {
 
 interface ListItemHeader {
   type: 'header';
-  data: string;
+  sectionId: SectionId;
+  title: string;
+  hasMore: boolean;
 }
 
 interface ListItemData {
@@ -45,22 +64,71 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
-  const renderSectionHeader = useCallback(
-    (title: string) => (
-      <Box twClassName="py-2 bg-default">
-        <Text variant={TextVariant.HeadingSm} twClassName="text-alternative">
-          {title}
-        </Text>
-      </Box>
-    ),
-    [],
+  const handleViewMore = useCallback(
+    (sectionId: SectionId, title: string) => {
+      (
+        navigation as never as {
+          navigate: (
+            route: string,
+            params: {
+              sectionId: SectionId;
+              title: string;
+              searchQuery: string;
+            },
+          ) => void;
+        }
+      ).navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
+        sectionId,
+        title,
+        searchQuery,
+      });
+    },
+    [navigation, searchQuery],
   );
 
-  // Build flat list data with sections
+  const renderSectionHeader = useCallback(
+    (item: ListItemHeader) => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="py-2 bg-default"
+      >
+        <Text variant={TextVariant.HeadingSm} twClassName="text-alternative">
+          {item.title}
+        </Text>
+        {item.hasMore && (
+          <Pressable
+            onPress={() => handleViewMore(item.sectionId, item.title)}
+            hitSlop={8}
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('trending.view_all')}
+              </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
+          </Pressable>
+        )}
+      </Box>
+    ),
+    [handleViewMore],
+  );
+
   const flatData = useMemo(() => {
     const result: FlatListItem[] = [];
 
-    // Filter sections based on basic functionality toggle
     const sectionIdsToShow = isBasicFunctionalityEnabled ? sectionsOrder : [];
 
     sectionIdsToShow.forEach((sectionId) => {
@@ -70,17 +138,19 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       const items = data[sectionId];
       const sectionIsLoading = isLoading[sectionId];
 
-      // Show section if it has items or is loading
       if ((items && items.length > 0) || sectionIsLoading) {
-        // Add section header
+        const hasMore =
+          !sectionIsLoading && items.length > MAX_ITEMS_PER_SECTION;
+
         result.push({
           type: 'header',
-          data: section.title,
+          sectionId,
+          title: section.title,
+          hasMore,
         });
 
         if (sectionIsLoading) {
-          // Show 3 skeleton items while loading
-          for (let i = 0; i < 3; i++) {
+          for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
             result.push({
               type: 'skeleton',
               sectionId,
@@ -88,8 +158,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             });
           }
         } else {
-          // Add section items
-          items.forEach((item) => {
+          const visibleItems = items.slice(0, MAX_ITEMS_PER_SECTION);
+          visibleItems.forEach((item) => {
             result.push({
               type: 'item',
               sectionId,
@@ -103,7 +173,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     return result;
   }, [data, isLoading, isBasicFunctionalityEnabled, sectionsOrder]);
 
-  // Scroll to top when search query changes
   useEffect(() => {
     if (flatData.length > 0) {
       flashListRef.current?.scrollToIndex({
@@ -113,7 +182,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     }
   }, [searchQuery, flatData.length]);
 
-  // Track search events for tokens section
   useSearchTracking({
     searchQuery,
     resultsCount: data.tokens?.length || 0,
@@ -132,7 +200,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item, index }) => {
       if (item.type === 'header') {
-        return renderSectionHeader(item.data);
+        return renderSectionHeader(item);
       }
 
       const section = SECTIONS_CONFIG[item.sectionId];
@@ -155,7 +223,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         );
       }
 
-      // Cast navigation to 'never' to satisfy different navigation param list types
       return (
         <section.RowItem
           item={item.data}
@@ -168,7 +235,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   );
 
   const keyExtractor = useCallback((item: FlatListItem, index: number) => {
-    if (item.type === 'header') return `header-${item.data}`;
+    if (item.type === 'header') return `header-${item.sectionId}`;
     if (item.type === 'skeleton')
       return `skeleton-${item.sectionId}-${item.index}`;
 
