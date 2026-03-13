@@ -510,8 +510,7 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
   } = options;
-  const shouldEnableDeviceNetworkProxy =
-    enableDeviceNetworkProxy ?? process.env.METAMASK_BUILD_TYPE === 'flask';
+  const shouldEnableDeviceNetworkProxy = enableDeviceNetworkProxy ?? false;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
