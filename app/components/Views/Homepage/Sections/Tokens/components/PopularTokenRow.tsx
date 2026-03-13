@@ -222,16 +222,15 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
                 color={TextColor.Alternative}
               >
                 {priceDisplay}
+                {percentageChange.text ? ' \u2022 ' : ''}
               </Text>
               {percentageChange.text ? (
-                <Box twClassName="ml-2">
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={percentageChange.color}
-                  >
-                    {percentageChange.text}
-                  </Text>
-                </Box>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={percentageChange.color}
+                >
+                  {percentageChange.text}
+                </Text>
               ) : null}
             </Box>
           )}

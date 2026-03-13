@@ -13,7 +13,8 @@
     "internalAccounts": {
       "accounts": {},
       "selectedAccount": ""
-    }
+    },
+    "accountIdByAddress": {}
   },
   "AccountTreeController": {
     "accountTree": {
@@ -469,7 +470,8 @@
     "assetsBalance": {},
     "assetsInfo": {},
     "assetsPrice": {},
-    "customAssets": {}
+    "customAssets": {},
+    "selectedCurrency": "usd"
   },
   "PermissionController": {
     "subjects": {}
@@ -767,7 +769,9 @@
     "rewardsEnvUrl": null
   },
   "PredictController": {
-    "eligibility": { "eligible": false },
+    "eligibility": {
+      "eligible": false
+    },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
@@ -775,6 +779,8 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
+    "activeOrder": null,
+    "selectedPaymentToken": null,
     "accountMeta": {}
   },
   "AiDigestController": {
