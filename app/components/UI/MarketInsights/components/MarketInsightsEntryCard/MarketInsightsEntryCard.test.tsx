@@ -4,8 +4,41 @@ import { fireEvent } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(
+  (eventName: string) =>
+    ({
+      addProperties: (properties: Record<string, unknown>) => ({
+        build: () => ({ category: eventName, properties }),
+      }),
+    }) as const,
+);
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+let capturedOnVisible: (() => void) | null = null;
+jest.mock('../../hooks/useViewportTracking', () => ({
+  useViewportTracking: (onVisible: () => void) => {
+    capturedOnVisible = onVisible;
+    return {
+      ref: { current: null },
+      onLayout: jest.fn(),
+    };
+  },
+}));
 
 describe('MarketInsightsEntryCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders summary text and handles press', () => {
     const mockPress = jest.fn();
 
@@ -71,5 +104,36 @@ describe('MarketInsightsEntryCard', () => {
     const sourceIcons = UNSAFE_getAllByType(Image);
     // 1 icon is SparkleIcon (SVG/Icon), Image nodes here correspond to source favicons
     expect(sourceIcons).toHaveLength(2);
+  });
+
+  it('tracks MARKET_INSIGHTS_CARD_SEEN when card becomes visible', () => {
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={
+          {
+            headline: 'ETH rallies',
+            summary: 'Summary text',
+            trends: [],
+            sources: [],
+          } as never
+        }
+        timeAgo="1m ago"
+        onPress={jest.fn()}
+        caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    // Simulate the viewport tracking hook detecting visibility
+    expect(capturedOnVisible).toBeDefined();
+    capturedOnVisible?.();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MARKET_INSIGHTS_CARD_SEEN,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      category: MetaMetricsEvents.MARKET_INSIGHTS_CARD_SEEN,
+      properties: { caip19: 'eip155:1/erc20:0xtest' },
+    });
   });
 });
