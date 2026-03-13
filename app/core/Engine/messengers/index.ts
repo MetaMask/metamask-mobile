@@ -137,6 +137,10 @@ import { getPhishingControllerMessenger } from './phishing-controller-messenger'
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
+  getConfigRegistryControllerMessenger,
+  getConfigRegistryControllerInitMessenger,
+} from './config-registry-controller-messenger';
+import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
 } from './multichain-router-messenger';
@@ -176,6 +180,10 @@ export const CONTROLLER_MESSENGERS = {
   ConnectivityController: {
     getMessenger: getConnectivityControllerMessenger,
     getInitMessenger: noop,
+  },
+  ConfigRegistryController: {
+    getMessenger: getConfigRegistryControllerMessenger,
+    getInitMessenger: getConfigRegistryControllerInitMessenger,
   },
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,
