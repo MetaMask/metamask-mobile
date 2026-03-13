@@ -1,11 +1,14 @@
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -57,12 +60,13 @@ const PredictOffline: React.FC<PredictOfflineProps> = ({
       </Text>
       {onRetry && (
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onRetry}
-          label={strings('predict.error.retry')}
           style={tw.style('w-full self-center')}
-        />
+        >
+          {strings('predict.error.retry')}
+        </Button>
       )}
     </Box>
   );

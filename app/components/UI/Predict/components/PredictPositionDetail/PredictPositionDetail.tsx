@@ -1,5 +1,8 @@
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -23,11 +26,6 @@ import {
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -237,13 +235,14 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             testID={
               PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON
             }
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('predict.cash_out')}
+            isFullWidth
             onPress={onCashOut}
             isDisabled={optimistic}
-          />
+          >
+            {strings('predict.cash_out')}
+          </Button>
         </Box>
       )}
     </Box>
