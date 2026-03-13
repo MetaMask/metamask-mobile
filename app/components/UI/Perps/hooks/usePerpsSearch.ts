@@ -9,11 +9,6 @@ interface UsePerpsSearchParams {
    * Markets to filter
    */
   markets: PerpsMarketData[];
-  /**
-   * Initial search visibility
-   * @default false
-   */
-  initialSearchVisible?: boolean;
 }
 
 interface UsePerpsSearchReturn {
@@ -26,23 +21,11 @@ interface UsePerpsSearchReturn {
    */
   setSearchQuery: (query: string) => void;
   /**
-   * Whether search bar is visible
-   */
-  isSearchVisible: boolean;
-  /**
-   * Show/hide search bar
-   */
-  setIsSearchVisible: (visible: boolean) => void;
-  /**
-   * Toggle search visibility
-   */
-  toggleSearchVisibility: () => void;
-  /**
    * Markets filtered by search query
    */
   filteredMarkets: PerpsMarketData[];
   /**
-   * Clear search and hide search bar
+   * Clear search query
    */
   clearSearch: () => void;
 }
@@ -52,7 +35,6 @@ interface UsePerpsSearchReturn {
  *
  * Responsibilities:
  * - Manages search query state
- * - Manages search visibility state
  * - Filters markets by symbol/name
  * - Type-safe field access
  *
@@ -62,43 +44,30 @@ interface UsePerpsSearchReturn {
  * const {
  *   searchQuery,
  *   setSearchQuery,
- *   isSearchVisible,
- *   toggleSearchVisibility,
  *   filteredMarkets,
+ *   clearSearch,
  * } = usePerpsSearch({ markets });
  * ```
  */
 export const usePerpsSearch = ({
   markets,
-  initialSearchVisible = false,
 }: UsePerpsSearchParams): UsePerpsSearchReturn => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchVisible, setIsSearchVisible] = useState(initialSearchVisible);
-
-  const toggleSearchVisibility = useCallback(() => {
-    setIsSearchVisible((prev) => !prev);
-  }, []);
 
   const clearSearch = useCallback(() => {
     setSearchQuery('');
-    setIsSearchVisible(false);
   }, []);
 
-  // Filter markets based on search query
   const filteredMarkets = useMemo(() => {
-    if (!isSearchVisible || !searchQuery.trim()) {
+    if (!searchQuery.trim()) {
       return markets;
     }
-
     return filterMarketsByQuery(markets, searchQuery);
-  }, [markets, searchQuery, isSearchVisible]);
+  }, [markets, searchQuery]);
 
   return {
     searchQuery,
     setSearchQuery,
-    isSearchVisible,
-    setIsSearchVisible,
-    toggleSearchVisibility,
     filteredMarkets,
     clearSearch,
   };

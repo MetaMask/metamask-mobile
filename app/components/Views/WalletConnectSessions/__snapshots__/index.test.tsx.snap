@@ -734,7 +734,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -775,7 +775,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -822,7 +822,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                             <Text
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                 }
@@ -1257,7 +1257,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -1298,7 +1298,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -1337,7 +1337,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onLongPress={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#b7bbc866",
+                                "borderBottomColor": "#b4b4b566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,
@@ -1349,7 +1349,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <View
                                 placeholderStyle={
                                   {
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#f3f3f4",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -1393,7 +1393,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                           "backgroundColor": "#eee",
                                         },
                                         {
-                                          "backgroundColor": "#f3f5f9",
+                                          "backgroundColor": "#f3f3f4",
                                         },
                                       ]
                                     }
@@ -1412,7 +1412,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "marginBottom": 10,
@@ -1424,7 +1424,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,
@@ -1436,7 +1436,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,
@@ -1451,7 +1451,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onLongPress={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#b7bbc866",
+                                "borderBottomColor": "#b4b4b566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,
@@ -1463,7 +1463,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <View
                                 placeholderStyle={
                                   {
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#f3f3f4",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -1507,7 +1507,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                           "backgroundColor": "#eee",
                                         },
                                         {
-                                          "backgroundColor": "#f3f5f9",
+                                          "backgroundColor": "#f3f3f4",
                                         },
                                       ]
                                     }
@@ -1526,7 +1526,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "marginBottom": 10,
@@ -1538,7 +1538,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,
@@ -1550,7 +1550,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,

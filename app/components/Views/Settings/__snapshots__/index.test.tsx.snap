@@ -100,7 +100,7 @@ exports[`Settings renders settings component with all sections 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 24,
                   "width": 24,
                 },
@@ -141,7 +141,7 @@ exports[`Settings renders settings component with all sections 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -207,9 +207,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -221,7 +221,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -250,7 +250,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -301,9 +301,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -315,7 +315,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -344,7 +344,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -395,9 +395,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -409,7 +409,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -438,7 +438,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -489,9 +489,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -503,7 +503,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -532,7 +532,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -583,9 +583,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -597,7 +597,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -626,7 +626,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -677,9 +677,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -691,7 +691,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -720,7 +720,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -771,9 +771,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -785,7 +785,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -814,7 +814,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -865,9 +865,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -879,7 +879,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -908,7 +908,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -959,9 +959,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -973,7 +973,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1002,7 +1002,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1053,9 +1053,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1067,7 +1067,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1096,7 +1096,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1147,9 +1147,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1161,7 +1161,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1190,7 +1190,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1241,9 +1241,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1270,7 +1270,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1320,9 +1320,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1334,7 +1334,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1363,7 +1363,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1414,9 +1414,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1462,9 +1462,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1512,7 +1512,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#4459ff",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }

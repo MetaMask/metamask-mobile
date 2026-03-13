@@ -5,13 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Animated, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
+import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
@@ -22,10 +22,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
@@ -52,7 +53,7 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
-import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
+import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -63,6 +64,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -103,10 +105,12 @@ function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
+  const cursorOpacity = useBlinkingCursor();
 
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
@@ -183,6 +187,17 @@ function BuildQuote() {
     useTransakRouting();
 
   const currency = userRegion?.country?.currency || 'USD';
+  const { currencyPrefix, currencySuffix } = useMemo(() => {
+    const formatted = formatCurrency(1, currency, {
+      currencyDisplay: 'narrowSymbol',
+    });
+    // Match: prefix (non-digit chars), digits/separators, suffix (non-digit chars)
+    const match = formatted.match(/^([^\d]*?)[\d.,]+\s*([^\d\s].*)?$/);
+    return {
+      currencyPrefix: match?.[1] ?? '',
+      currencySuffix: match?.[2]?.trim() ?? '',
+    };
+  }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
   const hasTrackedScreenViewRef = useRef(false);
@@ -324,53 +339,60 @@ function BuildQuote() {
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getRampsBuildQuoteNavbarOptions(navigation, {
-        tokenName: selectedToken?.name,
-        tokenSymbol: selectedToken?.symbol,
-        tokenIconUrl: selectedToken?.iconUrl,
-        networkName: networkInfo?.networkName ?? undefined,
-        networkImageSource: networkInfo?.networkImageSource,
-        onSettingsPress: () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_SETTINGS_CLICKED)
-              .addProperties({
-                location: 'Amount Input',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-          navigation.navigate(...createSettingsModalNavDetails());
-        },
-        onBackPress: () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Amount Input',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
-      }),
+  const handleSettingsPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTINGS_CLICKED)
+        .addProperties({
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
     );
-  }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
+    navigation.navigate(...createSettingsModalNavDetails());
+  }, [trackEvent, createEventBuilder, navigation]);
+
+  const handleBackPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+    navigation.goBack();
+  }, [trackEvent, createEventBuilder, navigation]);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }: KeypadChangeData) => {
+    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+      if (pressedKey === Keys.Back) {
+        if (!keyboardIsDirty) {
+          setAmount('0');
+          setAmountAsNumber(0);
+        } else {
+          setAmount(value || '0');
+          setAmountAsNumber(valueAsNumber || 0);
+        }
+        setKeyboardIsDirty(true);
+        setUserHasEnteredAmount(true);
+        setNativeFlowError(null);
+        return;
+      }
+
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
+      setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
     },
-    [],
+    [keyboardIsDirty],
   );
 
   const handleQuickAmountPress = useCallback(
     (quickAmount: number) => {
       setAmount(String(quickAmount));
       setAmountAsNumber(quickAmount);
+      setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
       trackEvent(
@@ -388,10 +410,6 @@ function BuildQuote() {
   );
 
   const handlePaymentPillPress = useCallback(() => {
-    if (debouncedPollingAmount <= 0) {
-      return;
-    }
-
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
@@ -482,7 +500,7 @@ function BuildQuote() {
           await transakRouteAfterAuth(quote);
         } else {
           navigation.navigate(
-            ...createV2EnterEmailNavDetails({
+            ...createV2VerifyIdentityNavDetails({
               amount: String(amountAsNumber),
               currency,
               assetId: selectedToken?.assetId,
@@ -628,110 +646,153 @@ function BuildQuote() {
     : strings('fiat_on_ramp.no_quotes_available');
 
   return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        <ScreenLayout.Content style={styles.content}>
-          <View style={styles.centerGroup}>
-            <View style={styles.amountContainer}>
-              <Text
-                testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                variant={TextVariant.HeadingLG}
-                color={
-                  nativeFlowError || hasNoQuotes || quoteFetchError
-                    ? TextColor.Error
-                    : undefined
-                }
-                style={styles.mainAmount}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {formatCurrency(amountAsNumber, currency, {
-                  currencyDisplay: 'narrowSymbol',
-                })}
-              </Text>
-              <PaymentMethodPill
-                label={
-                  selectedPaymentMethod?.name ||
-                  strings('fiat_on_ramp.select_payment_method')
-                }
-                isLoading={paymentMethodsLoading}
-                onPress={handlePaymentPillPress}
-              />
-            </View>
-          </View>
-
-          {quoteFetchError && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              description={parseUserFacingError(
-                quoteFetchError,
-                strings('deposit.buildQuote.quoteFetchError'),
-              )}
-            />
-          )}
-
-          <View style={styles.actionSection}>
-            {hasAmount ? (
-              <>
-                {nativeFlowError ? (
-                  <TruncatedError
-                    error={nativeFlowError}
-                    providerName={selectedProvider?.name}
-                    providerSupportUrl={
-                      selectedProvider?.links?.find(
-                        (link) => link.name === PROVIDER_LINKS.SUPPORT,
-                      )?.url
+    <>
+      <HeaderCompactStandard
+        title={
+          selectedToken?.symbol
+            ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
+            : undefined
+        }
+        subtitle={
+          networkInfo?.networkName
+            ? strings('fiat_on_ramp.on_network', {
+                networkName: networkInfo.networkName,
+              })
+            : undefined
+        }
+        onBack={handleBackPress}
+        backButtonProps={{ testID: 'build-quote-back-button' }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleSettingsPress,
+            testID: 'build-quote-settings-button',
+          },
+        ]}
+        includesTopInset
+      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content style={styles.content}>
+            <View style={styles.centerGroup}>
+              <View style={styles.amountContainer}>
+                <View style={styles.amountRow}>
+                  <Text
+                    testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                    variant={TextVariant.HeadingLG}
+                    color={
+                      nativeFlowError || hasNoQuotes || quoteFetchError
+                        ? TextColor.Error
+                        : undefined
                     }
+                    style={styles.mainAmount}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {currencyPrefix}
+                    {amount}
+                  </Text>
+                  <Animated.View
+                    style={[styles.cursor, { opacity: cursorOpacity }]}
                   />
-                ) : hasNoQuotes ? (
-                  <TruncatedError
-                    error={strings('fiat_on_ramp.encountered_error')}
-                    errorDetails={noQuotesErrorMessage}
-                    showChangeProvider
-                    amount={amountAsNumber}
-                  />
-                ) : (
-                  selectedProvider && (
+                  {currencySuffix ? (
                     <Text
-                      variant={TextVariant.BodySM}
-                      style={styles.poweredByText}
+                      variant={TextVariant.HeadingLG}
+                      color={
+                        nativeFlowError || hasNoQuotes || quoteFetchError
+                          ? TextColor.Error
+                          : undefined
+                      }
+                      style={styles.mainAmount}
                     >
-                      {strings('fiat_on_ramp.powered_by_provider', {
-                        provider: selectedProvider.name,
-                      })}
+                      {currencySuffix}
                     </Text>
-                  )
-                )}
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContinuePress}
-                  isFullWidth
-                  isDisabled={!canContinue}
-                  isLoading={selectedQuoteLoading || isContinueLoading}
-                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                >
-                  {strings('fiat_on_ramp.continue')}
-                </Button>
-              </>
-            ) : (
-              quickAmounts.length > 0 && (
-                <QuickAmounts
-                  amounts={quickAmounts}
-                  currency={currency}
-                  onAmountPress={handleQuickAmountPress}
+                  ) : null}
+                </View>
+                <PaymentMethodPill
+                  label={
+                    selectedPaymentMethod?.name ||
+                    strings('fiat_on_ramp.select_payment_method')
+                  }
+                  isLoading={paymentMethodsLoading}
+                  onPress={handlePaymentPillPress}
                 />
-              )
+              </View>
+            </View>
+
+            {quoteFetchError && (
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                description={parseUserFacingError(
+                  quoteFetchError,
+                  strings('deposit.buildQuote.quoteFetchError'),
+                )}
+              />
             )}
-          </View>
-          <Keypad
-            currency={currency}
-            value={amount}
-            onChange={handleKeypadChange}
-          />
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
-    </ScreenLayout>
+
+            <View style={styles.actionSection}>
+              {hasAmount ? (
+                <>
+                  {nativeFlowError ? (
+                    <TruncatedError
+                      error={nativeFlowError}
+                      providerName={selectedProvider?.name}
+                      providerSupportUrl={
+                        selectedProvider?.links?.find(
+                          (link) => link.name === PROVIDER_LINKS.SUPPORT,
+                        )?.url
+                      }
+                    />
+                  ) : hasNoQuotes ? (
+                    <TruncatedError
+                      error={strings('fiat_on_ramp.encountered_error')}
+                      errorDetails={noQuotesErrorMessage}
+                      showChangeProvider
+                      amount={amountAsNumber}
+                    />
+                  ) : (
+                    selectedProvider && (
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles.poweredByText}
+                      >
+                        {strings('fiat_on_ramp.powered_by_provider', {
+                          provider: selectedProvider.name,
+                        })}
+                      </Text>
+                    )
+                  )}
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={handleContinuePress}
+                    isFullWidth
+                    isDisabled={!canContinue}
+                    isLoading={selectedQuoteLoading || isContinueLoading}
+                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                  >
+                    {strings('fiat_on_ramp.continue')}
+                  </Button>
+                </>
+              ) : (
+                quickAmounts.length > 0 && (
+                  <QuickAmounts
+                    amounts={quickAmounts}
+                    currency={currency}
+                    onAmountPress={handleQuickAmountPress}
+                  />
+                )
+              )}
+            </View>
+            <Keypad
+              currency={currency}
+              value={amount}
+              onChange={handleKeypadChange}
+            />
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    </>
   );
 }
 

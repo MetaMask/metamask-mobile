@@ -1,4 +1,4 @@
-import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import {
   buildV2OrderToastOptions,
@@ -38,7 +38,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
         cryptoAmount: 1.5,
-        state: FIAT_ORDER_STATES.PENDING,
+        status: RampsOrderStatus.Pending,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -67,7 +67,7 @@ describe('v2OrderToast', () => {
       const params: V2OrderToastParams = {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
-        state: FIAT_ORDER_STATES.PENDING,
+        status: RampsOrderStatus.Pending,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -89,7 +89,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'USDC',
         cryptoAmount: 100.5,
-        state: FIAT_ORDER_STATES.COMPLETED,
+        status: RampsOrderStatus.Completed,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -108,7 +108,7 @@ describe('v2OrderToast', () => {
       expect(result?.linkButtonOptions).toBeUndefined();
     });
 
-    it('returns toast options for FAILED state with error icon', () => {
+    it('returns toast options for Failed status with error icon', () => {
       (strings as jest.Mock)
         .mockReturnValueOnce('Purchase of BTC failed')
         .mockReturnValueOnce('Please try again momentarily');
@@ -116,7 +116,7 @@ describe('v2OrderToast', () => {
       const params: V2OrderToastParams = {
         orderId: 'test-order-id',
         cryptocurrency: 'BTC',
-        state: FIAT_ORDER_STATES.FAILED,
+        status: RampsOrderStatus.Failed,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -132,7 +132,7 @@ describe('v2OrderToast', () => {
       );
     });
 
-    it('returns toast options for CANCELLED state with warning icon', () => {
+    it('returns toast options for Cancelled status with warning icon', () => {
       (strings as jest.Mock)
         .mockReturnValueOnce('Your purchase was cancelled')
         .mockReturnValueOnce('Your purchase of DAI has been cancelled');
@@ -140,7 +140,7 @@ describe('v2OrderToast', () => {
       const params: V2OrderToastParams = {
         orderId: 'test-order-id',
         cryptocurrency: 'DAI',
-        state: FIAT_ORDER_STATES.CANCELLED,
+        status: RampsOrderStatus.Cancelled,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -158,11 +158,11 @@ describe('v2OrderToast', () => {
       );
     });
 
-    it('returns null for CREATED state', () => {
+    it('returns null for Created status', () => {
       const params: V2OrderToastParams = {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
-        state: FIAT_ORDER_STATES.CREATED,
+        status: RampsOrderStatus.Created,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -170,7 +170,7 @@ describe('v2OrderToast', () => {
       expect(result).toBeNull();
     });
 
-    it('handles missing cryptoAmount for COMPLETED state', () => {
+    it('handles missing cryptoAmount for Completed status', () => {
       (strings as jest.Mock)
         .mockReturnValueOnce('Your purchase of  ETH was successful!')
         .mockReturnValueOnce('Your ETH is now available');
@@ -178,7 +178,7 @@ describe('v2OrderToast', () => {
       const params: V2OrderToastParams = {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
-        state: FIAT_ORDER_STATES.COMPLETED,
+        status: RampsOrderStatus.Completed,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -200,7 +200,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
         cryptoAmount: 1.5,
-        state: FIAT_ORDER_STATES.COMPLETED,
+        status: RampsOrderStatus.Completed,
       };
 
       showV2OrderToast(params);
@@ -211,11 +211,11 @@ describe('v2OrderToast', () => {
       expect(callArg.startAccessory).toBeDefined();
     });
 
-    it('does not call ToastService.showToast for CREATED state', () => {
+    it('does not call ToastService.showToast for Created status', () => {
       const params: V2OrderToastParams = {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
-        state: FIAT_ORDER_STATES.CREATED,
+        status: RampsOrderStatus.Created,
       };
 
       showV2OrderToast(params);

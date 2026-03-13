@@ -27,18 +27,36 @@ import {
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
+import { createV2EnterEmailNavDetails } from './EnterEmail';
+import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+
+export interface V2VerifyIdentityParams {
+  amount?: string;
+  currency?: string;
+  assetId?: string;
+}
+
+export const createV2VerifyIdentityNavDetails =
+  createNavigationDetails<V2VerifyIdentityParams>(Routes.RAMP.VERIFY_IDENTITY);
 
 const V2VerifyIdentity = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
+  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const navigateToEnterEmail = useCallback(() => {
-    navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
-  }, [navigation]);
+    navigation.navigate(
+      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
+    );
+  }, [navigation, amount, currency, assetId]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -178,7 +196,7 @@ const V2VerifyIdentity = () => {
               <Text
                 style={styles.linkText}
                 onPress={handlePrivacyPolicyLink}
-                testID="privacy-policy-link-1"
+                testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_1}
               >
                 {strings(
                   'deposit.verify_identity.description_3_privacy_policy',
@@ -211,13 +229,14 @@ const V2VerifyIdentity = () => {
               color={TextColor.Muted}
               style={styles.linkText}
               onPress={handlePrivacyPolicyLink}
-              testID="privacy-policy-link-2"
+              testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_2}
             >
               {strings('deposit.verify_identity.agreement_text_privacy_policy')}
             </Text>
             {strings('deposit.verify_identity.agreement_text_part2')}
           </Text>
           <Button
+            testID={VerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
             label={strings('deposit.verify_identity.button')}

@@ -80,7 +80,7 @@ exports[`SelectButtonBase should render snapshot correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -95,7 +95,7 @@ exports[`SelectButtonBase should render snapshot correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -110,7 +110,7 @@ exports[`SelectButtonBase should render snapshot correctly 1`] = `
   </View>
   <View>
     <SvgMock
-      color="#121314"
+      color="#131416"
       fill="currentColor"
       height={20}
       name="ArrowDown"

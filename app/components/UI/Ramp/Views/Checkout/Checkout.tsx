@@ -3,24 +3,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
-import type { RampsOrder } from '@metamask/ramps-controller';
-import { orderStatusToFiatOrderState } from '../../orderProcessor/unifiedOrderProcessor';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 import {
-  addFiatOrder,
   addFiatCustomIdData,
   removeFiatCustomIdData,
-  FiatOrder,
   getRampRoutingDecision,
 } from '../../../../../reducers/fiatOrders';
-import {
-  FIAT_ORDER_PROVIDERS,
-  FIAT_ORDER_STATES,
-} from '../../../../../constants/on-ramp';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -31,12 +24,8 @@ import {
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
-import Engine from '../../../../../core/Engine';
-import NotificationManager from '../../../../../core/NotificationManager';
-import getNotificationDetails from '../../utils/getNotificationDetails';
-import useThunkDispatch from '../../../../hooks/useThunkDispatch';
-import stateHasOrder from '../../utils/stateHasOrder';
 import { protectWalletModalVisible } from '../../../../../actions/user';
+import { useRampsOrders } from '../../hooks/useRampsOrders';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -91,128 +80,10 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
   Routes.RAMP.CHECKOUT,
 );
 
-/**
- * Creates the initial FiatOrder for a V2 order immediately after the provider
- * callback is received.
- *
- * Uses deposit-style ID format (/providers/{code}/orders/{id}) so that
- * extractProviderAndOrderCode in the unified processor can parse it on
- * subsequent polls without relying on data.provider.
- *
- * The V2 API now returns a full provider object (with name and links) and a
- * full fiatCurrency object (with decimals and denomSymbol) in the order
- * response, so we derive everything we can from rampsOrder and use the nav
- * params only as fallbacks for when the order is still UNKNOWN.
- */
-export function createInitialFiatOrder(params: {
-  providerCode: string;
-  providerName: string;
-  orderId: string;
-  walletAddress: string;
-  network: string;
-  currency: string;
-  cryptocurrency: string;
-  rampsOrder?: RampsOrder;
-  providerType?: FIAT_ORDER_PROVIDERS;
-}): FiatOrder {
-  const {
-    providerCode,
-    providerName,
-    orderId,
-    walletAddress,
-    network,
-    currency,
-    cryptocurrency,
-    rampsOrder,
-    providerType = FIAT_ORDER_PROVIDERS.RAMPS_V2,
-  } = params;
-
-  const id = `/providers/${providerCode}/orders/${orderId}`;
-
-  // If we have a full RampsOrder, use it directly
-  if (rampsOrder) {
-    const orderState = orderStatusToFiatOrderState(rampsOrder.status);
-    const isTerminalState =
-      orderState === FIAT_ORDER_STATES.FAILED ||
-      orderState === FIAT_ORDER_STATES.COMPLETED ||
-      orderState === FIAT_ORDER_STATES.CANCELLED;
-
-    return {
-      id,
-      provider: providerType,
-      createdAt: rampsOrder.createdAt,
-      amount: rampsOrder.fiatAmount,
-      fee: rampsOrder.totalFeesFiat,
-      cryptoAmount: rampsOrder.cryptoAmount || 0,
-      cryptoFee: rampsOrder.totalFeesFiat || 0,
-      currency: rampsOrder.fiatCurrency?.symbol || currency,
-      currencySymbol: rampsOrder.fiatCurrency?.denomSymbol || '',
-      cryptocurrency: rampsOrder.cryptoCurrency?.symbol || cryptocurrency,
-      network: rampsOrder.network?.chainId || network,
-      state: orderState,
-      forceUpdate: !isTerminalState,
-      account: walletAddress,
-      txHash: rampsOrder.txHash,
-      excludeFromPurchases: rampsOrder.excludeFromPurchases,
-      orderType: rampsOrder.orderType as FiatOrder['orderType'],
-      errorCount: 0,
-      lastTimeFetched: isTerminalState ? Date.now() : 0,
-      data: rampsOrder,
-    };
-  }
-
-  // Fallback for when rampsOrder is not yet available (UNKNOWN status)
-  return {
-    id,
-    provider: providerType,
-    createdAt: Date.now(),
-    amount: 0,
-    fee: 0,
-    cryptoAmount: 0,
-    cryptoFee: 0,
-    currency,
-    currencySymbol: '',
-    cryptocurrency,
-    network,
-    state: FIAT_ORDER_STATES.PENDING,
-    forceUpdate: true,
-    account: walletAddress,
-    excludeFromPurchases: false,
-    orderType: 'BUY' as FiatOrder['orderType'],
-    errorCount: 0,
-    lastTimeFetched: 0,
-    data: {
-      id,
-      isOnlyLink: false,
-      provider: {
-        id: `/providers/${providerCode}`,
-        name: providerName,
-      },
-      success: false,
-      cryptoAmount: 0,
-      fiatAmount: 0,
-      providerOrderId: orderId,
-      providerOrderLink: '',
-      createdAt: Date.now(),
-      totalFeesFiat: 0,
-      txHash: '',
-      walletAddress,
-      status: 'PENDING',
-      network: { chainId: network, name: '' },
-      canBeUpdated: false,
-      idHasExpired: false,
-      excludeFromPurchases: false,
-      timeDescriptionPending: '',
-      orderType: 'BUY',
-    } as RampsOrder,
-  };
-}
-
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const previousUrlRef = useRef<string | null>(null);
   const dispatch = useDispatch();
-  const dispatchThunk = useThunkDispatch();
   const [error, setError] = useState('');
   const [customIdData, setCustomIdData] = useState<CustomIdData>();
   const isRedirectionHandledRef = useRef(false);
@@ -221,6 +92,7 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const { addOrder, getOrderFromCallback } = useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const isV2Enabled = useRampsUnifiedV2Enabled();
@@ -232,15 +104,11 @@ const Checkout = () => {
     customOrderId,
     walletAddress,
     network,
-    currency,
-    cryptocurrency,
     userAgent,
-    providerType,
     onNavigationStateChange,
     callbackKey,
   } = params ?? {};
 
-  const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
   const callbackKeyRef = useRef(callbackKey);
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
@@ -258,7 +126,7 @@ const Checkout = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: providerName ?? headerTitle },
+        { title: providerName ?? '' },
         theme,
         () => {
           trackEvent(
@@ -277,7 +145,6 @@ const Checkout = () => {
     navigation,
     theme,
     providerName,
-    headerTitle,
     createEventBuilder,
     trackEvent,
     rampRoutingDecision,
@@ -316,53 +183,6 @@ const Checkout = () => {
     dispatch(addFiatCustomIdData(data));
   }, [customOrderId, walletAddress, network, dispatch, hasCallbackFlow]);
 
-  const handleOrderCreated = useCallback(
-    (order: FiatOrder) => {
-      dispatch(protectWalletModalVisible());
-
-      dispatchThunk((_dispatch, getState) => {
-        const state = getState();
-        if (stateHasOrder(state, order)) {
-          return;
-        }
-        _dispatch(addFiatOrder(order));
-        if (isV2Enabled) {
-          showV2OrderToast({
-            orderId: order.id,
-            cryptocurrency: order.cryptocurrency,
-            cryptoAmount: order.cryptoAmount,
-            state: order.state,
-          });
-        } else {
-          const notificationDetails = getNotificationDetails(order);
-          if (notificationDetails) {
-            NotificationManager.showSimpleNotification(notificationDetails);
-          }
-        }
-      });
-
-      if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
-        // Use reset() instead of pop() + navigate() to avoid a race condition:
-        // dangerouslyGetParent()?.pop() removes the ramp modal from the stack
-        // before navigate() can push the order details screen, sending the user
-        // to the home screen instead.
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-              params: { orderId: order.id, showCloseButton: true },
-            },
-          ],
-        });
-      } else {
-        // @ts-expect-error navigation prop mismatch
-        navigation.dangerouslyGetParent()?.pop();
-      }
-    },
-    [dispatch, dispatchThunk, navigation, providerType, isV2Enabled],
-  );
-
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
       if (
@@ -387,12 +207,11 @@ const Checkout = () => {
           throw new Error('No wallet address or provider code available');
         }
 
-        const rampsOrder =
-          await Engine.context.RampsController.getOrderFromCallback(
-            providerCode,
-            navState.url,
-            walletAddress,
-          );
+        const rampsOrder = await getOrderFromCallback(
+          providerCode,
+          navState.url,
+          walletAddress,
+        );
 
         if (!rampsOrder) {
           throw new Error('Order could not be retrieved from callback');
@@ -402,25 +221,31 @@ const Checkout = () => {
           dispatch(removeFiatCustomIdData(customIdData));
         }
 
-        const orderId =
-          rampsOrder.providerOrderId || rampsOrder.id || customOrderId;
-        if (!orderId) {
-          throw new Error('Order response did not contain an order ID');
+        addOrder(rampsOrder);
+        dispatch(protectWalletModalVisible());
+
+        if (isV2Enabled) {
+          showV2OrderToast({
+            orderId: rampsOrder.providerOrderId,
+            cryptocurrency:
+              rampsOrder.cryptoCurrency?.symbol ?? params?.cryptocurrency ?? '',
+            cryptoAmount: rampsOrder.cryptoAmount,
+            status: rampsOrder.status,
+          });
         }
 
-        const fiatOrder = createInitialFiatOrder({
-          providerCode,
-          providerName: providerName ?? providerCode,
-          orderId,
-          walletAddress,
-          network: network ?? '',
-          currency: currency ?? '',
-          cryptocurrency: cryptocurrency ?? '',
-          rampsOrder,
-          providerType,
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: {
+                orderId: rampsOrder.providerOrderId,
+                showCloseButton: true,
+              },
+            },
+          ],
         });
-
-        handleOrderCreated(fiatOrder);
       } catch (navError) {
         Logger.error(navError as Error, {
           message: 'UnifiedCheckout: error handling callback',
@@ -430,18 +255,15 @@ const Checkout = () => {
     },
     [
       hasCallbackFlow,
-      customOrderId,
       customIdData,
       providerCode,
-      providerName,
-      providerType,
       walletAddress,
-      network,
-      currency,
-      cryptocurrency,
       navigation,
       dispatch,
-      handleOrderCreated,
+      addOrder,
+      getOrderFromCallback,
+      isV2Enabled,
+      params?.cryptocurrency,
     ],
   );
 
@@ -490,9 +312,7 @@ const Checkout = () => {
         />
       }
       style={styles.headerWithoutPadding}
-    >
-      {headerTitle}
-    </BottomSheetHeader>
+    />
   );
 
   if (error) {

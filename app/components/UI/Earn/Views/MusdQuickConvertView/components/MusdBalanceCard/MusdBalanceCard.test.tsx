@@ -54,7 +54,7 @@ describe('MusdBalanceCard', () => {
       expect(getByText(MUSD_TOKEN.symbol)).toBeOnTheScreen();
     });
 
-    it('displays percentage boost text from localization', () => {
+    it('displays percentage bonus text from localization', () => {
       const { getByText } = renderWithProvider(
         <MusdBalanceCard chainId={CHAIN_IDS.MAINNET} balance="$100.00" />,
         {
@@ -62,7 +62,7 @@ describe('MusdBalanceCard', () => {
         },
       );
 
-      expect(getByText('3% boost')).toBeOnTheScreen();
+      expect(getByText('3% bonus')).toBeOnTheScreen();
     });
   });
 });

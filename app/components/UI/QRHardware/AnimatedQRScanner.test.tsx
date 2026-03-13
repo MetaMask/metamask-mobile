@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
+import { AppState, AppStateStatus, Linking } from 'react-native';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
@@ -601,10 +602,66 @@ describe('AnimatedQRScannerModal - Metrics', () => {
   });
 
   describe('Camera Permission Error', () => {
-    it('calls onScanError only after requestPermission resolves with denial', async () => {
+    it('re-requests camera permission when app returns to foreground', async () => {
       const mockUseCameraPermission = jest.requireMock(
         'react-native-vision-camera',
       ).useCameraPermission;
+      const mockRequestPermission = jest.fn().mockResolvedValue(false);
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestPermission,
+      });
+
+      let appStateChangeHandler:
+        | ((nextAppState: AppStateStatus) => void)
+        | null = null;
+      const addEventListenerSpy = jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((eventType, listener) => {
+          if (eventType === 'change') {
+            appStateChangeHandler = listener;
+          }
+          return { remove: jest.fn() };
+        });
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalledTimes(1);
+      });
+
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        'change',
+        expect.any(Function),
+      );
+      expect(appStateChangeHandler).not.toBeNull();
+
+      act(() => {
+        appStateChangeHandler?.('background');
+      });
+
+      await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalledTimes(1);
+      });
+
+      act(() => {
+        appStateChangeHandler?.('active');
+      });
+
+      await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalledTimes(2);
+      });
+
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('keeps modal open with settings button when permission is denied', async () => {
+      const mockUseCameraPermission = jest.requireMock(
+        'react-native-vision-camera',
+      ).useCameraPermission;
+      const openSettingsSpy = jest
+        .spyOn(Linking, 'openSettings')
+        .mockResolvedValue();
 
       const mockRequestPermission = jest.fn().mockResolvedValue(false);
       mockUseCameraPermission.mockReturnValue({
@@ -612,14 +669,24 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         requestPermission: mockRequestPermission,
       });
 
-      render(<AnimatedQRScannerModal {...defaultProps} />);
+      const { getByTestId, getByText } = render(
+        <AnimatedQRScannerModal {...defaultProps} />,
+      );
 
       await waitFor(() => {
         expect(mockRequestPermission).toHaveBeenCalled();
-        expect(mockOnScanError).toHaveBeenCalledWith(
-          'transaction.no_camera_permission',
-        );
       });
+
+      expect(mockOnScanError).not.toHaveBeenCalled();
+      expect(getByText('transaction.no_camera_permission')).toBeOnTheScreen();
+      expect(getByTestId('open-settings-button')).toBeOnTheScreen();
+
+      await act(async () => {
+        getByTestId('open-settings-button').props.onPress();
+      });
+      expect(openSettingsSpy).toHaveBeenCalledTimes(1);
+
+      openSettingsSpy.mockRestore();
     });
 
     it('does not call onScanError when requestPermission is granted', async () => {
@@ -662,7 +729,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       expect(mockOnScanError).not.toHaveBeenCalled();
     });
 
-    it('does not call onScanError when modal is not visible', async () => {
+    it('does not request permission when modal is not visible', async () => {
       const mockUseCameraPermission = jest.requireMock(
         'react-native-vision-camera',
       ).useCameraPermission;
@@ -681,7 +748,6 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         expect(mockOnScanError).not.toHaveBeenCalled();
       });
 
-      // requestPermission should not have been called since modal is not visible
       expect(mockRequestPermission).not.toHaveBeenCalled();
     });
   });

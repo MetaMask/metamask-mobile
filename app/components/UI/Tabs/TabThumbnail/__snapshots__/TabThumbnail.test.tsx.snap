@@ -25,7 +25,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     style={
       [
         {
-          "borderColor": "#b7bbc8",
+          "borderColor": "#949596",
           "borderRadius": 12,
           "borderWidth": 1,
           "elevation": 4,
@@ -77,7 +77,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         >
           <SvgMock
-            color="#121314"
+            color="#131416"
             fill="currentColor"
             height={20}
             name="Global"
@@ -95,7 +95,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Bold",
               "fontSize": 12,
@@ -124,7 +124,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         testID="tab-close-button-123"
       >
         <SvgMock
-          color="#121314"
+          color="#131416"
           fill="currentColor"
           height={20}
           name="Close"

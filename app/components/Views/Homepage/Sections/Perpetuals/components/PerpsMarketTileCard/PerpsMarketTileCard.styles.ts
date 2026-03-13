@@ -19,25 +19,23 @@ const styleSheet = (params: {
     },
     content: {
       flex: 1,
-      paddingTop: 12,
-      paddingHorizontal: 12,
+      padding: 16,
     },
-    topRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
+    tokenLogoWrapper: {
+      position: 'relative' as const,
     },
-    symbolSection: {
-      flexDirection: 'column',
-      flex: 1,
-    },
-    symbolRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
+    favoriteBadge: {
+      position: 'absolute' as const,
+      top: -6,
+      right: -6,
+      backgroundColor: theme.colors.background.alternative,
+      borderRadius: 12,
+      padding: 3,
     },
     sparklineContainer: {
       marginTop: 'auto' as const,
+      marginHorizontal: 16,
+      marginBottom: 16,
     },
     shimmerOverlay: {
       ...StyleSheet.absoluteFillObject,

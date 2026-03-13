@@ -655,6 +655,7 @@ describe('useTokenActions', () => {
           chainId: defaultToken.chainId,
           symbol: defaultToken.symbol,
         }),
+        'Buy',
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -692,6 +693,7 @@ describe('useTokenActions', () => {
         expect.objectContaining({
           address: defaultToken.address,
         }),
+        'Buy',
       );
     });
 
@@ -743,6 +745,7 @@ describe('useTokenActions', () => {
           chainId: '0x1',
           symbol: 'ETH',
         }),
+        'Buy',
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -767,6 +770,7 @@ describe('useTokenActions', () => {
           symbol: defaultToken.symbol,
         }),
         undefined,
+        'Sell',
       );
     });
   });

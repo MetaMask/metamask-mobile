@@ -134,7 +134,7 @@ NotificationsSettings.navigationOptions = ({
 }) => ({
   headerLeft: () => (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
       onPress={() =>
         !isNotificationEnabled

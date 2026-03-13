@@ -75,7 +75,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                     "alignItems": "center",
                     "alignSelf": "stretch",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc866",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -94,7 +94,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                 testID="snap-ui-renderer__selector"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"
@@ -190,7 +190,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -212,7 +212,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                     "alignItems": "center",
                     "alignSelf": "stretch",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc866",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -231,7 +231,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 testID="snap-ui-renderer__selector"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"

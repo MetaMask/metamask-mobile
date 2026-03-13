@@ -190,6 +190,7 @@ export const PERPS_EVENT_VALUE = {
     PERPS_ASSET_SCREEN_NO_FUNDS: 'perps_asset_screen_no_funds',
     TRADE_MENU_ACTION: 'trade_menu_action',
     WALLET_HOME: 'wallet_home',
+    HOME_SECTION: 'home_section',
     TOOLTIP: 'tooltip',
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO_BUTTON: 'crypto_button',
@@ -239,6 +240,7 @@ export const PERPS_EVENT_VALUE = {
     STOP_LOSS_PROMPT_SET_SL: 'stop_loss_prompt_set_sl',
     // Geo-block sources for bulk actions
     CLOSE_ALL_POSITIONS_BUTTON: 'close_all_positions_button',
+    CANCEL_ALL_ORDERS_BUTTON: 'cancel_all_orders_button',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -304,6 +306,8 @@ export const PERPS_EVENT_VALUE = {
     // Pay-with interactions
     PAYMENT_TOKEN_SELECTOR: 'payment_token_selector',
     PAYMENT_METHOD_CHANGED: 'payment_method_changed',
+    // Deposit + order (pay-with token) cancel
+    CANCEL_TRADE_WITH_TOKEN: 'cancel_trade_with_token',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -375,6 +379,8 @@ export const PERPS_EVENT_VALUE = {
     ADD_MARGIN: 'add_margin',
     REMOVE_MARGIN: 'remove_margin',
     GEO_BLOCK_NOTIF: 'geo_block_notif',
+    // Deposit + order (pay-with token) cancel toast
+    CANCEL_TRADE_WITH_TOKEN_TOAST: 'cancel_trade_with_token_toast',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
@@ -411,6 +417,10 @@ export const PERPS_EVENT_VALUE = {
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  /** Value for mm_pay_token_selected when user pays with Perps balance (not a token) */
+  MM_PAY_TOKEN: {
+    PERPS_BALANCE: 'Perps Balance',
   },
   // A/B testing values
   AB_TEST: {

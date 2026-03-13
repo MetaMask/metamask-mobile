@@ -34,6 +34,7 @@ const mockAdapterInstance = {
   destroy: jest.fn(),
   startDeviceDiscovery: jest.fn(),
   stopDeviceDiscovery: jest.fn(),
+  ensurePermissions: jest.fn().mockResolvedValue(true),
   isTransportAvailable: jest.fn().mockReturnValue(true),
   onTransportStateChange: jest
     .fn()
@@ -513,7 +514,7 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    describe('retryLastOperation (internal, via bottom sheet props)', () => {
+    describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
       it('transitions to connecting state when retrying', async () => {
         const { result } = renderWithActions();
 
@@ -536,7 +537,7 @@ describe('HardwareWalletProvider', () => {
         );
 
         const internalRetry =
-          capturedBottomSheetProps.retryLastOperation as () => Promise<void>;
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
         await act(async () => {
           await internalRetry();
         });

@@ -21,7 +21,7 @@ const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

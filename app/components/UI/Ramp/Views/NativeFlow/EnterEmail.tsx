@@ -29,6 +29,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
 
 export interface V2EnterEmailParams {
   amount?: string;
@@ -149,6 +150,7 @@ const V2EnterEmail = () => {
             </Text>
 
             <TextField
+              testID={EnterEmailSelectorsIDs.EMAIL_INPUT}
               autoComplete="email"
               keyboardType="email-address"
               placeholder={strings('deposit.enter_email.input_placeholder')}
@@ -176,6 +178,7 @@ const V2EnterEmail = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <Button
+            testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
             label={strings('deposit.enter_email.submit_button')}
