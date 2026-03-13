@@ -1982,6 +1982,11 @@ export class PredictController extends BaseController<
     });
   }
 
+  public onOrderEnd(): void {
+    this.clearActiveOrder();
+    this.setSelectedPaymentToken(null);
+  }
+
   public onPlaceOrderError(): void {
     this.update((state) => {
       if (state.activeOrder) {
