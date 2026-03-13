@@ -86,7 +86,7 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Spam');
 
-        expect(tags).toEqual([{ label: 'Impersonator (High)' }]);
+        expect(tags).toEqual([{ label: 'Impersonator' }]);
       });
 
       it('ignores Malicious features when resultType is Warning', () => {
