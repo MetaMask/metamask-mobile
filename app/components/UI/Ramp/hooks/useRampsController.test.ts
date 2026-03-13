@@ -59,6 +59,7 @@ jest.mock('./useRampsPaymentMethods', () => ({
     selectedPaymentMethod: null,
     setSelectedPaymentMethod: jest.fn(),
     isLoading: false,
+    isFetching: false,
     status: 'idle',
     isSuccess: false,
     error: null,
@@ -141,7 +142,6 @@ describe('useRampsController', () => {
       paymentMethods: [],
       selectedPaymentMethod: null,
       paymentMethodsLoading: false,
-      paymentMethodsStatus: 'idle',
       paymentMethodsError: null,
     });
 
