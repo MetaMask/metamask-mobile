@@ -39,8 +39,10 @@ interface FeatureFlagRowProps {
   onToggle: (key: string, newValue: unknown) => void;
 }
 
+// TODO: Remove `active` once rampsUnifiedBuyV1/V2 flags migrate to `enabled`.
 export interface MinimumVersionFlagValue {
-  enabled: boolean;
+  enabled?: boolean;
+  active?: boolean;
   minimumVersion: string;
 }
 interface AbTestType {
@@ -86,16 +88,25 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
 
   const renderValueEditor = () => {
     switch (flag.type) {
-      case FeatureFlagType.FeatureFlagBooleanWithMinimumVersion:
+      case FeatureFlagType.FeatureFlagBooleanWithMinimumVersion: {
+        const flagVal = localValue as MinimumVersionFlagValue;
+        const usesActive =
+          Object.hasOwnProperty.call(flagVal, 'active') &&
+          !Object.hasOwnProperty.call(flagVal, 'enabled');
+        const boolValue = usesActive
+          ? (flagVal.active ?? false)
+          : (flagVal.enabled ?? false);
         return (
           <Box twClassName="items-end">
             <Switch
-              value={(localValue as MinimumVersionFlagValue).enabled}
+              value={boolValue}
               disabled={!isVersionSupported}
               onValueChange={(newValue: boolean) => {
                 const updatedValue = {
-                  ...(localValue as MinimumVersionFlagValue),
-                  enabled: newValue,
+                  ...flagVal,
+                  ...(usesActive
+                    ? { active: newValue }
+                    : { enabled: newValue }),
                 };
                 setLocalValue(updatedValue);
                 onToggle(flag.key, updatedValue);
@@ -122,6 +133,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             </Text>
           </Box>
         );
+      }
       case FeatureFlagType.FeatureFlagBoolean:
         return (
           <Switch

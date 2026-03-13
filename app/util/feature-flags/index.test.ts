@@ -106,6 +106,28 @@ describe('Feature Flags Utility Functions', () => {
       expect(result).toBe('boolean with minimumVersion');
     });
 
+    it('returns "boolean with minimumVersion" for objects with active true and minimumVersion string', () => {
+      const flagValue = {
+        active: true,
+        minimumVersion: '1.0.0',
+      };
+
+      const result = getFeatureFlagType(flagValue);
+
+      expect(result).toBe('boolean with minimumVersion');
+    });
+
+    it('returns "boolean with minimumVersion" for objects with active false and minimumVersion string', () => {
+      const flagValue = {
+        active: false,
+        minimumVersion: '2.0.0',
+      };
+
+      const result = getFeatureFlagType(flagValue);
+
+      expect(result).toBe('boolean with minimumVersion');
+    });
+
     it('returns "boolean nested" for objects with boolean value property', () => {
       const flagValue = {
         value: true,
