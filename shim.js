@@ -9,6 +9,7 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_MOCK_SERVER_PORT,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -66,6 +67,9 @@ if (isTest) {
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+  testConfig.mockServerPort = raw?.mockServerPort
+    ? raw.mockServerPort
+    : FALLBACK_MOCK_SERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
