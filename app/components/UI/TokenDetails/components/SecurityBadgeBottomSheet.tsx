@@ -127,7 +127,7 @@ const SecurityBadgeBottomSheet = () => {
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ size: ButtonIconSize.Sm }}
+        closeButtonProps={{ size: ButtonIconSize.Lg }}
       />
       <Box
         flexDirection={BoxFlexDirection.Column}
@@ -168,7 +168,7 @@ const SecurityBadgeBottomSheet = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Start}
-            twClassName="self-stretch flex-wrap gap-4 pt-4"
+            twClassName="self-stretch flex-wrap gap-4"
           >
             <Button
               variant={ButtonVariant.Secondary}
@@ -192,7 +192,7 @@ const SecurityBadgeBottomSheet = () => {
             onPress={handleClose}
           >
             <DSText
-              variant={DSTextVariant.ButtonLabelLg}
+              variant={DSTextVariant.BodyMd}
               color={DSTextColor.PrimaryInverse}
               fontWeight={FontWeight.Medium}
               twClassName="text-center"

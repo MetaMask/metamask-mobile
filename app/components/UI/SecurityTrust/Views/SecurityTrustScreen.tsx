@@ -239,7 +239,7 @@ const SecurityTrustScreen: React.FC = () => {
 
         {top10Pct !== null && (
           <Box twClassName="pb-3">
-            <Box twClassName="h-2 rounded-full overflow-hidden flex-row bg-[rgba(133,139,154,0.3)]">
+            <Box twClassName="h-2 rounded-full overflow-hidden flex-row bg-[rgba(237,239,242,0.3)]">
               <Box twClassName="h-full bg-[#6B7FFF]" style={barFillStyle} />
             </Box>
           </Box>
@@ -259,21 +259,19 @@ const SecurityTrustScreen: React.FC = () => {
             >
               <Box twClassName="w-3 h-3 rounded-full bg-[#6B7FFF]" />
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
               >
                 {strings('security_trust.top_10_holders')}
               </Text>
             </Box>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
               color={
                 top10Pct !== null
                   ? TextColor.TextDefault
                   : TextColor.TextAlternative
               }
-              fontWeight={FontWeight.Medium}
             >
               {top10Pct !== null
                 ? `${top10Pct.toFixed(1)}%`
@@ -294,21 +292,19 @@ const SecurityTrustScreen: React.FC = () => {
             >
               <Box twClassName="w-3 h-3 rounded-full bg-[rgba(133,139,154,0.5)]" />
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
               >
                 {strings('security_trust.other')}
               </Text>
             </Box>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
               color={
                 otherPct !== null
                   ? TextColor.TextDefault
                   : TextColor.TextAlternative
               }
-              fontWeight={FontWeight.Medium}
             >
               {otherPct !== null
                 ? `${otherPct.toFixed(1)}%`
