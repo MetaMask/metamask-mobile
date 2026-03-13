@@ -58,7 +58,7 @@ export interface PredictBuyPreviewParams {
   entryPoint?: PredictEntryPoint;
   batchId?: string;
   animationEnabled?: boolean;
-  isConfirmation?: boolean;
+  isConfirmationRoute?: boolean;
   isConfirming?: boolean;
   preview?: OrderPreview;
 }

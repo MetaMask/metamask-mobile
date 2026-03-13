@@ -56,7 +56,7 @@ export const usePredictBuyActions = ({
     outcome,
     outcomeToken,
     entryPoint,
-    isConfirmation,
+    isConfirmationRoute,
     preview: previewFromRoute,
   } = route.params;
 
@@ -88,18 +88,18 @@ export const usePredictBuyActions = ({
   const handleDepositFailed = useCallback(
     async (depositErrorMessage?: string) => {
       setIsConfirming(false);
-      Engine.context.PredictController.onDepositFailed(
+      PredictController.onDepositFailed(
         depositErrorMessage ?? strings('predict.deposit.error_description'),
       );
     },
-    [setIsConfirming],
+    [PredictController, setIsConfirming],
   );
 
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
-    Engine.context.PredictController.onConfirmOrder(!!isConfirmation);
+    PredictController.onConfirmOrder(!!isConfirmationRoute);
 
-    if (isConfirmation) {
+    if (isConfirmationRoute) {
       redirectToBuyPreview({
         isConfirming: true,
       });
@@ -131,18 +131,14 @@ export const usePredictBuyActions = ({
       analyticsProperties,
       preview: previewToUse,
     });
-    if (
-      orderResult.status === 'error' ||
-      orderResult.status === 'order_not_filled' ||
-      orderResult.status === 'deposit_required' ||
-      orderResult.status === 'deposit_in_progress'
-    ) {
+    if (orderResult.status !== 'success') {
       setIsConfirming(false);
-      Engine.context.PredictController.onOrderResultError();
+      PredictController.onOrderResultError();
     }
   }, [
     setIsConfirming,
-    isConfirmation,
+    PredictController,
+    isConfirmationRoute,
     livePreview,
     previewFromRoute,
     batchId,
@@ -158,30 +154,24 @@ export const usePredictBuyActions = ({
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
       onApprovalReject();
     }
-    PredictController.onOrderEnd();
-    navigation.dispatch(StackActions.pop());
-  }, [PredictController, navigation, currentState, onApprovalReject]);
+    PredictController.onOrderCancelled();
+  }, [PredictController, currentState, onApprovalReject]);
 
   const handleBackSwipe = useCallback(() => {
-    PredictController.onOrderEnd();
-    if (isConfirmation) return;
-    navigation.dispatch(StackActions.pop());
-  }, [PredictController, isConfirmation, navigation]);
+    PredictController.onOrderCancelled();
+  }, [PredictController]);
 
   const handlePlaceOrderSuccess = useCallback(() => {
-    setIsConfirming(false);
-    PredictController.onOrderEnd();
-    navigation.dispatch(StackActions.pop());
-  }, [setIsConfirming, PredictController, navigation]);
+    PredictController.onOrderSuccess();
+  }, [PredictController]);
 
   const handlePlaceOrderError = useCallback(() => {
-    setIsConfirming(false);
-    Engine.context.PredictController.onPlaceOrderError();
-  }, [setIsConfirming]);
+    PredictController.onOrderError();
+  }, [PredictController]);
 
   useEffect(() => {
     if (currentState === ActiveOrderState.REDIRECTING) {
-      if (isConfirmation) {
+      if (isConfirmationRoute) {
         PredictController.onConfirmationRedirected();
         return;
       }
@@ -193,7 +183,7 @@ export const usePredictBuyActions = ({
           market,
           outcome,
           outcomeToken,
-          isConfirmation: true,
+          isConfirmationRoute: true,
           preview: livePreview,
         },
       });
@@ -201,13 +191,38 @@ export const usePredictBuyActions = ({
   }, [
     PredictController,
     currentState,
-    isConfirmation,
+    isConfirmationRoute,
     livePreview,
     market,
     navigateToConfirmation,
     outcome,
     outcomeToken,
   ]);
+
+  useEffect(() => {
+    if (
+      currentState === ActiveOrderState.DEPOSITING ||
+      currentState === ActiveOrderState.PLACING_ORDER
+    ) {
+      setIsConfirming(true);
+    }
+    if (
+      currentState === ActiveOrderState.PREVIEW ||
+      currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
+    ) {
+      setIsConfirming(false);
+    }
+  }, [currentState, onApprovalReject, setIsConfirming]);
+
+  useEffect(() => {
+    if (
+      activeOrder?.state === ActiveOrderState.SUCCESS ||
+      activeOrder?.state === ActiveOrderState.CANCELLED
+    ) {
+      navigation.dispatch(StackActions.pop());
+      PredictController.onPlaceOrderEnd();
+    }
+  }, [PredictController, activeOrder, navigation, setIsConfirming]);
 
   return {
     handleBack,

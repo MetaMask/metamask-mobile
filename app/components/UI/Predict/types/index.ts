@@ -15,6 +15,8 @@ export enum ActiveOrderState {
   PLACING_ORDER = 'placing_order',
   REDIRECTING = 'redirecting',
   PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
+  CANCELLED = 'cancelled',
+  SUCCESS = 'success',
 }
 
 export enum PredictPriceHistoryInterval {

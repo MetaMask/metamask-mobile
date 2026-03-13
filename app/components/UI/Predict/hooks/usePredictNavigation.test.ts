@@ -102,7 +102,7 @@ describe('usePredictNavigation', () => {
     it('passes all params to the navigation call', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams({
-        isConfirmation: true,
+        isConfirmationRoute: true,
         animationEnabled: false,
       });
 
@@ -113,7 +113,7 @@ describe('usePredictNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PREDICT.MODALS.BUY_PREVIEW,
         expect.objectContaining({
-          isConfirmation: true,
+          isConfirmationRoute: true,
           animationEnabled: false,
         }),
       );
