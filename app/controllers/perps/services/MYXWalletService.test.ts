@@ -138,7 +138,7 @@ describe('MYXWalletService', () => {
         return undefined;
       });
 
-      await expect(signer.getAddress()).rejects.toThrow('NO_ACCOUNT_SELECTED');
+      expect(() => signer.getAddress()).toThrow('NO_ACCOUNT_SELECTED');
     });
 
     it('signTypedData() calls messenger with correct params and returns signature', async () => {

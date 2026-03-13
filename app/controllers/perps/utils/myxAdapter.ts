@@ -8,16 +8,16 @@
  * Formatters are injected via MarketDataFormatters interface (same pattern as marketDataTransform.ts).
  *
  * Key differences from HyperLiquid:
- * - API prices are normal floats (SDK contract layer uses 30 decimals internally)
- * - Sizes use 18 decimals (vs HyperLiquid's szDecimals per asset)
+ * - REST API returns human-readable strings for prices, sizes, collateral, fees, PnL
+ * - Only the SDK contract layer (createIncreaseOrder) uses 18/30-decimal scaling
  * - Multiple pools can exist per symbol (MPM model)
  * - USDT collateral (vs USDC)
  */
 
 import {
   fromMYXPrice,
-  fromMYXSize,
-  fromMYXCollateral,
+  fromMYXApiSize,
+  fromMYXApiCollateral,
   MYX_MAX_LEVERAGE,
   MYX_MINIMUM_ORDER_SIZE_USD,
 } from '../constants/myxConfig';
@@ -309,9 +309,9 @@ export function adaptPositionFromMYX(
   poolSymbolMap: Map<string, string>,
 ): Position {
   const symbol = poolSymbolMap.get(pos.poolId) ?? pos.poolId;
-  const sizeNum = fromMYXSize(pos.size);
+  const sizeNum = fromMYXApiSize(pos.size);
   const entryPriceNum = fromMYXPrice(pos.entryPrice);
-  const collateralNum = fromMYXCollateral(pos.collateralAmount);
+  const collateralNum = fromMYXApiCollateral(pos.collateralAmount);
 
   // Direction: 0 = LONG (positive size), 1 = SHORT (negative size)
   const isLong = pos.direction === MYXDirection.LONG;
@@ -374,8 +374,8 @@ export function adaptOrderFromMYX(
     historyOrder.poolId;
 
   const priceNum = fromMYXPrice(historyOrder.price);
-  const sizeNum = fromMYXSize(historyOrder.size);
-  const filledSizeNum = fromMYXSize(historyOrder.filledSize);
+  const sizeNum = fromMYXApiSize(historyOrder.size);
+  const filledSizeNum = fromMYXApiSize(historyOrder.filledSize);
   const remainingSize = Math.max(0, sizeNum - filledSizeNum);
 
   // Map direction
@@ -456,12 +456,12 @@ export function adaptAccountStateFromMYX(
   // TODO: Verify SDK semantics — if totalCollateral already includes unrealizedPnl,
   // the totalBalance formula below double-counts. Needs SDK documentation check.
   const marginUsed = accountInfo
-    ? fromMYXCollateral(String(accountInfo.totalCollateral ?? '0'))
+    ? fromMYXApiCollateral(String(accountInfo.totalCollateral ?? '0'))
     : 0;
   const unrealizedPnl = accountInfo
-    ? fromMYXCollateral(String(accountInfo.unrealizedPnl ?? '0'))
+    ? fromMYXApiCollateral(String(accountInfo.unrealizedPnl ?? '0'))
     : 0;
-  const balance = walletBalance ? fromMYXCollateral(walletBalance) : 0;
+  const balance = walletBalance ? fromMYXApiCollateral(walletBalance) : 0;
 
   const totalBalance = balance + marginUsed + unrealizedPnl;
   const availableBalance = balance;
@@ -492,11 +492,11 @@ export function adaptOrderFillFromMYX(
 ): OrderFill {
   const symbol =
     order.baseSymbol ?? poolSymbolMap.get(order.poolId) ?? order.poolId;
-  const sizeNum = fromMYXSize(order.filledSize || order.size);
+  const sizeNum = fromMYXApiSize(order.filledSize || order.size);
   const priceNum = fromMYXPrice(order.lastPrice || order.price);
   const side = order.direction === MYXDirectionEnum.Long ? 'buy' : 'sell';
-  const feeNum = fromMYXCollateral(order.tradingFee || '0');
-  const pnlNum = fromMYXCollateral(order.realizedPnl || '0');
+  const feeNum = fromMYXApiCollateral(order.tradingFee || '0');
+  const pnlNum = fromMYXApiCollateral(order.realizedPnl || '0');
 
   let orderType: OrderFill['orderType'] = 'regular';
   if (order.execType === MYXExecTypeEnum.TP) {
@@ -546,7 +546,7 @@ export function adaptFundingFromMYX(
     )
     .map((flow) => {
       const symbol = poolSymbolMap.get(flow.poolId) ?? flow.poolId;
-      const amountUsd = fromMYXCollateral(flow.fundingFee);
+      const amountUsd = fromMYXApiCollateral(flow.fundingFee);
       return {
         symbol,
         amountUsd: amountUsd.toString(),
@@ -578,7 +578,7 @@ export function adaptUserHistoryFromMYX(
     )
     .map((flow) => {
       const isDeposit = flow.type === MYXTradeFlowTypeEnum.MarginAccountDeposit;
-      const amount = fromMYXCollateral(flow.collateralAmount || '0');
+      const amount = fromMYXApiCollateral(flow.collateralAmount || '0');
       return {
         id: String(flow.orderId),
         timestamp: flow.txTime,
