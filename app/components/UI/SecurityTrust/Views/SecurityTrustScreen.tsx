@@ -188,7 +188,7 @@ const SecurityTrustScreen: React.FC = () => {
                   key={tag.label}
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="w-full h-10 py-2"
+                  twClassName="w-full"
                   gap={3}
                 >
                   {tagIcon && tagIconColor && (
@@ -315,6 +315,10 @@ const SecurityTrustScreen: React.FC = () => {
           </Box>
         </Box>
 
+        <Box twClassName="pb-2 pt-8 self-stretch -mx-4">
+          <Box twClassName="h-px bg-border-muted" />
+        </Box>
+
         {/* ══ Section 8: Buy/Sell Tax ══════════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.buy_sell_tax')} />
         <Box twClassName="w-full" gap={3}>
@@ -340,7 +344,7 @@ const SecurityTrustScreen: React.FC = () => {
               >
                 <Text
                   variant={TextVariant.HeadingLg}
-                  color={TextColor.SuccessDefault}
+                  color={TextColor.TextDefault}
                   fontWeight={FontWeight.Bold}
                 >
                   {formatFeePercent(value)}
@@ -379,6 +383,10 @@ const SecurityTrustScreen: React.FC = () => {
                 </Text>
               </Box>
             )}
+        </Box>
+
+        <Box twClassName="pb-2 pt-8 self-stretch -mx-4">
+          <Box twClassName="h-px bg-border-muted" />
         </Box>
 
         {/* ══ Section 9: Token Info ════════════════════════════════════════════ */}
@@ -436,6 +444,10 @@ const SecurityTrustScreen: React.FC = () => {
               </Text>
             </Box>
           </Box>
+        </Box>
+
+        <Box twClassName="pb-2 pt-8 self-stretch -mx-4">
+          <Box twClassName="h-px bg-border-muted" />
         </Box>
 
         {/* ══ Section 11: Official Links ═══════════════════════════════════════ */}
