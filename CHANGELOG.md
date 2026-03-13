@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add network logo for Tempo mainnet (#26904)
-- Adds the "refundTo" param for postQuote transactions, so refunds from Relay will be refunded back to Predict balance (#27065)
+- Added the "refundTo" param for postQuote transactions, so refunds from Relay will be refunded back to Predict balance (#27065)
 - Added MYX Finance as a second perpetuals provider with provider+network switching UI and validated market data (#26553)
 - Added redesigned Speed up and Cancel transaction modal (#26209)
 - Added max convert bottom sheet for mUSD Quick Convert (#26638)
