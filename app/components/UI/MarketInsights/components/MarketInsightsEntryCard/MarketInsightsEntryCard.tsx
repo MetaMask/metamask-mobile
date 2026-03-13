@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Pressable } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -18,6 +18,41 @@ import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.typ
 import { getUniqueSourcesByFavicon } from '../../utils/marketInsightsFormatting';
 import { endTrace, TraceName } from '../../../../../util/trace';
 import SourceLogoGroup from '../SourceLogoGroup';
+
+const SparkleIcon: React.FC = () => {
+  const opacity = useRef(new Animated.Value(0.45)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ]),
+      { iterations: 3 },
+    );
+
+    animation.start();
+    return () => animation.stop();
+  }, [opacity]);
+
+  return (
+    <Animated.View style={{ opacity }}>
+      <Icon
+        name={IconName.Sparkle}
+        size={IconSize.Lg}
+        color={IconColor.IconDefault}
+      />
+    </Animated.View>
+  );
+};
 
 /**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
@@ -57,15 +92,16 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={1}
         >
-          <Text variant={TextVariant.HeadingMd}>
+          <SparkleIcon />
+          <Text variant={TextVariant.HeadingMd} twClassName="ml-2">
             {strings('market_insights.title')}
           </Text>
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Md}
             color={IconColor.IconAlternative}
+            twClassName="ml-1"
           />
         </Box>
 

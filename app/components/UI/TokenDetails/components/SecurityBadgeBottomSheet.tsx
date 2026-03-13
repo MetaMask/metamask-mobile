@@ -132,7 +132,7 @@ const SecurityBadgeBottomSheet = () => {
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
-        twClassName="self-stretch px-4 pt-6 pb-8 gap-6"
+        twClassName="self-stretch px-4 gap-4"
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
@@ -158,7 +158,7 @@ const SecurityBadgeBottomSheet = () => {
             <DSText
               variant={DSTextVariant.BodyMd}
               color={DSTextColor.TextAlternative}
-              twClassName="text-center"
+              twClassName="text-center mb-2"
             >
               {description}
             </DSText>

@@ -32,12 +32,6 @@ import {
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 
-const Divider: React.FC = () => (
-  <Box twClassName="py-5 self-stretch -mx-4">
-    <Box twClassName="h-px bg-border-muted" />
-  </Box>
-);
-
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
     variant={TextVariant.HeadingMd}
@@ -166,7 +160,7 @@ const SecurityTrustScreen: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Start}
-          twClassName="pt-3 pb-1 self-stretch"
+          twClassName="pt-3 self-stretch"
         >
           <Text
             variant={TextVariant.HeadingMd}
@@ -216,12 +210,14 @@ const SecurityTrustScreen: React.FC = () => {
           )}
         </Box>
 
-        <Divider />
+        <Box twClassName="pb-2 pt-8 self-stretch -mx-4">
+          <Box twClassName="h-px bg-border-muted" />
+        </Box>
 
         {/* ══ Section 2: Token Distribution ═══════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.token_distribution')} />
 
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="pb-3 gap-6">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="pb-3">
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
@@ -450,7 +446,7 @@ const SecurityTrustScreen: React.FC = () => {
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Start}
               gap={4}
-              twClassName="w-full py-3 flex-wrap"
+              twClassName="w-full flex-wrap"
             >
               {metadata.externalLinks.homepage && (
                 <ButtonBase
@@ -559,12 +555,13 @@ const SecurityTrustScreen: React.FC = () => {
             </Box>
           </>
         )}
-
-        <Divider />
+        <Box twClassName="py-8 self-stretch -mx-4">
+          <Box twClassName="h-px bg-border-muted" />
+        </Box>
         <Box
           justifyContent={BoxJustifyContent.Center}
           alignItems={BoxAlignItems.Center}
-          twClassName="py-3 self-stretch"
+          twClassName="self-stretch"
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('security_trust.evaluation_disclaimer')}

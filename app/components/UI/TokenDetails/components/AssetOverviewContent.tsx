@@ -385,7 +385,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         icon: IconName.VerifiedFilled,
         iconColor: IconColor.IconDefault,
         title: strings('security_trust.verified_token_title'),
-        description: strings('security_trust.verified_token_description'),
+        description: strings('security_trust.verified_token_description', {
+          symbol: token.symbol,
+        }),
       },
       Warning: {
         icon: IconName.Warning,
