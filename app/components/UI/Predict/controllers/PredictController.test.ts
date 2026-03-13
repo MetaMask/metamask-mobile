@@ -4077,6 +4077,43 @@ describe('PredictController', () => {
     });
   });
 
+  describe('onOrderEnd', () => {
+    it('clears activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PLACING_ORDER,
+        });
+
+        controller.onOrderEnd();
+
+        expect(controller.state.activeOrder).toBeNull();
+      });
+    });
+
+    it('clears selectedPaymentToken', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        controller.onOrderEnd();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('does not throw when activeOrder is already null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onOrderEnd()).not.toThrow();
+      });
+    });
+  });
+
   describe('onPlaceOrderError', () => {
     it('resets activeOrder state to PREVIEW', () => {
       withController(({ controller }) => {
