@@ -45,7 +45,7 @@ import styleSheet from './PerpsTabView.styles';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
 const PerpsTabView = () => {
