@@ -166,6 +166,38 @@ describe('OrderContent', () => {
     ).toBeOnTheScreen();
   });
 
+  it('truncates long crypto amounts to 5 decimal places', () => {
+    const longDecimalOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0.01588973776561068,
+    };
+    renderOrder(longDecimalOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    expect(tokenAmount.props.children).not.toContain('0.01588973776561068');
+    expect(tokenAmount).toHaveTextContent('0.01589 ETH');
+  });
+
+  it('uses subscript notation for very small crypto amounts', () => {
+    const tinyAmountOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0.00000614,
+    };
+    renderOrder(tinyAmountOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    // 0.00000614 has 5 leading zeros → "0.0₅614"
+    expect(tokenAmount).toHaveTextContent('0.0₅614 ETH');
+  });
+
+  it('shows "..." when cryptoAmount is missing', () => {
+    const noAmountOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: undefined as unknown as number,
+    };
+    renderOrder(noAmountOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    expect(tokenAmount).toHaveTextContent('... ETH');
+  });
+
   it('does not render info row when statusDescription is absent', () => {
     const orderWithoutDescription: RampsOrder = {
       ...mockOrder,
