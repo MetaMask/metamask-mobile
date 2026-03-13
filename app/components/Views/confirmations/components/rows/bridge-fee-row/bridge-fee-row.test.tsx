@@ -160,4 +160,42 @@ describe('BridgeFeeRow', () => {
 
     expect(getByText('$0.50')).toBeOnTheScreen();
   });
+
+  it('includes fiatProvider fee in transaction fee total', () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '1.00' },
+        fiatProvider: { usd: '0.75' },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0', fiat: '0' },
+      },
+      // this cast is temporary until we release core and update TPC version in mobile
+    } as unknown as TransactionPayTotals);
+
+    const { getByText } = render();
+
+    expect(getByText('$1.75')).toBeOnTheScreen();
+  });
+
+  it('combines provider and fiatProvider fees in tooltip', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '1.00' },
+        fiatProvider: { usd: '0.50' },
+        sourceNetwork: { estimate: { usd: '0.10' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0.25', fiat: '0.25' },
+      },
+      // this cast is temporary until we release core and update TPC version in mobile
+    } as unknown as TransactionPayTotals);
+
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('$1.50')).toBeOnTheScreen();
+  });
 });
