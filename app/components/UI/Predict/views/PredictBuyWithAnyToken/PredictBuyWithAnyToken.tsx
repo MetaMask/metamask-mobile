@@ -42,7 +42,6 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { usePredictPayWithAnyTokenTracking } from './hooks/usePredictPayWithAnyTokenTracking';
-import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { Side } from '../../types';
@@ -143,7 +142,6 @@ const PredictBuyWithAnyToken = () => {
   const {
     handleBack,
     handleBackSwipe,
-    handleTokenSelected,
     handleConfirm,
     handleDepositFailed,
     handlePlaceOrderSuccess,
@@ -178,10 +176,6 @@ const PredictBuyWithAnyToken = () => {
     isPlaceOrderLoading,
     isUserInputChange,
     isConfirming,
-  });
-
-  usePredictPaymentToken({
-    onTokenSelected: handleTokenSelected,
   });
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../../types/navigation';
+import Engine from '../../../../../../core/Engine';
 
 export const usePredictBuyInputState = () => {
   const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
@@ -40,27 +41,21 @@ export const usePredictBuyInputState = () => {
     initialIsConfirmingFromRoute,
   );
 
-  const setCurrentValue = useCallback(
-    (value: SetStateAction<number>) => {
-      const previousValue = currentValueRef.current;
-      const nextValue =
-        typeof value === 'function'
-          ? (value as (prevState: number) => number)(previousValue)
-          : value;
+  const setCurrentValue = useCallback((value: SetStateAction<number>) => {
+    const previousValue = currentValueRef.current;
+    const nextValue =
+      typeof value === 'function'
+        ? (value as (prevState: number) => number)(previousValue)
+        : value;
 
-      const isUserInput = nextValue !== previousValue && nextValue > 0;
+    const isUserInput = nextValue !== previousValue && nextValue > 0;
 
-      if (nextValue !== previousValue) {
-        setIsUserInputChange(isUserInput);
-      }
+    if (nextValue !== previousValue) {
+      setIsUserInputChange(isUserInput);
+    }
 
-      updateActiveOrder({
-        amount: nextValue,
-        ...(isUserInput ? { error: null } : {}),
-      });
-    },
-    [updateActiveOrder],
-  );
+    Engine.context.PredictController.setOrderAmount(nextValue, isUserInput);
+  }, []);
 
   return {
     currentValue,
