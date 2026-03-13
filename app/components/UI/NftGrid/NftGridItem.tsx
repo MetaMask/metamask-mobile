@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import CollectibleMedia from '../CollectibleMedia';
+import { Skeleton } from '../../../component-library/components-temp/Skeleton';
 
 const debouncedNavigation = debounce((navigation, collectible, source) => {
   navigation.navigate('NftDetails', { collectible, source });
@@ -27,10 +28,19 @@ const NftGridItem = ({
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const [isImageLoading, setIsImageLoading] = useState(
+    () => !!(item.image || item.imageOriginal),
+  );
+
+  useEffect(() => {
+    setIsImageLoading(!!(item.image || item.imageOriginal));
+  }, [item.address, item.tokenId, item.image, item.imageOriginal]);
 
   const onPress = useCallback(() => {
     debouncedNavigation(navigation, item, source);
   }, [navigation, item, source]);
+
+  const handleImageLoad = useCallback(() => setIsImageLoading(false), []);
 
   return (
     <Pressable
@@ -44,7 +54,11 @@ const NftGridItem = ({
           style={tw.style('self-stretch aspect-square')}
           collectible={item}
           isTokenImage
+          onLoad={handleImageLoad}
         />
+        {isImageLoading && (
+          <Skeleton twClassName="absolute inset-0 rounded-lg" />
+        )}
       </Box>
       <Text
         variant={TextVariant.BodyMd}
