@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, View } from 'react-native';
+import { View } from 'react-native';
 import {
   useAccountProps,
   useNotificationAccountListProps,
@@ -15,7 +15,7 @@ export const AccountsList = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
-  const { accountAvatarType, firstHDWalletGroups } = useAccountProps();
+  const { accountAvatarType, accountWalletGroups } = useAccountProps();
   const {
     isAnyAccountLoading,
     isAccountLoading,
@@ -24,35 +24,42 @@ export const AccountsList = () => {
     getEvmAddress,
   } = useNotificationAccountListProps();
 
-  if (!firstHDWalletGroups) {
+  if (accountWalletGroups.length === 0) {
     return null;
   }
 
   return (
     <View>
-      <AccountListHeader
-        title={firstHDWalletGroups.title}
-        containerStyle={styles.accountHeader}
-      />
-      <FlatList
-        data={firstHDWalletGroups.data}
-        keyExtractor={(item) => `address-${item.id}`}
-        renderItem={({ item }) => (
-          <NotificationOptionToggle
-            key={item.id}
-            item={item}
-            evmAddress={getEvmAddress(item.accounts)}
-            icon={accountAvatarType}
-            disabledSwitch={isAnyAccountLoading}
-            isLoading={isAccountLoading(item.accounts)}
-            isEnabled={isAccountEnabled(item.accounts)}
-            refetchNotificationAccounts={refetchAccountSettings}
-            testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-              getEvmAddress(item.accounts) ?? '',
-            )}
+      {accountWalletGroups.map((walletGroup) => (
+        <View key={walletGroup.wallet.id}>
+          <AccountListHeader
+            title={walletGroup.title}
+            containerStyle={styles.accountHeader}
           />
-        )}
-      />
+          {walletGroup.data.map((item) => {
+            const evmAddress = getEvmAddress(item.accounts);
+            if (!evmAddress) {
+              return null;
+            }
+
+            return (
+              <NotificationOptionToggle
+                key={item.id}
+                item={item}
+                evmAddress={evmAddress}
+                icon={accountAvatarType}
+                disabledSwitch={isAnyAccountLoading}
+                isLoading={isAccountLoading(item.accounts)}
+                isEnabled={isAccountEnabled(item.accounts)}
+                refetchNotificationAccounts={refetchAccountSettings}
+                testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+                  evmAddress,
+                )}
+              />
+            );
+          })}
+        </View>
+      ))}
     </View>
   );
 };

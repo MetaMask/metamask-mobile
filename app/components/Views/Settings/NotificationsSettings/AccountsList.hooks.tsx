@@ -1,11 +1,10 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 import { toFormattedAddress } from '../../../../util/address';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountWalletType } from '@metamask/account-api';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 
@@ -82,20 +81,41 @@ export function useNotificationAccountListProps() {
   };
 }
 
-export function useFirstHDWalletAccounts() {
+export function useNotificationWalletAccountGroups() {
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
-  const firstHDWalletGroup = accountGroupsByWallet.find(
-    (w) => w.wallet.type === AccountWalletType.Entropy,
+  const accountsMap = useSelector(selectInternalAccountsById);
+
+  const isEvmAccountId = useCallback(
+    (accountId: string) =>
+      Boolean(accountsMap?.[accountId]?.address) &&
+      isEvmAccountType(accountsMap[accountId].type),
+    [accountsMap],
   );
-  return firstHDWalletGroup;
+
+  const hasNotificationEligibleAccount = useCallback(
+    (accountGroup: { accounts: string[] }) =>
+      accountGroup.accounts.some(isEvmAccountId),
+    [isEvmAccountId],
+  );
+
+  return useMemo(
+    () =>
+      accountGroupsByWallet
+        .map((walletGroup) => ({
+          ...walletGroup,
+          data: walletGroup.data.filter(hasNotificationEligibleAccount),
+        }))
+        .filter((walletGroup) => walletGroup.data.length > 0),
+    [accountGroupsByWallet, hasNotificationEligibleAccount],
+  );
 }
 
 export function useAccountProps() {
-  const firstHDWalletGroups = useFirstHDWalletAccounts();
+  const accountWalletGroups = useNotificationWalletAccountGroups();
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   return {
-    firstHDWalletGroups,
+    accountWalletGroups,
     accountAvatarType,
   };
 }
