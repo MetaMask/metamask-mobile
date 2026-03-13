@@ -6,6 +6,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import createStyles from './ContextualNetworkPicker.styles';
 import ContextualNetworkPicker from './ContextualNetworkPicker';
 import { BASE_DISPLAY_NAME } from '../../../core/Engine/constants';
+import { brandColor } from '@metamask/design-tokens';
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
@@ -304,7 +305,7 @@ describe('ContextualNetworkPicker', () => {
   describe('Styles', () => {
     const mockColors = {
       background: {
-        default: '#ffffff',
+        default: brandColor.white,
         alternative: '#f2f3f4',
       },
       border: {

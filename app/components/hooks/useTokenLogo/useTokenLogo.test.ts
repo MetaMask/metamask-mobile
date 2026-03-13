@@ -1,11 +1,12 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useTokenLogo } from './useTokenLogo';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock useTheme hook
 const mockColors = {
-  background: { default: '#FFFFFF' },
-  text: { default: '#000000' },
-  icon: { default: '#000000' },
+  background: { default: brandColor.white },
+  text: { default: brandColor.black },
+  icon: { default: brandColor.black },
   border: { muted: '#E5E7EB' },
 };
 
