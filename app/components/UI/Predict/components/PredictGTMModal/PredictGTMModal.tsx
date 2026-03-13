@@ -8,12 +8,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import Button, {
+import {
+  Button,
+  ButtonBase,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -137,35 +137,31 @@ const PredictGTMModal = () => {
             onPress={() => handleGetStarted()}
             testID={PREDICT_GTM_MODAL_TEST_IDS.GET_STARTED_BUTTON}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             style={styles.getStartedButton}
-            activeOpacity={0.6}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                style={styles.getStartedButtonText}
-              >
-                {strings('predict.gtm_content.get_started')}
-              </Text>
-            }
-          />
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.getStartedButtonText}
+            >
+              {strings('predict.gtm_content.get_started')}
+            </Text>
+          </ButtonBase>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             onPress={() => handleClose()}
             testID={PREDICT_GTM_MODAL_TEST_IDS.NOT_NOW_BUTTON}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={ButtonSize.Lg}
             style={styles.notNowButton}
-            activeOpacity={0.6}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                style={styles.notNowButtonText}
-              >
-                {strings('predict.gtm_content.not_now')}
-              </Text>
-            }
-          />
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.notNowButtonText}
+            >
+              {strings('predict.gtm_content.not_now')}
+            </Text>
+          </Button>
         </View>
       </SafeAreaView>
     </Animated.View>

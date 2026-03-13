@@ -3,16 +3,14 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { memo } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../../component-library/components/Buttons/Button';
 import PredictClaimButton from '../../../../components/PredictActionButtons/PredictClaimButton';
 import PredictDetailsButtonsSkeleton from '../../../../components/PredictDetailsButtonsSkeleton';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
@@ -80,46 +78,43 @@ const PredictMarketDetailsActions = memo(
                 twClassName="w-full mt-4 gap-3"
               >
                 <Button
-                  variant={ButtonVariants.Secondary}
+                  variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
+                  isFullWidth
                   style={tw.style('flex-1 bg-success-muted')}
-                  label={
-                    <Text
-                      style={tw.style('font-bold')}
-                      color={TextColor.SuccessDefault}
-                    >
-                      {firstOpenOutcome?.tokens[0].title} • {yesPercentage}¢
-                    </Text>
-                  }
                   onPress={() =>
                     onBuyPress(
                       firstOpenOutcome?.tokens[0] ??
                         market?.outcomes[0].tokens[0],
                     )
                   }
-                />
+                >
+                  <Text
+                    style={tw.style('font-bold')}
+                    color={TextColor.SuccessDefault}
+                  >
+                    {firstOpenOutcome?.tokens[0].title} • {yesPercentage}¢
+                  </Text>
+                </Button>
                 <Button
-                  variant={ButtonVariants.Secondary}
+                  variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
+                  isFullWidth
                   style={tw.style('flex-1 bg-error-muted')}
-                  label={
-                    <Text
-                      style={tw.style('font-bold')}
-                      color={TextColor.ErrorDefault}
-                    >
-                      {firstOpenOutcome?.tokens[1].title} •{' '}
-                      {100 - yesPercentage}¢
-                    </Text>
-                  }
                   onPress={() =>
                     onBuyPress(
                       firstOpenOutcome?.tokens[1] ??
                         market?.outcomes[0].tokens[1],
                     )
                   }
-                />
+                >
+                  <Text
+                    style={tw.style('font-bold')}
+                    color={TextColor.ErrorDefault}
+                  >
+                    {firstOpenOutcome?.tokens[1].title} • {100 - yesPercentage}¢
+                  </Text>
+                </Button>
               </Box>
             );
           }

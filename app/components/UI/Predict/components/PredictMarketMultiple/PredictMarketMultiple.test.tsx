@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import PredictMarketMultiple from '.';
-import Button from '../../../../../component-library/components/Buttons/Button';
+import { Button } from '@metamask/design-system-react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket, Recurrence } from '../../types';
