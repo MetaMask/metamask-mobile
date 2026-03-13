@@ -91,6 +91,7 @@ module.exports = function (baseConfig) {
             __dirname,
             'app/controllers/perps',
           ),
+          '~/app': path.resolve(__dirname, 'app'),
           'base64-js': 'react-native-quick-base64',
           base64: 'react-native-quick-base64',
           'js-base64': 'react-native-quick-base64',

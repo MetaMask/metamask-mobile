@@ -28,6 +28,7 @@ module.exports = {
       {
         alias: {
           '@metamask/perps-controller': './app/controllers/perps',
+          '~/app': './app',
         },
       },
     ],
