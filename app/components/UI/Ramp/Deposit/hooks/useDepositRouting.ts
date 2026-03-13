@@ -492,11 +492,7 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
               }
               return true;
             } catch (error) {
-              throw new Error(
-                error instanceof Error && error.message
-                  ? error.message
-                  : 'Failed to process KYC flow',
-              );
+              throw error;
             }
           }
 

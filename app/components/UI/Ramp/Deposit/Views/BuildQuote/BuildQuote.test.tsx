@@ -915,11 +915,65 @@ describe('BuildQuote Component', () => {
           currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
           currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
-          error_message: 'BuildQuote - Error handling authentication',
+          error_message: 'Routing failed',
+          error_code: undefined,
           is_authenticated: true,
         });
       });
     });
+
+    it('tracks RAMPS_ORDER_FAILED with error_code when routeAfterAuthentication throws Axios error', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        paymentMethod: 'credit_debit_card',
+        fiatCurrency: 'USD',
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      const axiosError = {
+        response: {
+          data: {
+            error: {
+              errorCode: 4002,
+              message: 'KYC required',
+            },
+          },
+        },
+      };
+      mockRouteAfterAuthentication.mockRejectedValue(axiosError);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          error_message: 'KYC required',
+          error_code: '4002',
+          is_authenticated: true,
+        });
+      });
+    });
+
     it('calls handleOnPressContinue when shouldRouteImmediately is true', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
