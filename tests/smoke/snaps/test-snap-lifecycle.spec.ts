@@ -29,8 +29,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
     );
   });
 
-  // This test is currently skipped because there is no way to set the source code in the StorageService, which is required for the Snap to run and call the onStart lifecycle hook.
-  it.skip('runs the onStart lifecycle hook when the client is started', async () => {
+  it('runs the onStart lifecycle hook when the client is started', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
