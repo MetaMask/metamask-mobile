@@ -1982,17 +1982,34 @@ export class PredictController extends BaseController<
     });
   }
 
-  public onOrderEnd(): void {
-    this.clearActiveOrder();
+  public onOrderCancelled(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.CANCELLED;
+      }
+    });
     this.setSelectedPaymentToken(null);
   }
 
-  public onPlaceOrderError(): void {
+  public onOrderError(): void {
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.PREVIEW;
       }
     });
+    this.setSelectedPaymentToken(null);
+  }
+
+  public onOrderSuccess(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.SUCCESS;
+      }
+    });
+  }
+
+  public onPlaceOrderEnd(): void {
+    this.clearActiveOrder();
     this.setSelectedPaymentToken(null);
   }
 

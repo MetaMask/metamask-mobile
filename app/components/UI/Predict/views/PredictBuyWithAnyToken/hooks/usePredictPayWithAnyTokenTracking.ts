@@ -51,7 +51,7 @@ export function usePredictPayWithAnyTokenTracking({
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { isConfirmation } = route.params;
+  const { isConfirmationRoute } = route.params;
 
   const { activeOrder } = usePredictActiveOrder();
 
@@ -104,7 +104,7 @@ export function usePredictPayWithAnyTokenTracking({
       hasCalledFailRef.current = true;
       onFail(error ?? errorMessage);
     }
-  }, [batchId, isFailed, onFail, error, errorMessage, isConfirmation]);
+  }, [batchId, isFailed, onFail, error, errorMessage, isConfirmationRoute]);
 
   return {
     isConfirmed,

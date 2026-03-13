@@ -4085,7 +4085,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PLACING_ORDER,
         });
 
-        controller.onOrderEnd();
+        controller.onOrderCancelled();
 
         expect(controller.state.activeOrder).toBeNull();
       });
@@ -4099,7 +4099,7 @@ describe('PredictController', () => {
           symbol: 'USDC',
         });
 
-        controller.onOrderEnd();
+        controller.onOrderCancelled();
 
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
@@ -4109,7 +4109,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state.activeOrder).toBeNull();
 
-        expect(() => controller.onOrderEnd()).not.toThrow();
+        expect(() => controller.onOrderCancelled()).not.toThrow();
       });
     });
   });
@@ -4122,7 +4122,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PLACING_ORDER,
         });
 
-        controller.onPlaceOrderError();
+        controller.onOrderError();
 
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.PREVIEW,
@@ -4142,7 +4142,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PLACING_ORDER,
         });
 
-        controller.onPlaceOrderError();
+        controller.onOrderError();
 
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
@@ -4157,7 +4157,7 @@ describe('PredictController', () => {
           error: 'some error',
         });
 
-        controller.onPlaceOrderError();
+        controller.onOrderError();
 
         expect(controller.state.activeOrder).toEqual({
           amount: 75,
@@ -4172,7 +4172,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state.activeOrder).toBeNull();
 
-        expect(() => controller.onPlaceOrderError()).not.toThrow();
+        expect(() => controller.onOrderError()).not.toThrow();
 
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
