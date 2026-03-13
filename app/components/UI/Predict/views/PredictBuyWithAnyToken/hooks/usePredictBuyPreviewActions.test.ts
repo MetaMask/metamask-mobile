@@ -110,7 +110,7 @@ const defaultRouteParams = {
   outcome: { id: 'outcome-1' },
   outcomeToken: { id: 'token-1' },
   entryPoint: 'predict_feed',
-  isConfirmation: false,
+  isConfirmationRoute: false,
   preview: null,
 };
 
@@ -201,7 +201,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('dispatches StackActions.pop when not in confirmation mode', () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -214,7 +214,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('does not dispatch pop when in confirmation mode', () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: true };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -262,7 +262,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('calls placeOrder with preview and analyticsProperties when not in confirmation', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
       mockPlaceOrder.mockResolvedValue({
         status: 'success',
         result: { success: true, response: undefined },
@@ -281,7 +281,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('delegates to onOrderResultError on placeOrder error', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
       mockPlaceOrder.mockResolvedValue({
         status: 'error',
         error: 'Order failed',
@@ -299,7 +299,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('delegates to onOrderResultError on order_not_filled', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
       mockPlaceOrder.mockResolvedValue({ status: 'order_not_filled' });
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -313,8 +313,8 @@ describe('usePredictBuyActions', () => {
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
-    it('calls onApprovalConfirm when isConfirmation is true', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: true };
+    it('calls onApprovalConfirm when isConfirmationRoute is true', async () => {
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
       mockOnApprovalConfirm.mockResolvedValue(undefined);
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -334,7 +334,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('delegates to onOrderResultError on deposit_required', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
       mockPlaceOrder.mockResolvedValue({ status: 'deposit_required' });
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -349,7 +349,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('delegates to onOrderResultError on deposit_in_progress', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
       mockPlaceOrder.mockResolvedValue({ status: 'deposit_in_progress' });
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -366,7 +366,7 @@ describe('usePredictBuyActions', () => {
     it('throws error when no preview available', async () => {
       mockRouteParams = {
         ...defaultRouteParams,
-        isConfirmation: false,
+        isConfirmationRoute: false,
         preview: null,
       };
       const params = createDefaultParams();

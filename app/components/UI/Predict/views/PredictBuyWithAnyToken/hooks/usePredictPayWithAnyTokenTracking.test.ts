@@ -7,7 +7,7 @@ import { usePredictPayWithAnyTokenTracking } from './usePredictPayWithAnyTokenTr
 import { PREDICTION_ERROR_TRANSACTION_BATCH_ID } from '../../../constants/transactions';
 
 let mockActiveOrder: { batchId?: string; error?: string } | null = null;
-let mockRouteParams: Record<string, unknown> = { isConfirmation: false };
+let mockRouteParams: Record<string, unknown> = { isConfirmationRoute: false };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -51,7 +51,7 @@ describe('usePredictPayWithAnyTokenTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockActiveOrder = null;
-    mockRouteParams = { isConfirmation: false };
+    mockRouteParams = { isConfirmationRoute: false };
   });
 
   describe('status detection', () => {

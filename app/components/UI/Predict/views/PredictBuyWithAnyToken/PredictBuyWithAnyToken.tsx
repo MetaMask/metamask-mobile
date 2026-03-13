@@ -61,7 +61,7 @@ const PredictBuyWithAnyToken = () => {
     outcome,
     outcomeToken,
     entryPoint,
-    isConfirmation,
+    isConfirmationRoute,
     preview: initialPreview,
   } = route.params;
 
@@ -216,8 +216,9 @@ const PredictBuyWithAnyToken = () => {
   });
 
   const edges = useMemo(
-    () => (isConfirmation ? (['top', 'left', 'right'] as Edge[]) : undefined),
-    [isConfirmation],
+    () =>
+      isConfirmationRoute ? (['top', 'left', 'right'] as Edge[]) : undefined,
+    [isConfirmationRoute],
   );
 
   return (
@@ -313,7 +314,7 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      {isConfirmation && (
+      {isConfirmationRoute && (
         <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
       )}
     </SafeAreaView>
