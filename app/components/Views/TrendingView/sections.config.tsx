@@ -353,11 +353,11 @@ const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 
 // Sorted by order on the QuickAction buttons and SearchResults
 const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+  SECTIONS_CONFIG.sites,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.sites,
 ];
 
 export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {

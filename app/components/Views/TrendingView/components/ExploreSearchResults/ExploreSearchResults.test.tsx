@@ -103,7 +103,7 @@ describe('ExploreSearchResults', () => {
         stocks: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
     });
 
     const { getByText, getByTestId } = render(
@@ -132,7 +132,7 @@ describe('ExploreSearchResults', () => {
         stocks: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
     });
 
     const { getByText, queryByText } = render(
@@ -160,7 +160,7 @@ describe('ExploreSearchResults', () => {
         stocks: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
     });
 
     render(<ExploreSearchResults searchQuery="ethereum" />);
@@ -190,7 +190,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -221,7 +221,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -251,7 +251,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -280,7 +280,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -319,7 +319,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -352,12 +352,12 @@ describe('ExploreSearchResults', () => {
           sites: false,
         },
         sectionsOrder: [
+          'sites',
           'tokens',
           'unknown' as 'tokens', // Intentionally invalid ID to test graceful handling
           'stocks',
           'perps',
           'predictions',
-          'sites',
         ],
       });
 

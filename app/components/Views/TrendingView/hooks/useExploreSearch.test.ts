@@ -101,11 +101,11 @@ jest.mock('../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
 
 // Mock useSectionsArray to return all sections for testing
 const mockSectionsArray: { id: SectionId }[] = [
+  { id: 'sites' },
   { id: 'tokens' },
   { id: 'stocks' },
   { id: 'perps' },
   { id: 'predictions' },
-  { id: 'sites' },
 ];
 
 jest.mock('../sections.config', () => {
