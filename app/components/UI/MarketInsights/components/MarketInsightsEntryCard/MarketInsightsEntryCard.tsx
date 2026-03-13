@@ -12,8 +12,6 @@ import {
   IconColor,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
@@ -33,7 +31,7 @@ const SparkleIcon: React.FC = () => {
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
-          toValue: 0.45,
+          toValue: 1,
           duration: 900,
           useNativeDriver: true,
         }),
@@ -94,22 +92,16 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-              {strings('market_insights.title')}
-            </Text>
-            <SparkleIcon />
-          </Box>
+          <SparkleIcon />
+          <Text variant={TextVariant.HeadingMd} twClassName="ml-2">
+            {strings('market_insights.title')}
+          </Text>
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Md}
             color={IconColor.IconAlternative}
+            twClassName="ml-1"
           />
         </Box>
 

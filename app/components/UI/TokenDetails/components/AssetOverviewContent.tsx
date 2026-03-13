@@ -58,8 +58,33 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
+import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
+import type { TokenDetailsRouteParams } from '../constants/constants';
+import {
+  Box,
+  Text as DSText,
+  TextVariant as DSTextVariant,
+  TextColor as DSTextColor,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
+import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
@@ -69,9 +94,10 @@ import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakin
 import useTronStakeApy from '../../Earn/hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
+import StockBadge from '../../shared/StockBadge/StockBadge';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   endTrace,
@@ -120,6 +146,11 @@ const styleSheet = (params: { theme: Theme }) => {
     marketClosedActionButtonContainer: {
       marginBottom: 8,
     },
+    securityTrustWrapper: {
+      marginTop: 20,
+      marginBottom: 20,
+      paddingHorizontal: 16,
+    } as ViewStyle,
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
@@ -173,6 +204,14 @@ export interface AssetOverviewContentProps {
   inLockPeriodBalance?: string;
   readyForWithdrawalBalance?: string;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+
+  // Security & Trust
+  /** Resolved security data owned by the parent (TokenDetails). */
+  securityData?: TokenSecurityData | null;
+  /** Whether security data is still being fetched. */
+  isSecurityDataLoading?: boolean;
+  /** Whether the security data fetch failed. Hides the card when true. */
+  hasSecurityDataError?: boolean;
 }
 
 /**
@@ -212,11 +251,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   inLockPeriodBalance,
   readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
+  securityData,
+  isSecurityDataLoading = false,
+  hasSecurityDataError = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradingOpen, isStockToken } = useRWAToken();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
@@ -291,6 +333,115 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+
+  const securityBadge = useMemo(() => {
+    switch (securityData?.resultType) {
+      case 'Verified':
+        return {
+          icon: IconName.VerifiedFilled,
+          iconColor: IconColor.IconDefault,
+          label: null,
+          bg: null,
+          textColor: undefined,
+        };
+      case 'Benign':
+        return null;
+      case 'Warning':
+      case 'Spam':
+        return {
+          icon: IconName.Warning,
+          iconColor: IconColor.WarningDefault,
+          label: strings('security_trust.risky'),
+          bg: 'bg-warning-muted',
+          textColor: DSTextColor.WarningDefault,
+        };
+      case 'Malicious':
+        return {
+          icon: IconName.Danger,
+          iconColor: IconColor.ErrorDefault,
+          label: strings('security_trust.malicious'),
+          bg: 'bg-error-muted',
+          textColor: DSTextColor.ErrorDefault,
+        };
+      default:
+        return null;
+    }
+  }, [securityData?.resultType]);
+
+  const handleSecurityBadgePress = useCallback(() => {
+    if (!securityData?.resultType || securityData.resultType === 'Benign')
+      return;
+
+    const configMap: Record<
+      string,
+      {
+        icon: IconName;
+        iconColor: IconColor;
+        title: string;
+        description: string;
+      }
+    > = {
+      Verified: {
+        icon: IconName.VerifiedFilled,
+        iconColor: IconColor.IconDefault,
+        title: strings('security_trust.verified_token_title'),
+        description: strings('security_trust.verified_token_description', {
+          symbol: token.symbol,
+        }),
+      },
+      Warning: {
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        title: strings('security_trust.risky_token_title'),
+        description: strings('security_trust.risky_token_description', {
+          symbol: token.symbol,
+        }),
+      },
+      Spam: {
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        title: strings('security_trust.risky_token_title'),
+        description: strings('security_trust.risky_token_description', {
+          symbol: token.symbol,
+        }),
+      },
+      Malicious: {
+        icon: IconName.Danger,
+        iconColor: IconColor.ErrorDefault,
+        title: strings('security_trust.malicious_token_title'),
+        description: strings(
+          'security_trust.malicious_token_sheet_description',
+          { symbol: token.symbol },
+        ),
+      },
+    };
+
+    const config = configMap[securityData.resultType];
+    if (config) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: {
+          ...config,
+          source: 'badge',
+          severity: securityData.resultType,
+          tokenAddress: token.address,
+          tokenSymbol: token.symbol,
+          chainId: token.chainId,
+        },
+      });
+    }
+  }, [
+    securityData?.resultType,
+    token.symbol,
+    token.address,
+    token.chainId,
+    navigation,
+  ]);
+
+  const networkBadgeSource = token.chainId
+    ? NetworkBadgeSource(token.chainId as Hex)
+    : undefined;
+
   const marketInsightsCaip19Id = useMemo(() => {
     if (!isMarketInsightsEnabled) {
       return null;
@@ -478,9 +629,135 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         renderWarning()
       ) : (
         <View>
+          {/* Token icon + name row */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="py-2 pl-4 pr-2 self-stretch gap-3"
+          >
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                networkBadgeSource ? (
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={networkBadgeSource}
+                    size={AvatarSize.Xs}
+                  />
+                ) : undefined
+              }
+            >
+              <AssetLogo asset={token} />
+            </BadgeWrapper>
+
+            <Box twClassName="flex-1">
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1.5"
+              >
+                <DSText
+                  variant={DSTextVariant.HeadingMd}
+                  color={DSTextColor.TextDefault}
+                  numberOfLines={1}
+                  twClassName="shrink"
+                >
+                  {token.name || token.symbol}
+                </DSText>
+                {securityBadge && securityBadge.label === null && (
+                  <TouchableOpacity onPress={handleSecurityBadgePress}>
+                    <Icon
+                      name={securityBadge.icon}
+                      size={IconSize.Md}
+                      color={securityBadge.iconColor}
+                    />
+                  </TouchableOpacity>
+                )}
+                {securityBadge && securityBadge.label !== null && (
+                  <TouchableOpacity onPress={handleSecurityBadgePress}>
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
+                    >
+                      <Icon
+                        name={securityBadge.icon}
+                        size={IconSize.Sm}
+                        color={securityBadge.iconColor}
+                      />
+                      <DSText
+                        variant={DSTextVariant.BodySm}
+                        color={securityBadge.textColor}
+                        fontWeight={FontWeight.Medium}
+                        numberOfLines={1}
+                        twClassName="overflow-hidden text-center"
+                      >
+                        {securityBadge.label}
+                      </DSText>
+                    </Box>
+                  </TouchableOpacity>
+                )}
+                {!token.name && isStockToken(token as BridgeToken) && (
+                  <StockBadge token={token as BridgeToken} />
+                )}
+              </Box>
+              {token.name ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1"
+                >
+                  <DSText
+                    variant={DSTextVariant.BodyMd}
+                    color={DSTextColor.TextAlternative}
+                    fontWeight={FontWeight.Medium}
+                    numberOfLines={1}
+                  >
+                    {token.ticker || token.symbol}
+                  </DSText>
+                  {isStockToken(token as BridgeToken) && (
+                    <StockBadge token={token as BridgeToken} />
+                  )}
+                </Box>
+              ) : null}
+            </Box>
+          </Box>
+
+          {securityData?.resultType === 'Malicious' && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              twClassName="self-stretch mx-4 mt-3 min-h-[100px] min-w-[280px] py-3 pl-6 pr-4 gap-4 rounded-2xl bg-error-muted"
+            >
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Md}
+                color={IconColor.ErrorDefault}
+              />
+              <Box
+                flexDirection={BoxFlexDirection.Column}
+                alignItems={BoxAlignItems.Start}
+                twClassName="flex-1"
+              >
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextDefault}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('security_trust.malicious_token_title')}
+                </DSText>
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextDefault}
+                >
+                  {strings('security_trust.malicious_token_description')}
+                </DSText>
+              </Box>
+            </Box>
+          )}
+
           <PriceChartProvider>
             <Price
-              asset={token}
               prices={prices}
               priceDiff={priceDiff}
               currentCurrency={currentCurrency}
@@ -496,7 +773,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
-                iconName={IconName.Info}
+                iconName={ComponentLibraryIconName.Info}
                 label={strings('asset_overview.market_closed')}
                 onPress={handleMarketClosedButtonPress}
               />
@@ -637,6 +914,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>
+          {!hasSecurityDataError &&
+            (isSecurityDataLoading || securityData?.resultType) && (
+              <View style={styles.securityTrustWrapper}>
+                <SecurityTrustEntryCard
+                  securityData={securityData ?? null}
+                  isLoading={isSecurityDataLoading}
+                  token={token as TokenDetailsRouteParams}
+                />
+              </View>
+            )}
           {isEligibilityModalVisible && (
             <View>
               <Modal

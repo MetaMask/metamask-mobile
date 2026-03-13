@@ -169,6 +169,10 @@ class Transactions extends PureComponent {
      */
     header: PropTypes.object,
     /**
+     * When true, suppresses the empty state footer when there are no transactions
+     */
+    hideEmptyState: PropTypes.bool,
+    /**
      * Optional header height
      */
     headerHeight: PropTypes.number,
@@ -732,7 +736,9 @@ class Transactions extends PureComponent {
               ListFooterComponent={
                 filteredTransactions.length > 0
                   ? this.footer
-                  : this.renderEmpty()
+                  : this.props.hideEmptyState
+                    ? null
+                    : this.renderEmpty()
               }
               contentContainerStyle={styles.listContentContainer}
               style={baseStyles.flexGrow}
