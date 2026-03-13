@@ -55,4 +55,15 @@ describe('TextField', () => {
 
     expect(inputComponent.prop('numberOfLines')).toBe(1);
   });
+
+  it('applies inputStyle to the default input element', () => {
+    const inputStyle = { paddingVertical: 2 };
+    const wrapper = shallow(<TextField inputStyle={inputStyle} />);
+
+    const inputComponent = wrapper.find('ForwardRef');
+    const inputComponentStyle = inputComponent.prop('style');
+
+    expect(Array.isArray(inputComponentStyle)).toBe(true);
+    expect(inputComponentStyle).toContainEqual(inputStyle);
+  });
 });

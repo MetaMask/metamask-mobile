@@ -24,6 +24,10 @@ export interface TextFieldProps
    */
   inputElement?: React.ReactNode;
   /**
+   * Optional style override for the default Input element.
+   */
+  inputStyle?: InputProps['style'];
+  /**
    * Optional test ID for the input element.
    */
   testID?: string;

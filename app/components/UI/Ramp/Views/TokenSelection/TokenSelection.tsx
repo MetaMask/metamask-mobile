@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Platform } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
@@ -50,6 +50,13 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
 );
+
+const TOKEN_SELECTOR_SEARCH_INPUT_STYLE = Platform.select({
+  ios: {
+    paddingVertical: 2,
+    textAlignVertical: 'center' as const,
+  },
+});
 
 function TokenSelection() {
   const listRef = useRef<FlatList>(null);
@@ -398,6 +405,7 @@ function TokenSelection() {
             onPressClearButton={clearSearchText}
             onFocus={scrollToTop}
             onChangeText={handleSearchTextChange}
+            inputStyle={TOKEN_SELECTOR_SEARCH_INPUT_STYLE}
             placeholder={strings(
               'deposit.token_modal.search_by_name_or_address',
             )}

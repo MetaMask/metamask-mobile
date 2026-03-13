@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { Platform, View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
@@ -44,6 +44,13 @@ export const createTokenSelectorModalNavigationDetails =
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.TOKEN_SELECTOR,
   );
+
+const TOKEN_SELECTOR_SEARCH_INPUT_STYLE = Platform.select({
+  ios: {
+    paddingVertical: 2,
+    textAlignVertical: 'center' as const,
+  },
+});
 
 function TokenSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -202,6 +209,7 @@ function TokenSelectorModal() {
               onPressClearButton={clearSearchText}
               onFocus={scrollToTop}
               onChangeText={handleSearchTextChange}
+              inputStyle={TOKEN_SELECTOR_SEARCH_INPUT_STYLE}
               placeholder={strings(
                 'deposit.token_modal.search_by_name_or_address',
               )}

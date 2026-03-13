@@ -37,6 +37,7 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
       endAccessory,
       isError = false,
       inputElement,
+      inputStyle,
       isDisabled = false,
       autoFocus = false,
       onBlur,
@@ -116,7 +117,7 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
               onBlur={onBlurHandler}
               onFocus={onFocusHandler}
               testID={testID}
-              style={styles.input}
+              style={inputStyle ? [styles.input, inputStyle] : styles.input}
               numberOfLines={1}
               multiline={false}
               {...props}
