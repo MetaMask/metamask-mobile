@@ -5,7 +5,6 @@ export const flushPromises = () => new Promise(setImmediate);
 // iOS: These are overridden by LaunchArgs at runtime
 export const FALLBACK_FIXTURE_SERVER_PORT = 12345;
 export const FALLBACK_COMMAND_QUEUE_SERVER_PORT = 2446;
-export const FALLBACK_MOCK_SERVER_PORT = 8000;
 
 // E2E test configuration required in app
 export const testConfig = {};
