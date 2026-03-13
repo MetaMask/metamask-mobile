@@ -71,6 +71,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
 import { useDepositUser } from '../../hooks/useDepositUser';
 import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
+import { BuildQuoteSelectors } from '../../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -730,6 +731,7 @@ const BuildQuote = () => {
             label={'Continue'}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
+            testID={BuildQuoteSelectors.CONTINUE_BUTTON}
             isDisabled={
               amountAsNumber <= 0 ||
               isLoading ||
