@@ -66,9 +66,19 @@ import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
 import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 
+/**
+ * Identifies which flow the user used to enter the Buy screen.
+ * - 'tokenInfo': Home → Tokens → Token Info → Buy
+ * - 'homeTokenList': Home → (token list with Buy buttons) → Buy
+ * - undefined: Home → Buy → Token Selection → BuildQuote (standard flow)
+ */
+export type BuyFlowOrigin = 'tokenInfo' | 'homeTokenList';
+
 export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
+  /** Which flow the user used to enter the Buy screen. */
+  buyFlowOrigin?: BuyFlowOrigin;
 }
 
 /**
@@ -137,8 +147,11 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
+    paymentMethods,
     getWidgetUrl,
     paymentMethodsLoading,
+    paymentMethodsFetching,
+    paymentMethodsStatus,
     selectedPaymentMethod,
   } = useRampsController();
 
@@ -152,31 +165,104 @@ function BuildQuote() {
     }
   }, [selectedProvider]);
 
-  const isTokenUnavailable = useMemo(
-    () =>
-      !!(
-        selectedProvider &&
-        params?.assetId &&
-        selectedProvider.supportedCryptoCurrencies &&
-        !selectedProvider.supportedCryptoCurrencies[params.assetId]
-      ),
-    [selectedProvider, params?.assetId],
+  const tokenStateIsSettled =
+    !params?.assetId || selectedToken?.assetId === params.assetId;
+
+  // Controller state is the source of truth for the active token;
+  // route params are only used as bootstrapping input.
+  const effectiveAssetId = selectedToken?.assetId ?? params?.assetId;
+
+  const isTokenUnavailable = useMemo(() => {
+    if (!selectedProvider || !effectiveAssetId) {
+      return false;
+    }
+
+    // Only determine unavailability after payment methods have fully settled.
+    // This prevents the modal from flashing during loading/idle/error states
+    // (e.g. after a provider change while the new query is still in flight).
+    // Also wait for background refetches to complete — react-query may return
+    // stale cached data (status='success') while refetching for a new provider.
+    if (paymentMethodsStatus !== 'success' || paymentMethodsFetching) {
+      return false;
+    }
+
+    // If payment methods returned results, token IS available
+    // (payment methods API is more authoritative than supportedCryptoCurrencies)
+    if (paymentMethods.length > 0) {
+      return false;
+    }
+
+    // Provider explicitly doesn't support this token
+    if (
+      selectedProvider.supportedCryptoCurrencies &&
+      !selectedProvider.supportedCryptoCurrencies[effectiveAssetId]
+    ) {
+      return true;
+    }
+
+    // Payment methods loaded but empty
+    if (tokenStateIsSettled) {
+      return true;
+    }
+
+    return false;
+  }, [
+    selectedProvider,
+    effectiveAssetId,
+    paymentMethodsFetching,
+    tokenStateIsSettled,
+    paymentMethodsStatus,
+    paymentMethods.length,
+  ]);
+
+  // Tracks which provider:token combination was last shown the modal,
+  // so we don't duplicate-navigate within the same visit but DO re-show
+  // when the combination changes.
+  const lastShownUnavailableKeyRef = useRef<string>('');
+
+  // Bump a counter on screen focus so the modal effect re-evaluates
+  // when the user navigates away (e.g. token selection) and comes back.
+  const [focusTrigger, setFocusTrigger] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      lastShownUnavailableKeyRef.current = '';
+      setFocusTrigger((c) => c + 1);
+    }, []),
   );
 
-  const hasShownTokenUnavailableRef = useRef(false);
-
+  // Show "Token Not Available" modal when the selected token is unavailable
+  // for the current provider. Debounced to let the query settle — prevents
+  // the modal from flashing when isTokenUnavailable is briefly true due to
+  // stale cached data before the fresh response arrives.
   useEffect(() => {
-    if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
-      hasShownTokenUnavailableRef.current = true;
+    if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
+      lastShownUnavailableKeyRef.current = '';
+      return;
+    }
+
+    const key = `${selectedProvider?.id}:${effectiveAssetId}`;
+    if (lastShownUnavailableKeyRef.current === key) return;
+
+    const timer = setTimeout(() => {
+      lastShownUnavailableKeyRef.current = key;
       navigation.navigate(
         ...createTokenNotAvailableModalNavigationDetails({
-          assetId: params?.assetId ?? '',
+          assetId: effectiveAssetId ?? '',
+          buyFlowOrigin: params?.buyFlowOrigin,
         }),
       );
-    } else if (!isTokenUnavailable) {
-      hasShownTokenUnavailableRef.current = false;
-    }
-  }, [isTokenUnavailable, params?.assetId, navigation]);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [
+    isOnBuildQuoteScreen,
+    params?.buyFlowOrigin,
+    isTokenUnavailable,
+    effectiveAssetId,
+    navigation,
+    selectedProvider?.id,
+    focusTrigger,
+  ]);
 
   const {
     checkExistingToken: transakCheckExistingToken,
@@ -240,6 +326,7 @@ function BuildQuote() {
     selectedPaymentMethod &&
     selectedProvider &&
     selectedToken?.assetId &&
+    tokenStateIsSettled &&
     debouncedPollingAmount > 0
   );
 
@@ -715,7 +802,9 @@ function BuildQuote() {
                     strings('fiat_on_ramp.select_payment_method')
                   }
                   isLoading={paymentMethodsLoading}
-                  onPress={handlePaymentPillPress}
+                  onPress={
+                    isTokenUnavailable ? undefined : handlePaymentPillPress
+                  }
                 />
               </View>
             </View>

@@ -59,6 +59,9 @@ jest.mock('./useRampsPaymentMethods', () => ({
     selectedPaymentMethod: null,
     setSelectedPaymentMethod: jest.fn(),
     isLoading: false,
+    isFetching: false,
+    status: 'idle',
+    isSuccess: false,
     error: null,
   })),
 }));
