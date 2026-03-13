@@ -5,7 +5,13 @@ import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 import Box from './Box';
-import Text from '../../../../Base/Text';
+import {
+  Text,
+  TextButton,
+  TextButtonSize,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import Title from '../../../../Base/Title';
 import RemoteImage from '../../../../Base/RemoteImage';
 import { useTheme } from '../../../../../util/theme';
@@ -155,59 +161,61 @@ const InfoAlert: React.FC<Props> = ({
           )}
           {Boolean(subtitle) && (
             <View style={styles.row}>
-              <Text small grey centered>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+              >
                 {subtitle}
               </Text>
             </View>
           )}
           <View style={styles.row}>{Boolean(body) && <Text>{body}</Text>}</View>
           {Boolean(providerWebsite) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleProviderHomepageLinkPress(providerWebsite as string)
               }
+              twClassName="text-center"
             >
-              <Text small link underline centered>
-                {providerWebsite}
-              </Text>
-            </TouchableOpacity>
+              {providerWebsite as string}
+            </TextButton>
           )}
           {Boolean(providerPrivacyPolicy) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleProviderPrivacyPolicyLinkPress(
                   providerPrivacyPolicy as string,
                 )
               }
+              twClassName="text-center"
             >
-              <Text small link underline centered>
-                {strings('app_information.privacy_policy')}
-              </Text>
-            </TouchableOpacity>
+              {strings('app_information.privacy_policy')}
+            </TextButton>
           )}
           {Boolean(providerTermsOfService) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleTermsOfServiceLinkPress(providerTermsOfService as string)
               }
+              twClassName="text-center"
             >
-              <Text small link underline centered>
-                {strings('fiat_on_ramp_aggregator.terms_of_service')}
-              </Text>
-            </TouchableOpacity>
+              {strings('fiat_on_ramp_aggregator.terms_of_service')}
+            </TextButton>
           )}
           {Boolean(providerSupport) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleProviderSupportLinkPress(providerSupport as string)
               }
+              twClassName="text-center"
             >
-              <Text small link underline centered>
-                {providerName +
-                  ' ' +
-                  strings('fiat_on_ramp_aggregator.order_details.support')}
-              </Text>
-            </TouchableOpacity>
+              {`${providerName} ${strings('fiat_on_ramp_aggregator.order_details.support')}`}
+            </TextButton>
           )}
         </View>
       </Box>

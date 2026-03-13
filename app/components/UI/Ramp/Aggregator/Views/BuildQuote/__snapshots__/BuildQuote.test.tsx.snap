@@ -2999,41 +2999,18 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -3589,41 +3566,18 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -4248,41 +4202,18 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -7196,41 +7127,18 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -10124,41 +10032,18 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -15576,41 +15461,18 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -23312,41 +23174,18 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -23902,41 +23741,18 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }

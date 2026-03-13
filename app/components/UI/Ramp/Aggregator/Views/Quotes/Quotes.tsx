@@ -21,7 +21,7 @@ import { PaymentCustomAction, Provider } from '@consensys/on-ramp-sdk/dist/API';
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
-import TextLegacy from '../../../../../Base/Text';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../components/ScreenLayout';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import ErrorView from '../../components/ErrorView';
@@ -1095,9 +1095,9 @@ function Quotes() {
           )}
 
           <ScreenLayout.Content style={styles.withoutVerticalPadding}>
-            <TextLegacy centered grey>
+            <Text color={TextColor.TextAlternative} twClassName="text-center">
               {strings('fiat_on_ramp_aggregator.compare_rates')}
-            </TextLegacy>
+            </Text>
           </ScreenLayout.Content>
         </ScreenLayout.Header>
         <InfoAlert

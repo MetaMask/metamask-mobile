@@ -1157,41 +1157,18 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 [
                                   {
                                     "color": "#131416",
                                     "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  {
+                                    "fontSize": 16,
+                                    "fontWeight": 400,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                     "textAlign": "center",
                                   },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
                                   undefined,
                                 ]
                               }
@@ -1199,41 +1176,17 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               New quotes in
                                
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 30,
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    {
                                       "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#131416",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
                                     [
                                       {
                                         "fontVariant": [
@@ -3212,41 +3165,18 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
                                       [
                                         {
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
-                                          "fontSize": 30,
-                                          "marginVertical": 2,
-                                        },
-                                        {
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
                                           "textAlign": "center",
                                         },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "color": "#131416",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
                                         undefined,
                                       ]
                                     }
@@ -3254,41 +3184,17 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     New quotes in
                                      
                                     <Text
+                                      accessibilityRole="text"
                                       style={
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-Regular",
-                                            "fontSize": 30,
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
                                             "fontFamily": "Geist-Bold",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
                                           },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#131416",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
                                           [
                                             {
                                               "fontVariant": [
@@ -3319,41 +3225,18 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
-                                          "fontSize": 30,
-                                          "marginVertical": 2,
-                                        },
-                                        {
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
                                           "textAlign": "center",
                                         },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "color": "#66676a",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
                                         undefined,
                                       ]
                                     }
@@ -4952,41 +4835,18 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 [
                                   {
                                     "color": "#131416",
                                     "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  {
+                                    "fontSize": 16,
+                                    "fontWeight": 400,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                     "textAlign": "center",
                                   },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
                                   undefined,
                                 ]
                               }
@@ -4994,41 +4854,17 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               New quotes in
                                
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 30,
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    {
                                       "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#131416",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
                                     [
                                       {
                                         "fontVariant": [
@@ -6034,41 +5870,18 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -6705,41 +6518,18 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -7376,41 +7166,18 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -8047,41 +7814,18 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
-                                      },
-                                      {
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#66676a",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -8166,41 +7910,18 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
   }
 >
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
-        },
-        {
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
           "textAlign": "center",
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        {
-          "color": "#131416",
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8208,41 +7929,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     Quotes expire in
      
     <Text
+      accessibilityRole="text"
       style={
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 30,
-            "marginVertical": 2,
-          },
-          undefined,
-          undefined,
-          {
             "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          {
-            "color": "#131416",
-          },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
           [
             {
               "fontVariant": [
@@ -8276,41 +7973,18 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
   }
 >
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
-        },
-        {
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
           "textAlign": "center",
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        {
-          "color": "#131416",
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8318,41 +7992,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     Quotes expire in
      
     <Text
+      accessibilityRole="text"
       style={
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 30,
-            "marginVertical": 2,
-          },
-          undefined,
-          undefined,
-          {
             "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          {
-            "color": "#131416",
-          },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
           [
             {
               "fontVariant": [
@@ -8386,41 +8036,18 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
   }
 >
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
-        },
-        {
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
           "textAlign": "center",
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        {
-          "color": "#131416",
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8428,41 +8055,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     Quotes expire in
      
     <Text
+      accessibilityRole="text"
       style={
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 30,
-            "marginVertical": 2,
-          },
-          undefined,
-          undefined,
-          {
             "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          {
-            "color": "#131416",
-          },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
           [
             {
               "fontVariant": [
@@ -8496,41 +8099,18 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
   }
 >
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
-        },
-        {
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
           "textAlign": "center",
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        {
-          "color": "#131416",
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8538,41 +8118,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     New quotes in
      
     <Text
+      accessibilityRole="text"
       style={
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 30,
-            "marginVertical": 2,
-          },
-          undefined,
-          undefined,
-          {
             "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          {
-            "color": "#131416",
-          },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
           [
             {
               "fontVariant": [
@@ -8606,41 +8162,18 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
   }
 >
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
-        },
-        {
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
           "textAlign": "center",
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        {
-          "color": "#131416",
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8648,41 +8181,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     New quotes in
      
     <Text
+      accessibilityRole="text"
       style={
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 30,
-            "marginVertical": 2,
-          },
-          undefined,
-          undefined,
-          {
             "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          {
-            "color": "#131416",
-          },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
           [
             {
               "fontVariant": [
@@ -8719,37 +8228,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     size="small"
   />
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8779,37 +8268,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     size="small"
   />
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8839,37 +8308,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     size="small"
   />
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
@@ -8899,37 +8348,17 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     size="small"
   />
   <Text
+    accessibilityRole="text"
     style={
       [
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 30,
-          "marginVertical": 2,
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
         },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
         undefined,
       ]
     }
