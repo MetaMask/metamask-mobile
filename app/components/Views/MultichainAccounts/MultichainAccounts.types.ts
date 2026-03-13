@@ -8,6 +8,10 @@ export interface AccountParams {
   account?: InternalAccount;
 }
 
+export interface SelectedAccountParams {
+  selectedAccount: InternalAccount;
+}
+
 /** Multichain account detail actions parameters */
 export interface MultichainAccountDetailActionsParams {
   screen: string;
@@ -15,15 +19,13 @@ export interface MultichainAccountDetailActionsParams {
 }
 
 /** Multichain transaction details parameters */
-export interface MultichainTransactionDetailsParams {
-  transactionId?: string;
-}
+export type { MultichainTransactionDetailsSheetParams as MultichainTransactionDetailsParams } from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 
 /** Multichain account actions parameters */
 export interface MultichainAccountActionsParams extends AccountParams {}
 
 /** Edit account name parameters */
-export interface EditAccountNameParams extends AccountParams {}
+export interface EditAccountNameParams extends SelectedAccountParams {}
 
 /** Edit wallet name parameters */
 export interface EditWalletNameParams extends AccountParams {}
