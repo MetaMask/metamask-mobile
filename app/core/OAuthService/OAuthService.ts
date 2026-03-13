@@ -173,6 +173,24 @@ export class OAuthService {
     }
   };
 
+  #handleMockOAuthLogin = async (
+    loginHandler: BaseLoginHandler,
+  ): Promise<HandleOAuthLoginResult> => {
+    Logger.log('[OAuthService] E2E_MOCK_OAUTH: bypassing real OAuth flow');
+    const mockEmail = `mock-perf-${loginHandler.authConnection}@web3auth.io`;
+    this.updateLocalState({
+      userId: `mock-user-${loginHandler.authConnection}`,
+      accountName: mockEmail,
+    });
+    const mockResult: HandleOAuthLoginResult = {
+      type: OAuthLoginResultType.SUCCESS,
+      existingUser: false,
+      accountName: mockEmail,
+    };
+    this.#dispatchPostLogin(mockResult);
+    return mockResult;
+  };
+
   #trackSocialLoginFailure = ({
     authConnection,
     errorCategory,
@@ -222,6 +240,10 @@ export class OAuthService {
     }
     this.updateLocalState({ userClickedRehydration });
     this.#dispatchLogin();
+
+    if (process.env.E2E_MOCK_OAUTH === 'true') {
+      return this.#handleMockOAuthLogin(loginHandler);
+    }
 
     try {
       let result: LoginHandlerResult,
