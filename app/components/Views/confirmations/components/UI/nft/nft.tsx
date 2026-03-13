@@ -57,7 +57,7 @@ export function Nft({ asset, onPress }: NftProps) {
             <AvatarToken
               name={asset.name || asset.collectionName || 'NFT'}
               src={asset.image ? { uri: asset.image } : undefined}
-              style={tw.style('w-10 h-10')}
+              style={tw.style('w-10 h-10 rounded-xl')}
             />
           </BadgeWrapper>
         </Box>

@@ -60,11 +60,11 @@ function TokenNetworkFilterBar({
         variant={
           isAllSelected ? ButtonVariants.Primary : ButtonVariants.Secondary
         }
-        size={ButtonSize.Sm}
+        size={ButtonSize.Md}
         label={
           <Text
             color={isAllSelected ? TextColor.Inverse : TextColor.Default}
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyMDMedium}
           >
             {strings('unified_ramp.networks_filter_bar.all_networks')}
           </Text>
@@ -83,7 +83,7 @@ function TokenNetworkFilterBar({
             variant={
               isSelected ? ButtonVariants.Primary : ButtonVariants.Secondary
             }
-            size={ButtonSize.Sm}
+            size={ButtonSize.Md}
             label={
               <>
                 <AvatarNetwork
@@ -95,7 +95,7 @@ function TokenNetworkFilterBar({
 
                 <Text
                   color={isSelected ? TextColor.Inverse : TextColor.Default}
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMDMedium}
                 >
                   {displayName}
                 </Text>

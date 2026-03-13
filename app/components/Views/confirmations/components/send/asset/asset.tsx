@@ -205,6 +205,15 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           ))}
         </Box>
       )}
+      {!hideNetworkFilter && (
+        <NetworkFilter
+          tokens={tokens}
+          onFilteredTokensChange={handleFilteredTokensChange}
+          onNetworkFilterStateChange={handleNetworkFilterStateChange}
+          onExposeFilterControls={handleExposeFilterControls}
+          onNetworkFilterChange={handleNetworkFilterChange}
+        />
+      )}
       <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
@@ -217,15 +226,6 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           onPressClearButton={clearSearch}
         />
       </Box>
-      {!hideNetworkFilter && (
-        <NetworkFilter
-          tokens={tokens}
-          onFilteredTokensChange={handleFilteredTokensChange}
-          onNetworkFilterStateChange={handleNetworkFilterStateChange}
-          onExposeFilterControls={handleExposeFilterControls}
-          onNetworkFilterChange={handleNetworkFilterChange}
-        />
-      )}
       <ScrollView
         testID={TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST}
         contentContainerStyle={{

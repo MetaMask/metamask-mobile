@@ -638,7 +638,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                   twClassName="flex-1"
                 >
                   <AvatarToken
-                    size={AvatarSize.Md}
+                    size={AvatarSize.Lg}
                     // eslint-disable-next-line @typescript-eslint/no-require-imports
                     imageSource={require('../../../../../images/solana-logo.png')}
                   />
@@ -716,7 +716,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                       }
                     >
                       <AvatarToken
-                        size={AvatarSize.Md}
+                        size={AvatarSize.Lg}
                         imageSource={{
                           uri: buildTokenIconUrl(
                             item.caipChainId,
