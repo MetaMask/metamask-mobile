@@ -222,6 +222,44 @@ describe('ExploreSearchBar', () => {
 
       expect(input.props.autoFocus).toBe(true);
     });
+
+    it('calls onSubmit when keyboard submit is pressed', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+      const mockOnSubmit = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery="ethereum"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+          onSubmit={mockOnSubmit}
+        />,
+      );
+
+      fireEvent(getByTestId('explore-view-search-input'), 'submitEditing');
+
+      expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('sets returnKeyType to go on TextInput', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      const input = getByTestId('explore-view-search-input');
+
+      expect(input.props.returnKeyType).toBe('go');
+    });
   });
 
   describe('basic functionality toggle', () => {
