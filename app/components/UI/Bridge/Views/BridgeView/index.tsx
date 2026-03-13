@@ -98,8 +98,10 @@ import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/inde
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
-const SCROLL_NEAR_BOTTOM_PX = 160;
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
+import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
+
+const SCROLL_NEAR_BOTTOM_PX = 160;
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -146,6 +148,23 @@ const BridgeView = () => {
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
+  const handleSourceAmountChange = useCallback(
+    (value: string | undefined) => {
+      dispatch(setSourceAmount(value));
+    },
+    [dispatch],
+  );
+  const {
+    sourceSelection,
+    handleSourceSelectionChange,
+    handleKeypadChange,
+    resetSourceAmountCursorPosition,
+  } = useSourceAmountCursor({
+    sourceAmount,
+    sourceTokenDecimals: sourceToken?.decimals,
+    maxInputLength: MAX_INPUT_LENGTH,
+    onSourceAmountChange: handleSourceAmountChange,
+  });
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location = route.params?.location;
@@ -309,24 +328,11 @@ const BridgeView = () => {
     }
   }, [isError]);
 
-  // Keypad already handles max token decimals, so we don't need to check here
-  const handleKeypadChange = ({
-    value,
-  }: {
-    value: string;
-    valueAsNumber: number;
-    pressedKey: string;
-  }) => {
-    if (value.length >= MAX_INPUT_LENGTH) {
-      return;
-    }
-    dispatch(setSourceAmount(value || undefined));
-  };
-
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       const balance = latestSourceBalance.displayBalance;
       const cleaned = trimTrailingZeros(balance);
+      resetSourceAmountCursorPosition();
       dispatch(setSourceAmountAsMax(cleaned));
     }
   };
@@ -479,6 +485,7 @@ const BridgeView = () => {
             <TokenInputArea
               ref={inputRef}
               amount={sourceAmount}
+              selection={sourceSelection}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
@@ -491,6 +498,7 @@ const BridgeView = () => {
               testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
               tokenType={TokenInputAreaType.Source}
               onInputPress={() => keypadRef.current?.open()}
+              onSelectionChange={handleSourceSelectionChange}
               onTokenPress={handleSourceTokenPress}
               onMaxPress={handleSourceMaxPress}
               latestAtomicBalance={latestSourceBalance?.atomicBalance}
