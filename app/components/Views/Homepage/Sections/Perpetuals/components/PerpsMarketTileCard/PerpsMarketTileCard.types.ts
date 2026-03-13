@@ -9,10 +9,12 @@ export interface PerpsMarketTileCardProps {
   onPress?: (market: PerpsMarketData) => void;
   /** Card width in pixels (default: 180) */
   cardWidth?: number;
-  /** Card height in pixels (default: 140) */
+  /** Card height in pixels (default: 180) */
   cardHeight?: number;
   /** Skip live price WebSocket subscription (use static market data instead) */
   disableLivePrices?: boolean;
+  /** Show a "Favorite" tag */
+  showFavoriteTag?: boolean;
   /** Test ID for E2E testing */
   testID?: string;
 }

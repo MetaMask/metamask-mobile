@@ -4,6 +4,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiPositionsList from './DeFiPositionsList';
 import { RootState } from '../../../reducers';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -552,6 +554,110 @@ describe('DeFiPositionsList', () => {
 
       expect(await findByText('Protocol 1')).toBeOnTheScreen();
       expect(await findByText('$100.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Position Screen Viewed Analytics', () => {
+    let mockTrackEvent: jest.Mock;
+    let mockAddProperties: jest.Mock;
+
+    beforeEach(() => {
+      mockTrackEvent = jest.fn();
+      mockAddProperties = jest.fn().mockReturnThis();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
+            addProperties: mockAddProperties,
+            addSensitiveProperties: jest.fn().mockReturnThis(),
+            removeProperties: jest.fn().mockReturnThis(),
+            removeSensitiveProperties: jest.fn().mockReturnThis(),
+            setSaveDataRecording: jest.fn().mockReturnThis(),
+            build: jest.fn(),
+          }),
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed when isFullView is true and positions are loaded', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item_count: 1,
+          location: 'homepage',
+          is_empty: false,
+          screen_type: 'defi',
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed with is_empty true when no positions are present', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        {},
+      );
+
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER);
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item_count: 0,
+          is_empty: true,
+          screen_type: 'defi',
+        }),
+      );
+    });
+
+    it('does not track Position Screen Viewed when isFullView is false', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView={false} />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
+
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ screen_type: 'defi', location: 'homepage' }),
+      );
+    });
+
+    it('does not track Position Screen Viewed when positions are still loading', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
+        undefined,
+      );
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        undefined,
+      );
+
+      const { findByText } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      await findByText('Loading DeFi positions...');
+
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ screen_type: 'defi', location: 'homepage' }),
+      );
     });
   });
 

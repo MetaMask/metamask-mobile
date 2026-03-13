@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Logger from '../../../../util/Logger';
@@ -8,121 +9,111 @@ import {
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { cardQueries } from '../queries';
+
+/**
+ * Determines whether fetching the latest allowance is applicable for the given token.
+ * Returns false when the fetch should be skipped.
+ */
+const isAllowanceFetchApplicable = (
+  token: CardTokenAllowance | null | undefined,
+): token is CardTokenAllowance => {
+  if (!token) return false;
+  if (token.allowanceState !== AllowanceState.Limited) return false;
+  if (
+    token.symbol &&
+    SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(token.symbol.toUpperCase())
+  )
+    return false;
+  if (token.caipChainId && isNonEvmChainId(token.caipChainId)) return false;
+
+  const tokenAddress = token.stagingTokenAddress || token.address;
+  if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) return false;
+  if (!token.delegationContract || !token.walletAddress || !token.decimals)
+    return false;
+
+  return true;
+};
 
 /**
  * Hook to get the latest allowance from approval logs for the priority token.
- * This is only needed in authenticated mode when the allowance state is Limited,
+ * Only needed in authenticated mode when allowanceState is Limited,
  * to display the spending limit progress bar with the correct total allowance.
- * The latest allowance represents the most recent approval amount the user set,
- * which is used as the "total" for calculating spending progress.
- *
- * Optimization: Only fetches from logs when allowanceState === Limited.
- * For Enabled (unlimited) or NotEnabled states, this fetch is skipped as it's not needed.
  *
  * @param priorityToken - The priority token to fetch the latest allowance for
- * @returns Object containing:
- * - latestAllowance: The latest approval amount from logs (human-readable string)
- * - isLoading: Loading state
- * - error: Error object if any
- * - refetch: Function to manually trigger fetch
+ * @returns Object containing latest allowance, loading state, error, and refetch function
  */
 const useGetLatestAllowanceForPriorityToken = (
   priorityToken: CardTokenAllowance | null | undefined,
 ) => {
   const { sdk } = useCardSDK();
-  const [latestAllowance, setLatestAllowance] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
-  const fetchLatestAllowance = useCallback(async () => {
-    if (!sdk || !priorityToken) {
-      return;
-    }
+  const applicable = isAllowanceFetchApplicable(priorityToken);
 
-    // Only fetch for Limited allowance state
-    // Unlimited (Enabled) and NotEnabled states don't need totalAllowance from logs
-    if (priorityToken.allowanceState !== AllowanceState.Limited) {
-      return;
-    }
+  // Extract values only when applicable (type guard ensures priorityToken is non-null)
+  const tokenAddress = applicable
+    ? priorityToken.stagingTokenAddress || priorityToken.address || ''
+    : '';
+  const delegationContract = applicable
+    ? priorityToken.delegationContract || ''
+    : '';
+  const walletAddress = applicable ? priorityToken.walletAddress || '' : '';
+  const caipChainId = applicable
+    ? priorityToken.caipChainId
+    : ('' as `${string}:${string}`);
+  const decimals = applicable ? priorityToken.decimals || 0 : 0;
 
-    // Skip for unsupported tokens (e.g., aUSDC which has different allowance behavior)
-    if (
-      priorityToken.symbol &&
-      SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(
-        priorityToken.symbol.toUpperCase(),
-      )
-    ) {
-      return;
-    }
+  const { data, isLoading, error, refetch } = useQuery<string | null>({
+    queryKey: cardQueries.dashboard.keys.latestAllowance(
+      tokenAddress,
+      delegationContract,
+      walletAddress,
+      caipChainId,
+      decimals,
+    ),
+    queryFn: async () => {
+      const currentSdk = sdkRef.current;
+      if (!currentSdk || !applicable) return null;
 
-    // Only fetch for EVM tokens
-    if (
-      priorityToken.caipChainId &&
-      isNonEvmChainId(priorityToken.caipChainId)
-    ) {
-      return;
-    }
+      const cardNetwork = caipChainIdToNetwork[caipChainId];
 
-    const tokenAddress =
-      priorityToken.stagingTokenAddress || priorityToken.address;
-
-    if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
-      return;
-    }
-
-    if (
-      !priorityToken.delegationContract ||
-      !priorityToken.walletAddress ||
-      !priorityToken.decimals
-    ) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    const cardNetwork = caipChainIdToNetwork[priorityToken.caipChainId];
-
-    try {
-      const rawLatestAllowance = await sdk.getLatestAllowanceFromLogs(
-        priorityToken.walletAddress,
-        tokenAddress,
-        priorityToken.delegationContract,
-        cardNetwork ?? 'linea',
-      );
-
-      if (rawLatestAllowance) {
-        // Convert from wei to human-readable using token decimals
-        const formatted = ethers.utils.formatUnits(
-          rawLatestAllowance,
-          priorityToken.decimals,
+      try {
+        const rawLatestAllowance = await currentSdk.getLatestAllowanceFromLogs(
+          walletAddress,
+          tokenAddress,
+          delegationContract,
+          cardNetwork ?? 'linea',
         );
-        setLatestAllowance(formatted);
-      } else {
-        setLatestAllowance(null);
-      }
-    } catch (err) {
-      const normalizedError =
-        err instanceof Error ? err : new Error(String(err));
-      Logger.error(
-        normalizedError,
-        'useGetLatestAllowanceForPriorityToken: Failed to fetch latest allowance',
-      );
-      setError(normalizedError);
-      setLatestAllowance(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [sdk, priorityToken]);
 
-  useEffect(() => {
-    fetchLatestAllowance();
-  }, [fetchLatestAllowance]);
+        if (rawLatestAllowance) {
+          return ethers.utils.formatUnits(rawLatestAllowance, decimals);
+        }
+        return null;
+      } catch (err) {
+        const normalizedError =
+          err instanceof Error ? err : new Error(String(err));
+        Logger.error(
+          normalizedError,
+          'useGetLatestAllowanceForPriorityToken: Failed to fetch latest allowance',
+        );
+        throw normalizedError;
+      }
+    },
+    enabled: applicable && !!sdk,
+    staleTime: 60_000,
+  });
+
+  const refetchAllowance = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   return {
-    latestAllowance,
+    latestAllowance: data ?? null,
     isLoading,
-    error,
-    refetch: fetchLatestAllowance,
+    error: error as Error | null,
+    refetch: refetchAllowance,
   };
 };
 

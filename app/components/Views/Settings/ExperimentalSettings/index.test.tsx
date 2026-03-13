@@ -12,6 +12,8 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
+import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
+import { strings } from '../../../../../locales/i18n';
 
 // Mock the required dependencies
 jest.mock('react-native-blob-util', () => {
@@ -96,7 +98,7 @@ const initialState = {
 
 const store = mockStore(initialState);
 
-const setOptions = jest.fn();
+const goBack = jest.fn();
 
 describe('ExperimentalSettings', () => {
   beforeEach(() => {
@@ -109,7 +111,7 @@ describe('ExperimentalSettings', () => {
         <ThemeContext.Provider value={mockTheme}>
           <ExperimentalSettings
             navigation={{
-              setOptions,
+              goBack,
             }}
             route={{}}
           />
@@ -117,6 +119,49 @@ describe('ExperimentalSettings', () => {
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders inline HeaderCompactStandard with title and back button', () => {
+    const { getByTestId, getByText } = render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <ExperimentalSettings
+            navigation={{
+              goBack,
+            }}
+            route={{}}
+          />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+    expect(
+      getByTestId(ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('app_settings.experimental_title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <ExperimentalSettings
+            navigation={{
+              goBack,
+            }}
+            route={{}}
+          />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+    fireEvent.press(
+      getByTestId(ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON),
+    );
+    expect(goBack).toHaveBeenCalledTimes(1);
   });
 
   describe('downloadPerformanceMetrics', () => {
@@ -131,7 +176,7 @@ describe('ExperimentalSettings', () => {
           <ThemeContext.Provider value={mockTheme}>
             <ExperimentalSettings
               navigation={{
-                setOptions,
+                goBack,
               }}
               route={{}}
             />
@@ -139,13 +184,11 @@ describe('ExperimentalSettings', () => {
         </Provider>,
       );
 
-      // Find and press the download button using a more specific selector
       const downloadButton = wrapper.getByTestId(
         'download-performance-metrics-button',
       );
       fireEvent.press(downloadButton);
 
-      // Wait for all promises to resolve
       await new Promise(process.nextTick);
 
       // Verify file was written
@@ -182,7 +225,7 @@ describe('ExperimentalSettings', () => {
           <ThemeContext.Provider value={mockTheme}>
             <ExperimentalSettings
               navigation={{
-                setOptions,
+                goBack,
               }}
               route={{}}
             />
@@ -190,22 +233,18 @@ describe('ExperimentalSettings', () => {
         </Provider>,
       );
 
-      // Find and press the download button using a more specific selector
       const downloadButton = wrapper.getByTestId(
         'download-performance-metrics-button',
       );
       fireEvent.press(downloadButton);
 
-      // Wait for all promises to resolve
       await new Promise(process.nextTick);
 
-      // Verify error was logged
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error downloading performance metrics:',
         expect.any(Error),
       );
 
-      // Clean up
       consoleSpy.mockRestore();
     });
   });

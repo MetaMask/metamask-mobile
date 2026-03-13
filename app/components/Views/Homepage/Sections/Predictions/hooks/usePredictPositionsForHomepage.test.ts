@@ -201,4 +201,84 @@ describe('usePredictPositionsForHomepage', () => {
 
     expect(mockGetPositions).toHaveBeenCalledTimes(2);
   });
+
+  describe('claimable parameter', () => {
+    it('passes claimable: false to getPositions by default', async () => {
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPositionsForHomepage(5),
+      );
+
+      await waitForNextUpdate();
+
+      expect(mockGetPositions).toHaveBeenCalledWith({
+        address: '0xuser123',
+        claimable: false,
+      });
+    });
+
+    it('passes claimable: true to getPositions when specified', async () => {
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPositionsForHomepage(undefined, true),
+      );
+
+      await waitForNextUpdate();
+
+      expect(mockGetPositions).toHaveBeenCalledWith({
+        address: '0xuser123',
+        claimable: true,
+      });
+    });
+
+    it('uses separate cache keys for claimable and non-claimable fetches', async () => {
+      // Fetch non-claimable
+      const { waitForNextUpdate: wait1, unmount: unmount1 } = renderHook(() =>
+        usePredictPositionsForHomepage(5, false),
+      );
+      await wait1();
+      unmount1();
+
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
+
+      // Fetch claimable — must hit the API again (different cache key)
+      const { waitForNextUpdate: wait2 } = renderHook(() =>
+        usePredictPositionsForHomepage(5, true),
+      );
+      await wait2();
+
+      expect(mockGetPositions).toHaveBeenCalledTimes(2);
+    });
+
+    it('serves claimable positions from cache independently of non-claimable', async () => {
+      const claimablePositions = [createMockPosition('c1')];
+      const nonClaimablePositions = [
+        createMockPosition('1'),
+        createMockPosition('2'),
+      ];
+
+      mockGetPositions
+        .mockResolvedValueOnce(nonClaimablePositions)
+        .mockResolvedValueOnce(claimablePositions);
+
+      // Populate both caches
+      const {
+        result: r1,
+        waitForNextUpdate: w1,
+        unmount: u1,
+      } = renderHook(() => usePredictPositionsForHomepage(undefined, false));
+      await w1();
+      u1();
+
+      const {
+        result: r2,
+        waitForNextUpdate: w2,
+        unmount: u2,
+      } = renderHook(() => usePredictPositionsForHomepage(undefined, true));
+      await w2();
+      u2();
+
+      // Each set has its own cached value
+      expect(r1.current.positions).toHaveLength(2);
+      expect(r2.current.positions).toHaveLength(1);
+    });
+  });
 });

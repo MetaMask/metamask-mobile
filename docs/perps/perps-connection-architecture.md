@@ -204,20 +204,17 @@ The Perps system preloads market data and user data in the background before the
 
 The controller stores preloaded user data in transient (non-persisted) state fields:
 
-| Field                       | Type                        | Description                           |
-| --------------------------- | --------------------------- | ------------------------------------- |
-| `cachedMarketData`          | `PerpsMarketData[] \| null` | Preloaded market data from REST       |
-| `cachedMarketDataTimestamp` | `number`                    | Timestamp of last market data preload |
-| `cachedPositions`           | `Position[] \| null`        | Preloaded positions from REST         |
-| `cachedOrders`              | `Order[] \| null`           | Preloaded open orders from REST       |
-| `cachedAccountState`        | `AccountState \| null`      | Preloaded account state from REST     |
-| `cachedUserDataTimestamp`   | `number`                    | Timestamp of last user data preload   |
-| `cachedUserDataAddress`     | `string \| null`            | Address the cached data belongs to    |
+| Field                       | Type                        | Description                                                                                                       |
+| --------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `cachedMarketData`          | `PerpsMarketData[] \| null` | Preloaded market data from REST                                                                                   |
+| `cachedMarketDataTimestamp` | `number`                    | Timestamp of last market data preload                                                                             |
+| `cachedUserDataByProvider`  | `Record<string, {...}>`     | Per-provider cached user data (positions, orders, accountState, timestamp, address) keyed by `providerId:network` |
 
 User data cache is automatically cleared when:
 
-- The selected account changes (detected in preload state handler)
-- Network or HIP-3 config changes (cleared alongside market data cache)
+- The selected account changes (all entries cleared since all provider data is stale for new account)
+
+Network and testnet toggle do NOT clear the cache — different network keys prevent collisions.
 
 ### Hook Behavior When Not Connected
 

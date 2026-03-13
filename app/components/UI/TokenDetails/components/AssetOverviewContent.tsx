@@ -265,6 +265,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
+  const showPerpsSection =
+    isPerpsEnabled &&
+    hasPerpsMarket &&
+    Boolean(marketData) &&
+    isTokenTrustworthy &&
+    !isPerpsPositionLoading;
+
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const marketInsightsCaip19Id = useMemo(() => {
     if (!isMarketInsightsEnabled) {
@@ -524,6 +531,22 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {showPerpsSection && perpsPosition && (
+            <View style={styles.perpsPositionCardContainer}>
+              <Text
+                variant={TextVariant.HeadingMD}
+                style={styles.perpsPositionTitle}
+              >
+                {strings('asset_overview.perps_position')}
+              </Text>
+              <PerpsPositionCard
+                position={perpsPosition}
+                compact
+                onPress={handlePerpsDiscoveryPress}
+                testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
+              />
+            </View>
+          )}
           {isMarketInsightsEnabled &&
           marketInsightsReport &&
           marketInsightsCaip19Id ? (
@@ -537,44 +560,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           ) : null}
-          {isPerpsEnabled &&
-            hasPerpsMarket &&
-            marketData &&
-            isTokenTrustworthy &&
-            !isPerpsPositionLoading && (
-              <>
-                {perpsPosition ? (
-                  <View style={styles.perpsPositionCardContainer}>
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.perpsPositionTitle}
-                    >
-                      {strings('asset_overview.perps_position')}
-                    </Text>
-                    <PerpsPositionCard
-                      position={perpsPosition}
-                      compact
-                      onPress={handlePerpsDiscoveryPress}
-                      testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
-                    />
-                  </View>
-                ) : (
-                  <>
-                    <View style={styles.perpsPositionCardContainer}>
-                      <Text variant={TextVariant.HeadingMD}>
-                        {strings('asset_overview.perps_position')}
-                      </Text>
-                    </View>
-                    <PerpsDiscoveryBanner
-                      symbol={marketData.symbol}
-                      maxLeverage={marketData.maxLeverage}
-                      onPress={handlePerpsDiscoveryPress}
-                      testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
-                    />
-                  </>
-                )}
-              </>
-            )}
+          {showPerpsSection && !perpsPosition && marketData && (
+            <PerpsDiscoveryBanner
+              symbol={marketData.symbol}
+              maxLeverage={marketData.maxLeverage}
+              onPress={handlePerpsDiscoveryPress}
+              testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
+            />
+          )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>

@@ -189,6 +189,11 @@ describe('usePredictToastRegistrations', () => {
           queryKey: ['predict', 'balance'],
         }),
       );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
     });
 
     it('uses account ready fallback when deposit confirmed amount is missing', () => {
@@ -335,6 +340,11 @@ describe('usePredictToastRegistrations', () => {
           queryKey: ['predict', 'balance'],
         }),
       );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
     });
 
     it('shows error toast with retry on failed status', async () => {
@@ -427,6 +437,11 @@ describe('usePredictToastRegistrations', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
         }),
       );
     });

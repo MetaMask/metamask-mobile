@@ -3,28 +3,13 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 // Mock theme first to prevent component initialization errors
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: { default: '#0376c9' },
-      success: { default: '#28a745', muted: '#d4edda' },
-      error: { default: '#d73a49', muted: '#f8d7da' },
-      background: { default: '#ffffff' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-  })),
-  mockTheme: {
-    colors: {
-      primary: { default: '#0376c9' },
-      success: { default: '#28a745', muted: '#d4edda' },
-      error: { default: '#d73a49', muted: '#f8d7da' },
-      background: { default: '#ffffff' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-  },
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 const mockUseParams = jest.fn();
 jest.mock('@react-navigation/native', () => ({

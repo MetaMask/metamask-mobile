@@ -1,9 +1,16 @@
+import React from 'react';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import MetaMetricsAndDataCollectionSection from './MetaMetricsAndDataCollectionSection';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
+
+const MetaMetricsScreenWithParams = ({
+  route,
+}: {
+  route?: { params?: Record<string, unknown> };
+}) => <MetaMetricsAndDataCollectionSection {...(route?.params || {})} />;
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -312,7 +319,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAnalytics.optOut).toHaveBeenCalled();
           expect(mockAlert).toHaveBeenCalled();
           expect(mockAnalytics.identify).not.toHaveBeenCalled();
-          expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'settings',
+              }),
+            }),
+          );
         });
       });
 
@@ -357,6 +372,64 @@ describe('MetaMetricsAndDataCollectionSection', () => {
                 is_metrics_opted_in: true,
                 updated_after_onboarding: true,
                 location: 'settings',
+              }),
+            }),
+          );
+        });
+      });
+
+      it('tracks ANALYTICS_PREFERENCE_SELECTED with onboarding_default_settings when turned on from onboarding', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsScreenWithParams,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+          { analyticsLocation: 'onboarding_default_settings' },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+              properties: expect.objectContaining({
+                is_metrics_opted_in: true,
+                updated_after_onboarding: true,
+                location: 'onboarding_default_settings',
+              }),
+            }),
+          );
+        });
+      });
+
+      it('tracks METRICS_OPT_OUT with onboarding_default_settings when turned off from onboarding', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+        const { findByTestId } = renderScreen(
+          MetaMetricsScreenWithParams,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingTrue },
+          { analyticsLocation: 'onboarding_default_settings' },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'onboarding_default_settings',
               }),
             }),
           );
@@ -512,7 +585,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             expect(mockAnalytics.optOut).toHaveBeenCalled();
             expect(mockAlert).toHaveBeenCalled();
             expect(mockAnalytics.identify).not.toHaveBeenCalled();
-            expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+            expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+              expect.objectContaining({
+                name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+                properties: expect.objectContaining({
+                  updated_after_onboarding: true,
+                  location: 'settings',
+                }),
+              }),
+            );
           });
         });
 

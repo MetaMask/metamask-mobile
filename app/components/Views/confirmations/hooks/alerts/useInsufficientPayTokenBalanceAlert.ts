@@ -179,7 +179,9 @@ export function useInsufficientPayTokenBalanceAlert({
           key: AlertKeys.InsufficientPayTokenNative,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_native.message',
+            isPostQuote
+              ? 'alert_system.insufficient_pay_token_native_post_quote.message'
+              : 'alert_system.insufficient_pay_token_native.message',
             { ticker },
           ),
         },
@@ -191,6 +193,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
+    isPostQuote,
     ticker,
   ]);
 }

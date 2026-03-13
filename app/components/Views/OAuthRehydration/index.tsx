@@ -89,6 +89,7 @@ import HelpText, {
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import type { AuthData } from '../../../core/Authentication/Authentication';
 
 const EmptyRecordConstant = {};
 
@@ -144,7 +145,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const { componentAuthenticationType, unlockWallet, getAuthType } =
+  const { unlockWallet, getAuthType, requestBiometricsAccessControlForIOS } =
     useAuthentication();
 
   const track = useCallback(
@@ -468,11 +469,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // try default with biometric if available and no remember me flag
-      const authType = await componentAuthenticationType(biometryChoice, false);
+      // Ask user to allow biometrics access control
+      const authType = await requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
-      authType.oauth2Login = true;
+      const authData: AuthData = {
+        currentAuthType: authType,
+        oauth2Login: true,
+      };
 
       await trace(
         {
@@ -480,7 +486,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authType });
+          await unlockWallet({ password, authPreference: authData });
+
+          // TODO: This should probably derive auth capabilities from getAuthCapabilities
           // prompt biometric failed alert if biometric failed
           await promptBiometricFailedAlert();
         },
@@ -513,8 +521,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     passwordLoginAttemptTraceCtxRef,
     track,
     promptBiometricFailedAlert,
-    componentAuthenticationType,
     unlockWallet,
+    requestBiometricsAccessControlForIOS,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -523,11 +531,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // try default with biometric if available and no remember me flag
-      const authType = await componentAuthenticationType(biometryChoice, false);
+      // Ask user to allow biometrics access control
+      const authType = await requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
-      authType.oauth2Login = false;
+      const authData: AuthData = {
+        currentAuthType: authType,
+        oauth2Login: false,
+      };
 
       await trace(
         {
@@ -535,7 +548,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authType });
+          await unlockWallet({ password, authPreference: authData });
+
+          // TODO: This should probably derive auth capabilities from getAuthCapabilities
           // prompt biometric failed alert if biometric failed
           await promptBiometricFailedAlert();
         },
@@ -548,12 +563,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     password,
-    biometryChoice,
     finalLoading,
     handleLoginError,
     promptBiometricFailedAlert,
-    componentAuthenticationType,
     unlockWallet,
+    requestBiometricsAccessControlForIOS,
   ]);
 
   // Cleanup for isMountedRef tracking

@@ -38,3 +38,13 @@ export {
 
 export { FrameworkDetector, TestFramework } from './FrameworkDetector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
+export { default as UnifiedGestures } from './UnifiedGestures.ts';
+export { encapsulatedAction } from './encapsulatedAction.ts';
+export {
+  DetoxGestureStrategy,
+  AppiumGestureStrategy,
+  type GestureStrategy,
+  type UnifiedGestureOptions,
+  type TapAtIndexElement,
+  type ScrollViewMatcher,
+} from './GestureStrategy.ts';

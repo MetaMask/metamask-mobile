@@ -1,4 +1,6 @@
-import { PlaywrightElement, wrapElement } from './PlaywrightAdapter.ts';
+import { PlatformDetector } from './PlatformLocator';
+import { PlaywrightElement, wrapElement } from './PlaywrightAdapter';
+import { MatcherOptions } from './types.ts';
 import { getDriver } from './Utilities.ts';
 import { ChainablePromiseElement } from 'webdriverio';
 
@@ -28,7 +30,7 @@ export default class PlaywrightMatchers {
    * @param elementId - The accessibility ID or content-desc/resource-id of the element
    * @returns The wrapped element
    */
-  static async getByAccessibilityId(
+  static async getElementByAccessibilityId(
     elementId: string,
   ): Promise<PlaywrightElement> {
     const drv = getDriver();
@@ -39,13 +41,35 @@ export default class PlaywrightMatchers {
 
   /**
    * Get element by ID (Android resource-id or iOS accessibility identifier)
+   *
    * @param elementId - The ID of the element
+   * @param MatcherOptions - The options for the matcher
+   * @param MatcherOptions.exact - Whether to match the exact ID or not
    * @returns The wrapped element
    */
-  static async getById(elementId: string): Promise<PlaywrightElement> {
+  static async getElementById(
+    elementId: string,
+    options: MatcherOptions = {},
+  ): Promise<PlaywrightElement> {
+    const { exact = false } = options;
+
+    let locator: string;
+    const isAndroid = await PlatformDetector.isAndroid();
+    if (isAndroid) {
+      locator = 'android=new UiSelector()';
+      locator = exact
+        ? `${locator}.resourceId('${elementId}')`
+        : `${locator}.resourceIdMatches('.*${elementId}.*')`;
+    } else {
+      locator = '-ios predicate string:';
+      locator = exact
+        ? `${locator}name == '${elementId}'`
+        : `${locator}name CONTAINS '${elementId}'`;
+    }
+
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(elementId);
+    const element = await drv.$(locator);
     return wrapElement(element);
   }
 
@@ -54,7 +78,7 @@ export default class PlaywrightMatchers {
    * @param text - The text to search for
    * @returns The wrapped element
    */
-  static async getByText(text: string): Promise<PlaywrightElement> {
+  static async getElementByText(text: string): Promise<PlaywrightElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const element = await drv.$(`*.=${text}`);
@@ -62,11 +86,31 @@ export default class PlaywrightMatchers {
   }
 
   /**
+   * Get element by catch-all selector that works on both platforms
+   * @param identifier - The identifier to search for
+   * @returns The wrapped element
+   */
+  static async getElementByCatchAll(
+    identifier: string,
+  ): Promise<PlaywrightElement> {
+    const isAndroid = await PlatformDetector.isAndroid();
+    let xpath = '';
+    if (isAndroid) {
+      xpath = `//*[@resource-id='${identifier}' or contains(@text,'${identifier}') or contains(@content-desc,'${identifier}')]`;
+    } else {
+      xpath = `//*[contains(@name,'${identifier}') or contains(@label,'${identifier}') or contains(@text,'${identifier}')]`;
+    }
+    return await this.getElementByXPath(xpath);
+  }
+
+  /**
    * Get multiple elements by text content
    * @param text - The text to search for
    * @returns The wrapped elements
    */
-  static async getAllByText(text: string): Promise<PlaywrightElement[]> {
+  static async getAllElementsByText(
+    text: string,
+  ): Promise<PlaywrightElement[]> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const elements = await drv.$$(`*.=${text}`);
@@ -80,7 +124,7 @@ export default class PlaywrightMatchers {
    * @param xpath - The XPath selector to search for
    * @returns The wrapped element
    */
-  static async getByXPath(xpath: string): Promise<PlaywrightElement> {
+  static async getElementByXPath(xpath: string): Promise<PlaywrightElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const element = await drv.$(xpath);
@@ -92,7 +136,9 @@ export default class PlaywrightMatchers {
    * @param className - The class name to search for
    * @returns The wrapped element
    */
-  static async getByClassName(className: string): Promise<PlaywrightElement> {
+  static async getElementByClassName(
+    className: string,
+  ): Promise<PlaywrightElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const element = await drv.$(`.${className}`);
@@ -104,7 +150,7 @@ export default class PlaywrightMatchers {
    * @param className - The class name to search for
    * @returns The wrapped elements
    */
-  static async getAllByClassName(
+  static async getAllElementsByClassName(
     className: string,
   ): Promise<PlaywrightElement[]> {
     const drv = getDriver();
@@ -121,7 +167,7 @@ export default class PlaywrightMatchers {
    * @param selector - The Android UIAutomator selector to search for
    * @returns The wrapped element
    */
-  static async getByAndroidUIAutomator(
+  static async getElementByAndroidUIAutomator(
     selector: string,
   ): Promise<PlaywrightElement> {
     const drv = getDriver();
@@ -130,13 +176,14 @@ export default class PlaywrightMatchers {
     return wrapElement(element);
   }
 
+  // iOS specific selectors
   /**
    * Get element by iOS predicate string
    * Only works on iOS
    * @param predicate - The iOS predicate to search for
    * @returns The wrapped element
    */
-  static async getByIOSPredicate(
+  static async getElementByIOSPredicate(
     predicate: string,
   ): Promise<PlaywrightElement> {
     const drv = getDriver();
@@ -146,12 +193,26 @@ export default class PlaywrightMatchers {
   }
 
   /**
+   * Get element by name on iOS
+   * @param name - The name to search for
+   * @returns The wrapped element
+   */
+  static async getElementByNameiOS(name: string): Promise<PlaywrightElement> {
+    const isIOS = await PlatformDetector.isIOS();
+    if (!isIOS) throw new Error('This function is only valid for iOS');
+    const xpath = `//*[contains(@name,'${name}')]`;
+    return await this.getElementByXPath(xpath);
+  }
+
+  /**
    * Get element by iOS class chain
    * Only works on iOS
    * @param chain - The iOS class chain to search for
    * @returns The wrapped element
    */
-  static async getByIOSClassChain(chain: string): Promise<PlaywrightElement> {
+  static async getElementByIOSClassChain(
+    chain: string,
+  ): Promise<PlaywrightElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const element = await drv.$(`-ios class chain:${chain}`);

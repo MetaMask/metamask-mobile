@@ -1,0 +1,200 @@
+import React from 'react';
+import { View } from 'react-native';
+import { useStyles } from '../../../../hooks/useStyles';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import BigNumber from 'bignumber.js';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { AssetType } from '../../types/token';
+import styleSheet from './token-conversion-asset-header.styles';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayTotals,
+} from '../../hooks/pay/useTransactionPayData';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { Hex } from '@metamask/utils';
+import { useNetworkName } from '../../hooks/useNetworkName';
+
+export const TokenConversionAssetHeaderTestIds = {
+  ASSET_HEADER_SKELETON: 'token-conversion-asset-header-skeleton',
+  ASSET_HEADER_INPUT: 'token-conversion-asset-header-input',
+  ASSET_HEADER_OUTPUT: 'token-conversion-asset-header-output',
+  INPUT_TOKEN_AVATAR: 'token-conversion-asset-header-input-token-avatar',
+  OUTPUT_TOKEN_AVATAR: 'token-conversion-asset-header-output-token-avatar',
+} as const;
+
+export const TokenConversionAssetHeaderSkeleton = () => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View
+      style={styles.assetHeaderContainer}
+      testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON}
+    >
+      <View style={styles.assetContainer}>
+        <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
+        <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
+          <Skeleton
+            width={56}
+            height={14}
+            style={styles.skeletonBorderRadius}
+          />
+          <Skeleton
+            width={140}
+            height={20}
+            style={styles.skeletonBorderRadius}
+          />
+        </View>
+      </View>
+      <Icon
+        name={IconName.Arrow2Down}
+        color={IconColor.IconAlternative}
+        size={IconSize.Lg}
+      />
+      <View style={styles.assetContainer}>
+        <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
+        <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
+          <Skeleton
+            width={56}
+            height={14}
+            style={styles.skeletonBorderRadius}
+          />
+          <Skeleton
+            width={140}
+            height={20}
+            style={styles.skeletonBorderRadius}
+          />
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export const TokenConversionAssetHeader = ({
+  inputToken,
+  outputToken,
+  formatFiat,
+}: {
+  inputToken: AssetType;
+  outputToken: AssetType;
+  formatFiat: (value: BigNumber) => string;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  const isLoading = useIsTransactionPayLoading();
+  const totals = useTransactionPayTotals();
+
+  const inputTokenAmount = totals?.sourceAmount?.usd;
+  const outputTokenAmount = totals?.targetAmount?.usd;
+
+  const inputNetworkName = useNetworkName(inputToken?.chainId as Hex);
+  const outputNetworkName = useNetworkName(outputToken?.chainId as Hex);
+
+  const formatAmount = (amount?: string) => {
+    if (!amount) {
+      return '';
+    }
+
+    return formatFiat(new BigNumber(amount));
+  };
+
+  if (isLoading) {
+    return <TokenConversionAssetHeaderSkeleton />;
+  }
+
+  return (
+    <View style={styles.assetHeaderContainer}>
+      <View
+        style={styles.assetContainer}
+        testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
+      >
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              name={inputNetworkName}
+              imageSource={getNetworkImageSource({
+                chainId: inputToken?.chainId ?? '',
+              })}
+            />
+          }
+        >
+          <AvatarToken
+            name={inputToken.symbol}
+            imageSource={{ uri: inputToken.image }}
+            size={AvatarSize.Lg}
+            testID={TokenConversionAssetHeaderTestIds.INPUT_TOKEN_AVATAR}
+          />
+        </BadgeWrapper>
+        <View style={styles.assetInfo}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {inputToken?.symbol}
+          </Text>
+          <Text style={styles.assetAmount}>
+            {formatAmount(inputTokenAmount)}
+          </Text>
+        </View>
+      </View>
+      <Icon
+        name={IconName.Arrow2Down}
+        color={IconColor.IconAlternative}
+        size={IconSize.Lg}
+      />
+      <View
+        style={styles.assetContainer}
+        testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
+      >
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              name={outputNetworkName}
+              imageSource={getNetworkImageSource({
+                chainId: outputToken?.chainId ?? '',
+              })}
+            />
+          }
+        >
+          <AvatarToken
+            name={outputToken.symbol}
+            imageSource={{ uri: outputToken.image }}
+            size={AvatarSize.Lg}
+            testID={TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR}
+          />
+        </BadgeWrapper>
+        <View style={styles.assetInfo}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {outputToken.symbol}
+          </Text>
+          <Text style={styles.assetAmount}>
+            {formatAmount(outputTokenAmount)}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+};

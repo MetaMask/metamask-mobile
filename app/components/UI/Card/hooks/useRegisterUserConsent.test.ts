@@ -8,7 +8,16 @@ import AppConstants from '../../../../core/AppConstants';
 import { CardSDK } from '../sdk/CardSDK';
 import { Region } from '../components/Onboarding/RegionSelectorModal';
 
-// Mock dependencies
+const mockFetchQuery = jest.fn();
+
+const mockQueryClient = {
+  fetchQuery: (...args: unknown[]) => mockFetchQuery(...args),
+};
+
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(() => mockQueryClient),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -53,12 +62,11 @@ const MOCK_REGION_DE: Region = { key: 'DE', name: 'Germany', emoji: '🇩🇪' }
 describe('useRegisterUserConsent', () => {
   const mockCreateOnboardingConsent = jest.fn();
   const mockLinkUserToConsent = jest.fn();
-  const mockGetConsentSetByOnboardingId = jest.fn();
 
   const mockSDK = {
     createOnboardingConsent: mockCreateOnboardingConsent,
     linkUserToConsent: mockLinkUserToConsent,
-    getConsentSetByOnboardingId: mockGetConsentSetByOnboardingId,
+    getConsentSetByOnboardingId: jest.fn(),
   } as unknown as CardSDK;
 
   const mockConsentResponse = {
@@ -71,17 +79,17 @@ describe('useRegisterUserConsent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Default mocks
     mockUseCardSDK.mockReturnValue({
       ...jest.requireMock('../sdk'),
       sdk: mockSDK,
     });
 
-    mockUseSelector.mockReturnValue(MOCK_REGION_US); // selectedCountry
+    mockUseSelector.mockReturnValue(MOCK_REGION_US);
 
     mockGetErrorMessage.mockReturnValue('Mocked error message');
     mockCreateOnboardingConsent.mockResolvedValue(mockConsentResponse);
     mockLinkUserToConsent.mockResolvedValue(undefined);
+    mockFetchQuery.mockResolvedValue(null);
   });
 
   describe('hook initialization', () => {
@@ -111,9 +119,7 @@ describe('useRegisterUserConsent', () => {
         completedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      mockGetConsentSetByOnboardingId.mockResolvedValue({
-        consentSets: [mockConsentSet],
-      });
+      mockFetchQuery.mockResolvedValue(mockConsentSet);
 
       const { result } = renderHook(() => useRegisterUserConsent());
 
@@ -125,14 +131,17 @@ describe('useRegisterUserConsent', () => {
           );
       });
 
-      expect(mockGetConsentSetByOnboardingId).toHaveBeenCalledWith(
-        testOnboardingId,
+      expect(mockFetchQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['card', 'dashboard', 'consentSet', testOnboardingId],
+          staleTime: 30_000,
+        }),
       );
       expect(retrievedConsentSet).toEqual(mockConsentSet);
     });
 
     it('returns null when no consent exists', async () => {
-      mockGetConsentSetByOnboardingId.mockResolvedValue(null);
+      mockFetchQuery.mockResolvedValue(null);
 
       const { result } = renderHook(() => useRegisterUserConsent());
 
@@ -164,12 +173,12 @@ describe('useRegisterUserConsent', () => {
       ).rejects.toThrow('Card SDK not initialized');
     });
 
-    it('throws error when SDK call fails', async () => {
+    it('throws error when fetchQuery fails', async () => {
       const testError = new CardError(
         CardErrorType.NETWORK_ERROR,
         'Network failed',
       );
-      mockGetConsentSetByOnboardingId.mockRejectedValue(testError);
+      mockFetchQuery.mockRejectedValue(testError);
 
       const { result } = renderHook(() => useRegisterUserConsent());
 
@@ -818,26 +827,13 @@ describe('useRegisterUserConsent', () => {
       expect(customSDK.linkUserToConsent).toHaveBeenCalled();
     });
 
-    it('uses SDK from useCardSDK hook for getting consent set', async () => {
+    it('uses queryClient.fetchQuery for getting consent set', async () => {
       const mockConsentSet = {
         consentSetId: 'test-consent',
         userId: 'test-user',
         completedAt: '2024-01-01T00:00:00.000Z',
       };
-      const customSDK = {
-        createOnboardingConsent: jest
-          .fn()
-          .mockResolvedValue(mockConsentResponse),
-        linkUserToConsent: jest.fn().mockResolvedValue(undefined),
-        getConsentSetByOnboardingId: jest.fn().mockResolvedValue({
-          consentSets: [mockConsentSet],
-        }),
-      } as unknown as CardSDK;
-
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: customSDK,
-      });
+      mockFetchQuery.mockResolvedValue(mockConsentSet);
 
       const { result } = renderHook(() => useRegisterUserConsent());
 
@@ -847,7 +843,11 @@ describe('useRegisterUserConsent', () => {
         );
       });
 
-      expect(customSDK.getConsentSetByOnboardingId).toHaveBeenCalled();
+      expect(mockFetchQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['card', 'dashboard', 'consentSet', testOnboardingId],
+        }),
+      );
     });
 
     it('handles SDK loading state', () => {
@@ -1015,7 +1015,6 @@ describe('useRegisterUserConsent', () => {
       const initialGetFunction =
         result.current.getOnboardingConsentSetByOnboardingId;
 
-      // Change SDK dependency
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: {
@@ -1027,7 +1026,6 @@ describe('useRegisterUserConsent', () => {
 
       rerender();
 
-      // Function is different due to SDK dependency change
       expect(result.current.getOnboardingConsentSetByOnboardingId).not.toBe(
         initialGetFunction,
       );

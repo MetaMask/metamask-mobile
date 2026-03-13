@@ -1,9 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `ButtonIcon` from `@metamask/design-system-react-native`
- */
-
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { GestureResponderEvent, TouchableOpacity } from 'react-native';
@@ -21,6 +17,11 @@ import {
   ICONSIZE_BY_BUTTONICONSIZE,
 } from './ButtonIcon.constants';
 
+/**
+ * @deprecated Please update your code to use `ButtonIcon` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/ButtonIcon/README.md}
+ */
 const ButtonIcon = ({
   iconName,
   onPress,

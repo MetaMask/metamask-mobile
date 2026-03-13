@@ -1,11 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -17,6 +12,7 @@ import {
   Icon,
   IconSize,
 } from '@metamask/design-system-react-native';
+import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
@@ -76,7 +72,6 @@ const useSectionStateTracker = (
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
@@ -88,14 +83,11 @@ export const ExploreFeed: React.FC = () => {
 
   const homeSections = useHomeSections();
 
-  // Track which sections have empty data and which are loading
+  // Track which sections have empty data (for QuickActions empty state)
   const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
     useSectionStateTracker(homeSections);
 
-  const {
-    sectionsWithState: loadingSections,
-    callbacks: loadingStateCallbacks,
-  } = useSectionStateTracker(homeSections);
+  const noopLoadingState = useCallback((_isLoading: boolean) => undefined, []);
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
@@ -191,91 +183,88 @@ export const ExploreFeed: React.FC = () => {
     }));
   }, []);
 
-  // Show loading indicator when any section is loading during silent refresh
-  const isAnySectionLoading = loadingSections.size > 0;
-
   return (
-    <Box
-      style={{ marginTop: insets.top }}
-      twClassName="flex-1 bg-default gap-4"
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+      testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
-      <Box twClassName="px-4 flex-row items-center justify-between">
-        <Text variant={TextVariant.HeadingLg} twClassName="text-default">
-          {strings('trending.title')}
-        </Text>
-        {!refreshConfig.silentRefresh && isAnySectionLoading && (
-          <ActivityIndicator size="small" color={colors.icon.default} />
-        )}
-      </Box>
+      <HeaderRoot
+        title={strings('trending.title')}
+        includesTopInset
+        testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
+      />
 
-      <Box twClassName="flex-row items-center gap-2 px-4">
-        <Box twClassName="flex-1">
-          <ExploreSearchBar type="button" onPress={handleSearchPress} />
+      <Box twClassName="gap-4 flex-1">
+        <Box twClassName="flex-row items-center gap-2 px-4">
+          <Box twClassName="flex-1">
+            <ExploreSearchBar type="button" onPress={handleSearchPress} />
+          </Box>
+
+          <TouchableOpacity
+            onPress={handleBrowserPress}
+            testID="trending-view-browser-button"
+          >
+            {browserTabsCount > 0 ? (
+              <Box twClassName="rounded-md items-center justify-center h-8 w-8 border-2 border-text-default">
+                <Text variant={TextVariant.BodyLg}>{browserTabsCount}</Text>
+              </Box>
+            ) : (
+              <Icon name={IconName.Explore} size={IconSize.Xl} />
+            )}
+          </TouchableOpacity>
         </Box>
 
-        <TouchableOpacity
-          onPress={handleBrowserPress}
-          testID="trending-view-browser-button"
-        >
-          {browserTabsCount > 0 ? (
-            <Box twClassName="rounded-md items-center justify-center h-8 w-8 border-2 border-text-default">
-              <Text variant={TextVariant.BodyLg}>{browserTabsCount}</Text>
-            </Box>
-          ) : (
-            <Icon name={IconName.Explore} size={IconSize.Xl} />
-          )}
-        </TouchableOpacity>
-      </Box>
-
-      {isBasicFunctionalityEnabled ? (
-        <ScrollView
-          testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
-          style={tw.style('flex-1 px-4')}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.icon.default}
-              colors={[colors.primary.default]}
-            />
-          }
-        >
-          <QuickActions emptySections={emptySections} />
-
-          {homeSections.map((section) => {
-            // Hide section visually but keep mounted so it can report when data arrives
-            const isHidden = emptySections.has(section.id);
-
-            const sectionComponent = (
-              <Section
-                sectionId={section.id}
-                refreshConfig={refreshConfig}
-                toggleSectionEmptyState={emptyStateCallbacks[section.id]}
-                toggleSectionLoadingState={loadingStateCallbacks[section.id]}
+        {isBasicFunctionalityEnabled ? (
+          <ScrollView
+            testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
+            style={tw.style('flex-1 px-4')}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={colors.icon.default}
+                colors={[colors.primary.default]}
               />
-            );
+            }
+          >
+            <QuickActions emptySections={emptySections} />
 
-            return (
-              <Box
-                key={section.id}
-                twClassName={isHidden ? 'hidden' : undefined}
-              >
-                <SectionHeader sectionId={section.id} />
-                {section.SectionWrapper ? (
-                  <section.SectionWrapper>
-                    {sectionComponent}
-                  </section.SectionWrapper>
-                ) : (
-                  sectionComponent
-                )}
-              </Box>
-            );
-          })}
-        </ScrollView>
-      ) : (
-        <BasicFunctionalityEmptyState />
-      )}
-    </Box>
+            {homeSections.map((section) => {
+              // Hide section visually but keep mounted so it can report when data arrives
+              const isHidden = emptySections.has(section.id);
+
+              const sectionComponent = (
+                <Section
+                  sectionId={section.id}
+                  refreshConfig={refreshConfig}
+                  toggleSectionEmptyState={emptyStateCallbacks[section.id]}
+                  toggleSectionLoadingState={noopLoadingState}
+                />
+              );
+
+              return (
+                <Box
+                  key={section.id}
+                  twClassName={isHidden ? 'hidden' : undefined}
+                >
+                  <SectionHeader sectionId={section.id} />
+                  {section.SectionWrapper ? (
+                    <section.SectionWrapper>
+                      {sectionComponent}
+                    </section.SectionWrapper>
+                  ) : (
+                    sectionComponent
+                  )}
+                </Box>
+              );
+            })}
+          </ScrollView>
+        ) : (
+          <BasicFunctionalityEmptyState />
+        )}
+      </Box>
+    </SafeAreaView>
   );
 };

@@ -42,6 +42,18 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.BluetoothDisabled);
       expect(result).toBeInstanceOf(HardwareWalletError);
     });
+
+    it('re-parses ErrorCode.Unknown objects', () => {
+      const error = {
+        code: ErrorCode.Unknown,
+        message:
+          'Please enable Blind signing or Contract data in the Ethereum app Settings',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
+    });
   });
 
   describe('when error is LedgerCommunicationErrors enum', () => {
@@ -346,6 +358,16 @@ describe('parseErrorByType', () => {
 
     it('parses "timeout" message', () => {
       const error = new Error('Connection timed out');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.ConnectionTimeout);
+    });
+
+    it('parses scan timeout message containing "unlocked" as ConnectionTimeout, not AuthenticationDeviceLocked', () => {
+      const error = new Error(
+        'Scan timeout: No Ledger devices found. Make sure your Ledger is unlocked and Bluetooth is enabled on the device.',
+      );
 
       const result = parseErrorByType(error, walletType);
 

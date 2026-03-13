@@ -91,6 +91,10 @@ export interface LongPressOptions extends GestureOptions {
   duration?: number;
 }
 
+export interface MatcherOptions {
+  exact?: boolean;
+}
+
 /**
  * The options for the scroll gesture.
  * @param {string} direction - The direction to scroll.
