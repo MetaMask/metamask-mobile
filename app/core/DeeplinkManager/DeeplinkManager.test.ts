@@ -312,6 +312,89 @@ describe('rewriteBranchUri', () => {
       rewriteBranchUri(uri, { '+clicked_branch_link': true } as BranchParams),
     ).toBe(uri);
   });
+
+  it('merges custom data from Branch params onto the URL for deferred deeplinks', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf123';
+    const params: BranchParams = {
+      '+clicked_branch_link': true,
+      '+is_first_session': true,
+      $deeplink_path: 'buy',
+      '~channel': 'marketing',
+      address: '0xabc',
+      amount: '100',
+      chainid: '1',
+      utm_source: 'rewards',
+      utm_campaign: 'musd_launch',
+    };
+    const result = rewriteBranchUri(uri, params);
+    expect(result).toBeDefined();
+    const resultUrl = new URL(result as string);
+    expect(resultUrl.origin + resultUrl.pathname).toBe(
+      'https://link.metamask.io/buy',
+    );
+    expect(resultUrl.searchParams.get('address')).toBe('0xabc');
+    expect(resultUrl.searchParams.get('amount')).toBe('100');
+    expect(resultUrl.searchParams.get('chainid')).toBe('1');
+    expect(resultUrl.searchParams.get('utm_source')).toBe('rewards');
+    expect(resultUrl.searchParams.get('utm_campaign')).toBe('musd_launch');
+  });
+
+  it('does not overwrite URI query params with Branch params', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf123?amount=500';
+    const params: BranchParams = {
+      '+clicked_branch_link': true,
+      $deeplink_path: 'buy',
+      amount: '100',
+      utm_source: 'twitter',
+    };
+    const result = rewriteBranchUri(uri, params);
+    expect(result).toBeDefined();
+    const resultUrl = new URL(result as string);
+    // URI param takes precedence
+    expect(resultUrl.searchParams.get('amount')).toBe('500');
+    // Branch custom data still added for keys not on the URI
+    expect(resultUrl.searchParams.get('utm_source')).toBe('twitter');
+  });
+
+  it('skips Branch internal keys prefixed with +, ~, $', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf123';
+    const params: BranchParams = {
+      '+clicked_branch_link': true,
+      '+is_first_session': true,
+      '+match_guaranteed': true,
+      '~channel': 'marketing',
+      '~feature': 'deeplink',
+      $deeplink_path: 'swap',
+      $canonical_url: 'https://example.com',
+      BNCUpdateStateInstall: 1,
+      utm_source: 'email',
+    };
+    const result = rewriteBranchUri(uri, params);
+    expect(result).toBeDefined();
+    const resultUrl = new URL(result as string);
+    // Only custom data key should be present
+    expect(resultUrl.searchParams.get('utm_source')).toBe('email');
+    expect(resultUrl.searchParams.has('BNCUpdateStateInstall')).toBe(false);
+    // Branch internal keys should not appear
+    expect(result).not.toContain('clicked_branch_link');
+    expect(result).not.toContain('channel');
+    expect(result).not.toContain('canonical_url');
+  });
+
+  it('handles numeric and boolean custom data values', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf123';
+    const params: BranchParams = {
+      '+clicked_branch_link': true,
+      $deeplink_path: 'buy',
+      chainid: 1 as unknown as string,
+      debug: true as unknown as string,
+    };
+    const result = rewriteBranchUri(uri, params);
+    expect(result).toBeDefined();
+    const resultUrl = new URL(result as string);
+    expect(resultUrl.searchParams.get('chainid')).toBe('1');
+    expect(resultUrl.searchParams.get('debug')).toBe('true');
+  });
 });
 
 describe('DeeplinkManager.start Branch deeplink handling', () => {
@@ -348,6 +431,26 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: 'https://link.metamask.io/swap?amount=500',
     });
+  });
+
+  it('merges Branch custom data (including UTMs) onto cold start deferred deeplink', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': true,
+      '+is_first_session': true,
+      $deeplink_path: 'buy',
+      '~referring_link': 'https://metamask-alternate.app.link/AbCdEf123',
+      address: '0xabc',
+      utm_source: 'rewards',
+      utm_campaign: 'musd_launch',
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    const calledUri = (handleDeeplink as jest.Mock).mock.calls[0][0].uri;
+    const parsed = new URL(calledUri);
+    expect(parsed.pathname).toBe('/buy');
+    expect(parsed.searchParams.get('address')).toBe('0xabc');
+    expect(parsed.searchParams.get('utm_source')).toBe('rewards');
+    expect(parsed.searchParams.get('utm_campaign')).toBe('musd_launch');
   });
 
   it('falls back to +non_branch_link on cold start when +clicked_branch_link is false', async () => {
@@ -392,6 +495,35 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: 'https://link.metamask.io/swap?amount=1000000&from=eip155%3A1%2Ferc20%3A0xabc',
     });
+  });
+
+  it('merges Branch custom data including UTMs onto subscription deeplink', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({
+      uri: 'https://metamask-alternate.app.link/AbCdEf123',
+      params: {
+        '+clicked_branch_link': true,
+        '+is_first_session': true,
+        $deeplink_path: 'swap',
+        from: 'eip155:1/slip44:60',
+        to: 'eip155:1/erc20:0xabc',
+        utm_source: 'rewards',
+        utm_campaign: 'swap_promo',
+      },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    const calledUri = (handleDeeplink as jest.Mock).mock.calls[0][0].uri;
+    const parsed = new URL(calledUri);
+    expect(parsed.origin + parsed.pathname).toBe(
+      'https://link.metamask.io/swap',
+    );
+    expect(parsed.searchParams.get('from')).toBe('eip155:1/slip44:60');
+    expect(parsed.searchParams.get('to')).toBe('eip155:1/erc20:0xabc');
+    expect(parsed.searchParams.get('utm_source')).toBe('rewards');
+    expect(parsed.searchParams.get('utm_campaign')).toBe('swap_promo');
   });
 
   it('passes URI through unchanged when +clicked_branch_link is false', async () => {
