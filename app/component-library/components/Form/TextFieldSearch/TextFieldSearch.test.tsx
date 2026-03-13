@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import TextFieldSearch from './TextFieldSearch';
@@ -15,74 +15,62 @@ describe('TextFieldSearch', () => {
   });
 
   it('renders default settings correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders TextFieldSearch component', () => {
-    const wrapper = shallow(
+    render(
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    const textFieldSearchComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
-    );
-
-    expect(textFieldSearchComponent.exists()).toBe(true);
+    expect(screen.getByTestId(TEXTFIELDSEARCH_TEST_ID)).toBeDefined();
   });
 
   it('applies rounded border radius style', () => {
-    const wrapper = shallow(
+    render(
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    const textFieldComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
-    );
-    const styleArray = textFieldComponent.prop('style');
+    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
+    const styleArray = textFieldComponent.props.style;
 
     expect(styleArray).toContainEqual(styles.base);
   });
 
   it('renders clear button when value exists', () => {
-    const wrapper = shallow(
+    render(
       <TextFieldSearch
         value="search text"
         onPressClearButton={mockOnPressClearButton}
       />,
     );
 
-    const textFieldComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
-    );
+    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
 
-    expect(textFieldComponent.prop('endAccessory')).not.toBe(false);
+    expect(textFieldComponent.props.endAccessory).not.toBe(false);
   });
 
   it('hides clear button when no value', () => {
-    const wrapper = shallow(
+    render(
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    const textFieldComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
-    );
+    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
 
-    expect(textFieldComponent.prop('endAccessory')).toBe(false);
+    expect(textFieldComponent.props.endAccessory).toBe(false);
   });
 
   it('hides clear button when value is empty string', () => {
-    const wrapper = shallow(
+    render(
       <TextFieldSearch value="" onPressClearButton={mockOnPressClearButton} />,
     );
 
-    const textFieldComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
-    );
+    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
 
-    expect(textFieldComponent.prop('endAccessory')).toBe(false);
+    expect(textFieldComponent.props.endAccessory).toBe(false);
   });
 });

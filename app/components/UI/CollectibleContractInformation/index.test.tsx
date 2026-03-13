@@ -1,5 +1,4 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import CollectibleContractInformation from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -36,7 +35,7 @@ describe('CollectibleContractInformation', () => {
   const mockRunAfterInteractions =
     InteractionManager.runAfterInteractions as jest.Mock;
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <CollectibleContractInformation
           collectibleContract={{
@@ -49,7 +48,7 @@ describe('CollectibleContractInformation', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call onClose when title text is pressed', () => {

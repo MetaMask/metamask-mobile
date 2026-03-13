@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import { View } from 'react-native';
 
 // Internal dependencies.
@@ -13,58 +13,49 @@ import {
 
 describe('Accordion - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render a proper expanded state', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Accordion title={SAMPLE_ACCORDION_TITLE} isExpanded>
         <View />
       </Accordion>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 
 describe('Accordion', () => {
   it('should render Accordion', () => {
-    const wrapper = shallow(
+    render(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
-    const AccordionComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_ACCORDION,
-    );
-    expect(AccordionComponent.exists()).toBe(true);
+    expect(screen.getByTestId(TESTID_ACCORDION)).toBeDefined();
   });
 
   it('should render Accordion content if isExpanded = true', () => {
-    const wrapper = shallow(
+    render(
       <Accordion title={SAMPLE_ACCORDION_TITLE} isExpanded>
         <View />
       </Accordion>,
     );
-    const AccordionContentComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_ACCORDION_CONTENT,
-    );
-    expect(AccordionContentComponent.exists()).toBe(true);
+    expect(screen.getByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
   });
 
   it('should NOT render Accordion content if isExpanded = false', () => {
-    const wrapper = shallow(
+    render(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
-    const AccordionContentComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_ACCORDION_CONTENT,
-    );
-    expect(AccordionContentComponent.exists()).toBe(false);
+    expect(screen.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
   //TODO: Add Test for animation
 });

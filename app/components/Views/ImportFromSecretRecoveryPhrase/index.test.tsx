@@ -30,11 +30,14 @@ import ReduxService from '../../../core/redux/ReduxService';
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
 
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
-  dismiss: jest.fn(),
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeListener: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
+  const keyboard = {
+    dismiss: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+  };
+  return { __esModule: true, default: keyboard, ...keyboard };
+});
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();

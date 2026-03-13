@@ -8,10 +8,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
-
 describe('SnapUILink', () => {
   beforeEach(() => {
     jest.clearAllMocks();

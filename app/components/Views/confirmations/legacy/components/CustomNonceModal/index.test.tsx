@@ -1,69 +1,56 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import CustomNonceModal from '.';
 
 const PROPOSED_NONCE = 26;
 const saveMock = jest.fn();
 const closeMock = jest.fn();
-const createWrapper = () =>
-  shallow(
+const renderComponent = (props = {}) =>
+  render(
     <CustomNonceModal
       save={saveMock}
       close={closeMock}
       proposedNonce={PROPOSED_NONCE}
       nonceValue={PROPOSED_NONCE}
+      {...props}
     />,
   );
 describe('CustomNonceModal', () => {
   it('renders correctly', () => {
-    const wrapper = createWrapper();
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles only numeric inputs', () => {
-    const wrapper = createWrapper();
-    const nonceTextInput = wrapper.find('TextInput');
-    nonceTextInput.simulate('changeText', '30c');
-    expect(wrapper.find('TextInput').prop('value')).toBe(
-      String(PROPOSED_NONCE),
-    );
-    nonceTextInput.simulate('changeText', '30');
-    expect(wrapper.find('TextInput').prop('value')).toBe('30');
+    renderComponent();
+    const nonceTextInput = screen.getByDisplayValue(String(PROPOSED_NONCE));
+    fireEvent.changeText(nonceTextInput, '30c');
+    expect(screen.getByDisplayValue(String(PROPOSED_NONCE))).toBeTruthy();
+    fireEvent.changeText(nonceTextInput, '30');
+    expect(screen.getByDisplayValue('30')).toBeTruthy();
   });
 
   it('increments nonce correctly', () => {
-    const wrapper = createWrapper();
-    const incrementButton = wrapper.find({ testID: 'increment-nonce' });
+    renderComponent();
+    const incrementButton = screen.getByTestId('increment-nonce');
 
-    incrementButton.simulate('press');
-    expect(wrapper.find('TextInput').prop('value')).toBe(
-      String(PROPOSED_NONCE + 1),
-    );
+    fireEvent.press(incrementButton);
+    expect(screen.getByDisplayValue(String(PROPOSED_NONCE + 1))).toBeTruthy();
   });
 
   it('decrements nonce correctly', () => {
-    const wrapper = shallow(
-      <CustomNonceModal
-        save={saveMock}
-        close={closeMock}
-        proposedNonce={PROPOSED_NONCE}
-        nonceValue={PROPOSED_NONCE}
-      />,
-    );
-    const decrementButton = wrapper.find({ testID: 'decrement-nonce' });
+    renderComponent();
+    const decrementButton = screen.getByTestId('decrement-nonce');
 
-    decrementButton.simulate('press');
-    expect(wrapper.find('TextInput').prop('value')).toBe(
-      String(PROPOSED_NONCE - 1),
-    );
+    fireEvent.press(decrementButton);
+    expect(screen.getByDisplayValue(String(PROPOSED_NONCE - 1))).toBeTruthy();
   });
 
   it('does not decrement the nonce value below 0 when the current nonce is 0', () => {
-    const wrapper = createWrapper();
-    wrapper.setProps({ proposedNonce: 0, nonceValue: 0 });
-    const decrementButton = wrapper.find({ testID: 'decrement-nonce' });
+    renderComponent({ proposedNonce: 0, nonceValue: 0 });
+    const decrementButton = screen.getByTestId('decrement-nonce');
 
-    decrementButton.simulate('press');
-    expect(wrapper.find('TextInput').prop('value')).toBe(String(0));
+    fireEvent.press(decrementButton);
+    expect(screen.getByDisplayValue(String(0))).toBeTruthy();
   });
 });

@@ -44,9 +44,12 @@ jest.mock('../../../core', () => ({
 }));
 
 // Mock Alert
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 // Cast Alert.alert as a mock for better TypeScript support
 const mockAlert = Alert.alert as jest.MockedFunction<typeof Alert.alert>;

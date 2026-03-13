@@ -59,15 +59,6 @@ jest.mock(
   }),
 );
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openSettings: jest.fn(),
-  openURL: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
-  canOpenURL: jest.fn(() => Promise.resolve(true)),
-}));
-
 const defaultCapabilities = {
   isBiometricsAvailable: true,
   passcodeAvailable: true,

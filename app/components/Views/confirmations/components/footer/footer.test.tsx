@@ -41,14 +41,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));

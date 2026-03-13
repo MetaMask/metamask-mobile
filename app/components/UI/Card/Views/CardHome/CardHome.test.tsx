@@ -1782,7 +1782,7 @@ describe('CardHome Component', () => {
       );
       expect(addFundsButton).toBeTruthy();
       // Button should have disabled styling applied
-      expect(addFundsButton.props.disabled).toBe(true);
+      expect(addFundsButton).toBeDisabled();
     });
 
     it('enables add funds button when swap is enabled for priority token', () => {
@@ -1797,7 +1797,7 @@ describe('CardHome Component', () => {
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
       expect(addFundsButton).toBeTruthy();
-      expect(addFundsButton.props.disabled).toBe(false);
+      expect(addFundsButton).toBeEnabled();
     });
 
     it('applies disabled styling when swap is not enabled', () => {
@@ -1814,7 +1814,7 @@ describe('CardHome Component', () => {
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
       expect(addFundsButton).toBeTruthy();
-      expect(addFundsButton.props.disabled).toBe(true);
+      expect(addFundsButton).toBeDisabled();
     });
 
     it('does not disable button when swap is enabled for priority token', async () => {
@@ -1828,7 +1828,7 @@ describe('CardHome Component', () => {
       const addFundsButton = screen.getByTestId(
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
-      expect(addFundsButton.props.disabled).toBe(false);
+      expect(addFundsButton).toBeEnabled();
 
       mockTrackEvent.mockClear();
       fireEvent.press(addFundsButton);

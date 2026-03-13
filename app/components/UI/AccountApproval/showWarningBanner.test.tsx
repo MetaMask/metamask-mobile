@@ -27,11 +27,6 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
 });
 
 const mockOpenURL = jest.fn();
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: (url: string) => mockOpenURL(url),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeEventListener: jest.fn(),
-}));
 
 describe('ShowWarningBanner', () => {
   beforeEach(() => {

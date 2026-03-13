@@ -4,10 +4,6 @@ import initialRootState from '../../../../../util/test/initial-root-state';
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-}));
-
 import { SamplePetNamesForm } from './SamplePetNamesForm';
 import Engine from '../../../../../core/Engine';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';

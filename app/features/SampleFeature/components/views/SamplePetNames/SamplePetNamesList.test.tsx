@@ -4,12 +4,6 @@ import { SamplePetNamesList } from './SamplePetNamesList';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(() => ({
-    remove: jest.fn(),
-  })),
-}));
-
 // Mock the useSamplePetNames hook
 jest.mock('../../hooks/useSamplePetNames', () => ({
   useSamplePetNames: jest.fn(),

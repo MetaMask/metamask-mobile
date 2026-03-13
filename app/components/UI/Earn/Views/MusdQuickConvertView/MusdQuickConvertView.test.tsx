@@ -68,14 +68,6 @@ jest.mock('../../../../hooks/useStyles', () => ({
     theme: { colors: {} },
   })),
 }));
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 const mockSelectMusdQuickConvertEnabledFlag =
   selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
     typeof selectMusdQuickConvertEnabledFlag

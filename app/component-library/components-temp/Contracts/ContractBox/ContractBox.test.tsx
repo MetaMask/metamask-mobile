@@ -1,7 +1,6 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import TEST_ADDRESS from '../../../../constants/address';
-import { ContractBoxProps } from './ContractBox.types';
 import ContractBox from './ContractBox';
 import {
   CONTRACT_BOX_TEST_ID,
@@ -14,7 +13,7 @@ import {
 
 describe('ContractBox', () => {
   it('should render ContractBox', () => {
-    const wrapper = shallow<ContractBoxProps>(
+    render(
       <ContractBox
         contractAddress={TEST_ADDRESS}
         contractPetName={CONTRACT_PET_NAME}
@@ -24,9 +23,6 @@ describe('ContractBox', () => {
         onContractPress={CONTRACT_ON_PRESS}
       />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CONTRACT_BOX_TEST_ID,
-    );
-    expect(singleSelectComponent.exists()).toBe(true);
+    expect(screen.getByTestId(CONTRACT_BOX_TEST_ID)).toBeTruthy();
   });
 });

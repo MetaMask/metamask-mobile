@@ -183,10 +183,6 @@ jest.mock('../../../util/address', () => ({
   isHardwareAccount: jest.fn().mockReturnValue(false),
 }));
 
-// Mock Linking for URL tests
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn().mockResolvedValue(undefined),
-}));
 
 // Mock trace utilities
 jest.mock('../../../util/trace', () => ({

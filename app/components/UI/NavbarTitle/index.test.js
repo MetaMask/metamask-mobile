@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { fireEvent } from '@testing-library/react-native';
@@ -69,12 +69,12 @@ jest.mock('@react-navigation/compat', () => ({
 describe('NavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <NavbarTitle title={title} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks NETWORK_SELECTOR_PRESSED when pressed and network is not disabled', () => {

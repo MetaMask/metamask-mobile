@@ -1,7 +1,6 @@
 import React from 'react';
 import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { render, cleanup } from '@testing-library/react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -246,7 +245,7 @@ describe('Transactions', () => {
   });
 
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -272,7 +271,7 @@ describe('Transactions', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('Transaction Component Behavior', () => {
@@ -287,7 +286,7 @@ describe('Transactions', () => {
         },
       ];
 
-      const wrapper = shallow(
+      const { toJSON } = render(
         <Provider store={store}>
           <Transactions
             transactions={mockTransactions}
@@ -302,7 +301,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(wrapper).toBeDefined();
+      expect(toJSON()).toBeDefined();
 
       const txData = mockTransactions[0];
       expect(txData.id).toBe('tx-1');
@@ -785,7 +784,7 @@ describe('Transactions', () => {
         },
       ];
 
-      const wrapper = shallow(
+      const { toJSON } = render(
         <Provider store={store}>
           <Transactions
             transactions={mockTransactions}
@@ -819,7 +818,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(wrapper).toBeDefined();
+      expect(toJSON()).toBeDefined();
     });
 
     it('should exercise viewOnBlockExplore method for EVM chains', () => {
@@ -830,7 +829,7 @@ describe('Transactions', () => {
         title: 'Etherscan',
       });
 
-      const wrapper = shallow(
+      const { toJSON } = render(
         <Provider store={store}>
           <Transactions
             transactions={[]}
@@ -845,7 +844,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(wrapper).toBeDefined();
+      expect(toJSON()).toBeDefined();
 
       // Test the mock functions that would be called in viewOnBlockExplore
       const type = 'mainnet';
@@ -929,7 +928,7 @@ describe('Transactions', () => {
       mockGetBlockExplorerName.mockReturnValue('Solscan');
       mockIsHardwareAccount.mockReturnValue(false);
 
-      const wrapper = shallow(
+      const { toJSON } = render(
         <Provider store={store}>
           <Transactions
             transactions={[]}
@@ -947,7 +946,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(wrapper).toBeDefined();
+      expect(toJSON()).toBeDefined();
 
       // Verify the mock functions were available
       expect(mockIsNonEvmChainId).toBeDefined();
@@ -964,7 +963,7 @@ describe('Transactions', () => {
       );
       mockIsHardwareAccount.mockReturnValue(false);
 
-      const wrapper = shallow(
+      const { toJSON } = render(
         <Provider store={store}>
           <Transactions
             transactions={[]}
@@ -979,7 +978,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(wrapper).toBeDefined();
+      expect(toJSON()).toBeDefined();
 
       // Verify different network scenarios
       expect(mockFindBlockExplorerForRpc).toBeDefined();

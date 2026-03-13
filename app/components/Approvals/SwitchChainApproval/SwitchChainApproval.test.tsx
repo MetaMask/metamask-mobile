@@ -1,8 +1,9 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import SwitchChainApproval from './SwitchChainApproval';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import {
   Caip25CaveatType,
@@ -79,16 +80,16 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const wrapper = shallow(<SwitchChainApproval />);
+    const { toJSON } = render(<SwitchChainApproval />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<SwitchChainApproval />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -96,8 +97,8 @@ describe('SwitchChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<SwitchChainApproval />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls networkSwitched action when confirm is pressed', () => {
@@ -106,8 +107,9 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    wrapper.find('SwitchCustomNetwork').simulate('confirm');
+    render(<SwitchChainApproval />);
+    const switchCustomNetwork = screen.UNSAFE_getByType(SwitchCustomNetwork);
+    switchCustomNetwork.props.onConfirm();
 
     expect(networkSwitched).toHaveBeenCalledTimes(1);
     expect(networkSwitched).toHaveBeenCalledWith({

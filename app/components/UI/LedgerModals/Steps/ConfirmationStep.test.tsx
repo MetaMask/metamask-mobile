@@ -1,5 +1,5 @@
-import { shallow } from 'enzyme';
 import React from 'react';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import ConfirmationStep from './ConfirmationStep';
@@ -15,16 +15,16 @@ const initialState = {
 const store = mockStore(initialState);
 
 function createWrapper({ onRejectMock = jest.fn() } = {}) {
-  return shallow(
+  return render(
     <Provider store={store}>
       <ConfirmationStep onReject={onRejectMock} />
     </Provider>,
-  ).find(ConfirmationStep);
+  );
 }
 
 describe('ConfirmationStep', () => {
   it('renders correctly', () => {
-    const wrapper = createWrapper();
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = createWrapper();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

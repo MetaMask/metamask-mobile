@@ -42,11 +42,6 @@ jest.mock('../../../util/phishingDetection', () => ({
 }));
 
 const mockOpenURL = jest.fn();
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: (url: string) => mockOpenURL(url),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
 
 const mockRemoveChannel = jest.fn();
 jest.mock('../../../core/SDKConnect/SDKConnect', () => ({

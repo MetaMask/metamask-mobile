@@ -1,6 +1,5 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
 import { fireEvent, render } from '@testing-library/react-native';
 
 // External dependencies.
@@ -13,18 +12,18 @@ import { ButtonSize } from '../../Button.types';
 
 describe('ButtonBase', () => {
   it('renders with basic props', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders when disabled', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
@@ -32,7 +31,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress when button is pressed', () => {
@@ -65,7 +64,7 @@ describe('ButtonBase', () => {
     const button = getByRole('button');
 
     // Verify the button is marked as disabled
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
   });
 
   it('calls onPressIn when button is pressed in', () => {
@@ -100,11 +99,11 @@ describe('ButtonBase', () => {
     const button = getByRole('button');
 
     // Verify the button is marked as disabled
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
   });
 
   it('renders with start icon', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
@@ -112,11 +111,11 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with end icon', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
@@ -124,11 +123,11 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with both start and end icons', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
@@ -137,34 +136,34 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with custom label component', () => {
     const CustomLabel = () => <div>Custom Label</div>;
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label={<CustomLabel />}
         onPress={() => null}
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles different sizes', () => {
     const sizes = [ButtonSize.Sm, ButtonSize.Md, ButtonSize.Lg];
 
     sizes.forEach((size) => {
-      const wrapper = shallow(
+      const { toJSON } = render(
         <ButtonBase label="Click me!" onPress={() => null} size={size} />,
       );
-      expect(wrapper).toMatchSnapshot(`ButtonBase with size ${size}`);
+      expect(toJSON()).toMatchSnapshot(`ButtonBase with size ${size}`);
     });
   });
 
   it('handles different widths', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
@@ -172,11 +171,11 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles custom label color', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
@@ -184,11 +183,11 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles custom label text variant', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         label="Click me!"
         onPress={() => null}
@@ -196,6 +195,6 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

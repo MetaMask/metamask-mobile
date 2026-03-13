@@ -1,20 +1,45 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ButtonBase handles custom label color 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
@@ -24,31 +49,59 @@ exports[`ButtonBase handles custom label color 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase handles custom label text variant 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
@@ -58,31 +111,59 @@ exports[`ButtonBase handles custom label text variant 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Bold",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sHeadingSM"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase handles different sizes: ButtonBase with size 32 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 32,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
@@ -92,31 +173,59 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 32 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase handles different sizes: ButtonBase with size 40 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
@@ -126,31 +235,59 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 40 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase handles different sizes: ButtonBase with size 48 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 48,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
@@ -160,30 +297,58 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 48 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase handles different widths 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
       "width": 200,
@@ -194,28 +359,54 @@ exports[`ButtonBase handles different widths 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase renders when disabled 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  disabled={true}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -230,31 +421,59 @@ exports[`ButtonBase renders when disabled 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase renders with basic props 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
@@ -264,109 +483,200 @@ exports[`ButtonBase renders with basic props 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase renders with both start and end icons 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
   }
 >
-  <Icon
-    color="Default"
+  <SvgMock
+    color="#121314"
+    fill="currentColor"
+    height={16}
     name="Add"
-    size="16"
     style={
       {
+        "height": 16,
         "marginRight": 8,
+        "width": 16,
       }
     }
+    width={16}
   />
   <Text
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-  <Icon
-    color="Default"
+  <SvgMock
+    color="#121314"
+    fill="currentColor"
+    height={16}
     name="ArrowRight"
-    size="16"
     style={
       {
+        "height": 16,
         "marginLeft": 8,
+        "width": 16,
       }
     }
+    width={16}
   />
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase renders with custom label component 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
   }
 >
-  <CustomLabel />
-</TouchableOpacity>
+  <div>
+    Custom Label
+  </div>
+</View>
 `;
 
 exports[`ButtonBase renders with end icon 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
@@ -376,66 +686,105 @@ exports[`ButtonBase renders with end icon 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-  <Icon
-    color="Default"
+  <SvgMock
+    color="#121314"
+    fill="currentColor"
+    height={16}
     name="Add"
-    size="16"
     style={
       {
+        "height": 16,
         "marginLeft": 8,
+        "width": 16,
       }
     }
+    width={16}
   />
-</TouchableOpacity>
+</View>
 `;
 
 exports[`ButtonBase renders with start icon 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
   accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 1,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
   }
 >
-  <Icon
-    color="Default"
+  <SvgMock
+    color="#121314"
+    fill="currentColor"
+    height={16}
     name="Add"
-    size="16"
     style={
       {
+        "height": 16,
         "marginRight": 8,
+        "width": 16,
       }
     }
+    width={16}
   />
   <Text
     accessibilityRole="none"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
-</TouchableOpacity>
+</View>
 `;

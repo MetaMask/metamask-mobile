@@ -12,11 +12,6 @@ import { BluetoothPermissionErrors } from '../../core/Ledger/ledgerErrors';
 import { getSystemVersion } from 'react-native-device-info';
 import { AppState } from 'react-native';
 
-jest.mock('react-native/Libraries/AppState/AppState', () => ({
-  currentState: 'active',
-  addEventListener: jest.fn(),
-}));
-
 jest.mock('react-native-permissions', () => ({
   PERMISSIONS: {
     IOS: {

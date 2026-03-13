@@ -22,12 +22,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn().mockResolvedValue(undefined),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
-
 const mockTrackEvent = jest.fn();
 jest.mock('../../../components/hooks/useMetrics');
 

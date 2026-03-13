@@ -1,17 +1,17 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, Linking } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
-import Adapter from 'enzyme-adapter-react-16';
-import Enzyme from 'enzyme';
 import base64js from 'base64-js';
-
-Enzyme.configure({ adapter: new Adapter() });
 
 // Set up global polyfills for base64 functions
 global.base64FromArrayBuffer = base64js.fromByteArray;
 global.base64ToArrayBuffer = base64js.toByteArray;
+
+// Augment RN preset Linking mock with missing methods needed by @react-navigation/native
+Linking.removeEventListener = jest.fn();
+Linking.openURL = jest.fn().mockResolvedValue(undefined);
 
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
@@ -248,23 +248,32 @@ jest.mock('../../core/SDKConnectV2', () => ({
 
 jest.mock('../../core/NotificationManager');
 
-jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
+  const NativeEventEmitter = jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListeners: jest.fn(),
+    removeAllListeners: jest.fn(),
+    listenerCount: jest.fn(() => 0),
+    emit: jest.fn(),
+  }));
+  return { __esModule: true, default: NativeEventEmitter };
+});
 
 jest.mock(
   'react-native/Libraries/Utilities/NativePlatformConstantsIOS',
-  () => ({
-    ...jest.requireActual(
-      'react-native/Libraries/Utilities/NativePlatformConstantsIOS',
-    ),
-    getConstants: () => ({
-      forceTouchAvailable: false,
-      interfaceIdiom: 'en',
-      isTesting: false,
-      osVersion: 'ios',
-      reactNativeVersion: { major: 60, minor: 1, patch: 0 },
-      systemName: 'ios',
-    }),
-  }),
+  () => {
+    const mock = {
+      getConstants: () => ({
+        forceTouchAvailable: false,
+        interfaceIdiom: 'en',
+        isTesting: false,
+        osVersion: 'ios',
+        reactNativeVersion: { major: 60, minor: 1, patch: 0 },
+        systemName: 'ios',
+      }),
+    };
+    return { __esModule: true, default: mock };
+  },
 );
 
 jest.mock('react-native-keychain', () => ({
@@ -393,14 +402,26 @@ jest.mock(
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
-/**
- * Mock the reanimated module temporarily while the infinite style issue is being investigated
- * Issue: https://github.com/software-mansion/react-native-reanimated/issues/6645
- */
-jest.mock('react-native-reanimated', () =>
+jest.mock('react-native-worklets', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('react-native-reanimated/mock'),
+  require('react-native-worklets/src/mock'),
 );
+
+jest.mock('react-native-mmkv', () => {
+  const store = new Map();
+  return {
+    createMMKV: () => ({
+      getString: jest.fn((key) => store.get(key)),
+      set: jest.fn((key, value) => store.set(key, value)),
+      getBoolean: jest.fn((key) => store.get(key)),
+      getNumber: jest.fn((key) => store.get(key)),
+      delete: jest.fn((key) => store.delete(key)),
+      contains: jest.fn((key) => store.has(key)),
+      clearAll: jest.fn(() => store.clear()),
+      getAllKeys: jest.fn(() => [...store.keys()]),
+    }),
+  };
+});
 
 NativeModules.RNGestureHandlerModule = {
   getConstants: jest.fn(() => ({
@@ -460,25 +481,15 @@ NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
 };
 
-jest.mock(
-  'react-native/Libraries/Components/Touchable/TouchableOpacity',
-  () => 'TouchableOpacity',
-);
-jest.mock(
-  'react-native/Libraries/Components/Touchable/TouchableHighlight',
-  () => 'TouchableHighlight',
-);
-jest.mock(
-  'react-native/Libraries/Components/TextInput/TextInput',
-  () => 'TextInput',
-);
-
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
-  runAfterInteractions: jest.fn(),
-  createInteractionHandle: jest.fn(),
-  clearInteractionHandle: jest.fn(),
-  setDeadline: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
+  const manager = {
+    runAfterInteractions: jest.fn(),
+    createInteractionHandle: jest.fn(),
+    clearInteractionHandle: jest.fn(),
+    setDeadline: jest.fn(),
+  };
+  return { __esModule: true, default: manager, ...manager };
+});
 
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 
@@ -623,6 +634,19 @@ jest.mock(
   }),
   { virtual: true },
 );
+
+// Custom snapshot serializer to handle React Navigation's NavigationStateContext.
+// The default context value uses getter properties (getKey, getIsInitial, etc.) that
+// throw "Couldn't find a navigation context" when accessed. pretty-format triggers
+// these getters during snapshot serialization, causing tests to fail.
+expect.addSnapshotSerializer({
+  test: (val) =>
+    val != null &&
+    typeof val === 'object' &&
+    val.isDefault === true &&
+    Object.getOwnPropertyDescriptor(val, 'getIsInitial')?.get != null,
+  serialize: () => '"NavigationStateContext"',
+});
 
 afterEach(() => {
   jest.restoreAllMocks();

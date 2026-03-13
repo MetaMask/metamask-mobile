@@ -28,11 +28,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: mockLinkingOpenURL,
-  addEventListener: jest.fn(),
-}));
-
 jest.mock('../../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'Verify your identity',

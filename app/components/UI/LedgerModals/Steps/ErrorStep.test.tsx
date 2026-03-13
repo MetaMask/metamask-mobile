@@ -1,5 +1,5 @@
-import { shallow } from 'enzyme';
 import React from 'react';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -15,7 +15,7 @@ function createWrapper({
   showViewSettings = true,
   store = mockStore(),
 } = {}) {
-  return shallow(
+  return render(
     <Provider store={store}>
       <ErrorStep
         onReject={onRejectMock}
@@ -25,7 +25,7 @@ function createWrapper({
         showViewSettings={showViewSettings}
       />
     </Provider>,
-  ).find(ErrorStep);
+  );
 }
 
 describe('ErrorStep', () => {
@@ -39,13 +39,13 @@ describe('ErrorStep', () => {
     const store = mockStore(initialState);
 
     it('renders correctly when showViewSettings is true', () => {
-      const wrapper = createWrapper({ store });
-      expect(wrapper).toMatchSnapshot();
+      const { toJSON } = createWrapper({ store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly when showViewSettings false', () => {
-      const wrapper = createWrapper({ showViewSettings: false, store });
-      expect(wrapper).toMatchSnapshot();
+      const { toJSON } = createWrapper({ showViewSettings: false, store });
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -59,13 +59,13 @@ describe('ErrorStep', () => {
     const store = mockStore(initialState);
 
     it('renders correctly when showViewSettings is true', () => {
-      const wrapper = createWrapper({ store });
-      expect(wrapper).toMatchSnapshot();
+      const { toJSON } = createWrapper({ store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly when showViewSettings false', () => {
-      const wrapper = createWrapper({ showViewSettings: false, store });
-      expect(wrapper).toMatchSnapshot();
+      const { toJSON } = createWrapper({ showViewSettings: false, store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     jest.resetAllMocks();
@@ -81,13 +81,13 @@ describe('ErrorStep', () => {
     const store = mockStore(initialState);
 
     it('renders correctly when showViewSettings is true', () => {
-      const wrapper = createWrapper({ store });
-      expect(wrapper).toMatchSnapshot();
+      const { toJSON } = createWrapper({ store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly when showViewSettings false', () => {
-      const wrapper = createWrapper({ showViewSettings: false, store });
-      expect(wrapper).toMatchSnapshot();
+      const { toJSON } = createWrapper({ showViewSettings: false, store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     jest.resetAllMocks();

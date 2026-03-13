@@ -1,5 +1,4 @@
-import { fireEvent } from '@testing-library/react-native';
-import { shallow } from 'enzyme';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomSpendCap from './CustomSpendCap';
@@ -10,7 +9,6 @@ import {
   INPUT_VALUE_CHANGED,
   TICKER,
 } from './CustomSpendCap.constants';
-import { CustomSpendCapProps } from './CustomSpendCap.types';
 
 function RenderCustomSpendCap(
   tokenSpendValue = '',
@@ -40,11 +38,8 @@ const isInputValid = jest.fn();
 
 describe('CustomSpendCap', () => {
   it('should render CustomSpendCap', () => {
-    const wrapper = shallow<CustomSpendCapProps>(RenderCustomSpendCap(''));
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CUSTOM_SPEND_CAP_TEST_ID,
-    );
-    expect(singleSelectComponent.exists()).toBe(true);
+    renderWithProvider(RenderCustomSpendCap(''));
+    expect(screen.getByTestId(CUSTOM_SPEND_CAP_TEST_ID)).toBeTruthy();
   });
 
   it('should match snapshot', () => {

@@ -34,12 +34,15 @@ jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
 });
 
 // Mock InteractionManager
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
-  runAfterInteractions: jest.fn((callback) => {
-    callback();
-    return { cancel: jest.fn() };
-  }),
-}));
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
+  const interactionManager = {
+    runAfterInteractions: jest.fn((callback) => {
+      callback();
+      return { cancel: jest.fn() };
+    }),
+  };
+  return { __esModule: true, default: interactionManager, ...interactionManager };
+});
 
 const mockInitialState = {
   engine: {

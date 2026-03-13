@@ -132,14 +132,6 @@ jest.mock('../../../../constants/events', () => ({
   },
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 describe('FooterButtonGroup', () => {
   let mockAddProperties: jest.Mock;
   let mockBuild: jest.Mock;

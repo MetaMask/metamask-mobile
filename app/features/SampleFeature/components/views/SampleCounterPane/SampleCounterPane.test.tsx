@@ -6,10 +6,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-}));
-
 const mockIncrement = jest.fn();
 
 jest.mock('../../hooks/useSampleCounter/useSampleCounter', () => ({

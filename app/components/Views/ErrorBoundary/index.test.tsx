@@ -31,11 +31,6 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
     )),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
-
 jest.mock('../../../util/sentry/utils', () => ({
   captureSentryFeedback: jest.fn(),
   captureExceptionForced: jest.fn(),
