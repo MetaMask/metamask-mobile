@@ -4,9 +4,11 @@ import {
   ImageSourcePropType,
   TouchableOpacity,
 } from 'react-native';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { Box } from '../../Box/Box';
@@ -49,11 +51,6 @@ const createStyles = (params: StylesParams) => {
       paddingRight: 11,
       ...shadows.size.xs,
     },
-    tokenSymbol: {
-      color: theme.colors.text.default,
-      fontSize: theme.typography.sHeadingLG.fontSize,
-      fontWeight: 500,
-    },
   });
 };
 
@@ -88,7 +85,7 @@ export const TokenButton: React.FC<TokenProps> = ({
           <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
         </BadgeWrapper>
 
-        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
+        <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Medium}>
           {symbol}
         </Text>
       </Box>
