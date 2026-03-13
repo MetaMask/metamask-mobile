@@ -87,6 +87,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: jest.fn(),
+    useIsFocused: jest.fn(() => true),
   };
 });
 
@@ -360,6 +361,7 @@ describe('BuildQuote', () => {
       addOrder: mockAddOrder,
       getOrderFromCallback: mockGetOrderFromCallback,
       paymentMethodsLoading: false,
+      paymentMethodsFetching: false,
       paymentMethodsStatus: 'success',
       selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
     });
@@ -678,9 +680,14 @@ describe('BuildQuote', () => {
         userRegion: USER_REGION,
         selectedProvider: NATIVE_PROVIDER,
         selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
         getBuyWidgetData: mockGetBuyWidgetData,
         addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
         paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
         selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
       });
       mockUseRampsQuotes.mockReturnValue({

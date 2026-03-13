@@ -9,6 +9,7 @@ import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
+import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
@@ -47,6 +48,7 @@ export const useRampNavigation = () => {
       options?: {
         mode?: RampMode;
         overrideUnifiedRouting?: boolean;
+        buyFlowOrigin?: BuyFlowOrigin;
       },
     ) => {
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
@@ -90,7 +92,10 @@ export const useRampNavigation = () => {
           // Navigate anyway — BuildQuote will handle the missing token.
         }
         navigation.navigate(
-          ...createBuildQuoteNavDetails({ assetId: controllerAssetId }),
+          ...createBuildQuoteNavDetails({
+            assetId: controllerAssetId,
+            buyFlowOrigin: options?.buyFlowOrigin,
+          }),
         );
         return;
       }
