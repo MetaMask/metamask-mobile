@@ -43,7 +43,6 @@ import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
-import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -98,14 +97,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.warning.muted,
       padding: 20,
     } as ViewStyle,
-    chartNavigationWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingHorizontal: 10,
-      paddingTop: 20,
-      marginBottom: 16,
-    } as ViewStyle,
     tokenDetailsWrapper: {
       marginBottom: 20,
       paddingHorizontal: 16,
@@ -148,8 +139,6 @@ export interface AssetOverviewContentProps {
 
   // Time period
   timePeriod: TimePeriod;
-  setTimePeriod: (period: TimePeriod) => void;
-  chartNavigationButtons: TimePeriod[];
 
   // Feature flags
   isPerpsEnabled: boolean;
@@ -197,8 +186,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   prices,
   isLoading,
   timePeriod,
-  setTimePeriod,
-  chartNavigationButtons,
   isPerpsEnabled,
   displayBuyButton,
   displaySwapsButton,
@@ -425,13 +412,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
   }, [marketData, navigation]);
 
-  const handleSelectTimePeriod = useCallback(
-    (_timePeriod: TimePeriod) => {
-      setTimePeriod(_timePeriod);
-    },
-    [setTimePeriod],
-  );
-
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
       <TouchableOpacity
@@ -449,21 +429,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         </View>
       </TouchableOpacity>
     </View>
-  );
-
-  const renderChartNavigationButton = useCallback(
-    () =>
-      chartNavigationButtons.map((label) => (
-        <ChartNavigationButton
-          key={label}
-          label={strings(
-            `asset_overview.chart_time_period_navigation.${label}`,
-          )}
-          onPress={() => handleSelectTimePeriod(label)}
-          selected={timePeriod === label}
-        />
-      )),
-    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
 
   const handleMarketClosedButtonPress = () => {
@@ -490,9 +455,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               timePeriod={timePeriod}
             />
           </PriceChartProvider>
-          <View style={styles.chartNavigationWrapper}>
-            {renderChartNavigationButton()}
-          </View>
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
