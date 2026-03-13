@@ -202,6 +202,48 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
+  it('resets to loading when null received after having loaded orders (account switch)', async () => {
+    let capturedCallback: (orders: Order[] | null) => void = jest.fn();
+    mockSubscribe.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() => usePerpsLiveOrders());
+
+    // First: receive real orders (simulate loaded state)
+    act(() => {
+      capturedCallback([mockOrder]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+      expect(result.current.orders).toEqual([mockOrder]);
+    });
+
+    // Account switch: receive null (clearCache)
+    act(() => {
+      capturedCallback(null);
+    });
+
+    expect(result.current.isInitialLoading).toBe(true);
+    expect(result.current.orders).toEqual([]);
+
+    // New account data arrives
+    const newAccountOrders: Order[] = [
+      { ...mockOrder, orderId: 'new-order', symbol: 'ETH-PERP' } as Order,
+    ];
+
+    act(() => {
+      capturedCallback(newAccountOrders);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+      expect(result.current.orders).toEqual(newAccountOrders);
+    });
+  });
+
   describe('initial state from cache', () => {
     it('seeds orders from cache when fresh cached data exists', () => {
       const cachedOrders: Order[] = [

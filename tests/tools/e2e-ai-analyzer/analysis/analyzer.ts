@@ -13,7 +13,7 @@ import {
   AnalysisContext,
   type ModeConfig,
 } from '../types';
-import { LLM_CONFIG } from '../config';
+import { LLM_CONFIG, MODEL_PRICING } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool, ToolContext } from '../ai-tools/tool-executor';
 import {
@@ -118,6 +118,43 @@ export async function analyzeWithAgent<M extends ModeKey>(
   let currentMessage: LLMContentBlock[] | string = taskPrompt;
   const conversationHistory: LLMMessage[] = [];
 
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+  const requestedModel = provider.getDefaultModel();
+  let resolvedModel: string | undefined;
+
+  function printTokenReport() {
+    if (totalInputTokens === 0 && totalOutputTokens === 0) return;
+    const pricing = MODEL_PRICING[requestedModel];
+    const inputCost = pricing
+      ? (totalInputTokens / 1_000_000) * pricing.inputPerM
+      : null;
+    const outputCost = pricing
+      ? (totalOutputTokens / 1_000_000) * pricing.outputPerM
+      : null;
+    const totalCost =
+      inputCost !== null && outputCost !== null ? inputCost + outputCost : null;
+
+    console.log('\n💰 Token Usage Report');
+    console.log('─────────────────────────────────────');
+    console.log(
+      `   Model:          ${requestedModel}${resolvedModel && resolvedModel !== requestedModel ? ` (${resolvedModel})` : ''}`,
+    );
+    console.log(
+      `   Input tokens:   ${totalInputTokens.toLocaleString()}${pricing ? `  ($${inputCost?.toFixed(4)})` : ''}`,
+    );
+    console.log(
+      `   Output tokens:  ${totalOutputTokens.toLocaleString()}${pricing ? `  ($${outputCost?.toFixed(4)})` : ''}`,
+    );
+    if (totalCost !== null) {
+      console.log(`   Total cost:     $${totalCost.toFixed(4)}`);
+    }
+    if (!pricing) {
+      console.log(`   ⚠️  No pricing data for model "${requestedModel}"`);
+    }
+    console.log('─────────────────────────────────────');
+  }
+
   console.log(`🤖 Using provider: ${provider.displayName}`);
 
   for (let iteration = 0; iteration < LLM_CONFIG.maxIterations; iteration++) {
@@ -134,6 +171,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
         { role: 'user', content: currentMessage },
       ],
     });
+
+    if (response.usage) {
+      totalInputTokens += response.usage.inputTokens;
+      totalOutputTokens += response.usage.outputTokens;
+      resolvedModel = response.model;
+    }
 
     // Handle tool uses
     const toolUseBlocks = response.content.filter(
@@ -182,10 +225,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
 
             if (analysis) {
               console.log(`✅ Analysis complete!`);
+              printTokenReport();
               return analysis as ModeAnalysisResult<M>;
             }
 
             console.log('⚠️ Failed to parse finalize_tag_selection');
+            printTokenReport();
             return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
 
@@ -221,6 +266,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
       );
       if (analysis) {
         console.log(`✅ Analysis complete!`);
+        printTokenReport();
         return analysis as ModeAnalysisResult<M>;
       }
     }
@@ -229,5 +275,6 @@ export async function analyzeWithAgent<M extends ModeKey>(
   }
 
   console.log('⚠️ Using fallback analysis');
+  printTokenReport();
   return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
 }

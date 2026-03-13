@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     tagBaseStyle: {
       alignSelf: 'center',
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.muted,
       borderColor: theme.colors.border.default,
       borderWidth: 1,
       marginTop: 8,

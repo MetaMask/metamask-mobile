@@ -227,16 +227,20 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.basic_info.first_name
                 </Text>
@@ -345,16 +349,20 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.basic_info.last_name
                 </Text>
@@ -462,16 +470,20 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.basic_info.phone_number
               </Text>
@@ -609,16 +621,20 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.basic_info.date_of_birth
               </Text>
@@ -1119,16 +1135,20 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.basic_info.first_name
                 </Text>
@@ -1237,16 +1257,20 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.basic_info.last_name
                 </Text>
@@ -1354,16 +1378,20 @@ exports[`V2BasicInfo matches snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.basic_info.phone_number
               </Text>
@@ -1515,16 +1543,20 @@ exports[`V2BasicInfo matches snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.basic_info.date_of_birth
               </Text>
@@ -2177,16 +2209,20 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.basic_info.first_name
                 </Text>
@@ -2295,16 +2331,20 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.basic_info.last_name
                 </Text>
@@ -2412,16 +2452,20 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.basic_info.phone_number
               </Text>
@@ -2573,16 +2617,20 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.basic_info.date_of_birth
               </Text>

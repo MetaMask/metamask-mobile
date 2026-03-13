@@ -198,7 +198,7 @@ export const usePerpsMarketListView = ({
 
   // Use sorting hook for sort state and sorting logic
   const sortingHook = usePerpsSorting({
-    initialOptionId: savedSortPreference.optionId,
+    initialOptionId: savedSortPreference.optionId as SortOptionId,
     initialDirection: savedSortPreference.direction,
   });
 

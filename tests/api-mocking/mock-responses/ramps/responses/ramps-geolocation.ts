@@ -1,4 +1,8 @@
-import { MockApiEndpoint, RampsRegion } from '../../../../framework';
+import {
+  getRegionLocationCode,
+  MockApiEndpoint,
+  RampsRegion,
+} from '../../../../framework';
 
 /**
  * Creates a region-specific geolocation response based on the selected region
@@ -10,20 +14,20 @@ import { MockApiEndpoint, RampsRegion } from '../../../../framework';
 export const createGeolocationResponse = (
   region: RampsRegion,
 ): MockApiEndpoint[] => {
-  // Map environment prefixes to their URL patterns
   const envConfigs = [
     { env: 'uat', url: 'https://on-ramp.uat-api.cx.metamask.io/geolocation' },
     { env: 'dev', url: 'https://on-ramp.dev-api.cx.metamask.io/geolocation' },
     { env: 'prod', url: 'https://on-ramp.api.cx.metamask.io/geolocation' },
   ];
 
-  // The real /geolocation endpoint returns plain text (e.g. 'us-ca'), not JSON.
-  // The app reads this with response.text() in useDetectGeolocation.ts and stores
-  // it as-is. If we return a JSON object here, it gets stringified and injected
-  // into URL paths like /regions/{geolocation}/tokens, producing malformed URLs.
+  // The real /geolocation endpoint returns an ISO 3166-2 location code
+  // (e.g. 'US-CA', 'FR'). The GeolocationApiService validates the response
+  // against /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/ and rejects anything else as UNKNOWN.
+  const locationCode = getRegionLocationCode(region);
+
   return envConfigs.map(({ url }) => ({
     urlEndpoint: url,
     responseCode: 200,
-    response: region.id.replace('/regions/', ''),
+    response: locationCode,
   }));
 };

@@ -332,6 +332,7 @@ jobs:
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
       QUICKNODE_BSC_URL: ${{ secrets.QUICKNODE_BSC_URL }}
       QUICKNODE_SEI_URL: ${{ secrets.QUICKNODE_SEI_URL }}
+      MM_CHARTING_LIBRARY_URL: ${{ secrets.MM_CHARTING_LIBRARY_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

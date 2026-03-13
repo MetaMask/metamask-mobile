@@ -371,9 +371,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               </View>
 
               <View style={styles.overlay}>
-                <Text style={styles.scanningText}>{`${strings(
-                  'qr_scanner.scanning',
-                )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                {progress > 0 && (
+                  <Text style={styles.scanningText}>{`${strings(
+                    'qr_scanner.scanning',
+                  )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                )}
               </View>
             </View>
             {/* Close button */}

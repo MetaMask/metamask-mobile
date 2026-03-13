@@ -42,23 +42,12 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        muted: '#f5f5f5',
-        default: '#ffffff',
-      },
-      text: {
-        primary: '#000000',
-        alternative: '#666666',
-      },
-      border: {
-        muted: '#e0e0e0',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock rewards auth hook
 const mockOptin = jest.fn();
