@@ -18,6 +18,8 @@ import {
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import {
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from '../framework/Constants.ts';
@@ -84,7 +86,11 @@ const translateFallbackPortToActual = (url: string): string => {
 
     // Map fallback ports to actual allocated ports
     // Try Ganache first, fallback to Anvil if Ganache not running
-    if (portNum === FALLBACK_GANACHE_PORT) {
+    if (portNum === FALLBACK_FIXTURE_SERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.FIXTURE_SERVER);
+    } else if (portNum === FALLBACK_COMMAND_QUEUE_SERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.COMMAND_QUEUE_SERVER);
+    } else if (portNum === FALLBACK_GANACHE_PORT) {
       actualPort = portManager.getPort(ResourceType.GANACHE);
       if (actualPort === undefined) {
         actualPort = portManager.getPort(ResourceType.ANVIL);
