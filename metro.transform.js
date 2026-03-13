@@ -9,6 +9,7 @@ const {
 const { ESLint } = require('eslint');
 const defaultTransformer = require('metro-react-native-babel-transformer');
 const svgTransformer = require('react-native-svg-transformer');
+const { patchNobleLibraries } = require('./metro');
 
 // Code fence removal variables
 const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
@@ -131,6 +132,8 @@ module.exports.transform = async ({ src, filename, options }) => {
   if (filename.endsWith('.svg')) {
     return svgTransformer.transform({ src, filename, options });
   }
+
+  src = patchNobleLibraries(src, filename);
 
   const environment = process.env.METAMASK_ENVIRONMENT ?? 'production';
   const shouldLintFencedFiles = environment === 'production';
