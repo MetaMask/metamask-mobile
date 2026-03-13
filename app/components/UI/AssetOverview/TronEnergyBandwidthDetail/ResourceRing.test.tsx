@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import ResourceRing from './ResourceRing';
 import { IconName } from '@metamask/design-system-react-native';
+import { mockTheme } from '../../../../util/theme';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
@@ -10,12 +11,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-const mockTheme = {
-  colors: {
-    border: { muted: '#CCCCCC' },
-    primary: { default: '#0066CC' },
-  },
-};
 jest.mock('../../../../util/theme', () => ({
   useTheme: () => mockTheme,
 }));

@@ -49,6 +49,7 @@ const initialState = {
                 favorite: false,
                 image: 'https://image.com/113',
                 isCurrentlyOwned: true,
+                // eslint-disable-next-line @metamask/design-tokens/color-no-hex
                 name: 'My Nft #113',
                 standard: 'ERC721',
                 tokenId: '113',
@@ -108,6 +109,7 @@ describe('CollectibleContractOverview', () => {
       favorite: false,
       image: 'https://image.com/113',
       isCurrentlyOwned: true,
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       name: 'My Nft #113',
       standard: 'ERC721',
       tokenId: '113',
