@@ -14,6 +14,8 @@ import {
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
+  enableDeviceTrafficProxyForMockServer,
+  disableDeviceTrafficProxy,
 } from './FixtureUtils';
 import Utilities from '../Utilities';
 import { dismissDevScreens } from '../../flows/general.flow';
@@ -488,6 +490,7 @@ export async function withFixtures(
   const {
     fixture: fixtureOption,
     restartDevice = false,
+    enableDeviceNetworkProxy,
     smartContracts,
     disableLocalNodes = false,
     dapps,
@@ -507,6 +510,8 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
   } = options;
+  const shouldEnableDeviceNetworkProxy =
+    enableDeviceNetworkProxy ?? process.env.METAMASK_BUILD_TYPE === 'flask';
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
@@ -573,6 +578,11 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    if (shouldEnableDeviceNetworkProxy) {
+      await enableDeviceTrafficProxyForMockServer(mockServerPort);
+    }
+
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -741,6 +751,15 @@ export async function withFixtures(
           );
           cleanupErrors.push(cleanupError as Error);
         }
+      }
+    }
+
+    if (shouldEnableDeviceNetworkProxy) {
+      try {
+        await disableDeviceTrafficProxy();
+      } catch (cleanupError) {
+        logger.error('Error disabling device network proxy:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
       }
     }
 

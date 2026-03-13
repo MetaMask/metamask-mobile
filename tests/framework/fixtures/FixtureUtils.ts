@@ -28,6 +28,11 @@ const logger = createLogger({
   name: 'FixtureUtils',
 });
 
+let androidDeviceProxyConfigured = false;
+let iosDeviceProxyConfigured = false;
+let iosProxyConfiguredViaNetworkSetup = false;
+let iosNetworkServicesWithProxy: string[] = [];
+
 /**
  * Maps ResourceType to fallback port.
  * These ports are used in fixture data and are mapped to actual allocated ports
@@ -113,6 +118,228 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
   }
 
   logger.debug('✓ Cleaned up test port forwarding');
+}
+
+/**
+ * Enables emulator/simulator HTTP(S) proxy so device-level traffic is captured by MockServer.
+ * This is especially useful for network calls that don't go through the app JS bridge
+ * (e.g., requests made inside WebViews).
+ *
+ * - Android: Uses global proxy settings pointing to fallback MockServer port (8000),
+ *   which is already mapped to the allocated host port via adb reverse.
+ * - iOS: Tries simulator-local proxy config first (simctl + defaults). If unavailable,
+ *   falls back to host networkservice proxy configuration via networksetup.
+ */
+export async function enableDeviceTrafficProxyForMockServer(
+  mockServerPort: number,
+): Promise<void> {
+  if (isBrowserStack()) {
+    logger.info(
+      'BrowserStack mode: skipping device-level proxy configuration for MockServer',
+    );
+    return;
+  }
+
+  if (await PlatformDetector.isAndroid()) {
+    let deviceFlag = '';
+    if (FrameworkDetector.isDetox()) {
+      const deviceId = device.id || '';
+      deviceFlag = deviceId ? `-s ${deviceId}` : '';
+    }
+
+    const proxyHost = '127.0.0.1';
+    const proxyPort = FALLBACK_MOCKSERVER_PORT;
+    const exclusionList = 'localhost,127.0.0.1,10.0.2.2';
+
+    await execAsync(
+      `adb ${deviceFlag} shell settings put global http_proxy ${proxyHost}:${proxyPort}`,
+    );
+    await execAsync(
+      `adb ${deviceFlag} shell settings put global global_http_proxy_host ${proxyHost}`,
+    );
+    await execAsync(
+      `adb ${deviceFlag} shell settings put global global_http_proxy_port ${proxyPort}`,
+    );
+    await execAsync(
+      `adb ${deviceFlag} shell settings put global global_http_proxy_exclusion_list ${exclusionList}`,
+    );
+
+    androidDeviceProxyConfigured = true;
+    logger.info(
+      `Enabled Android device proxy ${proxyHost}:${proxyPort} (MockServer allocated port: ${mockServerPort})`,
+    );
+    return;
+  }
+
+  if (!(await PlatformDetector.isIOS())) {
+    return;
+  }
+
+  if (process.platform !== 'darwin') {
+    logger.warn(
+      'Skipping iOS simulator proxy setup because host platform is not macOS',
+    );
+    return;
+  }
+
+  const proxyHost = '127.0.0.1';
+
+  // Prefer simulator-local proxy settings first to avoid mutating host network services.
+  try {
+    const targetSimulator =
+      FrameworkDetector.isDetox() && device?.id ? device.id : 'booted';
+
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPEnable -int 1`,
+    );
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPProxy -string ${proxyHost}`,
+    );
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPPort -int ${mockServerPort}`,
+    );
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPSEnable -int 1`,
+    );
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPSProxy -string ${proxyHost}`,
+    );
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPSPort -int ${mockServerPort}`,
+    );
+
+    iosDeviceProxyConfigured = true;
+    iosProxyConfiguredViaNetworkSetup = false;
+    logger.info(
+      `Enabled iOS simulator proxy via simctl defaults (${proxyHost}:${mockServerPort})`,
+    );
+    return;
+  } catch (simctlError) {
+    logger.warn(
+      'Failed to enable iOS simulator proxy via simctl defaults, trying networksetup fallback',
+      simctlError,
+    );
+  }
+
+  // Fallback: mutate host network service proxy settings.
+  const { stdout } = await execAsync('networksetup -listallnetworkservices');
+  const services = stdout
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(
+      (line) =>
+        line &&
+        !line.startsWith('An asterisk') &&
+        !line.startsWith('*'),
+    );
+
+  const configuredServices: string[] = [];
+  for (const service of services) {
+    try {
+      await execAsync(
+        `networksetup -setwebproxy "${service}" ${proxyHost} ${mockServerPort}`,
+      );
+      await execAsync(
+        `networksetup -setsecurewebproxy "${service}" ${proxyHost} ${mockServerPort}`,
+      );
+      await execAsync(`networksetup -setwebproxystate "${service}" on`);
+      await execAsync(`networksetup -setsecurewebproxystate "${service}" on`);
+      await execAsync(
+        `networksetup -setproxybypassdomains "${service}" localhost 127.0.0.1 ::1`,
+      );
+      configuredServices.push(service);
+    } catch (serviceError) {
+      logger.warn(
+        `Failed enabling proxy on macOS network service "${service}"`,
+        serviceError,
+      );
+    }
+  }
+
+  if (configuredServices.length === 0) {
+    throw new Error(
+      'Could not enable iOS simulator proxy: no network service accepted proxy configuration',
+    );
+  }
+
+  iosDeviceProxyConfigured = true;
+  iosProxyConfiguredViaNetworkSetup = true;
+  iosNetworkServicesWithProxy = configuredServices;
+  logger.info(
+    `Enabled iOS simulator proxy via networksetup on ${configuredServices.length} service(s): ${configuredServices.join(', ')}`,
+  );
+}
+
+/**
+ * Disables previously configured emulator/simulator proxy settings.
+ * Safe to call multiple times.
+ */
+export async function disableDeviceTrafficProxy(): Promise<void> {
+  if (isBrowserStack()) {
+    return;
+  }
+
+  if ((await PlatformDetector.isAndroid()) && androidDeviceProxyConfigured) {
+    let deviceFlag = '';
+    if (FrameworkDetector.isDetox()) {
+      const deviceId = device.id || '';
+      deviceFlag = deviceId ? `-s ${deviceId}` : '';
+    }
+
+    await execAsync(`adb ${deviceFlag} shell settings put global http_proxy :0`);
+    await execAsync(
+      `adb ${deviceFlag} shell settings delete global global_http_proxy_host`,
+    );
+    await execAsync(
+      `adb ${deviceFlag} shell settings delete global global_http_proxy_port`,
+    );
+    await execAsync(
+      `adb ${deviceFlag} shell settings delete global global_http_proxy_exclusion_list`,
+    );
+
+    androidDeviceProxyConfigured = false;
+    logger.info('Disabled Android device proxy settings');
+    return;
+  }
+
+  if (!(await PlatformDetector.isIOS()) || !iosDeviceProxyConfigured) {
+    return;
+  }
+
+  if (process.platform !== 'darwin') {
+    iosDeviceProxyConfigured = false;
+    iosProxyConfiguredViaNetworkSetup = false;
+    iosNetworkServicesWithProxy = [];
+    return;
+  }
+
+  if (iosProxyConfiguredViaNetworkSetup) {
+    for (const service of iosNetworkServicesWithProxy) {
+      try {
+        await execAsync(`networksetup -setwebproxystate "${service}" off`);
+        await execAsync(`networksetup -setsecurewebproxystate "${service}" off`);
+      } catch (serviceError) {
+        logger.warn(
+          `Failed disabling proxy on macOS network service "${service}"`,
+          serviceError,
+        );
+      }
+    }
+  } else {
+    const targetSimulator =
+      FrameworkDetector.isDetox() && device?.id ? device.id : 'booted';
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPEnable -int 0`,
+    );
+    await execAsync(
+      `xcrun simctl spawn ${targetSimulator} defaults write com.apple.CFNetwork ProxiesHTTPSEnable -int 0`,
+    );
+  }
+
+  iosDeviceProxyConfigured = false;
+  iosProxyConfiguredViaNetworkSetup = false;
+  iosNetworkServicesWithProxy = [];
+  logger.info('Disabled iOS simulator proxy settings');
 }
 
 /**
