@@ -10,12 +10,11 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   FontWeight,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -54,7 +53,7 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
           <Icon
             name={IconName.Add}
             size={IconSize.Md}
-            color={IconColor.Default}
+            color={IconColor.IconDefault}
           />
         </Box>
         <Text

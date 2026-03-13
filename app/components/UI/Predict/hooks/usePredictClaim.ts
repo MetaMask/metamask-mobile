@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import Logger from '../../../../util/Logger';

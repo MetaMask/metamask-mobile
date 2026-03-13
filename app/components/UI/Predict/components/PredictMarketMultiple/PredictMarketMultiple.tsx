@@ -3,6 +3,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -19,11 +23,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
@@ -339,7 +338,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 <Icon
                   name={IconName.Refresh}
                   size={IconSize.Md}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                   style={tw.style('mr-1 flex-shrink-0')}
                 />
                 <Text

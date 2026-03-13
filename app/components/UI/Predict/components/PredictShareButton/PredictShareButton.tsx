@@ -1,9 +1,5 @@
 import React, { useCallback, useContext } from 'react';
 import { Pressable, Share } from 'react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,7 +7,12 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { PredictShareStatus } from '../../constants/eventNames';
 

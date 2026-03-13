@@ -1,6 +1,6 @@
 import { useCallback, useContext, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import {
   ToastContext,
   ToastVariants,
