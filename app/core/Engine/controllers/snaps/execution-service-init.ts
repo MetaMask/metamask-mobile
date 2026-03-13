@@ -1,5 +1,5 @@
 import { AbstractExecutionService } from '@metamask/snaps-controllers';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import { ControllerInitFunction } from '../../types';
 import { ExecutionServiceMessenger } from '../../messengers/snaps';

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import net from 'net';
 import { createLogger } from './logger.ts';
 import {

@@ -14,7 +14,7 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TokenDetails from './';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as reactRedux from 'react-redux';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';

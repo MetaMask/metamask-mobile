@@ -20,7 +20,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { showAlert } from '../../../actions/alert';
 import Logger from '../../../util/Logger';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
