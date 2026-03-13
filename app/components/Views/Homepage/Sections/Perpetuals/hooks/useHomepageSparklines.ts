@@ -36,36 +36,52 @@ function extractCloses(candleData: CandleData): number[] {
  * Uses the existing CandleStreamChannel which handles caching, ref-counting,
  * and reconnection automatically.
  *
+ * Candle callbacks arrive independently per symbol. A microtask-based flush
+ * coalesces rapid-fire arrivals into a single React state update so the
+ * parent component re-renders once instead of N times (one per symbol).
+ *
  * @param symbols - Market symbols to fetch sparklines for
  */
 export function useHomepageSparklines(
   symbols: string[],
 ): UseHomepageSparklinesResult {
+  const safeSymbols = useMemo(() => symbols ?? [], [symbols]);
   const stream = usePerpsStream();
   const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
   const dataRef = useRef<Record<string, number[]>>({});
+  const flushScheduledRef = useRef(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Stable string key so the effect doesn't re-run on every render
-  // when the caller produces a new array reference with the same contents.
-  const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
+  const symbolsKey = useMemo(() => safeSymbols.join(','), [safeSymbols]);
 
   useEffect(() => {
     if (!symbolsKey) return undefined;
 
     dataRef.current = {};
+    flushScheduledRef.current = false;
     setSparklines({});
 
-    const unsubscribes: (() => void)[] = [];
+    const scheduleFlush = () => {
+      if (flushScheduledRef.current) return;
+      flushScheduledRef.current = true;
+      queueMicrotask(() => {
+        flushScheduledRef.current = false;
+        setSparklines({ ...dataRef.current });
+      });
+    };
 
-    for (const symbol of symbols) {
+    const unsubscribes: (() => void)[] = [];
+    const syms = symbolsKey.split(',').filter(Boolean);
+
+    for (const symbol of syms) {
       const unsubscribe = stream.candles.subscribe({
         symbol,
         interval: CandlePeriod.FifteenMinutes,
         duration: TimeDuration.OneDay,
         callback: (candleData: CandleData) => {
           if (dataRef.current[symbol]) return;
-          if (!candleData || candleData.candles.length < 2) return;
+          if (!candleData?.candles || candleData.candles.length < 2) return;
 
           const closes = extractCloses(candleData);
           if (closes.length < 2) return;
@@ -74,7 +90,7 @@ export function useHomepageSparklines(
             ...dataRef.current,
             [symbol]: downsample(closes, SPARKLINE_TARGET_POINTS),
           };
-          setSparklines({ ...dataRef.current });
+          scheduleFlush();
         },
       });
       unsubscribes.push(unsubscribe);

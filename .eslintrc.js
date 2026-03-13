@@ -91,7 +91,11 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
+      files: [
+        'scripts/**/*.{js,ts}',
+        'tests/tools/**/*.{js,ts}',
+        'app.config.js',
+      ],
       rules: {
         'no-console': 'off',
         'import/no-commonjs': 'off',
@@ -117,17 +121,19 @@ module.exports = {
       },
     },
     {
-      files: ['app/components/UI/Card/**/*.{js,jsx,ts,tsx}'],
+      files: [
+        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
+        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+      ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
       },
     },
-    {
-      files: ['app/components/Snaps/**/*.{js,jsx,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
-      },
-    },
+
     {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',

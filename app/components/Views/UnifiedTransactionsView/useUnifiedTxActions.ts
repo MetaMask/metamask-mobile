@@ -57,6 +57,15 @@ interface LedgerSignRequest {
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : undefined;
 
+export const SpeedUpCancelModalState = {
+  Closed: 'closed',
+  SpeedUp: 'speedUp',
+  Cancel: 'cancel',
+} as const;
+
+export type SpeedUpCancelModalState =
+  (typeof SpeedUpCancelModalState)[keyof typeof SpeedUpCancelModalState];
+
 export function useUnifiedTxActions() {
   const navigation = useNavigation();
 
@@ -70,12 +79,9 @@ export function useUnifiedTxActions() {
   const [retryErrorMsg, setRetryErrorMsg] = useState<string | undefined>(
     undefined,
   );
-  const [speedUpIsOpen, setSpeedUpIsOpen] = useState(false);
-  const [cancelIsOpen, setCancelIsOpen] = useState(false);
-  const [speedUp1559IsOpen, setSpeedUp1559IsOpen] = useState(false);
-  const [cancel1559IsOpen, setCancel1559IsOpen] = useState(false);
-  const [speedUpConfirmDisabled, setSpeedUpConfirmDisabled] = useState(false);
-  const [cancelConfirmDisabled, setCancelConfirmDisabled] = useState(false);
+  const [speedUpCancelModalState, setSpeedUpCancelModalState] =
+    useState<SpeedUpCancelModalState>(SpeedUpCancelModalState.Closed);
+  const [confirmDisabled, setConfirmDisabled] = useState(false);
   const [existingTx, setExistingTx] = useState<TransactionMeta | null>(null);
   const [speedUpTxId, setSpeedUpTxId] = useState<Maybe<string>>(null);
   const [cancelTxId, setCancelTxId] = useState<Maybe<string>>(null);
@@ -89,19 +95,16 @@ export function useUnifiedTxActions() {
     setRetryErrorMsg(msg);
   };
 
-  const onSpeedUpCompleted = useCallback(() => {
-    setSpeedUp1559IsOpen(false);
-    setSpeedUpIsOpen(false);
+  const closeSpeedUpCancelModal = useCallback(() => {
+    setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     setSpeedUpTxId(null);
-    setExistingTx(null);
-  }, []);
-
-  const onCancelCompleted = useCallback(() => {
-    setCancel1559IsOpen(false);
-    setCancelIsOpen(false);
     setCancelTxId(null);
     setExistingTx(null);
   }, []);
+
+  const onSpeedUpCancelCompleted = useCallback(() => {
+    closeSpeedUpCancelModal();
+  }, [closeSpeedUpCancelModal]);
 
   const signLedgerTransaction = useCallback(
     async (transaction: LedgerSignRequest) => {
@@ -110,12 +113,7 @@ export function useUnifiedTxActions() {
         // Clean up modal state regardless of whether the user confirmed or rejected.
         // Without this, rejecting on the Ledger modal leaves stale state that can
         // cause the speed up/cancel modal to reappear unexpectedly.
-        const isSpeedUp = transaction.speedUpParams?.type === 'SpeedUp';
-        if (isSpeedUp) {
-          onSpeedUpCompleted();
-        } else {
-          onCancelCompleted();
-        }
+        onSpeedUpCancelCompleted();
       };
       navigation.navigate(
         ...createLedgerTransactionModalNavDetails({
@@ -126,7 +124,7 @@ export function useUnifiedTxActions() {
         }),
       );
     },
-    [navigation, onSpeedUpCompleted, onCancelCompleted],
+    [navigation, onSpeedUpCancelCompleted],
   );
 
   const getGasPriceEstimate = () => getMediumGasPriceHex(gasFeeEstimates);
@@ -148,8 +146,7 @@ export function useUnifiedTxActions() {
 
   const onSpeedUpAction = (open: boolean, tx?: TransactionMeta) => {
     if (!open) {
-      setSpeedUpIsOpen(false);
-      setSpeedUp1559IsOpen(false);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
       return;
     }
     if (!tx) {
@@ -157,17 +154,21 @@ export function useUnifiedTxActions() {
     }
     setExistingTx(tx);
     setSpeedUpTxId(tx.id ?? null);
-    const disabled = Boolean(
-      validateTransactionActionBalance(tx, SPEED_UP_RATE.toString(), accounts),
+    setConfirmDisabled(
+      Boolean(
+        validateTransactionActionBalance(
+          tx,
+          SPEED_UP_RATE.toString(),
+          accounts,
+        ),
+      ),
     );
-    setSpeedUpConfirmDisabled(disabled);
-    setSpeedUpIsOpen(true);
+    setSpeedUpCancelModalState(SpeedUpCancelModalState.SpeedUp);
   };
 
   const onCancelAction = (open: boolean, tx?: TransactionMeta) => {
     if (!open) {
-      setCancelIsOpen(false);
-      setCancel1559IsOpen(false);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
       return;
     }
     if (!tx) {
@@ -175,11 +176,12 @@ export function useUnifiedTxActions() {
     }
     setExistingTx(tx);
     setCancelTxId(tx.id ?? null);
-    const disabled = Boolean(
-      validateTransactionActionBalance(tx, CANCEL_RATE.toString(), accounts),
+    setConfirmDisabled(
+      Boolean(
+        validateTransactionActionBalance(tx, CANCEL_RATE.toString(), accounts),
+      ),
     );
-    setCancelConfirmDisabled(disabled);
-    setCancelIsOpen(true);
+    setSpeedUpCancelModalState(SpeedUpCancelModalState.Cancel);
   };
 
   const getParamsToSend = (
@@ -229,11 +231,10 @@ export function useUnifiedTxActions() {
       }
 
       await speedUpTx(speedUpTxId, getParamsToSend(params));
-      onSpeedUpCompleted();
+      onSpeedUpCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setSpeedUp1559IsOpen(false);
-      setSpeedUpIsOpen(false);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
 
@@ -266,11 +267,10 @@ export function useUnifiedTxActions() {
         cancelTxId,
         getParamsToSend(params),
       );
-      onCancelCompleted();
+      onSpeedUpCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setCancel1559IsOpen(false);
-      setCancelIsOpen(false);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
 
@@ -298,20 +298,16 @@ export function useUnifiedTxActions() {
   return {
     retryIsOpen,
     retryErrorMsg,
-    speedUpIsOpen,
-    cancelIsOpen,
-    speedUp1559IsOpen,
-    cancel1559IsOpen,
-    speedUpConfirmDisabled,
-    cancelConfirmDisabled,
+    speedUpIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.SpeedUp,
+    cancelIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.Cancel,
+    confirmDisabled,
     existingTx,
     speedUpTxId,
     cancelTxId,
     toggleRetry,
     onSpeedUpAction,
     onCancelAction,
-    onSpeedUpCompleted,
-    onCancelCompleted,
+    onSpeedUpCancelCompleted,
     speedUpTransaction,
     cancelTransaction,
     signQRTransaction,

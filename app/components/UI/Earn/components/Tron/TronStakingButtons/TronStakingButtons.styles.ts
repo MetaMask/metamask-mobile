@@ -9,17 +9,6 @@ const styleSheet = (params: { theme: Theme }) =>
       borderRadius: 12,
       backgroundColor: params.theme.colors.background.section,
     },
-    ctaContent: {
-      alignItems: 'center',
-      marginBottom: 16,
-      gap: 4,
-    },
-    ctaTitle: {
-      textAlign: 'center',
-    },
-    ctaText: {
-      textAlign: 'center',
-    },
     buttonsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -31,7 +31,7 @@ export interface OrderCompletedParams {
 
 const OrderCompleted: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const { fromUpgrade } = useParams<OrderCompletedParams>();
 
@@ -56,8 +56,16 @@ const OrderCompleted: React.FC = () => {
         .build(),
     );
 
-    navigate(Routes.CARD.HOME);
-  }, [navigate, trackEvent, createEventBuilder, fromUpgrade]);
+    if (fromUpgrade) {
+      navigation.navigate(Routes.CARD.HOME);
+    } else {
+      navigation.dispatch(
+        StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
+          flow: 'onboarding',
+        }),
+      );
+    }
+  }, [navigation, trackEvent, createEventBuilder, fromUpgrade]);
 
   const buttonLabel = fromUpgrade
     ? strings('card.order_completed.back_to_card_button')

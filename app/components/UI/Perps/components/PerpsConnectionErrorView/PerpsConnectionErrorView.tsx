@@ -61,6 +61,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.NETWORK,
       [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
       [PERPS_EVENT_PROPERTY.RETRY_ATTEMPTS]: retryAttempts,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
     });
   }, [retryAttempts, errorMessage, track]);
 

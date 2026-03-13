@@ -12,7 +12,7 @@ type RewardEvent = `RewardsController:${string}`;
  * @param callback - The function to execute when any of the specified events are triggered.
  */
 export const useInvalidateByRewardEvents = (
-  events: RewardEvent[],
+  events: readonly RewardEvent[],
   callback: () => void,
 ): void => {
   // Subscribe to events and clean up on unmount or when events change

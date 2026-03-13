@@ -12,16 +12,11 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 ### Component-View Tests (Mandatory)
 
-- [.cursor/rules/component-view-testing.mdc](../.cursor/rules/component-view-testing.mdc) — Mock policy, presets/renderers, navigation, test structure, **no fake timers**.
-- [tests/component-view/README.md](component-view/README.md) — Framework layout, usage, presets, renderers, platform matrix.
-- [tests/component-view/COMPONENT_VIEW_TEST_RULES.md](component-view/COMPONENT_VIEW_TEST_RULES.md) — Detailed rules, allowed mocks, avoid fake timers, how to write component-view tests.
+- [tests/component-view/AGENTS.md](component-view/AGENTS.md) — Agent index for component view tests: framework, canonical skill, run commands, enforcement.
 
-### Implementation Reference (Component-View)
+### E2E Tests (Detox smoke/regression)
 
-- Mocks: [tests/component-view/mocks.ts](component-view/mocks.ts)
-- Presets: [tests/component-view/presets/](component-view/presets/)
-- Renderers: [tests/component-view/renderers/](component-view/renderers/)
-- State fixture: [tests/component-view/stateFixture.ts](component-view/stateFixture.ts)
+- [.agents/skills/e2e-test/SKILL.md](../.agents/skills/e2e-test/SKILL.md) — Canonical skill for adding or fixing E2E specs: workflow, decision tree, references (writing-tests, page-objects, mocking, running-tests).
 
 ## Canonical Sources (read these, do not duplicate)
 
@@ -42,5 +37,5 @@ Unit tests under `tests/` (e.g. framework tests): [.cursor/rules/unit-testing-gu
 
 - **tests/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `tests/selectors/` or page folder; import from `tests/framework/index.ts`. Commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
 - **tests/** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Regression/smoke: same as e2e (withFixtures, Page Objects, no delay). Yarn only.
-- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See COMPONENT_VIEW_TEST_RULES.md.
+- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See `.agents/skills/component-view-test/SKILL.md`.
 - **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
