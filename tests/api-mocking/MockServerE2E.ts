@@ -18,6 +18,8 @@ import {
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import {
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from '../framework/Constants.ts';
@@ -84,7 +86,11 @@ const translateFallbackPortToActual = (url: string): string => {
 
     // Map fallback ports to actual allocated ports
     // Try Ganache first, fallback to Anvil if Ganache not running
-    if (portNum === FALLBACK_GANACHE_PORT) {
+    if (portNum === FALLBACK_FIXTURE_SERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.FIXTURE_SERVER);
+    } else if (portNum === FALLBACK_COMMAND_QUEUE_SERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.COMMAND_QUEUE_SERVER);
+    } else if (portNum === FALLBACK_GANACHE_PORT) {
       actualPort = portManager.getPort(ResourceType.GANACHE);
       if (actualPort === undefined) {
         actualPort = portManager.getPort(ResourceType.ANVIL);
@@ -114,6 +120,43 @@ const translateFallbackPortToActual = (url: string): string => {
   } catch (error) {
     logger.warn('Failed to parse URL for port translation:', url, error);
     return url;
+  }
+};
+
+/**
+ * Some app code probes the command queue debug endpoint even when the command queue
+ * server is not enabled for the current test. When device proxying is active, those
+ * probes are routed through MockServer and would fail with fetch errors.
+ *
+ * Treat this endpoint as optional and return an empty JSON response when no
+ * command queue server port is allocated for the test.
+ */
+const isOptionalCommandQueueDebugEndpoint = (url: string): boolean => {
+  try {
+    const parsedUrl = new URL(url);
+    const isLocalhost =
+      parsedUrl.hostname === 'localhost' ||
+      parsedUrl.hostname === '127.0.0.1' ||
+      parsedUrl.hostname === '10.0.2.2';
+
+    if (!isLocalhost) {
+      return false;
+    }
+
+    if (parsedUrl.port !== FALLBACK_COMMAND_QUEUE_SERVER_PORT.toString()) {
+      return false;
+    }
+
+    if (parsedUrl.pathname !== '/debug.json') {
+      return false;
+    }
+
+    const commandQueuePort = PortManager.getInstance().getPort(
+      ResourceType.COMMAND_QUEUE_SERVER,
+    );
+    return commandQueuePort === undefined;
+  } catch {
+    return false;
   }
 };
 
@@ -394,6 +437,9 @@ export default class MockServerE2E implements Resource {
           }
 
           try {
+            if (isOptionalCommandQueueDebugEndpoint(updatedUrl)) {
+              return { statusCode: 200, body: '{}' };
+            }
             return await handleDirectFetch(
               updatedUrl,
               method,
@@ -486,6 +532,9 @@ export default class MockServerE2E implements Resource {
         }
 
         try {
+          if (isOptionalCommandQueueDebugEndpoint(translatedUrl)) {
+            return { statusCode: 200, body: '{}' };
+          }
           // Read body safely before passing to handleDirectFetch to catch abort errors
           const bodyText = await safeGetBodyText(request);
           // If body read was aborted, return 499 (client closed request)
