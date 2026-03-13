@@ -20,13 +20,6 @@ export const styleSheet = (_params: { theme: Theme }) =>
       paddingHorizontal: 16,
       alignItems: 'center',
     },
-    heading: {
-      fontFamily: 'MMPoly-Regular',
-      fontSize: 40,
-      lineHeight: 40,
-      paddingVertical: 16,
-      textAlign: 'center',
-    },
     bodyText: {
       textAlign: 'center',
       paddingHorizontal: 30,
