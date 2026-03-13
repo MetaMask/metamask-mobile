@@ -44,10 +44,6 @@ const QuoteExpiredModal = () => {
 
   const handleGetNewQuote = () => {
     dispatch(setIsSubmittingTx(false));
-    // Reset bridge controller state
-    if (Engine.context.BridgeController?.resetState) {
-      Engine.context.BridgeController.resetState();
-    }
     // Update quote params to fetch new quote
     updateQuoteParams();
     // Close the modal
