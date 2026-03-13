@@ -1,12 +1,11 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, forwardRef, useImperativeHandle } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Keypad from '../../../../Base/Keypad';
-import { strings } from '../../../../../../locales/i18n';
 
 interface PredictKeypadProps {
   isInputFocused: boolean;
@@ -15,8 +14,6 @@ interface PredictKeypadProps {
   setCurrentValue: (value: number) => void;
   setCurrentValueUSDString: (value: string) => void;
   setIsInputFocused: (focused: boolean) => void;
-  hasInsufficientFunds?: boolean;
-  onAddFunds?: () => void;
 }
 
 export interface PredictKeypadHandles {
@@ -34,8 +31,6 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
       setCurrentValue,
       setCurrentValueUSDString,
       setIsInputFocused,
-      hasInsufficientFunds = false,
-      onAddFunds,
     },
     ref,
   ) => {
@@ -144,46 +139,36 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     return (
       <View style={tw.style('py-4')}>
         <View style={tw.style('px-4 mb-3')}>
-          {hasInsufficientFunds && onAddFunds ? (
+          <View style={tw.style('flex-row space-between gap-2')}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="$20"
+              onPress={() => handleKeypadAmountPress(20)}
+              style={tw.style('flex-1 h-12')}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="$50"
+              onPress={() => handleKeypadAmountPress(50)}
+              style={tw.style('flex-1 h-12')}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="$100"
+              onPress={() => handleKeypadAmountPress(100)}
+              style={tw.style('flex-1 h-12')}
+            />
             <Button
               variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              label={strings('predict.deposit.add_funds')}
-              onPress={onAddFunds}
-              style={tw.style('w-full')}
+              size={ButtonSize.Md}
+              label="Done"
+              onPress={handleDonePress}
+              style={tw.style('flex-1 h-12')}
             />
-          ) : (
-            <View style={tw.style('flex-row space-between gap-2')}>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Md}
-                label="$20"
-                onPress={() => handleKeypadAmountPress(20)}
-                style={tw.style('flex-1 h-12')}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Md}
-                label="$50"
-                onPress={() => handleKeypadAmountPress(50)}
-                style={tw.style('flex-1 h-12')}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Md}
-                label="$100"
-                onPress={() => handleKeypadAmountPress(100)}
-                style={tw.style('flex-1 h-12')}
-              />
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Md}
-                label="Done"
-                onPress={handleDonePress}
-                style={tw.style('flex-1 h-12')}
-              />
-            </View>
-          )}
+          </View>
         </View>
         <Keypad
           value={currentValueUSDString}
