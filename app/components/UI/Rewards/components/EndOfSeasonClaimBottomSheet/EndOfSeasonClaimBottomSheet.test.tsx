@@ -741,12 +741,9 @@ describe('EndOfSeasonClaimBottomSheet', () => {
         fireEvent.press(confirmButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: testUrl,
-          timestamp: expect.any(Number),
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.VIEW, {
+        newTabUrl: testUrl,
+        timestamp: expect.any(Number),
       });
     });
 
@@ -770,12 +767,9 @@ describe('EndOfSeasonClaimBottomSheet', () => {
         fireEvent.press(confirmButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: testUrl,
-          timestamp: expect.any(Number),
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.VIEW, {
+        newTabUrl: testUrl,
+        timestamp: expect.any(Number),
       });
     });
 
