@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import React, { memo, useMemo } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, View, ViewStyle } from 'react-native';
 import Text, {
   TextVariant,
@@ -10,6 +10,8 @@ import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 interface TrendingTokenLogoProps {
   assetId: string;
   symbol?: string;
+  /** Fallback image URI from API response (e.g. baseToken.imageUrl) tried before showing text */
+  fallbackImageUri?: string;
   size?: number;
   style?: ViewStyle;
   testID?: string;
@@ -19,16 +21,30 @@ interface TrendingTokenLogoProps {
 const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
   assetId,
   symbol,
+  fallbackImageUri,
   size = 44,
   style,
   testID,
   recyclingKey,
 }) => {
-  const imageUri = useMemo(() => getTrendingTokenImageUrl(assetId), [assetId]);
+  const primaryImageUri = useMemo(
+    () => getTrendingTokenImageUrl(assetId),
+    [assetId],
+  );
+
+  // Track which URI we're currently showing: 'primary' → 'fallback' → error state
+  const [activeUri, setActiveUri] = useState<string>(primaryImageUri);
+  const [exhausted, setExhausted] = useState(false);
+
+  // Reset state when assetId changes — FlashList recycles cells so useState
+  // would otherwise carry over stale values from the previously rendered token.
+  useEffect(() => {
+    setActiveUri(primaryImageUri);
+    setExhausted(false);
+  }, [primaryImageUri]);
 
   const fallbackText = useMemo(() => {
     const displaySymbol = symbol || '';
-    // Get first 2 letters, uppercase
     return displaySymbol.substring(0, 2).toUpperCase();
   }, [symbol]);
 
@@ -41,14 +57,25 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
     fallbackTextStyle,
     handleLoadStart,
     handleLoadEnd,
-    handleError,
+    handleError: markError,
   } = useTokenLogo({
     symbol: symbol || '',
     size,
   });
 
-  // Show custom two-letter fallback if no symbol or error
-  if (!symbol || hasError) {
+  const handleError = useCallback(() => {
+    if (activeUri === primaryImageUri && fallbackImageUri) {
+      // First failure: try the API-provided fallback image
+      setActiveUri(fallbackImageUri);
+    } else {
+      // Both URIs failed — surface the error state
+      setExhausted(true);
+      markError();
+    }
+  }, [activeUri, primaryImageUri, fallbackImageUri, markError]);
+
+  // Show text fallback when: no symbol, all image sources exhausted, or hook reports error
+  if (!symbol || exhausted || hasError) {
     return (
       <View style={[containerStyle, style]} testID={testID}>
         <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
@@ -66,8 +93,8 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
         </View>
       )}
       <Image
-        key={recyclingKey || symbol} // Use recyclingKey for proper recycling
-        source={{ uri: imageUri }}
+        key={activeUri} // Remount when URI changes to trigger a fresh load
+        source={{ uri: activeUri }}
         style={imageStyle}
         onLoadStart={handleLoadStart}
         onLoadEnd={handleLoadEnd}
