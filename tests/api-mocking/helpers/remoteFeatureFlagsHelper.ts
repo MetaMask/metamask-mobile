@@ -131,6 +131,7 @@ export const createRemoteFeatureFlagsMock = (
 export const setupRemoteFeatureFlagsMock = async (
   mockServer: Mockttp,
   flagOverrides: Record<string, unknown> = {},
+  priority?: number,
 ): Promise<void> => {
   const environments = ['dev', 'test', 'prod'] as const;
   const distributions = ['main', 'flask'] as const;
@@ -140,12 +141,16 @@ export const setupRemoteFeatureFlagsMock = async (
       const { urlEndpoint, response, responseCode } =
         createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
 
-      return setupMockRequest(mockServer, {
-        requestMethod: 'GET',
+      const mockConfig = {
+        requestMethod: 'GET' as const,
         url: urlEndpoint,
         response,
         responseCode,
-      });
+      };
+
+      return priority !== undefined
+        ? setupMockRequest(mockServer, mockConfig, priority)
+        : setupMockRequest(mockServer, mockConfig);
     }),
   );
 
