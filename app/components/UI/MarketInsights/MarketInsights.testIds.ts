@@ -10,6 +10,8 @@ export enum MarketInsightsSelectorsIDs {
   THUMBS_UP_BUTTON = 'market-insights-thumbs-up-button',
   THUMBS_DOWN_BUTTON = 'market-insights-thumbs-down-button',
   TRADE_BUTTON = 'market-insights-trade-button',
+  LONG_BUTTON = 'market-insights-long-button',
+  SHORT_BUTTON = 'market-insights-short-button',
   FEEDBACK_BOTTOM_SHEET = 'market-insights-feedback-bottom-sheet',
   FEEDBACK_OPTION_NOT_RELEVANT = 'market-insights-feedback-option-not-relevant',
   FEEDBACK_OPTION_NOT_ACCURATE = 'market-insights-feedback-option-not-accurate',
