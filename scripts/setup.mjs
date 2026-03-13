@@ -206,7 +206,52 @@ const jetifyTask = {
 
 const patchPackageTask = {
   title: 'Patch npm packages',
-  task: async () => {
+  task: async (_, task) => {
+    // Validate patch versions match installed packages before applying
+    const patchesDir = path.resolve(process.cwd(), 'patches');
+    if (fs.existsSync(patchesDir)) {
+      const patchFiles = fs.readdirSync(patchesDir).filter(f => f.endsWith('.patch'));
+      const mismatches = [];
+
+      for (const patchFile of patchFiles) {
+        // Parse patch filename: @scope+package+version.patch or package+version.patch
+        const match = patchFile.match(/^(.+)\+(\d+\.\d+\.\d+.*)\.patch$/);
+        if (!match) continue;
+
+        const [, packageNameEncoded, patchVersion] = match;
+        // Convert + back to / for scoped packages (e.g., @metamask+foo -> @metamask/foo)
+        const packageName = packageNameEncoded.replace(/\+/g, '/');
+
+        try {
+          const pkgJsonPath = path.resolve(process.cwd(), 'node_modules', packageName, 'package.json');
+          if (fs.existsSync(pkgJsonPath)) {
+            const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
+            const installedVersion = pkgJson.version;
+
+            // Extract base version for comparison (strip prerelease tags from patch filename)
+            const patchBaseVersion = patchVersion.replace(/[-+].*$/, '');
+            if (installedVersion !== patchBaseVersion && installedVersion !== patchVersion) {
+              mismatches.push({
+                package: packageName,
+                patchVersion,
+                installedVersion,
+                patchFile,
+              });
+            }
+          }
+        } catch {
+          // Skip if we can't read the package.json
+        }
+      }
+
+      if (mismatches.length > 0) {
+        const errorMsg = mismatches
+          .map(m => `  - ${m.package}: patch is for v${m.patchVersion}, but v${m.installedVersion} is installed\n    Rename: patches/${m.patchFile} -> patches/${m.patchFile.replace(m.patchVersion, m.installedVersion)}`)
+          .join('\n');
+        throw new Error(`Patch version mismatch detected:\n${errorMsg}`);
+      }
+    }
+
     await $`yarn patch-package --error-on-fail`;
   },
 };
