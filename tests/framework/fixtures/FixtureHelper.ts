@@ -690,6 +690,17 @@ export async function withFixtures(
       }
     }
 
+    // Disable device proxy before RN reload to avoid interfering with Detox transport
+    // during teardown/reconnect.
+    if (shouldEnableDeviceNetworkProxy) {
+      try {
+        await disableDeviceTrafficProxy();
+      } catch (cleanupError) {
+        logger.error('Error disabling device network proxy:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
     // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
     if (!skipReactNativeReload) {
       try {
@@ -751,15 +762,6 @@ export async function withFixtures(
           );
           cleanupErrors.push(cleanupError as Error);
         }
-      }
-    }
-
-    if (shouldEnableDeviceNetworkProxy) {
-      try {
-        await disableDeviceTrafficProxy();
-      } catch (cleanupError) {
-        logger.error('Error disabling device network proxy:', cleanupError);
-        cleanupErrors.push(cleanupError as Error);
       }
     }
 
