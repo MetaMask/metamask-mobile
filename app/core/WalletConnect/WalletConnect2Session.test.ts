@@ -1080,7 +1080,7 @@ describe('WalletConnect2Session', () => {
           jest.requireMock('./wc-utils') as any,
           'getChainIdForCaipChainId',
         )
-        .mockReturnValue('eip155:2');
+        .mockReturnValue('0x2');
       const handleChainChangeSpy = jest.spyOn(
         session as any,
         'handleChainChange',
