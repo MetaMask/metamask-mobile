@@ -315,7 +315,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                     <View
                       style={
                         {
-                          "height": 533.6,
+                          "maxHeight": 533.6,
                           "overflow": "hidden",
                         }
                       }
@@ -323,7 +323,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                       <View
                         style={
                           {
-                            "flex": 1,
+                            "flexShrink": 1,
                             "minHeight": 0,
                           }
                         }
@@ -408,7 +408,8 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                           stickyHeaderIndices={[]}
                           style={
                             {
-                              "flex": 1,
+                              "flexGrow": 0,
+                              "flexShrink": 1,
                               "minHeight": 0,
                             }
                           }
@@ -1081,7 +1082,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                     <View
                       style={
                         {
-                          "height": 533.6,
+                          "maxHeight": 533.6,
                           "overflow": "hidden",
                         }
                       }
@@ -1089,7 +1090,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                       <View
                         style={
                           {
-                            "flex": 1,
+                            "flexShrink": 1,
                             "minHeight": 0,
                           }
                         }
@@ -1134,7 +1135,8 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                           }
                           style={
                             {
-                              "flex": 1,
+                              "flexGrow": 0,
+                              "flexShrink": 1,
                               "minHeight": 0,
                             }
                           }
@@ -1577,7 +1579,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                     <View
                       style={
                         {
-                          "height": 533.6,
+                          "maxHeight": 533.6,
                           "overflow": "hidden",
                         }
                       }
@@ -1585,7 +1587,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                       <View
                         style={
                           {
-                            "flex": 1,
+                            "flexShrink": 1,
                             "minHeight": 0,
                           }
                         }
@@ -1624,7 +1626,8 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                         <RCTScrollView
                           style={
                             {
-                              "flex": 1,
+                              "flexGrow": 0,
+                              "flexShrink": 1,
                               "minHeight": 0,
                             }
                           }
@@ -3865,7 +3868,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                     <View
                       style={
                         {
-                          "height": 533.6,
+                          "maxHeight": 533.6,
                           "overflow": "hidden",
                         }
                       }
@@ -3873,7 +3876,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                       <View
                         style={
                           {
-                            "flex": 1,
+                            "flexShrink": 1,
                             "minHeight": 0,
                           }
                         }
@@ -3918,7 +3921,8 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                           }
                           style={
                             {
-                              "flex": 1,
+                              "flexGrow": 0,
+                              "flexShrink": 1,
                               "minHeight": 0,
                             }
                           }
