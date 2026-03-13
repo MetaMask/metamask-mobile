@@ -26,7 +26,7 @@ import BadgeWrapper, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { renderFiat } from '../../../../../util/number';
+import { renderFiat, renderNumber } from '../../../../../util/number';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import Button, {
@@ -209,6 +209,10 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
   const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
+  const tokenAmountDisplay = order.cryptoAmount
+    ? renderNumber(String(order.cryptoAmount))
+    : '...';
+
   const normalizeChainIdForBadge = (chainId: string): string => {
     if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
       return chainId;
@@ -318,7 +322,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {order.cryptoAmount} {cryptoSymbol}
+          {tokenAmountDisplay} {cryptoSymbol}
         </Text>
       </Box>
 

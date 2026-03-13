@@ -1,5 +1,9 @@
+import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
 import Checkout from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
@@ -36,12 +40,15 @@ jest.mock('../../../../hooks/useThunkDispatch', () => ({
 
 const mockGetOrderFromCallback = jest.fn();
 const mockAddOrder = jest.fn();
+const mockAddPrecreatedOrder = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getOrderFromCallback: (...args: unknown[]) =>
         mockGetOrderFromCallback(...args),
       addOrder: (...args: unknown[]) => mockAddOrder(...args),
+      addPrecreatedOrder: (...args: unknown[]) =>
+        mockAddPrecreatedOrder(...args),
     },
   },
 }));
@@ -208,15 +215,92 @@ describe('Checkout', () => {
       mockUseParams.mockReturnValue(V2_PARAMS);
     });
 
-    it('dispatches addFiatCustomIdData on mount when customOrderId is provided', () => {
+    it('calls addPrecreatedOrder on mount when orderId is provided', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/transak/orders/custom-order-xyz',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: '/providers/transak/orders/custom-order-xyz',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: '1',
+      });
+    });
+
+    it('calls addPrecreatedOrder on mount when customOrderId is provided (backward compat)', () => {
       mockUseParams.mockReturnValue({
         ...V2_PARAMS,
         customOrderId: 'custom-order-xyz',
       });
       render();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'FIAT_ADD_CUSTOM_ID_DATA' }),
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: 'custom-order-xyz',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: '1',
+      });
+    });
+
+    it('does not call addPrecreatedOrder when hasCallbackFlow is false (missing providerCode)', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        providerCode: undefined,
+        orderId: '/providers/transak/orders/xyz',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not call addPrecreatedOrder when hasCallbackFlow is false (missing walletAddress)', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        walletAddress: undefined,
+        orderId: '/providers/transak/orders/xyz',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
+    });
+
+    it('calls addPrecreatedOrder when network is empty (unusual chain ID format)', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/custom/orders/order-unusual-chain',
+        network: '',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: '/providers/custom/orders/order-unusual-chain',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: undefined,
+      });
+    });
+
+    it('calls addPrecreatedOrder only once when deps change but orderId stays the same (dedup)', () => {
+      const Stack = createStackNavigator();
+      const screenElement = (
+        <Stack.Navigator>
+          <Stack.Screen name={Routes.RAMP.CHECKOUT} component={Checkout} />
+        </Stack.Navigator>
       );
+
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/transak/orders/dedup-order-xyz',
+        network: '1',
+      });
+      const { rerender } = renderWithProvider(screenElement);
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledTimes(1);
+
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/transak/orders/dedup-order-xyz',
+        network: '2',
+      });
+      rerender(screenElement);
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledTimes(1);
     });
 
     it('ignores navigation state changes to non-callback URLs', async () => {
@@ -354,9 +438,7 @@ describe('Checkout', () => {
         CALLBACK_URL,
         '0xabc',
       );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'FIAT_REMOVE_CUSTOM_ID_DATA' }),
-      );
+      expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           routes: expect.arrayContaining([
