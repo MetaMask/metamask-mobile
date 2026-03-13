@@ -167,6 +167,12 @@ const createStyles = (params: { theme: Theme }) => {
       borderRadius: 16,
       paddingVertical: 8,
     },
+    connectionTitleContainer: {
+      justifyContent: 'center',
+      display: 'flex',
+      flexDirection: 'row',
+      gap: 3,
+    },
   });
 };
 

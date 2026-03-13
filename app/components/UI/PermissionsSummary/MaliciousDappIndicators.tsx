@@ -7,10 +7,11 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
+import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 
 const styles = StyleSheet.create({
   urlIcon: {
-    marginTop: 2,
+    marginTop: 1,
     alignSelf: 'center',
   },
   buttonContent: {
@@ -40,6 +41,38 @@ export const MaliciousDappUrlIcon = () => (
 );
 
 /**
+ * Icon displayed next to the dapp hostname based on the trust signal state.
+ */
+export const TrustSignalUrlIcon = ({
+  state,
+}: {
+  state: TrustSignalDisplayState;
+}) => {
+  switch (state) {
+    case TrustSignalDisplayState.Verified:
+      return (
+        <Icon
+          name={IconName.VerifiedFilled}
+          size={IconSize.Sm}
+          color={IconColor.Success}
+          style={styles.urlIcon}
+        />
+      );
+    case TrustSignalDisplayState.Malicious:
+      return (
+        <Icon
+          name={IconName.Danger}
+          size={IconSize.Sm}
+          color={IconColor.Error}
+          style={styles.urlIcon}
+        />
+      );
+    default:
+      return null;
+  }
+};
+
+/**
  * Content for the red "Connect" button on Step 1 of the malicious-dapp
  * warning flow.  Renders a danger triangle to the left of the "Connect" label.
  */
@@ -67,12 +100,17 @@ export const DangerConnectButtonContent = () => {
 export const getConnectButtonContent = (
   isMaliciousDapp: boolean,
   isNetworkSwitch: boolean,
+  trustSignalState?: TrustSignalDisplayState,
 ): React.ReactNode => {
-  if (isMaliciousDapp && !isNetworkSwitch) {
-    return <DangerConnectButtonContent />;
-  }
   if (isNetworkSwitch) {
     return strings('confirmation_modal.confirm_cta');
   }
+  if (
+    isMaliciousDapp ||
+    trustSignalState === TrustSignalDisplayState.Malicious
+  ) {
+    return <DangerConnectButtonContent />;
+  }
+
   return strings('accounts.connect');
 };

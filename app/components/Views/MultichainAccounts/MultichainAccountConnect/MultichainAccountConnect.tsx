@@ -93,6 +93,11 @@ import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
 import AccountConnectMaliciousWarning from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning';
+import TrustSignalModal, {
+  useTrustSignalState,
+  useTrustSignalGateControl,
+} from '../../AccountConnect/TrustSignalModal';
+
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
@@ -464,8 +469,18 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     CaipAccountId[]
   >(suggestedCaipAccountIds);
 
+  const { trustSignalState, needsTrustSignalGate } =
+    useTrustSignalState(channelIdOrHostname);
+
   const [screen, setScreen] = useState<AccountConnectScreens>(
-    AccountConnectScreens.SingleConnect,
+    needsTrustSignalGate
+      ? AccountConnectScreens.TrustSignalWarning
+      : AccountConnectScreens.SingleConnect,
+  );
+
+  const { handleTrustSignalDismiss } = useTrustSignalGateControl(
+    needsTrustSignalGate,
+    setScreen,
   );
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -829,6 +844,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     setScreen(AccountConnectScreens.SingleConnect);
   }, []);
 
+  const handleTrustSignalClose = useCallback(() => {
+    cancelPermissionRequest(permissionRequestId);
+    navigation.goBack();
+  }, [cancelPermissionRequest, permissionRequestId, navigation]);
+
   const permissionsSummaryProps = useMemo(
     (): MultichainPermissionsSummaryProps => ({
       currentPageInformation: {
@@ -852,6 +872,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       setTabIndex,
       tabIndex,
       isMaliciousDapp,
+      trustSignalState,
     }),
     [
       faviconSource,
@@ -864,6 +885,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       permissionRequestId,
       navigation,
       isMaliciousDapp,
+      trustSignalState,
     ],
   );
 
@@ -979,6 +1001,16 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           />
         </ScreenContainer>
       )}
+      <ScreenContainer
+        isVisible={screen === AccountConnectScreens.TrustSignalWarning}
+        styles={styles}
+      >
+        <TrustSignalModal
+          url={urlWithProtocol}
+          onConnectAnyway={handleTrustSignalDismiss}
+          onClose={handleTrustSignalClose}
+        />
+      </ScreenContainer>
       {renderPhishingModal()}
     </Box>
   );
