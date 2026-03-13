@@ -852,4 +852,178 @@ describe('BuildQuote', () => {
       expect(toJSON()).toMatchSnapshot();
     });
   });
+
+  describe('Token unavailable for provider', () => {
+    const TOKEN_ASSET = 'eip155:1/slip44:60';
+
+    const transakProvider = {
+      id: '/providers/transak',
+      name: 'Transak',
+      supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+      links: [],
+    };
+
+    const mockUnavailableController = (overrides: Record<string, unknown>) => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        selectedProvider: transakProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+        ...overrides,
+      });
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      mockUseParams.mockReturnValue({ assetId: TOKEN_ASSET });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('navigates to token unavailable modal after debounce when payment methods are empty', () => {
+      mockUnavailableController({});
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: expect.objectContaining({ assetId: TOKEN_ASSET }),
+        }),
+      );
+    });
+
+    it('does not navigate while payment methods are still fetching', () => {
+      mockUnavailableController({ paymentMethodsFetching: true });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate before payment methods status is success', () => {
+      mockUnavailableController({ paymentMethodsStatus: 'loading' });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate when payment methods returned', () => {
+      mockUnavailableController({
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('passes buyFlowOrigin to token unavailable modal params', () => {
+      mockUseParams.mockReturnValue({
+        assetId: TOKEN_ASSET,
+        buyFlowOrigin: 'tokenInfo' as const,
+      });
+      mockUnavailableController({});
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: expect.objectContaining({
+            assetId: TOKEN_ASSET,
+            buyFlowOrigin: 'tokenInfo',
+          }),
+        }),
+      );
+    });
+
+    it('does not open payment selection when token unavailable disables pill', () => {
+      mockUnavailableController({});
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      mockNavigate.mockClear();
+      fireEvent.press(getByTestId('build-quote-payment-pill'));
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentSelectionModal',
+        }),
+      );
+    });
+
+    it('re-navigates when provider id changes', () => {
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/a',
+          name: 'A',
+          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+          links: [],
+        },
+      });
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalled();
+      mockNavigate.mockClear();
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/b',
+          name: 'B',
+          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+          links: [],
+        },
+      });
+      rerender(<BuildQuote />);
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+  });
 });
