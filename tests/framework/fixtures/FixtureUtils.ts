@@ -122,13 +122,13 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
 
 /**
  * Enables emulator/simulator HTTP(S) proxy so device-level traffic is captured by MockServer.
- * This is especially useful for network calls that don't go through the app JS bridge
- * (e.g., requests made inside WebViews).
+ * This is especially useful for network calls that don't go through the app JS bridge.
+ * For example, requests made inside WebViews.
  *
- * - Android: Uses global proxy settings pointing to fallback MockServer port (8000),
- *   which is already mapped to the allocated host port via adb reverse.
- * - iOS: Tries simulator-local proxy config first (simctl + defaults). If unavailable,
- *   falls back to host networkservice proxy configuration via networksetup.
+ * Android uses global proxy settings that point to the fallback MockServer port (8000),
+ * which is already mapped to the allocated host port via adb reverse.
+ * iOS tries simulator-local proxy config first (simctl + defaults), and falls back
+ * to host networkservice proxy configuration via networksetup if needed.
  */
 export async function enableDeviceTrafficProxyForMockServer(
   mockServerPort: number,
@@ -228,9 +228,7 @@ export async function enableDeviceTrafficProxyForMockServer(
     .map((line) => line.trim())
     .filter(
       (line) =>
-        line &&
-        !line.startsWith('An asterisk') &&
-        !line.startsWith('*'),
+        line && !line.startsWith('An asterisk') && !line.startsWith('*'),
     );
 
   const configuredServices: string[] = [];
@@ -286,7 +284,9 @@ export async function disableDeviceTrafficProxy(): Promise<void> {
       deviceFlag = deviceId ? `-s ${deviceId}` : '';
     }
 
-    await execAsync(`adb ${deviceFlag} shell settings put global http_proxy :0`);
+    await execAsync(
+      `adb ${deviceFlag} shell settings put global http_proxy :0`,
+    );
     await execAsync(
       `adb ${deviceFlag} shell settings delete global global_http_proxy_host`,
     );
@@ -317,7 +317,9 @@ export async function disableDeviceTrafficProxy(): Promise<void> {
     for (const service of iosNetworkServicesWithProxy) {
       try {
         await execAsync(`networksetup -setwebproxystate "${service}" off`);
-        await execAsync(`networksetup -setsecurewebproxystate "${service}" off`);
+        await execAsync(
+          `networksetup -setsecurewebproxystate "${service}" off`,
+        );
       } catch (serviceError) {
         logger.warn(
           `Failed disabling proxy on macOS network service "${service}"`,
