@@ -259,8 +259,9 @@ const SecurityTrustScreen: React.FC = () => {
             >
               <Box twClassName="w-3 h-3 rounded-full bg-[#6B7FFF]" />
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
               >
                 {strings('security_trust.top_10_holders')}
               </Text>
@@ -293,8 +294,9 @@ const SecurityTrustScreen: React.FC = () => {
             >
               <Box twClassName="w-3 h-3 rounded-full bg-[rgba(133,139,154,0.5)]" />
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
               >
                 {strings('security_trust.other')}
               </Text>
@@ -457,7 +459,7 @@ const SecurityTrustScreen: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Start}
-              gap={4}
+              gap={2}
               twClassName="w-full flex-wrap"
             >
               {metadata.externalLinks.homepage && (
