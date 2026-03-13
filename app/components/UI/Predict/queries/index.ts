@@ -10,6 +10,7 @@ import {
   predictOrderPreviewOptions,
 } from './orderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
+import { predictPricesKeys, predictPricesOptions } from './prices';
 import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
@@ -39,6 +40,10 @@ export const predictQueries = {
   positions: {
     keys: predictPositionsKeys,
     options: predictPositionsOptions,
+  },
+  prices: {
+    keys: predictPricesKeys,
+    options: predictPricesOptions,
   },
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,
