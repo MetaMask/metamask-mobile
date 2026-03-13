@@ -157,5 +157,19 @@ export default defineConfig({
         expectTimeout: 30 * 1000,
       },
     },
+    {
+      name: 'tanto-faz',
+      testMatch: '**/performance/mm-connect/**/connection-evm.spec.js',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
+        },
+        buildPath: 'bs://e392e66bc4f2003aed464ecf5d987ca4c8923779',
+        expectTimeout: 30 * 1000,
+      },
+    },
   ],
 });
