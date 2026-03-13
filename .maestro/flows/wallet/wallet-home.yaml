@@ -1,0 +1,112 @@
+# Maestro Flow: Wallet Home Screen
+# Captures baseline screenshots for main wallet views
+# Prerequisite: Wallet must be set up
+appId: io.metamask.MetaMask
+---
+- launchApp:
+    clearState: false
+
+# Handle Expo Dev Client screen
+- extendedWaitUntil:
+    visible:
+      text: "http://localhost:8081"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for developer menu modal
+- extendedWaitUntil:
+    visible:
+      text: "Continue"
+    timeout: 15000
+    optional: true
+
+# Close developer menu - tap outside modal
+- tapOn:
+    point: "50%,30%"
+
+# Wait for app to stabilize
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Handle login screen if visible
+- extendedWaitUntil:
+    visible:
+      text: "Unlock"
+    timeout: 10000
+    optional: true
+
+- runFlow:
+    when:
+      visible:
+        text: "Unlock"
+    commands:
+      - tapOn:
+          point: "50%,53%"
+      - inputText: "Test12345!"
+      - tapOn:
+          text: "Unlock"
+
+# Handle Polymarket promo
+- extendedWaitUntil:
+    visible:
+      text: "Not now"
+    timeout: 10000
+    optional: true
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# Wait for wallet home
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 30000
+
+# Take Home tab screenshot (default view)
+- takeScreenshot: .maestro/baselines/ios/wallet/tab-home
+
+# Tap on Account 1 dropdown at top left
+- tapOn:
+    point: "15%,12%"
+- extendedWaitUntil:
+    visible:
+      text: "Add wallet"
+    timeout: 10000
+- takeScreenshot: .maestro/baselines/ios/wallet/accounts-picker
+
+- tapOn:
+    text: "Add wallet"
+
+- extendedWaitUntil:
+    visible:
+      text: "Import a wallet"
+    timeout: 10000
+- takeScreenshot: .maestro/baselines/ios/wallet/add-wallet
+
+# Close the accounts modal by going back
+- back
+- back
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Wait for wallet home to be visible
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 10000
+
+# Tap copy button (top right, next to hamburger menu)
+- tapOn:
+    point: "85%,12%"
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+- takeScreenshot: .maestro/baselines/ios/wallet/copy-address
