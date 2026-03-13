@@ -199,6 +199,7 @@ let mockSelectedProvider: unknown = null;
 let mockSelectedPaymentMethod: unknown = null;
 let mockPaymentMethods: unknown[] = [];
 let mockPaymentMethodsStatus: 'idle' | 'loading' | 'success' | 'error' = 'idle';
+let mockPaymentMethodsFetching = false;
 let mockSelectedQuote: Record<string, unknown> | null = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
@@ -225,6 +226,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     paymentMethods: mockPaymentMethods,
     getWidgetUrl: mockGetWidgetUrl,
     paymentMethodsLoading: false,
+    paymentMethodsFetching: mockPaymentMethodsFetching,
     paymentMethodsStatus: mockPaymentMethodsStatus,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
@@ -307,6 +309,7 @@ describe('BuildQuote', () => {
     mockSelectedPaymentMethod = null;
     mockPaymentMethods = [];
     mockPaymentMethodsStatus = 'idle';
+    mockPaymentMethodsFetching = false;
     mockQuotesData = null;
     mockQuotesLoading = false;
     mockQuotesError = null;
@@ -1550,7 +1553,14 @@ describe('BuildQuote', () => {
   });
 
   describe('Token unavailable for provider', () => {
-    it('navigates to token unavailable modal when token is not supported by provider', async () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+    it('navigates to token unavailable modal when token is not supported by provider', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -1566,8 +1576,8 @@ describe('BuildQuote', () => {
 
       renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1650,7 +1660,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to token unavailable modal when payment methods query succeeds with empty data', async () => {
+    it('navigates to token unavailable modal when payment methods query succeeds with empty data', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -1668,8 +1678,8 @@ describe('BuildQuote', () => {
 
       renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1681,7 +1691,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to token unavailable modal when params.assetId is missing but selectedToken is set', async () => {
+    it('navigates to token unavailable modal when params.assetId is missing but selectedToken is set', () => {
       mockUseParams.mockImplementation(() => ({}));
       mockSelectedProvider = {
         id: '/providers/transak',
@@ -1700,8 +1710,8 @@ describe('BuildQuote', () => {
 
       renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1726,7 +1736,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to token unavailable modal via supportedCryptoCurrencies when params.assetId is missing', async () => {
+    it('navigates to token unavailable modal via supportedCryptoCurrencies when params.assetId is missing', () => {
       mockUseParams.mockImplementation(() => ({}));
       mockSelectedProvider = {
         id: '/providers/transak',
@@ -1743,8 +1753,8 @@ describe('BuildQuote', () => {
 
       renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1756,7 +1766,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('does not re-navigate to token unavailable modal on re-renders', async () => {
+    it('does not re-navigate to token unavailable modal on re-renders', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -1772,8 +1782,8 @@ describe('BuildQuote', () => {
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1800,7 +1810,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('re-navigates to token unavailable modal when provider changes to another unsupporting provider', async () => {
+    it('re-navigates to token unavailable modal when provider changes to another unsupporting provider', () => {
       // First provider doesn't support the token
       mockSelectedProvider = {
         id: '/providers/transak',
@@ -1817,8 +1827,8 @@ describe('BuildQuote', () => {
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1851,8 +1861,8 @@ describe('BuildQuote', () => {
         </ThemeContext.Provider>,
       );
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       // Modal should re-appear for the new provider
@@ -1865,7 +1875,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('re-navigates to token unavailable modal when payment methods return empty after provider change', async () => {
+    it('re-navigates to token unavailable modal when payment methods return empty after provider change', () => {
       // First provider: token unavailable via empty payment methods
       mockSelectedProvider = {
         id: '/providers/transak',
@@ -1881,8 +1891,8 @@ describe('BuildQuote', () => {
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1911,8 +1921,8 @@ describe('BuildQuote', () => {
         </ThemeContext.Provider>,
       );
 
-      await act(async () => {
-        await flushPromises();
+      act(() => {
+        jest.advanceTimersByTime(600);
       });
 
       // Modal should re-appear for the new provider
@@ -1920,6 +1930,134 @@ describe('BuildQuote', () => {
         'RampModals',
         expect.objectContaining({
           screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal while payment methods are still fetching', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+      mockPaymentMethods = [];
+      mockPaymentMethodsStatus = 'success';
+      mockPaymentMethodsFetching = true;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not show token unavailable when payment methods have results', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+      mockPaymentMethods = [
+        { id: '/payments/revolut-pay', name: 'Revolut Pay' },
+      ];
+      mockPaymentMethodsStatus = 'success';
+
+      renderWithTheme(<BuildQuote />);
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('passes buyFlowOrigin to the token unavailable modal navigation', () => {
+      mockUseParams.mockImplementation(() => ({
+        assetId: MOCK_ASSET_ID,
+        buyFlowOrigin: 'tokenInfo',
+      }));
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      renderWithTheme(<BuildQuote />);
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID, buyFlowOrigin: 'tokenInfo' },
+        }),
+      );
+    });
+
+    it('disables payment pill when token is unavailable', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+      mockPaymentMethods = [];
+      mockPaymentMethodsStatus = 'success';
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Reset navigate calls from the modal navigation
+      mockNavigate.mockClear();
+
+      // Try pressing the payment pill — should not trigger navigation
+      fireEvent.press(getByTestId('payment-method-pill'));
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentSelectionModal',
         }),
       );
     });
