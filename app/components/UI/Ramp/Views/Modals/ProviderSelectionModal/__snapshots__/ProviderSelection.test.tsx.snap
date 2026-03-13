@@ -1124,12 +1124,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             >
                               <View
                                 style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
+                                  [
+                                    {
+                                      "borderRadius": 4,
+                                      "overflow": "hidden",
+                                    },
+                                    {
+                                      "height": 18,
+                                    },
+                                    {
+                                      "width": 120,
+                                    },
+                                    {
+                                      "borderRadius": 4,
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -1180,12 +1189,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                               >
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 80,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1214,12 +1232,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                 />
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 60,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1282,12 +1309,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             >
                               <View
                                 style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
+                                  [
+                                    {
+                                      "borderRadius": 4,
+                                      "overflow": "hidden",
+                                    },
+                                    {
+                                      "height": 18,
+                                    },
+                                    {
+                                      "width": 120,
+                                    },
+                                    {
+                                      "borderRadius": 4,
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -1338,12 +1374,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                               >
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 80,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1372,12 +1417,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                 />
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 60,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1440,12 +1494,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             >
                               <View
                                 style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
+                                  [
+                                    {
+                                      "borderRadius": 4,
+                                      "overflow": "hidden",
+                                    },
+                                    {
+                                      "height": 18,
+                                    },
+                                    {
+                                      "width": 120,
+                                    },
+                                    {
+                                      "borderRadius": 4,
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -1496,12 +1559,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                               >
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 80,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1530,12 +1602,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                 />
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 60,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1598,12 +1679,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             >
                               <View
                                 style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
+                                  [
+                                    {
+                                      "borderRadius": 4,
+                                      "overflow": "hidden",
+                                    },
+                                    {
+                                      "height": 18,
+                                    },
+                                    {
+                                      "width": 120,
+                                    },
+                                    {
+                                      "borderRadius": 4,
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -1654,12 +1744,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                               >
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 80,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1688,12 +1787,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                 />
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 60,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1756,12 +1864,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             >
                               <View
                                 style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
+                                  [
+                                    {
+                                      "borderRadius": 4,
+                                      "overflow": "hidden",
+                                    },
+                                    {
+                                      "height": 18,
+                                    },
+                                    {
+                                      "width": 120,
+                                    },
+                                    {
+                                      "borderRadius": 4,
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -1812,12 +1929,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                               >
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 80,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
@@ -1846,12 +1972,21 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                 />
                                 <View
                                   style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
+                                    [
+                                      {
+                                        "borderRadius": 4,
+                                        "overflow": "hidden",
+                                      },
+                                      {
+                                        "height": 16,
+                                      },
+                                      {
+                                        "width": 60,
+                                      },
+                                      {
+                                        "borderRadius": 4,
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
