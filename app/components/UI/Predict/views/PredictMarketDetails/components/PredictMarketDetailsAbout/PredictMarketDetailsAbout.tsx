@@ -6,14 +6,13 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../../../util/theme';
 import { formatVolume } from '../../../../utils/format';
 import type { PredictMarket } from '../../../../types';

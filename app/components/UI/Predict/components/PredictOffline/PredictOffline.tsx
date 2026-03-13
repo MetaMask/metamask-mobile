@@ -5,12 +5,15 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Icon, {
+import {
+  Box,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { PREDICT_OFFLINE_TEST_IDS } from './PredictOffline.testIds';
 
 interface PredictOfflineProps {
@@ -38,7 +41,7 @@ const PredictOffline: React.FC<PredictOfflineProps> = ({
       <Icon
         name={IconName.Warning}
         size={IconSize.Xl}
-        color={IconColor.Muted}
+        color={IconColor.IconMuted}
         style={tw.style('mb-4')}
       />
       <Text

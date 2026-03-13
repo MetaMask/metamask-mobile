@@ -3,17 +3,16 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { PredictOutcome } from '../../types';
 import { formatVolume } from '../../utils/format';
 
@@ -83,7 +82,7 @@ const PredictMarketOutcomeResolved: React.FC<
             <Icon
               name={IconName.Confirmation}
               size={IconSize.Md}
-              color={IconColor.Success}
+              color={IconColor.SuccessDefault}
             />
           )}
         </Box>

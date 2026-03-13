@@ -2,6 +2,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -16,10 +19,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   PredictMarket,
