@@ -4,7 +4,7 @@ import { Box } from '../../Box/Box';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { FlexDirection, AlignItems } from '../../Box/box.types';
-import { Skeleton } from '../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 
 const createStyles = (_params: { theme: Theme }) =>
   StyleSheet.create({

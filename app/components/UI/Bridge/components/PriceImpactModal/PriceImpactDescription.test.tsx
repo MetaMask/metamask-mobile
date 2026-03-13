@@ -1,64 +1,31 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { PriceImpactDescription } from './PriceImpactDescription';
-import { PriceImpactModalType } from './constants';
 import { strings } from '../../../../../../locales/i18n';
 
 describe('PriceImpactDescription', () => {
-  describe('Execution type', () => {
-    it('renders the execution description with the given priceImpact', () => {
+  describe('content rendering', () => {
+    it('renders the localized content string with the given formattedPriceImpact', () => {
       const { getByText } = render(
         <PriceImpactDescription
-          type={PriceImpactModalType.Execution}
+          content="bridge.price_impact_error_description"
           formattedPriceImpact="-30%"
         />,
       );
 
       expect(
         getByText(
-          strings('bridge.price_impact_execution_description', {
+          strings('bridge.price_impact_error_description', {
             priceImpact: '-30%',
           }),
         ),
       ).toBeTruthy();
     });
 
-    it('renders the execution description with "0" when priceImpact is undefined', () => {
+    it('renders the warning description with the given formattedPriceImpact', () => {
       const { getByText } = render(
         <PriceImpactDescription
-          type={PriceImpactModalType.Execution}
-          formattedPriceImpact={undefined}
-        />,
-      );
-
-      expect(
-        getByText(
-          strings('bridge.price_impact_execution_description', {
-            priceImpact: '0',
-          }),
-        ),
-      ).toBeTruthy();
-    });
-
-    it('does not render the info description', () => {
-      const { queryByText } = render(
-        <PriceImpactDescription
-          type={PriceImpactModalType.Execution}
-          formattedPriceImpact="-30%"
-        />,
-      );
-
-      expect(
-        queryByText(strings('bridge.price_impact_info_description')),
-      ).toBeNull();
-    });
-  });
-
-  describe('Info type — with priceImpact (warning state)', () => {
-    it('renders the warning description with the given priceImpact', () => {
-      const { getByText } = render(
-        <PriceImpactDescription
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_warning_description"
           formattedPriceImpact="-10%"
         />,
       );
@@ -72,23 +39,42 @@ describe('PriceImpactDescription', () => {
       ).toBeTruthy();
     });
 
-    it('does not render the info description when priceImpact is provided', () => {
-      const { queryByText } = render(
+    it('renders the info description (no interpolation needed)', () => {
+      const { getByText } = render(
         <PriceImpactDescription
-          type={PriceImpactModalType.Info}
-          formattedPriceImpact="-10%"
+          content="bridge.price_impact_info_description"
+          formattedPriceImpact={undefined}
         />,
       );
 
       expect(
-        queryByText(strings('bridge.price_impact_info_description')),
-      ).toBeNull();
+        getByText(strings('bridge.price_impact_info_description')),
+      ).toBeTruthy();
     });
+  });
 
-    it('treats the string "0" as a truthy priceImpact and renders the warning description', () => {
+  describe('formattedPriceImpact fallback', () => {
+    it('falls back to "0" when formattedPriceImpact is undefined', () => {
       const { getByText } = render(
         <PriceImpactDescription
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_error_description"
+          formattedPriceImpact={undefined}
+        />,
+      );
+
+      expect(
+        getByText(
+          strings('bridge.price_impact_error_description', {
+            priceImpact: '0',
+          }),
+        ),
+      ).toBeTruthy();
+    });
+
+    it('uses the provided value and does not fall back when formattedPriceImpact is "0"', () => {
+      const { getByText } = render(
+        <PriceImpactDescription
+          content="bridge.price_impact_warning_description"
           formattedPriceImpact="0"
         />,
       );
@@ -100,78 +86,6 @@ describe('PriceImpactDescription', () => {
           }),
         ),
       ).toBeTruthy();
-    });
-  });
-
-  describe('Info type — without priceImpact (info state)', () => {
-    it('renders the info description when priceImpact is undefined', () => {
-      const { getByText } = render(
-        <PriceImpactDescription
-          type={PriceImpactModalType.Info}
-          formattedPriceImpact={undefined}
-        />,
-      );
-
-      expect(
-        getByText(strings('bridge.price_impact_info_description')),
-      ).toBeTruthy();
-    });
-
-    it('renders the info description when priceImpact is an empty string', () => {
-      const { getByText } = render(
-        <PriceImpactDescription
-          type={PriceImpactModalType.Info}
-          formattedPriceImpact=""
-        />,
-      );
-
-      expect(
-        getByText(strings('bridge.price_impact_info_description')),
-      ).toBeTruthy();
-    });
-
-    it('does not render the warning description when priceImpact is absent', () => {
-      const { queryByText } = render(
-        <PriceImpactDescription
-          type={PriceImpactModalType.Info}
-          formattedPriceImpact={undefined}
-        />,
-      );
-
-      expect(
-        queryByText(
-          strings('bridge.price_impact_warning_description', {
-            priceImpact: undefined,
-          }),
-        ),
-      ).toBeNull();
-    });
-  });
-
-  describe('priority — Execution type takes precedence over warning state', () => {
-    it('renders the execution description rather than the warning description when type is Execution and priceImpact is provided', () => {
-      const { getByText, queryByText } = render(
-        <PriceImpactDescription
-          type={PriceImpactModalType.Execution}
-          formattedPriceImpact="-10%"
-        />,
-      );
-
-      expect(
-        getByText(
-          strings('bridge.price_impact_execution_description', {
-            priceImpact: '-10%',
-          }),
-        ),
-      ).toBeTruthy();
-
-      expect(
-        queryByText(
-          strings('bridge.price_impact_warning_description', {
-            priceImpact: '-10%',
-          }),
-        ),
-      ).toBeNull();
     });
   });
 });

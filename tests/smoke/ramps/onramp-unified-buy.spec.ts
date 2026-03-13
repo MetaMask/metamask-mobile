@@ -83,7 +83,10 @@ const expectedEventNames = [
   expectedEvents.RampsButtonClicked,
   expectedEvents.RampsTokenSelected,
 ];
-describe(SmokeRamps('Onramp Unified Buy'), () => {
+
+// Disabling as the test is currently hanging in CI
+// https://github.com/MetaMask/metamask-mobile/actions/runs/23006374721
+describe.skip(SmokeRamps('Onramp Unified Buy'), () => {
   beforeEach(async () => {
     await device.clearKeychain();
   });
@@ -92,7 +95,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
@@ -165,7 +168,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
