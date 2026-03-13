@@ -7,6 +7,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
+  FALLBACK_TRANSPARENT_PROXY_PORT,
 } from './Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
@@ -21,6 +22,7 @@ export enum ResourceType {
   DAPP_SERVER = 'dapp-server',
   GANACHE = 'ganache',
   ANVIL = 'anvil',
+  TRANSPARENT_PROXY = 'transparent-proxy',
 }
 
 export interface AllocatedPort {
@@ -52,6 +54,8 @@ function getFallbackPortForResource(resourceType: ResourceType): number {
       return DEFAULT_ANVIL_PORT;
     case ResourceType.DAPP_SERVER:
       return FALLBACK_DAPP_SERVER_PORT;
+    case ResourceType.TRANSPARENT_PROXY:
+      return FALLBACK_TRANSPARENT_PROXY_PORT;
     default:
       throw new Error(`Unknown resource type: ${resourceType}`);
   }

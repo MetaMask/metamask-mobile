@@ -19,6 +19,7 @@ import Utilities from '../Utilities';
 import { dismissDevScreens } from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
+import TransparentProxy from '../../api-mocking/TransparentProxy';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import {
@@ -506,6 +507,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    useTransparentProxy = false,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -539,9 +541,23 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
+  let transparentProxyInstance: TransparentProxy | undefined;
   let testError: Error | null = null;
 
   try {
+    // Step 0: Install proxy CA cert on the device BEFORE any port forwarding.
+    // On Android, cert installation may trigger a disable-verity + reboot cycle
+    // (API 30+ emulators). By doing this first, any reboot occurs before
+    // adb-reverse entries are created, so there is nothing to restore afterwards.
+    // Subsequent calls are instant — installCACertAndroid returns early when the
+    // cert is already present in /system/etc/security/cacerts/.
+    if (
+      useTransparentProxy &&
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() !== 'true'
+    ) {
+      await TransparentProxy.prepareCACertOnDevice();
+    }
+
     // Step 1: Start local nodes (Anvil/Ganache)
     if (!disableLocalNodes) {
       localNodes = await handleLocalNodes(localNodeOptions);
@@ -573,6 +589,21 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    // Step 5: (optional) Start transparent proxy server
+    // Only start the server here; device proxy configuration is deferred until
+    // after launchApp() so Detox synchronization can settle during app startup.
+    // Skip on BrowserStack — the tunnel handles routing there
+    const isBrowserStack =
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+    if (useTransparentProxy) {
+      transparentProxyInstance = new TransparentProxy({ testSpecificMock });
+      await startResourceWithRetry(
+        ResourceType.TRANSPARENT_PROXY,
+        transparentProxyInstance,
+      );
+    }
+
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -594,6 +625,7 @@ export async function withFixtures(
         commandQueueServer,
       );
     }
+
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
@@ -624,8 +656,19 @@ export async function withFixtures(
     }
 
     // Dismiss dev screens if running locally (not in CI)
+    // This runs BEFORE proxy config so Detox sync is still active and reliable.
     if (process.env.CI !== 'true') {
       await dismissDevScreens();
+    }
+
+    // Configure device proxy AFTER launchApp + dismissDevScreens so Detox sync
+    // can settle during startup. Then disable sync before the test callback.
+    if (
+      useTransparentProxy &&
+      transparentProxyInstance?.isStarted() &&
+      !isBrowserStack
+    ) {
+      await transparentProxyInstance.configureDevice();
     }
 
     await testSuite({
@@ -633,6 +676,7 @@ export async function withFixtures(
       mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
+      transparentProxy: transparentProxyInstance?.server,
     });
   } catch (error) {
     testError = error as Error;
@@ -706,6 +750,25 @@ export async function withFixtures(
       } catch (cleanupError) {
         logger.error('Error during live request validation:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    // Always attempt to remove device proxy config, even if the proxy failed to start
+    if (transparentProxyInstance) {
+      try {
+        await transparentProxyInstance.removeDeviceConfig();
+      } catch (cleanupError) {
+        logger.error('Error removing device proxy config:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+
+      if (transparentProxyInstance.isStarted()) {
+        try {
+          await transparentProxyInstance.stop();
+        } catch (cleanupError) {
+          logger.error('Error stopping transparent proxy:', cleanupError);
+          cleanupErrors.push(cleanupError as Error);
+        }
       }
     }
 
