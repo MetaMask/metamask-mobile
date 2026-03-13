@@ -188,3 +188,45 @@ export function buildGameData(
     awayTeam,
   };
 }
+
+/**
+ * Scans a list of Polymarket events and extracts the team abbreviations
+ * needed for each supported league. Used to lazily load only the teams
+ * referenced by the current page of markets.
+ *
+ * @param events - Raw events from the Polymarket API
+ * @param enabledLeagues - Leagues currently enabled via feature flags
+ * @returns Map from league to list of unique team abbreviations needed
+ */
+export function extractNeededTeamsFromEvents(
+  events: PolymarketApiEvent[],
+  enabledLeagues: PredictSportsLeague[],
+): Map<PredictSportsLeague, string[]> {
+  const neededTeams = new Map<PredictSportsLeague, Set<string>>();
+
+  for (const event of events) {
+    const league = getEventLeague(event);
+    if (!league || !enabledLeagues.includes(league)) {
+      continue;
+    }
+
+    const parsedSlug = parseGameSlugTeams(event.slug, league);
+    if (!parsedSlug) {
+      continue;
+    }
+
+    let leagueTeams = neededTeams.get(league);
+    if (!leagueTeams) {
+      leagueTeams = new Set<string>();
+      neededTeams.set(league, leagueTeams);
+    }
+    leagueTeams.add(parsedSlug.awayAbbreviation);
+    leagueTeams.add(parsedSlug.homeAbbreviation);
+  }
+
+  const result = new Map<PredictSportsLeague, string[]>();
+  for (const [league, teams] of neededTeams) {
+    result.set(league, [...teams]);
+  }
+  return result;
+}

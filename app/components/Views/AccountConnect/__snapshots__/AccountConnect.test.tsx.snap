@@ -505,6 +505,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }
@@ -1571,6 +1572,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }
@@ -2637,6 +2639,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }
@@ -3703,6 +3706,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 navigation={
                   {
                     "goBack": [MockFunction],
+                    "isFocused": [Function],
                     "navigate": [MockFunction],
                   }
                 }

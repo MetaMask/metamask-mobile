@@ -81,11 +81,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'predict.fee_summary.exchange_fee_description') {
       return 'Fee paid to the exchange or market';
     }
+    if (key === 'predict.fee_summary.deposit_fee') {
+      return 'Deposit fee';
+    }
+    if (key === 'predict.fee_summary.deposit_fee_description') {
+      return 'Fee paid for token deposit';
+    }
     if (key === 'predict.fee_summary.total') {
       return 'Total';
     }
     if (key === 'predict.fee_summary.close') {
       return 'Close';
+    }
+    if (key === 'predict.fee_summary.fak_partial_fill_note') {
+      return 'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.';
     }
     return key;
   }),
@@ -238,6 +247,22 @@ describe('PredictFeeBreakdownSheet', () => {
       const zeroAmounts = getAllByText('$0.00');
       expect(zeroAmounts.length).toBeGreaterThanOrEqual(2);
     });
+
+    it('does not render standalone 0 text when depositFee is 0', () => {
+      const props = {
+        ...defaultProps,
+        depositFee: 0,
+      };
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return <PredictFeeBreakdownSheet ref={ref} {...props} />;
+      };
+
+      const { queryByText, queryAllByText } = render(<TestComponent />);
+
+      expect(queryByText(/^0$/)).not.toBeOnTheScreen();
+      expect(queryAllByText('Deposit fee')).toHaveLength(0);
+    });
   });
 
   describe('Total display', () => {
@@ -323,6 +348,57 @@ describe('PredictFeeBreakdownSheet', () => {
       };
 
       render(<TestComponent />);
+    });
+  });
+
+  describe('FAK partial fill note', () => {
+    it('displays partial fill note when fakOrdersEnabled is true', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            fakOrdersEnabled
+          />
+        );
+      };
+
+      const { getByTestId } = render(<TestComponent />);
+
+      expect(getByTestId('predict-fak-partial-fill-note')).toBeOnTheScreen();
+    });
+
+    it('does not display partial fill note when fakOrdersEnabled is false', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            fakOrdersEnabled={false}
+          />
+        );
+      };
+
+      const { queryByTestId } = render(<TestComponent />);
+
+      expect(
+        queryByTestId('predict-fak-partial-fill-note'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not display partial fill note by default', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
+      };
+
+      const { queryByTestId } = render(<TestComponent />);
+
+      expect(
+        queryByTestId('predict-fak-partial-fill-note'),
+      ).not.toBeOnTheScreen();
     });
   });
 });

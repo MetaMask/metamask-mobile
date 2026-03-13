@@ -162,6 +162,20 @@ export type CampaignsState = {
 };
 
 /**
+ * Response DTO for campaign participant status from the backend
+ */
+export interface CampaignParticipantStatusDto {
+  /** Whether the subscription has opted into the campaign */
+  optedIn: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignParticipantStatusState = {
+  optedIn: boolean;
+  lastFetched: number;
+};
+
+/**
  * DTO for snapshot data from the backend
  */
 export interface SnapshotDto {
@@ -1277,6 +1291,9 @@ export type RewardsControllerState = {
     [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
   };
   campaigns: { [subscriptionId: string]: CampaignsState };
+  campaignParticipantStatus: {
+    [compositeId: string]: CampaignParticipantStatusState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1341,6 +1358,20 @@ export interface RewardsControllerPointsEventsUpdatedEvent {
 }
 
 /**
+ * Event emitted when a user opts into a campaign, invalidating any cached
+ * participant status so hooks can refetch fresh data.
+ */
+export interface RewardsControllerCampaignOptedInEvent {
+  type: 'RewardsController:campaignOptedIn';
+  payload: [
+    {
+      campaignId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1348,7 +1379,8 @@ export type RewardsControllerEvents =
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
-  | RewardsControllerPointsEventsUpdatedEvent;
+  | RewardsControllerPointsEventsUpdatedEvent
+  | RewardsControllerCampaignOptedInEvent;
 
 /**
  * Patch type for state changes
@@ -1617,6 +1649,28 @@ export interface RewardsControllerGetCampaignsAction {
 }
 
 /**
+ * Action for opting into a campaign
+ */
+export interface RewardsControllerOptInToCampaignAction {
+  type: 'RewardsController:optInToCampaign';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignParticipantStatusDto>;
+}
+
+/**
+ * Action for getting the campaign participant status
+ */
+export interface RewardsControllerGetCampaignParticipantStatusAction {
+  type: 'RewardsController:getCampaignParticipantStatus';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignParticipantStatusDto>;
+}
+
+/**
  * Action for getting snapshots for a season
  */
 export interface RewardsControllerGetSnapshotsAction {
@@ -1726,6 +1780,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerGetCampaignsAction
+  | RewardsControllerOptInToCampaignAction
+  | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetSnapshotsAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
