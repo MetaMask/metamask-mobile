@@ -128,9 +128,9 @@ describe('Pna25BottomSheet', () => {
 
     fireEvent.press(openSettingsButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.SECURITY_SETTINGS,
+    );
   });
 
   it('opens external link when learn more link is pressed', () => {

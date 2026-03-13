@@ -123,9 +123,7 @@ const Pna25BottomSheet = () => {
             label: strings('privacy_policy.pna25_open_settings_button'),
             onPress: () => {
               handleAction(Pna25BottomSheetAction.OPEN_SETTINGS);
-              navigation.navigate(Routes.SETTINGS_VIEW, {
-                screen: Routes.SETTINGS.SECURITY_SETTINGS,
-              });
+              navigation.navigate(Routes.SETTINGS.SECURITY_SETTINGS);
             },
           },
           {

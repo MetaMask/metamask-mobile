@@ -169,13 +169,11 @@ describe('SiteRowItemWrapper', () => {
 
   const assertBrowserNavigation = (siteUrl?: string) => {
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.BROWSER.HOME,
+      Routes.BROWSER.VIEW,
       expect.objectContaining({
-        screen: Routes.BROWSER.VIEW,
-        params: expect.objectContaining({
-          ...(siteUrl ? { newTabUrl: siteUrl } : {}),
-          fromTrending: true,
-        }),
+        ...(siteUrl ? { newTabUrl: siteUrl } : {}),
+        fromTrending: true,
+        timestamp: expect.any(Number),
       }),
     );
   };
