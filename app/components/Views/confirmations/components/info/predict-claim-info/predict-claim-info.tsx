@@ -9,7 +9,7 @@ import { usePredictClaimConfirmationMetrics } from '../../../hooks/metrics/usePr
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-info.styles';

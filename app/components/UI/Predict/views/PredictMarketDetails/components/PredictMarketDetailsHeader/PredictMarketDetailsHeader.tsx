@@ -6,14 +6,13 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';

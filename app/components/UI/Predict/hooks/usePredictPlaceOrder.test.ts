@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useContext } from 'react';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { type OrderPreview, Result, Side } from '../types';
