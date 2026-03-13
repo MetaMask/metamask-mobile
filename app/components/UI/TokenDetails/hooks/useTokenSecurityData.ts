@@ -5,8 +5,6 @@ import {
   TokenSecurityData,
 } from '@metamask/assets-controllers';
 
-const REFRESH_INTERVAL_MS = 60_000;
-
 interface UseTokenSecurityDataOpts {
   /** CAIP-19 asset ID. When null, no fetch is attempted. */
   assetId: CaipAssetType | null;
@@ -18,8 +16,6 @@ interface UseTokenSecurityDataResult {
   securityData: TokenSecurityData | null;
   isLoading: boolean;
   error: Error | null;
-  /** UTC timestamp of when the data was last successfully loaded. */
-  fetchedAt: Date | null;
 }
 
 export const useTokenSecurityData = ({
@@ -31,10 +27,6 @@ export const useTokenSecurityData = ({
   );
   const [isLoading, setIsLoading] = useState(!prefetchedData && !!assetId);
   const [error, setError] = useState<Error | null>(null);
-  const [fetchedAt, setFetchedAt] = useState<Date | null>(
-    prefetchedData ? new Date() : null,
-  );
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isMountedRef = useRef(true);
 
   const fetchData = useCallback(async () => {
@@ -46,7 +38,6 @@ export const useTokenSecurityData = ({
       if (!isMountedRef.current) return;
       const asset = assets?.[0];
       setSecurityData(asset?.securityData ?? null);
-      setFetchedAt(new Date());
       setError(null);
     } catch (err) {
       if (!isMountedRef.current) return;
@@ -63,7 +54,6 @@ export const useTokenSecurityData = ({
 
     if (prefetchedData) {
       setSecurityData(prefetchedData);
-      setFetchedAt(new Date());
       setIsLoading(false);
       return;
     }
@@ -76,15 +66,10 @@ export const useTokenSecurityData = ({
     setIsLoading(true);
     fetchData();
 
-    intervalRef.current = setInterval(fetchData, REFRESH_INTERVAL_MS);
-
     return () => {
       isMountedRef.current = false;
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
     };
   }, [assetId, prefetchedData, fetchData]);
 
-  return { securityData, isLoading, error, fetchedAt };
+  return { securityData, isLoading, error };
 };
