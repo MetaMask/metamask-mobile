@@ -15,7 +15,7 @@ import { chartLogicScript } from './webview';
 export const CHARTING_LIBRARY_BASE_URL =
   process.env.MM_CHARTING_LIBRARY_URL ?? '';
 
-const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
+const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}`;
 
 /**
  * Scheme + host only (no path) for use in CSP frame-src.
