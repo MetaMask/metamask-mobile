@@ -802,7 +802,9 @@ function BuildQuote() {
                     strings('fiat_on_ramp.select_payment_method')
                   }
                   isLoading={paymentMethodsLoading}
-                  onPress={isTokenUnavailable ? undefined : handlePaymentPillPress}
+                  onPress={
+                    isTokenUnavailable ? undefined : handlePaymentPillPress
+                  }
                 />
               </View>
             </View>
