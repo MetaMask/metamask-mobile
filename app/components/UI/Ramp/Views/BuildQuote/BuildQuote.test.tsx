@@ -1573,6 +1573,7 @@ describe('BuildQuote', () => {
           'eip155:1/slip44:60': true,
         },
       };
+      mockPaymentMethodsStatus = 'success';
 
       renderWithTheme(<BuildQuote />);
 
@@ -1750,6 +1751,7 @@ describe('BuildQuote', () => {
           'eip155:1/slip44:60': true,
         },
       };
+      mockPaymentMethodsStatus = 'success';
 
       renderWithTheme(<BuildQuote />);
 
@@ -1779,6 +1781,7 @@ describe('BuildQuote', () => {
           'eip155:1/slip44:60': true,
         },
       };
+      mockPaymentMethodsStatus = 'success';
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
@@ -1824,6 +1827,7 @@ describe('BuildQuote', () => {
           'eip155:1/slip44:60': true,
         },
       };
+      mockPaymentMethodsStatus = 'success';
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
@@ -2010,6 +2014,7 @@ describe('BuildQuote', () => {
           'eip155:1/slip44:60': true,
         },
       };
+      mockPaymentMethodsStatus = 'success';
 
       renderWithTheme(<BuildQuote />);
 
