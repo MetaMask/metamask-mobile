@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import Icon, {
   IconName,
@@ -22,7 +22,11 @@ export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const { chainId: chainIdSingle, gasFeeTokens } = transactionMetadata || {};
+  const {
+    chainId: chainIdSingle,
+    gasFeeTokens,
+    excludeNativeTokenForFee,
+  } = transactionMetadata || {};
   const { chainId: chainIdBatch } = transactionBatchesMetadata || {};
   const chainId = chainIdSingle ?? chainIdBatch;
   const hasGasFeeTokens = Boolean(gasFeeTokens?.length);
@@ -50,15 +54,31 @@ export function SelectedGasFeeToken() {
     hasGasFeeTokens &&
     (!hasOnlyFutureNativeToken || supportsFutureNative);
 
+  const nonNativeGasFeeTokensLength = useMemo(
+    () =>
+      (
+        gasFeeTokens?.filter(
+          (token) =>
+            token.tokenAddress && token.tokenAddress !== NATIVE_TOKEN_ADDRESS,
+        ) ?? []
+      ).length,
+    [gasFeeTokens],
+  );
+  // Disable fee token choice selection if only 1 token available.
+  // Taking in account networks that don't have a native token.
+  const hasMoreThanOneGasFeeTokenToChooseFrom = excludeNativeTokenForFee
+    ? supportsGasFeeTokens && nonNativeGasFeeTokensLength > 1
+    : supportsGasFeeTokens;
+
   const { networkNativeCurrency: nativeCurrency } = useNetworkInfo(chainId);
 
   const handlePress = useCallback(() => {
-    if (!supportsGasFeeTokens) {
+    if (!hasMoreThanOneGasFeeTokenToChooseFrom) {
       return;
     }
 
     setIsModalOpen(true);
-  }, [supportsGasFeeTokens]);
+  }, [hasMoreThanOneGasFeeTokenToChooseFrom]);
 
   const nativeTicker = nativeCurrency;
   const gasFeeToken = useSelectedGasFeeToken();
@@ -73,14 +93,14 @@ export function SelectedGasFeeToken() {
         onPress={handlePress}
         style={styles.gasFeeTokenButton}
         testID="selected-gas-fee-token"
-        disabled={!supportsGasFeeTokens}
+        disabled={!hasMoreThanOneGasFeeTokenToChooseFrom}
       >
         <GasFeeTokenIcon
           tokenAddress={gasFeeToken?.tokenAddress ?? NATIVE_TOKEN_ADDRESS}
           size={GasFeeTokenIconSize.Sm}
         />
         <Text testID="selected-gas-fee-token-symbol">{symbol}</Text>
-        {supportsGasFeeTokens && (
+        {hasMoreThanOneGasFeeTokenToChooseFrom && (
           <Icon
             testID="selected-gas-fee-token-arrow"
             name={IconName.ArrowDown}

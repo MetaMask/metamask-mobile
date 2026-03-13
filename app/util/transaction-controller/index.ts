@@ -6,17 +6,88 @@ import {
   TransactionController as BaseTransactionController,
   IsAtomicBatchSupportedRequest,
   IsAtomicBatchSupportedResult,
+  Result,
 } from '@metamask/transaction-controller';
 import { NetworkClientId } from '@metamask/network-controller';
 
 import Engine from '../../core/Engine';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
+import {
+  buildBatchTransactionsFromTempoTransactionCalls,
+  checkIsValidTempoTransaction,
+  getTempoConfig,
+  isTempoTransactionType,
+} from '../tempo/tempo-tx-utils';
+
+async function addTempoTransaction(
+  transaction: TransactionParams,
+  opts: Parameters<BaseTransactionController['addTransaction']>[1],
+): Promise<Result> {
+  checkIsValidTempoTransaction(transaction);
+  const tempoConfig = getTempoConfig();
+  // There doesn't seem to be any alternative to chainId here.
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const chainId = transaction.chainId!;
+  const tempoConfigForChain = tempoConfig.perChainConfig[chainId];
+
+  if (!tempoConfigForChain) {
+    throw new Error(
+      `Tempo transactions are not supported for chain: ${chainId}`,
+    );
+  }
+
+  if (!tempoConfigForChain.enabled) {
+    throw new Error(`Tempo transactions are disabled for chain: ${chainId}`);
+  }
+
+  const tempoBatchRequestParams = {
+    from: transaction.from as Hex,
+    transactions: buildBatchTransactionsFromTempoTransactionCalls(transaction),
+    // If no token is provided, we force a default one so we don't fall in
+    // fee preference algo: https://docs.tempo.xyz/protocol/fees/spec-fee#fee-token-preferences
+    gasFeeToken: transaction.feeToken || tempoConfigForChain.defaultFeeToken,
+    excludeNativeTokenForFee: true,
+  };
+
+  const { TransactionController } = Engine.context;
+
+  const result = await TransactionController.addTransactionBatch({
+    ...tempoBatchRequestParams,
+    ...opts,
+  });
+
+  const { batchId } = result;
+  const transactionMeta = TransactionController?.getTransactions({
+    searchCriteria: { batchId },
+  })?.[0];
+
+  if (!transactionMeta) {
+    throw new Error(
+      `Batch submitted with id ${batchId} but no matching transaction found in transactionController.`,
+    );
+  }
+
+  if (!transactionMeta.hash) {
+    throw new Error(
+      `Batch submitted with id ${batchId} but transaction found in transactionController does not have a hash.`,
+    );
+  }
+
+  return {
+    transactionMeta,
+    result: Promise.resolve(transactionMeta.hash),
+  };
+}
 
 export async function addTransaction(
   transaction: TransactionParams,
   opts: Parameters<BaseTransactionController['addTransaction']>[1],
 ) {
+  if (isTempoTransactionType(transaction)) {
+    return await addTempoTransaction(transaction, opts);
+  }
+
   const { TransactionController } = Engine.context;
 
   return await TransactionController.addTransaction(transaction, opts);

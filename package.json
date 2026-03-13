@@ -153,6 +153,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/transaction-controller": {
+      "type": "non-breaking",
+      "previewVersion": "62.20.0-preview-15dd7d63f"
+    }
+  },
   "resolutions": {
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
