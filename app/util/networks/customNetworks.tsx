@@ -190,6 +190,19 @@ export const PopularList = [
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
     },
   },
+  {
+    chainId: toHex('888'),
+    nickname: 'Wanchain',
+    rpcUrl: 'https://gwan-ssl.wandevs.org:56891',
+    failoverRpcUrls: [],
+    ticker: 'WAN',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://wanscan.org',
+      imageUrl: 'WAN',
+      imageSource: require('../../images/wanchain.png'),
+    },
+  },
 ];
 
 /**
@@ -390,6 +403,7 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_TESTNET: '0xa5bf';
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
+  readonly WANCHAIN_MAINNET: '0x378';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -435,6 +449,7 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_TESTNET: '0xa5bf',
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
+  WANCHAIN_MAINNET: '0x378',
   ...CHAIN_IDS,
 };
 
@@ -485,4 +500,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.TEMPO_TESTNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
+  [NETWORK_CHAIN_ID.WANCHAIN_MAINNET]: require('../../images/wanchain.png'),
 };
