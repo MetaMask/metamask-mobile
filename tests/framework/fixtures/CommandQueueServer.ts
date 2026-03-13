@@ -24,6 +24,7 @@ class CommandQueueServer implements Resource {
   private _server: ReturnType<Koa['listen']> | undefined;
   private _queue: CommandQueueItem[];
   private _exportedState: Record<string, unknown> | null;
+  private _mmConnectDebugLogs: Record<string, unknown> | null;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
@@ -31,6 +32,7 @@ class CommandQueueServer implements Resource {
     this._app = new Koa();
     this._queue = [];
     this._exportedState = null;
+    this._mmConnectDebugLogs = null;
     this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -40,6 +42,11 @@ class CommandQueueServer implements Resource {
         'Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept',
       );
+
+      if (ctx.method === 'OPTIONS') {
+        ctx.status = 200;
+        return;
+      }
 
       if (this._isQueueRequest(ctx)) {
         const newQueue = [...this._queue];
@@ -72,6 +79,27 @@ class CommandQueueServer implements Resource {
           return;
         }
         ctx.body = this._exportedState;
+        return;
+      }
+
+      if (this._isMMConnectDebugLogGet(ctx)) {
+        ctx.body = {
+          logs: this._mmConnectDebugLogs,
+        };
+        return;
+      }
+
+      if (this._isMMConnectDebugLogPost(ctx)) {
+        const body = (await this._parseJsonBody(ctx)) as Record<
+          string,
+          unknown
+        >;
+        if (this._mmConnectDebugLogs === null) {
+          this._mmConnectDebugLogs = {};
+        }
+        this._mmConnectDebugLogs[Date.now()] = body;
+        ctx.status = 200;
+        ctx.body = { success: true };
         return;
       }
     });
@@ -107,7 +135,9 @@ class CommandQueueServer implements Resource {
     };
 
     await new Promise<void>((resolve, reject) => {
-      logger.debug('Starting command queue server on port', this._serverPort);
+      logger.debug(
+        `Starting command queue server with host: ${options.host} and port: ${options.port}`,
+      );
       this._server = this._app.listen(options);
       if (!this._server) {
         logger.error(
@@ -213,12 +243,43 @@ class CommandQueueServer implements Resource {
     );
   }
 
+  /**
+   * Get the MM Connect debug logs from the command queue server
+   * @param timeout - The timeout in milliseconds
+   * @param pollInterval - The interval in milliseconds to poll the command queue server for the MM Connect debug logs
+   * @returns The MM Connect debug logs
+   */
+  async getMMConnectDebugLogs(
+    timeout = 10000,
+    pollInterval = 500,
+  ): Promise<Record<string, unknown> | null> {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+      if (this._mmConnectDebugLogs !== null) {
+        return this._mmConnectDebugLogs;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+    throw new Error(
+      `getMMConnectDebugLogs timed out after ${timeout}ms — the app did not POST to /mm-connect-debug.json. ` +
+        'Ensure the command queue server is running and the app is polling /mm-connect-debug.json.',
+    );
+  }
+
   private _isQueueRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/queue.json';
   }
 
   private _isDebugRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/debug.json';
+  }
+
+  private _isMMConnectDebugLogGet(ctx: Context) {
+    return ctx.method === 'GET' && ctx.path === '/mm-connect-debug.json';
+  }
+
+  private _isMMConnectDebugLogPost(ctx: Context) {
+    return ctx.method === 'POST' && ctx.path === '/mm-connect-debug';
   }
 
   private _isExportedStatePost(ctx: Context) {
