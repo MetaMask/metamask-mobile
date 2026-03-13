@@ -50,7 +50,10 @@ export class AppStateEventListener {
   }
 
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
-    if (nextAppState === 'active' && this.lastAppState !== nextAppState) {
+    // Only fire APP_OPENED when transitioning from background to active.
+    // Transitioning from inactive (e.g. system permission dialogs, incoming calls)
+    // back to active should NOT count as the user opening the app.
+    if (nextAppState === 'active' && this.lastAppState === 'background') {
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange();
