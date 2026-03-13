@@ -91,9 +91,14 @@ export const MYX_PRICE_DECIMALS = 0;
 export const MYX_SIZE_DECIMALS = 18;
 
 /**
- * MYX uses 18 decimals for collateral amounts (USDT on BNB)
+ * Collateral token decimals per network.
+ * Mainnet: USDT on BNB Chain = 18 decimals (verified on-chain)
+ * Testnet: USDC on Linea Sepolia = 6 decimals (verified on-chain)
  */
-export const MYX_COLLATERAL_DECIMALS = 18;
+export const MYX_COLLATERAL_DECIMALS: Record<MYXNetwork, number> = {
+  mainnet: 18,
+  testnet: 6,
+};
 
 // ============================================================================
 // Token Addresses
@@ -107,16 +112,12 @@ export const MYX_COLLATERAL_TOKEN_TESTNET =
   '0xD984fd34f91F92DA0586e1bE82E262fF27DC431b' as const;
 
 /**
- * Collateral token address — mainnet (BUSD on BNB, per pool quoteToken)
+ * Collateral token address — mainnet (USDT on BNB Chain)
+ * Canonical BSC USDT from Ryan's prod_bsc_mainnet config.
  * Note: individual pools may use different quote tokens
  */
 export const MYX_COLLATERAL_TOKEN_MAINNET =
-  '0x8bfc51e1928e91e47c6734983ac018b2fc0adf4e' as const;
-
-/** @deprecated Use MYX_COLLATERAL_TOKEN_TESTNET */
-export const USDT_BNB_TESTNET = MYX_COLLATERAL_TOKEN_TESTNET;
-/** @deprecated Use MYX_COLLATERAL_TOKEN_MAINNET */
-export const USDT_BNB_MAINNET = MYX_COLLATERAL_TOKEN_MAINNET;
+  '0x55d398326f99059fF775485246999027B3197955' as const;
 
 /**
  * Collateral token configuration by network
@@ -170,9 +171,13 @@ export function toMYXPrice(price: number | string): string {
 }
 
 /**
- * Convert MYX SDK size (18 decimals) to standard number
+ * Convert MYX SDK size (18 decimals) to standard number.
  *
- * @param myxSize - Size string in 18-decimal format from SDK
+ * Use this ONLY for raw on-chain / contract-layer values (e.g. from
+ * createIncreaseOrder responses). For REST API responses, use
+ * {@link fromMYXApiSize} — the API already returns human-readable strings.
+ *
+ * @param myxSize - Size string in 18-decimal format from SDK contract layer
  * @returns Standard decimal number
  */
 export function fromMYXSize(myxSize: string): number {
@@ -190,6 +195,24 @@ export function fromMYXSize(myxSize: string): number {
   } catch {
     return 0;
   }
+}
+
+/**
+ * Parse MYX REST API size string to number.
+ *
+ * The MYX REST API (getOrderHistory, listPositions, getPositionHistory, etc.)
+ * returns sizes as human-readable strings (e.g. "0.00136159"), NOT 18-decimal
+ * scaled integers. This is a simple parseFloat.
+ *
+ * @param apiSize - Size string from MYX REST API
+ * @returns Standard decimal number
+ */
+export function fromMYXApiSize(apiSize: string): number {
+  if (!apiSize || apiSize === '0') {
+    return 0;
+  }
+  const parsed = parseFloat(apiSize);
+  return isNaN(parsed) ? 0 : parsed;
 }
 
 /**
@@ -212,12 +235,45 @@ export function toMYXSize(size: number | string): string {
 }
 
 /**
- * Convert MYX SDK collateral (18 decimals) to standard number
+ * Convert a USD amount to the collateral token's native decimal format.
  *
- * @param myxCollateral - Collateral string in 18-decimal format from SDK
+ * Mainnet USDT on BNB = 18 decimals, testnet USDC on Linea Sepolia = 6 decimals.
+ *
+ * @param amount - USD amount as a human-readable number (e.g. 10 for $10)
+ * @param network - 'mainnet' or 'testnet'
+ * @returns Collateral string in the token's native decimal format
+ */
+export function toMYXCollateral(
+  amount: number | string,
+  network: MYXNetwork,
+): string {
+  try {
+    const bn = new BigNumber(amount);
+    if (bn.isNaN()) {
+      return '0';
+    }
+    const decimals = MYX_COLLATERAL_DECIMALS[network];
+    const multiplier = new BigNumber(10).pow(decimals);
+    return bn.multipliedBy(multiplier).toFixed(0);
+  } catch {
+    return '0';
+  }
+}
+
+/**
+ * Convert on-chain collateral value to standard number.
+ *
+ * Use this ONLY for raw on-chain / contract-layer values. For REST API
+ * responses, use {@link fromMYXApiCollateral}.
+ *
+ * @param myxCollateral - Collateral string in token-native decimals from contract
+ * @param network - 'mainnet' or 'testnet'
  * @returns Standard decimal number
  */
-export function fromMYXCollateral(myxCollateral: string): number {
+export function fromMYXCollateral(
+  myxCollateral: string,
+  network: MYXNetwork = 'mainnet',
+): number {
   if (!myxCollateral || myxCollateral === '0') {
     return 0;
   }
@@ -227,11 +283,29 @@ export function fromMYXCollateral(myxCollateral: string): number {
     if (bn.isNaN()) {
       return 0;
     }
-    const divisor = new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS);
+    const divisor = new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS[network]);
     return bn.dividedBy(divisor).toNumber();
   } catch {
     return 0;
   }
+}
+
+/**
+ * Parse MYX REST API collateral/amount string to number.
+ *
+ * The MYX REST API returns collateral, fees, PnL, and balance values as
+ * human-readable strings (e.g. "5.895534", "-0.029124"), NOT 18-decimal
+ * scaled integers. This is a simple parseFloat.
+ *
+ * @param apiCollateral - Collateral/amount string from MYX REST API
+ * @returns Standard decimal number
+ */
+export function fromMYXApiCollateral(apiCollateral: string): number {
+  if (!apiCollateral || apiCollateral === '0') {
+    return 0;
+  }
+  const parsed = parseFloat(apiCollateral);
+  return isNaN(parsed) ? 0 : parsed;
 }
 
 // ============================================================================
@@ -282,3 +356,31 @@ export const MYX_EXECUTION_FEE_TOKEN: Record<MYXNetwork, string> = {
   testnet: MYX_COLLATERAL_TOKEN_TESTNET,
   mainnet: MYX_COLLATERAL_TOKEN_MAINNET,
 };
+
+/**
+ * MYX contract price decimals — SDK's createIncreaseOrder uses 30-decimal
+ * contract-layer prices (not human-readable REST API prices).
+ */
+export const MYX_CONTRACT_PRICE_DECIMALS = 30;
+
+/**
+ * Convert a human-readable price to MYX 30-decimal contract format.
+ *
+ * SDK's createIncreaseOrder expects price as a string scaled by 10^30.
+ * Example: $65,629.50 → "65629500000000000000000000000000000"
+ *
+ * @param price - Human-readable price (number or string)
+ * @returns 30-decimal price string for SDK contract calls
+ */
+export function toMYXContractPrice(price: number | string): string {
+  try {
+    const bn = new BigNumber(price);
+    if (bn.isNaN() || bn.isZero()) {
+      return '0';
+    }
+    const multiplier = new BigNumber(10).pow(MYX_CONTRACT_PRICE_DECIMALS);
+    return bn.multipliedBy(multiplier).toFixed(0);
+  } catch {
+    return '0';
+  }
+}

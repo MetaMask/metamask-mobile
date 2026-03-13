@@ -26,7 +26,16 @@ import {
 import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { PerpsPlatformDependencies } from '../types';
+import type { MYXNetwork } from '../types/myx-types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
+
+/**
+ * Public JSON-RPC endpoints per MYX network, matching the SDK's internal CHAIN_INFO.
+ */
+const MYX_RPC_URLS: Record<MYXNetwork, string> = {
+  mainnet: 'https://bsc-dataseed.bnbchain.org',
+  testnet: 'https://rpc.sepolia.linea.build',
+};
 
 export class MYXWalletService {
   #isTestnet: boolean;
@@ -75,7 +84,7 @@ export class MYXWalletService {
    * @returns Signer-like adapter object for the MYX SDK.
    */
   public createEthersSigner(): {
-    getAddress: () => Promise<string>;
+    getAddress: () => string;
     signTypedData: (
       domain: Record<string, unknown>,
       types: Record<string, { name: string; type: string }[]>,
@@ -93,7 +102,9 @@ export class MYXWalletService {
     }
 
     return {
-      getAddress: async (): Promise<string> => {
+      // Synchronous: the MYX SDK calls signer.getAddress() without await
+      // (see getUserTradingFeeRate in SDK), so this must return a string, not a Promise.
+      getAddress: (): string => {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(
             'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -145,14 +156,24 @@ export class MYXWalletService {
 
   /**
    * Create a viem WalletClient-like object for the MYX SDK.
-   * The SDK's auth() requires a walletClient parameter.
-   * We provide a minimal object that satisfies the SDK's usage.
+   *
+   * The SDK uses `walletClient.transport` to create an ethers BrowserProvider,
+   * which it then uses for contract calls (gas estimation, sending transactions).
+   * The transport must implement EIP-1193 `request()` to proxy JSON-RPC calls
+   * to the chain RPC, with `eth_sendTransaction` routed through MetaMask's
+   * TransactionController.
    *
    * @returns WalletClient-like adapter object for the MYX SDK.
    */
   public createWalletClient(): {
     account: { address: string };
     chain: { id: number };
+    transport: {
+      request: (args: {
+        method: string;
+        params?: unknown[];
+      }) => Promise<unknown>;
+    };
     signTypedData: (args: {
       domain: Record<string, unknown>;
       types: Record<string, { name: string; type: string }[]>;
@@ -168,11 +189,100 @@ export class MYXWalletService {
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
-    const chainId = getMYXChainId(this.#isTestnet ? 'testnet' : 'mainnet');
+    const network: MYXNetwork = this.#isTestnet ? 'testnet' : 'mainnet';
+    const chainId = getMYXChainId(network);
+    const rpcUrl = MYX_RPC_URLS[network];
+
+    // EIP-1193 transport that proxies JSON-RPC to the chain's public endpoint.
+    // eth_sendTransaction is routed through MetaMask's TransactionController.
+    // eth_accounts returns the current user's address.
+    const transport = {
+      request: async (args: {
+        method: string;
+        params?: unknown[];
+      }): Promise<unknown> => {
+        if (args.method === 'eth_accounts') {
+          const currentAccount = getSelectedEvmAccount(
+            this.#messenger.call(
+              'AccountTreeController:getAccountsFromSelectedAccountGroup',
+            ),
+          );
+          return [currentAccount?.address ?? evmAccount.address];
+        }
+
+        if (args.method === 'eth_sendTransaction') {
+          const txParams = (args.params?.[0] ?? {}) as Record<string, string>;
+          const hexChainId = `0x${chainId.toString(16)}` as `0x${string}`;
+          const networkClientId = this.#messenger.call(
+            'NetworkController:findNetworkClientIdByChainId',
+            hexChainId,
+          );
+          if (!networkClientId) {
+            throw new Error(
+              `No network client for chain ${hexChainId}. Add the BNB network first.`,
+            );
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const result = await this.#messenger.call(
+            'TransactionController:addTransaction',
+            {
+              from: (txParams.from ?? evmAccount.address) as Hex,
+              to: txParams.to as Hex,
+              data: txParams.data as Hex,
+              value: (txParams.value ?? '0x0') as Hex,
+              gas: txParams.gas ?? txParams.gasLimit,
+              ...(txParams.gasPrice ? { gasPrice: txParams.gasPrice } : {}),
+              ...(txParams.maxFeePerGas
+                ? { maxFeePerGas: txParams.maxFeePerGas }
+                : {}),
+              ...(txParams.maxPriorityFeePerGas
+                ? { maxPriorityFeePerGas: txParams.maxPriorityFeePerGas }
+                : {}),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any,
+            {
+              networkClientId,
+              origin: 'metamask-perps-myx',
+              skipInitialGasEstimate: true,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any,
+          );
+          const hash = await result.result;
+          return hash;
+        }
+
+        if (args.method === 'eth_chainId') {
+          return `0x${chainId.toString(16)}`;
+        }
+
+        // All other RPC calls (eth_call, eth_estimateGas, eth_getBalance, etc.)
+        // are proxied to the chain's public JSON-RPC endpoint.
+        const response = await fetch(rpcUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now(),
+            method: args.method,
+            params: args.params ?? [],
+          }),
+        });
+
+        const json = (await response.json()) as {
+          result?: unknown;
+          error?: { message: string };
+        };
+        if (json.error) {
+          throw new Error(`RPC error: ${json.error.message}`);
+        }
+        return json.result;
+      },
+    };
 
     return {
       account: { address: evmAccount.address },
       chain: { id: chainId },
+      transport,
       signTypedData: async (args): Promise<string> => {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(

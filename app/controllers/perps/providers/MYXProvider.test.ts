@@ -477,14 +477,14 @@ describe('MYXProvider', () => {
   // ==========================================================================
 
   describe('trading operations return not-supported errors', () => {
-    it('placeOrder returns failure', async () => {
-      const result = await provider.placeOrder(
-        {} as Parameters<typeof provider.placeOrder>[0],
-      );
+    it('placeOrder returns failure without messenger', async () => {
+      const result = await provider.placeOrder({ symbol: 'BTC' } as Parameters<
+        typeof provider.placeOrder
+      >[0]);
 
       expect(result).toEqual({
         success: false,
-        error: 'MYX trading not yet supported',
+        error: 'MYX provider requires messenger for authenticated operations',
       });
     });
 

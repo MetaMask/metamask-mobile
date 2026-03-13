@@ -12,6 +12,7 @@ import type {
   KlineDataItemType,
   KlineResolution,
   KlineDataResponse,
+  PlaceOrderParams,
 } from '@myx-trade/sdk';
 import { MyxClient } from '@myx-trade/sdk';
 
@@ -544,7 +545,7 @@ export class MYXClientService {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const expireTime = timestamp + 86400; // 24 hours
+    const expireTime = 86400; // Duration in seconds — server computes expireAt = timestamp + expireTime
     const signString = `${appId}&${timestamp}&${expireTime}&${address}&${apiSecret}`;
     const signature = await this.#sha256Hex(signString);
 
@@ -999,6 +1000,166 @@ export class MYXClientService {
         '[MYXClientService] Kline unsubscribe failed (expected during disconnect)',
         { globalId, resolution, error: String(error) },
       );
+    }
+  }
+
+  // ============================================================================
+  // Order Operations (Write)
+  // ============================================================================
+
+  /**
+   * Create an increase order (open or add to position).
+   *
+   * @param params - SDK PlaceOrderParams (chainId, address, poolId, size, price in 30-dec, etc.)
+   * @param tradingFee - Trading fee string (raw token amount)
+   * @param marketId - Market ID from getMarketDetail
+   * @returns SDK response with code, message, and optional transaction data.
+   */
+  async createIncreaseOrder(
+    params: PlaceOrderParams,
+    tradingFee: string,
+    marketId: string,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Creating increase order', {
+        marketId,
+        poolId: params.poolId,
+      });
+
+      const result = await this.#myxClient.order.createIncreaseOrder(
+        params,
+        tradingFee,
+        marketId,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.createIncreaseOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('createIncreaseOrder', {
+          marketId,
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Create a decrease order (reduce or close position).
+   *
+   * @param params - SDK PlaceOrderParams
+   * @returns SDK response with code, message, and optional transaction data.
+   */
+  async createDecreaseOrder(
+    params: PlaceOrderParams,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Creating decrease order', {
+        poolId: params.poolId,
+      });
+
+      const result = await this.#myxClient.order.createDecreaseOrder(params);
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.createDecreaseOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('createDecreaseOrder', {
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get market detail for a pool (includes marketId needed for order creation).
+   *
+   * @param poolId - Pool identifier.
+   * @returns Market detail including marketId, baseSymbol, quoteSymbol.
+   */
+  async getMarketDetail(
+    poolId: string,
+  ): Promise<{ marketId: string; baseSymbol: string; quoteSymbol: string }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Fetching market detail', {
+        poolId,
+      });
+
+      const detail = await this.#myxClient.markets.getMarketDetail({
+        chainId: this.#chainId,
+        poolId,
+      });
+
+      return {
+        marketId: detail.marketId,
+        baseSymbol: detail.baseSymbol,
+        quoteSymbol: detail.quoteSymbol,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getMarketDetail',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getMarketDetail', { poolId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get user trading fee rate.
+   *
+   * @param assetClass - Asset class (0 = standard).
+   * @param riskTier - Risk tier (0 = default).
+   * @param chainId - Chain ID override (defaults to configured chain).
+   * @returns Fee rate data with takerFeeRate and makerFeeRate.
+   */
+  async getUserTradingFeeRate(
+    assetClass = 0,
+    riskTier = 0,
+    chainId?: number,
+  ): Promise<{ takerFeeRate: string; makerFeeRate: string }> {
+    try {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Getting user trading fee rate',
+      );
+
+      const result = await this.#myxClient.utils.getUserTradingFeeRate(
+        assetClass,
+        riskTier,
+        chainId ?? this.#chainId,
+      );
+
+      if (result.code !== 0 || !result.data) {
+        throw new Error(
+          `Fee rate API error: code=${result.code} message=${result.message ?? 'unknown'}`,
+        );
+      }
+
+      return {
+        takerFeeRate: String(result.data.takerFeeRate ?? '0'),
+        makerFeeRate: String(result.data.makerFeeRate ?? '0'),
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getUserTradingFeeRate',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getUserTradingFeeRate'),
+      );
+      throw wrappedError;
     }
   }
 

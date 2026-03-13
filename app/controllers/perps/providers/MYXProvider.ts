@@ -12,13 +12,18 @@
  */
 
 import type { CaipAccountId } from '@metamask/utils';
-import type { KlineResolution } from '@myx-trade/sdk';
+import type { KlineResolution, PlaceOrderParams } from '@myx-trade/sdk';
 
 import { calculateCandleCount } from '../constants/chartConfig';
 import {
   MYX_MAX_LEVERAGE,
   MYX_FEE_RATE,
   MYX_PROTOCOL_FEE_RATE,
+  MYX_DEFAULT_SLIPPAGE_BPS,
+  MYX_EXECUTION_FEE_TOKEN,
+  toMYXSize,
+  toMYXCollateral,
+  toMYXContractPrice,
 } from '../constants/myxConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
@@ -537,11 +542,202 @@ export class MYXProvider implements PerpsProvider {
   // Trading Operations (Stage 1 - All Stubbed)
   // ============================================================================
 
-  async placeOrder(_params: OrderParams): Promise<OrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async placeOrder(params: OrderParams): Promise<OrderResult> {
+    try {
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] START', {
+        symbol: params.symbol,
+        isBuy: params.isBuy,
+        size: params.size,
+        orderType: params.orderType,
+        usdAmount: params.usdAmount,
+        leverage: params.leverage,
+      });
+
+      await this.#ensureAuthenticated();
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Auth OK');
+
+      const walletService = this.#getWalletService();
+      const address = walletService.getUserAddress();
+      const chainId = this.#clientService.getChainId();
+      const network = this.#clientService.getNetwork();
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Wallet', {
+        address,
+        chainId,
+        network,
+      });
+
+      // Resolve symbol → poolId (poolSymbolMap is poolId→symbol, so reverse lookup)
+      let poolId: string | undefined;
+      for (const [pid, sym] of this.#poolSymbolMap) {
+        if (sym === params.symbol) {
+          poolId = pid;
+          break;
+        }
+      }
+      if (!poolId) {
+        this.#deps.debugLogger.log('[MYXProvider.placeOrder] Unknown symbol', {
+          symbol: params.symbol,
+          available: [...this.#poolSymbolMap.values()],
+        });
+        return {
+          success: false,
+          error: `Unknown symbol: ${params.symbol}. Available: ${[...this.#poolSymbolMap.values()].join(', ')}`,
+        };
+      }
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Pool resolved', {
+        poolId,
+      });
+
+      // Get marketId (required for createIncreaseOrder)
+      const marketDetail = await this.#clientService.getMarketDetail(poolId);
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Market detail', {
+        marketId: marketDetail.marketId,
+        baseSymbol: marketDetail.baseSymbol,
+      });
+
+      // Get trading fee rate
+      this.#deps.debugLogger.log(
+        '[MYXProvider.placeOrder] Fetching fee rate...',
+      );
+      const feeRates = await this.#clientService.getUserTradingFeeRate(
+        0,
+        0,
+        chainId,
+      );
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Fee rates', {
+        takerFeeRate: feeRates.takerFeeRate,
+        makerFeeRate: feeRates.makerFeeRate,
+      });
+
+      // Compute collateral in the token's native decimals (USDT=18, USDC=6)
+      const usdAmount = params.usdAmount
+        ? parseFloat(params.usdAmount)
+        : parseFloat(params.size) *
+          (params.currentPrice ?? parseFloat(params.price ?? '0'));
+
+      const collateralAmount = toMYXCollateral(usdAmount, network);
+
+      // Compute trading fee: collateral * takerFeeRate / 1e6
+      const takerFeeRate = BigInt(feeRates.takerFeeRate || '1000');
+      const tradingFee = (
+        (BigInt(collateralAmount) * takerFeeRate) /
+        BigInt(1e6)
+      ).toString();
+
+      // Determine price in 30-decimal format.
+      // For market orders without an explicit price, fetch current market price
+      // and apply 5% buffer: LONG → high accepted price, SHORT → low.
+      let orderPrice = params.price ?? String(params.currentPrice ?? 0);
+      if (orderPrice === '0' || orderPrice === '') {
+        const tickers = await this.#clientService.getTickers([poolId]);
+        const tickerPriceNum = parseFloat(tickers[0]?.price ?? '0');
+        if (!tickerPriceNum || isNaN(tickerPriceNum)) {
+          return {
+            success: false,
+            error: 'Could not fetch current market price',
+          };
+        }
+        const slippageMultiplier = params.isBuy ? 1.05 : 0.95;
+        orderPrice = String(tickerPriceNum * slippageMultiplier);
+      }
+      const price30Dec = toMYXContractPrice(orderPrice);
+
+      // Map direction: isBuy → LONG (0), !isBuy → SHORT (1)
+      const direction = params.isBuy ? 0 : 1;
+
+      // Map order type: 'market' → 0, 'limit' → 1
+      const sdkOrderType = params.orderType === 'limit' ? 1 : 0;
+
+      // Build SDK PlaceOrderParams
+      const sdkParams: PlaceOrderParams = {
+        chainId,
+        address: address as `0x${string}`,
+        poolId,
+        positionId: '', // Falsy → SDK uses placeOrderWithSalt for new positions
+        orderType: sdkOrderType,
+        triggerType: 0, // TriggerType.NONE
+        direction,
+        collateralAmount,
+        size: toMYXSize(parseFloat(params.size)),
+        price: price30Dec,
+        timeInForce: 0, // TimeInForce.IOC
+        postOnly: false,
+        slippagePct: String(params.maxSlippageBps ?? MYX_DEFAULT_SLIPPAGE_BPS),
+        executionFeeToken: MYX_EXECUTION_FEE_TOKEN[network],
+        leverage: params.leverage ?? 1,
+        tpSize: '0',
+        tpPrice: params.takeProfitPrice
+          ? toMYXContractPrice(params.takeProfitPrice)
+          : '0',
+        slSize: '0',
+        slPrice: params.stopLossPrice
+          ? toMYXContractPrice(params.stopLossPrice)
+          : '0',
+      };
+
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] SDK params', {
+        symbol: params.symbol,
+        poolId,
+        marketId: marketDetail.marketId,
+        direction: params.isBuy ? 'LONG' : 'SHORT',
+        orderType: params.orderType,
+        collateralAmount,
+        size: sdkParams.size,
+        price: price30Dec,
+        leverage: sdkParams.leverage,
+        tradingFee,
+      });
+
+      this.#deps.debugLogger.log(
+        '[MYXProvider.placeOrder] Calling createIncreaseOrder...',
+      );
+      const result = await this.#clientService.createIncreaseOrder(
+        sdkParams,
+        tradingFee,
+        marketDetail.marketId,
+      );
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] SDK result', {
+        code: result.code,
+        message: result.message,
+        data: result.data,
+      });
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX order failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      // Extract transaction hash if available
+      const data = result.data as
+        | { transactionHash?: string; orderId?: string }
+        | undefined;
+
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] SUCCESS', {
+        orderId: data?.transactionHash ?? data?.orderId,
+      });
+
+      return {
+        success: true,
+        orderId: data?.transactionHash ?? data?.orderId,
+        providerId: 'myx',
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.placeOrder');
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('placeOrder', { symbol: params.symbol }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async editOrder(_params: EditOrderParams): Promise<OrderResult> {

@@ -2,9 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import {
   MYX_PRICE_DECIMALS,
-  MYX_SIZE_DECIMALS,
   MYX_PRICE_DECIMALS as PRICE_DEC,
-  MYX_COLLATERAL_DECIMALS,
 } from '../constants/myxConfig';
 import type { MarketDataFormatters } from '../types';
 import type {
@@ -260,13 +258,9 @@ describe('myxAdapter', () => {
           .times(new BigNumber(10).pow(PRICE_DEC))
           .toFixed(0),
         fundingRateIndex: '0',
-        size: new BigNumber(1)
-          .times(new BigNumber(10).pow(MYX_SIZE_DECIMALS))
-          .toFixed(0),
+        size: '1',
         riskTier: 0,
-        collateralAmount: new BigNumber(5000)
-          .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-          .toFixed(0),
+        collateralAmount: '5000',
         txTime: 1700000000,
         ...overrides,
       };
@@ -329,16 +323,10 @@ describe('myxAdapter', () => {
         operation: MYXOperationEnum.Increase,
         triggerType: 0 as MYXHistoryOrderItem['triggerType'],
         direction: MYXDirectionEnum.Long,
-        size: new BigNumber(2)
-          .times(new BigNumber(10).pow(MYX_SIZE_DECIMALS))
-          .toFixed(0),
-        filledSize: new BigNumber(2)
-          .times(new BigNumber(10).pow(MYX_SIZE_DECIMALS))
-          .toFixed(0),
+        size: '2',
+        filledSize: '2',
         filledAmount: '0',
-        price: new BigNumber(60000)
-          .times(new BigNumber(10).pow(PRICE_DEC))
-          .toFixed(0),
+        price: '60000',
         lastPrice: '0',
         orderStatus: MYXOrderStatusEnum.Successful,
         execType: MYXExecTypeEnum.Market,
@@ -463,16 +451,10 @@ describe('myxAdapter', () => {
   describe('adaptAccountStateFromMYX', () => {
     it('computes balances from account info and wallet balance', () => {
       const accountInfo = {
-        totalCollateral: new BigNumber(1000)
-          .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-          .toFixed(0),
-        unrealizedPnl: new BigNumber(50)
-          .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-          .toFixed(0),
+        totalCollateral: '1000',
+        unrealizedPnl: '50',
       };
-      const walletBalance = new BigNumber(500)
-        .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-        .toFixed(0);
+      const walletBalance = '500';
 
       const result = adaptAccountStateFromMYX(accountInfo, walletBalance);
 
@@ -517,31 +499,19 @@ describe('myxAdapter', () => {
         operation: MYXOperationEnum.Increase,
         triggerType: 0 as MYXHistoryOrderItem['triggerType'],
         direction: MYXDirectionEnum.Long,
-        size: new BigNumber(3)
-          .times(new BigNumber(10).pow(MYX_SIZE_DECIMALS))
-          .toFixed(0),
-        filledSize: new BigNumber(3)
-          .times(new BigNumber(10).pow(MYX_SIZE_DECIMALS))
-          .toFixed(0),
+        size: '3',
+        filledSize: '3',
         filledAmount: '0',
-        price: new BigNumber(45000)
-          .times(new BigNumber(10).pow(PRICE_DEC))
-          .toFixed(0),
-        lastPrice: new BigNumber(45100)
-          .times(new BigNumber(10).pow(PRICE_DEC))
-          .toFixed(0),
+        price: '45000',
+        lastPrice: '45100',
         orderStatus: MYXOrderStatusEnum.Successful,
         execType: MYXExecTypeEnum.Market,
         slippagePct: 0,
         executionFeeToken: '0x0' as MYXHistoryOrderItem['executionFeeToken'],
         executionFeeAmount: '0',
-        tradingFee: new BigNumber(5)
-          .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-          .toFixed(0),
+        tradingFee: '5',
         fundingFee: '0',
-        realizedPnl: new BigNumber(100)
-          .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-          .toFixed(0),
+        realizedPnl: '100',
         baseSymbol: 'BTC',
         quoteSymbol: 'USDT',
         userLeverage: 10,
@@ -635,9 +605,7 @@ describe('myxAdapter', () => {
         orderId: 1,
         user: '0xuser' as MYXTradeFlowItem['user'],
         poolId: '0xpool1',
-        fundingFee: new BigNumber(10)
-          .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-          .toFixed(0),
+        fundingFee: '10',
         tradingFee: '0',
         charge: '0',
         collateralAmount: '0',
@@ -704,9 +672,7 @@ describe('myxAdapter', () => {
         fundingFee: '0',
         tradingFee: '0',
         charge: '0',
-        collateralAmount: new BigNumber(200)
-          .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
-          .toFixed(0),
+        collateralAmount: '200',
         collateralBase: '0',
         txHash: '0xhash',
         txTime: 1700000000,
