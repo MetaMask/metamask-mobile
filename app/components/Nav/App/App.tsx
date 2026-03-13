@@ -153,6 +153,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import { FpsCounter, IS_FPS_COUNTER_ENABLED } from '../../UI/FpsCounter';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
@@ -1184,6 +1185,7 @@ const App: React.FC = () => {
       <PerpsWebSocketHealthToast />
       <ControllerEventToastBridge registrations={predictRegistrations} />
       <ProfilerManager />
+      {IS_FPS_COUNTER_ENABLED && <FpsCounter />}
     </WebSocketHealthToastProvider>
   );
 };
