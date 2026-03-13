@@ -69,6 +69,7 @@ import { selectAccountGroups } from '../../../../selectors/multichainAccounts/ac
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
+import { NETWORK_SELECTOR_SOURCES } from '../../../../constants/networkSelector';
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -174,8 +175,16 @@ const MultichainPermissionsSummary = ({
   const switchNetwork = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
+      params: {
+        source: NETWORK_SELECTOR_SOURCES.MULTI_CHAIN_PERMISSIONS_SUMMARY,
+        hostInfo: {
+          metadata: {
+            origin: hostname,
+          },
+        },
+      },
     });
-  }, [navigate]);
+  }, [navigate, hostname]);
 
   const renderTopIcon = () => {
     const { currentEnsName, icon } = currentPageInformation;
