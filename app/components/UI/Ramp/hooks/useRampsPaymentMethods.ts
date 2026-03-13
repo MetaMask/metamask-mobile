@@ -31,9 +31,13 @@ export interface UseRampsPaymentMethodsResult {
    */
   setSelectedPaymentMethod: (paymentMethod: PaymentMethod | null) => void;
   /**
-   * Whether the payment methods request is currently loading.
+   * Whether the payment methods request is currently loading (no cached data).
    */
   isLoading: boolean;
+  /**
+   * Whether a fetch is in-flight (includes background refetches with cached data).
+   */
+  isFetching: boolean;
   /**
    * Query lifecycle status for the active payment methods request.
    */
@@ -107,6 +111,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     isLoading: status === 'loading',
+    isFetching: paymentMethodsQuery.isFetching,
     status,
     isSuccess: status === 'success',
     error:

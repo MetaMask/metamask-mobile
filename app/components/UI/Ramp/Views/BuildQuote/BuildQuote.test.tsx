@@ -1681,6 +1681,38 @@ describe('BuildQuote', () => {
       );
     });
 
+    it('navigates to token unavailable modal when params.assetId is missing but selectedToken is set', async () => {
+      mockUseParams.mockImplementation(() => ({}));
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          [MOCK_ASSET_ID]: true,
+        },
+      };
+      mockPaymentMethods = [];
+      mockPaymentMethodsStatus = 'success';
+
+      renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+    });
+
     it('does not navigate to token unavailable modal when no provider is selected', () => {
       mockSelectedProvider = null;
 
@@ -1690,6 +1722,36 @@ describe('BuildQuote', () => {
         'RampModals',
         expect.objectContaining({
           screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('navigates to token unavailable modal via supportedCryptoCurrencies when params.assetId is missing', async () => {
+      mockUseParams.mockImplementation(() => ({}));
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
         }),
       );
     });
@@ -1731,6 +1793,130 @@ describe('BuildQuote', () => {
       );
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('re-navigates to token unavailable modal when provider changes to another unsupporting provider', async () => {
+      // First provider doesn't support the token
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      const { rerender } = renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+
+      mockNavigate.mockClear();
+
+      // Switch to a different provider that also doesn't support the token
+      mockSelectedProvider = {
+        id: '/providers/mercuryo',
+        name: 'Mercuryo',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider 2',
+        hqAddress: '456 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <BuildQuote />
+        </ThemeContext.Provider>,
+      );
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      // Modal should re-appear for the new provider
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+    });
+
+    it('re-navigates to token unavailable modal when payment methods return empty after provider change', async () => {
+      // First provider: token unavailable via empty payment methods
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+      };
+      mockPaymentMethodsStatus = 'success';
+      mockPaymentMethods = [];
+
+      const { rerender } = renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+
+      mockNavigate.mockClear();
+
+      // Switch provider — payment methods still empty for new provider
+      mockSelectedProvider = {
+        id: '/providers/mercuryo',
+        name: 'Mercuryo',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider 2',
+        hqAddress: '456 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+      };
+
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <BuildQuote />
+        </ThemeContext.Provider>,
+      );
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      // Modal should re-appear for the new provider
+      expect(mockNavigate).toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
           screen: 'RampTokenNotAvailableModal',
