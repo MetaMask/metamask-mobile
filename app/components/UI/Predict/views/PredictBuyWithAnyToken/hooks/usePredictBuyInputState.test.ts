@@ -4,12 +4,21 @@ import { usePredictBuyInputState } from './usePredictBuyInputState';
 let mockActiveOrder: { amount?: number; isInputFocused?: boolean } | null =
   null;
 const mockUpdateActiveOrder = jest.fn();
+const mockSetOrderAmount = jest.fn();
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     activeOrder: mockActiveOrder,
     updateActiveOrder: mockUpdateActiveOrder,
   }),
+}));
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      setOrderAmount: (...args: unknown[]) => mockSetOrderAmount(...args),
+    },
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -54,7 +63,7 @@ describe('usePredictBuyInputState', () => {
   });
 
   describe('setCurrentValue', () => {
-    it('calls updateActiveOrder with new amount', () => {
+    it('delegates to PredictController.setOrderAmount with new amount', () => {
       mockActiveOrder = { amount: 10 };
 
       const { result } = renderHook(() => usePredictBuyInputState());
@@ -63,9 +72,7 @@ describe('usePredictBuyInputState', () => {
         result.current.setCurrentValue(20);
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 20 }),
-      );
+      expect(mockSetOrderAmount).toHaveBeenCalledWith(20, true);
     });
 
     it('sets isUserInputChange to true when value changes and is greater than 0', () => {
@@ -80,7 +87,7 @@ describe('usePredictBuyInputState', () => {
       expect(result.current.isUserInputChange).toBe(true);
     });
 
-    it('clears error when user input detected (amount > 0 and changed)', () => {
+    it('passes clearError=true when user input detected (amount > 0 and changed)', () => {
       mockActiveOrder = { amount: 5 };
 
       const { result } = renderHook(() => usePredictBuyInputState());
@@ -89,9 +96,7 @@ describe('usePredictBuyInputState', () => {
         result.current.setCurrentValue(10);
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 10, error: null }),
-      );
+      expect(mockSetOrderAmount).toHaveBeenCalledWith(10, true);
     });
 
     it('handles updater function (receives previous value)', () => {
@@ -103,12 +108,10 @@ describe('usePredictBuyInputState', () => {
         result.current.setCurrentValue((prev) => prev + 5);
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 10 }),
-      );
+      expect(mockSetOrderAmount).toHaveBeenCalledWith(10, true);
     });
 
-    it('does not set isUserInputChange when value set to 0', () => {
+    it('passes clearError=false when value set to 0', () => {
       mockActiveOrder = { amount: 5 };
 
       const { result } = renderHook(() => usePredictBuyInputState());
@@ -117,6 +120,7 @@ describe('usePredictBuyInputState', () => {
         result.current.setCurrentValue(0);
       });
 
+      expect(mockSetOrderAmount).toHaveBeenCalledWith(0, false);
       expect(result.current.isUserInputChange).toBe(false);
     });
   });

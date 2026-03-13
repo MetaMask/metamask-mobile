@@ -118,7 +118,11 @@ import {
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
-import { PREDICTION_ERROR_TRANSACTION_BATCH_ID } from '../constants/transactions';
+import {
+  PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
+  PREDICTION_ERROR_TRANSACTION_BATCH_ID,
+} from '../constants/transactions';
+import { AssetType } from '../../../Views/confirmations/types/token';
 
 /**
  * State shape for PredictController
@@ -1922,6 +1926,129 @@ export class PredictController extends BaseController<
     updater: (state: PredictControllerState) => void,
   ): void {
     this.update(updater);
+  }
+
+  public initializeOrder(
+    analyticsProperties?: PlaceOrderParams['analyticsProperties'],
+  ): void {
+    this.setActiveOrder({
+      state: ActiveOrderState.PREVIEW,
+      isInputFocused: true,
+    });
+    this.setSelectedPaymentToken(null);
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.INITIATED,
+      analyticsProperties,
+    });
+  }
+
+  public setOrderAmount(amount: number, clearError = false): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.amount = amount;
+        if (clearError) {
+          delete state.activeOrder.error;
+        }
+      }
+    });
+  }
+
+  public onConfirmOrder(isConfirmation: boolean): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        delete state.activeOrder.error;
+        state.activeOrder.state = isConfirmation
+          ? ActiveOrderState.DEPOSITING
+          : ActiveOrderState.PLACING_ORDER;
+      }
+    });
+  }
+
+  public onDepositFailed(errorMessage: string): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
+        state.activeOrder.error = errorMessage;
+        delete state.activeOrder.batchId;
+      }
+    });
+  }
+
+  public onOrderResultError(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PREVIEW;
+      }
+    });
+  }
+
+  public onPlaceOrderError(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PREVIEW;
+      }
+    });
+    this.setSelectedPaymentToken(null);
+  }
+
+  public onBuyPaymentTokenChange(token: AssetType | null): void {
+    if (!token) {
+      return;
+    }
+
+    const isBalanceToken =
+      token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
+
+    this.setSelectedPaymentToken(
+      isBalanceToken
+        ? null
+        : {
+            address: token.address,
+            chainId: token.chainId ?? '',
+            symbol: token.symbol,
+          },
+    );
+
+    const activeOrder = this.state.activeOrder;
+    if (!activeOrder) {
+      return;
+    }
+
+    this.update((state) => {
+      delete state.activeOrder?.error;
+    });
+
+    if (activeOrder.state === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
+      if (!isBalanceToken) {
+        return;
+      }
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.state = ActiveOrderState.PREVIEW;
+        }
+      });
+      return;
+    }
+
+    if (activeOrder.state === ActiveOrderState.PREVIEW) {
+      if (isBalanceToken) {
+        return;
+      }
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.state = ActiveOrderState.REDIRECTING;
+        }
+      });
+      this.payWithAnyTokenConfirmation();
+    }
+  }
+
+  public onConfirmationRedirected(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
+      }
+    });
   }
 
   public setActiveOrder(order: PredictControllerState['activeOrder']): void {
