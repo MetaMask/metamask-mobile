@@ -1,12 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { usePredictBuyActions } from './usePredictBuyPreviewActions';
-import {
-  ActiveOrderState,
-  OrderPreview,
-  PlaceOrderParams,
-} from '../../../types';
-import { PREDICT_BALANCE_TOKEN_KEY } from '../../../constants/transactions';
+import { OrderPreview, PlaceOrderParams } from '../../../types';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 
 const mockNavigate = jest.fn();
@@ -76,6 +71,23 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
+}));
+
+const mockOnPlaceOrderError = jest.fn();
+const mockOnOrderResultError = jest.fn();
+const mockOnDepositFailed = jest.fn();
+const mockOnConfirmOrder = jest.fn();
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      onPlaceOrderError: (...args: unknown[]) => mockOnPlaceOrderError(...args),
+      onOrderResultError: (...args: unknown[]) =>
+        mockOnOrderResultError(...args),
+      onDepositFailed: (...args: unknown[]) => mockOnDepositFailed(...args),
+      onConfirmOrder: (...args: unknown[]) => mockOnConfirmOrder(...args),
+    },
+  },
 }));
 
 const mockPlaceOrder = jest.fn<
@@ -179,122 +191,6 @@ describe('usePredictBuyActions', () => {
     });
   });
 
-  describe('handleTokenSelected', () => {
-    it('clears error on active order', async () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleTokenSelected({ tokenKey: 'some-token' });
-      });
-
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({ error: null });
-    });
-
-    it('triggers payWithAnyToken for non-predict-balance token when not in confirmation', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleTokenSelected({
-          tokenKey: 'other-token',
-        });
-      });
-
-      expect(mockTriggerPayWithAnyToken).toHaveBeenCalledWith(
-        expect.objectContaining({
-          market: defaultRouteParams.market,
-          outcome: defaultRouteParams.outcome,
-          outcomeToken: defaultRouteParams.outcomeToken,
-        }),
-      );
-    });
-
-    it('sets state to PAY_WITH_ANY_TOKEN for non-predict-balance token', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleTokenSelected({
-          tokenKey: 'other-token',
-        });
-      });
-
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-      });
-    });
-
-    it('sets state to PREVIEW for predict-balance token in confirmation mode', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: true };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleTokenSelected({
-          tokenKey: PREDICT_BALANCE_TOKEN_KEY,
-        });
-      });
-
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-      });
-    });
-
-    it('calls onReject in confirmation mode for predict-balance token', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: true };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleTokenSelected({
-          tokenKey: PREDICT_BALANCE_TOKEN_KEY,
-        });
-      });
-
-      expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
-    });
-
-    it('does not trigger payWithAnyToken for predict-balance token in non-confirmation', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleTokenSelected({
-          tokenKey: PREDICT_BALANCE_TOKEN_KEY,
-        });
-      });
-
-      expect(mockTriggerPayWithAnyToken).not.toHaveBeenCalled();
-    });
-
-    it('returns early for non-predict-balance token in confirmation mode', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: true };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleTokenSelected({
-          tokenKey: 'other-token',
-        });
-      });
-
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({ error: null });
-      expect(mockOnReject).not.toHaveBeenCalled();
-      expect(mockTriggerPayWithAnyToken).not.toHaveBeenCalled();
-    });
-  });
-
   describe('handleConfirm', () => {
     it('sets isConfirming to true', async () => {
       mockPlaceOrder.mockResolvedValue({
@@ -312,7 +208,7 @@ describe('usePredictBuyActions', () => {
       expect(mockSetIsConfirming).toHaveBeenCalledWith(true);
     });
 
-    it('clears error on active order', async () => {
+    it('delegates to PredictController.onConfirmOrder', async () => {
       mockPlaceOrder.mockResolvedValue({
         status: 'success',
         result: { success: true, response: undefined },
@@ -325,7 +221,7 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({ error: null });
+      expect(mockOnConfirmOrder).toHaveBeenCalledWith(false);
     });
 
     it('calls placeOrder with preview and analyticsProperties when not in confirmation', async () => {
@@ -347,28 +243,7 @@ describe('usePredictBuyActions', () => {
       });
     });
 
-    it('sets state to PLACING_ORDER before calling placeOrder', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
-      mockPlaceOrder.mockResolvedValue({
-        status: 'success',
-        result: { success: true, response: undefined },
-      });
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      const placingOrderCall = mockUpdateActiveOrder.mock.calls.find(
-        (call: [Record<string, unknown>]) =>
-          call[0].state === ActiveOrderState.PLACING_ORDER,
-      );
-      expect(placingOrderCall).toBeDefined();
-    });
-
-    it('sets state back to PREVIEW on placeOrder error', async () => {
+    it('delegates to onOrderResultError on placeOrder error', async () => {
       mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
       mockPlaceOrder.mockResolvedValue({
         status: 'error',
@@ -382,13 +257,11 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-      });
+      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
-    it('sets state back to PREVIEW on order_not_filled', async () => {
+    it('delegates to onOrderResultError on order_not_filled', async () => {
       mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
       mockPlaceOrder.mockResolvedValue({ status: 'order_not_filled' });
       const { result } = renderHook(() =>
@@ -399,9 +272,7 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-      });
+      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
@@ -421,10 +292,11 @@ describe('usePredictBuyActions', () => {
         waitForResult: true,
         handleErrors: false,
       });
+      expect(mockOnConfirmOrder).toHaveBeenCalledWith(true);
       expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
 
-    it('resets state to PREVIEW on deposit_required', async () => {
+    it('delegates to onOrderResultError on deposit_required', async () => {
       mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
       mockPlaceOrder.mockResolvedValue({ status: 'deposit_required' });
       const { result } = renderHook(() =>
@@ -435,13 +307,11 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-      });
+      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
-    it('resets state to PREVIEW on deposit_in_progress', async () => {
+    it('delegates to onOrderResultError on deposit_in_progress', async () => {
       mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
       mockPlaceOrder.mockResolvedValue({ status: 'deposit_in_progress' });
       const { result } = renderHook(() =>
@@ -452,9 +322,7 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-      });
+      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
@@ -489,7 +357,7 @@ describe('usePredictBuyActions', () => {
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
-    it('updates active order with error and PAY_WITH_ANY_TOKEN state', async () => {
+    it('delegates to PredictController.onDepositFailed with error message', async () => {
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -498,11 +366,7 @@ describe('usePredictBuyActions', () => {
         await result.current.handleDepositFailed('Deposit failed');
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        error: 'Deposit failed',
-        batchId: null,
-      });
+      expect(mockOnDepositFailed).toHaveBeenCalledWith('Deposit failed');
     });
 
     it('triggers payWithAnyToken flow', async () => {
@@ -521,20 +385,6 @@ describe('usePredictBuyActions', () => {
       });
     });
 
-    it('clears batchId on failure', async () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleDepositFailed('error');
-      });
-
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ batchId: null }),
-      );
-    });
-
     it('uses default error message when none provided', async () => {
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -544,10 +394,8 @@ describe('usePredictBuyActions', () => {
         await result.current.handleDepositFailed();
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'predict.deposit.error_description',
-        }),
+      expect(mockOnDepositFailed).toHaveBeenCalledWith(
+        'predict.deposit.error_description',
       );
     });
   });
@@ -603,7 +451,7 @@ describe('usePredictBuyActions', () => {
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
-    it('sets state back to PREVIEW', () => {
+    it('delegates to PredictController.onPlaceOrderError', () => {
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -612,21 +460,7 @@ describe('usePredictBuyActions', () => {
         result.current.handlePlaceOrderError();
       });
 
-      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-      });
-    });
-
-    it('resets selected payment token', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handlePlaceOrderError();
-      });
-
-      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+      expect(mockOnPlaceOrderError).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -4,8 +4,7 @@ import Engine from '../../../../core/Engine';
 import { PredictControllerState } from '../controllers/PredictController';
 import { selectPredictActiveOrder } from '../selectors/predictController';
 import { parseAnalyticsProperties } from '../utils/analytics';
-import { PredictTradeStatus } from '../constants/eventNames';
-import { ActiveOrderState, PredictMarket, PredictOutcomeToken } from '../types';
+import { PredictMarket, PredictOutcomeToken } from '../types';
 import { PredictEntryPoint } from '../types/navigation';
 
 type PredictActiveOrder = PredictControllerState['activeOrder'];
@@ -91,21 +90,15 @@ export const usePredictActiveOrder = () => {
 
   const initializeActiveOrder = useCallback(
     (params: InitializeActiveOrderParams) => {
-      updateActiveOrder({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-      PredictController.setSelectedPaymentToken(null);
-      PredictController.trackPredictOrderEvent({
-        status: PredictTradeStatus.INITIATED,
-        analyticsProperties: parseAnalyticsProperties(
+      PredictController.initializeOrder(
+        parseAnalyticsProperties(
           params.market,
           params.outcomeToken,
           params.entryPoint,
         ),
-      });
+      );
     },
-    [updateActiveOrder, PredictController],
+    [PredictController],
   );
 
   const clearActiveOrder = useCallback(() => {

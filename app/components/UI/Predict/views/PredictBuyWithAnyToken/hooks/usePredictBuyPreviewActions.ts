@@ -5,10 +5,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../../types/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePredictNavigation } from '../../../hooks/usePredictNavigation';
-import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
-import { usePredictPayWithAnyToken } from '../../../hooks/usePredictPayWithAnyToken';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import {
   ActiveOrderState,
@@ -18,8 +16,10 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
-import { PREDICT_BALANCE_TOKEN_KEY } from '../../../constants/transactions';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import Engine from '../../../../../../core/Engine';
+import { useConfirmNavigation } from '../../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ConfirmationLoader } from '../../../../../Views/confirmations/components/confirm/confirm-component';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;
@@ -39,14 +39,15 @@ export const usePredictBuyActions = ({
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const navigation = useNavigation();
-  const { onReject } = useConfirmActions();
+  const { navigateToConfirmation } = useConfirmNavigation();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
-  const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
-  const { updateActiveOrder, clearActiveOrder } = usePredictActiveOrder();
+  const { clearActiveOrder } = usePredictActiveOrder();
   const { navigateToBuyPreview } = usePredictNavigation();
   const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
   const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const { activeOrder } = usePredictActiveOrder();
+  const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
+  const { PredictController } = Engine.context;
 
   const batchId = useMemo(() => activeOrder?.batchId, [activeOrder?.batchId]);
 
@@ -84,78 +85,21 @@ export const usePredictBuyActions = ({
     ],
   );
 
-  const handleTokenSelected = useCallback(
-    async ({ tokenKey }: { tokenKey: string | null }) => {
-      updateActiveOrder({ error: null });
-      if (isConfirmation) {
-        if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
-          return;
-        }
-        updateActiveOrder({
-          state: ActiveOrderState.PREVIEW,
-        });
-        redirectToBuyPreview();
-        onReject(undefined, true);
-        return;
-      }
-      if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
-        updateActiveOrder({
-          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        });
-        triggerPayWithAnyToken({
-          market,
-          outcome,
-          outcomeToken,
-          ...(livePreview ? { preview: { ...livePreview } } : {}),
-        });
-      }
-    },
-    [
-      isConfirmation,
-      market,
-      onReject,
-      outcome,
-      outcomeToken,
-      livePreview,
-      redirectToBuyPreview,
-      triggerPayWithAnyToken,
-      updateActiveOrder,
-    ],
-  );
-
   const handleDepositFailed = useCallback(
     async (depositErrorMessage?: string) => {
       setIsConfirming(false);
-      updateActiveOrder({
-        state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        error:
-          depositErrorMessage ?? strings('predict.deposit.error_description'),
-        batchId: null,
-      });
-      triggerPayWithAnyToken({
-        market,
-        outcome,
-        outcomeToken,
-      });
+      Engine.context.PredictController.onDepositFailed(
+        depositErrorMessage ?? strings('predict.deposit.error_description'),
+      );
     },
-    [
-      setIsConfirming,
-      updateActiveOrder,
-      triggerPayWithAnyToken,
-      market,
-      outcome,
-      outcomeToken,
-    ],
+    [setIsConfirming],
   );
 
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
-    updateActiveOrder({ error: null });
+    Engine.context.PredictController.onConfirmOrder(!!isConfirmation);
 
     if (isConfirmation) {
-      updateActiveOrder({
-        state: ActiveOrderState.DEPOSITING,
-      });
       redirectToBuyPreview({
         isConfirming: true,
       });
@@ -183,9 +127,6 @@ export const usePredictBuyActions = ({
       setIsPreviewFromRouteUsed(true);
     }
 
-    updateActiveOrder({
-      state: ActiveOrderState.PLACING_ORDER,
-    });
     const orderResult = await placeOrder({
       analyticsProperties,
       preview: previewToUse,
@@ -197,11 +138,10 @@ export const usePredictBuyActions = ({
       orderResult.status === 'deposit_in_progress'
     ) {
       setIsConfirming(false);
-      updateActiveOrder({ state: ActiveOrderState.PREVIEW });
+      Engine.context.PredictController.onOrderResultError();
     }
   }, [
     setIsConfirming,
-    updateActiveOrder,
     isConfirmation,
     livePreview,
     previewFromRoute,
@@ -233,14 +173,42 @@ export const usePredictBuyActions = ({
 
   const handlePlaceOrderError = useCallback(() => {
     setIsConfirming(false);
-    updateActiveOrder({ state: ActiveOrderState.PREVIEW });
-    resetSelectedPaymentToken();
-  }, [setIsConfirming, updateActiveOrder, resetSelectedPaymentToken]);
+    Engine.context.PredictController.onPlaceOrderError();
+  }, [setIsConfirming]);
+
+  useEffect(() => {
+    if (currentState === ActiveOrderState.REDIRECTING) {
+      if (isConfirmation) {
+        PredictController.onConfirmationRedirected();
+        return;
+      }
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        headerShown: false,
+        replace: true,
+        routeParams: {
+          market,
+          outcome,
+          outcomeToken,
+          isConfirmation: true,
+          preview: livePreview,
+        },
+      });
+    }
+  }, [
+    PredictController,
+    currentState,
+    isConfirmation,
+    livePreview,
+    market,
+    navigateToConfirmation,
+    outcome,
+    outcomeToken,
+  ]);
 
   return {
     handleBack,
     handleBackSwipe,
-    handleTokenSelected,
     handleConfirm,
     handleDepositFailed,
     handlePlaceOrderSuccess,

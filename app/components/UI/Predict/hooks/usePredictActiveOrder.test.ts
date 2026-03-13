@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePredictActiveOrder } from './usePredictActiveOrder';
 import { ActiveOrderState, Recurrence } from '../types';
-import { PredictTradeStatus } from '../constants/eventNames';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -12,6 +11,7 @@ jest.mock('../../../../core/Engine', () => ({
       clearActiveOrder: jest.fn(),
       setSelectedPaymentToken: jest.fn(),
       trackPredictOrderEvent: jest.fn(),
+      initializeOrder: jest.fn(),
     },
   },
 }));
@@ -201,7 +201,7 @@ describe('usePredictActiveOrder', () => {
   });
 
   describe('initializeActiveOrder', () => {
-    it('sets state to PREVIEW and isInputFocused to true', () => {
+    it('delegates to PredictController.initializeOrder with parsed analytics', () => {
       const { result } = renderHook(() => usePredictActiveOrder());
 
       act(() => {
@@ -226,71 +226,8 @@ describe('usePredictActiveOrder', () => {
       });
 
       expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-    });
-
-    it('calls setSelectedPaymentToken with null', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.initializeActiveOrder({
-          market: {
-            id: 'market-1',
-            providerId: 'provider-1',
-            slug: 'market-slug',
-            title: 'Market Title',
-            description: 'Market Description',
-            image: 'image-url',
-            status: 'open',
-            recurrence: Recurrence.NONE,
-            category: 'trending' as const,
-            tags: [],
-            outcomes: [],
-            liquidity: 1000,
-            volume: 5000,
-          },
-          outcomeToken: { id: 'token-1', title: 'Yes', price: 0.6 },
-        });
-      });
-
-      expect(
-        Engine.context.PredictController.setSelectedPaymentToken,
-      ).toHaveBeenCalledWith(null);
-    });
-
-    it('calls trackPredictOrderEvent with INITIATED status', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.initializeActiveOrder({
-          market: {
-            id: 'market-1',
-            providerId: 'provider-1',
-            slug: 'market-slug',
-            title: 'Market Title',
-            description: 'Market Description',
-            image: 'image-url',
-            status: 'open',
-            recurrence: Recurrence.NONE,
-            category: 'trending' as const,
-            tags: [],
-            outcomes: [],
-            liquidity: 1000,
-            volume: 5000,
-          },
-          outcomeToken: { id: 'token-1', title: 'Yes', price: 0.6 },
-        });
-      });
-
-      expect(
-        Engine.context.PredictController.trackPredictOrderEvent,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({ status: PredictTradeStatus.INITIATED }),
-      );
+        Engine.context.PredictController.initializeOrder,
+      ).toHaveBeenCalledWith({ marketId: 'market-1' });
     });
 
     it('passes parsed analytics properties from market/outcomeToken/entryPoint', () => {
@@ -332,11 +269,8 @@ describe('usePredictActiveOrder', () => {
         mockEntryPoint,
       );
       expect(
-        Engine.context.PredictController.trackPredictOrderEvent,
-      ).toHaveBeenCalledWith({
-        status: PredictTradeStatus.INITIATED,
-        analyticsProperties: { marketId: 'market-1' },
-      });
+        Engine.context.PredictController.initializeOrder,
+      ).toHaveBeenCalledWith({ marketId: 'market-1' });
     });
   });
 
