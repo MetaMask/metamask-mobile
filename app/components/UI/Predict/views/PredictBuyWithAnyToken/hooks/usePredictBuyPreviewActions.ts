@@ -40,8 +40,8 @@ export const usePredictBuyActions = ({
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const navigation = useNavigation();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const { onConfirm: onApprovalConfirm } = useApprovalRequest();
-  const { clearActiveOrder } = usePredictActiveOrder();
+  const { onConfirm: onApprovalConfirm, onReject: onApprovalReject } =
+    useApprovalRequest();
   const { navigateToBuyPreview } = usePredictNavigation();
   const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
   const { resetSelectedPaymentToken } = usePredictPaymentToken();
@@ -155,21 +155,24 @@ export const usePredictBuyActions = ({
   ]);
 
   const handleBack = useCallback(() => {
-    clearActiveOrder();
+    if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
+      onApprovalReject();
+    }
+    PredictController.onOrderEnd();
     navigation.dispatch(StackActions.pop());
-  }, [clearActiveOrder, navigation]);
+  }, [PredictController, navigation, currentState, onApprovalReject]);
 
   const handleBackSwipe = useCallback(() => {
-    clearActiveOrder();
+    PredictController.onOrderEnd();
     if (isConfirmation) return;
     navigation.dispatch(StackActions.pop());
-  }, [clearActiveOrder, isConfirmation, navigation]);
+  }, [PredictController, isConfirmation, navigation]);
 
   const handlePlaceOrderSuccess = useCallback(() => {
     setIsConfirming(false);
-    clearActiveOrder();
+    PredictController.onOrderEnd();
     navigation.dispatch(StackActions.pop());
-  }, [setIsConfirming, clearActiveOrder, navigation]);
+  }, [setIsConfirming, PredictController, navigation]);
 
   const handlePlaceOrderError = useCallback(() => {
     setIsConfirming(false);
