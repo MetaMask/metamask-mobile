@@ -1,0 +1,9 @@
+# Ignore diff files generated during visual regression testing
+baselines/diff/
+
+# Ignore temporary test artifacts
+*.tmp
+*.log
+
+# Ignore local test results (CI results are uploaded as artifacts)
+test-results/
