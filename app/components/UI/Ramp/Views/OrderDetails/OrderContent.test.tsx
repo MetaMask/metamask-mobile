@@ -198,6 +198,16 @@ describe('OrderContent', () => {
     expect(tokenAmount).toHaveTextContent('... ETH');
   });
 
+  it('renders "0" when cryptoAmount is zero', () => {
+    const zeroAmountOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0,
+    };
+    renderOrder(zeroAmountOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    expect(tokenAmount).toHaveTextContent('0 ETH');
+  });
+
   it('does not render info row when statusDescription is absent', () => {
     const orderWithoutDescription: RampsOrder = {
       ...mockOrder,

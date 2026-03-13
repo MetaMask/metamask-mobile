@@ -320,7 +320,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {order.cryptoAmount
+          {order.cryptoAmount != null
             ? (formatSubscriptNotation(
                 parseFloat(String(order.cryptoAmount)),
               ) ??
