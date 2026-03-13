@@ -86,7 +86,7 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByRole('button');
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('applies reduced opacity style', () => {
@@ -102,9 +102,10 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByRole('button');
-      expect(button.props.style).toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
-      );
+      const styles = Array.isArray(button.props.style)
+        ? Object.assign({}, ...button.props.style.flat())
+        : button.props.style;
+      expect(styles).toEqual(expect.objectContaining({ opacity: 0.5 }));
     });
   });
 

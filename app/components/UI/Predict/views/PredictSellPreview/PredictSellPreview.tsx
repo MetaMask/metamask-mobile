@@ -1,6 +1,9 @@
 import {
   Box,
+  Button,
+  ButtonSize,
   ButtonSize as ButtonSizeHero,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -19,12 +22,7 @@ import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import Skeleton from '../../../../../component-library/components-temp/Skeleton/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
@@ -216,25 +214,24 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     if (isLoading) {
       return (
         <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.cashing_out_loading')}`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onCashOut}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           style={tw.style('opacity-50')}
-          disabled
-        />
+          isDisabled
+        >
+          <Box twClassName="flex-row items-center gap-1">
+            <ActivityIndicator size="small" />
+            <Text
+              variant={TextVariant.BodyLg}
+              twClassName="font-medium"
+              color={TextColor.PrimaryInverse}
+            >
+              {`${strings('predict.order.cashing_out_loading')}`}
+            </Text>
+          </Box>
+        </Button>
       );
     }
 

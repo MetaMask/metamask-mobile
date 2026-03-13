@@ -2,6 +2,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -12,11 +15,6 @@ import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -248,37 +246,35 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
         </View>
         <View style={styles.buttonContainer}>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
-            width={ButtonWidthTypes.Full}
-            label={
-              <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
-                style={tw.style('font-medium')}
-                color={TextColor.SuccessDefault}
-              >
-                {outcome.tokens[0].title}
-              </Text>
-            }
+            isFullWidth
             onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
-          />
+          >
+            <Text
+              variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
+              style={tw.style('font-medium')}
+              color={TextColor.SuccessDefault}
+            >
+              {outcome.tokens[0].title}
+            </Text>
+          </Button>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
-            width={ButtonWidthTypes.Full}
-            label={
-              <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
-                style={tw.style('font-medium')}
-                color={TextColor.ErrorDefault}
-              >
-                {outcome.tokens[1].title}
-              </Text>
-            }
+            isFullWidth
             onPress={() => handleBuy(outcome.tokens[1])}
             style={styles.buttonNo}
-          />
+          >
+            <Text
+              variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
+              style={tw.style('font-medium')}
+              color={TextColor.ErrorDefault}
+            >
+              {outcome.tokens[1].title}
+            </Text>
+          </Button>
         </View>
         <View style={styles.marketFooter}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>

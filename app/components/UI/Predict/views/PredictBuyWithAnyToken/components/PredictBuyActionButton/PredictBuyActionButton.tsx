@@ -1,18 +1,16 @@
 import React from 'react';
 import {
   Box,
+  Button,
+  ButtonSize,
   ButtonSize as ButtonSizeHero,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ActivityIndicator } from 'react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../../component-library/components/Buttons/Button';
 import ButtonHero from '../../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatCents } from '../../../../utils/format';
@@ -43,25 +41,24 @@ const PredictBuyActionButton = ({
   if (isLoading) {
     return (
       <Button
-        label={
-          <Box twClassName="flex-row items-center gap-1">
-            <ActivityIndicator size="small" />
-            <Text
-              variant={TextVariant.BodyLg}
-              twClassName="font-medium"
-              color={TextColor.PrimaryInverse}
-            >
-              {`${strings('predict.order.placing_prediction')}...`}
-            </Text>
-          </Box>
-        }
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         onPress={onPress}
         size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={tw.style('opacity-50')}
-        disabled
-      />
+        isDisabled
+      >
+        <Box twClassName="flex-row items-center gap-1">
+          <ActivityIndicator size="small" />
+          <Text
+            variant={TextVariant.BodyLg}
+            twClassName="font-medium"
+            color={TextColor.PrimaryInverse}
+          >
+            {`${strings('predict.order.placing_prediction')}...`}
+          </Text>
+        </Box>
+      </Button>
     );
   }
 

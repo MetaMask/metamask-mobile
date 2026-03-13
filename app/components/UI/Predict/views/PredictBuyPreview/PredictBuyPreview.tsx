@@ -3,7 +3,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
   ButtonSize as ButtonSizeHero,
+  ButtonVariant,
   Icon,
   IconName,
   IconSize,
@@ -34,11 +37,6 @@ import {
 } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -389,25 +387,24 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     if (isLoading) {
       return (
         <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.placing_prediction')}...`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           onPress={onPlaceBet}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           style={tw.style('opacity-50')}
-          disabled
-        />
+          isDisabled
+        >
+          <Box twClassName="flex-row items-center gap-1">
+            <ActivityIndicator size="small" />
+            <Text
+              variant={TextVariant.BodyLg}
+              twClassName="font-medium"
+              color={TextColor.PrimaryInverse}
+            >
+              {`${strings('predict.order.placing_prediction')}...`}
+            </Text>
+          </Box>
+        </Button>
       );
     }
 

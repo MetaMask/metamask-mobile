@@ -3,16 +3,14 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { memo } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../../component-library/components/Buttons/Button';
 import PredictClaimButton from '../../../../components/PredictActionButtons/PredictClaimButton';
 import PredictDetailsButtonsSkeleton from '../../../../components/PredictDetailsButtonsSkeleton';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
@@ -143,39 +141,41 @@ const PredictMarketDetailsActions = memo(
                 twClassName="w-full mt-4 gap-3"
               >
                 <Button
-                  variant={ButtonVariants.Secondary}
+                  variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
                   style={getActionButtonStyle('bg-success-muted')}
-                  label={renderActionButtonLabel({
-                    title: yesTitle,
-                    price: yesPercentage,
-                    color: TextColor.SuccessDefault,
-                    useStackedLabels,
-                  })}
+                  isFullWidth
                   onPress={() => {
                     if (yesToken) {
                       onBuyPress(yesToken);
                     }
                   }}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  style={getActionButtonStyle('bg-error-muted')}
-                  label={renderActionButtonLabel({
-                    title: noTitle,
-                    price: 100 - yesPercentage,
-                    color: TextColor.ErrorDefault,
+                >
+                  {renderActionButtonLabel({
+                    title: yesTitle,
+                    price: yesPercentage,
+                    color: TextColor.SuccessDefault,
                     useStackedLabels,
                   })}
+                </Button>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  style={getActionButtonStyle('bg-error-muted')}
+                  isFullWidth
                   onPress={() => {
                     if (noToken) {
                       onBuyPress(noToken);
                     }
                   }}
-                />
+                >
+                  {renderActionButtonLabel({
+                    title: noTitle,
+                    price: 100 - yesPercentage,
+                    color: TextColor.ErrorDefault,
+                    useStackedLabels,
+                  })}
+                </Button>
               </Box>
             );
           }

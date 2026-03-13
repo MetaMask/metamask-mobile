@@ -3,6 +3,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonVariant,
   Text,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -28,10 +30,7 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import Skeleton from '../../../../../component-library/components-temp/Skeleton/Skeleton';
 import { USDC_SYMBOL, USDC_TOKEN_ICON_URL } from '@metamask/perps-controller';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -190,19 +189,21 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
         <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
           <Button
             variant={
-              hasBalance ? ButtonVariants.Secondary : ButtonVariants.Primary
+              hasBalance ? ButtonVariant.Secondary : ButtonVariant.Primary
             }
             style={tw.style('flex-1')}
-            label={strings('predict.deposit.add_funds')}
             onPress={handleAddFunds}
-          />
+          >
+            {strings('predict.deposit.add_funds')}
+          </Button>
           {hasBalance && (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               style={tw.style('flex-1')}
-              label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
-            />
+            >
+              {strings('predict.deposit.withdraw')}
+            </Button>
           )}
         </Box>
       </Box>
