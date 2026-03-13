@@ -493,7 +493,6 @@ describe('MarketInsightsView', () => {
     ).toBeOnTheScreen();
     expect(mockTrendSourcesBottomSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        trendTitle: 'On-chain demand',
         articles: [],
         tweets: [
           expect.objectContaining({

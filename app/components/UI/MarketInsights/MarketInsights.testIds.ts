@@ -18,4 +18,5 @@ export enum MarketInsightsSelectorsIDs {
   FEEDBACK_OPTION_SOMETHING_ELSE = 'market-insights-feedback-option-something-else',
   FEEDBACK_ADDITIONAL_INPUT = 'market-insights-feedback-additional-input',
   FEEDBACK_SUBMIT_BUTTON = 'market-insights-feedback-submit-button',
+  BACKGROUND_ANIMATION = 'market-insights-background-animation',
 }

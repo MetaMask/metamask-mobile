@@ -2085,7 +2085,7 @@
     "helpful_prompt": "Was this helpful?",
     "feedback": {
       "title": "Feedback",
-      "description": "Help improve our AI-generated market insights.",
+      "description": "Your answer helps improve our AI summaries.",
       "not_relevant": "Not relevant",
       "not_accurate": "Not accurate",
       "hard_to_understand": "Hard to understand",
