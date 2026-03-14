@@ -39,10 +39,13 @@ describe(SmokeWalletPlatform('Google Login - Add New SRP'), () => {
           oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);
 
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            predictGtmOnboardingModalEnabled: {
+              enabled: false,
+              minimumVersion: '7.60.0',
+            },
+          });
         },
       },
       async () => {

@@ -1,5 +1,6 @@
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import type { Fixture } from '../../../framework/fixtures/types';
 import {
   createUserStorageController,
   setupAccountMockedBalances,
@@ -17,7 +18,7 @@ import {
 } from '@metamask/account-tree-controller';
 
 export interface IdentityFixtureOptions {
-  fixture?: object;
+  fixture?: FixtureBuilder | Fixture;
   restartDevice?: boolean;
   userStorageFeatures?: (keyof typeof pathRegexps)[];
   userStorageOverrides?: Partial<

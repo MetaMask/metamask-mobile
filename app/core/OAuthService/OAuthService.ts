@@ -1,7 +1,7 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
-import { whenEngineReady } from '../Analytics/whenEngineReady';
+import { whenEngineReady } from '../../util/analytics/whenEngineReady';
 
 import {
   HandleOAuthLoginResult,
@@ -25,6 +25,7 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
+import { signOut as acmSignOut } from '@metamask/react-native-acm';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -245,12 +246,21 @@ export class OAuthService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        trace({
-          name: TraceName.OnboardingOAuthProviderLoginError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        // trace only if error is not a user cancelled error
+        if (
+          !(
+            error instanceof OAuthError &&
+            (error.code === OAuthErrorType.UserCancelled ||
+              error.code === OAuthErrorType.UserDismissed)
+          )
+        ) {
+          trace({
+            name: TraceName.OnboardingOAuthProviderLoginError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        }
 
         this.#trackSocialLoginFailure({
           authConnection: loginHandler.authConnection,
@@ -264,6 +274,15 @@ export class OAuthService {
           name: TraceName.OnboardingOAuthProviderLogin,
           data: { success: providerLoginSuccess },
         });
+
+        if (
+          Platform.OS === 'android' &&
+          loginHandler.authConnection === AuthConnection.Google
+        ) {
+          acmSignOut().catch((e) =>
+            Logger.log(e, 'acmSignOut: failed to clear cached credential'),
+          );
+        }
       }
 
       const authConnection = loginHandler.authConnection;

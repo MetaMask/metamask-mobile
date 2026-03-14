@@ -123,8 +123,6 @@ jest.mock('@metamask/utils', () => ({
 // Mock EligibilityService as a class with instance methods
 const mockEligibilityServiceInstance = {
   checkEligibility: jest.fn().mockResolvedValue(true),
-  fetchGeoLocation: jest.fn().mockResolvedValue('UNKNOWN'),
-  clearCache: jest.fn(),
 };
 jest.mock('./services/EligibilityService', () => ({
   EligibilityService: jest

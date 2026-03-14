@@ -2,6 +2,7 @@ export {
   TrendingTokenTimeBottomSheet,
   TimeOption,
   mapSortByToTimeOption,
+  mapTimeOptionToSortBy,
   type TrendingTokenTimeBottomSheetProps,
 } from './TrendingTokenTimeBottomSheet';
 

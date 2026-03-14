@@ -128,7 +128,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           </Box>
           <Box twClassName="flex-1 -mt-1">
             <Text
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               style={tw.style('font-medium')}
             >

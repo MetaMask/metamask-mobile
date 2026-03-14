@@ -652,6 +652,10 @@ describe('PerpsConnectionManager', () => {
           currentAddress: '0xdef456',
         }),
       );
+
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalledWith(true);
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -687,6 +691,10 @@ describe('PerpsConnectionManager', () => {
           currentNetwork: 'testnet',
         }),
       );
+
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalledWith(false);
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {
@@ -714,6 +722,40 @@ describe('PerpsConnectionManager', () => {
       const initCallCount = mockPerpsController.init.mock.calls.length;
       // init was called once for connect(); any debounced reconnect fires one more time
       expect(initCallCount).toBeGreaterThanOrEqual(1);
+
+      jest.useRealTimers();
+    });
+
+    it('ANDs pendingSkipMarketNotify across debounce window so network change keeps it false', async () => {
+      jest.useFakeTimers();
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+
+      const cb = storeCallbacks[storeCallbacks.length - 1];
+      mockStreamManagerInstance.marketData.clearCache.mockClear();
+
+      // 1) Network change fires first → accountOnly=false → flag=false
+      (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
+      cb();
+
+      // 2) Account change fires within debounce window → accountOnly would be true,
+      //    but AND with existing false keeps flag false
+      (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet'); // still changed
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xnew' }));
+      cb();
+
+      // Advance past debounce
+      jest.advanceTimersByTime(60);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // The second clearCache call inside performReconnection should use false
+      const calls = mockStreamManagerInstance.marketData.clearCache.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      expect(lastCall[0]).toBe(false);
 
       jest.useRealTimers();
     });
@@ -867,7 +909,7 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
-  describe('DEX Abstraction Cache Clearing (PR #25334)', () => {
+  describe('DEX Abstraction Cache Clearing (PR 25334)', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -972,7 +1014,7 @@ describe('PerpsConnectionManager', () => {
 
   describe('foreground reconnection — single reconnection flow', () => {
     it('PerpsConnectionManager has no AppState listener — only the hook triggers foreground reconnect', () => {
-      // This test documents the fix for the race condition introduced by PR #26780.
+      // This test documents the fix for the race condition introduced by PR 26780.
       // Previously, PerpsConnectionManager registered its own AppState listener in
       // setupStateMonitoring(), which competed with usePerpsConnectionLifecycle hook.
       //

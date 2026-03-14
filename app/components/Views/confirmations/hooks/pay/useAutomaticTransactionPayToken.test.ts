@@ -7,7 +7,10 @@ import {
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { selectMetaMaskPayTokensFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  MetaMaskPayTokensFlags,
+  selectMetaMaskPayTokensFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -111,7 +114,14 @@ describe('useAutomaticTransactionPayToken', () => {
     selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: { default: [], overrides: {} },
       minimumRequiredTokenBalance: 0,
-    });
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
   });
 
   it('selects first token', () => {
@@ -341,7 +351,14 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       },
       minimumRequiredTokenBalance: 5,
-    });
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -387,7 +404,14 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       },
       minimumRequiredTokenBalance: 15,
-    });
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -428,7 +452,14 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       },
       minimumRequiredTokenBalance: 100,
-    });
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -495,7 +526,14 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       },
       minimumRequiredTokenBalance: 0,
-    });
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -543,7 +581,14 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       },
       minimumRequiredTokenBalance: 5,
-    });
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [

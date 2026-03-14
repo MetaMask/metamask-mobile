@@ -23,7 +23,9 @@ jest.mock('@metamask/mobile-wallet-protocol-core', () => ({
   WebSocketTransport: {
     create: jest.fn(),
   },
-  SessionStore: jest.fn(),
+  SessionStore: Object.assign(jest.fn(), {
+    create: jest.fn(),
+  }),
 }));
 jest.mock('../store/kv-store');
 jest.mock('../adapters/rpc-bridge-adapter');
@@ -47,6 +49,9 @@ const MockedWalletClient = WalletClient as jest.MockedClass<
 const MockedWebSocketTransport = WebSocketTransport as jest.Mocked<
   typeof WebSocketTransport
 >;
+const MockedSessionStore = SessionStore as jest.Mocked<typeof SessionStore> & {
+  create: jest.Mock;
+};
 const MockedRPCBridgeAdapter = RPCBridgeAdapter as jest.MockedClass<
   typeof RPCBridgeAdapter
 >;
@@ -139,6 +144,7 @@ describe('Connection', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (MockedWebSocketTransport.create as jest.Mock).mockResolvedValue({} as any);
+    MockedSessionStore.create.mockResolvedValue({} as SessionStore);
   });
 
   describe('create', () => {
@@ -155,7 +161,7 @@ describe('Connection', () => {
         kvstore: expect.any(KVStore),
         useSharedConnection: true,
       });
-      expect(SessionStore).toHaveBeenCalledWith(expect.any(KVStore));
+      expect(SessionStore.create).toHaveBeenCalledWith(expect.any(KVStore));
       expect(WalletClient).toHaveBeenCalledWith({
         transport: expect.anything(),
         sessionstore: expect.anything(),

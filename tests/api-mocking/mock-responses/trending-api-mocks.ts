@@ -47,7 +47,7 @@ const RWA_TOKENS_SEARCH_RESPONSE = {
 /**
  * Geolocation mock returning a non-restricted country (AR) so the RWA/Stocks
  * section is visible in CI. useRwaTokens hides Stocks when isGeoRestricted
- * (missing or ONDO_RESTRICTED_COUNTRIES). useDetectGeolocation can overwrite
+ * (missing or ONDO_RESTRICTED_COUNTRIES). GeolocationController can overwrite
  * fixture state; mocking ensures the app always gets AR if it fetches geo.
  */
 const TRENDING_GEOLOCATION_MOCKS_GET = [

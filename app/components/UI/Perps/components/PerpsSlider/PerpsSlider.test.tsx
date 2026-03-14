@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsSlider from './PerpsSlider';
+import { mockTheme } from '../../../../../util/theme';
 
 // Mock dependencies - only what's absolutely necessary
 jest.mock('react-native-reanimated', () => {
@@ -72,42 +73,6 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   }) => <Text {...props}>{props.children}</Text>;
 });
 
-// Mock styles
-jest.mock('./PerpsSlider.styles', () => () => ({
-  container: { paddingVertical: 8 },
-  sliderContainer: { flexDirection: 'row', alignItems: 'center' },
-  trackContainer: { flex: 1, position: 'relative', paddingBottom: 30 },
-  track: { height: 6, backgroundColor: '#e1e1e1', borderRadius: 3 },
-  progress: { height: 6, backgroundColor: '#0066cc', borderRadius: 3 },
-  thumb: {
-    width: 21,
-    height: 21,
-    backgroundColor: '#ffffff',
-    borderRadius: 10.5,
-    position: 'absolute',
-  },
-  percentageWrapper: { position: 'absolute', top: 14, alignItems: 'center' },
-  percentageWrapper0: { left: 0 },
-  percentageWrapper25: { left: '25%' },
-  percentageWrapper50: { left: '50%' },
-  percentageWrapper75: { left: '75%' },
-  percentageWrapper100: { right: 0, left: 'auto' },
-  percentageDot: {
-    width: 5,
-    height: 5,
-    backgroundColor: '#666',
-    borderRadius: 2.5,
-    position: 'absolute',
-  },
-  percentageDot25: { left: '25%' },
-  percentageDot50: { left: '50%' },
-  percentageDot75: { left: '75%' },
-  percentageText: { color: '#666', fontSize: 12, fontWeight: '500' },
-  quickValuesRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  quickValueButton: { padding: 8, backgroundColor: '#f0f0f0' },
-  gradientProgress: { flex: 1, borderRadius: 3 },
-}));
-
 describe('PerpsSlider', () => {
   const defaultProps = {
     value: 50,
@@ -116,47 +81,20 @@ describe('PerpsSlider', () => {
     maximumValue: 100,
   };
 
-  const mockStyles = {
-    container: { paddingVertical: 8 },
-    sliderContainer: { flexDirection: 'row', alignItems: 'center' },
-    trackContainer: { flex: 1, position: 'relative', paddingBottom: 30 },
-    track: { height: 6, backgroundColor: '#e1e1e1', borderRadius: 3 },
-    progress: { height: 6, backgroundColor: '#0066cc', borderRadius: 3 },
-    thumb: {
-      width: 21,
-      height: 21,
-      backgroundColor: '#ffffff',
-      borderRadius: 10.5,
-      position: 'absolute',
-    },
-    percentageWrapper: { position: 'absolute', top: 14, alignItems: 'center' },
-    percentageWrapper0: { left: 0 },
-    percentageWrapper25: { left: '25%' },
-    percentageWrapper50: { left: '50%' },
-    percentageWrapper75: { left: '75%' },
-    percentageWrapper100: { right: 0, left: 'auto' },
-    percentageDot: {
-      width: 5,
-      height: 5,
-      backgroundColor: '#666',
-      borderRadius: 2.5,
-      position: 'absolute',
-    },
-    percentageDot25: { left: '25%' },
-    percentageDot50: { left: '50%' },
-    percentageDot75: { left: '75%' },
-    percentageText: { color: '#666', fontSize: 12, fontWeight: '500' },
-    quickValuesRow: { flexDirection: 'row', justifyContent: 'space-around' },
-    quickValueButton: { padding: 8, backgroundColor: '#f0f0f0' },
-    gradientProgress: { flex: 1, borderRadius: 3 },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     const { useStyles } = jest.requireMock(
       '../../../../../component-library/hooks',
     );
-    useStyles.mockReturnValue({ styles: mockStyles });
+    useStyles.mockImplementation(
+      (
+        styleSheet: (params: {
+          theme: typeof mockTheme;
+        }) => Record<string, unknown>,
+      ) => ({
+        styles: styleSheet({ theme: mockTheme }),
+      }),
+    );
   });
 
   describe('Component Rendering', () => {

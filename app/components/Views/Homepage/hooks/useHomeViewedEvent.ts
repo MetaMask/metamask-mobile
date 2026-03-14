@@ -5,6 +5,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
 
 export const HomeSectionNames = {
+  CASH: 'cash',
   TOKENS: 'tokens',
   PERPS: 'perps',
   DEFI: 'defi',
@@ -40,7 +41,7 @@ interface UseHomeViewedEventParams {
 
 /**
  * Fires a `Home Viewed` Segment event when a homepage section enters the
- * user's viewport (≥ 50 % of the section is visible).
+ * user's viewport (≥ 30 % of the section is visible).
  *
  * - Re-fires on every homepage visit (when `visitId` increments).
  * - For sections that do not render (e.g. DeFi with no positions), fires
@@ -63,6 +64,7 @@ const useHomeViewedEvent = ({
     containerScreenY,
     entryPoint,
     visitId,
+    notifySectionViewed,
   } = useHomepageScrollContext();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -96,6 +98,7 @@ const useHomeViewedEvent = ({
         })
         .build(),
     );
+    notifySectionViewed(sectionName);
   }, [
     visitId,
     sectionName,
@@ -106,6 +109,7 @@ const useHomeViewedEvent = ({
     entryPoint,
     trackEvent,
     createEventBuilder,
+    notifySectionViewed,
   ]);
 
   // Reset on each homepage visit so the event re-fires.
@@ -121,6 +125,10 @@ const useHomeViewedEvent = ({
     if (sectionRef !== null || isLoading) return;
     fireEvent();
   }, [sectionRef, isLoading, fireEvent, visitId]);
+
+  // Holds the latest checkVisibility so the onLayout callback can re-trigger
+  // a check after the native layout pass completes.
+  const checkVisibilityRef = useRef<() => void>(() => undefined);
 
   // For sections that DO render: check viewport visibility on mount and on
   // every scroll event. Uses subscribeToScroll so no React re-renders occur
@@ -140,15 +148,17 @@ const useHomeViewedEvent = ({
         const visiblePx =
           Math.min(y + height, viewportBottom) - Math.max(y, viewportTop);
         // For sections taller than the viewport (e.g. a long NFTs list),
-        // 50% of the section height can exceed the full viewport, making the
-        // event nearly impossible to trigger. Cap the threshold at 50% of
+        // 30% of the section height can exceed the full viewport, making the
+        // event nearly impossible to trigger. Cap the threshold at 30% of
         // the viewport so tall sections fire reliably.
-        const threshold = Math.min(height * 0.5, viewportHeight * 0.5);
+        const threshold = Math.min(height * 0.3, viewportHeight * 0.3);
         if (visiblePx >= threshold) {
           fireEvent();
         }
       });
     };
+
+    checkVisibilityRef.current = checkVisibility;
 
     // Initial check (covers sections already in viewport on mount/revisit).
     checkVisibility();
@@ -164,6 +174,15 @@ const useHomeViewedEvent = ({
     subscribeToScroll,
     fireEvent,
   ]);
+
+  // Sections attach this to their root View's onLayout prop. onLayout fires
+  // after the native layout pass, at which point measureInWindow returns real
+  // dimensions — fixing the height === 0 early-return on initial mount.
+  const onLayout = useCallback(() => {
+    checkVisibilityRef.current();
+  }, []);
+
+  return { onLayout };
 };
 
 export default useHomeViewedEvent;

@@ -9,4 +9,5 @@ export interface PredictGameDetailsContentProps {
   onClaimPress?: () => void;
   claimableAmount?: number;
   isLoading?: boolean;
+  isClaimPending?: boolean;
 }
