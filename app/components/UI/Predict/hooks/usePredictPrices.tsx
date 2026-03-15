@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
@@ -31,6 +31,7 @@ export function usePredictPrices(options: UsePredictPricesOptions) {
   const query = useQuery({
     ...predictQueries.prices.options({ queries }),
     enabled: enabled && queries.length > 0,
+    placeholderData: keepPreviousData,
     refetchInterval: pollingInterval ?? false,
   });
 
