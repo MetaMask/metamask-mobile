@@ -13,7 +13,8 @@
     "internalAccounts": {
       "accounts": {},
       "selectedAccount": ""
-    }
+    },
+    "accountIdByAddress": {}
   },
   "AccountTreeController": {
     "accountTree": {
@@ -285,10 +286,7 @@
   },
   "PreferencesController": {
     "featureFlags": {},
-    "identities": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
-    "lostIdentities": {},
-    "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": true,
     "useSafeChainsListValidation": true,
@@ -299,11 +297,11 @@
     "showMultiRpcModal": false,
     "showTestNetworks": false,
     "smartAccountOptIn": true,
-    "smartAccountOptInForAccounts": [],
     "showIncomingTransactions": {
       "0x1": true,
       "0x5": true,
       "0x38": true,
+      "0x3e7": true,
       "0x61": true,
       "0xa": true,
       "0xa869": true,
@@ -449,6 +447,12 @@
       }
     }
   },
+  "GeolocationController": {
+    "location": "UNKNOWN",
+    "status": "loading",
+    "lastFetchedAt": null,
+    "error": null
+  },
   "GasFeeController": {
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
@@ -466,7 +470,8 @@
     "assetsBalance": {},
     "assetsInfo": {},
     "assetsPrice": {},
-    "customAssets": {}
+    "customAssets": {},
+    "selectedCurrency": "usd"
   },
   "PermissionController": {
     "subjects": {}
@@ -755,6 +760,7 @@
     "pointsEvents": {},
     "snapshots": {},
     "campaigns": {},
+    "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -763,13 +769,18 @@
     "rewardsEnvUrl": null
   },
   "PredictController": {
-    "eligibility": { "eligible": false },
+    "eligibility": {
+      "eligible": false
+    },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
     "claimablePositions": {},
     "pendingDeposits": {},
+    "pendingClaims": {},
     "withdrawTransaction": null,
+    "activeOrder": null,
+    "selectedPaymentToken": null,
     "accountMeta": {}
   },
   "AiDigestController": {

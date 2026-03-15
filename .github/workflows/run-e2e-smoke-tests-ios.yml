@@ -266,7 +266,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-ios-*'
+          pattern: 'test-e2e-main-*-ios-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3

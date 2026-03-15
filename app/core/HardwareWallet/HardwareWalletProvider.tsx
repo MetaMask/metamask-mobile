@@ -122,9 +122,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const handleAwaitingConfirmationCancel = useCallback(() => {
     DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
+    // eslint-disable-next-line no-empty-function
+    refs.adapterRef.current?.disconnect().catch(() => {});
     awaitingConfirmationRejectRef.current?.();
     hideAwaitingConfirmation();
-  }, [hideAwaitingConfirmation]);
+  }, [hideAwaitingConfirmation, refs.adapterRef]);
 
   const contextValue = useMemo(
     () => ({

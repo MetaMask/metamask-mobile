@@ -426,7 +426,11 @@ const BridgeView = () => {
             location={location}
             latestSourceBalance={latestSourceBalance}
           />
-          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
+          >
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {hasFee
                 ? strings('bridge.fee_disclaimer', {
