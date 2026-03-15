@@ -2154,6 +2154,7 @@
     "sell_position": "Позиция на продажу",
     "cash_out": "Вывести деньги",
     "cash_out_info": "Средства будут зачислены на ваш доступный баланс.",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Продажа {{size}} акции(-ий) по цене {{price}}",
     "cashout_info": "{{amount}} при {{outcome}} за {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} при {{outcomeGroupTitle}} • {{outcome}} по цене {{initialPrice}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "Комиссия, уплачиваемая бирже или рынку",
       "total_incl_fees": "вкл. комиссии",
       "close": "Закрыть",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Невозможно подключиться к прогнозам",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "Годовой бонус, который вы заработали за хранение mUSD. Ваш бонус можно получить ежедневно на Linea.",
     "earn_a_percentage_bonus": "Заработайте бонус в размере {{percentage}}%",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Встребуемый бонус",
     "claim_bonus": "Получить бонус",
     "claim_bonus_subtitle": "Бонус будет выплачен в сети {{networkName}}.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "Повысить уровень до Металлической",
       "continue_button": "Продолжить",
       "virtual_card": {
-        "name": "Виртуальная карта Orange",
+        "name": "Virtual Card",
         "price": "Бесплатно",
         "feature_1": "Виртуальная карта для Apple Pay и Google Pay",
         "feature_2": "Оплата криптовалютой (USDC, USDT, WETH и другие)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Металлическая карта",
         "price": "$199/год",
-        "feature_1": "Гравированная металлическая карта и виртуальная карта для Apple Pay и Google Pay",
-        "feature_2": "3% кэшбека на первые 10 000 долларов, потраченных в год, затем 1%",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Без комиссий за зарубежные транзакции"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Проверьте свой заказ",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Номер социального страхования",
         "ssn_description": "Требуется эмитентом карты. Проверка кредитной истории проводиться не будет.",
         "invalid_ssn": "Недопустимый SSN",
-        "invalid_date_of_birth": "Неверная дата рождения. Ваш возраст должен быть не менее 18 лет"
+        "invalid_date_of_birth": "Неверная дата рождения. Ваш возраст должен быть не менее 18 лет",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Введите свой адрес",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "Активировать активы",
       "spending_limit_warning": "Вы почти достигли лимита расходов. Обновите, чтобы избежать отказов.",
       "logout": "Выйти",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Выйти из карты?",
       "logout_confirmation_message": "Вы уверены, что хотите выйти из своего счета Карты MetaMask?",
       "logout_confirmation_cancel": "Отмена",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Активные повышающие коэффициенты",
     "season_1": "Сезон 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Заблокированные награды",
       "points_needed": "{{points}} балла(-ов)",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Токены",
       "perpetuals": "Бессрочные контракты",
       "predictions": "Прогнозы",

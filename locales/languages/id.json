@@ -2154,6 +2154,7 @@
     "sell_position": "Posisi jual",
     "cash_out": "Cairkan",
     "cash_out_info": "Dana akan ditambahkan ke saldo yang tersedia",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Menjual {{size}} saham pada harga {{price}}",
     "cashout_info": "{{amount}} pada {{outcome}} dengan harga {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} pada {{outcomeGroupTitle}} • {{outcome}} di harga {{initialPrice}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "Biaya yang dibayarkan ke bursa atau pasar",
       "total_incl_fees": "termasuk biaya",
       "close": "Tutup",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Tidak dapat terhubung ke prediksi",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "Bonus tahunan yang Anda peroleh karena memiliki mUSD. Bonus dapat diklaim setiap hari di Linea.",
     "earn_a_percentage_bonus": "Dapatkan bonus sebesar {{percentage}}%",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Bonus yang dapat diklaim",
     "claim_bonus": "Klaim bonus",
     "claim_bonus_subtitle": "Bonus akan dibayarkan melalui {{networkName}}.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "Upgrade ke Logam",
       "continue_button": "Lanjutkan",
       "virtual_card": {
-        "name": "Kartu Virtual Orange",
+        "name": "Virtual Card",
         "price": "Gratis",
         "feature_1": "Kartu virtual untuk Apple Pay dan Google Pay",
         "feature_2": "Bayar dengan kripto (USDC, USDT, WETH, dan lainnya)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Kartu Logam",
         "price": "$199/tahun",
-        "feature_1": "Kartu logam berukir dan kartu virtual untuk Apple Pay dan Google Pay",
-        "feature_2": "Cashback 3% untuk penggunaan pertama senilai $10.000 setiap tahun, lalu 1% setelahnya",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Tidak ada biaya transaksi luar negeri"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Tinjau order",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Nomor Jaminan Sosial",
         "ssn_description": "Diperlukan oleh penerbit kartu. Tidak akan dilakukan pengecekan kredit.",
         "invalid_ssn": "NJS tidak valid",
-        "invalid_date_of_birth": "Tanggal lahir tidak valid. Anda harus berusia minimal 18 tahun"
+        "invalid_date_of_birth": "Tanggal lahir tidak valid. Anda harus berusia minimal 18 tahun",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Tambahkan alamat Anda",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "Aktifkan aset",
       "spending_limit_warning": "Batas penggunaan hampir tercapai. Perbarui untuk menghindari penolakan.",
       "logout": "Keluar",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Keluar dari Kartu?",
       "logout_confirmation_message": "Yakin ingin keluar dari akun Kartu MetaMask?",
       "logout_confirmation_cancel": "Batal",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Peningkatan aktif",
     "season_1": "Musim 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Reward terkunci",
       "points_needed": "{{points}} poin",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Token",
       "perpetuals": "Abadi",
       "predictions": "Prediksi",

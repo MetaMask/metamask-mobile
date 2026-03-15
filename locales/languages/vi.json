@@ -2154,6 +2154,7 @@
     "sell_position": "Vị thế bán",
     "cash_out": "Rút tiền",
     "cash_out_info": "Tiền sẽ được nạp vào số dư khả dụng của bạn",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Bán {{size}} cổ phần với giá {{price}}",
     "cashout_info": "{{amount}} cho kết quả {{outcome}} với giá {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} cho kết quả {{outcomeGroupTitle}} • {{outcome}} với giá {{initialPrice}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "Phí trả cho sàn giao dịch hoặc thị trường",
       "total_incl_fees": "bao gồm phí",
       "close": "Đóng",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Không thể kết nối với thị trường dự đoán",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "Phần thưởng quy đổi theo năm bạn đã nhận được khi nắm giữ mUSD. Bạn có thể nhận thưởng hằng ngày trên Linea.",
     "earn_a_percentage_bonus": "Nhận thưởng {{percentage}}%",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Thưởng có thể nhận",
     "claim_bonus": "Nhận thưởng",
     "claim_bonus_subtitle": "Tiền thưởng sẽ được trả trên {{networkName}}.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "Nâng cấp lên Metal",
       "continue_button": "Tiếp tục",
       "virtual_card": {
-        "name": "Thẻ ảo màu cam",
+        "name": "Virtual Card",
         "price": "Miễn phí",
         "feature_1": "Thẻ ảo dùng cho Apple Pay và Google Pay",
         "feature_2": "Thanh toán bằng tiền mã hoá (USDC, USDT, WETH, v.v.)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Thẻ Metal",
         "price": "$199/năm",
-        "feature_1": "Thẻ kim loại khắc tên và thẻ ảo dùng cho Apple Pay và Google Pay",
-        "feature_2": "Hoàn tiền 3% cho $10.000 đầu tiên mỗi năm, sau đó là 1%",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Không tính phí giao dịch quốc tế"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Xem lại đơn hàng của bạn",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Số An sinh Xã hội",
         "ssn_description": "Theo yêu cầu của đơn vị phát hành thẻ. Sẽ không thực hiện kiểm tra tín dụng.",
         "invalid_ssn": "Số An Sinh Xã Hội không hợp lệ",
-        "invalid_date_of_birth": "Ngày sinh không hợp lệ. Bạn phải ít nhất 18 tuổi"
+        "invalid_date_of_birth": "Ngày sinh không hợp lệ. Bạn phải ít nhất 18 tuổi",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Thêm địa chỉ của bạn",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "Kích hoạt tài sản",
       "spending_limit_warning": "Bạn sắp đạt đến hạn mức chi tiêu. Cập nhật để tránh bị từ chối.",
       "logout": "Đăng xuất",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Đăng xuất khỏi Thẻ?",
       "logout_confirmation_message": "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Thẻ MetaMask của mình không?",
       "logout_confirmation_cancel": "Hủy",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Tính năng tăng cường đang hoạt động",
     "season_1": "Mùa 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Phần thưởng bị khóa",
       "points_needed": "{{points}} điểm",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Token",
       "perpetuals": "Hợp đồng vĩnh cửu",
       "predictions": "Dự đoán",

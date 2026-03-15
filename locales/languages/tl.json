@@ -2154,6 +2154,7 @@
     "sell_position": "Posisyon sa pagbebenta",
     "cash_out": "Mag-cash out",
     "cash_out_info": "Idadagdag ang mga pondo sa iyong available na balanse",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Nagbebenta ng {{size}} na share sa {{price}}",
     "cashout_info": "{{amount}} para sa {{outcome}} sa presyong {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} sa {{outcomeGroupTitle}} • {{outcome}} sa {{initialPrice}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "Bayad sa palitan o market",
       "total_incl_fees": "kasama ang mga bayarin",
       "close": "Isara",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Hindi maikonekta sa mga prediksyon",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "Ang kinita mong taunang bonus para sa pag-hold ng mUSD. Puwedeng ma-claim ang bonus mo sa Linea araw-araw.",
     "earn_a_percentage_bonus": "Kumita ng {{percentage}}% bonus",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Naki-claim na bonus",
     "claim_bonus": "I-claim ang bonus",
     "claim_bonus_subtitle": "Ibibigay ang bonus sa {{networkName}}.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "I-upgrade sa Metal",
       "continue_button": "Magpatuloy",
       "virtual_card": {
-        "name": "Orange na Virtual Card",
+        "name": "Virtual Card",
         "price": "Libre",
         "feature_1": "Virtual card para sa Apple Pay at Google Pay",
         "feature_2": "Magbayad gamit ang crypto (USDC, USDT, WETH, at iba pa)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Metal Card",
         "price": "$199/taon",
-        "feature_1": "Nakaukit na metal card at virtual card para sa Apple Pay at Google Pay",
-        "feature_2": "3% cashback sa unang $10,000 na nagastos sa bawat taon, pagkatapos ay 1% sa sosobra pa",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Walang bayad sa transaksyon ang tagaibang bansa"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Suriin ang order mo",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Social Security Number",
         "ssn_description": "Kinakailangan ng taga-isyu ng card. Hindi magsasagawa ng credit check.",
         "invalid_ssn": "Di-wastong SSN",
-        "invalid_date_of_birth": "Maling petsa ng kapanganakan. Dapat na hindi bababa sa 18 taong gulang ang edad mo"
+        "invalid_date_of_birth": "Maling petsa ng kapanganakan. Dapat na hindi bababa sa 18 taong gulang ang edad mo",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Ilagay ang address mo",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "I-enable ang mga asset",
       "spending_limit_warning": "Malapit mo nang maabot ang limit ng paggastos. Mag-update para maiwasan ang hindi pagtanggap.",
       "logout": "Mag-log out",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "I-log out ang Card?",
       "logout_confirmation_message": "Sigurado ka bang gusto mong mag-log out sa MetaMask Card account mo?",
       "logout_confirmation_cancel": "Kanselahin",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Mga active boost",
     "season_1": "Season 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Naka-lock na mga reward",
       "points_needed": "{{points}} (na) point",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Mga Token",
       "perpetuals": "Perpetuals",
       "predictions": "Mga hula",

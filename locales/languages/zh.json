@@ -2154,6 +2154,7 @@
     "sell_position": "卖出仓位",
     "cash_out": "提现",
     "cash_out_info": "资金将存入您的可用余额",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "以 {{price}} 卖出 {{size}} 股票",
     "cashout_info": "针对 {{outcome}}，以 {{initialPrice}} 的价格下注 {{amount}}",
     "cashout_info_multiple": "针对 {{outcomeGroupTitle}} • {{outcome}}，以 {{initialPrice}} 的价格下注 {{amount}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "支付给交易所或市场的费用",
       "total_incl_fees": "包含费用",
       "close": "关闭",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "无法连接预测市场",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "您因持有 mUSD 而获得的年化奖励。您可以在 Linea 上每日领取奖励。",
     "earn_a_percentage_bonus": "获得 {{percentage}}% 的奖励",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "可领取奖励",
     "claim_bonus": "领取奖励",
     "claim_bonus_subtitle": "奖励将在 {{networkName}} 上发放。",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "升级至金属卡",
       "continue_button": "继续",
       "virtual_card": {
-        "name": "Orange 虚拟卡",
+        "name": "Virtual Card",
         "price": "免费",
         "feature_1": "用于 Apple Pay 和 Google Pay 的虚拟卡",
         "feature_2": "使用加密货币支付（支持 USDC、USDT、WETH 等代币）",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "金属卡",
         "price": "199美元/年",
-        "feature_1": "雕刻金属卡以及用于 Apple Pay 和 Google Pay 的虚拟卡",
-        "feature_2": "每年首 1 万美元消费享 3% 返现，超额部分享 1% 返现",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "无外币交易费用"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "查看您的订单",
@@ -7090,7 +7097,8 @@
         "ssn_label": "社会安全号码",
         "ssn_description": "此为发卡机构的要求。不会进行信用检查。",
         "invalid_ssn": "社会安全号码无效",
-        "invalid_date_of_birth": "出生日期无效。您必须年满 18 周岁"
+        "invalid_date_of_birth": "出生日期无效。您必须年满 18 周岁",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "填写您的地址",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "启用资产",
       "spending_limit_warning": "您已接近消费限额。请及时更新以避免交易被拒。",
       "logout": "退出登录",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "确定要退出卡账户吗？",
       "logout_confirmation_message": "确定要退出您的 MetaMask 卡账户吗？",
       "logout_confirmation_cancel": "取消",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "活跃加成",
     "season_1": "第 1 季",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "锁定的奖励",
       "points_needed": "{{points}} 积分",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "代币",
       "perpetuals": "永续合约",
       "predictions": "预测",

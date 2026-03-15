@@ -2154,6 +2154,7 @@
     "sell_position": "Position de vente",
     "cash_out": "Encaisser",
     "cash_out_info": "Les fonds seront ajoutés à votre solde disponible",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Vente de {{size}} actions au prix de {{price}}",
     "cashout_info": "{{amount}} sur {{outcome}} à {{initialPrice}} ",
     "cashout_info_multiple": "{{amount}} sur {{outcomeGroupTitle}} • {{outcome}} à {{initialPrice}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "Frais payés à la bourse ou au marché",
       "total_incl_fees": "frais inclus",
       "close": "Fermer",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Impossible de se connecter aux marchés de prédiction",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "Le bonus annualisé que vous avez gagné pour avoir détenu des mUSD. Vous pouvez réclamer votre bonus quotidiennement sur Linea.",
     "earn_a_percentage_bonus": "Obtenez un bonus de {{percentage}} %",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Bonus réclamable",
     "claim_bonus": "Réclamer le bonus",
     "claim_bonus_subtitle": "Le bonus sera versé sur {{networkName}}.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "Passer à Metal",
       "continue_button": "Continuer",
       "virtual_card": {
-        "name": "Carte virtuelle Orange",
+        "name": "Virtual Card",
         "price": "Gratuit",
         "feature_1": "Carte virtuelle pour Apple Pay et Google Pay",
         "feature_2": "Payer avec des cryptomonnaies (USDC, USDT, WETH, etc.)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Carte Metal",
         "price": "199 $/an",
-        "feature_1": "Carte métallique gravée et carte virtuelle pour Apple Pay et Google Pay",
-        "feature_2": "3 % de cashback sur les 10 000 premiers dollars dépensés chaque année, puis 1 % sur les sommes suivantes",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Pas de frais de transaction à l’étranger"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Vérifiez votre commande",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Numéro de sécurité sociale",
         "ssn_description": "Requis par l’émetteur de la carte. Aucune vérification de solvabilité ne sera effectuée.",
         "invalid_ssn": "Numéro de sécurité sociale non valide",
-        "invalid_date_of_birth": "Date de naissance non valide. Vous devez être âgé d’au moins 18 ans"
+        "invalid_date_of_birth": "Date de naissance non valide. Vous devez être âgé d’au moins 18 ans",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Ajoutez votre adresse",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "Activer les actifs",
       "spending_limit_warning": "Vous avez presque atteint votre limite de dépenses. Modifiez votre limite de dépenses pour éviter tout refus de paiement.",
       "logout": "Déconnexion",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Voulez-vous vous déconnecter de votre compte MetaMask Card ?",
       "logout_confirmation_message": "Êtes-vous sûr(e) de vouloir vous déconnecter de votre compte MetaMask Card ?",
       "logout_confirmation_cancel": "Annuler",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Boosts actifs",
     "season_1": "Saison 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Récompenses verrouillées",
       "points_needed": "{{points}} points",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Jetons",
       "perpetuals": "Contrats perpétuels",
       "predictions": "Prédictions",
