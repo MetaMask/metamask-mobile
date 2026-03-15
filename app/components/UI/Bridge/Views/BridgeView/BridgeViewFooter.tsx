@@ -30,6 +30,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -107,7 +108,11 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
           location={location}
           latestSourceBalance={latestSourceBalance}
         />
-        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
+        >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {hasFee
               ? strings('bridge.fee_disclaimer', {
