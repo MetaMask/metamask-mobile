@@ -15,12 +15,10 @@ import {
   getAggregatorRedirectUrl,
   getCheckoutContext,
 } from '../../utils/buildQuoteWithRedirectUrl';
+import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { extractOrderCode } from '../../utils/extractOrderCode';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import {
-  createBuildQuoteRoute,
-  createRampsOrderDetailsRoute,
-} from '../../utils/rampsNavigation';
+import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
@@ -391,17 +389,10 @@ function BuildQuote() {
 
   const updateAmount = useCallback(
     (valueOrNumber: string | number, valueAsNumber?: number) => {
-      if (typeof valueOrNumber === 'string') {
-        setAmount(valueOrNumber === '' ? '0' : valueOrNumber);
-        setAmountAsNumber(
-          valueAsNumber != null
-            ? valueAsNumber
-            : parseFloat(valueOrNumber) || 0,
-        );
-      } else {
-        setAmount(String(valueOrNumber));
-        setAmountAsNumber(valueOrNumber);
-      }
+      const { amount: nextAmount, amountAsNumber: nextAmountAsNumber } =
+        computeAmountUpdate(valueOrNumber, valueAsNumber);
+      setAmount(nextAmount);
+      setAmountAsNumber(nextAmountAsNumber);
       setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
       setRampsError(null);
@@ -438,32 +429,11 @@ function BuildQuote() {
   );
 
   const navigateAfterExternalBrowser = useCallback(
-    (
-      opts:
-        | { returnDestination: 'buildQuote' }
-        | {
-            returnDestination: 'order';
-            orderCode: string;
-            providerCode: string;
-            walletAddress?: string;
-          },
-    ) => {
-      if (opts.returnDestination === 'order') {
-        navigation.reset({
-          index: 0,
-          routes: [
-            createRampsOrderDetailsRoute({
-              orderId: opts.orderCode,
-              showCloseButton: true,
-            }),
-          ],
-        });
-      } else {
-        navigation.reset({
-          index: 0,
-          routes: [createBuildQuoteRoute()],
-        });
-      }
+    (opts: Parameters<typeof getNavigateAfterExternalBrowserRoutes>[0]) => {
+      navigation.reset({
+        index: 0,
+        routes: getNavigateAfterExternalBrowserRoutes(opts),
+      });
     },
     [navigation],
   );

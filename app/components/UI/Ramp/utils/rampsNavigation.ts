@@ -21,3 +21,32 @@ export function createBuildQuoteRoute(): {
 } {
   return { name: Routes.RAMP.BUILD_QUOTE, params: {} };
 }
+
+export type NavigateAfterExternalBrowserOpts =
+  | { returnDestination: 'buildQuote' }
+  | {
+      returnDestination: 'order';
+      orderCode: string;
+      providerCode: string;
+      walletAddress?: string;
+    };
+
+/**
+ * Returns the routes array for navigation.reset() when returning from an
+ * external browser (e.g. InAppBrowser, system browser). Used by BuildQuote
+ * after widget checkout flows (PayPal, Moonpay, etc.).
+ */
+export function getNavigateAfterExternalBrowserRoutes(
+  opts: NavigateAfterExternalBrowserOpts,
+): (| ReturnType<typeof createBuildQuoteRoute>
+  | ReturnType<typeof createRampsOrderDetailsRoute>)[] {
+  if (opts.returnDestination === 'order') {
+    return [
+      createRampsOrderDetailsRoute({
+        orderId: opts.orderCode,
+        showCloseButton: true,
+      }),
+    ];
+  }
+  return [createBuildQuoteRoute()];
+}
