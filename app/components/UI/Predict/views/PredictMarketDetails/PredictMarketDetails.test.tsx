@@ -56,6 +56,15 @@ jest.mock('@react-navigation/native', () => ({
     children,
 }));
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
@@ -183,7 +192,8 @@ jest.mock('../../utils/format', () => ({
 
 jest.mock('../../hooks/usePredictMarket', () => ({
   usePredictMarket: jest.fn(() => ({
-    market: null,
+    data: null,
+    isLoading: false,
     isFetching: false,
     refetch: jest.fn(),
   })),
@@ -528,7 +538,8 @@ function setupPredictMarketDetailsTest(
   });
 
   usePredictMarket.mockReturnValue({
-    market: mockMarket,
+    data: mockMarket,
+    isLoading: false,
     isFetching: false,
     refetch: jest.fn(),
     ...hookOverrides.market,
@@ -710,7 +721,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isFetching: true, market: null } },
+        { market: { isLoading: true, isFetching: true, data: null } },
       );
 
       // Check that skeleton loaders appear
@@ -732,7 +743,7 @@ describe('PredictMarketDetails', () => {
     });
 
     it('displays fallback title when market data is unavailable', () => {
-      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+      setupPredictMarketDetailsTest({}, {}, { market: { data: null } });
 
       // Screen renders without a title; other sections may still show loading keys
       expect(
@@ -772,7 +783,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isFetching: true, market: null } },
+        { market: { isLoading: true, isFetching: true, data: null } },
       );
 
       expect(
@@ -811,7 +822,9 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.getByText('predict.market_details.end_date'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('12/31/2024')).toBeOnTheScreen();
+      expect(
+        screen.getByText(new Date('2024-12-31T23:59:59Z').toLocaleDateString()),
+      ).toBeOnTheScreen();
     });
 
     it('displays resolution details information', () => {
@@ -1949,7 +1962,7 @@ describe('PredictMarketDetails', () => {
       );
 
       expect(
-        screen.getByText('confirm.predict_claim.button_label'),
+        screen.getByText(strings('predict.claim_winnings_text')),
       ).toBeOnTheScreen();
     });
 
@@ -1998,7 +2011,7 @@ describe('PredictMarketDetails', () => {
       );
 
       const claimButton = screen.getByText(
-        'confirm.predict_claim.button_label',
+        strings('predict.claim_winnings_text'),
       );
       fireEvent.press(claimButton);
 
@@ -3499,7 +3512,8 @@ describe('PredictMarketDetails', () => {
       });
 
       usePredictMarket.mockReturnValue({
-        market: marketWithoutWaivedTag,
+        data: marketWithoutWaivedTag,
+        isLoading: false,
         isFetching: false,
         refetch: jest.fn(),
       });

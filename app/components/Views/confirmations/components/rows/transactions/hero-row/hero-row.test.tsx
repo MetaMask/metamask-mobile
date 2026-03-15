@@ -29,4 +29,24 @@ describe('HeroRow', () => {
     expect(HeroToken).toHaveBeenCalled();
     expect(HeroNft).not.toHaveBeenCalled();
   });
+
+  it('should forward layout prop to HeroToken', () => {
+    (useIsNft as jest.Mock).mockReturnValue({ isNft: false });
+
+    render(<HeroRow layout="horizontal" />);
+    expect(HeroToken).toHaveBeenCalledWith(
+      expect.objectContaining({ layout: 'horizontal' }),
+      expect.anything(),
+    );
+  });
+
+  it('should forward layout prop to HeroNft', () => {
+    (useIsNft as jest.Mock).mockReturnValue({ isNft: true });
+
+    render(<HeroRow layout="horizontal" />);
+    expect(HeroNft).toHaveBeenCalledWith(
+      expect.objectContaining({ layout: 'horizontal' }),
+      expect.anything(),
+    );
+  });
 });

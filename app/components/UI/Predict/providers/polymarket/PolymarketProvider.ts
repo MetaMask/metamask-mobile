@@ -14,7 +14,7 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { SUPPORTED_SPORTS_LEAGUES } from '../../constants/sports';
+import { filterSupportedLeagues } from '../../constants/sports';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
@@ -25,6 +25,7 @@ import {
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
+  PredictSportsLeague,
   PriceResult,
   Side,
   UnrealizedPnL,
@@ -81,6 +82,7 @@ import {
   OrderData,
   OrderType,
   PolymarketApiActivity,
+  PolymarketApiTeam,
   PolymarketPosition,
   SignatureType,
   PolymarketApiTeam,
@@ -90,7 +92,7 @@ import {
 import {
   createApiKey,
   encodeErc20Transfer,
-  fetchPolymarketEvents,
+  fetchEventsFromPolymarketApi,
   generateSalt,
   getBalance,
   getContractConfig,
@@ -102,12 +104,14 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
-  refreshBalanceAllowance,
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
-import { extractTeamsFromEvents } from '../../utils/gameParser';
 import { PredictFeatureFlags } from '../../types/flags';
+import {
+  extractNeededTeamsFromEvents,
+  isLiveSportsEvent,
+} from '../../utils/gameParser';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -160,6 +164,25 @@ export class PolymarketProvider implements PredictProvider {
     getFeatureFlags: () => PredictFeatureFlags;
   }) {
     this.#getFeatureFlags = getFeatureFlags;
+  }
+
+  #getSupportedLeagues(): PredictSportsLeague[] {
+    const { liveSportsLeagues } = this.#getFeatureFlags();
+    return filterSupportedLeagues(liveSportsLeagues);
+  }
+
+  #createTeamLookup(
+    enabled: boolean,
+  ):
+    | ((
+        league: PredictSportsLeague,
+        abbreviation: string,
+      ) => PolymarketApiTeam | undefined)
+    | undefined {
+    return enabled
+      ? (league, abbreviation) =>
+          TeamsCache.getInstance().getTeam(league, abbreviation)
+      : undefined;
   }
 
   /**
@@ -225,31 +248,28 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
 
-      const liveSportsEnabled = liveSportsLeagues.length > 0;
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+      const isSportsEvent =
+        liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
 
-      let teamLookup:
-        | ((
-            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
-            abbreviation: string,
-          ) => PolymarketApiTeam | undefined)
-        | undefined;
-
-      if (liveSportsEnabled) {
-        const neededTeams = extractTeamsFromEvents(
+      if (isSportsEvent) {
+        const neededTeams = extractNeededTeamsFromEvents(
           [event],
-          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+          supportedLeagues,
         );
-        if (neededTeams.length > 0) {
-          await TeamsCache.getInstance().ensureTeamsLoaded(neededTeams);
-        }
-        teamLookup = (league, abbreviation) =>
-          TeamsCache.getInstance().getTeam(league, abbreviation);
+        await Promise.all(
+          [...neededTeams.entries()].map(([league, abbreviations]) =>
+            TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
+          ),
+        );
       }
+
+      const teamLookup = this.#createTeamLookup(isSportsEvent);
 
       const [parsedMarket] = parsePolymarketEvents([event], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
@@ -260,7 +280,7 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return liveSportsEnabled
+      return isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
     } catch (error) {
@@ -342,40 +362,39 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const { liveSportsLeagues } = this.#getFeatureFlags();
-      const liveSportsEnabled = liveSportsLeagues.length > 0;
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
 
-      const { events, isSearch } = await fetchPolymarketEvents(params);
+      // Step 1: Fetch raw events from API
+      const { events, category, isSearch } =
+        await fetchEventsFromPolymarketApi(params);
 
-      let teamLookup:
-        | ((
-            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
-            abbreviation: string,
-          ) => PolymarketApiTeam | undefined)
-        | undefined;
-
+      // Step 2: If live sports enabled, extract needed teams and fetch only those
       if (liveSportsEnabled) {
-        const neededTeams = extractTeamsFromEvents(
+        const neededTeams = extractNeededTeamsFromEvents(
           events,
-          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+          supportedLeagues,
         );
-        if (neededTeams.length > 0) {
-          await TeamsCache.getInstance().ensureTeamsLoaded(neededTeams);
-        }
-        teamLookup = (league, abbreviation) =>
-          TeamsCache.getInstance().getTeam(league, abbreviation);
+
+        await Promise.all(
+          [...neededTeams.entries()].map(([league, abbreviations]) =>
+            TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
+          ),
+        );
       }
 
-      const { category = 'trending' } = params || {};
-      let markets = parsePolymarketEvents(events, {
+      // Step 3: Create team lookup and parse events
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      const parsedMarkets = parsePolymarketEvents(events, {
         category,
         sortMarketsBy: 'price',
         teamLookup,
       });
 
-      if (isSearch) {
-        markets = markets.filter((m) => m.outcomes.length > 0);
-      }
+      const markets = isSearch
+        ? parsedMarkets.filter((m) => m.outcomes.length > 0)
+        : parsedMarkets;
 
       return liveSportsEnabled
         ? GameCache.getInstance().overlayOnMarkets(markets)
@@ -1338,23 +1357,6 @@ export class PolymarketProvider implements PredictProvider {
         address: clobOrder.order.signer ?? '',
         apiKey: signerApiKey,
       });
-
-      // TEMPORARY WORKAROUND: Refresh balance/allowance on Polymarket's CLOB
-      // before submitting the order. See refreshBalanceAllowance docs for details.
-      try {
-        await refreshBalanceAllowance({
-          address: signer.address,
-          apiKey: signerApiKey,
-          side,
-          outcomeTokenId,
-        });
-      } catch (refreshError) {
-        // Best-effort — don't block order submission if the refresh fails
-        DevLogger.log(
-          'PolymarketProvider: Pre-order balance/allowance refresh failed',
-          refreshError,
-        );
-      }
 
       const { success, response, error } = await submitClobOrder({
         headers,

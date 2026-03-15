@@ -8,6 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { useSelector } from 'react-redux';
 import {
+  selectBridgeFeatureFlags,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSourceAmount,
@@ -48,6 +49,7 @@ export const SwapsConfirmButton = ({
     location,
   });
 
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -74,7 +76,6 @@ export const SwapsConfirmButton = ({
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
-    formattedQuoteData,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -152,17 +153,20 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
-    const priceImpact = !formattedQuoteData?.priceImpact
+    const priceImpact = !activeQuote?.quote.priceData?.priceImpact
       ? // Default to zero to bypass swap friction.
         // This callback is always called when active quote exists,
         // thus this check is not expected to be used, but we introduce
         // it regardless as a defensive mechanism.
         0
-      : Number.parseFloat(formattedQuoteData.priceImpact.replace('%', ''));
+      : Number.parseFloat(activeQuote.quote.priceData.priceImpact);
 
     if (
       Number.isFinite(priceImpact) &&
-      priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD
+      priceImpact >=
+        // @ts-expect-error TODO: remove comment after changes to core are published.
+        (bridgeFeatureFlags?.priceImpactThreshold?.error ??
+          AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
     ) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,

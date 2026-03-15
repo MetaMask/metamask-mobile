@@ -2,10 +2,8 @@ import React, { useCallback } from 'react';
 import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../hooks/useStyles';
-import Label from '../../../../../../component-library/components/Form/Label';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Label } from '@metamask/design-system-react-native';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -52,9 +50,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
 
   return (
     <View style={[styles.field, containerStyle]}>
-      <Label variant={TextVariant.BodyMD} style={styles.label}>
-        {label}
-      </Label>
+      <Label style={styles.label}>{label}</Label>
       <View style={styles.selectorContainer}>
         <TouchableOpacity
           style={styles.selectorTouchable}

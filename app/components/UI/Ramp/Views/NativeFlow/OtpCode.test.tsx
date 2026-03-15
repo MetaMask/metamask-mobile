@@ -301,6 +301,12 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
     });
@@ -314,6 +320,12 @@ describe('V2OtpCode', () => {
     mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
 
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
@@ -368,6 +380,46 @@ describe('V2OtpCode', () => {
 
     await waitFor(() => {
       expect(Clipboard.getString).toHaveBeenCalled();
+    });
+  });
+
+  it('shows error when sendUserOtp API fails', async () => {
+    mockSendUserOtp.mockRejectedValue(new Error('Network error'));
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('Network error')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows fallback error when sendUserOtp fails without message', async () => {
+    mockSendUserOtp.mockRejectedValue(new Error());
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('deposit.otp_code.resend_code_error')).toBeOnTheScreen();
     });
   });
 });
