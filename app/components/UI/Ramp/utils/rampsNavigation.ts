@@ -38,8 +38,10 @@ export type NavigateAfterExternalBrowserOpts =
  */
 export function getNavigateAfterExternalBrowserRoutes(
   opts: NavigateAfterExternalBrowserOpts,
-): (| ReturnType<typeof createBuildQuoteRoute>
-  | ReturnType<typeof createRampsOrderDetailsRoute>)[] {
+): (
+  | ReturnType<typeof createBuildQuoteRoute>
+  | ReturnType<typeof createRampsOrderDetailsRoute>
+)[] {
   if (opts.returnDestination === 'order') {
     return [
       createRampsOrderDetailsRoute({
