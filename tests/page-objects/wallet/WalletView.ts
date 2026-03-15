@@ -11,6 +11,7 @@ import {
   PredictClaimConfirmationSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
 import Gestures from '../../framework/Gestures';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
@@ -98,10 +99,16 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
 
-  get navbarNetworkButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON,
-    );
+  get navbarNetworkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+          { exact: true },
+        ),
+    });
   }
 
   get navbarNetworkPicker(): DetoxElement {
@@ -568,6 +575,17 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
   }
 
+  get tokensSection(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        ),
+    });
+  }
+
   /** NFTs section header on the homepage. */
   get nftsSectionHeader(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
@@ -577,6 +595,21 @@ class WalletView {
     await Gestures.waitAndTap(this.tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'New Tokens Section',
+    });
+  }
+
+  async tapOnTokensSection(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'Tokens Section',
+        });
+      },
+      appium: async () => {
+        const el = await asPlaywrightElement(this.tokensSection);
+        await el.click();
+      },
     });
   }
 
@@ -866,8 +899,22 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
   }
 
-  get walletSwapButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
+  get walletSwapButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+          ),
+      },
+    });
   }
 
   get walletBridgeButton(): DetoxElement {
@@ -929,8 +976,8 @@ class WalletView {
   }
 
   async tapWalletSwapButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletSwapButton, {
-      elemDescription: 'Wallet Swap Button',
+    await UnifiedGestures.waitAndTap(this.walletSwapButton, {
+      description: 'Wallet Swap Button',
     });
   }
 
