@@ -2154,6 +2154,7 @@
     "sell_position": "Sat pozisyonu",
     "cash_out": "Paraya çevir",
     "cash_out_info": "Fonlar kullanılabilir bakiyenize eklenecek",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "{{size}} hisse {{price}} fiyatından satılıyor",
     "cashout_info": "{{amount}} {{outcome}} için {{initialPrice}} fiyatıyla",
     "cashout_info_multiple": "{{amount}} {{outcomeGroupTitle}} • {{outcome}} için {{initialPrice}} fiyatıyla",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "Borsaya veya piyasaya ödenen ücret",
       "total_incl_fees": "ücretler dahil",
       "close": "Kapat",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Tahminlere bağlanılamıyor",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "mUSD tuttuğunuz için kazandığınız yıllıklandırılmış bonus. Bonusunuzu Linea üzerinde günlük olarak alabilirsiniz.",
     "earn_a_percentage_bonus": "%{{percentage}} bonus kazanın",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Alınabilir bonus",
     "claim_bonus": "Bonusu al",
     "claim_bonus_subtitle": "Bonus, {{networkName}} üzerinde ödenecektir.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "Metale Yükselt",
       "continue_button": "Devam et",
       "virtual_card": {
-        "name": "Orange Sanal Kart",
+        "name": "Virtual Card",
         "price": "Ücretsiz",
         "feature_1": "Apple Pay ve Google Pay için sanal kart",
         "feature_2": "Kripto ile öde (USDC, USDT, WETH ve daha fazlası)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Metal Kart",
         "price": "199$/yıl",
-        "feature_1": "Apple Pay ve Google Pay için gravürlü metal kart ve sanal kart",
-        "feature_2": "Her yıl harcanan ilk 10.000$ için %3, ardından %1 para iadesi",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Yabancı işlem ücretleri yok"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Emrinizi inceleyin",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Sosyal Güvenlik Numarası",
         "ssn_description": "Kart düzenleyicisi tarafından talep edilir. Kredi notu sorgulaması yapılmayacaktır.",
         "invalid_ssn": "Geçersiz Sosyal Güvenlik Numarası (SSN)",
-        "invalid_date_of_birth": "Doğum tarihi geçersiz. En az 18 yaşında olmalısınız"
+        "invalid_date_of_birth": "Doğum tarihi geçersiz. En az 18 yaşında olmalısınız",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Adresinizi ekleyin",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "Varlıkları etkinleştir",
       "spending_limit_warning": "Harcama limitinize yaklaştınız. Reddedilmeleri önlemek için güncelleyin.",
       "logout": "Oturumu kapat",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Kart oturumu kapatılsın mı?",
       "logout_confirmation_message": "MetaMask Kart hesabınızın oturumunu kapatmak istediğinizden emin misiniz?",
       "logout_confirmation_cancel": "İptal",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Aktif yükseltmeler",
     "season_1": "Sezon 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Kilitli ödüller",
       "points_needed": "{{points}} puan",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "tokenlar",
       "perpetuals": "Sürekli Vadeli İşlemler",
       "predictions": "Tahminler",

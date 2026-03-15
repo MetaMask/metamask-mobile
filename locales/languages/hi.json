@@ -2154,6 +2154,7 @@
     "sell_position": "सैल पोज़िशन",
     "cash_out": "कैश आउट करें",
     "cash_out_info": "फ़ंड आपके उपलब्ध बैलेंस में जोड़े जाएंगे",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "{{size}} शेयरों को {{price}} पर बेचा जा रहा है",
     "cashout_info": "{{initialPrice}} पर {{outcome}} पर {{amount}}",
     "cashout_info_multiple": "{{outcomeGroupTitle}} पर {{amount}} • {{initialPrice}} पर {{outcome}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "एक्सचेंज या मार्केट को दिया गया शुल्क",
       "total_incl_fees": "शुल्क सहित",
       "close": "बंद करें",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "प्रीडिक्शंस से कनेक्ट नहीं हो पाया",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "mUSD रखने पर आपको मिलने वाला वार्षिक बोनस। आपका बोनस Linea पर रोज़ाना क्लेम किया जा सकता है।",
     "earn_a_percentage_bonus": "{{percentage}}% बोनस कमाएं",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "क्लेम करने योग्य बोनस",
     "claim_bonus": "बोनस क्लेम करें",
     "claim_bonus_subtitle": "बोनस {{networkName}} पर दिया जाएगा।",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "मेटल में अपग्रेड करें",
       "continue_button": "जारी रखें",
       "virtual_card": {
-        "name": "ऑरेंज वर्चुअल कार्ड",
+        "name": "Virtual Card",
         "price": "मुफ्त",
         "feature_1": "Apple Pay और Google Pay के लिए वर्चुअल कार्ड",
         "feature_2": "क्रिप्टो से भुगतान करें (USDC, USDT, WETH और अन्य)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "मेटल कार्ड",
         "price": "$199/साल",
-        "feature_1": "Apple Pay व Google Pay के लिए उकेरा हुआ मेटल कार्ड और वर्चुअल कार्ड",
-        "feature_2": "हर वर्ष पहले $10,000 की खर्च राशि पर 3% कैशबैक, उसके बाद 1%",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "कोई विदेशी ट्रांसेक्शन फीस नहीं"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "अपना ऑर्डर समीक्षा करें",
@@ -7090,7 +7097,8 @@
         "ssn_label": "सोशल सिक्योरिटी नंबर",
         "ssn_description": "कार्ड जारी करने वाले के लिए ज़रूरी है। कोई क्रेडिट चेक नहीं किया जाएगा।",
         "invalid_ssn": "SSN ग़लत है",
-        "invalid_date_of_birth": "जन्मतिथि ग़लत है। आपकी आयु कम से कम 18 वर्ष होनी चाहिए"
+        "invalid_date_of_birth": "जन्मतिथि ग़लत है। आपकी आयु कम से कम 18 वर्ष होनी चाहिए",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "अपना एड्रेस जोड़ें",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "एसेट्स चालू करें",
       "spending_limit_warning": "आप अपनी खर्च सीमा के करीब हैं। अस्वीकृतियों से बचने के लिए अपडेट करें।",
       "logout": "लॉग आउट करें",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "कार्ड से लॉग आउट करें?",
       "logout_confirmation_message": "क्या आप वाकई अपने MetaMask कार्ड अकाउंट से लॉग आउट करना चाहते हैं?",
       "logout_confirmation_cancel": "कैंसिल करें",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "सक्रिय बूस्ट्स",
     "season_1": "सीज़न 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "लॉक किए हुए रिवॉर्ड्स",
       "points_needed": "{{points}} पॉइंट्स",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "टोकन",
       "perpetuals": "परपेचुअल्स",
       "predictions": "प्रेडिक्शंस",

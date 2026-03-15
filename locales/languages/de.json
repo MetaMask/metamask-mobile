@@ -2154,6 +2154,7 @@
     "sell_position": "Position verkaufen",
     "cash_out": "Auszahlung",
     "cash_out_info": "Gelder werden Ihrem verfügbaren Guthaben hinzugefügt",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Verkauf von {{size}}-Aktien zu {{price}}",
     "cashout_info": "{{amount}} bei {{outcome}} zu {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} bei {{outcomeGroupTitle}} • {{outcome}} zu {{initialPrice}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "An die Börse oder den Markt entrichtete Gebühr",
       "total_incl_fees": "inkl. Gebühren",
       "close": "Schließen",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Verbindung zu Prognosen nicht möglich",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "Sie haben den jährlichen Bonus für das Halten von mUSD verdient. Ihr Bonus kann täglich auf Linea eingefordert werden.",
     "earn_a_percentage_bonus": "Verdienen Sie einen Bonus von {{percentage}} %",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Anspruchsberechtigter Bonus",
     "claim_bonus": "Bonus einfordern",
     "claim_bonus_subtitle": "Der Bonus wird auf {{networkName}} ausgezahlt.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "Upgrade auf Metall",
       "continue_button": "Fortfahren",
       "virtual_card": {
-        "name": "Orange virtuelle Karte",
+        "name": "Virtual Card",
         "price": "Kostenlos",
         "feature_1": "Virtuelle Karte für Apple Pay und Google Pay",
         "feature_2": "Bezahlen Sie mit Kryptowährung (USDC, USDT, WETH und mehr)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Metallkarte",
         "price": "199 $/Jahr",
-        "feature_1": "Gravierte Metallkarte und virtuelle Karte für Apple Pay und Google Pay",
-        "feature_2": "3 % Cashback auf die ersten 10.000 $, die jedes Jahr ausgegeben werden, danach 1 %.",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Keine Auslandstransaktionsgebühren"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Prüfen Sie Ihre Bestellung",
@@ -6987,10 +6994,10 @@
       "not_now_button": "Nicht jetzt",
       "sign_up": {
         "title": "Lassen Sie uns beginnen",
-        "description": "Erstellen Sie ein Konto bei Crypto Life (CL), um Ihre MetaMask-Karte einzurichten. MetaMask sieht und speichert Ihre personenbezogenen Daten nicht.",
-        "i_already_have_an_account": "Ich habe bereits eine MetaMask-Karte",
+        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "i_already_have_an_account": "I already have a MetaMask Card",
         "email_label": "E-Mail-Adresse",
-        "password_label": "Neues Passwort für die MetaMask-Karte",
+        "password_label": "New password for MetaMask Card",
         "password_description": "Unterscheidet sich von Ihrem Passwort zum Entsperren der MetaMask-App. Muss mindestens 15 Zeichen lang sein.",
         "country_label": "Wohnsitzland",
         "country_placeholder": "Wählen Sie Ihr Land",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Sozialversicherungsnummer",
         "ssn_description": "Vom Kartenaussteller gefordert. Es wird keine Bonitätsprüfung durchgeführt.",
         "invalid_ssn": "Ungültige SSN",
-        "invalid_date_of_birth": "Ungültiges Geburtsdatum. Sie müssen mindestens 18 Jahre alt sein."
+        "invalid_date_of_birth": "Ungültiges Geburtsdatum. Sie müssen mindestens 18 Jahre alt sein.",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Fügen Sie Ihre Adresse hinzu",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "Assets aktivieren",
       "spending_limit_warning": "Sie haben Ihr Ausgabenlimit fast erreicht. Aktualisieren Sie Ihr Konto, um Ablehnungen zu vermeiden.",
       "logout": "Abmelden",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Von Karte abmelden?",
       "logout_confirmation_message": "Möchten Sie sich wirklich von Ihrem MetaMask-Karte-Konto abmelden?",
       "logout_confirmation_cancel": "Stornieren",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Aktive Boosts",
     "season_1": "Saison 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Gesperrte Belohnungen",
       "points_needed": "{{points}} Punkte",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Token",
       "perpetuals": "Perpetuals",
       "predictions": "Prognosen",

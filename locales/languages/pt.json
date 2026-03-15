@@ -2154,6 +2154,7 @@
     "sell_position": "Posição de venda",
     "cash_out": "Sacar",
     "cash_out_info": "Os fundos serão adicionados ao seu saldo disponível",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Vendendo {{size}} ações a {{price}}",
     "cashout_info": "{{amount}} em {{outcome}} a {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} em {{outcomeGroupTitle}} • {{outcome}} a {{initialPrice}}",
@@ -2338,7 +2339,9 @@
       "exchange_fee_description": "Taxa paga à bolsa ou ao mercado",
       "total_incl_fees": "incluindo taxas",
       "close": "Fechar",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Não foi possível conectar-se às previsões",
@@ -5921,6 +5924,7 @@
   "earn": {
     "claimable_bonus_tooltip": "O bônus anualizado que você ganhou por manter mUSD. Seu bônus pode ser resgatado diariamente na Linea.",
     "earn_a_percentage_bonus": "Ganhe um bônus de {{percentage}}%",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Bônus resgatável",
     "claim_bonus": "Resgatar bônus",
     "claim_bonus_subtitle": "O bônus será pago em {{networkName}}.",
@@ -6930,7 +6934,7 @@
       "upgrade_title": "Faça upgrade para Metal",
       "continue_button": "Continuar",
       "virtual_card": {
-        "name": "Cartão virtual Laranja",
+        "name": "Virtual Card",
         "price": "Gratuito",
         "feature_1": "Cartão virtual para Apple Pay e Google Pay",
         "feature_2": "Pague com criptomoedas (USDC, USDT, WETH e várias outras)",
@@ -6939,10 +6943,13 @@
       "metal_card": {
         "name": "Cartão Metal",
         "price": "US$ 199/ano",
-        "feature_1": "Cartão metálico entalhado e cartão virtual para Apple Pay e Google Pay",
-        "feature_2": "3% de cashback nos primeiros US$ 10.000 gastos a cada ano, depois 1% a partir daí",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Sem taxas de transação internacional"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Confira sua ordem",
@@ -7090,7 +7097,8 @@
         "ssn_label": "Número do seguro social (NSS)",
         "ssn_description": "Exigido pela emissora do cartão. Nenhuma verificação de crédito será realizada.",
         "invalid_ssn": "NSS inválido",
-        "invalid_date_of_birth": "Data de nascimento inválida. Você deve ter pelo menos 18 anos"
+        "invalid_date_of_birth": "Data de nascimento inválida. Você deve ter pelo menos 18 anos",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Insira seu endereço",
@@ -7174,6 +7182,7 @@
       "enable_assets_button_label": "Habilitar ativos",
       "spending_limit_warning": "Você está perto de atingir seu limite de gastos. Atualize sua conta para evitar recusas.",
       "logout": "Sair",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Sair do cartão?",
       "logout_confirmation_message": "Tem certeza de que deseja sair da sua conta do cartão MetaMask?",
       "logout_confirmation_cancel": "Cancelar",
@@ -7727,6 +7736,18 @@
     },
     "active_boosts_title": "Incrementos ativos",
     "season_1": "Temporada 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Recompensas bloqueadas",
       "points_needed": "{{points}} pontos",
@@ -8006,6 +8027,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Tokens",
       "perpetuals": "Perpétuos",
       "predictions": "Previsões",
