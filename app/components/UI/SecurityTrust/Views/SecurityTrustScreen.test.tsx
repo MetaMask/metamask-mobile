@@ -217,4 +217,26 @@ describe('SecurityTrustScreen', () => {
 
     expect(mockUseColorScheme).toHaveBeenCalled();
   });
+
+  it('displays correct fee values from mock data', () => {
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    expect(getByText('1.0%')).toBeTruthy();
+    expect(getByText('2.0%')).toBeTruthy();
+    expect(getByText('0.0%')).toBeTruthy();
+  });
+
+  it('displays correct holder distribution from topHolders array', () => {
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    expect(getByText('25.0%')).toBeTruthy();
+    expect(getByText('75.0%')).toBeTruthy();
+  });
+
+  it('renders feature tags from TokenSecurityFeature objects', () => {
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    expect(getByText('Verified Contract')).toBeTruthy();
+    expect(getByText('High Reputation')).toBeTruthy();
+  });
 });
