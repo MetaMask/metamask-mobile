@@ -4030,6 +4030,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }

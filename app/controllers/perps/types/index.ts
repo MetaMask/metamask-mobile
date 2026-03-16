@@ -5,7 +5,7 @@ import type {
   Hex,
 } from '@metamask/utils';
 
-import type { CandleData } from './perps-types';
+import type { CandleData, OrderType } from './perps-types';
 import type { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 /**
@@ -71,9 +71,6 @@ export type TradeConfiguration = {
     timestamp: number; // When the config was saved (for expiration check)
   };
 };
-
-// Order type enumeration
-export type OrderType = 'market' | 'limit';
 
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
@@ -310,6 +307,7 @@ export type ReadyToTradeResult = {
   error?: string;
   walletConnected?: boolean;
   networkSupported?: boolean;
+  authenticatedAddress?: string;
 };
 
 export type DisconnectResult = {
@@ -405,6 +403,10 @@ export type PerpsMarketData = {
    * Multi-provider: which provider this market data comes from (injected by aggregator)
    */
   providerId?: PerpsProviderType;
+  /**
+   * Indicates this market snapshot came from the last known good cache after live fetch failure.
+   */
+  isStale?: boolean;
 };
 
 export type ToggleTestnetResult = {
@@ -592,6 +594,23 @@ export type PerpsControllerConfig = {
    * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
   fallbackHip3BlocklistMarkets?: string[];
+
+  /**
+   * MYX provider credentials.
+   * Passed from the init file where `process.env.X` is babel-transformed at build time.
+   */
+  myxAppIdTestnet?: string;
+  myxApiSecretTestnet?: string;
+  myxBrokerAddressTestnet?: string;
+  myxAppIdMainnet?: string;
+  myxApiSecretMainnet?: string;
+  myxBrokerAddressMainnet?: string;
+
+  /**
+   * Whether MYX provider is enabled via local env var (MM_PERPS_MYX_PROVIDER_ENABLED).
+   * Must match the UI selector logic so the controller and UI agree on MYX availability.
+   */
+  myxProviderEnabled?: boolean;
 };
 
 export type PriceUpdate = {
@@ -637,6 +656,7 @@ export type OrderFill = {
 // Parameter interfaces - all fully optional for better UX
 export type CheckEligibilityParams = {
   blockedRegions: string[]; // List of blocked region codes (e.g., ['US', 'CN'])
+  geoLocation: string; // User's geolocation from GeolocationController
 };
 
 export type GetPositionsParams = {
@@ -892,7 +912,7 @@ export type Order = {
 export type Funding = {
   symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
   amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
-  rate: string; // Funding rate applied
+  rate?: string; // Funding rate applied (undefined when not available from provider)
   timestamp: number; // Funding payment timestamp
   transactionHash?: string; // Optional transaction hash
 };
@@ -1048,6 +1068,17 @@ export type PerpsProvider = {
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
   getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
+
+  /**
+   * Fetch historical OHLCV candle data for a symbol.
+   * Optional: only providers that support historical candles need to implement this.
+   */
+  fetchHistoricalCandles?(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData>;
 };
 
 // ============================================================================

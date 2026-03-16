@@ -765,6 +765,34 @@ describe('NetworkDetailsView', () => {
 
       expect(ops.removeNetwork).toHaveBeenCalledWith('0x2a');
     });
+
+    it('does not show trash icon when editing non-deletable network (e.g. Ethereum mainnet)', () => {
+      const mainnetEditForm = createMockFormHook({
+        addMode: false,
+        nickname: 'Ethereum',
+        chainId: '0x1',
+        ticker: 'ETH',
+        rpcUrl: 'https://mainnet.infura.io/v3/key',
+        rpcName: 'Infura',
+        rpcUrls: [
+          {
+            url: 'https://mainnet.infura.io/v3/key',
+            name: 'Infura',
+            type: 'infura',
+          },
+        ],
+        blockExplorerUrl: 'https://etherscan.io',
+        blockExplorerUrls: ['https://etherscan.io'],
+        editable: true,
+      });
+      mockFormHook.mockReturnValue(mainnetEditForm);
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      const container = getByTestId(NetworkDetailsViewSelectorsIDs.CONTAINER);
+      const trashIcons = container.findAllByProps({ name: 'Trash' });
+      expect(trashIcons).toHaveLength(0);
+    });
   });
 
   describe('RPC modal interactions', () => {

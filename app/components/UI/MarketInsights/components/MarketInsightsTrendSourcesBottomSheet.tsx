@@ -103,7 +103,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
             <Box twClassName="flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.End}
+                alignItems={BoxAlignItems.Start}
                 twClassName="pr-1"
               >
                 <Text
@@ -113,7 +113,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
                 >
                   {article.title}
                 </Text>
-                <Box twClassName="pb-1">
+                <Box paddingTop={1}>
                   <Icon
                     name={IconName.Export}
                     size={IconSize.Sm}
@@ -182,7 +182,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
             <Box twClassName="flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.End}
+                alignItems={BoxAlignItems.Start}
                 twClassName="pr-1"
               >
                 <Text
@@ -193,7 +193,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
                 >
                   {tweet.contentSummary}
                 </Text>
-                <Box twClassName="pb-1">
+                <Box paddingTop={1}>
                   <Icon
                     name={IconName.Export}
                     size={IconSize.Sm}

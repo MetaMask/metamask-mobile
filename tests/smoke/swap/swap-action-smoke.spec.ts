@@ -51,13 +51,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
-            },
+            chainId: '0x1',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Localhost',
+            ticker: 'ETH',
           })
           .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
@@ -75,6 +73,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         ],
         testSpecificMock,
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await loginToApp();

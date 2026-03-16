@@ -55,7 +55,7 @@ export interface MerklRewardData {
 // Follows the Sentinel API caching pattern (TTL + request deduplication).
 //
 // The display hook (useMerklRewards) fetches on mount, warming the cache.
-// When the user taps "Claim bonus", useMerklClaim hits the warm cache
+// When the user taps "Claim bonus", useMerklClaimTransaction hits the warm cache
 // instead of waiting for a fresh network round-trip.
 // ---------------------------------------------------------------------------
 

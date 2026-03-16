@@ -48,7 +48,7 @@ class WalletActionModal {
     if (!this._device) {
       return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON);
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Trade perps contracts');
     }
   }
 
@@ -56,7 +56,7 @@ class WalletActionModal {
     if (!this._device) {
       return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON);
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Trade on real-world events');
     }
   }
 
@@ -98,19 +98,20 @@ class WalletActionModal {
   }
 
   async tapPerpsButton() {
-    if (!this._device) {
-      await Gestures.waitAndTap(this.perpsButton);
-    } else {
-      await AppwrightGestures.tap(await this.perpsButton);
-    }
+    const element = await this.perpsButton;
+    await appwrightExpect(element).toBeVisible();
+    await AppwrightGestures.tap(element, { expectScreenChange: true });
   }
 
   async tapPredictButton() {
-    if (!this._device) {
-      await Gestures.waitAndTap(this.predictButton);
-    } else {
-      await AppwrightGestures.tap(await this.predictButton);
-    }
+    const element = await this.predictButton;
+    await appwrightExpect(element).toBeVisible();
+    await AppwrightGestures.tap(element, { expectScreenChange: true });
+  }
+
+  async checkModalVisibility() {
+    const element = await this.perpsButton;
+    await appwrightExpect(element).toBeVisible();
   }
 }
 

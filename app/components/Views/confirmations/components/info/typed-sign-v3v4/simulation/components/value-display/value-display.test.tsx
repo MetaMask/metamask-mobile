@@ -9,6 +9,7 @@ import { getTokenDetails } from '../../../../../../../../../util/address';
 import { backgroundState } from '../../../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
 import { useAnalytics } from '../../../../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../../../../util/test/analyticsMock';
 
 const mockInitialState = {
   engine: {
@@ -41,26 +42,11 @@ jest.mock('../../../../../../../../../util/address', () => ({
 
 describe('SimulationValueDisplay', () => {
   beforeEach(() => {
-    (useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: jest.fn(() => ({
-        addProperties: jest.fn().mockReturnThis(),
-        addSensitiveProperties: jest.fn().mockReturnThis(),
-        removeProperties: jest.fn().mockReturnThis(),
-        removeSensitiveProperties: jest.fn().mockReturnThis(),
-        setSaveDataRecording: jest.fn().mockReturnThis(),
-        build: jest.fn(),
-      })),
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getAnalyticsId: jest.fn(),
-    });
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
+      );
   });
 
   afterEach(() => {

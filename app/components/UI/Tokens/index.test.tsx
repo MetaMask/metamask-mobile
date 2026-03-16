@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-// eslint-disable-next-line import/no-namespace
-import * as UseAnalyticsModule from '../../hooks/useAnalytics/useAnalytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';
@@ -18,6 +18,7 @@ import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
+import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
 // eslint-disable-next-line import/no-namespace
 import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdConversionAssetListCta';
 // eslint-disable-next-line import/no-namespace
@@ -30,15 +31,14 @@ import * as RefreshTokensModule from './util/refreshTokens';
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
-import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
-
+const mockUseMusdConversionEligibility = jest.fn(() => ({
+  isEligible: true,
+  isLoading: false,
+  geolocation: 'US',
+  blockedCountries: [],
+}));
 jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => ({
-    isEligible: true,
-    isLoading: false,
-    geolocation: 'US',
-    blockedCountries: [],
-  }),
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
 // Mocking versioning for some selectors
@@ -84,15 +84,26 @@ const arrangeMockComponents = () => {
 
   const mockTokenListControlBar = jest
     .spyOn(TokenListControlBarModule, 'TokenListControlBar')
-    .mockImplementation(({ goToAddToken }) => (
-      <View testID="token-list-control-bar">
-        <Button
-          testID="MOCK_TEST_ADD_TOKEN_BUTTON"
-          title="Add Token"
-          onPress={goToAddToken}
-        />
-      </View>
-    ));
+    .mockImplementation(
+      ({
+        goToAddToken,
+        showAddToken = true,
+      }: {
+        goToAddToken: () => void;
+        showAddToken?: boolean;
+      }) => (
+        <View testID="token-list-control-bar">
+          {showAddToken && (
+            <Button
+              testID="MOCK_TEST_ADD_TOKEN_BUTTON"
+              title="Add Token"
+              onPress={goToAddToken}
+            />
+          )}
+          <Button testID="MOCK_NETWORK_FILTER" title="Network" />
+        </View>
+      ),
+    );
 
   const mockTokensList = jest
     .mocked(TokenList)
@@ -166,11 +177,22 @@ const arrangeMockState = () => clone(initialRootState);
 const initialState = arrangeMockState();
 
 const Stack = createStackNavigator();
-const renderComponent = (state = initialState, isFullView: boolean = false) =>
+const renderComponent = (
+  state = initialState,
+  isFullView: boolean = false,
+  showOnlyMusd: boolean = false,
+  hasMusdBalanceOnAnyChain?: boolean,
+) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Tokens" options={{}}>
-        {() => <Tokens isFullView={isFullView} />}
+        {() => (
+          <Tokens
+            isFullView={isFullView}
+            showOnlyMusd={showOnlyMusd}
+            hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+          />
+        )}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
@@ -288,40 +310,19 @@ describe('Tokens', () => {
     beforeEach(() => {
       mockTrackEvent = jest.fn();
       mockAddProperties = jest.fn().mockReturnThis();
-      jest.spyOn(UseAnalyticsModule, 'useAnalytics').mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: jest.fn(() => {
-          const mockEvent: AnalyticsTrackingEvent = {
-            name: '',
-            properties: {},
-            sensitiveProperties: {},
-            saveDataRecording: false,
-            get isAnonymous(): boolean {
-              return false;
-            },
-            get hasProperties(): boolean {
-              return false;
-            },
-          };
-          return {
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
             addProperties: mockAddProperties,
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
             setSaveDataRecording: jest.fn().mockReturnThis(),
-            build: jest.fn(() => mockEvent),
-          };
+            build: jest.fn(),
+          }),
         }),
-        isEnabled: jest.fn(),
-        enable: jest.fn(),
-        addTraitsToUser: jest.fn(),
-        createDataDeletionTask: jest.fn(),
-        checkDataDeleteStatus: jest.fn(),
-        getDeleteRegulationCreationDate: jest.fn(),
-        getDeleteRegulationId: jest.fn(),
-        isDataRecorded: jest.fn(),
-        getAnalyticsId: jest.fn(),
-      });
+      );
     });
 
     it('tracks Position Screen Viewed when isFullView is true and tokens are loaded', async () => {
@@ -368,6 +369,213 @@ describe('Tokens', () => {
             screen_type: 'tokens',
             location: 'homepage',
           }),
+        );
+      });
+    });
+
+    it('tracks screen_type cash when showOnlyMusd and isFullView', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            screen_type: 'cash',
+            location: 'homepage',
+            is_empty: true,
+          }),
+        );
+      });
+    });
+  });
+
+  describe('showOnlyMusd (Cash view)', () => {
+    it('passes showAddToken false and hideSort true to TokenListControlBar', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(
+          TokenListControlBarModule.TokenListControlBar,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            showAddToken: false,
+            hideSort: true,
+          }),
+          expect.anything(),
+        );
+      });
+    });
+
+    it('does not render add token button when showOnlyMusd', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { queryByTestId } = renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+
+      expect(queryByTestId('MOCK_TEST_ADD_TOKEN_BUTTON')).toBeNull();
+    });
+
+    it('shows empty state when showOnlyMusd and no mUSD tokens', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { getByTestId } = renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(getByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+    });
+
+    it('shows network-aware empty state when showOnlyMusd, empty list, and hasMusdBalanceOnAnyChain', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { getByText } = renderComponent(
+        initialState,
+        true,
+        true,
+        true, // hasMusdBalanceOnAnyChain
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            'No mUSD on this network. Switch network to see your mUSD.',
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('includes mUSD in main token list when Cash section is disabled', async () => {
+      mockUseMusdConversionEligibility.mockReturnValueOnce({
+        isEligible: false,
+        isLoading: false,
+        geolocation: 'US',
+        blockedCountries: [],
+      });
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        { address: '0xToken2', chainId: '0x2', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(initialState, true, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          expect.anything(),
+        );
+      });
+    });
+
+    it('includes mUSD when conversion flow is enabled but homepage sections are disabled (legacy wallet view)', async () => {
+      const stateWithMusdEnabled = clone(initialRootState);
+      (
+        stateWithMusdEnabled as Record<string, unknown> &
+          typeof initialRootState
+      ).engine.backgroundState.RemoteFeatureFlagController = {
+        ...stateWithMusdEnabled.engine.backgroundState
+          .RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          earnMusdConversionFlowEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(stateWithMusdEnabled, false, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          expect.anything(),
+        );
+      });
+    });
+
+    it('excludes mUSD from token list when both conversion flow and homepage sections are enabled', async () => {
+      const stateWithBothEnabled = clone(initialRootState);
+      (
+        stateWithBothEnabled as Record<string, unknown> &
+          typeof initialRootState
+      ).engine.backgroundState.RemoteFeatureFlagController = {
+        ...stateWithBothEnabled.engine.backgroundState
+          .RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          earnMusdConversionFlowEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+          homepageSectionsV1: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(stateWithBothEnabled, false, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.not.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          expect.anything(),
         );
       });
     });

@@ -312,22 +312,28 @@ exports[`ActivityView matches snapshot 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         [
                           {
-                            "backgroundColor": "#ffffff",
-                            "display": "flex",
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
-                            "gap": 16,
                           },
                           {
-                            "marginTop": 0,
+                            "backgroundColor": "#ffffff",
                           },
                         ]
                       }
+                      testID="activity-view-safe-area"
                     >
                       <View
                         style={
@@ -336,16 +342,17 @@ exports[`ActivityView matches snapshot 1`] = `
                               "alignItems": "center",
                               "flexDirection": "row",
                               "gap": 16,
-                            },
-                            false,
-                            {
-                              "marginBottom": 16,
+                              "minHeight": 56,
                               "paddingLeft": 16,
-                              "paddingRight": 16,
+                              "paddingRight": 8,
                             },
+                            {
+                              "marginTop": 0,
+                            },
+                            undefined,
                           ]
                         }
-                        testID="header"
+                        testID="activity-view-header-root"
                       >
                         <View
                           style={
@@ -361,176 +368,203 @@ exports[`ActivityView matches snapshot 1`] = `
                             ]
                           }
                         >
-                          <Text
-                            accessibilityRole="text"
+                          <View
                             style={
                               [
                                 {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 24,
-                                  "fontWeight": 700,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 32,
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
                                 },
                                 undefined,
                               ]
                             }
-                            testID="header-title"
                           >
-                            Activity
-                          </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": 700,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Activity
+                            </Text>
+                          </View>
                         </View>
                       </View>
                       <View
-                        testID="tabs-list"
+                        style={
+                          [
+                            {
+                              "display": "flex",
+                              "flexBasis": "0%",
+                              "flexGrow": 1,
+                              "flexShrink": 1,
+                              "gap": 16,
+                            },
+                            undefined,
+                          ]
+                        }
                       >
                         <View
-                          testID="tab-transactions"
+                          testID="tabs-list"
                         >
                           <View
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flex": 1,
-                              }
-                            }
-                            tabLabel="Transactions"
+                            testID="tab-transactions"
                           >
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 8,
-                                  "paddingHorizontal": 16,
-                                  "width": "100%",
+                                  "backgroundColor": "#ffffff",
+                                  "flex": 1,
                                 }
                               }
+                              tabLabel="Transactions"
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={false}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b4b4b566",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
-                                    "height": 40,
-                                    "justifyContent": "center",
-                                    "maxWidth": "80%",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 12,
+                                    "justifyContent": "space-between",
+                                    "marginVertical": 8,
+                                    "paddingHorizontal": 16,
+                                    "width": "100%",
                                   }
                                 }
-                                testID="tokens-network-filter"
                               >
-                                <View
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "display": "flex",
+                                      "alignSelf": "flex-start",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b4b4b566",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "gap": 4,
+                                      "height": 40,
+                                      "justifyContent": "center",
+                                      "maxWidth": "80%",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 12,
                                     }
                                   }
+                                  testID="tokens-network-filter"
                                 >
                                   <View
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "overflow": "hidden",
-                                        "width": 16,
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 4,
                                       }
                                     }
                                   >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
+                                    <View
                                       style={
                                         {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
                                           "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
-                                      testID="network-avatar-image"
-                                    />
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                    <Text
+                                      accessibilityRole="text"
+                                      numberOfLines={1}
+                                      style={
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Popular networks
+                                    </Text>
                                   </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    numberOfLines={1}
+                                  <SvgMock
+                                    color="#131416"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
                                     style={
                                       {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "height": 16,
+                                        "marginLeft": 8,
+                                        "width": 16,
                                       }
                                     }
-                                  >
-                                    Popular networks
-                                  </Text>
-                                </View>
-                                <SvgMock
-                                  color="#131416"
-                                  fill="currentColor"
-                                  height={16}
-                                  name="ArrowDown"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "marginLeft": 8,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                              </TouchableOpacity>
+                                    width={16}
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                              <View
+                                testID="unified-transactions-view-mock"
+                              />
                             </View>
-                            <View
-                              testID="unified-transactions-view-mock"
-                            />
                           </View>
-                        </View>
-                        <View
-                          testID="tab-orders"
-                        >
                           <View
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flex": 1,
-                              }
-                            }
-                            tabLabel="Transfers"
+                            testID="tab-orders"
                           >
                             <View
-                              testID="ramp-orders-list"
-                            />
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "flex": 1,
+                                }
+                              }
+                              tabLabel="Transfers"
+                            >
+                              <View
+                                testID="ramp-orders-list"
+                              />
+                            </View>
                           </View>
+                          <View
+                            testID="tab-2"
+                          />
+                          <View
+                            testID="tab-3"
+                          />
                         </View>
-                        <View
-                          testID="tab-2"
-                        />
-                        <View
-                          testID="tab-3"
-                        />
                       </View>
-                    </View>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

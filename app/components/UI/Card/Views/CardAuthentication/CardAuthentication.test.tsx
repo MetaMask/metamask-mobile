@@ -6,7 +6,7 @@ import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 // Mock whenEngineReady to prevent async polling after test teardown
-jest.mock('../../../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
   __esModule: true,
   default: jest.fn().mockResolvedValue(undefined),
 }));

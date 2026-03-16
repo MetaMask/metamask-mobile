@@ -56,7 +56,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
@@ -148,10 +148,10 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
+import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
-import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
+import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
@@ -333,10 +333,10 @@ const AddNetworkFlow = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
         name="AddNetwork"
-        component={NetworkSettings}
+        component={NetworkDetailsView}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -460,11 +460,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={State2AccountConnectWrapper}
+      component={MultichainAccountConnect}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={BIP44AccountPermissionWrapper}
+      component={MultichainAccountPermissions}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
@@ -1059,13 +1059,21 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.ADD_NETWORK}
       component={AddNetworkFlow}
-      options={{ animationEnabled: true }}
+      options={{
+        animationEnabled: true,
+        cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+        gestureEnabled: true,
+      }}
     />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.EDIT_NETWORK}
         component={AddNetworkFlow}
-        options={{ animationEnabled: true }}
+        options={{
+          animationEnabled: true,
+          cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+          gestureEnabled: true,
+        }}
       />
     ) : null}
     <Stack.Screen

@@ -292,6 +292,12 @@ export function parseErrorByType(
   }
 
   if (isErrorCodeObject(error)) {
+    if (error.code === ErrorCode.Unknown && isErrorLike(error)) {
+      const reParsed = parseErrorByMessage(error, walletType);
+      if (reParsed) {
+        return reParsed;
+      }
+    }
     const message =
       typeof error.message === 'string' ? error.message : undefined;
     return createHardwareWalletError(error.code, walletType, message);

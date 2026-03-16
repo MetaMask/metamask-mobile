@@ -10,7 +10,6 @@ import { initialState as initialFiatOrdersState } from '../../../../../../reduce
 
 const fiatOrdersNoFetch = {
   ...initialFiatOrdersState,
-  detectedGeolocation: undefined,
   rampRoutingDecision: null,
 };
 

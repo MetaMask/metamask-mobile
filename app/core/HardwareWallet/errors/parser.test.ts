@@ -42,6 +42,18 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.BluetoothDisabled);
       expect(result).toBeInstanceOf(HardwareWalletError);
     });
+
+    it('re-parses ErrorCode.Unknown objects', () => {
+      const error = {
+        code: ErrorCode.Unknown,
+        message:
+          'Please enable Blind signing or Contract data in the Ethereum app Settings',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
+    });
   });
 
   describe('when error is LedgerCommunicationErrors enum', () => {
