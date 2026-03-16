@@ -12,8 +12,8 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   buildQuoteWithRedirectUrl,
-  getAggregatorRedirectUrl,
   getCheckoutContext,
+  getWidgetRedirectConfig,
 } from '../../utils/buildQuoteWithRedirectUrl';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { extractOrderCode } from '../../utils/extractOrderCode';
@@ -46,7 +46,6 @@ import {
   normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
-import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
@@ -154,11 +153,11 @@ function BuildQuote() {
     selectedToken,
     getBuyWidgetData,
     addPrecreatedOrder,
+    addOrder,
+    getOrderFromCallback,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
-
-  const { addOrder, getOrderFromCallback } = useRampsOrders();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
@@ -529,9 +528,11 @@ function BuildQuote() {
     try {
       const providerCode = normalizeProviderCode(selectedQuote.provider);
       const isCustom = isCustomAction(selectedQuote);
-      const redirectUrl = isCustom
-        ? `metamask://on-ramp/providers/${providerCode}`
-        : getAggregatorRedirectUrl(selectedQuote, providerCode);
+      const { useExternalBrowser, redirectUrl } = getWidgetRedirectConfig(
+        selectedQuote,
+        providerCode,
+        isCustom,
+      );
       const quoteForWidget = buildQuoteWithRedirectUrl(
         selectedQuote,
         redirectUrl,
@@ -554,12 +555,8 @@ function BuildQuote() {
         walletAddress,
         buyWidget.orderId,
       );
-      const useExternalBrowser =
-        isCustom || buyWidget.browser === 'IN_APP_OS_BROWSER';
 
       if (useExternalBrowser) {
-        const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
-
         if (effectiveOrderId && effectiveWallet) {
           addPrecreatedOrder({
             orderId: effectiveOrderId,
@@ -582,7 +579,7 @@ function BuildQuote() {
         try {
           const result = await InAppBrowser.openAuth(
             buyWidget.url,
-            deeplinkRedirectUrl,
+            redirectUrl,
           );
 
           if (result.type !== 'success' || !result.url) {

@@ -88,10 +88,6 @@ jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
 
-jest.mock('../../hooks/useRampsOrders', () => ({
-  useRampsOrders: jest.fn(),
-}));
-
 jest.mock('../../hooks/useRampsQuotes', () => ({
   useRampsQuotes: jest.fn(),
 }));
@@ -173,9 +169,6 @@ const mockUseRampsController = jest.requireMock(
   '../../hooks/useRampsController',
 ).useRampsController as jest.Mock;
 
-const mockUseRampsOrders = jest.requireMock('../../hooks/useRampsOrders')
-  .useRampsOrders as jest.Mock;
-
 const mockUseRampsQuotes = jest.requireMock('../../hooks/useRampsQuotes')
   .useRampsQuotes as jest.Mock;
 
@@ -208,10 +201,14 @@ const mockCreateEventBuilder = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
 const mockNavigationReset = jest.fn();
+const mockNavigate = jest.fn();
 const mockGetBuyWidgetData = jest.fn();
 const mockAddOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
+const mockCheckExistingToken = jest.fn();
+const mockGetBuyQuote = jest.fn();
+const mockRouteAfterAuth = jest.fn();
 
 const WIDGET_PROVIDER_QUOTE = {
   provider: 'moonpay',
@@ -227,6 +224,31 @@ const WIDGET_PROVIDER = {
   name: 'MoonPay',
   supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
   links: [],
+};
+
+const NATIVE_PROVIDER = {
+  id: 'transak',
+  name: 'Transak',
+  supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
+  links: [],
+};
+
+const NATIVE_PROVIDER_QUOTE = {
+  provider: 'transak',
+  id: 'quote-transak-1',
+  inputAmount: 100,
+  inputCurrency: 'USD',
+  outputAmount: '0.05',
+  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+  providerInfo: { type: 'native' as const, name: 'Transak', id: 'transak' },
+};
+
+const MOCK_TRANSAK_QUOTE = {
+  id: 'transak-quote-1',
+  fiatAmount: 100,
+  fiatCurrency: 'USD',
+  cryptoAmount: '0.05',
+  cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
 };
 
 const SELECTED_TOKEN = {
@@ -261,12 +283,10 @@ describe('BuildQuote', () => {
       selectedToken: SELECTED_TOKEN,
       getBuyWidgetData: mockGetBuyWidgetData,
       addPrecreatedOrder: mockAddPrecreatedOrder,
-      paymentMethodsLoading: false,
-      selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-    });
-    mockUseRampsOrders.mockReturnValue({
       addOrder: mockAddOrder,
       getOrderFromCallback: mockGetOrderFromCallback,
+      paymentMethodsLoading: false,
+      selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
     });
     mockUseRampsQuotes.mockReturnValue({
       data: { success: [WIDGET_PROVIDER_QUOTE] },
@@ -274,11 +294,11 @@ describe('BuildQuote', () => {
       error: null,
     });
     mockUseTransakController.mockReturnValue({
-      checkExistingToken: jest.fn(),
-      getBuyQuote: jest.fn(),
+      checkExistingToken: mockCheckExistingToken,
+      getBuyQuote: mockGetBuyQuote,
     });
     mockUseTransakRouting.mockReturnValue({
-      routeAfterAuthentication: jest.fn(),
+      routeAfterAuthentication: mockRouteAfterAuth,
     });
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -293,7 +313,7 @@ describe('BuildQuote', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       reset: mockNavigationReset,
       setParams: jest.fn(),
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       goBack: jest.fn(),
     });
   });
@@ -445,6 +465,121 @@ describe('BuildQuote', () => {
       });
 
       expect(amountInput.props.color).toBeUndefined();
+    });
+  });
+
+  describe('handleNativeProviderContinue', () => {
+    beforeEach(() => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        selectedProvider: NATIVE_PROVIDER,
+        selectedToken: SELECTED_TOKEN,
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        paymentMethodsLoading: false,
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+      mockUseRampsQuotes.mockReturnValue({
+        data: { success: [NATIVE_PROVIDER_QUOTE] },
+        loading: false,
+        error: null,
+      });
+    });
+
+    it('routes after auth when user has token', async () => {
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
+      mockRouteAfterAuth.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'eip155:1/slip44:60',
+        'eip155:1',
+        '/payments/debit-credit-card',
+        '100',
+      );
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE);
+    });
+
+    it('navigates to VerifyIdentity when user has no token', async () => {
+      mockCheckExistingToken.mockResolvedValue(false);
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/slip44:60',
+        }),
+      );
+    });
+
+    it('sets rampsError when quote is null', async () => {
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue(null);
+
+      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('sets rampsError when transakCheckExistingToken throws', async () => {
+      mockCheckExistingToken.mockRejectedValue(new Error('Network error'));
+
+      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('sets rampsError when transakRouteAfterAuth throws', async () => {
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
+      mockRouteAfterAuth.mockRejectedValue(new Error('Routing failed'));
+
+      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

@@ -134,6 +134,12 @@ describe('OrderDetails', () => {
     expect(getByTestId('order-content')).toBeOnTheScreen();
   });
 
+  it('renders empty ScreenLayout when order is not found', () => {
+    mockGetOrderById.mockReturnValue(undefined);
+    const { toJSON } = render();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('shows loading state when order is pending and refreshing', () => {
     mockUseParams.mockReturnValue({ orderId: 'ord-123' });
     mockGetOrderById.mockReturnValue({

@@ -16,9 +16,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(() => jest.fn()),
+  useDispatch: jest.fn(() => mockDispatch),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -40,6 +41,12 @@ jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => ({
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
+}));
+
+jest.mock('../../../../../actions/user', () => ({
+  protectWalletModalVisible: jest.fn(() => ({
+    type: 'PROTECT_WALLET_MODAL_VISIBLE',
+  })),
 }));
 
 jest.mock('../../../../../reducers/fiatOrders', () => ({
@@ -79,6 +86,10 @@ jest.mock('../../Aggregator/sdk', () => ({
   callbackBaseUrl: mockCallbackBaseUrl,
 }));
 
+let capturedOnNavigationStateChange:
+  | ((state: { url: string; loading?: boolean }) => void)
+  | undefined;
+
 jest.mock('@metamask/react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
   const { View, Button } = require('react-native');
@@ -92,30 +103,53 @@ jest.mock('@metamask/react-native-webview', () => {
         loading?: boolean;
       }) => void;
       testID?: string;
-    }) => (
-      <View testID={testID ?? 'checkout-webview'}>
-        <Button
-          testID="trigger-callback-navigation"
-          title="TriggerCallback"
-          onPress={() =>
-            onNavigationStateChange?.({
-              url: `${mockCallbackBaseUrl}?orderId=123`,
-              loading: false,
-            })
-          }
-        />
-        <Button
-          testID="trigger-dedup-navigation"
-          title="TriggerDedup"
-          onPress={() =>
-            onNavigationStateChange?.({
-              url: 'https://custom-dedup-url.example.com',
-              loading: false,
-            })
-          }
-        />
-      </View>
-    ),
+    }) => {
+      capturedOnNavigationStateChange = onNavigationStateChange;
+      return (
+        <View testID={testID ?? 'checkout-webview'}>
+          <Button
+            testID="trigger-callback-navigation"
+            title="TriggerCallback"
+            onPress={() =>
+              onNavigationStateChange?.({
+                url: `${mockCallbackBaseUrl}?orderId=123`,
+                loading: false,
+              })
+            }
+          />
+          <Button
+            testID="trigger-callback-empty-query"
+            title="TriggerCallbackEmptyQuery"
+            onPress={() =>
+              onNavigationStateChange?.({
+                url: mockCallbackBaseUrl,
+                loading: false,
+              })
+            }
+          />
+          <Button
+            testID="trigger-callback-loading"
+            title="TriggerCallbackLoading"
+            onPress={() =>
+              onNavigationStateChange?.({
+                url: `${mockCallbackBaseUrl}?orderId=123`,
+                loading: true,
+              })
+            }
+          />
+          <Button
+            testID="trigger-dedup-navigation"
+            title="TriggerDedup"
+            onPress={() =>
+              onNavigationStateChange?.({
+                url: 'https://custom-dedup-url.example.com',
+                loading: false,
+              })
+            }
+          />
+        </View>
+      );
+    },
   };
 });
 
@@ -167,6 +201,7 @@ describe('Checkout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedOnNavigationStateChange = undefined;
     mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/checkout',
       providerName: 'Test Provider',
@@ -192,20 +227,61 @@ describe('Checkout', () => {
     nav.useNavigation.mockReturnValue(mockNavigation);
   });
 
-  describe('callback error handling (220-222)', () => {
-    it.todo(
-      'displays error when getOrderFromCallback returns null - handleNavigationStateChange async handler not triggered by fireEvent.press in test env',
-    );
+  describe('handleNavigationStateChange (callback flow)', () => {
+    const callbackFlowParams = {
+      url: 'https://provider.example.com/checkout',
+      providerName: 'Test Provider',
+      providerCode: 'moonpay',
+      walletAddress: '0x1234567890abcdef',
+    };
 
     it.todo(
-      'displays error when getOrderFromCallback throws - handleNavigationStateChange async handler not triggered by fireEvent.press in test env',
+      'adds order, dispatches protect wallet modal, and resets to order details when callback succeeds',
     );
-  });
 
-  describe('V2 order toast (236-246)', () => {
+    it.todo('shows V2 order toast when isV2Enabled and callback succeeds');
+
+    it.todo('displays error when getOrderFromCallback returns null');
+
+    it.todo('displays error when getOrderFromCallback throws');
+
+    it.todo('pops parent when callback URL has no query params');
+
+    it('returns early when navState.loading is true', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: `${mockCallbackBaseUrl}?orderId=123`,
+          loading: true,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
     it.todo(
-      'shows V2 order toast when isV2Enabled and callback succeeds - handleNavigationStateChange async handler not triggered by fireEvent.press in test env',
+      'does not process callback twice when navigation fires multiple times',
     );
+
+    it('does not invoke callback handler when hasCallbackFlow is false', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
   });
 
   describe('close button analytics (280-288)', () => {

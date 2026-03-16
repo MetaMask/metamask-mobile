@@ -24,19 +24,44 @@ export function buildQuoteWithRedirectUrl(
   };
 }
 
+function getProviderDeeplinkRedirectUrl(providerCode: string): string {
+  return `metamask://on-ramp/providers/${providerCode}`;
+}
+
 /**
- * Returns redirect URL for aggregator flow: deeplink when quote indicates
+ * Returns redirect config for aggregator flow: deeplink when quote indicates
  * external browser, callbackBaseUrl for Checkout WebView.
  */
-export function getAggregatorRedirectUrl(
+export function getAggregatorRedirectConfig(
   quote: Quote,
   providerCode: string,
-): string {
+): { useExternalBrowser: boolean; redirectUrl: string } {
   const useExternalBrowser =
     quote.quote?.buyWidget?.browser === 'IN_APP_OS_BROWSER';
-  return useExternalBrowser
-    ? `metamask://on-ramp/providers/${providerCode}`
-    : getRampCallbackBaseUrl();
+  return {
+    useExternalBrowser,
+    redirectUrl: useExternalBrowser
+      ? getProviderDeeplinkRedirectUrl(providerCode)
+      : getRampCallbackBaseUrl(),
+  };
+}
+
+/**
+ * Returns redirect config for widget providers (custom actions or aggregators).
+ * Unifies the logic so redirectUrl and useExternalBrowser come from one place.
+ */
+export function getWidgetRedirectConfig(
+  quote: Quote,
+  providerCode: string,
+  isCustom: boolean,
+): { useExternalBrowser: boolean; redirectUrl: string } {
+  if (isCustom) {
+    return {
+      useExternalBrowser: true,
+      redirectUrl: getProviderDeeplinkRedirectUrl(providerCode),
+    };
+  }
+  return getAggregatorRedirectConfig(quote, providerCode);
 }
 
 export function getCheckoutContext(
