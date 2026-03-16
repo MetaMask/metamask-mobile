@@ -260,13 +260,10 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
 
-      navigation.navigate(
-        Routes.PERPS.ROOT as never,
-        {
-          screen: Routes.PERPS.ORDER_REDIRECT,
-          params: { direction, asset: assetSymbol },
-        } as never,
-      );
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.ORDER_REDIRECT,
+        params: { direction, asset: assetSymbol },
+      });
     },
     [navigation, trackEvent, createEventBuilder, assetIdProperty, assetSymbol],
   );
