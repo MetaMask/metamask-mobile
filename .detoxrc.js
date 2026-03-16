@@ -15,7 +15,7 @@ module.exports = {
         enabled: true,  // Enable video recording
         keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' videos
       },
-      viewHierarchy: {
+      uiHierarchy: {
         enabled: true,
         keepOnlyFailedTestsArtifacts: true
       }
