@@ -665,7 +665,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   {token.name || token.symbol}
                 </DSText>
                 {securityBadge && securityBadge.label === null && (
-                  <TouchableOpacity onPress={handleSecurityBadgePress}>
+                  <TouchableOpacity
+                    onPress={handleSecurityBadgePress}
+                    testID="security-badge-verified"
+                  >
                     <Icon
                       name={securityBadge.icon}
                       size={IconSize.Md}
@@ -674,7 +677,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </TouchableOpacity>
                 )}
                 {securityBadge && securityBadge.label !== null && (
-                  <TouchableOpacity onPress={handleSecurityBadgePress}>
+                  <TouchableOpacity
+                    onPress={handleSecurityBadgePress}
+                    testID={
+                      securityData?.resultType === 'Malicious'
+                        ? 'security-badge-malicious'
+                        : 'security-badge-warning'
+                    }
+                  >
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
