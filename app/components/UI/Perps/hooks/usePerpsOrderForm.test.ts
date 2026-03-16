@@ -468,14 +468,14 @@ describe('usePerpsOrderForm', () => {
 
   describe('useMemo and useEffect behavior', () => {
     it('should not overwrite user input when dependencies change', async () => {
-      // Arrange - Start with balance high enough that max >= 999 (e.g. 334 * 3x = 1002)
+      // Arrange - Start with balance high enough that max >= 999 after 0.5% buffer (e.g. 335 * 3x → floor(1005*0.995) = 999)
       const mockAccount = {
         account: {
-          availableBalance: '334',
+          availableBalance: '335',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '334',
+          totalBalance: '335',
         },
         isInitialLoading: false,
       };
@@ -490,7 +490,7 @@ describe('usePerpsOrderForm', () => {
         TRADING_DEFAULTS.amount.mainnet.toString(),
       );
 
-      // Act - User changes the amount (within current max)
+      // Act - User changes the amount (within current max; 335*3*0.995 >= 999)
       act(() => {
         result.current.setAmount('999');
       });
@@ -690,7 +690,8 @@ describe('usePerpsOrderForm', () => {
         result.current.handleMaxAmount();
       });
 
-      expect(result.current.orderForm.amount).toBe('3000'); // 1000 * 3x leverage
+      // 1000 * 3x leverage with 0.5% margin buffer = floor(3000 * 0.995) = 2985
+      expect(result.current.orderForm.amount).toBe('2985');
     });
 
     it('should handle min amount for mainnet', () => {
