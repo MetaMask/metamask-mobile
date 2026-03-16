@@ -7781,7 +7781,9 @@
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
-      "participant_count": "#{{count}}"
+      "participant_count": "#{{count}}",
+      "activity_type_hold": "Hold",
+      "days_left": "{{count}} days left"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",

@@ -1,5 +1,10 @@
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
+import {
+  CampaignType,
+  OndoHoldingDetails,
+} from '../../core/Engine/controllers/rewards-controller/types';
+import { strings } from '../../../locales/i18n';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -189,3 +194,62 @@ export const selectCampaignLeaderboardLoadingById =
     campaignId
       ? (state.rewards.campaignLeaderboardsLoading[campaignId] ?? false)
       : false;
+
+// --- Ondo holding UI selectors ---
+
+/** Returns a single campaign by id */
+export const selectCampaignById = (campaignId: string) => (state: RootState) =>
+  state.rewards.campaigns.find((c) => c.id === campaignId) ?? null;
+
+/** Returns typed OndoHoldingDetails for a campaign, or null */
+export const selectOndoHoldingDetailsByCampaignId =
+  (campaignId: string) =>
+  (state: RootState): OndoHoldingDetails | null => {
+    const campaign = state.rewards.campaigns.find((c) => c.id === campaignId);
+    return campaign?.details ?? null;
+  };
+
+/**
+ * Returns days remaining until campaign end (0 if already ended).
+ * Returns null if campaign not found.
+ */
+export const selectCampaignDaysLeft =
+  (campaignId: string) =>
+  (state: RootState): number | null => {
+    const campaign = state.rewards.campaigns.find((c) => c.id === campaignId);
+    if (!campaign) return null;
+    const diff = new Date(campaign.endDate).getTime() - Date.now();
+    return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
+  };
+
+/**
+ * Returns campaign progress as a 0–1 float based on elapsed duration.
+ * Returns null if campaign not found.
+ */
+export const selectCampaignProgress =
+  (campaignId: string) =>
+  (state: RootState): number | null => {
+    const campaign = state.rewards.campaigns.find((c) => c.id === campaignId);
+    if (!campaign) return null;
+    const start = new Date(campaign.startDate).getTime();
+    const end = new Date(campaign.endDate).getTime();
+    const now = Date.now();
+    if (end <= start) return 1;
+    return Math.min(1, Math.max(0, (now - start) / (end - start)));
+  };
+
+/**
+ * Returns a human-readable activity type label (e.g. "Hold" for ONDO_HOLDING).
+ */
+export const selectCampaignActivityType =
+  (campaignId: string) =>
+  (state: RootState): string | null => {
+    const campaign = state.rewards.campaigns.find((c) => c.id === campaignId);
+    if (!campaign) return null;
+    switch (campaign.type) {
+      case CampaignType.ONDO_HOLDING:
+        return strings('rewards.campaign.activity_type_hold');
+      default:
+        return campaign.type;
+    }
+  };

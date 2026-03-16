@@ -236,6 +236,9 @@ export interface OndoHoldingDetails {
 
 export type CampaignDetails = OndoHoldingDetails;
 
+/** DTO-convention alias for OndoHoldingDetails */
+export type OndoHoldingDetailsDto = OndoHoldingDetails;
+
 /**
  * Campaign status derived from dates
  * - upcoming: now < startDate
