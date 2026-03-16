@@ -158,16 +158,15 @@ describe('AccountsMenu', () => {
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
+      // Mock state object
       const mockState = {
-        engine: {
-          backgroundState: {
-            GeolocationController: { location: 'US' },
-          },
-        },
+        fiatOrders: { detectedGeolocation: 'US' },
       };
 
+      // Try to call the selector with mock state
       try {
         const result = selector(mockState);
+        // If it's the geolocation selector, return 'US'
         if (result === 'US') {
           return 'US';
         }
@@ -434,11 +433,7 @@ describe('AccountsMenu', () => {
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
-          engine: {
-            backgroundState: {
-              GeolocationController: { location: 'US' },
-            },
-          },
+          fiatOrders: { detectedGeolocation: 'US' },
         };
 
         try {

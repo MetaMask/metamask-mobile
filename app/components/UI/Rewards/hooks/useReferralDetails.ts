@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
@@ -64,18 +64,15 @@ export const useReferralDetails = (): {
     }, [fetchReferralDetails]),
   );
 
-  const invalidateEvents = useMemo(
-    () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:rewardClaimed',
-        'RewardsController:balanceUpdated',
-      ] as const,
-    [],
-  );
-
   // Listen for events that should trigger a refetch of referral details
-  useInvalidateByRewardEvents(invalidateEvents, fetchReferralDetails);
+  useInvalidateByRewardEvents(
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
+    fetchReferralDetails,
+  );
 
   return { fetchReferralDetails };
 };

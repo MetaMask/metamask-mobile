@@ -1,7 +1,20 @@
-import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
+import {
+  MOCK_ANY_NAMESPACE,
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+  MockAnyNamespace,
+} from '@metamask/messenger';
 import { getProfileMetricsControllerMessenger } from './profile-metrics-controller-messenger';
+import { ProfileMetricsControllerMessenger } from '@metamask/profile-metrics-controller';
 
-const getRootMessenger = () =>
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<ProfileMetricsControllerMessenger>,
+  MessengerEvents<ProfileMetricsControllerMessenger>
+>;
+
+const getRootMessenger = (): RootMessenger =>
   new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
   });

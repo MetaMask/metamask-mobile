@@ -2,6 +2,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 
+import { strings } from '../../../../../../../locales/i18n';
 import { SimulationDetails } from '../../../../../UI/SimulationDetails/SimulationDetails';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
@@ -27,8 +28,8 @@ import AdvancedDetailsRow, {
 } from '../../rows/transactions/advanced-details-row';
 
 const Transfer = () => {
-  // Set navbar without title
-  useNavbar('');
+  // Set navbar as first to prevent Android navigation flickering
+  useNavbar(strings('confirm.review'));
   const transactionMetadata = useTransactionMetadataRequest();
   const { usdValue } = useTokenAmount();
   const { assetType } = useTransferAssetType();
@@ -49,7 +50,7 @@ const Transfer = () => {
 
   return (
     <View testID={ConfirmationInfoComponentIDs.TRANSFER}>
-      <HeroRow layout="horizontal" />
+      <HeroRow />
       <FromToRow />
       <NetworkAndOriginRow />
       <SimulationDetails
@@ -64,12 +65,12 @@ const Transfer = () => {
 };
 
 export function TransferInfoSkeleton() {
-  // Set navbar without title for loading state
-  useNavbar('');
+  // Set navbar for loading state
+  useNavbar(strings('confirm.review'));
 
   return (
     <View testID="transfer-info-skeleton">
-      <HeroRowSkeleton layout="horizontal" />
+      <HeroRowSkeleton />
       <FromToRowSkeleton />
       <NetworkAndOriginRowSkeleton />
       <GasFeesDetailsRowSkeleton />

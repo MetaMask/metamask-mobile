@@ -36,7 +36,7 @@ jest.mock('../BackupVault', () => ({
 jest.mock('../../util/test/network-store.js', () => jest.fn());
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../../util/analytics/whenEngineReady', () => ({
+jest.mock('../Analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -246,6 +246,7 @@ describe('EngineService', () => {
     (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
       backgroundState: {
         KeyringController: { vault: 'encrypted_vault_data' },
+        PreferencesController: { selectedAddress: '0x123' },
       },
     });
 

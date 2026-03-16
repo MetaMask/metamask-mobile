@@ -117,11 +117,13 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         ],
         fixture: new FixtureBuilder()
           .withNetworkController({
-            chainId: '0x539',
-            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-            type: 'custom',
-            nickname: 'Local RPC',
-            ticker: 'ETH',
+            providerConfig: {
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
+            },
           })
           .withNetworkEnabledMap({
             eip155: { '0x539': true },

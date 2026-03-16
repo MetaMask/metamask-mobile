@@ -198,7 +198,6 @@ describe('DecodedSimulation', () => {
     expect(await findByText('Estimated changes')).toBeOnTheScreen();
     expect(await findByText('Listing price')).toBeOnTheScreen();
     expect(await findByText('You list')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(await findByText('#22222')).toBeOnTheScreen();
   });
 
@@ -210,7 +209,6 @@ describe('DecodedSimulation', () => {
     expect(await findByText('Estimated changes')).toBeOnTheScreen();
     expect(await findByText('You receive')).toBeOnTheScreen();
     expect(await findByText('You list')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(await findByText('#77789')).toBeOnTheScreen();
   });
 

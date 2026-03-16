@@ -13,6 +13,7 @@ import {
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint } from '../../contexts';
+import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
@@ -20,8 +21,6 @@ import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
-import { PREDICT_SPORT_CARD_FOOTER_TEST_IDS } from './PredictSportCardFooter.testIds';
 
 interface PredictSportCardFooterProps {
   market: PredictMarketType;
@@ -66,8 +65,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     navigation,
   });
 
-  const { claim, isClaimPending } = usePredictClaim();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { claim } = usePredictClaim();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -80,19 +78,27 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         () => {
           // When accessed from Carousel, we're outside the Predict navigator,
           // so we need to navigate through the ROOT first
-          const throughRoot =
+          if (
             isCarousel ||
-            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
-
-          navigateToBuyPreview(
-            {
+            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL
+          ) {
+            navigation.navigate(Routes.PREDICT.ROOT, {
+              screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+              params: {
+                market,
+                outcome,
+                outcomeToken: token,
+                entryPoint: resolvedEntryPoint,
+              },
+            });
+          } else {
+            navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
               market,
               outcome,
               outcomeToken: token,
               entryPoint: resolvedEntryPoint,
-            },
-            { throughRoot },
-          );
+            });
+          }
         },
         {
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -103,7 +109,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       executeGuardedAction,
       isCarousel,
       resolvedEntryPoint,
-      navigateToBuyPreview,
+      navigation,
       market,
       outcome,
     ],
@@ -134,22 +140,14 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         twClassName="w-full gap-3"
-        testID={
-          testID
-            ? `${testID}-skeleton`
-            : PREDICT_SPORT_CARD_FOOTER_TEST_IDS.FALLBACK_FOOTER_SKELETON
-        }
+        testID={testID ? `${testID}-skeleton` : 'footer-skeleton'}
       >
         <Box twClassName="flex-1">
           <Skeleton
             width="100%"
             height={48}
             style={tw.style('rounded-md')}
-            testID={
-              testID
-                ? `${testID}-skeleton-1`
-                : PREDICT_SPORT_CARD_FOOTER_TEST_IDS.FALLBACK_FOOTER_SKELETON_1
-            }
+            testID={testID ? `${testID}-skeleton-1` : 'footer-skeleton-1'}
           />
         </Box>
         <Box twClassName="flex-1">
@@ -157,11 +155,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
             width="100%"
             height={48}
             style={tw.style('rounded-md')}
-            testID={
-              testID
-                ? `${testID}-skeleton-2`
-                : PREDICT_SPORT_CARD_FOOTER_TEST_IDS.FALLBACK_FOOTER_SKELETON_2
-            }
+            testID={testID ? `${testID}-skeleton-2` : 'footer-skeleton-2'}
           />
         </Box>
       </Box>
@@ -175,11 +169,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           marketId={market.id}
           positions={positions}
           showSeparator
-          testID={
-            testID
-              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.PICK_SKELETON}`
-              : undefined
-          }
+          testID={testID ? `${testID}-picks` : undefined}
         />
       )}
       {hasClaimablePositions && (
@@ -187,11 +177,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           marketId={market.id}
           positions={claimablePositions}
           showSeparator
-          testID={
-            testID
-              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.PICK_SKELETON}`
-              : undefined
-          }
+          testID={testID ? `${testID}-picks` : undefined}
         />
       )}
 
@@ -202,12 +188,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           onBetPress={handleBetPress}
           onClaimPress={handleClaimPress}
           claimableAmount={claimableAmount}
-          isClaimPending={isClaimPending}
-          testID={
-            testID
-              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.ACTION_BUTTONS}`
-              : undefined
-          }
+          testID={testID ? `${testID}-action-buttons` : undefined}
           isCarousel={isCarousel}
         />
       )}
@@ -217,11 +198,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           market={market}
           outcome={outcome}
           onBetPress={handleBetPress}
-          testID={
-            testID
-              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.ACTION_BUTTONS}`
-              : undefined
-          }
+          testID={testID ? `${testID}-action-buttons` : undefined}
           isCarousel={isCarousel}
         />
       )}

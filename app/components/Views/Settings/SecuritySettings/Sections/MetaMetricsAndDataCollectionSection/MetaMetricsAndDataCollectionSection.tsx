@@ -32,7 +32,6 @@ import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthenti
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
-import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
@@ -65,8 +64,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-
-  const accountType = useSelector(selectOnboardingAccountType);
 
   const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
@@ -122,7 +119,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
             is_metrics_opted_in: true,
             updated_after_onboarding: true,
             location: analyticsLocation,
-            ...(accountType && { account_type: accountType }),
           })
           .build(),
       );
@@ -142,7 +138,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           .addProperties({
             updated_after_onboarding: true,
             location: analyticsLocation,
-            ...(accountType && { account_type: accountType }),
           })
           .build(),
       );

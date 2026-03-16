@@ -26,11 +26,9 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
-import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockMusdNavigateOnConfirm = jest.fn();
 
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
@@ -43,7 +41,6 @@ jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
-jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -82,15 +79,9 @@ describe('useTransactionConfirm', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    useMusdConfirmNavigationMock.mockReturnValue({
-      navigateOnConfirm: mockMusdNavigateOnConfirm,
-    });
-
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: true,
       isSupported: true,
@@ -290,7 +281,7 @@ describe('useTransactionConfirm', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('calls musdConversionNavigateOnConfirm if musdConversion', async () => {
+    it('wallet home if musdConversion', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.musdConversion,
@@ -302,7 +293,7 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockMusdNavigateOnConfirm).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('transactions if full screen', async () => {

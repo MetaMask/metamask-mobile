@@ -115,8 +115,6 @@ import {
   getEarnControllerInitMessenger,
   getEarnControllerMessenger,
 } from './earn-controller-messenger';
-import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
-import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getSwapsControllerMessenger } from './swaps-controller-messenger';
 import {
@@ -192,14 +190,6 @@ export const CONTROLLER_MESSENGERS = {
   EarnController: {
     getMessenger: getEarnControllerMessenger,
     getInitMessenger: getEarnControllerInitMessenger,
-  },
-  GeolocationApiService: {
-    getMessenger: getGeolocationApiServiceMessenger,
-    getInitMessenger: noop,
-  },
-  GeolocationController: {
-    getMessenger: getGeolocationControllerMessenger,
-    getInitMessenger: noop,
   },
   ErrorReportingService: {
     getMessenger: getErrorReportingServiceMessenger,

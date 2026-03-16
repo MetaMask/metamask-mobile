@@ -52,11 +52,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import {
-  Label,
-  FontWeight,
-  TextColor as DSTextColor,
-} from '@metamask/design-system-react-native';
+import Label from '../../../component-library/components/Form/Label';
 import Icon, {
   IconName,
   IconSize,
@@ -779,8 +775,8 @@ class ResetPassword extends PureComponent {
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
               <Label
-                fontWeight={FontWeight.Medium}
-                color={DSTextColor.TextDefault}
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
                 style={styles.confirm_label}
               >
                 {strings('manual_backup_step_1.enter_current_password')}
@@ -911,8 +907,8 @@ class ResetPassword extends PureComponent {
 
                 <View style={styles.field}>
                   <Label
-                    fontWeight={FontWeight.Medium}
-                    color={DSTextColor.TextDefault}
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
                     style={styles.passwordLabel}
                   >
                     {strings('reset_password.password')}
@@ -954,8 +950,8 @@ class ResetPassword extends PureComponent {
 
                 <View style={styles.field}>
                   <Label
-                    fontWeight={FontWeight.Medium}
-                    color={DSTextColor.TextDefault}
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
                     style={styles.passwordLabel}
                   >
                     {strings('reset_password.confirm_password')}

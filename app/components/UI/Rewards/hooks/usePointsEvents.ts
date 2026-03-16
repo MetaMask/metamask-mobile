@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine/Engine';
 import {
@@ -211,24 +211,14 @@ export const usePointsEvents = (
     fetchPointsEvents({ isFirstPage: true });
   }, [enabled, fetchPointsEvents, seasonId, subscriptionId]);
 
-  const refreshEvents = useMemo(
-    () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:rewardClaimed',
-      ] as const,
-    [],
-  );
-  const updateEvents = useMemo(
-    () => ['RewardsController:pointsEventsUpdated'] as const,
-    [],
-  );
-
   // Listen for reward claimed events to trigger refetch
-  useInvalidateByRewardEvents(refreshEvents, refresh);
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    refresh,
+  );
 
   useInvalidateByRewardEvents(
-    updateEvents,
+    ['RewardsController:pointsEventsUpdated'],
     // Don't force fresh when points events are updated; this event is only emitted when we've just fetched new points events
     // otherwise we'll fetch the same points events again
     refreshWithoutForceFresh,

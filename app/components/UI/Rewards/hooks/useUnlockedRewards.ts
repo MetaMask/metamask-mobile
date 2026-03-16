@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -70,18 +70,15 @@ export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
     }, [fetchUnlockedRewards]),
   );
 
-  const invalidateEvents = useMemo(
-    () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:rewardClaimed',
-        'RewardsController:balanceUpdated',
-      ] as const,
-    [],
-  );
-
   // Listen for account linked events to trigger refetch
-  useInvalidateByRewardEvents(invalidateEvents, fetchUnlockedRewards);
+  useInvalidateByRewardEvents(
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
+    fetchUnlockedRewards,
+  );
 
   return {
     fetchUnlockedRewards,

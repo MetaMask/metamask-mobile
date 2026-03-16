@@ -13,7 +13,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
@@ -132,7 +132,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const isLoadingSection = isNftFetchingProgress && !hasNfts;
     const willRender = !isLoadingSection;
 
-    const { onLayout } = useHomeViewedEvent({
+    useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading: isLoadingSection,
       sectionName: HomeSectionNames.NFTS,
@@ -143,9 +143,9 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     });
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllNfts} />
+          <SectionTitle title={title} onPress={handleViewAllNfts} />
           {hasNfts ? (
             <SectionRow>
               <Box gap={3}>

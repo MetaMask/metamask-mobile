@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
@@ -22,20 +22,19 @@ import {
   useKeyboardState,
 } from 'react-native-keyboard-controller';
 import { strings } from '../../../../locales/i18n';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useAppTheme } from '../../../util/theme';
+import { createStyles } from './styles';
+import { ImportSRPIDs } from './SRPImport.testIds';
+import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonIcon,
   IconName,
   IconColor,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import { ImportSRPIDs } from './SRPImport.testIds';
-import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
@@ -70,7 +69,8 @@ import {
  */
 const ImportNewSecretRecoveryPhrase = () => {
   const navigation = useNavigation();
-  const tw = useTailwind();
+  const { colors } = useAppTheme();
+  const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
@@ -242,10 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   };
 
   const content = (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <HeaderCompactStandard
         includesTopInset
         backButtonProps={{
@@ -264,15 +261,8 @@ const ImportNewSecretRecoveryPhrase = () => {
         testID={ImportSRPIDs.SCREEN_TITLE_ID}
         title={strings('import_new_secret_recovery_phrase.import_wallet_title')}
         bottomAccessory={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
+          <View style={styles.subtitleContainer}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
             </Text>
             <ButtonIcon
@@ -283,22 +273,19 @@ const ImportNewSecretRecoveryPhrase = () => {
               onPress={showWhatIsSeedPhrase}
               testID="info-icon"
             />
-          </Box>
+          </View>
         }
         twClassName="px-4 pt-1 pb-3"
       />
       <KeyboardAwareScrollView
-        contentContainerStyle={tw.style(
-          'flex-grow px-4',
-          Platform.OS !== 'android' && 'pb-4',
-        )}
+        contentContainerStyle={styles.wrapper}
         testID={ImportSRPIDs.CONTAINER}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         bottomOffset={180}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="flex-1">
+        <View style={styles.contentContainer}>
           <SrpInputGrid
             ref={srpInputGridRef}
             seedPhrase={seedPhrase}
@@ -313,9 +300,9 @@ const ImportNewSecretRecoveryPhrase = () => {
             onCurrentWordChange={setCurrentInputWord}
             autoFocus={false}
           />
-        </Box>
+        </View>
       </KeyboardAwareScrollView>
-      <Box twClassName="px-4 py-4 bg-default">
+      <View style={styles.fixedBottomContainer}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
@@ -326,11 +313,11 @@ const ImportNewSecretRecoveryPhrase = () => {
           loading={loading}
           testID={ImportSRPIDs.IMPORT_BUTTON}
         />
-      </Box>
+      </View>
       {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
         <KeyboardStickyView
           offset={{ closed: 0, opened: 0 }}
-          style={tw.style('absolute bottom-0 left-0 right-0')}
+          style={styles.keyboardStickyView}
         >
           <SrpWordSuggestions
             currentInputWord={currentInputWord}

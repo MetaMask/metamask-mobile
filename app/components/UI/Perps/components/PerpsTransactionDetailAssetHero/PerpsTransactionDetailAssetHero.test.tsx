@@ -7,7 +7,6 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
-import { mockTheme } from '../../../../../util/theme';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { FillType } from '../PerpsTransactionItem/PerpsTransactionItem';
 
@@ -32,6 +31,10 @@ const mockInitialState: DeepPartial<RootState> = {
     },
   },
 };
+const mockColors = {
+  black: '#000000',
+};
+
 const mockStyles = StyleSheet.create({
   assetContainer: {
     alignItems: 'center',
@@ -51,7 +54,7 @@ const mockStyles = StyleSheet.create({
   },
   assetAmount: {
     fontWeight: '700',
-    color: mockTheme.colors.text.default,
+    color: mockColors.black,
   },
 });
 

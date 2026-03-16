@@ -38,10 +38,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
-import {
-  AccountType,
-  ONBOARDING_SUCCESS_FLOW,
-} from '../../../constants/onboarding';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 import { AppThemeKey } from '../../../util/theme/models';
 
@@ -174,7 +171,6 @@ const AccountBackupStep1 = (props) => {
         onContinue: () => {
           navigation.dispatch(resetAction);
         },
-        accountType: AccountType.Metamask,
       });
     }
   };

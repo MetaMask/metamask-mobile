@@ -63,7 +63,6 @@ class PerpsConnectionManagerClass {
   private pendingReconnectPromise: Promise<void> | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
   private stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private pendingSkipMarketNotify = false;
   private netInfoUnsubscribe: (() => void) | null = null;
   private wasOffline = false;
   private networkRestoreRetryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -152,32 +151,16 @@ class PerpsConnectionManagerClass {
           );
         }
 
-        // Account-only switches keep market data visible (it's global, not account-specific).
-        // Provider/network/HIP-3 switches must flush stale market data immediately.
-        const accountOnly =
-          hasAccountChanged &&
-          !hasProviderChanged &&
-          !hasPerpsNetworkChanged &&
-          !hasHip3Changed;
-
         // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
         streamManager.positions.clearCache();
         streamManager.orders.clearCache();
         streamManager.account.clearCache();
         streamManager.prices.clearCache();
-        streamManager.marketData.clearCache(accountOnly);
+        streamManager.marketData.clearCache();
         streamManager.oiCaps.clearCache();
         streamManager.fills.clearCache();
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
-
-        // Store flag so performReconnection can thread it into the second clearCache call.
-        // AND with current value when a debounce timer is pending so that any
-        // non-account-only change within the window forces a full market reset.
-        this.pendingSkipMarketNotify =
-          this.stateChangeDebounceTimer !== null
-            ? this.pendingSkipMarketNotify && accountOnly
-            : accountOnly;
 
         // Debounce: coalesce rapid state changes (e.g. provider switch + network
         // toggle in the same tick) into a single reconnection attempt.
@@ -882,14 +865,11 @@ class PerpsConnectionManagerClass {
 
       // Clear all cached data from StreamManager to reset UI immediately
       const streamManager = getStreamManagerInstance();
-      const skipMarketNotify = this.pendingSkipMarketNotify;
-      this.pendingSkipMarketNotify = false;
-
       streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
-      streamManager.marketData.clearCache(skipMarketNotify);
+      streamManager.marketData.clearCache();
       streamManager.oiCaps.clearCache();
       streamManager.fills.clearCache();
       streamManager.topOfBook.clearCache();

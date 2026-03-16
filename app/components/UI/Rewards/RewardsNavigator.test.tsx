@@ -22,73 +22,70 @@ jest.mock('./hooks/useSeasonStatus', () => ({
 }));
 
 jest.mock('./OnboardingNavigator', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingNavigator() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-onboarding-navigator' },
-      ReactActual.createElement(Text, null, 'Onboarding Navigator'),
+      React.createElement(Text, null, 'Onboarding Navigator'),
     );
   };
 });
 
 jest.mock('./Views/RewardsDashboard', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockRewardsDashboard() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-dashboard-view' },
-      ReactActual.createElement(Text, null, 'Rewards Dashboard'),
+      React.createElement(Text, null, 'Rewards Dashboard'),
     );
   };
 });
 
 jest.mock('./Views/RewardsReferralView', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockReferralRewardsView() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-referral-view' },
-      ReactActual.createElement(Text, null, 'Referral Rewards View'),
+      React.createElement(Text, null, 'Referral Rewards View'),
     );
   };
 });
 
 jest.mock('./Views/RewardsSettingsView', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockRewardsSettingsView() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-settings-view' },
-      ReactActual.createElement(Text, null, 'Rewards Settings View'),
+      React.createElement(Text, null, 'Rewards Settings View'),
     );
   };
 });
 
 // Mock Skeleton component
-jest.mock(
-  '../../../component-library/components-temp/Skeleton/Skeleton',
-  () => {
-    const React = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return function MockSkeleton({
-      width,
-      height,
-    }: {
-      width: string;
-      height: string;
-    }) {
-      return React.createElement(View, {
-        testID: 'skeleton-loader',
-        style: { width, height },
-      });
-    };
-  },
-);
+jest.mock('../../../component-library/components/Skeleton/Skeleton', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockSkeleton({
+    width,
+    height,
+  }: {
+    width: string;
+    height: string;
+  }) {
+    return React.createElement(View, {
+      testID: 'skeleton-loader',
+      style: { width, height },
+    });
+  };
+});
 
 // Mock ErrorBoundary
 jest.mock('../../Views/ErrorBoundary', () => ({
@@ -103,12 +100,14 @@ jest.mock('../../Views/ErrorBoundary', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      primary: '#000',
+      background: '#fff',
+    },
+  }),
+}));
 
 // Mock getNavigationOptionsTitle
 jest.mock('../Navbar', () => ({
@@ -159,15 +158,9 @@ jest.mock('./hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),
 }));
 
-// Mock useGeoRewardsMetadata hook
-jest.mock('./hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
-}));
-
 // Import mocked selectors and hooks for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
-import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
@@ -176,9 +169,6 @@ const mockSelectRewardsSubscriptionId =
 
 const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
   typeof useSeasonStatus
->;
-const mockUseGeoRewardsMetadata = useGeoRewardsMetadata as jest.MockedFunction<
-  typeof useGeoRewardsMetadata
 >;
 
 describe('RewardsNavigator', () => {
@@ -192,9 +182,6 @@ describe('RewardsNavigator', () => {
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
     mockUseSeasonStatus.mockReturnValue({
       fetchSeasonStatus: jest.fn(),
-    });
-    mockUseGeoRewardsMetadata.mockReturnValue({
-      fetchGeoRewardsMetadata: jest.fn(),
     });
 
     // Create a mock store
@@ -442,14 +429,6 @@ describe('RewardsNavigator', () => {
 
       // Assert - Just verify it renders with default subscription state
       expect(getByTestId('rewards-onboarding-navigator')).toBeDefined();
-    });
-
-    it('calls useGeoRewardsMetadata hook', () => {
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      expect(mockUseGeoRewardsMetadata).toHaveBeenCalledWith({});
     });
 
     it('integrates useSeasonStatus hook properly', () => {

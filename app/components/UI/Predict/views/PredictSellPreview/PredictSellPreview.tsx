@@ -46,7 +46,6 @@ import {
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
-import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
@@ -264,19 +263,19 @@ const PredictSellPreview = () => {
                 width={200}
                 height={74}
                 style={tw.style('rounded-lg')}
-                testID={PREDICT_SELL_PREVIEW_TEST_IDS.VALUE_SKELETON}
+                testID="predict-sell-preview-value-skeleton"
               />
               <Skeleton
                 width={180}
                 height={24}
                 style={tw.style('rounded-md')}
-                testID={PREDICT_SELL_PREVIEW_TEST_IDS.PRICE_SKELETON}
+                testID="predict-sell-preview-price-skeleton"
               />
               <Skeleton
                 width={150}
                 height={24}
                 style={tw.style('rounded-md')}
-                testID={PREDICT_SELL_PREVIEW_TEST_IDS.PNL_SKELETON}
+                testID="predict-sell-preview-pnl-skeleton"
               />
             </Box>
           ) : (

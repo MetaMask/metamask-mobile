@@ -21,14 +21,13 @@ import { PredictEntryPointProvider } from '../../contexts';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import PredictMarketRowItem from '../PredictMarketRowItem';
 import PredictHomeSkeleton from './PredictHomeSkeleton';
-import { PREDICT_HOME_FEATURED_LIST_TEST_IDS } from './PredictHomeFeaturedList.testIds';
 
 interface PredictHomeFeaturedListProps {
   testID?: string;
 }
 
 const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
-  testID = PREDICT_HOME_FEATURED_LIST_TEST_IDS.LIST,
+  testID = 'predict-home-featured-list',
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -51,7 +50,7 @@ const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
     return (
       <Box testID={testID}>
         <TouchableOpacity
-          testID={PREDICT_HOME_FEATURED_LIST_TEST_IDS.HEADER}
+          testID="predict-home-featured-list-header"
           style={tw.style('flex-row items-center mb-2')}
           onPress={handleHeaderPress}
         >
@@ -82,7 +81,7 @@ const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
   return (
     <Box testID={testID}>
       <TouchableOpacity
-        testID={PREDICT_HOME_FEATURED_LIST_TEST_IDS.HEADER}
+        testID="predict-home-featured-list-header"
         style={tw.style('flex-row items-center mb-2')}
         onPress={handleHeaderPress}
       >

@@ -28,10 +28,8 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
             },
           ],
           fixture: new FixtureBuilder()
-            .withNetworkController(CustomNetworks.ElysiumTestnet.providerConfig)
-            .withNetworkController(
-              CustomNetworks.EthereumMainCustom.providerConfig,
-            )
+            .withNetworkController(CustomNetworks.ElysiumTestnet)
+            .withNetworkController(CustomNetworks.EthereumMainCustom)
             .withPermissionController()
             .build(),
           restartDevice: true,

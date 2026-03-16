@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
     pageContainer: {
       justifyContent: 'space-between',
       height: '100%',
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.alternative,
     },
     contentContainer: {
       paddingHorizontal: 16,

@@ -257,7 +257,7 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('navigates to provider selection when change provider is pressed while payment methods are loading', () => {
+  it('does not navigate to provider selection when change provider is pressed and payment methods are loading', async () => {
     const loadingState = {
       ...defaultControllerReturn,
       selectedProvider: mockSelectedProvider,
@@ -266,14 +266,13 @@ describe('PaymentSelectionModal', () => {
       selectedPaymentMethod: null,
     };
     mockUseRampsController.mockImplementation(() => loadingState);
-    mockUseParams.mockReturnValue({ amount: 100 });
     const { getByText } = renderWithProvider(PaymentSelectionModal);
 
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
+    await waitFor(() => {
+      expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
     });
   });
 

@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../constants/network';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { useSafeChains } from '../useSafeChains';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import type { Hex } from '@metamask/utils';
 
 /**
  * Hook that check if the used symbol match with the original symbol of given network
@@ -26,22 +23,10 @@ function useIsOriginalNativeTokenSymbol(
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
   );
-  const evmNetworkConfigurationsByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
 
   useEffect(() => {
     async function getNativeTokenSymbol(networkId: string) {
       try {
-        // Non-EVM or not in networkConfigurationsByChainId: treat as original (no scam warning)
-        if (
-          isNonEvmChainId(chainId) ||
-          evmNetworkConfigurationsByChainId?.[chainId as Hex] === undefined
-        ) {
-          setIsOriginalNativeSymbol(true);
-          return;
-        }
-
         // Skip if the network doesn't have symbol
         if (!ticker) {
           setIsOriginalNativeSymbol(true);
@@ -98,7 +83,6 @@ function useIsOriginalNativeTokenSymbol(
     useSafeChainsListValidation,
     safeChainsList,
     safeChainsError,
-    evmNetworkConfigurationsByChainId,
   ]);
 
   return isOriginalNativeSymbol;

@@ -5,11 +5,6 @@ import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import type {
-  UserKeyringState,
-  UserSnapState,
-  UserPermissionState,
-} from '../../../framework/fixtures/types';
 import NetworkManager from '../../../page-objects/wallet/NetworkManager';
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
@@ -58,9 +53,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
           {
             fixture: new FixtureBuilder()
               .withPopularNetworks()
-              .withUserProfileKeyRing(userState as UserKeyringState)
-              .withUserProfileSnapUnencryptedState(userState as UserSnapState)
-              .withUserProfileSnapPermissions(userState as UserPermissionState)
+              .withUserProfileKeyRing(userState)
+              .withUserProfileSnapUnencryptedState(userState)
+              .withUserProfileSnapPermissions(userState)
               .build(),
             restartDevice: true,
           },
@@ -151,9 +146,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
           {
             fixture: new FixtureBuilder()
               .withPopularNetworks()
-              .withUserProfileKeyRing(userState as UserKeyringState)
-              .withUserProfileSnapUnencryptedState(userState as UserSnapState)
-              .withUserProfileSnapPermissions(userState as UserPermissionState)
+              .withUserProfileKeyRing(userState)
+              .withUserProfileSnapUnencryptedState(userState)
+              .withUserProfileSnapPermissions(userState)
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               .withTokensForAllPopularNetworks(heavyTokenLoad, userState as any)
               .build(),
@@ -235,9 +230,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             fixture: new FixtureBuilder()
               .withTokens(minimalTokens)
               .withPopularNetworks()
-              .withUserProfileKeyRing(userState as UserKeyringState)
-              .withUserProfileSnapUnencryptedState(userState as UserSnapState)
-              .withUserProfileSnapPermissions(userState as UserPermissionState)
+              .withUserProfileKeyRing(userState)
+              .withUserProfileSnapUnencryptedState(userState)
+              .withUserProfileSnapPermissions(userState)
               .build(),
             restartDevice: true,
           },

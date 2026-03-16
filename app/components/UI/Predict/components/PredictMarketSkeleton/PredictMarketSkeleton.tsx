@@ -2,10 +2,6 @@ import React from 'react';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import {
-  PREDICT_MARKET_SKELETON,
-  PREDICT_MARKET_SKELETON_TEST_IDS,
-} from './PredictMarketSkeleton.testIds';
 
 interface PredictMarketSkeletonProps {
   testID?: string;
@@ -17,7 +13,7 @@ interface PredictMarketSkeletonProps {
  * Displays a loading placeholder that matches the market card layout
  */
 const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
-  testID = PREDICT_MARKET_SKELETON,
+  testID = 'predict-market-skeleton',
   isCarousel = false,
 }) => {
   const tw = useTailwind();
@@ -37,7 +33,7 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
           width={40}
           height={40}
           style={tw.style('rounded-full')}
-          testID={`${testID}${PREDICT_MARKET_SKELETON_TEST_IDS.AVATAR}`}
+          testID={`${testID}-avatar`}
         />
 
         {/* Title Bar - takes remaining space */}
@@ -46,7 +42,7 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
             width="100%"
             height={isCarousel ? 18 : 20}
             style={tw.style('rounded-md')}
-            testID={`${testID}${PREDICT_MARKET_SKELETON_TEST_IDS.TITLE}`}
+            testID={`${testID}-title`}
           />
         </Box>
       </Box>
@@ -56,7 +52,7 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
         width="100%"
         height={isCarousel ? 120 : 150}
         style={tw.style(`rounded-xl ${isCarousel ? 'mb-3' : 'mb-4'}`)}
-        testID={`${testID}${PREDICT_MARKET_SKELETON_TEST_IDS.CHART}`}
+        testID={`${testID}-chart`}
       />
 
       {/* Bottom Info Bar - narrower width */}
@@ -64,7 +60,7 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
         width="75%"
         height={isCarousel ? 32 : 40}
         style={tw.style('rounded-md')}
-        testID={`${testID}${PREDICT_MARKET_SKELETON_TEST_IDS.FOOTER}`}
+        testID={`${testID}-footer`}
       />
     </Box>
   );

@@ -61,7 +61,7 @@ const styleSheet = (colors: Theme['colors']) =>
       color: colors.error.default,
     },
     valueModal: {
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.alternative,
       paddingTop: 24,
       paddingBottom: 34,
       paddingHorizontal: 16,

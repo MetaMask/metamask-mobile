@@ -28,9 +28,7 @@ export const useRemoveToken = () => {
   const [removeTokenState, setRemoveTokenState] = useState<RemoveTokenState>({
     isVisible: false,
   });
-  const [showScamWarningModal, setShowScamWarningModal] = useState<
-    string | null
-  >(null);
+  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
   const showRemoveMenu = useCallback((token: TokenI) => {
     setRemoveTokenState({ isVisible: true, token });

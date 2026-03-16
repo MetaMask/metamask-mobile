@@ -15,7 +15,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
-import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
@@ -73,7 +72,6 @@ const OptinMetrics = () => {
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
   const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
-  const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -125,8 +123,6 @@ const OptinMetrics = () => {
   /**
    * Action to be triggered when pressing any button
    */
-  const accountType = route?.params?.accountType ?? reduxAccountType;
-
   const continueNavigation = useCallback(async () => {
     await markMetricsOptInUISeen();
 
@@ -164,7 +160,6 @@ const OptinMetrics = () => {
           .addProperties({
             updated_after_onboarding: false,
             location: 'onboarding_metametrics',
-            ...(accountType && { account_type: accountType }),
           })
           .build(),
       );
@@ -179,7 +174,6 @@ const OptinMetrics = () => {
           is_metrics_opted_in: isBasicUsageChecked,
           location: 'onboarding_metametrics',
           updated_after_onboarding: false,
-          ...(accountType && { account_type: accountType }),
         })
         .build(),
     );
@@ -217,7 +211,6 @@ const OptinMetrics = () => {
     metrics,
     dispatch,
     continueNavigation,
-    accountType,
   ]);
 
   /**

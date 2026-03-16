@@ -12,7 +12,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { PREDICT_AMOUNT_DISPLAY_TEST_IDS } from './PredictAmountDisplay.testIds';
 
 interface PredictAmountDisplayProps {
   amount: string;
@@ -100,7 +99,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
         </Text>
         {isActive && (
           <Animated.View
-            testID={PREDICT_AMOUNT_DISPLAY_TEST_IDS.CURSOR}
+            testID="cursor"
             style={[
               tw.style(`w-0.5 h-[${lineHeight - 4}px] ml-0.5`),
               {

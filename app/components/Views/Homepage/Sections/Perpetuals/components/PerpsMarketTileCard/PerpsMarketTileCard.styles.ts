@@ -21,6 +21,20 @@ const styleSheet = (params: {
       flex: 1,
       padding: 16,
     },
+    topRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+    },
+    symbolSection: {
+      flexDirection: 'column',
+      flex: 1,
+    },
+    symbolRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
     tokenLogoWrapper: {
       position: 'relative' as const,
     },
@@ -34,7 +48,6 @@ const styleSheet = (params: {
     },
     sparklineContainer: {
       marginTop: 'auto' as const,
-      marginHorizontal: 16,
       marginBottom: 16,
     },
     shimmerOverlay: {

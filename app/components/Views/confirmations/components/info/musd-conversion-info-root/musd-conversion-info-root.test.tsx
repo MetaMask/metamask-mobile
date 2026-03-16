@@ -6,15 +6,6 @@ import { MusdConversionInfoRoot } from './musd-conversion-info-root';
 const MUSD_CONVERSION_INFO_TEST_ID = 'musd-conversion-info';
 const MUSD_MAX_CONVERSION_INFO_TEST_ID = 'musd-max-conversion-info';
 
-const mockUseMusdConversionConfirmationMetrics = jest.fn();
-jest.mock(
-  '../../../hooks/metrics/useMusdConversionConfirmationMetrics',
-  () => ({
-    useMusdConversionConfirmationMetrics: (...args: unknown[]) =>
-      mockUseMusdConversionConfirmationMetrics(...args),
-  }),
-);
-
 jest.mock('../musd-conversion-info', () => {
   const { View } =
     jest.requireActual<typeof import('react-native')>('react-native');
@@ -77,13 +68,5 @@ describe('MusdConversionInfoRoot', () => {
 
     expect(getByTestId(MUSD_CONVERSION_INFO_TEST_ID)).toBeOnTheScreen();
     expect(queryByTestId(MUSD_MAX_CONVERSION_INFO_TEST_ID)).toBeNull();
-  });
-
-  it('calls useMusdConversionConfirmationMetrics on render', () => {
-    mockUseParams.mockReturnValue({ forceBottomSheet: false });
-
-    renderWithProvider(<MusdConversionInfoRoot />);
-
-    expect(mockUseMusdConversionConfirmationMetrics).toHaveBeenCalled();
   });
 });

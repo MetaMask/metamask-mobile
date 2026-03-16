@@ -29,7 +29,6 @@ describe('Nft', () => {
     const mockNft = createMockNft({
       standard: 'ERC721',
       collectionName: 'Bored Apes',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       name: 'Ape #456',
       tokenId: '456',
       balance: '0',
@@ -40,7 +39,6 @@ describe('Nft', () => {
     );
 
     expect(getByText('Bored Apes')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#456')).toBeOnTheScreen();
   });
 
@@ -57,7 +55,6 @@ describe('Nft', () => {
     );
 
     expect(getByText('CryptoPunks')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#789')).toBeOnTheScreen();
   });
 
@@ -107,7 +104,6 @@ describe('Nft', () => {
     );
 
     expect(getByText('Zero Balance')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#303')).toBeOnTheScreen();
     expect(queryByText('(0)')).not.toBeOnTheScreen();
   });
@@ -125,7 +121,6 @@ describe('Nft', () => {
     );
 
     expect(getByText('No Balance')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#404')).toBeOnTheScreen();
     expect(queryByText(/^\(/)).not.toBeOnTheScreen();
   });
@@ -155,7 +150,6 @@ describe('Nft', () => {
     );
 
     expect(getByText('Simple Collection')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#123')).toBeOnTheScreen();
   });
 });

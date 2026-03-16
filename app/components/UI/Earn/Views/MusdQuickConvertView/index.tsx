@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, SectionList, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -18,7 +18,6 @@ import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags'
 import {
   createTokenChainKey,
   selectHasInFlightMusdConversion,
-  selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
@@ -31,13 +30,6 @@ import MusdBalanceCard from './components/MusdBalanceCard';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import Logger from '../../../../../util/Logger';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
-import { getNetworkName } from '../../utils/network';
-import { IconName } from '@metamask/design-system-react-native';
-
-const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 export const MusdQuickConvertViewTestIds = {
   CONTAINER: 'musd-quick-convert-view-container',
@@ -83,17 +75,12 @@ const MusdQuickConvertView = () => {
   const { initiateCustomConversion, initiateMaxConversion } =
     useMusdConversion();
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
-
   // Feature flags
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
   // Get convertible tokens
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
-  const hasUnapprovedMusdConversion = useSelector(
-    selectHasUnapprovedMusdConversion,
-  );
   const hasInFlightMusdConversion = useSelector(
     selectHasInFlightMusdConversion,
   );
@@ -113,38 +100,13 @@ const MusdQuickConvertView = () => {
     }, [navigation, colors]),
   );
 
-  useEffect(() => {
-    if (!isQuickConvertEnabled) return;
-
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
-      ).build(),
-    );
-  }, [createEventBuilder, isQuickConvertEnabled, trackEvent]);
-
   // navigate to max conversion bottom sheet
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
-        )
-          .addProperties({
-            location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-            button_type: 'text_button',
-            button_action: 'max',
-            button_text: strings('earn.musd_conversion.max'),
-            redirects_to:
-              EVENT_LOCATIONS.QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
-            asset_symbol: token.symbol,
-            network_chain_id: token.chainId,
-            network_name: token.chainId
-              ? getNetworkName(token.chainId as Hex)
-              : 'unknown',
-          })
-          .build(),
-      );
+      if (!token.rawBalance) {
+        // TODO: Handle error instead of returning silently.
+        return;
+      }
 
       try {
         await initiateMaxConversion(token);
@@ -163,31 +125,12 @@ const MusdQuickConvertView = () => {
         });
       }
     },
-    [createEventBuilder, initiateMaxConversion, trackEvent],
+    [initiateMaxConversion],
   );
 
   // navigate to existing confirmation screen
   const handleEditPress = useCallback(
     async (token: AssetType) => {
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
-        )
-          .addProperties({
-            location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-            button_type: 'icon_button',
-            icon: IconName.Edit,
-            button_action: 'custom',
-            redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-            asset_symbol: token.symbol,
-            network_chain_id: token.chainId,
-            network_name: token.chainId
-              ? getNetworkName(token.chainId as Hex)
-              : 'unknown',
-          })
-          .build(),
-      );
-
       try {
         await initiateCustomConversion({
           preferredPaymentToken: {
@@ -211,7 +154,7 @@ const MusdQuickConvertView = () => {
         });
       }
     },
-    [createEventBuilder, initiateCustomConversion, trackEvent],
+    [initiateCustomConversion],
   );
 
   const tokensWithBalance = useMemo(
@@ -257,9 +200,7 @@ const MusdQuickConvertView = () => {
           token={item}
           onMaxPress={handleMaxPress}
           onEditPress={handleEditPress}
-          areActionsDisabled={
-            hasUnapprovedMusdConversion || hasInFlightMusdConversion
-          }
+          areActionsDisabled={hasInFlightMusdConversion}
           isConversionPending={Boolean(txStatusInfo?.isPending)}
         />
       );
@@ -269,7 +210,6 @@ const MusdQuickConvertView = () => {
       handleEditPress,
       handleMaxPress,
       hasInFlightMusdConversion,
-      hasUnapprovedMusdConversion,
     ],
   );
 
@@ -299,16 +239,8 @@ const MusdQuickConvertView = () => {
   );
 
   const handleTermsOfUsePressed = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
-        .addProperties({
-          location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-        })
-        .build(),
-    );
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  }, [createEventBuilder, trackEvent]);
+  }, []);
 
   // If feature flags are not enabled, don't render
   if (!isQuickConvertEnabled) {

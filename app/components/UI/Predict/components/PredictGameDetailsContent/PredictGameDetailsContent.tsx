@@ -29,7 +29,6 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
-import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -40,7 +39,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   onClaimPress,
   claimableAmount = 0,
   isLoading = false,
-  isClaimPending = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -115,24 +113,15 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         }
       >
         <Box twClassName="px-4 py-2">
-          <PredictSportScoreboard
-            game={game}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
-          />
+          <PredictSportScoreboard game={game} testID="game-scoreboard" />
         </Box>
 
         <Box twClassName="mt-4">
-          <PredictGameChart
-            market={market}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
-          />
+          <PredictGameChart market={market} testID="game-chart" />
         </Box>
 
         <Box twClassName="px-4 py-2">
-          <PredictPicks
-            market={market}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
-          />
+          <PredictPicks market={market} testID="game-picks" />
         </Box>
       </ScrollView>
 
@@ -144,7 +133,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         onInfoPress={handleInfoPress}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
-        isClaimPending={isClaimPending}
       />
 
       {isVisible && (

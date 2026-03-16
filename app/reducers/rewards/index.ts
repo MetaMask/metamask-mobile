@@ -9,7 +9,6 @@ import {
   SeasonActivityTypeDto,
   SnapshotDto,
   SeasonWayToEarnDto,
-  CampaignDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -120,11 +119,6 @@ export interface RewardsState {
   snapshots: SnapshotDto[] | null;
   snapshotsLoading: boolean;
   snapshotsError: boolean;
-
-  // Campaigns state
-  campaigns: CampaignDto[];
-  campaignsLoading: boolean;
-  campaignsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -191,11 +185,6 @@ export const initialState: RewardsState = {
   snapshots: null,
   snapshotsLoading: false,
   snapshotsError: false,
-
-  // Campaigns initial state
-  campaigns: [],
-  campaignsLoading: false,
-  campaignsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -464,21 +453,6 @@ const rewardsSlice = createSlice({
       state.snapshotsError = action.payload;
     },
 
-    // Campaigns reducers
-    setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
-      state.campaigns = action.payload;
-      state.campaignsError = false;
-    },
-    setCampaignsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.campaigns.length) {
-        return;
-      }
-      state.campaignsLoading = action.payload;
-    },
-    setCampaignsError: (state, action: PayloadAction<boolean>) => {
-      state.campaignsError = action.payload;
-    },
-
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -636,10 +610,6 @@ export const {
   setSnapshots,
   setSnapshotsLoading,
   setSnapshotsError,
-  // Campaigns actions
-  setCampaigns,
-  setCampaignsLoading,
-  setCampaignsError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

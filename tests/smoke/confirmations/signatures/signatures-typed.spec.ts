@@ -82,11 +82,13 @@ describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
             return new FixtureBuilder()
               .withNetworkController({
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
               })
               .withPermissionControllerConnectedToTestDapp(
                 buildPermissions(['0x539']),

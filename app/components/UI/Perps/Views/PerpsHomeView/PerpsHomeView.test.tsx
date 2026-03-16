@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
-import { mockTheme } from '../../../../../util/theme';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -194,7 +193,12 @@ jest.mock('../../../../../component-library/hooks', () => ({
       bottomSpacer: {},
       tabBarContainer: {},
     },
-    theme: mockTheme,
+    theme: {
+      colors: {
+        primary: { default: '#0000ff' },
+        icon: { default: '#000000' },
+      },
+    },
   }),
 }));
 

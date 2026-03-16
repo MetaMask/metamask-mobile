@@ -39,7 +39,9 @@ const expectedEventNames = [
   expectedEvents.UnifiedSwapBridgeCompleted,
 ];
 
-describe(SmokeTrade('Swap from Actions'), (): void => {
+// Disabling this test as we've been experiencing issues with the test setup
+// See: https://github.com/MetaMask/metamask-mobile/actions/runs/22703717413/job/65827036980
+describe.skip(SmokeTrade('Swap from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(180000);
   });
@@ -51,11 +53,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withNetworkController({
-            chainId: '0x1',
-            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-            type: 'custom',
-            nickname: 'Localhost',
-            ticker: 'ETH',
+            providerConfig: {
+              chainId: '0x1',
+              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
+            },
           })
           .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
@@ -73,7 +77,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         ],
         testSpecificMock,
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await loginToApp();

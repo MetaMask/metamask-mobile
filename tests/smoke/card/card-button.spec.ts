@@ -21,7 +21,7 @@ describe(SmokeCard('Card NavBar Button'), () => {
       {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
-          .withNetworkController(CustomNetworks.Tenderly.Linea.providerConfig)
+          .withNetworkController(CustomNetworks.Tenderly.Linea)
           .withAccountTreeController()
           .withTokens(
             [

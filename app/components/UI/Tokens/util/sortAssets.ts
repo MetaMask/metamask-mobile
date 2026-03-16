@@ -7,13 +7,6 @@ export interface SortCriteria {
   sortCallback: string;
 }
 
-/** Default sort: by balance (fiat value descending). Used when resetting sort after leaving View all. */
-export const DEFAULT_TOKEN_SORT_CONFIG = {
-  key: 'tokenFiatAmount',
-  order: 'dsc',
-  sortCallback: 'stringNumeric',
-} as const;
-
 export type SortingType = number | string | Date;
 
 export interface SortingCallbacksT {

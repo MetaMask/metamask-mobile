@@ -2,12 +2,11 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import Svg, { G } from 'react-native-svg';
 import PredictSportTeamHelmet from './PredictSportTeamHelmet';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 describe('PredictSportTeamHelmet', () => {
   describe('rendering', () => {
     it('renders helmet with required color prop', () => {
-      const teamColor = TEST_HEX_COLORS.TEAM_SEA;
+      const teamColor = '#002244';
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet color={teamColor} testID="helmet" />,
@@ -17,7 +16,7 @@ describe('PredictSportTeamHelmet', () => {
     });
 
     it('renders helmet with team-specific color', () => {
-      const customTeamColor = TEST_HEX_COLORS.TEAM_NE;
+      const customTeamColor = '#1D4E9B';
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet color={customTeamColor} testID="helmet" />,
@@ -32,10 +31,7 @@ describe('PredictSportTeamHelmet', () => {
       const defaultSize = 48;
 
       const { getByTestId } = render(
-        <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
-          testID="helmet"
-        />,
+        <PredictSportTeamHelmet color="#002244" testID="helmet" />,
       );
 
       const svg = getByTestId('helmet');
@@ -50,11 +46,7 @@ describe('PredictSportTeamHelmet', () => {
       [80, '80px'],
     ])('renders helmet at %s size', (size) => {
       const { getByTestId } = render(
-        <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
-          size={size}
-          testID="helmet"
-        />,
+        <PredictSportTeamHelmet color="#002244" size={size} testID="helmet" />,
       );
 
       const svg = getByTestId('helmet');
@@ -69,7 +61,7 @@ describe('PredictSportTeamHelmet', () => {
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
+          color="#002244"
           flipped={flipped}
           testID="helmet"
         />,
@@ -83,7 +75,7 @@ describe('PredictSportTeamHelmet', () => {
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_DEN}
+          color="#FB4F14"
           flipped={flipped}
           testID="helmet"
         />,
@@ -94,10 +86,7 @@ describe('PredictSportTeamHelmet', () => {
 
     it('renders helmet facing right when flipped prop is omitted', () => {
       const { getByTestId } = render(
-        <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
-          testID="helmet"
-        />,
+        <PredictSportTeamHelmet color="#002244" testID="helmet" />,
       );
 
       expect(getByTestId('helmet')).toBeOnTheScreen();
@@ -106,7 +95,7 @@ describe('PredictSportTeamHelmet', () => {
 
   describe('edge cases', () => {
     it('renders helmet with hex color including alpha channel', () => {
-      const colorWithAlpha = TEST_HEX_COLORS.TEAM_SEA_ALPHA;
+      const colorWithAlpha = '#002244FF';
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet color={colorWithAlpha} testID="helmet" />,
@@ -116,7 +105,7 @@ describe('PredictSportTeamHelmet', () => {
     });
 
     it('renders helmet with short hex color format', () => {
-      const shortHexColor = TEST_HEX_COLORS.WHITE_SHORT;
+      const shortHexColor = '#FFF';
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet color={shortHexColor} testID="helmet" />,
@@ -140,7 +129,7 @@ describe('PredictSportTeamHelmet', () => {
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
+          color="#002244"
           size={minimalSize}
           testID="helmet"
         />,
@@ -156,7 +145,7 @@ describe('PredictSportTeamHelmet', () => {
 
       const { getByTestId } = render(
         <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
+          color="#002244"
           size={largeSize}
           testID="helmet"
         />,
@@ -174,7 +163,7 @@ describe('PredictSportTeamHelmet', () => {
 
       const { UNSAFE_getByType } = render(
         <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
+          color="#002244"
           size={customSize}
           testID="helmet"
         />,
@@ -186,11 +175,7 @@ describe('PredictSportTeamHelmet', () => {
 
     it('applies scale transform when flipped is true', () => {
       const { UNSAFE_getAllByType } = render(
-        <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
-          flipped
-          testID="helmet"
-        />,
+        <PredictSportTeamHelmet color="#002244" flipped testID="helmet" />,
       );
 
       const gElements = UNSAFE_getAllByType(G);
@@ -207,7 +192,7 @@ describe('PredictSportTeamHelmet', () => {
     it('omits transform when flipped is false', () => {
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamHelmet
-          color={TEST_HEX_COLORS.TEAM_SEA}
+          color="#002244"
           flipped={false}
           testID="helmet"
         />,

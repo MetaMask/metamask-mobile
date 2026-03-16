@@ -5,10 +5,6 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import type { PredictPosition } from '../../types';
 import PredictPicksForCardItem from './PredictPicksForCardItem';
-import {
-  PREDICT_PICKS_FOR_CARD_TEST_ID,
-  PREDICT_PICKS_FOR_CARD_TEST_IDS,
-} from './PredictPicksForCard.testIds';
 
 interface PredictPicksForCardProps {
   marketId: string;
@@ -27,7 +23,7 @@ interface PredictPicksForCardProps {
 
 const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
   marketId,
-  testID = PREDICT_PICKS_FOR_CARD_TEST_ID,
+  testID = 'predict-picks-for-card',
   showSeparator = false,
   positions: positionsProp,
 }) => {
@@ -48,7 +44,7 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
     <Box testID={testID} twClassName="flex-col gap-2">
       {showSeparator && (
         <Box
-          testID={`${testID}${PREDICT_PICKS_FOR_CARD_TEST_IDS.SEPARATOR}`}
+          testID={`${testID}-separator`}
           twClassName="h-px bg-border-muted my-2"
         />
       )}

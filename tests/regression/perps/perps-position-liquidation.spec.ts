@@ -1,8 +1,10 @@
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { RegressionTrade } from '../../tags';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../page-objects/wallet/WalletView';
+import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
@@ -14,9 +16,6 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { PerpsPositionsViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { TestSuiteParams } from '../../framework/types';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
@@ -31,12 +30,7 @@ describe(RegressionTrade('Perps Position'), () => {
           .withPerpsProfile('position-testing')
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-          await PERPS_ARBITRUM_MOCKS(mockServer);
-        },
+        testSpecificMock: PERPS_ARBITRUM_MOCKS,
         useCommandQueueServer: true,
       },
       async ({ commandQueueServer }: TestSuiteParams) => {
@@ -49,8 +43,13 @@ describe(RegressionTrade('Perps Position'), () => {
 
         await device.disableSynchronization();
 
-        // Navigate to Perps via homepage section (same click path as smoke perps tests)
-        await WalletView.scrollAndTapPerpsSection();
+        // Navigate to Perps tab using manual sync management
+        await PerpsHelpers.navigateToPerpsTab();
+
+        // Navigate to actions
+        await TabBarComponent.tapActions();
+
+        await WalletActionsBottomSheet.tapPerpsButton();
 
         await PerpsMarketListView.selectMarket('ETH');
 

@@ -55,7 +55,7 @@ jest.mock('../../core/Engine/Engine', () => ({
   },
 }));
 
-jest.mock('./whenEngineReady', () => ({
+jest.mock('../../core/Analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn(),
 }));
 

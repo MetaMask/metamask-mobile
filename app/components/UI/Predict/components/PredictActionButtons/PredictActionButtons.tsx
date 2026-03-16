@@ -6,10 +6,6 @@ import PredictDetailsButtonsSkeleton from '../PredictDetailsButtonsSkeleton';
 import { PredictActionButtonsProps } from './PredictActionButtons.types';
 import { PredictMarketStatus } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import {
-  BASE_PREDICT_ACTION_BUTTONS_TEST_IDS,
-  PREDICT_ACTION_BUTTONS_TEST_IDS,
-} from './PredictActionButtons.testIds';
 
 const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   market,
@@ -18,9 +14,8 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   onClaimPress,
   claimableAmount = 0,
   isLoading = false,
-  isClaimPending = false,
+  testID = 'predict-action-buttons',
   isCarousel,
-  testID = BASE_PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_ACTION_BUTTON,
 }) => {
   const isGameMarket = Boolean(market.game);
   const isMarketOpen = market.status === PredictMarketStatus.OPEN;
@@ -72,11 +67,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   }, [outcome.tokens, isGameMarket, market.game, getPrice]);
 
   if (isLoading) {
-    return (
-      <PredictDetailsButtonsSkeleton
-        testID={`${testID}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_SKELETON}`}
-      />
-    );
+    return <PredictDetailsButtonsSkeleton testID={`${testID}-skeleton`} />;
   }
 
   if (claimableAmount > 0 && onClaimPress) {
@@ -85,8 +76,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
         <PredictClaimButton
           amount={market.game ? undefined : claimableAmount}
           onPress={onClaimPress}
-          isLoading={isClaimPending}
-          testID={`${testID}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_CLAIM_BUTTON}`}
+          testID={`${testID}-claim`}
         />
       </Box>
     );
@@ -104,7 +94,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
           onNoPress={() => onBetPress(outcome.tokens[1])}
           yesTeamColor={buttonConfig.yesTeamColor}
           noTeamColor={buttonConfig.noTeamColor}
-          testID={`${testID}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}`}
+          testID={`${testID}-bet`}
           isCarousel={isCarousel}
         />
       </Box>

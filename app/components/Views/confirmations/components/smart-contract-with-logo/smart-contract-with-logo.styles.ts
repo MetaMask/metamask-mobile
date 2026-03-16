@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: theme.colors.background.muted,
+      backgroundColor: theme.colors.background.alternative,
       borderRadius: 32,
       paddingVertical: 4,
       paddingHorizontal: 12,
