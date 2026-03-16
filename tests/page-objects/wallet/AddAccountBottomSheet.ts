@@ -1,12 +1,6 @@
 import { AddAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class AddAccountBottomSheet {
   get importAccountButton(): DetoxElement {
@@ -27,18 +21,10 @@ class AddAccountBottomSheet {
     );
   }
 
-  get importSrpButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
-          { exact: true },
-        ),
-    });
+  get importSrpButton(): DetoxElement {
+    return Matchers.getElementByID(
+      AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+    );
   }
 
   async tapImportAccount(): Promise<void> {
@@ -54,8 +40,8 @@ class AddAccountBottomSheet {
   }
 
   async tapImportSrp(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.importSrpButton, {
-      description: 'Import SRP button',
+    await Gestures.waitAndTap(this.importSrpButton, {
+      elemDescription: 'Import SRP button',
     });
   }
 

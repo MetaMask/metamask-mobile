@@ -178,21 +178,6 @@ describe('collectibles reducer', () => {
   });
 });
 
-type MultichainCollectiblesSelector = (
-  state: RootState,
-  preferredChainIds?: string[],
-  addressesOverride?: string[],
-) => Record<string, unknown[]>;
-
-const callSelector = (
-  state: RootState,
-  preferredChainIds?: string[],
-  addressesOverride?: string[],
-) =>
-  (
-    multichainCollectiblesByEnabledNetworksSelector as MultichainCollectiblesSelector
-  )(state, preferredChainIds, addressesOverride);
-
 describe('collectibles selectors', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890';
   const mockAddress2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
@@ -271,7 +256,7 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
 
       expect(result).toEqual({
         '0x1': mockNfts,
@@ -293,7 +278,7 @@ describe('collectibles selectors', () => {
         },
       );
 
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
       expect(result).toEqual({});
     });
 
@@ -312,7 +297,7 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
       expect(result).toEqual({});
     });
 
@@ -335,7 +320,7 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
 
       expect(result).toEqual({
         '0x1': mockNfts,
@@ -362,7 +347,7 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
       expect(result).toEqual(allNfts[mockAddress]);
     });
 
@@ -381,7 +366,7 @@ describe('collectibles selectors', () => {
       });
 
       // The selector should return empty object when EIP155 namespace is missing
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
       expect(result).toEqual({});
     });
 
@@ -396,7 +381,7 @@ describe('collectibles selectors', () => {
         [KnownCaipNamespace.Eip155]: {},
       });
 
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
       expect(result).toEqual({});
     });
 
@@ -416,7 +401,7 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result1 = callSelector(state1, undefined, undefined);
+      const result1 = multichainCollectiblesByEnabledNetworksSelector(state1);
       expect(result1).toEqual({
         '0x1': mockNfts,
       });
@@ -427,7 +412,7 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result2 = callSelector(state2, undefined, undefined);
+      const result2 = multichainCollectiblesByEnabledNetworksSelector(state2);
       expect(result2).toEqual({
         '0x1': [{ ...mockNfts[0], tokenId: '100', name: 'Different NFT' }],
       });
@@ -451,7 +436,7 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = callSelector(state, undefined, undefined);
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
 
       expect(result).toEqual({
         '0x1': mockNfts,
@@ -459,46 +444,6 @@ describe('collectibles selectors', () => {
       });
       expect((result as Record<string, unknown>)['0xa86a']).toBeUndefined();
       expect((result as Record<string, unknown>)['0x38']).toBeUndefined();
-    });
-
-    it('filters by preferredChainIds when passed (e.g. listPopularNetworks), fallback to enabled when not', () => {
-      const allNfts = {
-        [mockAddress]: {
-          '0x1': mockNfts,
-          '0x89': [{ ...mockNfts[0], tokenId: '3' }],
-          '0xa86a': [{ ...mockNfts[0], tokenId: '4' }],
-        },
-      };
-
-      const state = createMockState({}, allNfts, mockAddress, {
-        [KnownCaipNamespace.Eip155]: {
-          '0x1': true,
-          '0x89': false,
-          '0xa86a': true,
-        },
-      });
-
-      const withPreferred = callSelector(
-        state,
-        ['eip155:1', '0x89'],
-        undefined,
-      );
-      expect(withPreferred).toEqual({
-        '0x1': mockNfts,
-        '0x89': [{ ...mockNfts[0], tokenId: '3' }],
-      });
-      expect(
-        (withPreferred as Record<string, unknown>)['0xa86a'],
-      ).toBeUndefined();
-
-      const withoutPreferred = callSelector(state, undefined, undefined);
-      expect(withoutPreferred).toEqual({
-        '0x1': mockNfts,
-        '0xa86a': [{ ...mockNfts[0], tokenId: '4' }],
-      });
-      expect(
-        (withoutPreferred as Record<string, unknown>)['0x89'],
-      ).toBeUndefined();
     });
   });
 });

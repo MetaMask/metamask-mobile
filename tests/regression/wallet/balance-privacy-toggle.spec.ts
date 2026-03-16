@@ -28,11 +28,13 @@ describe(RegressionWalletPlatform('Balance Privacy Toggle'), (): void => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              chainId: '0x539',
-              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Local RPC',
-              ticker: 'ETH',
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
             })
             .withETHAsPrimaryCurrency() // Set primary currency to ETH
             .build();

@@ -167,7 +167,7 @@ const ActivityView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ bottom: 'additive' }}
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
@@ -178,12 +178,14 @@ const ActivityView = () => {
           <HeaderCompactStandard
             title={strings('activity_view.title')}
             onBack={handleBackPress}
+            includesTopInset
             backButtonProps={{ testID: 'activity-view-back-button' }}
             testID={ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD}
           />
         ) : (
           <HeaderRoot
             title={strings('activity_view.title')}
+            includesTopInset
             testID={ActivitiesViewSelectorsIDs.HEADER_ROOT}
           />
         )}
@@ -249,8 +251,9 @@ const ActivityView = () => {
                 tabLabel={strings('perps.transactions.title')}
                 style={styles.tabWrapper}
               >
+                {/* Only mount providers when tab is active to prevent polling when hidden */}
                 {isPerpsTabActive ? (
-                  <PerpsConnectionProvider>
+                  <PerpsConnectionProvider isVisible={isPerpsTabActive}>
                     <PerpsStreamProvider>
                       <PerpsTransactionsView />
                     </PerpsStreamProvider>

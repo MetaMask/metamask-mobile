@@ -4,7 +4,6 @@ import AmountInput from './AmountInput';
 import { TouchableOpacity } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 
 const defaultState = {
   engine: {
@@ -79,26 +78,6 @@ describe('AmountInput', () => {
       },
     );
     expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('shows live cursor when input is highlighted', () => {
-    renderWithProvider(<AmountInput {...mockProps} highlighted />, {
-      state: defaultState,
-    });
-
-    expect(
-      screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not show live cursor when input is not highlighted', () => {
-    renderWithProvider(<AmountInput {...mockProps} />, {
-      state: defaultState,
-    });
-
-    expect(
-      screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
-    ).not.toBeOnTheScreen();
   });
 
   it('does not call onPress when loading', () => {

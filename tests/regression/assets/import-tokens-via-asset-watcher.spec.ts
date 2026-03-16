@@ -62,11 +62,13 @@ describe(RegressionNetworkAbstractions('Asset Watch:'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              chainId: '0x539',
-              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Local RPC',
-              ticker: 'ETH',
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
             })
             .withPermissionControllerConnectedToTestDapp(
               buildERC20PermsForAddress(),

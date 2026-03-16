@@ -7,7 +7,6 @@ import ContractAddressRegistry from '../../app/util/test/contract-address-regist
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
-import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 
 /*
@@ -145,16 +144,6 @@ export interface RampsRegion {
   unsupported: boolean;
   recommended: boolean;
   detected: boolean;
-}
-
-/**
- * Returns the full ISO 3166-2 location code for a region,
- * combining country and subdivision when present (e.g. 'US-CA', 'FR').
- */
-export function getRegionLocationCode(region: RampsRegion): string {
-  return region.stateIsoCode
-    ? `${region.countryIsoCode}-${region.stateIsoCode}`
-    : region.countryIsoCode;
 }
 
 export enum ServerStatus {
@@ -328,10 +317,9 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
 export interface WithFixturesOptions {
   fixture:
     | FixtureBuilder
-    | Fixture
     | ((ctx: {
         localNodes?: LocalNode[];
-      }) => FixtureBuilder | Fixture | Promise<FixtureBuilder | Fixture>);
+      }) => FixtureBuilder | Promise<FixtureBuilder>);
   restartDevice?: boolean;
   smartContracts?: string[];
   disableLocalNodes?: boolean;

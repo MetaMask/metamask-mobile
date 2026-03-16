@@ -54,13 +54,11 @@ const NftGridContent = ({
   nftRowList,
   goToAddCollectible,
   isAddNFTEnabled,
-  isFullView = false,
 }: {
   allFilteredCollectibles: Nft[];
   nftRowList: React.ReactNode;
   goToAddCollectible: () => void;
   isAddNFTEnabled: boolean;
-  isFullView?: boolean;
 }) => {
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
@@ -69,7 +67,7 @@ const NftGridContent = ({
   }
 
   if (isNftFetchingProgress) {
-    return <NftGridSkeleton isFullView={isFullView} />;
+    return <NftGridSkeleton />;
   }
 
   return (
@@ -249,10 +247,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
               />
             </Box>
           )}
-          keyExtractor={(item) =>
-            `${item.chainId}-${item.address}-${item.tokenId}`
-          }
+          keyExtractor={(_, index) => `nft-row-${index}`}
           testID={RefreshTestId}
+          decelerationRate="fast"
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}
@@ -303,7 +300,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           nftRowList={nftRowList}
           goToAddCollectible={goToAddCollectible}
           isAddNFTEnabled={isAddNFTEnabled}
-          isFullView={isFullView}
         />
 
         {/* View all NFTs button - shown when there are more items than maxItems */}

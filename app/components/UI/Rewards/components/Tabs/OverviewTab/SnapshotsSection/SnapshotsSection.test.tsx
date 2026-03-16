@@ -44,20 +44,17 @@ jest.mock('../../../../components/SnapshotTile', () => {
   };
 });
 
-jest.mock(
-  '../../../../../../../component-library/components-temp/Skeleton',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-    return {
-      Skeleton: jest.fn(() =>
-        ReactActual.createElement(ReactNative.View, {
-          testID: 'skeleton-loader',
-        }),
-      ),
-    };
-  },
-);
+jest.mock('../../../../../../../component-library/components/Skeleton', () => {
+  const ReactNative = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    Skeleton: jest.fn(() =>
+      ReactActual.createElement(ReactNative.View, {
+        testID: 'skeleton-loader',
+      }),
+    ),
+  };
+});
 
 jest.mock('../../../../components/RewardsErrorBanner', () => {
   const ReactNative = jest.requireActual('react-native');

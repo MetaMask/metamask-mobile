@@ -4,23 +4,19 @@ import { Theme } from '../../../../../util/theme/models';
 import { getEmptyNavHeader } from '../../components/UI/navbar/navbar';
 import { useEmptyNavHeaderForConfirmations } from './useEmptyNavHeaderForConfirmations';
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn().mockReturnValue({
-      colors: mockTheme.colors,
-      typography: {},
-      shadows: {},
-      brandColors: mockTheme.brandColors,
-      themeAppearance: 'light' as const,
-    } as Theme),
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn().mockReturnValue({
+    colors: { background: { alternative: '#ffffff' } },
+    typography: {},
+    shadows: {},
+    brandColors: {},
+    themeAppearance: 'light' as const,
+  } as Theme),
+}));
 jest.mock('../../components/UI/navbar/navbar');
 
 describe('useEmptyNavHeaderForConfirmations', () => {
   const mockGetEmptyNavHeader = jest.mocked(getEmptyNavHeader);
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
   const mockNavbarOptions = {
     headerTitle: () => <></>,
@@ -28,7 +24,7 @@ describe('useEmptyNavHeaderForConfirmations', () => {
     headerRight: () => <></>,
     headerTitleAlign: 'center' as const,
     headerStyle: {
-      backgroundColor: mockTheme.colors.background.default,
+      backgroundColor: '#ffffff',
       shadowColor: 'transparent',
       elevation: 0,
     },

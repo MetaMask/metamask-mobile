@@ -1,9 +1,9 @@
 import { renderHook, act } from '@testing-library/react-native';
-import Logger from '../../../../util/Logger';
 import { usePerpsMarginAdjustment } from './usePerpsMarginAdjustment';
 
 const mockUpdateMargin = jest.fn();
 const mockShowToast = jest.fn();
+const mockCaptureException = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
@@ -38,11 +38,9 @@ jest.mock('./usePerpsToasts', () => ({
   }),
 }));
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-  },
+jest.mock('@sentry/react-native', () => ({
+  captureException: (error: Error, context: unknown) =>
+    mockCaptureException(error, context),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -56,7 +54,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
-  PERPS_CONSTANTS: { FeatureName: 'perps' },
   getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
 }));
 
@@ -239,7 +236,7 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
     });
 
-    it('handles exceptions and logs via Logger.error', async () => {
+    it('handles exceptions and captures to Sentry', async () => {
       const testError = new Error('Network error');
       mockUpdateMargin.mockRejectedValue(testError);
       const mockOnError = jest.fn();
@@ -252,22 +249,18 @@ describe('usePerpsMarginAdjustment', () => {
         await result.current.handleAddMargin('ETH', 100);
       });
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockCaptureException).toHaveBeenCalledWith(
         testError,
         expect.objectContaining({
           tags: expect.objectContaining({
-            feature: 'perps',
             component: 'usePerpsMarginAdjustment',
             action: 'margin_add',
-            operation: 'position_management',
           }),
-          context: expect.objectContaining({
-            name: 'usePerpsMarginAdjustment',
-            data: expect.objectContaining({
+          extra: expect.objectContaining({
+            marginContext: expect.objectContaining({
               symbol: 'ETH',
               amount: 100,
               action: 'add',
-              adjustmentAmount: 100,
             }),
           }),
         }),
@@ -275,7 +268,7 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith('Network error');
     });
 
-    it('captures remove action in Logger context', async () => {
+    it('captures remove action in Sentry context', async () => {
       const testError = new Error('API error');
       mockUpdateMargin.mockRejectedValue(testError);
 
@@ -285,15 +278,14 @@ describe('usePerpsMarginAdjustment', () => {
         await result.current.handleRemoveMargin('BTC', 50);
       });
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockCaptureException).toHaveBeenCalledWith(
         testError,
         expect.objectContaining({
           tags: expect.objectContaining({
-            feature: 'perps',
             action: 'margin_remove',
           }),
-          context: expect.objectContaining({
-            data: expect.objectContaining({
+          extra: expect.objectContaining({
+            marginContext: expect.objectContaining({
               action: 'remove',
               adjustmentAmount: -50,
             }),
@@ -314,18 +306,9 @@ describe('usePerpsMarginAdjustment', () => {
         await result.current.handleAddMargin('ETH', 100);
       });
 
-      const [loggedError, loggerContext] = (Logger.error as jest.Mock).mock
-        .calls[0];
-      expect(loggedError).toBeInstanceOf(Error);
-      expect((loggedError as Error).message).toBe('String error');
-      expect(loggerContext).toEqual(
-        expect.objectContaining({
-          context: expect.objectContaining({
-            data: expect.objectContaining({
-              rawError: 'String error',
-            }),
-          }),
-        }),
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.anything(),
       );
       expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
     });

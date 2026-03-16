@@ -19,7 +19,6 @@ import Icon, {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
-import { PREDICT_NEW_BUTTON_TEST_IDS } from './PredictNewButton.testIds';
 
 interface PredictNewButtonProps {}
 
@@ -38,7 +37,7 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
 
   return (
     <Pressable
-      testID={PREDICT_NEW_BUTTON_TEST_IDS.BUTTON}
+      testID="predict-new-button"
       style={({ pressed }) =>
         tw.style('mb-4 py-4 rounded-xl flex-row', pressed)
       }

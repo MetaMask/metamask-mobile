@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortFieldBottomSheet from './PerpsMarketSortFieldBottomSheet';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -14,7 +13,21 @@ jest.mock('../../../../../component-library/hooks', () => ({
       applyButton: {},
       applyButtonText: {},
     },
-    theme: mockTheme,
+    theme: {
+      colors: {
+        background: {
+          alternative: '#E5E5E5',
+          muted: '#F0F0F0',
+        },
+        icon: {
+          default: '#000000',
+          inverse: '#FFFFFF',
+        },
+        border: {
+          muted: '#D6D6D6',
+        },
+      },
+    },
   }),
 }));
 

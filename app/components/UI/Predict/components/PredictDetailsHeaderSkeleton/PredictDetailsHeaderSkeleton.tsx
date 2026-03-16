@@ -14,10 +14,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import {
-  PREDICT_DETAILS_HEADER_SKELETON,
-  PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS,
-} from './PredictDetailsHeaderSkeleton.testIds';
 
 interface PredictDetailsHeaderSkeletonProps {
   testID?: string;
@@ -25,7 +21,7 @@ interface PredictDetailsHeaderSkeletonProps {
 
 const PredictDetailsHeaderSkeleton: React.FC<
   PredictDetailsHeaderSkeletonProps
-> = ({ testID = PREDICT_DETAILS_HEADER_SKELETON }) => {
+> = ({ testID = 'predict-details-header-skeleton' }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -40,7 +36,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
     >
       <Pressable
         onPress={() => navigation.goBack()}
-        testID={`${testID}${PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS.BACK_BUTTON}`}
+        testID={`${testID}-back-button`}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
@@ -51,7 +47,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
           width="60%"
           height={20}
           style={tw.style('rounded-md self-center')}
-          testID={`${testID}${PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS.TITLE}`}
+          testID={`${testID}-title`}
         />
       </Box>
 
@@ -59,7 +55,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
         width={24}
         height={24}
         style={tw.style('rounded-md')}
-        testID={`${testID}${PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS.SHARE}`}
+        testID={`${testID}-share`}
       />
     </Box>
   );

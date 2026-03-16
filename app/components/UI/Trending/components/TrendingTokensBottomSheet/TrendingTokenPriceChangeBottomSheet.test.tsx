@@ -285,21 +285,21 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     expect(getByText('Low to high')).toBeOnTheScreen();
   });
 
-  it('renders when isVisible becomes true', () => {
-    const { rerender, queryByTestId } = render(
+  it('calls onOpenBottomSheet when isVisible becomes true', () => {
+    const { rerender } = render(
       <TrendingTokenPriceChangeBottomSheet
         isVisible={false}
         onClose={mockOnClose}
       />,
     );
 
-    expect(queryByTestId('bottom-sheet')).toBeNull();
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
 
     rerender(
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(queryByTestId('bottom-sheet')).toBeOnTheScreen();
+    expect(mockOnOpenBottomSheet).toHaveBeenCalled();
   });
   it('selects MarketCap option when pressed', () => {
     const { getByText } = render(

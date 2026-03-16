@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   parseCaipChainId,
@@ -14,22 +14,19 @@ import Engine from '../../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
  * Provides methods to enable, disable, toggle, and conditionally enable networks.
  *
  * @returns Network enablement methods and state
- * Exposes popularEvmNetworks, popularMultichainNetworks, and popularNetworks (arrays)
- * from the controller for use in polling, token lists, etc.
- *
  * @example
  * ```tsx
  * const {
  *   enableNetwork,
  *   tryEnableEvmNetwork,
- *   isNetworkEnabled,
- *   popularEvmNetworks,
+ *   isNetworkEnabled
  * } = useNetworkEnablement();
  *
  * // Direct network operations
@@ -40,9 +37,6 @@ import { selectChainId } from '../../../selectors/networkController';
  *
  * // Check network status
  * const isEnabled = isNetworkEnabled('eip155:1');
- *
- * // Popular networks (restricted to configured networks)
- * const evmChainIds = popularEvmNetworks;
  * ```
  */
 export const useNetworkEnablement = () => {
@@ -61,12 +55,9 @@ export const useNetworkEnablement = () => {
     [],
   );
 
-  const popularEvmNetworksList =
-    networkEnablementController?.listPopularEvmNetworks?.() ?? [];
-  const popularMultichainNetworksList =
-    networkEnablementController?.listPopularMultichainNetworks?.() ?? [];
-  const popularNetworksList =
-    networkEnablementController?.listPopularNetworks?.() ?? [];
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const enabledNetworksForCurrentNamespace = useMemo(
     () => enabledNetworksByNamespace?.[namespace] || {},
@@ -86,9 +77,13 @@ export const useNetworkEnablement = () => {
 
   const enableNetwork = useMemo(
     () => (chainId: CaipChainId) => {
-      networkEnablementController.enableNetwork(chainId);
+      if (isMultichainAccountsState2Enabled) {
+        networkEnablementController.enableNetwork(chainId);
+        return;
+      }
+      networkEnablementController.enableNetworkInNamespace(chainId, namespace);
     },
-    [networkEnablementController],
+    [networkEnablementController, isMultichainAccountsState2Enabled, namespace],
   );
 
   const enableAllPopularNetworks = useMemo(
@@ -150,9 +145,6 @@ export const useNetworkEnablement = () => {
     enableNetwork,
     disableNetwork,
     enableAllPopularNetworks,
-    popularEvmNetworks: popularEvmNetworksList,
-    popularMultichainNetworks: popularMultichainNetworksList,
-    popularNetworks: popularNetworksList,
     isNetworkEnabled,
     hasOneEnabledNetwork,
     tryEnableEvmNetwork,

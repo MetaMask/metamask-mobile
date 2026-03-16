@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   useNetworksByCustomNamespace,
   NetworkType,
@@ -43,6 +44,7 @@ interface UseNetworksToUseReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   selectedTronAccount: InternalAccount | null;
   ///: END:ONLY_INCLUDE_IF
+  isMultichainAccountsState2Enabled: boolean;
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
   areAllSolanaNetworksSelected: boolean;
@@ -67,6 +69,10 @@ export const useNetworksToUse = ({
   networkType,
   areAllNetworksSelected,
 }: UseNetworksToUseProps): UseNetworksToUseReturn => {
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
   const selectedEvmAccount =
     useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE) || null;
 
@@ -152,6 +158,11 @@ export const useNetworksToUse = ({
   );
 
   const networksToUse = useMemo(() => {
+    // When multichain is disabled, return original networks
+    if (!isMultichainAccountsState2Enabled) {
+      return networks;
+    }
+
     const anySelectedAccount = [
       hasSelectedAccounts.evm,
       hasSelectedAccounts.solana,
@@ -179,6 +190,7 @@ export const useNetworksToUse = ({
     // Case: No accounts selected - fallback to default networks
     return networks;
   }, [
+    isMultichainAccountsState2Enabled,
     hasSelectedAccounts.evm,
     hasSelectedAccounts.solana,
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -200,6 +212,11 @@ export const useNetworksToUse = ({
   ]);
 
   const areAllNetworksSelectedCombined = useMemo(() => {
+    // When multichain is disabled, return original areAllNetworksSelected
+    if (!isMultichainAccountsState2Enabled) {
+      return areAllNetworksSelected || false;
+    }
+
     // Collect selection flags for each selected account type
     const accountSelectionFlags = [];
 
@@ -229,6 +246,7 @@ export const useNetworksToUse = ({
       ? accountSelectionFlags.every(Boolean)
       : areAllNetworksSelected || false;
   }, [
+    isMultichainAccountsState2Enabled,
     areAllNetworksSelected,
     hasSelectedAccounts,
     areAllEvmNetworksSelected,
@@ -259,6 +277,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     selectedTronAccount,
     ///: END:ONLY_INCLUDE_IF
+    isMultichainAccountsState2Enabled,
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,

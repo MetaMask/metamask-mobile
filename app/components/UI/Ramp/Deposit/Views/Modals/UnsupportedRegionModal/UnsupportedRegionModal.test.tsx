@@ -23,7 +23,6 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       dangerouslyGetParent: mockDangerouslyGetParent,
-      isFocused: jest.fn(() => true),
     }),
   };
 });

@@ -1,5 +1,4 @@
 import React from 'react';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render } from '@testing-library/react-native';
 import PredictSportScoreboard from './PredictSportScoreboard';
 import { PredictMarketGame, PredictGameStatus } from '../../types';
@@ -10,35 +9,20 @@ const mockUseLiveGameUpdates = useLiveGameUpdates as jest.MockedFunction<
   typeof useLiveGameUpdates
 >;
 
-jest.mock('../../constants/sportLeagueConfigs', () => {
-  const MockTeamIcon = ({ testID }: { testID?: string }) => {
+jest.mock('../PredictSportTeamHelmet/PredictSportTeamHelmet', () => {
+  const MockHelmet = ({ testID }: { testID?: string }) => {
     const { View: MockView } = jest.requireActual('react-native');
     return <MockView testID={testID} />;
   };
-  const MockPossessionIcon = ({ testID }: { testID?: string }) => {
-    const { View: MockView } = jest.requireActual('react-native');
-    return <MockView testID={testID} />;
-  };
-
-  return {
-    getLeagueConfig: jest.fn((league: string) => {
-      if (league === 'nfl') {
-        return {
-          TeamIcon: MockTeamIcon,
-          PossessionIcon: MockPossessionIcon,
-        };
-      }
-      return {};
-    }),
-  };
+  return MockHelmet;
 });
 
-jest.mock('../PredictSportTeamLogo/PredictSportTeamLogo', () => {
-  const MockLogo = ({ testID }: { testID?: string }) => {
+jest.mock('../PredictSportFootballIcon/PredictSportFootballIcon', () => {
+  const MockFootball = ({ testID }: { testID?: string }) => {
     const { View: MockView } = jest.requireActual('react-native');
     return <MockView testID={testID} />;
   };
-  return MockLogo;
+  return MockFootball;
 });
 
 jest.mock('../PredictSportWinner/PredictSportWinner', () => {
@@ -74,7 +58,7 @@ const createGame = (
     name: 'Denver Broncos',
     logo: 'https://example.com/den.png',
     abbreviation: 'DEN',
-    color: TEST_HEX_COLORS.TEAM_DEN,
+    color: '#FB4F14',
     alias: 'Broncos',
   },
   awayTeam: {
@@ -82,7 +66,7 @@ const createGame = (
     name: 'Seattle Seahawks',
     logo: 'https://example.com/sea.png',
     abbreviation: 'SEA',
-    color: TEST_HEX_COLORS.TEAM_SEA,
+    color: '#002244',
     alias: 'Seahawks',
   },
   ...overrides,
@@ -134,15 +118,15 @@ describe('PredictSportScoreboard', () => {
       expect(getByText('DEN')).toBeOnTheScreen();
     });
 
-    it('renders both team icons', () => {
+    it('renders both team helmets', () => {
       const game = createGame();
 
       const { getByTestId } = render(
         <PredictSportScoreboard game={game} testID="scoreboard" />,
       );
 
-      expect(getByTestId('scoreboard-away-team-icon')).toBeOnTheScreen();
-      expect(getByTestId('scoreboard-home-team-icon')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-away-helmet')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-home-helmet')).toBeOnTheScreen();
     });
 
     it('subscribes to live game updates with game id', () => {
@@ -619,35 +603,6 @@ describe('PredictSportScoreboard', () => {
 
       expect(getByText('LONG')).toBeOnTheScreen();
       expect(getByText('NAME')).toBeOnTheScreen();
-    });
-  });
-
-  describe('league-specific rendering', () => {
-    it('renders team logos for NBA games (no custom TeamIcon)', () => {
-      const game = createGame({ league: 'nba' });
-
-      const { getByTestId } = render(
-        <PredictSportScoreboard game={game} testID="scoreboard" />,
-      );
-
-      expect(getByTestId('scoreboard-away-team-icon')).toBeOnTheScreen();
-      expect(getByTestId('scoreboard-home-team-icon')).toBeOnTheScreen();
-    });
-
-    it('hides possession indicator for NBA games (no PossessionIcon configured)', () => {
-      const game = createGame({
-        league: 'nba',
-        status: 'ongoing',
-        period: 'Q3',
-        turn: 'sea',
-      });
-
-      const { queryByTestId } = render(
-        <PredictSportScoreboard game={game} testID="scoreboard" />,
-      );
-
-      expect(queryByTestId('scoreboard-away-possession')).toBeNull();
-      expect(queryByTestId('scoreboard-home-possession')).toBeNull();
     });
   });
 });

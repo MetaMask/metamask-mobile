@@ -49,12 +49,9 @@ export function usePerpsLiveOrders(
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
       callback: (newOrders) => {
+        // null/undefined means no cached data yet, keep loading state
         if (newOrders === null || newOrders === undefined) {
-          // Cleared on account switch — show skeleton until first update for new account
-          hasReceivedFirstUpdate.current = false;
-          setIsInitialLoading(true);
-          lastOrdersRef.current = EMPTY_ORDERS;
-          setOrders(EMPTY_ORDERS);
+          // Keep isInitialLoading as true, orders as empty array
           return;
         }
 

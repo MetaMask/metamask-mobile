@@ -85,7 +85,7 @@ const styleSheet = (params: {
       borderRadius: 8,
       backgroundColor: isSelected
         ? theme.colors.primary.muted
-        : theme.colors.background.muted,
+        : theme.colors.background.alternative,
       marginRight: 8,
     },
   });

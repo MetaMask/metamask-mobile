@@ -10,6 +10,7 @@ export type {
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
+  RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
   RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceApplyBonusCodeAction,

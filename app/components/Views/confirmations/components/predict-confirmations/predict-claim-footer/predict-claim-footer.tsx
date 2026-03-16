@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import Avatar, {
@@ -15,43 +15,31 @@ import { Box } from '../../../../../UI/Box/Box';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
 import styleSheet from './predict-claim-footer.styles';
 import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
-  onError: (error?: Error) => void;
 }
 
-export function PredictClaimFooter({
-  onPress,
-  onError,
-}: PredictClaimFooterProps) {
-  const transactionMetadata = useTransactionMetadataRequest();
+export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
   const { styles } = useStyles(styleSheet, {});
 
-  const address = transactionMetadata?.txParams.from;
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
 
   const wonPositions = useSelector(
     selectPredictWonPositions({
-      address: address ?? '0x',
+      address: selectedAddress,
     }),
   );
 
-  const hasNoPositions = !address || !wonPositions?.length;
-
-  useEffect(() => {
-    if (hasNoPositions) {
-      onError(new Error('Tried to claim but no positions were won'));
-    }
-  }, [hasNoPositions, onError]);
-
-  if (hasNoPositions) {
+  if (!wonPositions?.length) {
     return null;
   }
 

@@ -8,26 +8,12 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/V
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class AccountListBottomSheet {
-  /** Account list container - wdio uses getElementByText('Accounts') for Appium */
-  get accountList(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
-        ),
-    });
+  get accountList(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
   }
 
   get accountTypeLabel(): DetoxElement {
@@ -46,19 +32,10 @@ class AccountListBottomSheet {
     );
   }
 
-  /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
-  get addAccountButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-          { exact: true },
-        ),
-    });
+  get addAccountButton(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
   }
 
   get addEthereumAccountButton(): DetoxElement {
@@ -152,8 +129,8 @@ class AccountListBottomSheet {
   }
 
   async tapAddAccountButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.addAccountButton, {
-      description: 'Add Account button',
+    await Gestures.waitAndTap(this.addAccountButton, {
+      elemDescription: 'Add Account button',
     });
   }
 
@@ -217,8 +194,8 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByNameV2(accountName: string): Promise<void> {
-    const accountEl = this.getAccountElementByAccountNameV2(accountName);
-    await Gestures.waitAndTap(accountEl, {
+    const element = this.getAccountElementByAccountNameV2(accountName);
+    await Gestures.waitAndTap(element, {
       elemDescription: `Tap on account with name: ${accountName}`,
     });
   }
@@ -233,9 +210,8 @@ class AccountListBottomSheet {
   }
 
   async scrollToBottomOfAccountList(): Promise<void> {
-    await UnifiedGestures.swipe(this.accountList, 'up', {
+    await Gestures.swipe(this.accountList, 'up', {
       speed: 'fast',
-      description: 'Scroll to bottom of account list',
     });
   }
 

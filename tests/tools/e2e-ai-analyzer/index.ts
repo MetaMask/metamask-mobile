@@ -304,12 +304,7 @@ async function main() {
       console.log(`   ✅ ${provider.displayName} is available`);
       availableProviders.push({ type: providerType, provider });
     } else {
-      const envKey = LLM_CONFIG.providers[providerType].envKey;
-      const hasKey = !!process.env[envKey];
-      const reason = hasKey
-        ? 'API call failed (see warning above)'
-        : `missing ${envKey}`;
-      console.log(`   ❌ ${provider.displayName} is not available — ${reason}`);
+      console.log(`   ❌ ${provider.displayName} is not available`);
     }
   }
 

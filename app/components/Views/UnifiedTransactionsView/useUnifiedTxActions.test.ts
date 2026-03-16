@@ -153,7 +153,10 @@ describe('useUnifiedTxActions', () => {
     expect(result.current.retryErrorMsg).toBeUndefined();
     expect(result.current.speedUpIsOpen).toBe(false);
     expect(result.current.cancelIsOpen).toBe(false);
-    expect(result.current.confirmDisabled).toBe(false);
+    expect(result.current.speedUp1559IsOpen).toBe(false);
+    expect(result.current.cancel1559IsOpen).toBe(false);
+    expect(result.current.speedUpConfirmDisabled).toBe(false);
+    expect(result.current.cancelConfirmDisabled).toBe(false);
     expect(result.current.existingTx).toBeNull();
     expect(result.current.speedUpTxId).toBeNull();
     expect(result.current.cancelTxId).toBeNull();
@@ -161,7 +164,8 @@ describe('useUnifiedTxActions', () => {
     expect(typeof result.current.toggleRetry).toBe('function');
     expect(typeof result.current.onSpeedUpAction).toBe('function');
     expect(typeof result.current.onCancelAction).toBe('function');
-    expect(typeof result.current.onSpeedUpCancelCompleted).toBe('function');
+    expect(typeof result.current.onSpeedUpCompleted).toBe('function');
+    expect(typeof result.current.onCancelCompleted).toBe('function');
     expect(typeof result.current.speedUpTransaction).toBe('function');
     expect(typeof result.current.cancelTransaction).toBe('function');
     expect(typeof result.current.signQRTransaction).toBe('function');
@@ -186,6 +190,7 @@ describe('useUnifiedTxActions', () => {
 
       act(() => result.current.onSpeedUpAction(false));
       expect(result.current.speedUpIsOpen).toBe(false);
+      expect(result.current.speedUp1559IsOpen).toBe(false);
     });
 
     it('opens speed up modal when isEIP1559Transaction=true', () => {
@@ -213,8 +218,9 @@ describe('useUnifiedTxActions', () => {
         '1.1',
         expect.any(Object),
       );
-      expect(result.current.confirmDisabled).toBe(true);
+      expect(result.current.speedUpConfirmDisabled).toBe(true);
       expect(result.current.speedUpIsOpen).toBe(true);
+      expect(result.current.speedUp1559IsOpen).toBe(false);
     });
   });
 
@@ -224,6 +230,7 @@ describe('useUnifiedTxActions', () => {
 
       act(() => result.current.onCancelAction(false));
       expect(result.current.cancelIsOpen).toBe(false);
+      expect(result.current.cancel1559IsOpen).toBe(false);
     });
 
     it('opens cancel modal when isEIP1559Transaction=true', () => {
@@ -251,8 +258,9 @@ describe('useUnifiedTxActions', () => {
         '1.1',
         expect.any(Object),
       );
-      expect(result.current.confirmDisabled).toBe(false);
+      expect(result.current.cancelConfirmDisabled).toBe(false);
       expect(result.current.cancelIsOpen).toBe(true);
+      expect(result.current.cancel1559IsOpen).toBe(false);
     });
   });
 
@@ -271,6 +279,7 @@ describe('useUnifiedTxActions', () => {
 
       expect(speedUpTx).toHaveBeenCalledWith('5', undefined);
       expect(result.current.speedUpIsOpen).toBe(false);
+      expect(result.current.speedUp1559IsOpen).toBe(false);
       expect(result.current.speedUpTxId).toBeNull();
       expect(result.current.existingTx).toBeNull();
     });
@@ -325,9 +334,7 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.retryIsOpen).toBe(true);
       expect(result.current.retryErrorMsg).toBe('failed');
       expect(result.current.speedUpIsOpen).toBe(false);
-      // Tx IDs and existingTx preserved so Retry can reopen the same action
-      expect(result.current.speedUpTxId).toBe('8');
-      expect(result.current.existingTx).toBe(tx);
+      expect(result.current.speedUp1559IsOpen).toBe(false);
     });
 
     it('uses GasFeeController estimates when type is missing', async () => {
@@ -379,6 +386,7 @@ describe('useUnifiedTxActions', () => {
         engineContext.TransactionController.stopTransaction,
       ).toHaveBeenCalledWith('9', undefined);
       expect(result.current.cancelIsOpen).toBe(false);
+      expect(result.current.cancel1559IsOpen).toBe(false);
       expect(result.current.cancelTxId).toBeNull();
       expect(result.current.existingTx).toBeNull();
     });
@@ -418,9 +426,7 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.retryIsOpen).toBe(true);
       expect(result.current.retryErrorMsg).toBe('nope');
       expect(result.current.cancelIsOpen).toBe(false);
-      // Tx IDs and existingTx preserved so Retry can reopen the same action
-      expect(result.current.cancelTxId).toBe('11');
-      expect(result.current.existingTx).toBe(tx);
+      expect(result.current.cancel1559IsOpen).toBe(false);
     });
   });
 
@@ -488,6 +494,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(result.current.speedUpIsOpen).toBe(false);
+      expect(result.current.speedUp1559IsOpen).toBe(false);
     });
 
     it('navigates to ledger modal and resolves completion for cancel', async () => {
@@ -521,6 +528,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(result.current.cancelIsOpen).toBe(false);
+      expect(result.current.cancel1559IsOpen).toBe(false);
     });
 
     describe('Ledger account transactions', () => {
@@ -569,7 +577,7 @@ describe('useUnifiedTxActions', () => {
           expect(speedUpTx).not.toHaveBeenCalled();
         });
 
-        it('returns early after calling signLedgerTransaction without calling onSpeedUpCancelCompleted', async () => {
+        it('returns early after calling signLedgerTransaction without calling onSpeedUpCompleted', async () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = { id: 'ledger-speedup-2' } as unknown as TransactionMeta;
 
@@ -739,7 +747,7 @@ describe('useUnifiedTxActions', () => {
           ).not.toHaveBeenCalled();
         });
 
-        it('returns early after calling signLedgerTransaction without calling onSpeedUpCancelCompleted for cancel', async () => {
+        it('returns early after calling signLedgerTransaction without calling onCancelCompleted', async () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = { id: 'ledger-cancel-2' } as unknown as TransactionMeta;
 

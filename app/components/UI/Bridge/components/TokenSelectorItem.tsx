@@ -28,7 +28,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { Box } from '../../Box/Box';
 import { ethers } from 'ethers';
-import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
+import { AlignItems, FlexDirection } from '../../Box/box.types';
 import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
@@ -57,8 +57,6 @@ const createStyles = ({
   StyleSheet.create({
     tokenInfo: {
       flex: 1,
-      flexShrink: 1,
-      minWidth: 0,
       marginLeft: 8,
     },
     container: {
@@ -84,21 +82,9 @@ const createStyles = ({
       paddingVertical: 10,
       alignItems: 'flex-start',
     },
-    tokenMainInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flexShrink: 1,
-      minWidth: 0,
-      marginRight: 8,
-    },
-    rightValue: {
-      flexShrink: 0,
-      textAlign: 'right',
-    },
-    tokenName: {
-      flexShrink: 1,
-      minWidth: 0,
-      marginRight: 8,
+    balance: {
+      flex: 1,
+      alignItems: 'flex-end',
     },
     skeleton: {
       width: 50,
@@ -156,15 +142,7 @@ const FiatBalanceView = ({
     return <View style={styles.skeleton} />;
   }
 
-  return (
-    <Text
-      variant={TextVariant.BodySM}
-      color={TextColor.Alternative}
-      numberOfLines={1}
-    >
-      {balance}
-    </Text>
-  );
+  return <Text variant={TextVariant.BodyMD}>{balance}</Text>;
 };
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -197,7 +175,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     return parseAmount(balance, 5) || balance;
   };
 
-  const cryptoBalance = token.balance
+  const balanceWithSymbol = token.balance
     ? `${formatTokenBalance(token.balance)} ${token.symbol}`
     : undefined;
 
@@ -207,7 +185,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const { isStockToken } = useRWAToken();
 
   const balance = shouldShowBalance ? fiatValue : undefined;
-  const secondaryBalance = shouldShowBalance ? cryptoBalance : undefined;
+  const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
 
   const label = token.accountType
     ? ACCOUNT_TYPE_LABELS[token.accountType]
@@ -259,7 +237,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             />
           </BadgeWrapper>
 
-          {/* Token symbol/name on the left, balances on the right (extension layout pattern) */}
+          {/* Token symbol and name */}
           <Box
             style={styles.tokenInfo}
             flexDirection={FlexDirection.Column}
@@ -268,64 +246,48 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
-              justifyContent={JustifyContent.spaceBetween}
+              gap={4}
             >
-              <Box style={styles.tokenMainInfo} gap={4}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
+              <Text variant={TextVariant.BodyMD}>{token.symbol}</Text>
+              {label && <Tag label={label} />}
+              {showNoFeeBadge && (
+                <TagBase
+                  shape={TagShape.Rectangle}
+                  severity={TagSeverity.Info}
+                  textProps={{ variant: TextVariant.BodyXS }}
+                  style={styles.noFeeBadge}
                 >
-                  {token.symbol}
-                </Text>
-                {label && <Tag label={label} />}
-                {showNoFeeBadge && (
-                  <TagBase
-                    shape={TagShape.Rectangle}
-                    severity={TagSeverity.Info}
-                    textProps={{ variant: TextVariant.BodyXS }}
-                    style={styles.noFeeBadge}
-                  >
-                    {strings('bridge.no_mm_fee')}
-                  </TagBase>
-                )}
-              </Box>
-
-              {secondaryBalance ? (
-                secondaryBalance === TOKEN_BALANCE_LOADING ||
-                secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                  <View style={styles.skeleton} />
-                ) : (
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
-                    numberOfLines={1}
-                    style={styles.rightValue}
-                  >
-                    {secondaryBalance}
-                  </Text>
-                )
-              ) : null}
+                  {strings('bridge.no_mm_fee')}
+                </TagBase>
+              )}
             </Box>
-
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              justifyContent={JustifyContent.spaceBetween}
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              numberOfLines={2}
+              ellipsizeMode="tail"
             >
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                style={styles.tokenName}
-              >
-                {token.name}
-              </Text>
-
-              <FiatBalanceView balance={balance} isSelected={isSelected} />
-            </Box>
+              {token.name}
+            </Text>
             {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
+          </Box>
+
+          {/* Token balance and fiat value */}
+          <Box style={styles.balance} gap={4}>
+            <FiatBalanceView balance={balance} isSelected={isSelected} />
+            {secondaryBalance ? (
+              secondaryBalance === TOKEN_BALANCE_LOADING ||
+              secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                <View style={styles.skeleton} />
+              ) : (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {secondaryBalance}
+                </Text>
+              )
+            ) : null}
           </Box>
         </Box>
       </TouchableOpacity>

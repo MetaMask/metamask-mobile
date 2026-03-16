@@ -57,6 +57,7 @@ import fiatOrderReducer, {
   removeFiatSellTxHash,
   getOrdersProviders,
   getDetectedGeolocation,
+  setDetectedGeolocation,
   getRampRoutingDecision,
   setRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -843,6 +844,28 @@ describe('fiatOrderReducer', () => {
     );
 
     expect(stateWithoutChanges).toEqual(stateWithOrder1);
+  });
+
+  it('sets the detected geolocation', () => {
+    const stateWithGeolocation = fiatOrderReducer(
+      initialState,
+      setDetectedGeolocation('US'),
+    );
+    expect(stateWithGeolocation.detectedGeolocation).toBe('US');
+
+    const otherStateWithGeolocation = fiatOrderReducer(
+      stateWithGeolocation,
+      setDetectedGeolocation('CL'),
+    );
+    expect(otherStateWithGeolocation.detectedGeolocation).toBe('CL');
+  });
+
+  it('sets the detected geolocation to undefined', () => {
+    const stateWithGeolocation = fiatOrderReducer(
+      initialState,
+      setDetectedGeolocation(undefined),
+    );
+    expect(stateWithGeolocation.detectedGeolocation).toBeUndefined();
   });
 
   it('sets the ramp routing decision', () => {
@@ -2564,33 +2587,18 @@ describe('selectors', () => {
   });
 
   describe('getDetectedGeolocation', () => {
-    it('should return the detected geolocation from GeolocationController state', () => {
+    it('should return the detected geolocation', () => {
       const state = merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            GeolocationController: { location: 'US' },
-          },
+        fiatOrders: {
+          detectedGeolocation: 'US',
         },
       });
       expect(getDetectedGeolocation(state)).toBe('US');
     });
 
-    it('should return undefined if GeolocationController location is UNKNOWN', () => {
+    it('should return undefined if detected geolocation is not set', () => {
       const state = merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            GeolocationController: { location: 'UNKNOWN' },
-          },
-        },
-      });
-      expect(getDetectedGeolocation(state)).toBeUndefined();
-    });
-
-    it('should return undefined if GeolocationController is not available', () => {
-      const state = merge({}, initialRootState, {
-        engine: {
-          backgroundState: {},
-        },
+        fiatOrders: {},
       });
       expect(getDetectedGeolocation(state)).toBeUndefined();
     });

@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import ChartTooltip from './ChartTooltip';
 import { GameChartSeries, GameChartDataPoint } from './PredictGameChart.types';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 jest.mock('react-native-svg', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -45,12 +44,14 @@ jest.mock('react-native-svg', () => {
   };
 });
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      text: { alternative: '#888888', default: '#000000' },
+      background: { default: '#FFFFFF' },
+    },
+  }),
+}));
 
 const mockXFunction = (index: number) => index * 10 + 50;
 const mockYFunction = (value: number) => 200 - value * 2;
@@ -64,12 +65,12 @@ const mockPrimaryData: GameChartDataPoint[] = [
 const mockNonEmptySeries: GameChartSeries[] = [
   {
     label: 'Team A',
-    color: TEST_HEX_COLORS.PURE_RED,
+    color: '#FF0000',
     data: mockPrimaryData,
   },
   {
     label: 'Team B',
-    color: TEST_HEX_COLORS.PURE_BLUE,
+    color: '#0000FF',
     data: [
       { timestamp: 1704067200000, value: 50 },
       { timestamp: 1704070800000, value: 45 },
@@ -192,12 +193,12 @@ describe('ChartTooltip', () => {
       const closeValuesSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: TEST_HEX_COLORS.PURE_RED,
+          color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 50 }],
         },
         {
           label: 'Team B',
-          color: TEST_HEX_COLORS.PURE_BLUE,
+          color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 51 }],
         },
       ];
@@ -219,12 +220,12 @@ describe('ChartTooltip', () => {
       const farApartSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: TEST_HEX_COLORS.PURE_RED,
+          color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 20 }],
         },
         {
           label: 'Team B',
-          color: TEST_HEX_COLORS.PURE_BLUE,
+          color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 80 }],
         },
       ];
@@ -246,12 +247,12 @@ describe('ChartTooltip', () => {
       const firstAboveSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: TEST_HEX_COLORS.PURE_RED,
+          color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 70 }],
         },
         {
           label: 'Team B',
-          color: TEST_HEX_COLORS.PURE_BLUE,
+          color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 71 }],
         },
       ];
@@ -272,12 +273,12 @@ describe('ChartTooltip', () => {
       const firstBelowSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: TEST_HEX_COLORS.PURE_RED,
+          color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 31 }],
         },
         {
           label: 'Team B',
-          color: TEST_HEX_COLORS.PURE_BLUE,
+          color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 30 }],
         },
       ];
@@ -300,12 +301,12 @@ describe('ChartTooltip', () => {
       const partialSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: TEST_HEX_COLORS.PURE_RED,
+          color: '#FF0000',
           data: mockPrimaryData,
         },
         {
           label: 'Team B',
-          color: TEST_HEX_COLORS.PURE_BLUE,
+          color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 50 }],
         },
       ];

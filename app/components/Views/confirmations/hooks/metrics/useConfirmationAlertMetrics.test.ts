@@ -4,7 +4,6 @@ import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
 import { useConfirmationAlertMetrics } from './useConfirmationAlertMetrics';
 import { AlertKeys } from '../../constants/alerts';
-import { useSignatureRequest } from '../signatures/useSignatureRequest';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -16,10 +15,6 @@ jest.mock('../../context/alert-system-context', () => ({
 
 jest.mock('./useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
-}));
-
-jest.mock('../signatures/useSignatureRequest', () => ({
-  useSignatureRequest: jest.fn(),
 }));
 
 describe('useConfirmationAlertMetrics', () => {
@@ -37,7 +32,6 @@ describe('useConfirmationAlertMetrics', () => {
       setConfirmationMetric: mockSetConfirmationMetric,
     });
     (useAlerts as jest.Mock).mockReturnValue(mockUseAlerts);
-    (useSignatureRequest as jest.Mock).mockReturnValue({ id: 'test-id' });
   });
 
   const baseAlertProperties = {
@@ -208,57 +202,6 @@ describe('useConfirmationAlertMetrics', () => {
   });
 
   it('tracks alert metrics', () => {
-    (useSelector as jest.Mock).mockReturnValue({
-      properties: baseAlertProperties,
-    });
-
-    const { result } = renderHook(() => useConfirmationAlertMetrics());
-
-    result.current.trackAlertMetrics();
-
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: baseAlertProperties,
-    });
-  });
-
-  it('trackAlertMetrics does not call setConfirmationMetric when no alerts', () => {
-    (useAlerts as jest.Mock).mockReturnValue({
-      alerts: [],
-      isAlertConfirmed: jest.fn(),
-      alertKey: '',
-    });
-    (useSelector as jest.Mock).mockReturnValue({});
-
-    const { result } = renderHook(() => useConfirmationAlertMetrics());
-    result.current.trackAlertMetrics();
-
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
-  });
-
-  it('resolves alert name using prefix matching for composite keys', () => {
-    const compositeKey = `${AlertKeys.Blockaid}_extra_suffix`;
-    (useAlerts as jest.Mock).mockReturnValue({
-      alerts: [{ key: compositeKey }],
-      isAlertConfirmed: jest.fn(),
-      alertKey: compositeKey,
-    });
-    (useSelector as jest.Mock).mockReturnValue({
-      properties: {},
-    });
-
-    const { result } = renderHook(() => useConfirmationAlertMetrics());
-    result.current.trackInlineAlertClicked('field');
-
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: expect.objectContaining({
-        alert_trigger_name: ['blockaid'],
-        alert_key_clicked: ['blockaid'],
-      }),
-    });
-  });
-
-  it('handles undefined signatureRequest', () => {
-    (useSignatureRequest as jest.Mock).mockReturnValue(undefined);
     (useSelector as jest.Mock).mockReturnValue({
       properties: baseAlertProperties,
     });

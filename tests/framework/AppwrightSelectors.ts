@@ -4,7 +4,7 @@ export default class AppwrightSelectors {
   static async getElementByID(
     testDevice: Device,
     id: string,
-    exact: boolean = true,
+    exact: boolean = false,
   ): Promise<AppwrightLocator> {
     return await testDevice.getById(id, { exact });
   }
@@ -48,7 +48,7 @@ export default class AppwrightSelectors {
   ): Promise<AppwrightLocator | null> {
     const isIOS = AppwrightSelectors.isIOS(testDevice);
     if (isIOS) {
-      const xpath = `//*[@name='${identifier}']`;
+      const xpath = `//*[contains(@name,'${identifier}')]`;
       return await AppwrightSelectors.getElementByXpath(testDevice, xpath);
     }
     return null;

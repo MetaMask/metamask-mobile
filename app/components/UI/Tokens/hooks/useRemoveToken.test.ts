@@ -62,7 +62,7 @@ describe('useRemoveToken', () => {
     const { result } = renderHook(() => useRemoveToken());
 
     expect(result.current.removeTokenState.isVisible).toBe(false);
-    expect(result.current.showScamWarningModal).toBeNull();
+    expect(result.current.showScamWarningModal).toBe(false);
   });
 
   it('sets removeTokenState visible when showRemoveMenu is called', () => {
@@ -162,21 +162,21 @@ describe('useRemoveToken', () => {
     expect(result.current.removeTokenState.isVisible).toBe(false);
   });
 
-  it('sets and clears showScamWarningModal via setShowScamWarningModal', () => {
+  it('toggles showScamWarningModal via setShowScamWarningModal', () => {
     const { result } = renderHook(() => useRemoveToken());
 
-    expect(result.current.showScamWarningModal).toBeNull();
+    expect(result.current.showScamWarningModal).toBe(false);
 
     act(() => {
-      result.current.setShowScamWarningModal('0x1');
+      result.current.setShowScamWarningModal(true);
     });
 
-    expect(result.current.showScamWarningModal).toBe('0x1');
+    expect(result.current.showScamWarningModal).toBe(true);
 
     act(() => {
-      result.current.setShowScamWarningModal(null);
+      result.current.setShowScamWarningModal(false);
     });
 
-    expect(result.current.showScamWarningModal).toBeNull();
+    expect(result.current.showScamWarningModal).toBe(false);
   });
 });

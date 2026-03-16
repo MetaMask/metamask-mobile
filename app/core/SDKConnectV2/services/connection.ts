@@ -180,7 +180,7 @@ export class Connection {
       kvstore: new KVStore(`mwp/transport/${connInfo.id}`),
       useSharedConnection: true,
     });
-    const sessionstore = await SessionStore.create(
+    const sessionstore = new SessionStore(
       new KVStore(`mwp/session-store/${connInfo.id}`),
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });

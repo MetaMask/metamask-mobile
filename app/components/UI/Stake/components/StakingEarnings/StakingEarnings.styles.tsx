@@ -30,9 +30,6 @@ const styleSheet = (params: { theme: Theme }) => {
     keyValueSecondaryText: {
       alignItems: 'flex-end',
     },
-    stakingEarningsContent: {
-      paddingBottom: 24,
-    },
   });
 };
 

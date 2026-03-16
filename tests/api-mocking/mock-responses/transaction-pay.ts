@@ -403,10 +403,7 @@ export async function mockRelayQuote(mockServer: Mockttp) {
     .forPost('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url?.includes('api.relay.link/quote') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
-      );
+      return Boolean(url?.includes('api.relay.link/quote'));
     })
     .thenCallback(() => ({
       statusCode: 200,
@@ -423,10 +420,7 @@ export async function mockRelayQuoteMainnetMusd(mockServer: Mockttp) {
     .forPost('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url?.includes('api.relay.link/quote') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
-      );
+      return Boolean(url?.includes('api.relay.link/quote'));
     })
     .thenCallback(() => ({
       statusCode: 200,
@@ -439,10 +433,7 @@ export async function mockRelayStatus(mockServer: Mockttp) {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url?.includes('api.relay.link/intents/status') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/intents/status'),
-      );
+      return Boolean(url?.includes('api.relay.link/intents/status'));
     })
     .thenCallback(() => ({
       statusCode: 200,

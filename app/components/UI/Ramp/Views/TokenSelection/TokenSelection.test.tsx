@@ -48,6 +48,7 @@ function renderWithProvider(
           backgroundState,
         },
         fiatOrders: {
+          detectedGeolocation: 'US',
           rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
           ...customState?.fiatOrders,
         },

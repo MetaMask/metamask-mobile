@@ -46,13 +46,7 @@ const arrangeMocks = (options?: {
 };
 
 const NON_RESTRICTED_GEO_STATE = {
-  state: {
-    engine: {
-      backgroundState: {
-        GeolocationController: { location: 'AR' },
-      },
-    },
-  },
+  state: { fiatOrders: { detectedGeolocation: 'AR' } },
 };
 
 const renderHookWithGeo = (
@@ -60,13 +54,7 @@ const renderHookWithGeo = (
   hookOpts?: Parameters<typeof useRwaTokens>[0],
 ) =>
   renderHookWithProvider(() => useRwaTokens(hookOpts), {
-    state: {
-      engine: {
-        backgroundState: {
-          GeolocationController: { location: geolocation ?? 'UNKNOWN' },
-        },
-      },
-    },
+    state: { fiatOrders: { detectedGeolocation: geolocation } },
   });
 
 describe('useRwaTokens', () => {

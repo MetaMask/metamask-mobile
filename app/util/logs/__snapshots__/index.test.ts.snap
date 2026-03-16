@@ -20,7 +20,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
-        "accountIdByAddress": {},
         "internalAccounts": {
           "accounts": {},
           "selectedAccount": "",
@@ -48,7 +47,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
-        "selectedCurrency": "usd",
       },
       "AuthenticationController": {
         "isSignedIn": false,
@@ -155,12 +153,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
         "isFetchingGatorPermissions": false,
         "isGatorPermissionsEnabled": false,
-      },
-      "GeolocationController": {
-        "error": null,
-        "lastFetchedAt": null,
-        "location": "UNKNOWN",
-        "status": "loading",
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -563,16 +555,18 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "dismissSmartAccountSuggestionEnabled": false,
         "displayNftMedia": true,
         "featureFlags": {},
+        "identities": {},
         "ipfsGateway": "https://dweb.link/ipfs/",
         "isIpfsGatewayEnabled": true,
         "isMultiAccountBalancesEnabled": true,
+        "lostIdentities": {},
         "privacyMode": false,
         "securityAlertsEnabled": true,
+        "selectedAddress": "",
         "showIncomingTransactions": {
           "0x1": true,
           "0x13881": true,
           "0x38": true,
-          "0x3e7": true,
           "0x5": true,
           "0x504": true,
           "0x505": true,
@@ -596,6 +590,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "showMultiRpcModal": false,
         "showTestNetworks": false,
         "smartAccountOptIn": true,
+        "smartAccountOptInForAccounts": [],
         "smartTransactionsOptInStatus": true,
         "tokenNetworkFilter": {},
         "tokenSortConfig": {
@@ -674,9 +669,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
-        "campaignParticipantStatus": {},
-        "campaigns": {},
-        "offDeviceSubscriptionAccounts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
         "rewardsEnvUrl": null,
@@ -886,7 +878,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
-        "accountIdByAddress": {},
         "internalAccounts": {
           "accounts": {},
           "selectedAccount": "",
@@ -914,7 +905,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
-        "selectedCurrency": "usd",
       },
       "AuthenticationController": {
         "isSignedIn": false,
@@ -1021,12 +1011,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
         "isFetchingGatorPermissions": false,
         "isGatorPermissionsEnabled": false,
-      },
-      "GeolocationController": {
-        "error": null,
-        "lastFetchedAt": null,
-        "location": "UNKNOWN",
-        "status": "loading",
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -1429,16 +1413,18 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "dismissSmartAccountSuggestionEnabled": false,
         "displayNftMedia": true,
         "featureFlags": {},
+        "identities": {},
         "ipfsGateway": "https://dweb.link/ipfs/",
         "isIpfsGatewayEnabled": true,
         "isMultiAccountBalancesEnabled": true,
+        "lostIdentities": {},
         "privacyMode": false,
         "securityAlertsEnabled": true,
+        "selectedAddress": "",
         "showIncomingTransactions": {
           "0x1": true,
           "0x13881": true,
           "0x38": true,
-          "0x3e7": true,
           "0x5": true,
           "0x504": true,
           "0x505": true,
@@ -1462,6 +1448,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "showMultiRpcModal": false,
         "showTestNetworks": false,
         "smartAccountOptIn": true,
+        "smartAccountOptInForAccounts": [],
         "smartTransactionsOptInStatus": true,
         "tokenNetworkFilter": {},
         "tokenSortConfig": {
@@ -1540,9 +1527,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
-        "campaignParticipantStatus": {},
-        "campaigns": {},
-        "offDeviceSubscriptionAccounts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
         "rewardsEnvUrl": null,

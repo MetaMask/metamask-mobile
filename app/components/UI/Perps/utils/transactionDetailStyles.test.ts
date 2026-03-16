@@ -1,5 +1,13 @@
 import { createTransactionDetailStyles } from './transactionDetailStyles';
-import { mockTheme } from '../../../../util/theme';
+import { lightTheme, brandColor } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../../util/theme/models';
+
+// Mock theme object using the actual light theme
+const mockTheme = {
+  ...lightTheme,
+  themeAppearance: AppThemeKey.light as const,
+  brandColors: brandColor,
+};
 
 describe('createTransactionDetailStyles', () => {
   it('should create styles object with all required properties', () => {
@@ -113,9 +121,9 @@ describe('createTransactionDetailStyles', () => {
     // Arrange
     const incompleteTheme = {
       colors: {
-        background: { default: mockTheme.colors.background.default },
-        text: { default: mockTheme.colors.text.default },
-        success: { default: mockTheme.colors.success.default },
+        background: { default: '#FFFFFF' },
+        text: { default: '#000000' },
+        success: { default: '#28A745' },
         border: {},
       },
     };

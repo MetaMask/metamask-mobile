@@ -17,7 +17,6 @@ import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
-import { useTokenContractAlert } from './useTokenContractAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -39,7 +38,6 @@ function useTransactionAlerts(): Alert[] {
   const burnAddressAlert = useBurnAddressAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
   const firstTimeInteractionAlert = useFirstTimeInteractionAlert();
-  const tokenContractAlert = useTokenContractAlert();
 
   return useMemo(
     () => [
@@ -55,7 +53,6 @@ function useTransactionAlerts(): Alert[] {
       ...burnAddressAlert,
       ...tokenTrustSignalAlerts,
       ...firstTimeInteractionAlert,
-      ...tokenContractAlert,
     ],
     [
       gasEstimateFailedAlert,
@@ -70,7 +67,6 @@ function useTransactionAlerts(): Alert[] {
       burnAddressAlert,
       tokenTrustSignalAlerts,
       firstTimeInteractionAlert,
-      tokenContractAlert,
     ],
   );
 }

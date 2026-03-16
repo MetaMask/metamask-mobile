@@ -13,7 +13,6 @@ import {
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { formatRpcUrlForDisplay } from './NetworksManagementView.utils';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../util/networks/customNetworks';
 
@@ -98,9 +97,7 @@ const NetworksManagementView = () => {
         variant={CellVariant.SelectWithMenu}
         title={item.name}
         secondaryText={
-          item.hasMultipleRpcs && item.rpcUrl
-            ? formatRpcUrlForDisplay(item.rpcUrl)
-            : undefined
+          item.hasMultipleRpcs && item.rpcUrl ? item.rpcUrl : undefined
         }
         avatarProps={{
           variant: AvatarVariant.Network,

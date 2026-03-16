@@ -12,7 +12,7 @@ const styleSheet = (params: {
       width: '100%',
       ...(vars.isCarousel && { height: '100%' }),
       backgroundColor: theme.colors.background.section,
-      borderRadius: 12,
+      borderRadius: 16,
       padding: 16,
       marginVertical: vars.isCarousel ? 0 : 8,
       paddingVertical: vars.isCarousel ? 8 : 16,

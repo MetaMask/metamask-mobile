@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
@@ -35,12 +34,6 @@ export const createProcessingInfoModalNavigationDetails =
   createNavigationDetails<ProcessingInfoModalParams>(
     Routes.RAMP.MODALS.PROCESSING_INFO,
   );
-
-const styles = StyleSheet.create({
-  centeredText: {
-    textAlign: 'center',
-  },
-});
 
 function ProcessingInfoModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -110,11 +103,7 @@ function ProcessingInfoModal() {
 
       {statusDescription && (
         <Box twClassName="px-6 pb-4">
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.centeredText}
-          >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {statusDescription}
           </Text>
         </Box>

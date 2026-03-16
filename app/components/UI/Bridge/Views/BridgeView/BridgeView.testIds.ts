@@ -6,8 +6,6 @@ export const BridgeViewSelectorsIDs = {
   CONFIRM_BUTTON: 'bridge-confirm-button',
   CONFIRM_BUTTON_KEYPAD: 'bridge-confirm-button-keypad',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
-  FEE_DISCLAIMER: 'bridge-fee-disclaimer',
-  QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

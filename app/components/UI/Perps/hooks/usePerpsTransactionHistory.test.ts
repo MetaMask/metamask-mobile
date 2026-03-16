@@ -58,7 +58,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 describe('usePerpsTransactionHistory', () => {
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
-    getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
   };
   let mockProvider: {
     getOrderFills: jest.MockedFunction<
@@ -177,7 +176,6 @@ describe('usePerpsTransactionHistory', () => {
     // Mock controller
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
-      getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
     };
 
     // Mock Engine context
@@ -649,7 +647,7 @@ describe('usePerpsTransactionHistory', () => {
     });
 
     it('handles no active provider', async () => {
-      mockController.getActiveProviderOrNull.mockReturnValue(null);
+      mockController.getActiveProvider.mockReturnValue(undefined);
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
@@ -664,8 +662,7 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // With getActiveProviderOrNull returning null, hook bails early without error
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe('No active provider available');
       // With no REST data and no WebSocket data, transactions should be empty
       expect(result.current.transactions).toEqual([]);
     });

@@ -1,14 +1,12 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
-import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 import {
-  PERPS_CONSTANTS,
   type Position,
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
+import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 
@@ -85,32 +83,28 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       } catch (error) {
         DevLogger.log('Error updating position TP/SL:', error);
 
-        Logger.error(ensureError(error, 'usePerpsTPSLUpdate.handle'), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsTPSLUpdate',
-            action: 'position_tpsl_update',
-            operation: 'position_management',
-          },
-          context: {
-            name: 'usePerpsTPSLUpdate',
-            data: {
-              symbol: position.symbol,
-              size: position.size,
-              entryPrice: position.entryPrice,
-              unrealizedPnl: position.unrealizedPnl,
-              leverage: position.leverage,
-              takeProfitPrice,
-              stopLossPrice,
-              rawError:
-                error instanceof Error
-                  ? undefined
-                  : error === undefined
-                    ? 'undefined'
-                    : String(error),
+        // Capture exception with position context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'usePerpsTPSLUpdate',
+              action: 'position_tpsl_update',
+              operation: 'position_management',
+            },
+            extra: {
+              positionContext: {
+                symbol: position.symbol,
+                size: position.size,
+                entryPrice: position.entryPrice,
+                unrealizedPnl: position.unrealizedPnl,
+                leverage: position.leverage,
+                takeProfitPrice,
+                stopLossPrice,
+              },
             },
           },
-        });
+        );
 
         const errorMessage =
           error instanceof Error
