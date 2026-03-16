@@ -746,6 +746,13 @@ describe('NetworkDetailsView', () => {
       expect(
         getByText(strings('app_settings.network_delete')),
       ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `${strings('app_settings.delete')} TestNet ${strings(
+            'app_settings.network',
+          )}`,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('calls operations.removeNetwork on confirm delete', () => {
