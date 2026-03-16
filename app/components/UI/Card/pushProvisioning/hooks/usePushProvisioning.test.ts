@@ -286,11 +286,11 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
-    it('returns false when account was created before Jan 2026', async () => {
+    it('returns false when account was created before November 10, 2025', async () => {
       const { result, unmount } = renderHook(() =>
         usePushProvisioning({
           ...defaultOptions,
-          accountCreatedAt: '2025-12-15T00:00:00.000Z',
+          accountCreatedAt: '2025-11-09T23:59:59.999Z',
         }),
       );
 
