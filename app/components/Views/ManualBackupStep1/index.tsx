@@ -50,10 +50,7 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import {
-  Label,
-  TextColor as DSTextColor,
-} from '@metamask/design-system-react-native';
+import Label from '../../../component-library/components/Form/Label';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -337,7 +334,7 @@ const ManualBackupStep1 = () => {
         <View style={styles.confirmPasswordWrapper}>
           <View style={[styles.content, styles.passwordRequiredContent]}>
             <View style={styles.text}>
-              <Label color={DSTextColor.TextDefault}>
+              <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
             </View>
@@ -420,7 +417,6 @@ const ManualBackupStep1 = () => {
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
-                      maxFontSizeMultiplier={1}
                     >
                       {index + 1}.
                     </Text>
@@ -432,7 +428,10 @@ const ManualBackupStep1 = () => {
                       numberOfLines={1}
                       style={styles.word}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                      maxFontSizeMultiplier={1}
+                      adjustsFontSizeToFit
+                      allowFontScaling
+                      minimumFontScale={0.1}
+                      maxFontSizeMultiplier={0}
                     >
                       {item}
                     </Text>

@@ -13,24 +13,24 @@ import { TokenI } from '../../Tokens/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
-import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
+import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
 
 /**
- * Returns the total staked TRX (sTRX) amount from Tron special assets.
+ * Returns the total staked TRX (sTRX) amount from TRON resources.
  * This is pre-computed in the selector using BigNumber to avoid floating-point precision errors.
  */
-export function getStakedTrxTotalFromSpecialAssets(
-  specialAssets?: TronSpecialAssetsMap | null,
+export function getStakedTrxTotalFromResources(
+  resources?: TronResourcesMap | null,
 ): number {
-  return specialAssets?.totalStakedTrx ?? 0;
+  return resources?.totalStakedTrx ?? 0;
 }
 
 /**
- * True if the user holds any sTRX according to Tron special assets.
+ * True if the user holds any sTRX according to TRON resources.
  */
 export const hasStakedTrxPositions = (
-  specialAssets?: TronSpecialAssetsMap | null,
-): boolean => getStakedTrxTotalFromSpecialAssets(specialAssets) > 0;
+  resources?: TronResourcesMap | null,
+): boolean => getStakedTrxTotalFromResources(resources) > 0;
 
 export const buildTronEarnTokenIfEligible = (
   token: TokenI,

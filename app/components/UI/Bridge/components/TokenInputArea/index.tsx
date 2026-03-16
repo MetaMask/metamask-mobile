@@ -15,10 +15,15 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TokenButton } from '../TokenButton';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../../selectors/currencyRateController';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -29,6 +34,10 @@ import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
+import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
@@ -40,8 +49,7 @@ import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
-import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
-import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
+import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -193,15 +201,35 @@ export const TokenInputArea = forwardRef<
       });
     };
 
+    // // Data for fiat value calculation
+    const evmMultiChainMarketData = useSelector(selectTokenMarketData);
+    const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
+    const networkConfigurationsByChainId = useSelector(
+      selectNetworkConfigurations,
+    );
+
     const isInsufficientBalance = useIsInsufficientBalance({
       amount,
       token,
       latestAtomicBalance,
     });
 
-    const currencyValue = useDisplayCurrencyValue(amount, token);
+    let nonEvmMultichainAssetRates = {};
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-    const formattedBalance = useFormattedBalanceWithThreshold(
+    const currencyValue = getDisplayCurrencyValue({
+      token,
+      amount,
+      evmMultiChainMarketData,
+      networkConfigurationsByChainId,
+      evmMultiChainCurrencyRates,
+      currentCurrency,
+      nonEvmMultichainAssetRates,
+    });
+
+    const formattedBalance = useTokenInputAreaFormattedBalance(
       tokenBalance,
       token,
     );
@@ -258,7 +286,7 @@ export const TokenInputArea = forwardRef<
                   isReadonly={tokenType === TokenInputAreaType.Destination}
                   showSoftInputOnFocus={false}
                   caretHidden={false}
-                  autoFocus={false}
+                  autoFocus
                   placeholder="0"
                   testID={`${testID}-input`}
                   onPressIn={() => {

@@ -10,7 +10,7 @@ describe(`migration #${migrationVersion}`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  it('DOES NOT modify the controller (with no exception thrown) if NetworkEnablementController is missing', () => {
+  it('DOES NOT modify the controller + exception if NetworkEnablementController is missing', () => {
     const oldStorage = {
       engine: {
         backgroundState: {
@@ -26,7 +26,11 @@ describe(`migration #${migrationVersion}`, () => {
     expect(newStorage.engine.backgroundState).toStrictEqual({
       OtherRandomController: {},
     });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      new Error(
+        `Migration ${migrationVersion}: NetworkEnablementController not found.`,
+      ),
+    );
   });
 
   it('DOES NOT modify the controller + exception if NetworkEnablementController has changed type', () => {
@@ -60,7 +64,7 @@ describe(`migration #${migrationVersion}`, () => {
     );
   });
 
-  it('DOES NOT modify the controller (with no exception thrown) if NetworkEnablementController.nativeAssetIdentifiers is missing', () => {
+  it('DOES NOT modify the controller + exception if NetworkEnablementController.nativeAssetIdentifiers is missing', () => {
     const oldStorage = {
       engine: {
         backgroundState: {
@@ -80,7 +84,11 @@ describe(`migration #${migrationVersion}`, () => {
         anotherFieldThatIsNotNativeAssetIdentifiers: {},
       },
     });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      new Error(
+        `Migration ${migrationVersion}: NetworkEnablementController missing property nativeAssetIdentifiers.`,
+      ),
+    );
   });
 
   it('DOES NOT modify the controller + exception if NetworkEnablementController.nativeAssetIdentifiers has changed type', () => {

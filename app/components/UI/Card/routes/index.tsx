@@ -116,14 +116,14 @@ export const cardChooseYourCardNavigationOptions = ({
   route,
 }: {
   navigation: NavigationProp<ParamListBase>;
-  route: { params?: { flow?: 'onboarding' | 'upgrade' | 'home' } };
+  route: { params?: { flow?: 'onboarding' | 'upgrade' } };
 }): StackNavigationOptions => {
   const flow = route.params?.flow || 'onboarding';
-  const showBackButton = flow === 'upgrade' || flow === 'home';
+  const isUpgradeFlow = flow === 'upgrade';
 
   return {
     headerLeft: () =>
-      showBackButton ? (
+      isUpgradeFlow ? (
         <ButtonIcon
           style={headerStyle.icon}
           size={ButtonIconSize.Md}

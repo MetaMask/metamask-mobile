@@ -6,23 +6,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ScrollView,
-  Linking,
-  Pressable,
-  Animated,
-  useColorScheme,
-} from 'react-native';
-import Video from 'react-native-video';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const MarketInsightsBackgroundVideoDark = require('../../animations/market-insights-background-dark.mp4');
+import { ScrollView, Linking, Pressable, Animated } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 import {
   Box,
   Text,
@@ -71,17 +60,14 @@ import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
-import { getDecimalChainId } from '../../../../../util/networks';
 
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
 const SECTION_ANIMATION_DELAYS_MS = {
-  topArticle: 50,
-  closerLook: 130,
-  whatsBeingSaid: 210,
+  topArticle: 10,
+  closerLook: 80,
+  whatsBeingSaid: 160,
 };
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -152,7 +138,7 @@ interface MarketInsightsRouteParams {
  * - Consolidated trends sources pill
  * - "What's being said" social section
  * - Feedback row with thumbs actions
- * - Swap and Buy CTA buttons
+ * - Trade CTA button (navigates to Swaps with asset pre-filled)
  */
 const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
@@ -175,16 +161,6 @@ const MarketInsightsView: React.FC = () => {
     caip19Id,
     isMarketInsightsEnabled,
   );
-
-  const isDarkMode = useColorScheme() === 'dark';
-  const backgroundVideo = useMemo(
-    () =>
-      isDarkMode
-        ? MarketInsightsBackgroundVideoDark
-        : MarketInsightsBackgroundVideoLight,
-    [isDarkMode],
-  );
-
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
@@ -223,8 +199,6 @@ const MarketInsightsView: React.FC = () => {
     sourceToken,
   });
 
-  const { goToBuy } = useRampNavigation();
-
   // Collect all tweets from all trends for the "What people are saying" section
   const allTweets: MarketInsightsTweet[] = useMemo(() => {
     if (!report) return [];
@@ -240,54 +214,19 @@ const MarketInsightsView: React.FC = () => {
     }
   }, []);
 
-  const handleSwapPress = useCallback(() => {
+  const handleTradePress = useCallback(() => {
     const event = createEventBuilder(
       MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
     )
       .addProperties({
         caip19: caip19Id,
-        interaction_type: 'swap',
+        interaction_type: 'trade',
       })
       .build();
     trackEvent(event);
 
     goToSwaps();
   }, [goToSwaps, trackEvent, createEventBuilder, caip19Id]);
-
-  const handleBuyPress = useCallback(() => {
-    const event = createEventBuilder(
-      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-    )
-      .addProperties({
-        caip19: caip19Id,
-        interaction_type: 'buy',
-      })
-      .build();
-    trackEvent(event);
-
-    let assetId: string | undefined;
-    try {
-      if (tokenAddress && isCaipAssetType(tokenAddress)) {
-        assetId = tokenAddress;
-      } else if (tokenChainId && tokenAddress) {
-        assetId = parseRampIntent({
-          chainId: getDecimalChainId(tokenChainId),
-          address: tokenAddress,
-        })?.assetId;
-      }
-    } catch {
-      assetId = undefined;
-    }
-
-    goToBuy({ assetId });
-  }, [
-    goToBuy,
-    trackEvent,
-    createEventBuilder,
-    caip19Id,
-    tokenAddress,
-    tokenChainId,
-  ]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -408,7 +347,6 @@ const MarketInsightsView: React.FC = () => {
         return;
       }
       trackMarketInsightsInteraction('source_click', { source: url });
-      setSelectedTrend(null);
       navigation.navigate(
         Routes.BROWSER.HOME as never,
         {
@@ -421,7 +359,7 @@ const MarketInsightsView: React.FC = () => {
         } as never,
       );
     },
-    [trackMarketInsightsInteraction, navigation, setSelectedTrend],
+    [trackMarketInsightsInteraction, navigation],
   );
 
   useEffect(() => {
@@ -455,36 +393,22 @@ const MarketInsightsView: React.FC = () => {
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      twClassName={`flex-1 bg-default pt-[${insets.top}px]`}
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
-      <Box twClassName={`pt-[${insets.top}px]`}>
-        <MarketInsightsViewHeader onBackPress={handleBackPress} />
-      </Box>
+      <MarketInsightsViewHeader onBackPress={handleBackPress} />
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('pb-4')}
+        contentContainerStyle={tw.style(`pb-4`)}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
-          <Video
-            source={backgroundVideo}
-            style={tw.style('w-full h-full')}
-            resizeMode="cover"
-            muted
-            paused={false}
-            controls={false}
-            disableFocus
-            testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-          />
-        </Box>
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">
             <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
           </Box>
 
-          <Box twClassName="px-4 pb-3">
+          <Box twClassName="px-4 pb-6">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -544,12 +468,13 @@ const MarketInsightsView: React.FC = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
+            gap={3}
           >
             <Pressable
               onPress={handleThumbsUpPress}
               style={({ pressed }) =>
                 tw.style(
-                  'h-12 w-12 items-center justify-center',
+                  'h-12 w-12 items-center justify-center rounded-full bg-muted',
                   pressed && 'opacity-70',
                 )
               }
@@ -557,7 +482,7 @@ const MarketInsightsView: React.FC = () => {
             >
               <Icon
                 name={IconName.ThumbUp}
-                size={IconSize.Lg}
+                size={IconSize.Md}
                 color={IconColor.IconAlternative}
               />
             </Pressable>
@@ -565,7 +490,7 @@ const MarketInsightsView: React.FC = () => {
               onPress={handleThumbsDownPress}
               style={({ pressed }) =>
                 tw.style(
-                  'h-12 w-12 items-center justify-center',
+                  'h-12 w-12 items-center justify-center rounded-full bg-muted',
                   pressed && 'opacity-70',
                 )
               }
@@ -573,7 +498,7 @@ const MarketInsightsView: React.FC = () => {
             >
               <Icon
                 name={IconName.ThumbDown}
-                size={IconSize.Lg}
+                size={IconSize.Md}
                 color={IconColor.IconAlternative}
               />
             </Pressable>
@@ -581,7 +506,7 @@ const MarketInsightsView: React.FC = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="pt-1"
+            twClassName="pt-3"
           >
             {strings('market_insights.helpful_prompt')}
           </Text>
@@ -591,30 +516,15 @@ const MarketInsightsView: React.FC = () => {
       <Box
         twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
       >
-        <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-          <Box twClassName="flex-1">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleSwapPress}
-              testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
-            >
-              {strings('market_insights.swap_button')}
-            </Button>
-          </Box>
-          <Box twClassName="flex-1">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleBuyPress}
-              testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
-            >
-              {strings('market_insights.buy_button')}
-            </Button>
-          </Box>
-        </Box>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleTradePress}
+          testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
+        >
+          {strings('market_insights.trade_button')}
+        </Button>
         <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('market_insights.footer_disclaimer')}
@@ -626,6 +536,7 @@ const MarketInsightsView: React.FC = () => {
         <MarketInsightsTrendSourcesBottomSheet
           isVisible
           onClose={handleCloseTrendSources}
+          trendTitle={selectedTrend.title}
           articles={selectedTrend.articles}
           tweets={selectedTrend.tweets ?? []}
           onSourcePress={handleSourcePress}

@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsCompactOrderRow from './PerpsCompactOrderRow';
 import { type Order } from '@metamask/perps-controller';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -15,7 +14,12 @@ jest.mock('../../../../../component-library/hooks', () => ({
       priceText: {},
       labelText: {},
     },
-    theme: mockTheme,
+    theme: {
+      colors: {
+        success: { default: '#00FF00' },
+        error: { default: '#FF0000' },
+      },
+    },
   }),
 }));
 

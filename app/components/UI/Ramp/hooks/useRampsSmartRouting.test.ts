@@ -108,13 +108,7 @@ describe('useRampsSmartRouting', () => {
       const state = {
         fiatOrders: {
           orders: mockOrders,
-        },
-        engine: {
-          backgroundState: {
-            GeolocationController: {
-              location: mockDetectedGeolocation ?? 'UNKNOWN',
-            },
-          },
+          detectedGeolocation: mockDetectedGeolocation,
         },
       };
       return selector(state);

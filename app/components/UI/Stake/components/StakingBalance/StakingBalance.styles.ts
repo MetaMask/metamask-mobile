@@ -1,13 +1,16 @@
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
       marginTop: 16,
+      padding: 16,
       borderRadius: 12,
+      backgroundColor: params.theme.colors.background.section,
     },
     stakingEarnings: {
+      paddingHorizontal: 16,
       paddingTop: 16,
     },
     badgeWrapper: {
@@ -15,21 +18,16 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     balances: {
       flex: 1,
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      alignContent: 'flex-start',
-      paddingLeft: 16,
+      justifyContent: 'center',
+      marginLeft: 16,
+      alignSelf: 'center',
     },
     ethLogo: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       overflow: 'hidden',
     },
-    tokenAmount: {
-      ...params.theme.typography.sBodySM,
-      color: params.theme.colors.text.alternative,
-    } as TextStyle,
     bannerStyles: {
       marginVertical: 8,
     },

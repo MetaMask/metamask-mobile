@@ -27,6 +27,7 @@ jest.mock('../utils/wait.util', () => {
 import { wait } from '../utils/wait.util';
 import { Platform } from 'react-native';
 import { ApprovalController } from '@metamask/approval-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
 import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import checkPermissions from './checkPermissions';
@@ -70,6 +71,7 @@ describe('checkPermissions', () => {
     },
   } as unknown as typeof Engine;
   const requestPermissions = jest.fn();
+  let preferencesController = {} as unknown as PreferencesController;
   let approvalController = {} as unknown as ApprovalController;
   let keyringController = {} as unknown as KeyringController;
   let permissionController = {
@@ -108,6 +110,11 @@ describe('checkPermissions', () => {
       context: {},
     } as unknown as typeof Engine;
 
+    preferencesController = {
+      state: {
+        selectedAddress: '',
+      },
+    } as unknown as PreferencesController;
     approvalController = {
       add: mockAdd,
     } as unknown as ApprovalController;
@@ -128,6 +135,7 @@ describe('checkPermissions', () => {
 
     engine = {
       context: {
+        PreferencesController: preferencesController,
         ApprovalController: approvalController,
         KeyringController: keyringController,
         PermissionController: permissionController,

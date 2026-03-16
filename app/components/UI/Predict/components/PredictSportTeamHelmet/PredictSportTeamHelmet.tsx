@@ -14,7 +14,7 @@ const VIEWBOX_HEIGHT = 40;
 
 /**
  * Football helmet SVG component with dynamic team color.
- * Referenced from the NFL league config in sportLeagueConfigs.ts.
+ * Used in NFL game cards and details screens.
  */
 const PredictSportTeamHelmet: React.FC<PredictSportTeamHelmetProps> = ({
   color,

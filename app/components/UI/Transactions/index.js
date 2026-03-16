@@ -204,9 +204,12 @@ class Transactions extends PureComponent {
     ready: false,
     refreshing: false,
     cancelIsOpen: false,
+    cancel1559IsOpen: false,
+    cancelConfirmDisabled: false,
     speedUpIsOpen: false,
+    speedUp1559IsOpen: false,
     retryIsOpen: false,
-    confirmDisabled: false,
+    speedUpConfirmDisabled: false,
     rpcBlockExplorer: undefined,
     errorMsg: undefined,
     isQRHardwareAccount: false,
@@ -278,7 +281,8 @@ class Transactions extends PureComponent {
         ({ id }) => id === this.existingTx?.id,
       )
     ) {
-      this.closeSpeedUpCancelModal();
+      this.onSpeedUpCompleted();
+      this.onCancelCompleted();
     }
   }
 
@@ -420,7 +424,7 @@ class Transactions extends PureComponent {
 
   onSpeedUpAction = (speedUpAction, tx) => {
     if (!speedUpAction) {
-      this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+      this.setState({ speedUp1559IsOpen: false, speedUpIsOpen: false });
       this.speedUpTxId = null;
       this.existingTx = null;
       return;
@@ -428,28 +432,23 @@ class Transactions extends PureComponent {
     if (!tx) return;
     this.speedUpTxId = tx.id;
     this.existingTx = tx;
-    const confirmDisabled = validateTransactionActionBalance(
+    const speedUpConfirmDisabled = validateTransactionActionBalance(
       tx,
       SPEED_UP_RATE,
       this.props.accounts,
     );
-    this.setState({
-      speedUpIsOpen: true,
-      cancelIsOpen: false,
-      confirmDisabled,
-    });
+    this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
   };
 
-  closeSpeedUpCancelModal = () => {
-    this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+  onSpeedUpCompleted = () => {
+    this.setState({ speedUp1559IsOpen: false, speedUpIsOpen: false });
     this.speedUpTxId = null;
-    this.cancelTxId = null;
     this.existingTx = null;
   };
 
   onCancelAction = (cancelAction, tx) => {
     if (!cancelAction) {
-      this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+      this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
       this.cancelTxId = null;
       this.existingTx = null;
       return;
@@ -457,19 +456,22 @@ class Transactions extends PureComponent {
     if (!tx) return;
     this.cancelTxId = tx.id;
     this.existingTx = tx;
-    const confirmDisabled = validateTransactionActionBalance(
+    const cancelConfirmDisabled = validateTransactionActionBalance(
       tx,
       CANCEL_RATE,
       this.props.accounts,
     );
-    this.setState({
-      speedUpIsOpen: false,
-      cancelIsOpen: true,
-      confirmDisabled,
-    });
+    this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled });
+  };
+
+  onCancelCompleted = () => {
+    this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
+    this.cancelTxId = null;
+    this.existingTx = null;
   };
 
   getParamsToSend = (transactionObject) => {
+    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
     if (
       transactionObject &&
       transactionObject.gasPrice !== undefined &&
@@ -501,7 +503,10 @@ class Transactions extends PureComponent {
     const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
-    this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+    this.setState({
+      speedUp1559IsOpen: false,
+      speedUpIsOpen: false,
+    });
   };
 
   handleCancelTransactionFailure = (e) => {
@@ -509,7 +514,10 @@ class Transactions extends PureComponent {
     const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
-    this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+    this.setState({
+      cancel1559IsOpen: false,
+      cancelIsOpen: false,
+    });
   };
 
   speedUpTransaction = async (transactionObject) => {
@@ -538,7 +546,7 @@ class Transactions extends PureComponent {
       } else {
         await speedUpTransaction(this.speedUpTxId, params);
       }
-      this.closeSpeedUpCancelModal();
+      this.onSpeedUpCompleted();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
     }
@@ -563,7 +571,10 @@ class Transactions extends PureComponent {
 
     const onConfirmation = (isComplete) => {
       if (isComplete) {
-        this.closeSpeedUpCancelModal();
+        transaction.speedUpParams &&
+        transaction.speedUpParams?.type === 'SpeedUp'
+          ? this.onSpeedUpCompleted()
+          : this.onCancelCompleted();
       }
     };
 
@@ -614,7 +625,7 @@ class Transactions extends PureComponent {
           params,
         );
       }
-      this.closeSpeedUpCancelModal();
+      this.onCancelCompleted();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
     }
@@ -690,7 +701,7 @@ class Transactions extends PureComponent {
       header,
       isSigningQRObject,
     } = this.props;
-    const { confirmDisabled } = this.state;
+    const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
@@ -744,16 +755,22 @@ class Transactions extends PureComponent {
 
         {!isSigningQRObject && (
           <CancelSpeedupModal
-            isVisible={this.state.speedUpIsOpen || this.state.cancelIsOpen}
-            isCancel={this.state.cancelIsOpen}
+            isVisible={this.state.speedUpIsOpen}
+            isCancel={false}
             tx={this.existingTx}
-            onConfirm={
-              this.state.cancelIsOpen
-                ? this.cancelTransaction
-                : this.speedUpTransaction
-            }
-            onClose={this.closeSpeedUpCancelModal}
-            confirmDisabled={confirmDisabled}
+            onConfirm={this.speedUpTransaction}
+            onClose={this.onSpeedUpCompleted}
+            confirmDisabled={speedUpConfirmDisabled}
+          />
+        )}
+        {!isSigningQRObject && (
+          <CancelSpeedupModal
+            isVisible={this.state.cancelIsOpen}
+            isCancel
+            tx={this.existingTx}
+            onConfirm={this.cancelTransaction}
+            onClose={this.onCancelCompleted}
+            confirmDisabled={cancelConfirmDisabled}
           />
         )}
       </View>

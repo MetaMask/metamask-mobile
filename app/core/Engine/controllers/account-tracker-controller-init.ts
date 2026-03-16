@@ -5,7 +5,6 @@ import {
 } from '@metamask/assets-controllers';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 
 /**
  * Initialize the accountTracker controller.
@@ -33,8 +32,6 @@ export const accountTrackerControllerInit: ControllerInitFunction<
     accountsApiChainIds: () =>
       selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
-    isHomepageSectionsV1Enabled: () =>
-      selectHomepageSectionsV1Enabled(getState()),
   });
 
   return {

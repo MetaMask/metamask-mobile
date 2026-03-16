@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictBetButton from './PredictBetButton';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 const createDefaultProps = (overrides = {}) => ({
   label: 'Yes',
@@ -43,7 +42,7 @@ describe('PredictBetButton', () => {
       const props = createDefaultProps({
         label: 'SEA',
         price: 49,
-        teamColor: TEST_HEX_COLORS.TEAM_SEA,
+        teamColor: '#002244',
       });
 
       renderWithProvider(<PredictBetButton {...props} />);
@@ -116,7 +115,7 @@ describe('PredictBetButton', () => {
 
   describe('team color styling', () => {
     it('renders with team color background when teamColor is provided', () => {
-      const props = createDefaultProps({ teamColor: TEST_HEX_COLORS.TEAM_SEA });
+      const props = createDefaultProps({ teamColor: '#002244' });
 
       renderWithProvider(<PredictBetButton {...props} />);
 

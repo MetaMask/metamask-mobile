@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
@@ -71,18 +71,15 @@ export const useActivePointsBoosts = (): UseActivePointsBoostsReturn => {
     }, [fetchActivePointsBoosts]),
   );
 
-  const invalidateEvents = useMemo(
-    () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:rewardClaimed',
-        'RewardsController:balanceUpdated',
-      ] as const,
-    [],
-  );
-
   // Listen for events that should trigger a refetch of active boosts
-  useInvalidateByRewardEvents(invalidateEvents, fetchActivePointsBoosts);
+  useInvalidateByRewardEvents(
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
+    fetchActivePointsBoosts,
+  );
 
   return {
     fetchActivePointsBoosts,

@@ -26,7 +26,7 @@ interface ViewMoreCardProps {
 
 /**
  * Shared "View more" card shown at the end of a horizontal carousel.
- * Renders an ArrowRight icon above a label on a muted background.
+ * Renders a circular ArrowRight icon above a label, blending with the background.
  */
 const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
   onPress,
@@ -41,16 +41,22 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
     testID={testID}
   >
     <Box
-      twClassName={`rounded-xl bg-background-muted ${twClassName}`}
+      twClassName={twClassName}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       gap={2}
     >
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Md}
-        color={IconColor.IconDefault}
-      />
+      <Box
+        twClassName="w-8 h-8 rounded-full bg-background-muted"
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+      >
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Md}
+          color={IconColor.IconDefault}
+        />
+      </Box>
       <Text
         variant={textVariant}
         fontWeight={FontWeight.Medium}

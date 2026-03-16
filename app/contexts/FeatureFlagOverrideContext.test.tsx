@@ -43,7 +43,7 @@ jest.mock('../selectors/featureFlagController', () => ({
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../util/analytics/whenEngineReady', () => ({
+jest.mock('../core/Analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

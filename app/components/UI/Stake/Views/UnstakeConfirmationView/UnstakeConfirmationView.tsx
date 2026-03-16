@@ -31,7 +31,7 @@ const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
         navigation,
         theme.colors,
         {
-          backgroundColor: theme.colors.background.default,
+          backgroundColor: theme.colors.background.alternative,
           hasCancelButton: false,
         },
         {

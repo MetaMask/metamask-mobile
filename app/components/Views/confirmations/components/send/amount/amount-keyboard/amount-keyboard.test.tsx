@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
+
 import { mockTheme } from '../../../../../../../util/theme';
 import renderWithProvider, {
   ProviderValues,

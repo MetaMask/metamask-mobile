@@ -4,10 +4,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { type OrderPreview, Result, Side } from '../types';
-import {
-  usePredictPlaceOrder,
-  PlaceOrderOutcome,
-} from './usePredictPlaceOrder';
+import { usePredictPlaceOrder } from './usePredictPlaceOrder';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
@@ -77,7 +74,6 @@ describe('usePredictPlaceOrder', () => {
   const mockClaim = jest.fn();
   const mockGetBalance = jest.fn();
   const mockDeposit = jest.fn();
-  const mockRefetchBalance = jest.fn();
 
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -123,13 +119,8 @@ describe('usePredictPlaceOrder', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
-      payWithAnyTokenConfirmation: jest.fn(),
     });
-    mockRefetchBalance.mockResolvedValue({ data: 1000 });
-    mockUsePredictBalance.mockReturnValue({
-      data: 1000,
-      refetch: mockRefetchBalance,
-    } as never);
+    mockUsePredictBalance.mockReturnValue({ data: 1000 } as never);
     mockUsePredictDeposit.mockReturnValue({
       deposit: mockDeposit,
       isDepositPending: false,
@@ -269,10 +260,6 @@ describe('usePredictPlaceOrder', () => {
 
       act(() => {
         result.current.placeOrder(mockOrderParams);
-      });
-
-      await act(async () => {
-        await Promise.resolve();
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -605,73 +592,6 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockDeposit).not.toHaveBeenCalled();
-      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows toast and returns deposit_in_progress when deposit is already pending', async () => {
-      mockUsePredictBalance.mockReturnValue({
-        data: INSUFFICIENT_BALANCE,
-      } as never);
-      mockUsePredictDeposit.mockReturnValue({
-        deposit: mockDeposit,
-        isDepositPending: true,
-      });
-
-      const { result } = renderHook(() => usePredictPlaceOrder());
-
-      let outcome: PlaceOrderOutcome | undefined;
-      await act(async () => {
-        outcome = await result.current.placeOrder(mockOrderParams);
-      });
-
-      expect(outcome).toEqual({ status: 'deposit_in_progress' });
-      expect(mockDeposit).not.toHaveBeenCalled();
-      expect(mockPlaceOrder).not.toHaveBeenCalled();
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Loading,
-          hasNoTimeout: false,
-        }),
-      );
-    });
-
-    it('does not set loading state when deposit is already pending', async () => {
-      mockUsePredictBalance.mockReturnValue({
-        data: INSUFFICIENT_BALANCE,
-      } as never);
-      mockUsePredictDeposit.mockReturnValue({
-        deposit: mockDeposit,
-        isDepositPending: true,
-      });
-
-      const { result } = renderHook(() => usePredictPlaceOrder());
-
-      await act(async () => {
-        await result.current.placeOrder(mockOrderParams);
-      });
-
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('uses refreshed balance to avoid unnecessary deposit retries', async () => {
-      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
-      mockRefetchBalance.mockResolvedValueOnce({
-        data: SUFFICIENT_BALANCE,
-      });
-      mockUsePredictBalance.mockReturnValue({
-        data: INSUFFICIENT_BALANCE,
-        refetch: mockRefetchBalance,
-      } as never);
-
-      const { result } = renderHook(() => usePredictPlaceOrder());
-
-      await act(async () => {
-        await result.current.placeOrder(mockOrderParams);
-      });
-
-      expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
       expect(mockDeposit).not.toHaveBeenCalled();
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
     });

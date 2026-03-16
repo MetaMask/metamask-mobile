@@ -3,11 +3,15 @@ import {
   useColorPulseAnimation,
   type PulseColor,
 } from './useColorPulseAnimation';
-import { mockTheme } from '../../../../util/theme';
 
 jest.mock('../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
-    theme: mockTheme,
+    theme: {
+      colors: {
+        success: { default: '#00ff00' },
+        error: { default: '#ff0000' },
+      },
+    },
   })),
 }));
 
@@ -317,8 +321,8 @@ describe('useColorPulseAnimation', () => {
           colorDuration: 200,
           minOpacity: 0.6,
           colors: {
-            increase: mockTheme.colors.success.default,
-            decrease: mockTheme.colors.error.default,
+            increase: '#00ff00',
+            decrease: '#ff0000',
             same: 'transparent',
           },
         }),

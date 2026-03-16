@@ -9,7 +9,6 @@ import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform } from 'react-native';
-import { AccountType } from '../../../constants/onboarding';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -632,7 +631,6 @@ describe('ManualBackupStep1', () => {
         'OptinMetrics',
         expect.objectContaining({
           onContinue: expect.any(Function),
-          accountType: AccountType.Metamask,
         }),
       );
     });

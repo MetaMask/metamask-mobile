@@ -315,10 +315,10 @@ exports[`ActivityView matches snapshot 1`] = `
                     <RNCSafeAreaView
                       edges={
                         {
-                          "bottom": "off",
+                          "bottom": "additive",
                           "left": "off",
                           "right": "off",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -346,7 +346,9 @@ exports[`ActivityView matches snapshot 1`] = `
                               "paddingLeft": 16,
                               "paddingRight": 8,
                             },
-                            false,
+                            {
+                              "marginTop": 0,
+                            },
                             undefined,
                           ]
                         }

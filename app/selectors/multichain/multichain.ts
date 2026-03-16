@@ -46,8 +46,11 @@ import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
 import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
 import { selectAccountTokensAcrossChains } from '../multichain';
-import { MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET } from '../../core/Multichain/constants';
-import { isTronSpecialAsset } from '../../core/Multichain/utils';
+import {
+  MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET,
+  TRON_RESOURCE_SYMBOLS_SET,
+  TronResourceSymbol,
+} from '../../core/Multichain/constants';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -363,7 +366,12 @@ export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
         selectMultichainTokenListForAccountsAnyChain(state, [account]) || [];
 
       for (const token of nonEvmTokensForAccount) {
-        if (isTronSpecialAsset(String(token.chainId), token.symbol)) {
+        if (
+          String(token.chainId).includes('tron:') &&
+          TRON_RESOURCE_SYMBOLS_SET.has(
+            (token.symbol || '').toLowerCase() as TronResourceSymbol,
+          )
+        ) {
           continue;
         }
         // We just need tron mainnet, at least for now

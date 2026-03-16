@@ -25,7 +25,6 @@ import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { providerErrors } from '@metamask/rpc-errors';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -75,9 +74,6 @@ jest.mock('../../core/Engine', () => ({
     },
     AccountsController: {
       updateAccounts: jest.fn(),
-    },
-    ApprovalController: {
-      clear: jest.fn(),
     },
     RemoteFeatureFlagController: {
       state: {
@@ -348,13 +344,9 @@ describe('appStateListenerTask', () => {
 });
 
 describe('appLockStateMachine', () => {
-  const mockApprovalControllerClear = Engine.context.ApprovalController
-    .clear as jest.Mock;
-
   beforeEach(() => {
     mockNavigate.mockClear();
     mockReset.mockClear();
-    mockApprovalControllerClear.mockClear();
   });
 
   it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
@@ -365,29 +357,6 @@ describe('appLockStateMachine', () => {
       .run();
 
     // Verify navigation to LockScreen
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
-  });
-
-  it('clears pending approvals via ApprovalController.clear when app is locked', async () => {
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      .run();
-
-    expect(mockApprovalControllerClear).toHaveBeenCalledWith(
-      providerErrors.userRejectedRequest(),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
-  });
-
-  it('navigates to LockScreen even when ApprovalController.clear throws', async () => {
-    mockApprovalControllerClear.mockImplementationOnce(() => {
-      throw new Error('clear failed');
-    });
-
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      .run();
-
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 });

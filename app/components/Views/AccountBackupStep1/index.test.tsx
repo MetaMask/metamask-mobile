@@ -10,7 +10,6 @@ import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { InteractionManager, Platform } from 'react-native';
-import { AccountType } from '../../../constants/onboarding';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -357,7 +356,6 @@ describe('AccountBackupStep1', () => {
       // Verify navigation to OnboardingSuccess
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
-        accountType: AccountType.Metamask,
       });
 
       // Get the onConfirm function from the modal params

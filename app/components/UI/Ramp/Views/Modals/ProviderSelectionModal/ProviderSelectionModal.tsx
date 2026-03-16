@@ -122,17 +122,6 @@ function ProviderSelectionModal() {
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
 
-  const handleDismiss = useCallback(
-    (hasPendingAction?: boolean) => {
-      if (!hasPendingAction && skipQuotes) {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
-        });
-      }
-    },
-    [navigation, skipQuotes],
-  );
-
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -162,7 +151,7 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}

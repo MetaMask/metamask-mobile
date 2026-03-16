@@ -74,10 +74,6 @@ jest.mock('../../hooks/useSlippageConfig', () => ({
   useSlippageConfig: jest.fn(),
 }));
 
-jest.mock('../../hooks/useModalCloseOnQuoteExpiry', () => ({
-  useModalCloseOnQuoteExpiry: jest.fn(),
-}));
-
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
@@ -119,7 +115,6 @@ import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 
 const mockUseGetSlippageOptions = useGetSlippageOptions as jest.MockedFunction<
   typeof useGetSlippageOptions
@@ -128,10 +123,6 @@ const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
 >;
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-const mockUseModalCloseOnQuoteExpiry =
-  useModalCloseOnQuoteExpiry as jest.MockedFunction<
-    typeof useModalCloseOnQuoteExpiry
-  >;
 
 describe('DefaultSlippageModal', () => {
   const mockSlippageConfig = {
@@ -641,20 +632,6 @@ describe('DefaultSlippageModal', () => {
       const call = mockUseGetSlippageOptions.mock.calls[0][0];
       expect(call.onCustomOptionPress).toBeDefined();
       expect(typeof call.onCustomOptionPress).toBe('function');
-    });
-  });
-
-  describe('useModalCloseOnQuoteExpiry', () => {
-    it('calls useModalCloseOnQuoteExpiry on render', () => {
-      render(<DefaultSlippageModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalled();
-    });
-
-    it('calls useModalCloseOnQuoteExpiry exactly once per render', () => {
-      render(<DefaultSlippageModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalledTimes(1);
     });
   });
 

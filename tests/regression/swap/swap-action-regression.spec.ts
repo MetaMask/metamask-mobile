@@ -31,11 +31,13 @@ describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
+              providerConfig: {
+                chainId: '0x1',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
+              },
             })
             .withDisabledSmartTransactions()
             .build();

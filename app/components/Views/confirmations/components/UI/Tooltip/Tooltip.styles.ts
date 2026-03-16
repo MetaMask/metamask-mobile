@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       margin: 0,
     },
     modalView: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.alternative,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 8,
@@ -36,10 +36,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 8,
     },
     modalContent: {
-      alignSelf: 'stretch',
-      backgroundColor: theme.colors.background.muted,
+      width: '100%',
+      backgroundColor: theme.colors.background.default,
       marginTop: 16,
-      marginHorizontal: 16,
       paddingVertical: 20,
       paddingHorizontal: 16,
       borderRadius: 8,

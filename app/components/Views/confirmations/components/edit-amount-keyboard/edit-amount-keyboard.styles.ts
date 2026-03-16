@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingBottom: 12,
     },
     wrapper: {
-      backgroundColor: params.theme.colors.background.default,
+      backgroundColor: params.theme.colors.background.alternative,
       borderTopLeftRadius: 12,
       borderTopRightRadius: 12,
       padding: 12,

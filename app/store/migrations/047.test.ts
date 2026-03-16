@@ -8,30 +8,9 @@ import {
   internalAccount1,
   internalAccount2,
 } from '../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../reducers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Identity } from './036';
-
-interface MigrationState {
-  engine: {
-    backgroundState: {
-      PreferencesController: {
-        identities: Record<string, Identity>;
-      };
-      AccountsController: {
-        internalAccounts: {
-          accounts: Record<
-            string,
-            {
-              address: string;
-              metadata: { name: string; importTime?: number };
-            }
-          >;
-          selectedAccount: Record<string, unknown>;
-        };
-      };
-    };
-  };
-}
 
 const mockChecksummedInternalAcc1 = toChecksumHexAddress(
   internalAccount1.address,
@@ -192,7 +171,10 @@ describe('Migration #47', () => {
   it('should add importTime from identities or default to the current date', () => {
     // Mocked Date.now since jest is not aware of date.
     jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-01-01').getTime());
-    const newState = migration(oldState) as MigrationState;
+    const newState: Pick<RootState, 'engine'> = migration(oldState) as Pick<
+      RootState,
+      'engine'
+    >;
 
     Object.keys(
       newState.engine.backgroundState.AccountsController.internalAccounts
@@ -255,7 +237,10 @@ describe('Migration #47', () => {
       },
     };
 
-    const newState = migration(oldState2) as MigrationState;
+    const newState: Pick<RootState, 'engine'> = migration(oldState2) as Pick<
+      RootState,
+      'engine'
+    >;
 
     Object.keys(
       newState.engine.backgroundState.AccountsController.internalAccounts

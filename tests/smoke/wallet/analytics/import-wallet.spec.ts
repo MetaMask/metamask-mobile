@@ -69,7 +69,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
                   is_metrics_opted_in: true,
                   location: 'onboarding_metametrics',
                   updated_after_onboarding: false,
-                  account_type: 'imported',
                 },
               );
             },

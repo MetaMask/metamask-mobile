@@ -23,13 +23,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
   >
     Your earnings
   </Text>
-  <View
-    style={
-      {
-        "paddingBottom": 24,
-      }
-    }
-  >
+  <View>
     <View
       style={
         {
@@ -376,13 +370,7 @@ exports[`Staking Earnings should render correctly 1`] = `
   >
     Your earnings
   </Text>
-  <View
-    style={
-      {
-        "paddingBottom": 24,
-      }
-    }
-  >
+  <View>
     <View
       style={
         {

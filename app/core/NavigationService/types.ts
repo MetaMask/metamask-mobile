@@ -133,7 +133,10 @@ import type {
 } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
 
 // Card params
-import type { CardConfirmModalParams } from '../../components/UI/Card/Card.types';
+import type {
+  CardOnboardingWebviewParams,
+  CardConfirmModalParams,
+} from '../../components/UI/Card/Card.types';
 
 // Account actions params
 import type {
@@ -441,7 +444,6 @@ export interface RootStackParamList extends ParamListBase {
   WalletConnectSessionsView: undefined;
   NftFullView: undefined;
   TokensFullView: undefined;
-  CashTokensFullView: undefined;
   TrendingTokensFullView: undefined;
   RWATokensFullView: undefined;
 
@@ -612,6 +614,7 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
+  CardOnboardingWebview: CardOnboardingWebviewParams | undefined;
   CardModals: undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;

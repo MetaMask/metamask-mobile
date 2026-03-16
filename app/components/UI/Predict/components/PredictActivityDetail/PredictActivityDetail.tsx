@@ -278,13 +278,9 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3 gap-2"
+      twClassName="py-3"
     >
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={tw.style('flex-1')}
-      >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {label}
       </Text>
       {isMonetary ? (

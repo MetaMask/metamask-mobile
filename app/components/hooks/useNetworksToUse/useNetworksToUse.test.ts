@@ -9,6 +9,7 @@ import {
   NetworkType,
   ProcessedNetwork,
 } from '../useNetworksByNamespace/useNetworksByNamespace';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 
@@ -24,6 +25,13 @@ jest.mock('../useNetworksByNamespace/useNetworksByNamespace', () => ({
     Custom: 'Custom',
   },
 }));
+
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(),
+  }),
+);
 
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(),
@@ -156,6 +164,9 @@ describe('useNetworksToUse', () => {
 
     // Default mock implementations - these will be overridden by individual tests
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectMultichainAccountsState2Enabled) {
+        return false;
+      }
       if (selector === selectSelectedInternalAccountByScope) {
         return () => null;
       }
@@ -188,6 +199,7 @@ describe('useNetworksToUse', () => {
 
       // Assert
       expect(result.current.networksToUse).toEqual(mockDefaultNetworks);
+      expect(result.current.isMultichainAccountsState2Enabled).toBe(false);
       expect(result.current.areAllNetworksSelectedCombined).toBe(true);
     });
 
@@ -210,6 +222,9 @@ describe('useNetworksToUse', () => {
   describe('when multichain is enabled', () => {
     beforeEach(() => {
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -327,6 +342,9 @@ describe('useNetworksToUse', () => {
     it('returns EVM networks only when only EVM account is selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -357,6 +375,9 @@ describe('useNetworksToUse', () => {
     it('returns Solana networks only when only Solana account is selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === SolScope.Mainnet) {
@@ -386,6 +407,9 @@ describe('useNetworksToUse', () => {
     it('falls back to default networks when no accounts are selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return () => null; // No accounts selected
         }
@@ -457,6 +481,9 @@ describe('useNetworksToUse', () => {
     it('returns EVM networks when both accounts are selected but only EVM networks are available', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -538,6 +565,9 @@ describe('useNetworksToUse', () => {
     it('returns Solana networks when both accounts are selected but only Solana networks are available', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -618,6 +648,9 @@ describe('useNetworksToUse', () => {
     it('falls back to default networks when all accounts are selected but no networks are available', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -701,6 +734,9 @@ describe('useNetworksToUse', () => {
     it('returns true when both EVM, Solana and Bitcoin networks are all selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -778,6 +814,9 @@ describe('useNetworksToUse', () => {
       // Arrange
 
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -856,6 +895,9 @@ describe('useNetworksToUse', () => {
     it('returns EVM selection state when only EVM account is selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -924,6 +966,9 @@ describe('useNetworksToUse', () => {
     it('returns Solana selection state when only Solana account is selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === SolScope.Mainnet) {
@@ -992,6 +1037,9 @@ describe('useNetworksToUse', () => {
     it('returns default areAllNetworksSelected when multichain is enabled but no accounts selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return () => null; // No accounts selected
         }
@@ -1016,6 +1064,9 @@ describe('useNetworksToUse', () => {
     it('works with Custom network type', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false; // Multichain disabled for this test
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return () => null;
         }
@@ -1048,6 +1099,9 @@ describe('useNetworksToUse', () => {
     it('handles empty networks arrays gracefully', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false; // Multichain disabled for this test
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return () => null;
         }
@@ -1071,6 +1125,9 @@ describe('useNetworksToUse', () => {
     it('handles null return values from selectors', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return null;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return () => null; // Return a function that returns null
         }
@@ -1089,6 +1146,7 @@ describe('useNetworksToUse', () => {
       // Assert
       expect(result.current.selectedEvmAccount).toBeNull();
       expect(result.current.selectedSolanaAccount).toBeNull();
+      expect(result.current.isMultichainAccountsState2Enabled).toBeFalsy();
     });
 
     it('handles undefined return values from useNetworksByCustomNamespace', () => {
@@ -1150,6 +1208,9 @@ describe('useNetworksToUse', () => {
     it('falls back to default networks when EVM account is selected but evmNetworks is null', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -1219,6 +1280,9 @@ describe('useNetworksToUse', () => {
     it('falls back to default networks when Solana account is selected but solanaNetworks is null', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === SolScope.Mainnet) {
@@ -1298,6 +1362,9 @@ describe('useNetworksToUse', () => {
       };
 
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -1347,6 +1414,9 @@ describe('useNetworksToUse', () => {
       };
 
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -1403,6 +1473,9 @@ describe('useNetworksToUse', () => {
     it('returns Bitcoin networks only when only Bitcoin account is selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === BtcScope.Mainnet) {
@@ -1483,6 +1556,9 @@ describe('useNetworksToUse', () => {
     it('combines EVM and Bitcoin networks when both accounts are selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -1560,6 +1636,9 @@ describe('useNetworksToUse', () => {
     it('returns Tron networks only when only Tron account is selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === TrxScope.Mainnet) {
@@ -1631,6 +1710,9 @@ describe('useNetworksToUse', () => {
     it('combines EVM and Tron networks when both accounts are selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {
@@ -1706,6 +1788,9 @@ describe('useNetworksToUse', () => {
     it('combines Bitcoin and Tron networks when both accounts are selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === BtcScope.Mainnet) {
@@ -1783,6 +1868,9 @@ describe('useNetworksToUse', () => {
     it('combines Solana, Bitcoin and Tron networks when all three accounts are selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === SolScope.Mainnet) {
@@ -1863,6 +1951,9 @@ describe('useNetworksToUse', () => {
     it('correctly calculates areAllNetworksSelectedCombined with Bitcoin, Solana and Tron', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === EVM_SCOPE) {

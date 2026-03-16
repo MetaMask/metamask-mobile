@@ -25,14 +25,12 @@ import { useToAddressValidation } from '../../../hooks/send/useToAddressValidati
 import { RecipientInput } from '../../recipient-input';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
-import { SendAlertModal } from '../send-alert-modal';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
-  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
@@ -41,15 +39,13 @@ export const Recipient = () => {
   const styles = styleSheet();
   const {
     toAddressError,
-    toAddressErrorAllowAcknowledge,
     toAddressWarning,
     toAddressValidated,
     loading,
     resolvedAddress,
   } = useToAddressValidation();
 
-  const hasBlockingError =
-    Boolean(toAddressError) && !toAddressErrorAllowAcknowledge;
+  const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
   useRouteParams();
@@ -63,9 +59,9 @@ export const Recipient = () => {
     }, [setIsSubmittingTransaction, setIsRecipientSelectedFromList]),
   );
 
-  const proceedWithSubmit = useCallback(
+  const handleReview = useCallback(
     async (isPasted?: boolean) => {
-      if (isSubmittingTransaction) {
+      if (toAddressError || isSubmittingTransaction) {
         return;
       }
       // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
@@ -82,6 +78,7 @@ export const Recipient = () => {
     },
     [
       to,
+      toAddressError,
       handleSubmitPress,
       captureRecipientSelected,
       resolvedAddress,
@@ -89,34 +86,6 @@ export const Recipient = () => {
       isSubmittingTransaction,
       asset,
       chainId,
-    ],
-  );
-
-  const handleAlertModalClose = useCallback(() => {
-    setIsAlertModalOpen(false);
-  }, []);
-
-  const handleAlertModalAcknowledge = useCallback(async () => {
-    setIsAlertModalOpen(false);
-    await proceedWithSubmit(false);
-  }, [proceedWithSubmit]);
-
-  const handleReview = useCallback(
-    async (isPasted?: boolean) => {
-      if (hasBlockingError || isSubmittingTransaction) {
-        return;
-      }
-      if (toAddressErrorAllowAcknowledge) {
-        setIsAlertModalOpen(true);
-        return;
-      }
-      await proceedWithSubmit(isPasted);
-    },
-    [
-      hasBlockingError,
-      toAddressErrorAllowAcknowledge,
-      isSubmittingTransaction,
-      proceedWithSubmit,
     ],
   );
 
@@ -238,23 +207,18 @@ export const Recipient = () => {
                 size={ButtonBaseSize.Lg}
                 onPress={handleSubmitPressLocal}
                 twClassName="w-full"
-                isDanger={!loading && hasBlockingError}
+                isDanger={!loading && Boolean(toAddressError)}
                 disabled={
-                  hasBlockingError || isSubmittingTransaction || loading
+                  Boolean(toAddressError) || isSubmittingTransaction || loading
                 }
                 isLoading={isSubmittingTransaction || loading}
               >
-                {hasBlockingError ? toAddressError : strings('send.review')}
+                {isReviewButtonDisabled
+                  ? toAddressError
+                  : strings('send.review')}
               </Button>
             </Box>
           )}
-          <SendAlertModal
-            isOpen={isAlertModalOpen}
-            title={strings('send.smart_contract_address')}
-            errorMessage={strings('send.smart_contract_address_warning')}
-            onAcknowledge={handleAlertModalAcknowledge}
-            onClose={handleAlertModalClose}
-          />
         </Box>
       </KeyboardAvoidingView>
     </SafeAreaView>

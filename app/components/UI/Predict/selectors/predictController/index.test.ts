@@ -10,7 +10,6 @@ import {
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
   selectPredictWithdrawTransaction,
-  selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
@@ -1253,104 +1252,6 @@ describe('Predict Controller Selectors', () => {
       const result = selector(mockState as any);
 
       expect(result).toEqual({});
-    });
-  });
-
-  describe('selectPredictSelectedPaymentToken', () => {
-    it('returns null when selectedPaymentToken is null', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              selectedPaymentToken: null,
-            },
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictSelectedPaymentToken(mockState as any);
-
-      expect(result).toBeNull();
-    });
-
-    it('returns token object when selectedPaymentToken is set', () => {
-      const selectedPaymentToken = {
-        address: '0x1234567890123456789012345678901234567890',
-        chainId: '0x1',
-        symbol: 'USDC',
-      };
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              selectedPaymentToken,
-            },
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictSelectedPaymentToken(mockState as any);
-
-      expect(result).toEqual(selectedPaymentToken);
-    });
-
-    it('returns null when PredictController state is undefined', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: undefined,
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictSelectedPaymentToken(mockState as any);
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null when selectedPaymentToken property is missing', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {},
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictSelectedPaymentToken(mockState as any);
-
-      expect(result).toBeNull();
-    });
-
-    it('returns token with all properties', () => {
-      const selectedPaymentToken = {
-        address: '0xabcdef1234567890abcdef1234567890abcdef12',
-        chainId: '0x89',
-        symbol: 'DAI',
-      };
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              selectedPaymentToken,
-            },
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictSelectedPaymentToken(mockState as any);
-
-      expect(result).toEqual(selectedPaymentToken);
-      expect(result?.address).toBe(selectedPaymentToken.address);
-      expect(result?.chainId).toBe(selectedPaymentToken.chainId);
-      expect(result?.symbol).toBe(selectedPaymentToken.symbol);
     });
   });
 });

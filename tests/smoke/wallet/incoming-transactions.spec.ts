@@ -9,7 +9,6 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   ENTROPY_WALLET_1_ID,
 } from '../../framework/fixtures/FixtureBuilder';
-import type { AccountTreeControllerState } from '../../framework/fixtures/types';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
@@ -131,9 +130,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
+          .withAccountTreeController(EVM_ONLY_ACCOUNT_TREE)
           .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .withPrivacyModePreferences(false)
           .build(),
@@ -155,9 +152,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
+          .withAccountTreeController(EVM_ONLY_ACCOUNT_TREE)
           .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .withTokens([
             {
@@ -186,9 +181,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
+          .withAccountTreeController(EVM_ONLY_ACCOUNT_TREE)
           .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .withPrivacyModePreferences(false)
           .build(),
@@ -210,9 +203,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
+          .withAccountTreeController(EVM_ONLY_ACCOUNT_TREE)
           .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .withPrivacyModePreferences(true)
           .build(),
@@ -232,9 +223,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
+          .withAccountTreeController(EVM_ONLY_ACCOUNT_TREE)
           .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .withTransactions([
             {
@@ -264,9 +253,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
+          .withAccountTreeController(EVM_ONLY_ACCOUNT_TREE)
           .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .build(),
         restartDevice: true,

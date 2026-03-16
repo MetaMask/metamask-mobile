@@ -232,7 +232,6 @@ describe('AssetOptions Component', () => {
   const mockNavigation = {
     navigate: jest.fn(),
     goBack: jest.fn(),
-    isFocused: jest.fn().mockReturnValue(true),
   };
 
   beforeEach(() => {

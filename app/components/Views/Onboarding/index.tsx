@@ -8,6 +8,7 @@ import React, {
 import {
   ActivityIndicator,
   BackHandler,
+  View,
   ScrollView,
   InteractionManager,
   Animated,
@@ -15,7 +16,10 @@ import {
   Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
-import { colors as importedColors } from '../../../styles/common';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -23,14 +27,7 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import {
-  saveOnboardingEvent as saveEvent,
-  setAccountType,
-} from '../../../actions/onboarding';
-import {
-  AccountType,
-  getSocialAccountType,
-} from '../../../constants/onboarding';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePna25Acknowledged as storePna25AcknowledgedAction,
@@ -48,7 +45,7 @@ import {
   markMetricsOptInUISeen,
   resetMetricsOptInUISeen,
 } from '../../../util/metrics/metricsOptInUIUtils';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -79,11 +76,16 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { JsonMap } from '@segment/analytics-react-native';
-import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
@@ -91,18 +93,7 @@ import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  Text,
-  TextButton,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { createStyles } from './styles';
 
 interface OnboardingState {
   warningModalVisible: boolean;
@@ -164,7 +155,8 @@ const Onboarding = () => {
   );
 
   const themeContext = useContext(ThemeContext);
-  const tw = useTailwind();
+  const colors = themeContext.colors || mockTheme.colors;
+  const styles = createStyles(colors);
 
   const [state, setState] = useState<OnboardingState>({
     warningModalVisible: false,
@@ -186,7 +178,6 @@ const Onboarding = () => {
   const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
   const warningCallback = useRef<() => boolean>(() => true);
-  const notificationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const animatedTimingStart = useCallback(
     (animatedRef: Animated.Value, toValue: number): void => {
@@ -207,8 +198,10 @@ const Onboarding = () => {
   }, []);
 
   const showNotification = useCallback((): void => {
+    // show notification
     animatedTimingStart(notificationAnimated, 0);
-    notificationTimer.current = setTimeout(() => {
+    // hide notification
+    setTimeout(() => {
       animatedTimingStart(notificationAnimated, 200);
     }, 4000);
     disableBackPress();
@@ -357,15 +350,14 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
-      dispatch(setAccountType(AccountType.Metamask));
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-        account_type: AccountType.Metamask,
+        account_type: 'metamask',
       });
     };
 
     handleExistingUser(action);
     endTrace({ name: TraceName.OnboardingCreateWallet });
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [metrics, navigation, track, handleExistingUser]);
 
   const onPressImport = useCallback(async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -392,13 +384,12 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
-      dispatch(setAccountType(AccountType.Imported));
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-        account_type: AccountType.Imported,
+        account_type: 'imported',
       });
     };
     handleExistingUser(action);
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [metrics, navigation, track, handleExistingUser]);
 
   const handlePostSocialLogin = useCallback(
     (
@@ -413,11 +404,9 @@ const Onboarding = () => {
       }
 
       if (result.type === 'success') {
-        const accountType = getSocialAccountType(provider, result.existingUser);
-        dispatch(setAccountType(accountType));
-
+        // Track social login completed
         track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
-          account_type: accountType,
+          account_type: provider,
         });
         if (createWallet) {
           if (result.existingUser) {
@@ -491,27 +480,21 @@ const Onboarding = () => {
         // handle error: show error message in the UI
       }
     },
-    [navigation, track, dispatch],
+    [navigation, track],
   );
 
   const handleOAuthLoginError = useCallback(
-    (error: OAuthError, provider: string, isFallback: boolean): void => {
-      const platform = Platform.OS;
-      const errorCode = String(error.code);
-
+    (error: Error): void => {
+      // If user has already consented to analytics, report error using regular Sentry
       if (metrics.isEnabled()) {
         captureException(error, {
           tags: {
             view: 'Onboarding',
             context: 'OAuth login failed - user consented to analytics',
-            oauth_platform: platform,
-            oauth_provider: provider,
-            oauth_error_code: errorCode,
-            oauth_is_fallback: String(isFallback),
           },
-          fingerprint: ['oauth-login-error', platform, provider, errorCode],
         });
       } else {
+        // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
         setState((prevState) => ({
           ...prevState,
           loading: false,
@@ -549,10 +532,7 @@ const Onboarding = () => {
           error.code === OAuthErrorType.GoogleLoginOneTapFailure ||
           // GoogleLoginNoProviderDependencies: The Android Credential Manager cannot find
           // required provider dependencies. Fallback to browser-based OAuth.
-          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies ||
-          (error.code === OAuthErrorType.UnknownError &&
-            Platform.OS === 'android' &&
-            socialConnectionType === 'google')
+          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies
         ) {
           // For Android Google, try browser fallback instead of showing error.
           // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
@@ -593,11 +573,7 @@ const Onboarding = () => {
               }
               // Handle both OAuthError and unexpected errors from browser fallback
               if (fallbackError instanceof OAuthError) {
-                handleOAuthLoginError(
-                  fallbackError,
-                  socialConnectionType,
-                  true,
-                );
+                handleOAuthLoginError(fallbackError);
               } else {
                 // Wrap unexpected errors as OAuthError to ensure they're properly handled
                 const wrappedError = new OAuthError(
@@ -606,7 +582,7 @@ const Onboarding = () => {
                     : 'Browser fallback failed with unknown error',
                   OAuthErrorType.UnknownError,
                 );
-                handleOAuthLoginError(wrappedError, socialConnectionType, true);
+                handleOAuthLoginError(wrappedError);
               }
               return;
             }
@@ -614,7 +590,7 @@ const Onboarding = () => {
           return;
         }
         // unexpected oauth login error
-        handleOAuthLoginError(error, socialConnectionType, false);
+        handleOAuthLoginError(error);
         return;
       }
 
@@ -703,14 +679,13 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
-      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-          account_type: accountType,
+          account_type: `metamask_${provider}`,
         });
       } else {
         track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-          account_type: accountType,
+          account_type: `imported_${provider}`,
         });
       }
 
@@ -809,70 +784,65 @@ const Onboarding = () => {
 
   const renderLoader = useCallback(
     (): React.ReactElement => (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 gap-y-8 mb-40"
-      >
-        <Box justifyContent={BoxJustifyContent.Center}>
+      <View style={styles.loaderWrapper}>
+        <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text
-            variant={TextVariant.BodyMd}
-            style={tw.style('mt-[30px] text-center text-default')}
-          >
-            {loadingMsg}
-          </Text>
-        </Box>
-      </Box>
+          <Text style={styles.loadingText}>{loadingMsg}</Text>
+        </View>
+      </View>
     ),
-    [loadingMsg, tw],
+    [styles, loadingMsg],
   );
 
   const renderContent = useCallback(
     (): React.ReactElement => (
-      <Box
-        justifyContent={BoxJustifyContent.Between}
-        alignItems={BoxAlignItems.Center}
-        twClassName={`flex-1 w-full px-5 ${Device.isMediumDevice() ? 'gap-y-4' : 'gap-y-6'}`}
-      >
+      <View style={styles.ctas}>
         <OnboardingAnimation
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
         >
           <Button
-            variant={ButtonVariant.Primary}
-            isInverse
+            variant={ButtonVariants.Primary}
             onPress={() => handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            isFullWidth
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={importedColors.applePayBlack}
+              >
+                {strings('onboarding.start_exploring_now')}
+              </Text>
+            }
+            width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-          >
-            {strings('onboarding.start_exploring_now')}
-          </Button>
+            style={styles.blackButton}
+          />
           <Button
-            variant={ButtonVariant.Secondary}
-            isInverse
+            variant={ButtonVariants.Secondary}
             onPress={() => handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={tw.style({
-              backgroundColor: importedColors.applePayBlack,
-              borderColor: 'transparent',
-            })}
-          >
-            {SEEDLESS_ONBOARDING_ENABLED
-              ? strings('onboarding.import_using_srp_social_login')
-              : strings('onboarding.import_using_srp')}
-          </Button>
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={importedColors.white}
+              >
+                {SEEDLESS_ONBOARDING_ENABLED
+                  ? strings('onboarding.import_using_srp_social_login')
+                  : strings('onboarding.import_using_srp')}
+              </Text>
+            }
+            style={styles.inverseBlackButton}
+          />
         </OnboardingAnimation>
-      </Box>
+      </View>
     ),
     [
+      styles,
       state.startOnboardingAnimation,
       setStartFoxAnimation,
       handleCtaActions,
-      tw,
     ],
   );
 
@@ -896,17 +866,11 @@ const Onboarding = () => {
       return (
         <Animated.View
           style={[
-            tw.style('flex-row items-end', { flex: 0.1 }),
+            styles.notificationContainer,
             { transform: [{ translateY: notificationAnimated }] },
           ]}
         >
-          <ElevatedView
-            style={tw.style(
-              'absolute bottom-0 left-0 right-0 bg-transparent',
-              Device.isIphoneX() ? 'pb-5' : 'pb-[10px]',
-            )}
-            elevation={100}
-          >
+          <ElevatedView style={styles.modalTypeView} elevation={100}>
             <BaseNotification status="success" data={notificationData} />
           </ElevatedView>
         </Animated.View>
@@ -914,8 +878,8 @@ const Onboarding = () => {
     }, [
       route?.params?.delete,
       route?.params?.showErrorReportSentToast,
+      styles,
       notificationAnimated,
-      tw,
     ]);
 
   useEffect(() => {
@@ -945,9 +909,6 @@ const Onboarding = () => {
 
     return () => {
       mounted.current = false;
-      if (notificationTimer.current) {
-        clearTimeout(notificationTimer.current);
-      }
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
@@ -984,51 +945,51 @@ const Onboarding = () => {
     >
       <ThrowErrorIfNeeded />
       <SafeAreaView
-        style={tw.style('flex-1', {
-          backgroundColor:
-            themeContext.themeAppearance === 'dark'
-              ? importedColors.gettingStartedTextColor
-              : importedColors.gettingStartedPageBackgroundColorLightMode,
-        })}
+        style={[
+          baseStyles.flexGrow,
+          {
+            backgroundColor:
+              themeContext.themeAppearance === 'dark'
+                ? importedColors.gettingStartedTextColor
+                : importedColors.gettingStartedPageBackgroundColorLightMode,
+          },
+        ]}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
         <ScrollView
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-1')}
+          style={baseStyles.flexGrow}
+          contentContainerStyle={styles.scroll}
         >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="flex-1 py-4"
-          >
+          <View style={styles.wrapper}>
             {renderContent()}
 
             {loading && (
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="absolute top-0 left-0 right-0 bottom-0"
-                style={tw.style(
-                  { zIndex: 1000 },
+              <View
+                style={[
+                  styles.loaderOverlay,
                   {
                     backgroundColor:
                       themeContext.themeAppearance === 'dark'
                         ? importedColors.gettingStartedTextColor
                         : importedColors.gettingStartedPageBackgroundColorLightMode,
                   },
-                )}
+                ]}
               >
                 {renderLoader()}
-              </Box>
+              </View>
             )}
-          </Box>
+          </View>
 
           {existingUser && !loading && (
-            <Box twClassName="mb-10 -mt-10">
-              <TextButton onPress={onLogin} isInverse>
-                {strings('onboarding.unlock')}
-              </TextButton>
-            </Box>
+            <View style={styles.footer}>
+              <Button
+                variant={ButtonVariants.Link}
+                onPress={onLogin}
+                label={strings('onboarding.unlock')}
+                width={ButtonWidthTypes.Full}
+                size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+              />
+            </View>
           )}
         </ScrollView>
 
@@ -1038,7 +999,7 @@ const Onboarding = () => {
           <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
         )}
 
-        <Box>{handleSimpleNotification()}</Box>
+        <View>{handleSimpleNotification()}</View>
 
         <FastOnboarding
           onPressContinueWithGoogle={onPressContinueWithGoogle}

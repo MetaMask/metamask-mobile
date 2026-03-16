@@ -36,7 +36,7 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: jest.fn(() => ({ onLayout: jest.fn() })),
+  default: jest.fn(),
   HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',

@@ -4,7 +4,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#f3f3f4",
       "height": "100%",
       "justifyContent": "space-between",
       "paddingHorizontal": 16,

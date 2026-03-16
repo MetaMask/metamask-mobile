@@ -394,9 +394,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flexBasis": "0%",
-                          "flexGrow": 1,
-                          "flexShrink": 1,
+                          "flex": 1,
                         }
                       }
                     >
@@ -404,8 +402,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
+                            "paddingHorizontal": 16,
                           }
                         }
                         enabled={true}
@@ -419,9 +416,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                             collapsable={false}
                             style={
                               {
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
+                                "flex": 1,
                                 "transform": [
                                   {
                                     "translateX": 0,
@@ -433,17 +428,13 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                             <Text
                               accessibilityRole="text"
                               style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 32,
-                                    "fontWeight": 700,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 40,
-                                  },
-                                  undefined,
-                                ]
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 32,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 40,
+                                }
                               }
                               testID="import-from-seed-screen-title-id"
                             >
@@ -451,42 +442,30 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                             </Text>
                             <View
                               style={
-                                [
-                                  {
-                                    "display": "flex",
-                                    "marginTop": 6,
-                                  },
-                                  undefined,
-                                ]
+                                {
+                                  "marginTop": 6,
+                                }
                               }
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 4,
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 4,
+                                  }
                                 }
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#66676a",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "fontWeight": 400,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
                                   Enter your Secret Recovery Phrase
@@ -772,17 +751,11 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       </RCTScrollView>
                       <View
                         style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "display": "flex",
-                              "paddingBottom": 16,
-                              "paddingLeft": 16,
-                              "paddingRight": 16,
-                              "paddingTop": 16,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "backgroundColor": "#ffffff",
+                            "paddingHorizontal": 16,
+                            "paddingVertical": 16,
+                          }
                         }
                       >
                         <TouchableOpacity

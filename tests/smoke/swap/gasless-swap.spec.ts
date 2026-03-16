@@ -33,11 +33,13 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              chainId,
-              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
+              providerConfig: {
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
+              },
             })
             .withMetaMetricsOptIn()
             .build();
@@ -60,9 +62,6 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
             responseCode: 200,
           });
           await setupRemoteFeatureFlagsMock(mockServer, {
-            bridgeConfigV2: {
-              sse: { enabled: false },
-            },
             smartTransactionsNetworks: {
               '0x1': {
                 mobileActiveIOS: true,

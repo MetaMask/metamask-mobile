@@ -24,7 +24,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
-import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
 
 interface LearnMoreBottomSheetProps {
   onClose: () => void;
@@ -75,19 +74,19 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
           <ButtonIcon
             onPress={handleBack}
             iconName={IconName.ArrowLeft}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BACK_BUTTON}
+            testID="learn-more-back-button"
           />
           <Text
             variant={TextVariant.HeadingMd}
             style={styles.title}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.TITLE}
+            testID="learn-more-title"
           >
             {strings('multichain_accounts.learn_more.title')}
           </Text>
           <ButtonIcon
             onPress={handleClose}
             iconName={IconName.Close}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CLOSE_BUTTON}
+            testID="learn-more-close-button"
           />
         </View>
 
@@ -96,7 +95,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
             style={styles.description}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.DESCRIPTION}
+            testID="learn-more-description"
           >
             {strings('multichain_accounts.learn_more.description')}
           </Text>
@@ -105,7 +104,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
             isChecked={isCheckboxChecked}
             onPress={handleCheckboxToggle}
             label={strings('multichain_accounts.learn_more.checkbox_label')}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX}
+            testID="learn-more-checkbox"
           />
         </View>
 
@@ -117,7 +116,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
             width={ButtonWidthTypes.Full}
             onPress={handleConfirm}
             isDisabled={!isCheckboxChecked}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CONFIRM_BUTTON}
+            testID="learn-more-confirm-button"
           />
         </View>
       </View>

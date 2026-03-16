@@ -12,12 +12,17 @@ const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
 
 // Mock dependencies
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      primary: { default: '#0376C9' },
+      success: { default: '#00FF00' },
+      error: { default: '#FF0000' },
+      border: { muted: '#CCCCCC' },
+      background: { alternative: '#F5F5F5' },
+    },
+  }),
+}));
 
 jest.mock('./PerpsFlipPositionConfirmSheet.styles', () => () => ({
   contentContainer: {},

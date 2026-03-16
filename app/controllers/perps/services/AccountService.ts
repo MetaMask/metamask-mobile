@@ -5,10 +5,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
-import {
-  PERPS_CONSTANTS,
-  WITHDRAWAL_CONSTANTS,
-} from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import {
   PerpsAnalyticsEvent,
@@ -120,7 +117,7 @@ export class AccountService {
 
           // Calculate net amount after fees
           const grossAmount = parseFloat(params.amount);
-          const feeAmount = WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
+          const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
           // Get current account address via messenger

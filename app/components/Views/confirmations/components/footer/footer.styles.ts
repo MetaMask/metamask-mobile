@@ -42,7 +42,7 @@ const styleSheet = (params: {
       );
 
   const baseFooterStyle = {
-    backgroundColor: colors.background.default,
+    backgroundColor: colors.background.alternative,
     paddingHorizontal: 16,
     paddingTop: 16,
   };

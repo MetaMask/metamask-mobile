@@ -36,8 +36,6 @@ export interface PredictClaimButtonProps {
   amount?: number;
   onPress: () => void;
   disabled?: boolean;
-  isLoading?: boolean;
-  isHidden?: boolean;
   testID?: string;
 }
 
@@ -48,7 +46,6 @@ export interface PredictActionButtonsProps {
   onClaimPress?: () => void;
   claimableAmount?: number;
   isLoading?: boolean;
-  isClaimPending?: boolean;
   testID?: string;
   isCarousel?: boolean;
 }
