@@ -14,7 +14,8 @@ export const selectIsPna25FlagEnabled = createSelector(
   (remoteFeatureFlags): boolean => {
     const remoteValue = remoteFeatureFlags?.extensionUxPna25;
     const useRemoteOnly =
-      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true';
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true' &&
+      process.env.E2E !== 'true';
 
     if (useRemoteOnly) {
       return remoteValue === true;

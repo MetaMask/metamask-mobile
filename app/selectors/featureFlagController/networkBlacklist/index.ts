@@ -23,7 +23,10 @@ export const selectAdditionalNetworksBlacklistFeatureFlag = createSelector(
       | string[]
       | undefined;
 
-    if (process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true') {
+    if (
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true' &&
+      process.env.E2E !== 'true'
+    ) {
       const value = remoteValue || [];
       return Array.isArray(value) ? value : [];
     }
