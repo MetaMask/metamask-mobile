@@ -781,6 +781,8 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
+    "activeOrder": null,
+    "selectedPaymentToken": null,
     "accountMeta": {}
   },
   "AiDigestController": {

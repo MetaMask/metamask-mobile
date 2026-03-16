@@ -20372,6 +20372,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@wdio/protocols@npm:^9.24.0":
+  version: 9.24.0
+  resolution: "@wdio/protocols@npm:9.24.0"
+  checksum: 10/b5478e70dbd0f5294115334c833455032433eff57b62c7355ec6ca01d15f56fb16bc0c5d62acb3c6f66b8360d33af71b8b66d7a9e2e76d684ec45dd0bb318f1b
+  languageName: node
+  linkType: hard
+
 "@wdio/repl@npm:9.16.2":
   version: 9.16.2
   resolution: "@wdio/repl@npm:9.16.2"
@@ -35620,6 +35627,7 @@ __metadata:
     "@walletconnect/react-native-compat": "npm:^2.23.0"
     "@walletconnect/types": "npm:^2.23.0"
     "@walletconnect/utils": "npm:^2.23.0"
+    "@wdio/protocols": "npm:^9.24.0"
     "@welldone-software/why-did-you-render": "npm:^8.0.1"
     "@xmldom/xmldom": "npm:^0.8.10"
     appium: "npm:^2.12.1"

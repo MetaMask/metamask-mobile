@@ -3172,7 +3172,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getByText } = renderWithProvider(
+      const { getByText, getAllByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3183,7 +3183,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Should show the route market's leverage badge
       expect(getByText('25x')).toBeOnTheScreen();
-      expect(getByText('ETH-USD')).toBeOnTheScreen();
+      expect(getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
     });
 
     it('enriches market data from usePerpsMarkets when route has minimal data', async () => {
@@ -3213,7 +3213,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       }));
 
-      const { getByText, getByTestId } = renderWithProvider(
+      const { getByText, getByTestId, getAllByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3224,7 +3224,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Verify the header renders with correct market symbol
       expect(getByTestId('perps-market-header')).toBeOnTheScreen();
-      expect(getByText('BTC-USD')).toBeOnTheScreen();
+      expect(getAllByText('BTC-USD').length).toBeGreaterThanOrEqual(1);
 
       // Should show the enriched market's leverage badge from usePerpsMarkets
       await waitFor(() => {
@@ -3248,7 +3248,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getByText, queryByText } = renderWithProvider(
+      const { getAllByText, queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3258,7 +3258,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Should show the asset name but no leverage badge (since no maxLeverage available)
-      expect(getByText('UNKNOWN-USD')).toBeOnTheScreen();
+      expect(getAllByText('UNKNOWN-USD').length).toBeGreaterThanOrEqual(1);
       // No leverage badge should be shown
       expect(queryByText('40x')).toBeNull();
       expect(queryByText('25x')).toBeNull();

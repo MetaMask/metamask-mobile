@@ -42,6 +42,7 @@ const FeeRow = ({ title, description, amount }: FeeRowProps) => (
 interface PredictFeeBreakdownSheetProps {
   providerFee: number;
   metamaskFee: number;
+  depositFee?: number;
   sharePrice: number;
   contractCount: number;
   betAmount: number;
@@ -59,6 +60,7 @@ const PredictFeeBreakdownSheet = forwardRef<
       providerFee,
       metamaskFee,
       sharePrice,
+      depositFee,
       contractCount,
       betAmount,
       total,
@@ -94,6 +96,32 @@ const PredictFeeBreakdownSheet = forwardRef<
           description={strings('predict.fee_summary.exchange_fee_description')}
           amount={formatPrice(providerFee, { maximumDecimals: 2 })}
         />
+
+        {depositFee && (
+          <>
+            <Box twClassName="flex-row items-start py-4">
+              <Box twClassName="flex-1 pr-4 gap-1">
+                <Text
+                  color={TextColor.TextDefault}
+                  variant={TextVariant.BodyMd}
+                >
+                  {strings('predict.fee_summary.deposit_fee')}
+                </Text>
+                <Text
+                  color={TextColor.TextAlternative}
+                  variant={TextVariant.BodyXs}
+                >
+                  {strings('predict.fee_summary.deposit_fee_description')}
+                </Text>
+              </Box>
+              <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
+                {formatPrice(depositFee, { maximumDecimals: 2 })}
+              </Text>
+            </Box>
+
+            <Box twClassName="border-t border-muted" />
+          </>
+        )}
 
         <Box twClassName="flex-row justify-between items-center pt-4">
           <Text
