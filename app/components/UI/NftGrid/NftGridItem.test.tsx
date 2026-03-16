@@ -3,6 +3,11 @@ import { render, act, waitFor } from '@testing-library/react-native';
 import { Nft } from '@metamask/assets-controllers';
 import NftGridItem from './NftGridItem';
 
+let mockDisplayNftMedia = true;
+jest.mock('react-redux', () => ({
+  useSelector: () => mockDisplayNftMedia,
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -88,6 +93,7 @@ describe('NftGridItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOnLoad = undefined;
+    mockDisplayNftMedia = true;
   });
 
   it('shows skeleton while image is loading when NFT has an image', () => {
@@ -132,6 +138,20 @@ describe('NftGridItem', () => {
     const { queryByTestId } = render(
       <NftGridItem
         item={nftWithoutImage}
+        onLongPress={mockOnLongPress}
+        source="mobile-nft-list"
+      />,
+    );
+
+    expect(queryByTestId('nft-skeleton')).toBeNull();
+  });
+
+  it('does not show skeleton when NFT media display is disabled, even if NFT has an image', () => {
+    mockDisplayNftMedia = false;
+
+    const { queryByTestId } = render(
+      <NftGridItem
+        item={mockNft}
         onLongPress={mockOnLongPress}
         source="mobile-nft-list"
       />,

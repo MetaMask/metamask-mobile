@@ -10,6 +10,8 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
+import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import CollectibleMedia from '../CollectibleMedia';
 import { Skeleton } from '../../../component-library/components-temp/Skeleton';
 
@@ -28,13 +30,20 @@ const NftGridItem = ({
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
   const [isImageLoading, setIsImageLoading] = useState(
-    () => !!(item.image || item.imageOriginal),
+    () => displayNftMedia && !!(item.image || item.imageOriginal),
   );
 
   useEffect(() => {
-    setIsImageLoading(!!(item.image || item.imageOriginal));
-  }, [item.address, item.tokenId, item.image, item.imageOriginal]);
+    setIsImageLoading(displayNftMedia && !!(item.image || item.imageOriginal));
+  }, [
+    item.address,
+    item.tokenId,
+    item.image,
+    item.imageOriginal,
+    displayNftMedia,
+  ]);
 
   const onPress = useCallback(() => {
     debouncedNavigation(navigation, item, source);
