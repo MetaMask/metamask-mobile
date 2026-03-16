@@ -1,5 +1,8 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
+  logger: {
+    level: 'trace',  // TODO: revert after debugging predict-open-position e2e
+  },
   artifacts: {
     rootDir: "./tests/artifacts",
     plugins: {
