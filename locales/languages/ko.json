@@ -119,6 +119,10 @@
       "message": "지금 자산을 소각 주소로 전송하고 있습니다. 계속 진행하면 자산을 잃게 됩니다.",
       "title": "소각 주소로 자산 전송"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "이 트랜잭션에는 가스 후원이 제공되지 않습니다. 계정에 최소 %{minBalance}의 %{nativeTokenSymbol} 토큰을 보유해야 합니다.",
       "title": "가스 후원 이용 불가"
@@ -689,7 +693,11 @@
     "invisible_character_error": "ENS 이름에서 보이지 않는 문자가 감지되었습니다. 잠재적인 사기를 피하기 위해 ENS 이름을 확인하세요.",
     "could_not_resolve_name": "이름을 확인할 수 없습니다",
     "invalid_address": "잘못된 주소",
-    "contractAddressError": "토큰의 계약 주소로 토큰을 보내고 있습니다. 이로 인해 해당 토큰이 손실될 수 있습니다."
+    "contractAddressError": "토큰의 계약 주소로 토큰을 보내고 있습니다. 이로 인해 해당 토큰이 손실될 수 있습니다.",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "견적은 다음 기간 전에 만료됨을",
+    "cancel": "취소"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -2154,6 +2162,7 @@
     "sell_position": "포지션 매도",
     "cash_out": "출금",
     "cash_out_info": "자금은 사용 가능한 잔액에 추가됩니다",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "{{price}}에 {{size}}주 매도",
     "cashout_info": "{{outcome}}에 {{amount}}(단가: {{initialPrice}})",
     "cashout_info_multiple": "{{outcomeGroupTitle}} - {{outcome}}에 {{amount}}(단가:{{initialPrice}}",
@@ -2338,7 +2347,9 @@
       "exchange_fee_description": "거래소 또는 시장에 지불한 수수료",
       "total_incl_fees": "수수료 포함",
       "close": "닫기",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "예측에 연결할 수 없습니다",
@@ -5921,6 +5932,7 @@
   "earn": {
     "claimable_bonus_tooltip": "mUSD 보유로 얻은 연간 보너스입니다. 보너스는 Linea에서 매일 청구할 수 있습니다.",
     "earn_a_percentage_bonus": "{{percentage}}% 보너스 받기",
+    "percentage_bonus": "{{percentage}}% 보너스",
     "claimable_bonus": "청구 가능한 보너스",
     "claim_bonus": "보너스 수령",
     "claim_bonus_subtitle": "보너스는 {{networkName}}에서 지급됩니다.",
@@ -6930,7 +6942,7 @@
       "upgrade_title": "메탈 카드로 업그레이드",
       "continue_button": "계속",
       "virtual_card": {
-        "name": "오렌지 가상 카드",
+        "name": "Virtual Card",
         "price": "수수료",
         "feature_1": "Apple Pay 및 Google Pay용 가상 카드",
         "feature_2": "암호화폐로 결제 (USDC, USDT, WETH 등)",
@@ -6939,10 +6951,13 @@
       "metal_card": {
         "name": "메탈 카드",
         "price": "연 $199",
-        "feature_1": "각인된 메탈 카드 및 Apple Pay·Google Pay용 가상 카드",
-        "feature_2": "매년 $10,000까지 3% 캐시백, 이후 1%",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "해외 결제 수수료 없음"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "주문 검토",
@@ -7090,7 +7105,8 @@
         "ssn_label": "사회보장번호",
         "ssn_description": "카드 발급사의 요구 사항입니다. 신용 조회는 진행되지 않습니다.",
         "invalid_ssn": "잘못된 SSN입니다",
-        "invalid_date_of_birth": "유효하지 않은 생년월일입니다. 18세 이상이어야 합니다"
+        "invalid_date_of_birth": "유효하지 않은 생년월일입니다. 18세 이상이어야 합니다",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "주소 추가",
@@ -7174,6 +7190,7 @@
       "enable_assets_button_label": "자산 활성화",
       "spending_limit_warning": "지출 한도가 거의 찼습니다. 결제가 거부되지 않도록 정보를 업데이트하세요.",
       "logout": "로그아웃",
+      "contact_support": "지원팀에 문의",
       "logout_confirmation_title": "카드에서 로그아웃하시겠습니까?",
       "logout_confirmation_message": "MetaMask 카드 계정에서 로그아웃하시겠습니까?",
       "logout_confirmation_cancel": "취소",
@@ -7727,6 +7744,18 @@
     },
     "active_boosts_title": "적용 중인 부스트",
     "season_1": "시즌 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "mUSD 구매",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "잠긴 리워드",
       "points_needed": "{{points}}포인트",
@@ -8006,6 +8035,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "토큰",
       "perpetuals": "영구계약",
       "predictions": "예측",
