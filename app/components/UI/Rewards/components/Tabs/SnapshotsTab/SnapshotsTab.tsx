@@ -11,7 +11,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSnapshots } from '../../../hooks/useSnapshots';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import SnapshotsGroup from './SnapshotsGroup';
