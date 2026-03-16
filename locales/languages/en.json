@@ -7783,7 +7783,8 @@
       "enter_now": "Enter now",
       "participant_count": "#{{count}}",
       "activity_type_hold": "Hold",
-      "days_left": "{{count}} days left"
+      "days_left": "{{count}} days left",
+      "starts_day": "Starts day {{day}}"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",

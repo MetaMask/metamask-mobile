@@ -12,6 +12,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatusInfo } from './CampaignTile.utils';
+import CampaignPhaseProgress from './CampaignPhaseProgress';
 
 export const CAMPAIGN_STATUS_TEST_IDS = {
   CONTAINER: 'campaign-status-container',
@@ -104,6 +105,8 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({ campaign }) => {
             {howItWorksDescription}
           </Text>
         ) : null}
+
+        <CampaignPhaseProgress campaign={campaign} />
       </Box>
     </Box>
   );
