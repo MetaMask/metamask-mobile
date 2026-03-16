@@ -79,7 +79,7 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
         </Box>
         <Icon
           name={IconName.X}
-          size={IconSize.Md}
+          size={IconSize.Sm}
           color={IconColor.IconDefault}
         />
       </Box>
