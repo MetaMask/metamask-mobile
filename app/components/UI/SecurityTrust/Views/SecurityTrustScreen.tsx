@@ -358,7 +358,7 @@ const SecurityTrustScreen: React.FC = () => {
             ).map(({ label, value }) => (
               <Box
                 key={label}
-                twClassName="flex-1 py-1"
+                twClassName="flex-1"
                 alignItems={BoxAlignItems.Start}
               >
                 <Text
