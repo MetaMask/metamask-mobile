@@ -1,19 +1,28 @@
-import { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
-
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
 import { PredictNavigationParamList } from '../../../types/navigation';
 import Engine from '../../../../../../core/Engine';
+import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 
 export const usePredictBuyInputState = () => {
   const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
+  const { PredictController } = Engine.context;
 
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { isConfirming: initialIsConfirmingFromRoute = false } = route.params;
 
-  const currentValue = activeOrder?.amount ?? 0;
+  const [currentValue, setCurrentValueState] = useState(
+    () => activeOrder?.amount ?? 0,
+  );
 
   const currentValueRef = useRef(currentValue);
   currentValueRef.current = currentValue;
@@ -22,19 +31,17 @@ export const usePredictBuyInputState = () => {
     currentValue ? currentValue.toString() : '',
   );
 
-  const isInputFocused = useMemo(
+  const [isInputFocused, setIsInputFocusedState] = useState(
     () => activeOrder?.isInputFocused ?? false,
-    [activeOrder],
   );
+  const shouldSyncCurrentValueRef = useRef(false);
+  const shouldClearAmountErrorRef = useRef(false);
+  const shouldSyncInputFocusRef = useRef(false);
 
-  const setIsInputFocused = useCallback(
-    (_isInputFocused: boolean) => {
-      updateActiveOrder({
-        isInputFocused: _isInputFocused,
-      });
-    },
-    [updateActiveOrder],
-  );
+  const setIsInputFocused = useCallback((nextIsInputFocused: boolean) => {
+    shouldSyncInputFocusRef.current = true;
+    setIsInputFocusedState(nextIsInputFocused);
+  }, []);
 
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isConfirming, setIsConfirming] = useState(
@@ -54,8 +61,33 @@ export const usePredictBuyInputState = () => {
       setIsUserInputChange(isUserInput);
     }
 
-    Engine.context.PredictController.setOrderAmount(nextValue, isUserInput);
+    shouldSyncCurrentValueRef.current = true;
+    shouldClearAmountErrorRef.current = isUserInput;
+    setCurrentValueState(nextValue);
   }, []);
+
+  useEffect(() => {
+    if (!shouldSyncCurrentValueRef.current) {
+      return;
+    }
+
+    shouldSyncCurrentValueRef.current = false;
+    PredictController.setOrderAmount(
+      currentValue,
+      shouldClearAmountErrorRef.current,
+    );
+  }, [currentValue, PredictController]);
+
+  useEffect(() => {
+    if (!shouldSyncInputFocusRef.current) {
+      return;
+    }
+
+    shouldSyncInputFocusRef.current = false;
+    updateActiveOrder({
+      isInputFocused,
+    });
+  }, [isInputFocused, updateActiveOrder]);
 
   return {
     currentValue,
