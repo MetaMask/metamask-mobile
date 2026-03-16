@@ -25,8 +25,6 @@ import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useAddToken } from '../../../../../../Views/confirmations/hooks/tokens/useAddToken';
 
 interface PredictPayWithRowProps {
   disabled?: boolean;
@@ -60,14 +58,6 @@ export function PredictPayWithRow({
   const tokenIconChainId = isPredictBalanceSelected
     ? PREDICT_BALANCE_CHAIN_ID
     : (payToken?.chainId as Hex | undefined);
-
-  useAddToken({
-    chainId: CHAIN_IDS.POLYGON,
-    decimals: POLYGON_USDCE.decimals,
-    name: POLYGON_USDCE.name,
-    symbol: POLYGON_USDCE.symbol,
-    tokenAddress: POLYGON_USDCE.address,
-  });
 
   return (
     <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
