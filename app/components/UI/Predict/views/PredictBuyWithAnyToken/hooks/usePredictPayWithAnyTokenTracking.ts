@@ -9,7 +9,6 @@ import { PredictNavigationParamList } from '../../../types/navigation';
 import { PREDICTION_ERROR_TRANSACTION_BATCH_ID } from '../../../constants/transactions';
 
 interface UsePredictPayWithAnyTokenTrackingParams {
-  onConfirm?: () => void;
   onFail?: (errorMessage?: string) => void;
 }
 
@@ -42,10 +41,8 @@ function getTransactionErrorMessage(
 }
 
 export function usePredictPayWithAnyTokenTracking({
-  onConfirm,
   onFail,
 }: UsePredictPayWithAnyTokenTrackingParams) {
-  const hasCalledConfirmRef = useRef(false);
   const hasCalledFailRef = useRef(false);
 
   const route =
@@ -86,18 +83,8 @@ export function usePredictPayWithAnyTokenTracking({
     }
 
     trackedBatchIdRef.current = batchId;
-    hasCalledConfirmRef.current = false;
     hasCalledFailRef.current = false;
   }, [batchId]);
-
-  useEffect(() => {
-    if (!batchId || !isConfirmed || !onConfirm || hasCalledConfirmRef.current) {
-      return;
-    }
-
-    hasCalledConfirmRef.current = true;
-    onConfirm();
-  }, [batchId, isConfirmed, onConfirm]);
 
   useEffect(() => {
     if (isFailed && !hasCalledFailRef.current && onFail) {

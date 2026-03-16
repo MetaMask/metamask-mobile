@@ -23,14 +23,12 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
 }));
 
 function runHook(params: {
-  onConfirm?: () => void;
   onFail?: (errorMessage?: string) => void;
   transactions?: TransactionMeta[];
 }) {
   return renderHookWithProvider(
     () =>
       usePredictPayWithAnyTokenTracking({
-        onConfirm: params.onConfirm,
         onFail: params.onFail,
       }),
     {
@@ -212,46 +210,6 @@ describe('usePredictPayWithAnyTokenTracking', () => {
     });
   });
 
-  describe('onConfirm callback', () => {
-    it('calls onConfirm when transaction becomes confirmed', () => {
-      mockActiveOrder = { batchId: 'batch-1' };
-      const onConfirm = jest.fn();
-
-      runHook({
-        onConfirm,
-        transactions: [
-          {
-            id: 'tx-1',
-            batchId: 'batch-1',
-            status: TransactionStatus.confirmed,
-          } as unknown as TransactionMeta,
-        ],
-      });
-
-      expect(onConfirm).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onConfirm only once across rerenders', () => {
-      mockActiveOrder = { batchId: 'batch-1' };
-      const onConfirm = jest.fn();
-
-      const { rerender } = runHook({
-        onConfirm,
-        transactions: [
-          {
-            id: 'tx-1',
-            batchId: 'batch-1',
-            status: TransactionStatus.confirmed,
-          } as unknown as TransactionMeta,
-        ],
-      });
-
-      rerender(undefined);
-
-      expect(onConfirm).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('onFail callback', () => {
     it('calls onFail with error message when transaction fails', () => {
       mockActiveOrder = { batchId: 'batch-1' };
@@ -312,32 +270,32 @@ describe('usePredictPayWithAnyTokenTracking', () => {
   });
 
   describe('batchId change tracking', () => {
-    it('resets callback dedup refs when batchId changes', () => {
-      mockActiveOrder = { batchId: 'batch-1' };
-      const onConfirm = jest.fn();
+    it('resets fail dedup ref when batchId changes', () => {
+      mockActiveOrder = { batchId: 'batch-1', error: 'error' };
+      const onFail = jest.fn();
 
       const { rerender } = runHook({
-        onConfirm,
+        onFail,
         transactions: [
           {
             id: 'tx-1',
             batchId: 'batch-1',
-            status: TransactionStatus.confirmed,
+            status: TransactionStatus.failed,
           } as unknown as TransactionMeta,
           {
             id: 'tx-2',
             batchId: 'batch-2',
-            status: TransactionStatus.confirmed,
+            status: TransactionStatus.failed,
           } as unknown as TransactionMeta,
         ],
       });
 
-      expect(onConfirm).toHaveBeenCalledTimes(1);
+      expect(onFail).toHaveBeenCalledTimes(1);
 
-      mockActiveOrder = { batchId: 'batch-2' };
+      mockActiveOrder = { batchId: 'batch-2', error: 'error 2' };
       rerender(undefined);
 
-      expect(onConfirm).toHaveBeenCalledTimes(2);
+      expect(onFail).toHaveBeenCalledTimes(2);
     });
   });
 });

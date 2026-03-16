@@ -123,6 +123,7 @@ import {
   PREDICTION_ERROR_TRANSACTION_BATCH_ID,
 } from '../constants/transactions';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../Views/confirmations/constants/predict';
 
 /**
  * State shape for PredictController
@@ -266,7 +267,11 @@ const metadata: StateMetadata<PredictControllerState> = {
 /**
  * PredictController events
  */
-export type PredictTransactionEventType = 'deposit' | 'claim' | 'withdraw';
+export type PredictTransactionEventType =
+  | 'deposit'
+  | 'depositAndOrder'
+  | 'claim'
+  | 'withdraw';
 
 export type PredictTransactionEventStatus =
   | 'approved'
@@ -1953,13 +1958,30 @@ export class PredictController extends BaseController<
     });
   }
 
-  public onConfirmOrder(isConfirmation: boolean): void {
+  public onConfirmOrder({ isDeposit }: { isDeposit: boolean }): void {
     this.update((state) => {
       if (state.activeOrder) {
         delete state.activeOrder.error;
-        state.activeOrder.state = isConfirmation
-          ? ActiveOrderState.DEPOSITING
-          : ActiveOrderState.PLACING_ORDER;
+        state.activeOrder.state = isDeposit
+          ? ActiveOrderState.DEPOSIT
+          : ActiveOrderState.PLACE_ORDER;
+      }
+    });
+  }
+
+  public onDepositOrder(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.DEPOSITING;
+      }
+    });
+  }
+
+  public onDepositOrderSuccess(): void {
+    this.setSelectedPaymentToken(null);
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PLACE_ORDER;
       }
     });
   }
@@ -2004,6 +2026,14 @@ export class PredictController extends BaseController<
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.SUCCESS;
+      }
+    });
+  }
+
+  public onPlaceOrder(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PLACING_ORDER;
       }
     });
   }
@@ -2258,17 +2288,13 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by deposit preparation');
       }
 
-      // TODO: Remove cast once predictDepositAndOrder is in @metamask/transaction-controller
-      const predictDepositAndOrderType =
-        'predictDepositAndOrder' as unknown as TransactionType;
-
       // Override transaction types to predictDepositAndOrder so the
       // confirmation routing renders the deposit-and-order info component.
       const depositAndOrderTransactions = transactions.map((tx) => ({
         ...tx,
         type:
           tx.type === TransactionType.predictDeposit
-            ? predictDepositAndOrderType
+            ? PREDICT_DEPOSIT_AND_ORDER_TYPE
             : tx.type,
       }));
 
@@ -2404,6 +2430,7 @@ export class PredictController extends BaseController<
     const nestedTransactionType = transactionMeta?.nestedTransactions?.find(
       ({ type }) =>
         type === TransactionType.predictDeposit ||
+        type === (PREDICT_DEPOSIT_AND_ORDER_TYPE as TransactionType) ||
         type === TransactionType.predictClaim ||
         type === TransactionType.predictWithdraw,
     )?.type;
@@ -2475,6 +2502,10 @@ export class PredictController extends BaseController<
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    if (type === 'depositAndOrder' && status === 'confirmed') {
+      this.onDepositOrderSuccess();
     }
 
     if (type === 'claim' && isTerminal) {
@@ -2592,6 +2623,7 @@ export class PredictController extends BaseController<
     Record<TransactionType, PredictTransactionEventType>
   > = {
     [TransactionType.predictDeposit]: 'deposit',
+    [PREDICT_DEPOSIT_AND_ORDER_TYPE as TransactionType]: 'depositAndOrder',
     [TransactionType.predictClaim]: 'claim',
     [TransactionType.predictWithdraw]: 'withdraw',
   };
