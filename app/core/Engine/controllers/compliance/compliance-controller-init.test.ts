@@ -13,6 +13,14 @@ import {
 } from '@metamask/compliance-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
+
+function buildComplianceFlag(enabled: boolean) {
+  return { enabled, minimumVersion: '0.0.0' };
+}
+
 function getInitRequestMock(
   overrides: {
     complianceEnabled?: boolean;
@@ -35,7 +43,7 @@ function getInitRequestMock(
     'RemoteFeatureFlagController:getState',
     () => ({
       remoteFeatureFlags: {
-        complianceEnabled,
+        complianceEnabled: buildComplianceFlag(complianceEnabled),
       },
     }),
   );

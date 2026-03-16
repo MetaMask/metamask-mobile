@@ -4,11 +4,9 @@ import {
 } from '@metamask/compliance-controller';
 import type { ControllerInitFunction } from '../../types';
 import type { ComplianceControllerInitMessenger } from '../../messengers/compliance/compliance-controller-messenger';
-import {
-  DEFAULT_FEATURE_FLAG_VALUES,
-  FeatureFlagNames,
-} from '../../../../constants/featureFlags';
+import { FeatureFlagNames } from '../../../../constants/featureFlags';
 import Logger from '../../../../util/Logger';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
 /**
  * Initialize the ComplianceController.
@@ -37,10 +35,15 @@ export const complianceControllerInit: ControllerInitFunction<
     const remoteState = initMessenger.call(
       'RemoteFeatureFlagController:getState',
     );
-    return Boolean(
-      remoteState?.remoteFeatureFlags?.[FeatureFlagNames.complianceEnabled] ??
-        DEFAULT_FEATURE_FLAG_VALUES[FeatureFlagNames.complianceEnabled],
-    );
+    const localOverride =
+      remoteState?.localOverrides?.[FeatureFlagNames.complianceEnabled];
+    if (localOverride !== undefined) {
+      return Boolean(localOverride);
+    }
+
+    const remoteFlag =
+      remoteState?.remoteFeatureFlags?.[FeatureFlagNames.complianceEnabled];
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   };
 
   if (isComplianceEnabled()) {
