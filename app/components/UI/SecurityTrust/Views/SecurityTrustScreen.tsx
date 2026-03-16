@@ -1,5 +1,11 @@
 import React, { useCallback } from 'react';
-import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  View,
+  Linking,
+  TouchableOpacity,
+  useColorScheme,
+} from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -44,6 +50,7 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
 
 const SecurityTrustScreen: React.FC = () => {
   const tw = useTailwind();
+  const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
@@ -239,7 +246,13 @@ const SecurityTrustScreen: React.FC = () => {
 
         {top10Pct !== null && (
           <Box twClassName="pb-3">
-            <Box twClassName="h-2 rounded-full overflow-hidden flex-row bg-[rgba(237,239,242,0.3)]">
+            <Box
+              twClassName={`h-2 rounded-full overflow-hidden flex-row ${
+                colorScheme === 'dark'
+                  ? 'bg-[rgba(237,239,242,0.3)]'
+                  : 'bg-[rgba(133,139,154,0.77)]'
+              }`}
+            >
               <Box twClassName="h-full bg-[#6B7FFF]" style={barFillStyle} />
             </Box>
           </Box>
