@@ -31,7 +31,7 @@ const createStyles = (params: { theme: Theme }) => {
     input: {
       ...fontStyles.normal,
       fontWeight: fontStyles.normal.fontWeight as '400',
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       borderRadius: 12,
       borderWidth: 1,
       padding: 10,
@@ -55,7 +55,7 @@ const createStyles = (params: { theme: Theme }) => {
       ...typography.sBodyMD,
       fontWeight: typography.sBodyMD.fontWeight as '400',
       fontFamily: getFontFamily(TextVariant.BodyMD),
-      borderColor: colors.primary.default,
+      borderColor: colors.border.default,
       borderRadius: 12,
       borderWidth: 1,
       padding: 10,
