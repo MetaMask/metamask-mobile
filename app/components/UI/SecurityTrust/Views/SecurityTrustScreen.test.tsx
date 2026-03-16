@@ -34,15 +34,45 @@ jest.mock('@react-navigation/native', () => ({
       isNative: false,
       securityData: {
         resultType: 'Verified',
-        features: ['liquidity_pools', 'verified_contract'],
+        maliciousScore: '0',
+        features: [
+          {
+            featureId: 'VERIFIED_CONTRACT',
+            type: 'Info',
+            description: 'Contract is verified',
+          },
+          {
+            featureId: 'HIGH_REPUTATION_TOKEN',
+            type: 'Benign',
+            description: 'Token has high reputation',
+          },
+        ],
         fees: {
-          buyFee: 0.01,
-          sellFee: 0.02,
+          buy: 1,
+          sell: 2,
+          transfer: 0,
+          transferFeeMaxAmount: null,
         },
         financialStats: {
-          supply: '1000000000000000000000000',
-          holders: 5000,
-          top10Holders: 0.25,
+          supply: 1000000000000000000000000,
+          holdersCount: 5000,
+          topHolders: [
+            {
+              label: 'Holder 1',
+              name: null,
+              address: '0xholder1',
+              holdingPercentage: 15,
+            },
+            {
+              label: 'Holder 2',
+              name: null,
+              address: '0xholder2',
+              holdingPercentage: 10,
+            },
+          ],
+          tradeVolume24h: 1000000,
+          lockedLiquidityPct: 80,
+          markets: [],
         },
         metadata: {
           externalLinks: {
