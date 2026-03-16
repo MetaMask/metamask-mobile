@@ -681,6 +681,109 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('deferEligibilityCheck', () => {
+    it('skips refreshEligibility when eligibility check is deferred', async () => {
+      // Arrange
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return { remoteFeatureFlags: {} };
+        }
+        if (action === 'GeolocationController:getGeolocation') {
+          return 'US';
+        }
+        return undefined;
+      });
+
+      const deferredController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
+        deferEligibilityCheck: true,
+      });
+
+      // Act
+      await deferredController.refreshEligibility();
+
+      // Assert — geolocation was never called because refreshEligibility returned early
+      expect(testMockCall).not.toHaveBeenCalledWith(
+        'GeolocationController:getGeolocation',
+      );
+    });
+
+    it('resumes eligibility checks after startEligibilityMonitoring is called', () => {
+      // Arrange
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      const deferredController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
+        deferEligibilityCheck: true,
+      });
+
+      // Act
+      deferredController.startEligibilityMonitoring();
+
+      // Assert — reads current remote feature flag state
+      expect(testMockCall).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:getState',
+      );
+      expect(
+        mockFeatureFlagConfigurationServiceInstance.refreshEligibility,
+      ).toHaveBeenCalled();
+    });
+
+    it('handles errors in startEligibilityMonitoring gracefully', () => {
+      // Arrange
+      const testInfrastructure = createMockInfrastructure();
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          throw new Error('Controller not ready');
+        }
+        return undefined;
+      });
+
+      const deferredController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: testInfrastructure,
+        deferEligibilityCheck: true,
+      });
+
+      // Reset mock to isolate startEligibilityMonitoring errors from constructor errors
+      (testInfrastructure.logger.error as jest.Mock).mockClear();
+
+      // Act — should not throw
+      expect(() =>
+        deferredController.startEligibilityMonitoring(),
+      ).not.toThrow();
+
+      // Assert — error was logged
+      expect(testInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'startEligibilityMonitoring',
+              operation: 'readRemoteFeatureFlags',
+            }),
+          }),
+        }),
+      );
+    });
+  });
+
   describe('HIP-3 Configuration Integration', () => {
     it('delegates HIP-3 config updates to FeatureFlagConfigurationService', () => {
       const remoteFlags = {

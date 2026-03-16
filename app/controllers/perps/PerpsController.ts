@@ -3945,10 +3945,7 @@ export class PerpsController extends BaseController<
       this.refreshEligibilityOnFeatureFlagChange(currentState);
     } catch (error) {
       this.#logError(
-        ensureError(
-          error,
-          'PerpsController.startEligibilityMonitoring',
-        ),
+        ensureError(error, 'PerpsController.startEligibilityMonitoring'),
         this.#getErrorContext('startEligibilityMonitoring', {
           operation: 'readRemoteFeatureFlags',
         }),
