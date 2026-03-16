@@ -7798,6 +7798,9 @@
       "leaderboard": "Leaderboard",
       "leaderboard_pending": "Pending"
     },
+    "campaign_mechanics": {
+      "title": "Mechanics"
+    },
     "campaigns_preview": {
       "title": "Campaigns",
       "coming_soon": "Coming soon",

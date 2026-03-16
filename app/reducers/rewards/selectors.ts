@@ -3,6 +3,8 @@ import { RewardsTab, OnboardingStep } from './types';
 import {
   CampaignType,
   OndoHoldingDetails,
+  OndoCampaignHowItWorks,
+  OndoCampaignNotes,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../locales/i18n';
 
@@ -252,4 +254,34 @@ export const selectCampaignActivityType =
       default:
         return campaign.type;
     }
+  };
+
+/** Returns the howItWorks data for a campaign, or null */
+export const selectCampaignHowItWorks =
+  (campaignId: string) =>
+  (state: RootState): OndoCampaignHowItWorks | null => {
+    const campaign = state.rewards.campaigns.find((c) => c.id === campaignId);
+    return campaign?.details?.howItWorks ?? null;
+  };
+
+/**
+ * Returns the typed notes for a campaign's howItWorks, or null.
+ * Narrows the free-form `Json` field to `OndoCampaignNotes` at the selector boundary.
+ */
+export const selectCampaignNotes =
+  (campaignId: string) =>
+  (state: RootState): OndoCampaignNotes | null => {
+    const campaign = state.rewards.campaigns.find((c) => c.id === campaignId);
+    const notes = campaign?.details?.howItWorks?.notes;
+    if (
+      notes &&
+      typeof notes === 'object' &&
+      !Array.isArray(notes) &&
+      typeof (notes as Record<string, unknown>).title === 'string' &&
+      typeof (notes as Record<string, unknown>).description === 'string' &&
+      Array.isArray((notes as Record<string, unknown>).items)
+    ) {
+      return notes as unknown as OndoCampaignNotes;
+    }
+    return null;
   };

@@ -101,6 +101,7 @@ const Routes = {
   REWARDS_DASHBOARD: 'RewardsDashboard',
   CAMPAIGNS_VIEW: 'CampaignsView',
   CAMPAIGN_DETAILS: 'CampaignDetails',
+  CAMPAIGN_MECHANICS: 'CampaignMechanics',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
   SITES_FULL_VIEW: 'SitesFullView',

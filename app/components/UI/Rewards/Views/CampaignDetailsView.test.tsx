@@ -26,8 +26,9 @@ let mockCampaign: CampaignDto = {
 };
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({
     params: { campaign: mockCampaign },
   }),
@@ -49,7 +50,15 @@ jest.mock(
     const { View, Text, Pressable } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ title, onBack }: { title: string; onBack: () => void }) =>
+      default: ({
+        title,
+        onBack,
+        endButtonIconProps,
+      }: {
+        title: string;
+        onBack: () => void;
+        endButtonIconProps?: { onPress: () => void; testID?: string }[];
+      }) =>
         ReactActual.createElement(
           View,
           { testID: 'header' },
@@ -58,6 +67,14 @@ jest.mock(
             onPress: onBack,
             testID: 'header-back-button',
           }),
+          ...(endButtonIconProps ?? []).map(
+            (btn: { onPress: () => void; testID?: string }, i: number) =>
+              ReactActual.createElement(Pressable, {
+                key: i,
+                onPress: btn.onPress,
+                testID: btn.testID ?? `header-end-button-${i}`,
+              }),
+          ),
         ),
     };
   },
@@ -103,6 +120,14 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
         { testID: actual.CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER },
         ReactActual.createElement(Text, null, howItWorks.title),
       ),
+  };
+});
+
+jest.mock('../components/Campaigns/CampaignLeaderboard', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-campaign-leaderboard" />,
   };
 });
 
@@ -235,6 +260,16 @@ describe('CampaignDetailsView', () => {
       const { getByTestId } = render(<CampaignDetailsView />);
       fireEvent.press(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON));
       expect(mockHandleDeeplink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('mechanics button', () => {
+    it('navigates to CAMPAIGN_MECHANICS when mechanics button is pressed', () => {
+      const { getByTestId } = render(<CampaignDetailsView />);
+      fireEvent.press(getByTestId('campaign-details-mechanics-button'));
+      expect(mockNavigate).toHaveBeenCalledWith('CampaignMechanics', {
+        campaignId: 'campaign-1',
+      });
     });
   });
 

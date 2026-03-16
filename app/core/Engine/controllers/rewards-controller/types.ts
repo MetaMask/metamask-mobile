@@ -229,6 +229,22 @@ export interface OndoCampaignHowItWorks {
   notes?: Json | null;
 }
 
+/** A single note item in the mechanics eligibility section */
+export interface OndoCampaignNoteItem {
+  title: string;
+  description: string;
+}
+
+/**
+ * Typed shape of the `notes` JSON field on OndoCampaignHowItWorks.
+ * Contentful delivers this as free-form JSON; we narrow to this type at the selector boundary.
+ */
+export interface OndoCampaignNotes {
+  title: string;
+  description: string;
+  items: OndoCampaignNoteItem[];
+}
+
 export interface OndoHoldingDetails {
   image: ThemeImage;
   howItWorks: OndoCampaignHowItWorks;

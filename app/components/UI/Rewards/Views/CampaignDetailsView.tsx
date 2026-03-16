@@ -6,6 +6,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import CampaignLeaderboard from '../components/Campaigns/CampaignLeaderboard';
+import Routes from '../../../../constants/navigation/Routes';
 
 const SWAP_DEEPLINK = 'https://link.metamask.io/swap';
 
@@ -46,6 +48,12 @@ const CampaignDetailsView: React.FC = () => {
 
   const isOptedIn = participantStatus?.optedIn === true;
 
+  const handleMechanicsPress = useCallback(() => {
+    navigation.navigate(Routes.CAMPAIGN_MECHANICS, {
+      campaignId: campaign.id,
+    });
+  }, [navigation, campaign.id]);
+
   const handleCtaPress = useCallback(async () => {
     if (isOptedIn) {
       handleDeeplink({ uri: SWAP_DEEPLINK });
@@ -65,6 +73,13 @@ const CampaignDetailsView: React.FC = () => {
           title={campaign.name}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Question,
+              onPress: handleMechanicsPress,
+              testID: 'campaign-details-mechanics-button',
+            },
+          ]}
           includesTopInset
         />
         <ScrollView showsVerticalScrollIndicator={false}>
