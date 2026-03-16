@@ -161,7 +161,10 @@ describe('priceHistory queries', () => {
           endTs: 1609545600,
         });
 
-        const result = await options.queryFn({} as never);
+        expect(options.queryFn).toBeDefined();
+        const result = await (
+          options.queryFn as NonNullable<typeof options.queryFn>
+        )({} as never);
 
         expect(
           Engine.context.PredictController.getPriceHistory,
@@ -184,7 +187,10 @@ describe('priceHistory queries', () => {
           marketId: 'market-123',
         });
 
-        const result = await options.queryFn({} as never);
+        expect(options.queryFn).toBeDefined();
+        const result = await (
+          options.queryFn as NonNullable<typeof options.queryFn>
+        )({} as never);
 
         expect(result).toEqual([]);
       });
@@ -198,7 +204,10 @@ describe('priceHistory queries', () => {
           marketId: 'market-123',
         });
 
-        const result = await options.queryFn({} as never);
+        expect(options.queryFn).toBeDefined();
+        const result = await (
+          options.queryFn as NonNullable<typeof options.queryFn>
+        )({} as never);
 
         expect(result).toEqual([]);
       });
@@ -212,7 +221,10 @@ describe('priceHistory queries', () => {
           marketId: 'market-789',
         });
 
-        await options.queryFn({} as never);
+        expect(options.queryFn).toBeDefined();
+        await (options.queryFn as NonNullable<typeof options.queryFn>)(
+          {} as never,
+        );
 
         expect(
           Engine.context.PredictController.getPriceHistory,
