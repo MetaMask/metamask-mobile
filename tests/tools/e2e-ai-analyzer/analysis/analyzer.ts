@@ -135,9 +135,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
     context,
   );
 
-  const tools = getToolDefinitions({
-    finalizeToolName: modeConfig.finalizeToolName,
-  });
+  const tools = getToolDefinitions();
   let currentMessage: LLMContentBlock[] | string = taskPrompt;
   const conversationHistory: LLMMessage[] = [];
 

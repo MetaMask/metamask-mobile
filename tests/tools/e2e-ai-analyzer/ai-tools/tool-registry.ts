@@ -10,11 +10,8 @@ import { TOOL_LIMITS } from '../config';
 
 /**
  * Gets tool definitions for the AI agent
- * @param options.finalizeToolName - Name of the finalize tool for this mode
  */
-export function getToolDefinitions(_options?: {
-  finalizeToolName?: string;
-}): LLMTool[] {
+export function getToolDefinitions(): LLMTool[] {
   const allTools: LLMTool[] = [
     {
       name: 'read_file',
