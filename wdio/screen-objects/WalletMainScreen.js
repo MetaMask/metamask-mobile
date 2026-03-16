@@ -12,6 +12,7 @@ import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 import TimerHelper from '../../tests/framework/TimerHelper';
 
+// Methods migrated to tests/page-objects/wallet/WalletView.ts: tapIdenticon, isMainWalletViewVisible, waitForBalanceToStabilize
 class WalletMainScreen {
 
   get device() {

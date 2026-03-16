@@ -5,6 +5,7 @@ import AppwrightGestures from "../../../tests/framework/AppwrightGestures";
 import { expect } from 'appwright';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../../app/components/Views/MultichainAccounts/IntroModal/testIds';
 
+// Methods migrated to tests/page-objects/Onboarding/MultichainAccountEducationModal.ts: isVisible, tapGotItButton
 class MultichainAccountEducationModal {
 
   get device() {

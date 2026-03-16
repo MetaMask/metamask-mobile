@@ -4,6 +4,7 @@ import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from "../../../tests/framework/AppwrightGestures";
 import { expect as appwrightExpect } from 'appwright';
 
+// Methods migrated to tests/page-objects/Rewards/RewardsGTMModal.ts: isVisible, tapNotNowButton
 class RewardsGTMModal {
 
   get device() {
