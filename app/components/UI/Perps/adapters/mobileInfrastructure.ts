@@ -220,7 +220,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       addBreadcrumb(breadcrumb: {
         category: string;
         message: string;
-        level: string;
+        level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
         data?: Record<string, unknown>;
       }): void {
         addBreadcrumb(breadcrumb);
