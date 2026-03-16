@@ -154,21 +154,6 @@ const OrderDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!order) {
-    if (isLoading) {
-      return (
-        <ScreenLayout>
-          <ScreenLayout.Body>
-            <ScreenLayout.Content>
-              <ActivityIndicator />
-            </ScreenLayout.Content>
-          </ScreenLayout.Body>
-        </ScreenLayout>
-      );
-    }
-    return <ScreenLayout />;
-  }
-
   if (isLoading) {
     return (
       <ScreenLayout>
@@ -179,6 +164,10 @@ const OrderDetails = () => {
         </ScreenLayout.Body>
       </ScreenLayout>
     );
+  }
+
+  if (!order) {
+    return <ScreenLayout />;
   }
 
   if (error) {
