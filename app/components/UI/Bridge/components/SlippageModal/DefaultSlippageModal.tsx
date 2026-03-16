@@ -26,12 +26,10 @@ import { DefaultSlippageModalParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { SlippageType } from '../../types';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 
 export const DefaultSlippageModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  useModalCloseOnQuoteExpiry();
   const sheetRef = useRef<BottomSheetRef>(null);
   const slippage = useSelector(selectSlippage);
   const [selectedSlippage, setSelectedSlippage] = useState<SlippageType>(

@@ -72,7 +72,7 @@ export const SwapsConfirmButton = ({
   const {
     activeQuote,
     isLoading,
-    isExpired,
+    needsNewQuote,
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
@@ -81,13 +81,6 @@ export const SwapsConfirmButton = ({
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
-
-  // The quote expired and no fetch is in progress — offer to get a new one.
-  // Also treat the edge-case where a fetch IS running but there is no active
-  // quote to fall back on — the user would otherwise be stuck on a spinner
-  // with no way to retry ("escape hatch").
-  const needsNewQuote =
-    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   // Check both the display amount and the atomic amount are non-zero.
   // An amount like 0.000000001 BTC (8 decimals) is non-zero as a number but
