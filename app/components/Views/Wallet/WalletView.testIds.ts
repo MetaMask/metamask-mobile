@@ -1,6 +1,7 @@
 import enContent from '../../../../locales/languages/en.json';
 
 export const WalletViewSelectorsIDs = {
+  WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_CONTAINER: 'wallet-screen',
   NETWORK_NAME: 'network-name',
   NFT_CONTAINER: 'collectible-name',
