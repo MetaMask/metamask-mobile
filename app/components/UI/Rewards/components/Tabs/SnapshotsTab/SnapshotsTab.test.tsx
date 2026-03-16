@@ -32,9 +32,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../../../../../component-library/components/Skeleton', () => ({
-  Skeleton: 'Skeleton',
-}));
+jest.mock(
+  '../../../../../../component-library/components-temp/Skeleton',
+  () => ({
+    Skeleton: 'Skeleton',
+  }),
+);
 
 jest.mock('../../RewardsErrorBanner', () => ({
   __esModule: true,
