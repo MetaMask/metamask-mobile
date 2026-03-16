@@ -184,15 +184,12 @@ class ImportWalletView {
       if (await PlatformDetector.isAndroid()) {
         return `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${srpIndex}`;
       }
-        return `//XCUIElementTypeOther[@name="textfield" and @label="${srpIndex}."]`;
-
+      return `//XCUIElementTypeOther[@name="textfield" and @label="${srpIndex}."]`;
     }
-      if (await PlatformDetector.isAndroid()) {
-        return `seed-phrase-input_${srpIndex}`;
-      }
-        return `//*[@label="${srpIndex + 1}."]`;
-
-
+    if (await PlatformDetector.isAndroid()) {
+      return `seed-phrase-input_${srpIndex}`;
+    }
+    return `//*[@label="${srpIndex + 1}."]`;
   }
 
   /**
