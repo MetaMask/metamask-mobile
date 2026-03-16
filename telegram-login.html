@@ -51,36 +51,25 @@
   <script>
     var params = new URLSearchParams(window.location.search);
     var botName = params.get('bot') || '';
-    var platform = params.get('platform') || 'ios';
 
-    // Check if this is an auth callback (Telegram appends user data as query params)
     var userId = params.get('id');
     if (userId) {
       document.getElementById('title').textContent = 'Login Successful!';
       document.getElementById('subtitle').textContent = 'Returning to MetaMask...';
 
-      // If opened in WebView (iOS), send data via postMessage
-      if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'telegram_auth_success',
-          user: {
-            id: Number(userId),
-            first_name: params.get('first_name') || '',
-            last_name: params.get('last_name') || null,
-            username: params.get('username') || null,
-            photo_url: params.get('photo_url') || null,
-            auth_date: Number(params.get('auth_date')),
-            hash: params.get('hash') || ''
-          }
-        }));
+      var queryString = window.location.search.substring(1);
+      var isAndroid = /Android/i.test(navigator.userAgent);
+
+      if (isAndroid) {
+        var intentUrl = 'intent://callback?' + queryString +
+          '#Intent;scheme=metamask-telegram;action=android.intent.action.VIEW;end';
+        window.location.href = intentUrl;
       } else {
-        // Opened in InAppBrowser (Android) — redirect to custom scheme so InAppBrowser can intercept
-        var deepLink = 'metamask-telegram://callback?' + window.location.search.substring(1);
-        window.location.href = deepLink;
+        window.location.href = 'metamask-telegram://callback?' + queryString;
       }
     } else if (botName) {
       var callbackUrl = window.location.origin + window.location.pathname +
-        '?bot=' + botName + '&platform=' + platform;
+        '?bot=' + botName;
 
       var script = document.createElement('script');
       script.async = true;
@@ -89,23 +78,9 @@
       script.setAttribute('data-size', 'large');
       script.setAttribute('data-radius', '8');
       script.setAttribute('data-request-access', 'write');
-
-      if (platform === 'ios') {
-        script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-      } else {
-        script.setAttribute('data-auth-url', callbackUrl);
-      }
+      script.setAttribute('data-auth-url', callbackUrl);
 
       document.getElementById('telegram-widget').appendChild(script);
-    }
-
-    function onTelegramAuth(user) {
-      if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'telegram_auth_success',
-          user: user
-        }));
-      }
     }
   </script>
 </body>

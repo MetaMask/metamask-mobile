@@ -173,6 +173,12 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
+			<intent-filter>
+				<data android:scheme="metamask-telegram" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
 		</activity>
 		<!-- Explicitly opt-in to safe browsing -->
 		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />

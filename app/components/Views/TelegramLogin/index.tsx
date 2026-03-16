@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, Platform, StyleSheet, View } from 'react-native';
-import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import { Alert, Linking, Platform } from 'react-native';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useTheme } from '../../../util/theme';
-import { TelegramLoginSelectorIDs } from './TelegramLogin.testIds';
+import { Box } from '@metamask/design-system-react-native';
 
 const TELEGRAM_BOT_NAME = process.env.TELEGRAM_BOT_NAME || '';
 const TELEGRAM_LOGIN_BASE_URL = process.env.TELEGRAM_LOGIN_BASE_URL || '';
@@ -32,15 +31,6 @@ interface TelegramLoginParamList {
 interface TelegramLoginProps {
   route?: RouteProp<TelegramLoginParamList, 'TelegramLogin'>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  webview: {
-    flex: 1,
-  },
-});
 
 function parseUserFromUrl(url: string): TelegramUser | null {
   try {
@@ -89,9 +79,8 @@ const TelegramLogin: React.FC<TelegramLoginProps> = () => {
     [navigation],
   );
 
-  // Android: use InAppBrowser (Chrome Custom Tabs) for proper keyboard support
   useEffect(() => {
-    if (Platform.OS !== 'android' || !loginUrl) return;
+    if (!loginUrl) return;
 
     const openInAppBrowser = async () => {
       try {
@@ -102,52 +91,67 @@ const TelegramLogin: React.FC<TelegramLoginProps> = () => {
           return;
         }
 
-        const androidLoginUrl = `${loginUrl}&platform=android`;
+        if (Platform.OS === 'android') {
+          await new Promise<void>((resolve) => {
+            const subscription = Linking.addEventListener('url', ({ url }) => {
+              if (url.startsWith('metamask-telegram://')) {
+                subscription.remove();
+                const user = parseUserFromUrl(url);
+                if (user) {
+                  navigateWithUser(user);
+                }
+                resolve();
+              }
+            });
 
-        const result = await InAppBrowser.openAuth(
-          androidLoginUrl,
-          REDIRECT_SCHEME,
-          {
-            showTitle: true,
-            toolbarColor: colors.background.default,
-            enableUrlBarHiding: true,
-            enableDefaultShare: false,
-          },
-        );
+            InAppBrowser.open(loginUrl, {
+              showTitle: true,
+              toolbarColor: colors.background.default,
+              enableUrlBarHiding: true,
+              enableDefaultShare: false,
+            }).then(() => {
+              // Chrome Tab closed; wait briefly for Linking event to arrive
+              setTimeout(() => {
+                subscription.remove();
+                resolve();
+              }, 1000);
+            });
+          });
 
-        if (result.type === 'success' && result.url) {
-          const user = parseUserFromUrl(result.url);
-          if (user) {
-            navigateWithUser(user);
-            return;
+          if (!hasNavigatedBack.current) {
+            navigation.goBack();
           }
-        }
+        } else {
+          const result = await InAppBrowser.openAuth(
+            loginUrl,
+            REDIRECT_SCHEME,
+            {
+              preferredBarTintColor: colors.background.default,
+              preferredControlTintColor: colors.primary.default,
+              ephemeralWebSession: false,
+            },
+          );
 
-        // User cancelled or no data received
-        navigation.goBack();
+          if (result.type === 'success' && result.url) {
+            const user = parseUserFromUrl(result.url);
+            if (user) {
+              navigateWithUser(user);
+              return;
+            }
+          }
+
+          navigation.goBack();
+        }
       } catch (error) {
         console.warn('InAppBrowser error:', error);
-        navigation.goBack();
+        if (!hasNavigatedBack.current) {
+          navigation.goBack();
+        }
       }
     };
 
     openInAppBrowser();
   }, [loginUrl, colors, navigation, navigateWithUser]);
-
-  // iOS: WebView callback handler
-  const handleWebViewMessage = useCallback(
-    (event: WebViewMessageEvent) => {
-      try {
-        const data = JSON.parse(event.nativeEvent.data);
-        if (data.type === 'telegram_auth_success' && data.user) {
-          navigateWithUser(data.user as TelegramUser);
-        }
-      } catch (error) {
-        console.warn('Failed to parse Telegram auth message:', error);
-      }
-    },
-    [navigateWithUser],
-  );
 
   if (!loginUrl) {
     Alert.alert(
@@ -158,42 +162,7 @@ const TelegramLogin: React.FC<TelegramLoginProps> = () => {
     return null;
   }
 
-  // Android uses InAppBrowser (launched via useEffect above), show empty container
-  if (Platform.OS === 'android') {
-    return (
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: colors.background.default },
-        ]}
-        testID={TelegramLoginSelectorIDs.CONTAINER_ID}
-      />
-    );
-  }
-
-  // iOS uses WebView
-  const iosLoginUrl = `${loginUrl}&platform=ios`;
-
-  return (
-    <View
-      style={[styles.container, { backgroundColor: colors.background.default }]}
-      testID={TelegramLoginSelectorIDs.CONTAINER_ID}
-    >
-      <WebView
-        testID={TelegramLoginSelectorIDs.WEBVIEW_ID}
-        source={{
-          uri: iosLoginUrl,
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        }}
-        style={styles.webview}
-        onMessage={handleWebViewMessage}
-        javaScriptEnabled
-        domStorageEnabled
-        originWhitelist={['*']}
-        startInLoadingState
-      />
-    </View>
-  );
+  return <Box twClassName="flex-1 bg-default" />;
 };
 
 export default TelegramLogin;
