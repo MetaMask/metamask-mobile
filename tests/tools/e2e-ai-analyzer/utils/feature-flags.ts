@@ -189,9 +189,11 @@ export function fetchFeatureFlags(): FeatureFlagSummary {
     console.warn('   ⚠ Could not fetch feature flags:', error);
     return {
       allFlags: [],
-      disabledFeatureAreas: [],
-      enabledFeatureAreas: [],
+      fullyDisabledAreas: [],
+      partiallyDisabledAreas: [],
+      fullyEnabledAreas: [],
       disabledFlags: [],
+      disabledByArea: new Map(),
     };
   }
 }
