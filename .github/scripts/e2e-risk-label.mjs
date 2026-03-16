@@ -71,6 +71,11 @@ async function main() {
 
   // Fetch current PR labels
   const labelsRes = await githubApi(`/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels`);
+  if (!labelsRes.ok) {
+    const body = await labelsRes.text();
+    console.error(`❌ Failed to fetch PR labels: ${labelsRes.status} ${body}`);
+    process.exit(1);
+  }
   const currentLabels = await labelsRes.json();
 
   // Remove stale risk labels
