@@ -119,6 +119,10 @@
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
       "title": "Gas sponsorship unavailable"
@@ -689,7 +693,11 @@
     "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
     "could_not_resolve_name": "Couldn't resolve name",
     "invalid_address": "Invalid address",
-    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
+    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "I understand",
+    "cancel": "Cancel"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -2154,6 +2162,7 @@
     "sell_position": "Sell position",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Selling {{size}} shares at {{price}}",
     "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} on {{outcomeGroupTitle}} • {{outcome}} at {{initialPrice}}",
@@ -2338,7 +2347,9 @@
       "exchange_fee_description": "Fee paid to the exchange or market",
       "total_incl_fees": "incl. fees",
       "close": "Close",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -3395,8 +3406,7 @@
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation":
-      "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
+    "seed_phrase_warning_explanation": "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
     "reveal_srp_description": "Your Secret Recovery Phrase gives full access to your wallet. Do not share it with anyone.",
     "reveal_credential_modal": [
@@ -5922,6 +5932,7 @@
   "earn": {
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
@@ -6931,7 +6942,7 @@
       "upgrade_title": "Upgrade to Metal",
       "continue_button": "Continue",
       "virtual_card": {
-        "name": "Orange Virtual Card",
+        "name": "Virtual Card",
         "price": "Free",
         "feature_1": "Virtual card for Apple Pay and Google Pay",
         "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
@@ -6940,10 +6951,13 @@
       "metal_card": {
         "name": "Metal Card",
         "price": "$199/year",
-        "feature_1": "Engraved metal card and virtual card for Apple Pay and Google Pay",
-        "feature_2": "3% cashback on the first $10,000 spent each year, then 1% after that",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "No foreign transaction fees"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Review your order",
@@ -7091,7 +7105,8 @@
         "ssn_label": "Social Security Number",
         "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
-        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
+        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Add your address",
@@ -7175,6 +7190,7 @@
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "logout": "Log out",
+      "contact_support": "Contact support",
       "logout_confirmation_title": "Log out of Card?",
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
@@ -7728,6 +7744,18 @@
     },
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Buy mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Locked rewards",
       "points_needed": "{{points}} points",
@@ -8007,6 +8035,10 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",

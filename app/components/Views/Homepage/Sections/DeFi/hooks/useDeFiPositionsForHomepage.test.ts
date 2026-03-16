@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useDeFiPositionsForHomepage } from './useDeFiPositionsForHomepage';
 
 const mockSelectDefiPositionsByChainIds = jest.fn();
-const mockSelectTokenSortConfig = jest.fn();
 
 jest.mock('../../../../../../selectors/defiPositionsController', () => ({
   selectDefiPositionsByChainIds: (_state: unknown, _chainIds: unknown) =>
@@ -24,16 +23,19 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../../selectors/preferencesController', () => ({
-  selectTokenSortConfig: () => mockSelectTokenSortConfig(),
-}));
-
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
+const mockSortAssets = jest.fn(
+  (assets: unknown[], _config?: unknown): unknown[] => assets,
+);
+
 jest.mock('../../../../../UI/Tokens/util', () => ({
-  sortAssets: jest.fn((assets) => assets),
+  sortAssets: (assets: unknown[], config: unknown) => {
+    mockSortAssets(assets, config);
+    return assets;
+  },
 }));
 
 const createMockProtocolAggregate = (name: string, marketValue: number) => ({
@@ -48,10 +50,6 @@ const createMockProtocolAggregate = (name: string, marketValue: number) => ({
 describe('useDeFiPositionsForHomepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTokenSortConfig.mockReturnValue({
-      key: 'tokenFiatAmount',
-      order: 'dsc',
-    });
   });
 
   it('returns loading state when defiPositionsByChainIds is undefined', () => {
@@ -129,5 +127,29 @@ describe('useDeFiPositionsForHomepage', () => {
     const { result } = renderHook(() => useDeFiPositionsForHomepage(2));
 
     expect(result.current.positions).toHaveLength(2);
+  });
+
+  it('sorts positions by market value using homepage sort config (not user preference)', () => {
+    const mockPositions = {
+      '0x1': {
+        protocols: {
+          aave: createMockProtocolAggregate('Aave', 1000),
+          uniswap: createMockProtocolAggregate('Uniswap', 500),
+        },
+      },
+    };
+
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
+
+    renderHook(() => useDeFiPositionsForHomepage());
+
+    expect(mockSortAssets).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({
+        key: 'protocolAggregate.aggregatedMarketValue',
+        order: 'dsc',
+        sortCallback: 'stringNumeric',
+      }),
+    );
   });
 });
