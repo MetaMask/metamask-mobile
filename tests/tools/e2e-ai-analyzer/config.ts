@@ -15,8 +15,15 @@ export const LLM_CONFIG = {
   /**
    * Provider priority order for automatic fallback
    * The first available provider in this list will be used
+   * Order: Claude → OpenAI → Gemini (matching Extension team)
+   * LiteLLM available for local development with Consensys proxy
    */
-  providerPriority: ['litellm', 'anthropic'] as ProviderType[],
+  providerPriority: [
+    'anthropic',
+    'openai',
+    'google',
+    'litellm',
+  ] as ProviderType[],
 
   /**
    * Per-provider configuration
