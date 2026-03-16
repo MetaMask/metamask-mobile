@@ -71,7 +71,8 @@ export const usePredictBuyActions = ({
       onApprovalReject();
     }
     PredictController.onOrderCancelled();
-  }, [PredictController, currentState, onApprovalReject]);
+    navigation.dispatch(StackActions.pop());
+  }, [PredictController, currentState, navigation, onApprovalReject]);
 
   const handleBackSwipe = useCallback(() => {
     PredictController.onOrderCancelled();
@@ -168,12 +169,9 @@ export const usePredictBuyActions = ({
   }, [currentState, onApprovalReject, setIsConfirming]);
 
   useEffect(() => {
-    if (
-      currentState === ActiveOrderState.SUCCESS ||
-      currentState === ActiveOrderState.CANCELLED
-    ) {
-      navigation.dispatch(StackActions.pop());
+    if (currentState === ActiveOrderState.SUCCESS) {
       PredictController.onPlaceOrderEnd();
+      navigation.dispatch(StackActions.pop());
     }
   }, [PredictController, currentState, navigation, setIsConfirming]);
 

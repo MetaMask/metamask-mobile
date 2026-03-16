@@ -118,10 +118,7 @@ import {
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
-import {
-  PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
-  PREDICTION_ERROR_TRANSACTION_BATCH_ID,
-} from '../constants/transactions';
+import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../Views/confirmations/constants/predict';
 
@@ -1989,19 +1986,16 @@ export class PredictController extends BaseController<
   public onDepositOrderFailed(errorMessage?: string): void {
     this.update((state) => {
       if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
+        state.activeOrder.state = ActiveOrderState.REDIRECTING;
         state.activeOrder.error = errorMessage;
         delete state.activeOrder.batchId;
       }
     });
+    this.payWithAnyTokenConfirmation();
   }
 
   public onOrderCancelled(): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.CANCELLED;
-      }
-    });
+    this.clearActiveOrder();
     this.setSelectedPaymentToken(null);
   }
 
@@ -2347,22 +2341,7 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
-        this.update((state) => {
-          if (state.activeOrder) {
-            state.activeOrder = null;
-          }
-        });
-        return {
-          success: true,
-          response: { batchId: PREDICTION_ERROR_TRANSACTION_BATCH_ID },
-        };
-      }
-
       const errorMessage = e.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
-
-      this.onDepositOrderFailed(errorMessage);
-
       Logger.error(
         e,
         this.getErrorContext('payWithAnyTokenConfirmation', {
@@ -2496,13 +2475,14 @@ export class PredictController extends BaseController<
       this.onDepositOrderSuccess();
     }
 
-    if (
-      type === 'depositAndOrder' &&
-      (status === 'failed' || status === 'rejected')
-    ) {
-      this.onDepositOrderFailed(
-        transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED,
-      );
+    if (type === 'depositAndOrder' && status === 'failed') {
+      const errorMessage =
+        transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      this.onDepositOrderFailed(errorMessage);
+    }
+
+    if (type === 'depositAndOrder' && status === 'rejected') {
+      this.onOrderCancelled();
     }
 
     if (type === 'claim' && isTerminal) {
