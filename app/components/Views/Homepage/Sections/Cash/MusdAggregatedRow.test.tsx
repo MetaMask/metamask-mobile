@@ -125,7 +125,7 @@ describe('MusdAggregatedRow', () => {
       expect(screen.getByText('3% bonus')).toBeOnTheScreen();
     });
 
-    it('hides Claim bonus when claimable reward is exactly 0.01', () => {
+    it('shows Claim bonus when claimable reward is exactly 0.01', () => {
       mockUseMerklBonusClaim.mockReturnValue({
         claimableReward: '0.01',
         hasPendingClaim: false,
@@ -135,8 +135,7 @@ describe('MusdAggregatedRow', () => {
 
       renderWithProvider(<MusdAggregatedRow />);
 
-      expect(screen.queryByText('Claim bonus')).toBeNull();
-      expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+      expect(screen.getByText('Claim bonus')).toBeOnTheScreen();
     });
 
     it('hides Claim bonus when claimable reward is below 0.01', () => {

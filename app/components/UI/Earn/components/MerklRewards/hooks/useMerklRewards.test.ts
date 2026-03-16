@@ -808,8 +808,8 @@ describe('useMerklRewards', () => {
     );
   });
 
-  it('returns null claimableReward when amount displays as 0.00', async () => {
-    // 0.001 * 10^18 = 1e15 base units with 18 decimals → 0.001 → toFixed(2) = '0.00' → we don't set
+  it('returns "< 0.01" when amount is below 0.01 (e.g. 0.001 tokens)', async () => {
+    // 1e15 base units with 18 decimals = 0.001 → below 0.01 → displayAmount = '< 0.01'
     const mockRewardData = {
       token: {
         address: AGLAMERKL_ADDRESS_MAINNET,
@@ -833,15 +833,12 @@ describe('useMerklRewards', () => {
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+      expect(result.current.claimableReward).toBe('< 0.01');
     });
-
-    // 0.001 formats to "0.00", which we skip → claimableReward stays null
-    expect(result.current.claimableReward).toBe(null);
   });
 
-  it('returns null claimableReward when amount rounds to 0.00 (tiny amount)', async () => {
-    // 1 base unit with 18 decimals → 1e-18 → toFixed(2) = '0.00' → we don't set
+  it('returns "< 0.01" when amount is tiny (e.g. 1 base unit)', async () => {
+    // 1 base unit with 18 decimals = 1e-18 → below 0.01 → displayAmount = '< 0.01'
     const mockRewardData = {
       token: {
         address: AGLAMERKL_ADDRESS_MAINNET,
@@ -865,10 +862,8 @@ describe('useMerklRewards', () => {
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+      expect(result.current.claimableReward).toBe('< 0.01');
     });
-
-    expect(result.current.claimableReward).toBe(null);
   });
 
   it('ignores AbortError when fetch is cancelled', async () => {

@@ -47,7 +47,7 @@ import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/consta
 const MIN_CLAIMABLE_BONUS_USD = 0.01;
 
 /**
- * Returns true only when the claimable reward string represents an amount strictly greater than MIN_CLAIMABLE_BONUS_USD.
+ * Returns true when the claimable reward string represents an amount >= MIN_CLAIMABLE_BONUS_USD.
  * useMerklRewards returns "< 0.01" for very small amounts; we do not show "Claim bonus" for those.
  */
 const isClaimableBonusAboveThreshold = (reward: string | null): boolean => {
