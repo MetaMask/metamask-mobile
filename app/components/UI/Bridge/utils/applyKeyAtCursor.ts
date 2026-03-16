@@ -7,6 +7,8 @@ const normalizeLeadingDecimal = (
   value: string,
   cursorPosition: number,
 ): { value: string; cursorPosition: number } =>
+  // Raw values always use "0.x" instead of ".x" so downstream parsing and
+  // cursor math operate on one canonical shape.
   value.startsWith('.')
     ? { value: `0${value}`, cursorPosition: cursorPosition + 1 }
     : { value, cursorPosition };
@@ -30,6 +32,8 @@ const normalizeLeadingZeros = (
     (decimalIndex === -1 ? '' : value.slice(decimalIndex));
 
   return {
+    // Removing leading zeros can shift the visual cursor left. Keep the raw
+    // cursor aligned with the surviving characters.
     value: normalizedValue,
     cursorPosition: cursorPosition - Math.min(cursorPosition, removedCount),
   };
@@ -58,6 +62,7 @@ export const applyKeyAtCursor = ({
   decimals: number;
 }): { value: string; cursorPosition: number } => {
   const normalizedCurrentValue = currentValue || '0';
+  // Defensive bound in case UI selection and amount length momentarily drift.
   const boundedCursor = clamp(cursorPosition, 0, normalizedCurrentValue.length);
 
   if (pressedKey === Keys.Initial) {
@@ -109,6 +114,7 @@ export const applyKeyAtCursor = ({
 
   if (decimals > 0) {
     const [, decimalPart = ''] = insertedValue.split('.');
+    // Reject edits that would exceed the token's supported fractional precision.
     if (decimalPart.length > decimals) {
       return { value: normalizedCurrentValue, cursorPosition: boundedCursor };
     }

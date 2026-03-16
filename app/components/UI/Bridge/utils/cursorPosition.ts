@@ -28,6 +28,8 @@ export const mapFormattedCursorToRaw = ({
     const formattedChar = formattedValue[formattedIndex];
 
     if (
+      // Only advance the raw cursor when the formatted character corresponds
+      // to a raw character. Group separators are skipped automatically.
       rawChar === formattedChar ||
       isDecimalSeparatorMatch(rawChar, formattedChar)
     ) {
@@ -62,6 +64,8 @@ export const mapRawCursorToFormatted = ({
     const formattedChar = formattedValue[formattedIndex];
 
     if (
+      // Walk both strings together until the requested raw position has been
+      // matched in the formatted display string.
       rawChar === formattedChar ||
       isDecimalSeparatorMatch(rawChar, formattedChar)
     ) {

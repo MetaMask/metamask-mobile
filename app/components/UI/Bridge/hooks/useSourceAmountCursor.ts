@@ -43,6 +43,8 @@ export const useSourceAmountCursor = ({
   maxInputLength,
   onSourceAmountChange,
 }: UseSourceAmountCursorParams): UseSourceAmountCursorResult => {
+  // The cursor is stored against the raw amount string, not the formatted
+  // display string, so keypad edits can be applied deterministically.
   const [sourceAmountCursorPosition, setSourceAmountCursorPosition] = useState<
     number | undefined
   >(undefined);
@@ -82,6 +84,8 @@ export const useSourceAmountCursor = ({
 
   const handleSourceSelectionChange = useCallback(
     (event: SourceAmountSelectionChangeEvent) => {
+      // The input reports selection against the formatted display value.
+      // Convert it back to a raw index before storing it.
       const rawCursorIndex = mapFormattedCursorToRaw({
         rawValue: rawSourceAmount,
         formattedValue: formattedSourceAmount,
@@ -95,6 +99,8 @@ export const useSourceAmountCursor = ({
   const handleKeypadChange = useCallback(
     ({ pressedKey, value }: KeypadChangeData) => {
       if (typeof sourceAmountCursorPosition !== 'number') {
+        // Preserve the shared keypad's existing append/delete behavior until
+        // the user explicitly places the cursor in the amount field.
         setSourceAmountCursorPosition(undefined);
         if (value.length < maxInputLength) {
           onSourceAmountChange(value || undefined);
@@ -102,6 +108,8 @@ export const useSourceAmountCursor = ({
         return;
       }
 
+      // Once the user has placed the cursor, apply edits against the raw
+      // amount at that cursor instead of relying on the keypad's append output.
       const updatedAmount = applyKeyAtCursor({
         currentValue: rawSourceAmount,
         pressedKey,
