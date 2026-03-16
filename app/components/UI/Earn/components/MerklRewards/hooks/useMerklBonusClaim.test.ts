@@ -8,7 +8,9 @@ const mockClaimRewards = jest.fn().mockResolvedValue(undefined);
 
 const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
   claimableReward: null as string | null,
+  hasClaimedBefore: false,
 }));
+
 jest.mock('./useMerklRewards', () => ({
   useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
   isTokenEligibleForMerklRewards:
@@ -52,6 +54,22 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    }),
+  }),
+}));
+
+jest.mock('../../../../../../selectors/networkController', () => ({
+  selectNetworkConfigurationByChainId: jest.fn(() => ({
+    name: 'Ethereum Mainnet',
+  })),
+}));
+
 const eligibleAsset: TokenI = {
   address: AGLAMERKL_ADDRESS_MAINNET,
   chainId: CHAIN_IDS.MAINNET,
@@ -92,7 +110,9 @@ describe('useMerklBonusClaim', () => {
   });
 
   it('returns default claim data when asset is undefined', () => {
-    const { result } = renderHook(() => useMerklBonusClaim(undefined));
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(undefined, 'test_location'),
+    );
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
@@ -102,7 +122,9 @@ describe('useMerklBonusClaim', () => {
   it('returns default claim data when feature flag is disabled', () => {
     mockIsMerklCampaignClaimingEnabled = false;
 
-    const { result } = renderHook(() => useMerklBonusClaim(eligibleAsset));
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
@@ -111,28 +133,25 @@ describe('useMerklBonusClaim', () => {
   it('returns default claim data when user is geo-blocked', () => {
     mockIsGeoEligible = false;
 
-    const { result } = renderHook(() => useMerklBonusClaim(eligibleAsset));
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
   });
 
   it('returns default claim data for ineligible token', () => {
-    const { result } = renderHook(() => useMerklBonusClaim(ineligibleAsset));
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(ineligibleAsset, 'test_location'),
+    );
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
   });
 
-  it('passes undefined to underlying hooks when asset is ineligible', () => {
-    renderHook(() => useMerklBonusClaim(ineligibleAsset));
-
-    expect(mockUseMerklRewards).toHaveBeenCalledWith({ asset: undefined });
-    expect(mockUseMerklClaimTransaction).toHaveBeenCalledWith(undefined);
-  });
-
   it('passes eligible asset to underlying hooks', () => {
-    renderHook(() => useMerklBonusClaim(eligibleAsset));
+    renderHook(() => useMerklBonusClaim(eligibleAsset, 'test_location'));
 
     expect(mockUseMerklRewards).toHaveBeenCalledWith({
       asset: eligibleAsset,
@@ -141,7 +160,10 @@ describe('useMerklBonusClaim', () => {
   });
 
   it('returns composed data from underlying hooks for eligible asset', () => {
-    mockUseMerklRewards.mockReturnValue({ claimableReward: '1.50' });
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.50',
+      hasClaimedBefore: false,
+    });
     mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: true });
     mockUseMerklClaimTransaction.mockReturnValue({
       claimRewards: mockClaimRewards,
@@ -149,7 +171,9 @@ describe('useMerklBonusClaim', () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useMerklBonusClaim(eligibleAsset));
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
 
     expect(result.current.claimableReward).toBe('1.50');
     expect(result.current.hasPendingClaim).toBe(true);
