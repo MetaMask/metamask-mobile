@@ -5,7 +5,10 @@ import {
   SetPayTokenRequest,
 } from './useAutomaticTransactionPayToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import {
   MetaMaskPayTokensFlags,
@@ -18,12 +21,16 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
+import { useSendTokens } from '../send/useSendTokens';
+import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../../util/address');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
+jest.mock('../send/useSendTokens');
+jest.mock('./useWithdrawTokenFilter');
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -82,6 +89,8 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionPayAvailableTokensMock = jest.mocked(
     useTransactionPayAvailableTokens,
   );
+  const useSendTokensMock = jest.mocked(useSendTokens);
+  const useWithdrawTokenFilterMock = jest.mocked(useWithdrawTokenFilter);
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -110,6 +119,8 @@ describe('useAutomaticTransactionPayToken', () => {
     ]);
 
     isHardwareAccountMock.mockReturnValue(false);
+    useSendTokensMock.mockReturnValue([]);
+    useWithdrawTokenFilterMock.mockReturnValue((tokens) => tokens);
 
     selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: { default: [], overrides: {} },
@@ -553,6 +564,94 @@ describe('useAutomaticTransactionPayToken', () => {
 
     renderHookWithProvider(() => useAutomaticTransactionPayToken(), {
       state: predictStateMock,
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
+  it('selects last used token for predict withdraw from nested transaction history', () => {
+    const predictWithdrawStateMock = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: transactionIdMock,
+                  nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+                  status: 'unapproved',
+                  time: 200,
+                  txParams: { from: '0x123' },
+                  type: TransactionType.batch,
+                },
+                {
+                  id: 'previous-predict-withdraw',
+                  metamaskPay: {
+                    chainId: CHAIN_ID_2_MOCK,
+                    tokenAddress: TOKEN_ADDRESS_2_MOCK,
+                  },
+                  nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+                  status: 'confirmed',
+                  time: 100,
+                  txParams: { from: '0x123' },
+                  type: TransactionType.batch,
+                },
+              ],
+            },
+          },
+        },
+      },
+    );
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [] as AssetType[],
+      hasTokens: true,
+    });
+    useSendTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        balance: '1',
+        chainId: CHAIN_ID_2_MOCK,
+        symbol: 'BNB',
+      },
+      {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        balance: '1',
+        chainId: PREFERRED_CHAIN_ID_MOCK,
+        symbol: 'MUSD',
+      },
+    ] as AssetType[]);
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+      preferredTokens: {
+        default: [],
+        overrides: {
+          predictWithdraw: [
+            {
+              address: PREFERRED_TOKEN_ADDRESS_MOCK,
+              chainId: PREFERRED_CHAIN_ID_MOCK,
+              successRate: 1,
+            },
+          ],
+        },
+      },
+      minimumRequiredTokenBalance: 0,
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
+
+    renderHookWithProvider(() => useAutomaticTransactionPayToken(), {
+      state: predictWithdrawStateMock,
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
