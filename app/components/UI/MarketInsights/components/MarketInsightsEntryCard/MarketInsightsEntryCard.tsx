@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Pressable } from 'react-native';
+import React, { useEffect } from 'react';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -15,44 +15,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import { getUniqueSourcesByFavicon } from '../../utils/marketInsightsFormatting';
 import { endTrace, TraceName } from '../../../../../util/trace';
-import SourceLogoGroup from '../SourceLogoGroup';
 
-const SparkleIcon: React.FC = () => {
-  const opacity = useRef(new Animated.Value(0.45)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-      ]),
-      { iterations: 3 },
-    );
-
-    animation.start();
-    return () => animation.stop();
-  }, [opacity]);
-
-  return (
-    <Animated.View style={{ opacity }}>
-      <Icon
-        name={IconName.Sparkle}
-        size={IconSize.Lg}
-        color={IconColor.IconDefault}
-      />
-    </Animated.View>
-  );
-};
+const SparkleIcon: React.FC = () => (
+  <Icon name={IconName.Ai} size={IconSize.Lg} color={IconColor.IconDefault} />
+);
 
 /**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
@@ -66,10 +33,6 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
-  const uniqueSources = useMemo(
-    () => getUniqueSourcesByFavicon(report.sources ?? []),
-    [report.sources],
-  );
 
   useEffect(() => {
     // End the trace started by the parent (AssetOverviewContent) to measure
@@ -92,16 +55,15 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          gap={1}
         >
-          <SparkleIcon />
-          <Text variant={TextVariant.HeadingMd} twClassName="ml-2">
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {strings('market_insights.title')}
           </Text>
           <Icon
             name={IconName.ArrowRight}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-            twClassName="ml-1"
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
           />
         </Box>
 
@@ -109,14 +71,12 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {report.summary}
           </Text>
-
-          <SourceLogoGroup sources={uniqueSources} />
-
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
           >
+            <SparkleIcon />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
