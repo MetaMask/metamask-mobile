@@ -169,7 +169,7 @@ export const TokenListItem = React.memo(
 
     const merklClaimData = useMerklBonusClaim(
       asset,
-      'token_list_item',
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
       isVisible,
     );
     const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;

@@ -14,7 +14,6 @@ import { selectNetworkConfigurationByChainId } from '../../../../../../selectors
 import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events/musdEvents';
 
 export interface MerklClaimData {
   claimableReward: string | null;
@@ -35,8 +34,6 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   isClaiming: false,
   claimRewards: async () => undefined,
 };
-
-export type MerklClaimLocation = 'token_list_item' | 'asset_overview';
 
 const getRewardAmountRange = (reward: string): string => {
   if (reward.startsWith('<')) return '< 0.01';
@@ -65,7 +62,7 @@ const getRewardAmountRange = (reward: string): string => {
  */
 export const useMerklBonusClaim = (
   asset: TokenI | undefined,
-  location: MerklClaimLocation = 'token_list_item',
+  location: string,
   isVisible = true,
 ): MerklClaimData => {
   const isMerklCampaignClaimingEnabled = useSelector(
@@ -112,10 +109,7 @@ export const useMerklBonusClaim = (
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_CTA_AVAILABLE)
           .addProperties({
-            location:
-              location === 'asset_overview'
-                ? MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW
-                : MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            location,
             view_trigger: 'component_mounted',
             button_text: 'Claim bonus',
             network_chain_id: asset?.chainId,

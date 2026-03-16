@@ -80,7 +80,10 @@ const MusdAggregatedRow = () => {
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
-    useMerklBonusClaim(LINEA_MUSD_ASSET);
+    useMerklBonusClaim(
+      LINEA_MUSD_ASSET,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
 
