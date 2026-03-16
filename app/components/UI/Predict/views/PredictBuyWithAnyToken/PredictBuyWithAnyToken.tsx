@@ -41,7 +41,6 @@ import { usePredictBuyActions } from './hooks/usePredictBuyPreviewActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-import { usePredictPayWithAnyTokenTracking } from './hooks/usePredictPayWithAnyTokenTracking';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { Side } from '../../types';
@@ -140,29 +139,6 @@ const PredictBuyWithAnyToken = () => {
   });
 
   const {
-    handleBack,
-    handleBackSwipe,
-    handleConfirm,
-    handleDepositFailed,
-    handlePlaceOrderSuccess,
-    handlePlaceOrderError,
-  } = usePredictBuyActions({
-    currentValue,
-    analyticsProperties,
-    preview,
-    placeOrder,
-    depositAmount: total - depositFee,
-    setIsConfirming,
-  });
-
-  usePredictBuyBackSwipe({ onBack: handleBackSwipe });
-
-  usePredictPayWithAnyTokenTracking({
-    onFail: handleDepositFailed,
-    onConfirm: handleConfirm,
-  });
-
-  const {
     isPlacingOrder,
     isBelowMinimum,
     canPlaceBet,
@@ -177,6 +153,23 @@ const PredictBuyWithAnyToken = () => {
     isUserInputChange,
     isConfirming,
   });
+
+  const {
+    handleBack,
+    handleBackSwipe,
+    handleConfirm,
+    handlePlaceOrderSuccess,
+    handlePlaceOrderError,
+  } = usePredictBuyActions({
+    currentValue,
+    analyticsProperties,
+    preview,
+    placeOrder,
+    depositAmount: total - depositFee,
+    setIsConfirming,
+  });
+
+  usePredictBuyBackSwipe({ onBack: handleBackSwipe });
 
   useEffect(() => {
     if (!isPreviewCalculating) {

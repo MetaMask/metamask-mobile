@@ -1,5 +1,4 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { StackActions } from '@react-navigation/native';
 import { usePredictBuyActions } from './usePredictBuyPreviewActions';
 import {
   ActiveOrderState,
@@ -77,22 +76,24 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockOnPlaceOrderError = jest.fn();
+const mockOnOrderError = jest.fn();
 const mockOnOrderResultError = jest.fn();
 const mockOnDepositFailed = jest.fn();
 const mockOnConfirmOrder = jest.fn();
-const mockOnOrderEnd = jest.fn();
+const mockOnOrderCancelled = jest.fn();
+const mockOnOrderSuccess = jest.fn();
 const mockOnConfirmationRedirected = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      onPlaceOrderError: (...args: unknown[]) => mockOnPlaceOrderError(...args),
+      onOrderError: (...args: unknown[]) => mockOnOrderError(...args),
       onOrderResultError: (...args: unknown[]) =>
         mockOnOrderResultError(...args),
       onDepositFailed: (...args: unknown[]) => mockOnDepositFailed(...args),
       onConfirmOrder: (...args: unknown[]) => mockOnConfirmOrder(...args),
-      onOrderEnd: (...args: unknown[]) => mockOnOrderEnd(...args),
+      onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
+      onOrderSuccess: (...args: unknown[]) => mockOnOrderSuccess(...args),
       onConfirmationRedirected: (...args: unknown[]) =>
         mockOnConfirmationRedirected(...args),
     },
@@ -143,19 +144,7 @@ describe('usePredictBuyActions', () => {
         result.current.handleBack();
       });
 
-      expect(mockOnOrderEnd).toHaveBeenCalledTimes(1);
-    });
-
-    it('dispatches StackActions.pop', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleBack();
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
 
     it('rejects pending approval when in PAY_WITH_ANY_TOKEN state', () => {
@@ -169,7 +158,7 @@ describe('usePredictBuyActions', () => {
       });
 
       expect(mockOnApprovalReject).toHaveBeenCalledTimes(1);
-      expect(mockOnOrderEnd).toHaveBeenCalledTimes(1);
+      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
 
     it('does not reject approval when in PREVIEW state', () => {
@@ -183,7 +172,7 @@ describe('usePredictBuyActions', () => {
       });
 
       expect(mockOnApprovalReject).not.toHaveBeenCalled();
-      expect(mockOnOrderEnd).toHaveBeenCalledTimes(1);
+      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -197,34 +186,7 @@ describe('usePredictBuyActions', () => {
         result.current.handleBackSwipe();
       });
 
-      expect(mockOnOrderEnd).toHaveBeenCalledTimes(1);
-    });
-
-    it('dispatches StackActions.pop when not in confirmation mode', () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleBackSwipe();
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-    });
-
-    it('does not dispatch pop when in confirmation mode', () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleBackSwipe();
-      });
-
-      expect(mockOnOrderEnd).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -422,7 +384,7 @@ describe('usePredictBuyActions', () => {
   });
 
   describe('handlePlaceOrderSuccess', () => {
-    it('sets isConfirming to false', () => {
+    it('delegates to PredictController.onOrderSuccess', () => {
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -431,36 +393,12 @@ describe('usePredictBuyActions', () => {
         result.current.handlePlaceOrderSuccess();
       });
 
-      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
-    });
-
-    it('calls onOrderEnd on PredictController', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handlePlaceOrderSuccess();
-      });
-
-      expect(mockOnOrderEnd).toHaveBeenCalledTimes(1);
-    });
-
-    it('dispatches StackActions.pop', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handlePlaceOrderSuccess();
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+      expect(mockOnOrderSuccess).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('handlePlaceOrderError', () => {
-    it('sets isConfirming to false', () => {
+    it('delegates to PredictController.onOrderError', () => {
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -469,19 +407,7 @@ describe('usePredictBuyActions', () => {
         result.current.handlePlaceOrderError();
       });
 
-      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
-    });
-
-    it('delegates to PredictController.onPlaceOrderError', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handlePlaceOrderError();
-      });
-
-      expect(mockOnPlaceOrderError).toHaveBeenCalledTimes(1);
+      expect(mockOnOrderError).toHaveBeenCalledTimes(1);
     });
   });
 });
