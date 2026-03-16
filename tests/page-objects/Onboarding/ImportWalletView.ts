@@ -12,6 +12,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getDriver } from '../../framework/PlaywrightUtilities';
+import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 
 class ImportWalletView {
   get container(): DetoxElement {
@@ -52,6 +53,14 @@ class ImportWalletView {
     );
   }
 
+  /**
+   * Returns the encapsulated element for the SRP input field at the given word index.
+   *
+   * iOS label convention: the first field (index 0) has no label filter;
+   * subsequent fields use 1-indexed labels offset by one from the word index
+   * (word 1 → label "2.", word 2 → label "3.", etc.).
+   * This matches the native iOS SRP form where the first labeled field is "2.".
+   */
   seedPhraseInput(index: number): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -72,7 +81,7 @@ class ImportWalletView {
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
             index !== 0
-              ? `//XCUIElementTypeOther[@name="textfield" and @label="${index}."]`
+              ? `//XCUIElementTypeOther[@name="textfield" and @label="${index + 1}."]`
               : '//XCUIElementTypeOther[@name="textfield"]',
           ),
       },
@@ -162,13 +171,41 @@ class ImportWalletView {
   }
 
   /**
+   * Returns the input element for the given SRP index
+   * @param srpIndex - The index of the SRP word
+   * @param onboarding - Whether the screen is onboarding or not
+   * @returns The input element for the given SRP index
+   */
+  async inputOfIndex(
+    srpIndex: number,
+    onboarding: boolean = true,
+  ): Promise<string> {
+    if (onboarding) {
+      if (await PlatformDetector.isAndroid()) {
+        return `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${srpIndex}`;
+      }
+        return `//XCUIElementTypeOther[@name="textfield" and @label="${srpIndex}."]`;
+
+    }
+      if (await PlatformDetector.isAndroid()) {
+        return `seed-phrase-input_${srpIndex}`;
+      }
+        return `//*[@label="${srpIndex + 1}."]`;
+
+
+  }
+
+  /**
    * Types a secret recovery phrase word-by-word into the SRP input fields.
-   * Handles platform-specific field indexing:
-   * - Android: fields indexed from 0 (seed-phrase-input-id_0, _1, ...)
-   * - iOS: fields indexed from 1 via XPath labels ("1.", "2.", ...)
+   * Uses seedPhraseInput(i) for consistent selector resolution across platforms.
+   *
+   * Onboarding flow matches wdio ImportFromSeedScreen.typeSecretRecoveryPhrase:
+   * - First word typed with trailing space into field 0
+   * - Middle words typed with trailing space + tap into fields 1..n-2
+   * - Last word typed WITHOUT trailing space into field n-1
+   *
    * @param phrase - The secret recovery phrase to type
    * @param onboarding - Whether the screen is onboarding or not
-   * @returns void
    */
   async typeSecretRecoveryPhrase(
     phrase: string,
@@ -180,47 +217,42 @@ class ImportWalletView {
         const isAndroid = await PlatformDetector.isAndroid();
 
         if (onboarding) {
-          // Type first word into the first field
+          // Type first word into the first field (with trailing space)
           const firstField = await asPlaywrightElement(this.seedPhraseInput(0));
           await firstField.type(`${phraseArray[0]} `);
 
-          // Type remaining words into indexed fields
-          for (let i = 1; i < phraseArray.length; i++) {
-            const fieldIndex = isAndroid ? i : i + 1;
-            let input;
-            if (isAndroid) {
-              input = await PlaywrightMatchers.getElementById(
-                `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${fieldIndex}`,
-              );
-            } else {
-              input = await PlaywrightMatchers.getElementByXPath(
-                `//XCUIElementTypeOther[@name="textfield" and @label="${fieldIndex}."]`,
-              );
-            }
+          // Type middle words (with trailing space + tap)
+          for (let i = 1; i < phraseArray.length - 1; i++) {
+            const input = await asPlaywrightElement(this.seedPhraseInput(i));
             await input.type(`${phraseArray[i]} `);
             await input.click();
           }
+
+          // Type last word (without trailing space, no tap)
+          const lastIndex = phraseArray.length - 1;
+          const lastInput = await asPlaywrightElement(
+            this.seedPhraseInput(lastIndex),
+          );
+          await lastInput.type(phraseArray[lastIndex]);
         } else {
           // Non-onboarding flow (adding additional SRP)
           let firstInput;
           if (isAndroid) {
-            firstInput =
-              await PlaywrightMatchers.getElementById('seed-phrase-input');
+            firstInput = await PlaywrightMatchers.getElementById(
+              ImportSRPIDs.SEED_PHRASE_INPUT_ID,
+            );
           } else {
             firstInput = await PlaywrightMatchers.getElementById('textfield');
           }
           await firstInput.type(`${phraseArray[0]} `);
 
           for (let i = 1; i < phraseArray.length; i++) {
+            const fieldId = await this.inputOfIndex(i, false);
             let input;
             if (isAndroid) {
-              input = await PlaywrightMatchers.getElementById(
-                `seed-phrase-input_${i}`,
-              );
+              input = await PlaywrightMatchers.getElementById(fieldId);
             } else {
-              input = await PlaywrightMatchers.getElementByXPath(
-                `//*[@label="${i + 1}."]`,
-              );
+              input = await PlaywrightMatchers.getElementByXPath(fieldId);
             }
             await input.type(`${phraseArray[i]} `);
             await input.click();
