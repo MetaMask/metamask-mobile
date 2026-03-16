@@ -135,6 +135,7 @@ export const usePredictBuyActions = ({
           market,
           outcome,
           outcomeToken,
+          entryPoint,
           isConfirmationRoute: true,
           preview: livePreview,
         },
@@ -149,6 +150,7 @@ export const usePredictBuyActions = ({
     navigateToConfirmation,
     outcome,
     outcomeToken,
+    entryPoint,
   ]);
 
   useEffect(() => {

@@ -11,6 +11,7 @@ const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockOnApprovalReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
+const mockNavigateToConfirmation = jest.fn();
 const mockUpdateActiveOrder = jest.fn();
 const mockClearActiveOrder = jest.fn();
 const mockNavigateToBuyPreview = jest.fn();
@@ -53,7 +54,7 @@ jest.mock(
   '../../../../../Views/confirmations/hooks/useConfirmNavigation',
   () => ({
     useConfirmNavigation: () => ({
-      navigateToConfirmation: jest.fn(),
+      navigateToConfirmation: mockNavigateToConfirmation,
     }),
   }),
 );
@@ -340,6 +341,28 @@ describe('usePredictBuyActions', () => {
           await result.current.handleConfirm();
         }),
       ).rejects.toThrow('Preview is required');
+    });
+  });
+
+  describe('redirect effect', () => {
+    it('preserves entryPoint when redirecting to confirmation', () => {
+      mockActiveOrder = { state: ActiveOrderState.REDIRECTING };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        loader: 'customAmount',
+        headerShown: false,
+        replace: true,
+        routeParams: {
+          market: defaultRouteParams.market,
+          outcome: defaultRouteParams.outcome,
+          outcomeToken: defaultRouteParams.outcomeToken,
+          entryPoint: defaultRouteParams.entryPoint,
+          isConfirmationRoute: true,
+          preview: createDefaultParams().preview,
+        },
+      });
     });
   });
 });
