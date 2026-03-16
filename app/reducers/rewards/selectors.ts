@@ -243,7 +243,7 @@ export const selectCampaignProgress =
 /**
  * Returns a human-readable activity type label (e.g. "Hold" for ONDO_HOLDING).
  */
-export const selectCampaignActivityType =
+export const selectCampaignPhaseType =
   (campaignId: string) =>
   (state: RootState): string | null => {
     const campaign = state.rewards.campaigns.find((c) => c.id === campaignId);

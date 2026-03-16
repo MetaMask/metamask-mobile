@@ -41,10 +41,7 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
   );
 
   return (
-    <Box
-      twClassName="gap-4 p-4"
-      testID={CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER}
-    >
+    <Box twClassName="gap-4" testID={CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER}>
       <Text
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Bold}

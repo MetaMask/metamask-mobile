@@ -20,6 +20,7 @@ import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import CampaignLeaderboard from '../components/Campaigns/CampaignLeaderboard';
+import CampaignActivityItem from '../components/Campaigns/CampaignActivityItem';
 import Routes from '../../../../constants/navigation/Routes';
 
 const SWAP_DEEPLINK = 'https://link.metamask.io/swap';
@@ -47,6 +48,9 @@ const CampaignDetailsView: React.FC = () => {
   const { optInToCampaign, isOptingIn } = useOptInToCampaign();
 
   const isOptedIn = participantStatus?.optedIn === true;
+
+  // TODO: replace with real activity detection once backend exposes user holdings
+  const showParticipationSection = true;
 
   const handleMechanicsPress = useCallback(() => {
     navigation.navigate(Routes.CAMPAIGN_MECHANICS, {
@@ -88,19 +92,41 @@ const CampaignDetailsView: React.FC = () => {
           ]}
           includesTopInset
         />
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Box twClassName="border-b border-border-muted">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('gap-4')}
+        >
+          <Box twClassName="border-b border-border-muted py-2">
             <CampaignStatus campaign={campaign} />
           </Box>
-          {campaign.details?.howItWorks && (
-            <Box twClassName="border-b border-border-muted">
-              <CampaignHowItWorks howItWorks={campaign.details.howItWorks} />
+
+          {showParticipationSection ? (
+            <Box twClassName="gap-4">
+              <Box twClassName="px-4 py-2">
+                {/* TODO: render based on dynamic activity data */}
+                <CampaignActivityItem
+                  campaignId={campaign.id}
+                  assetSymbol="ONDO"
+                  usdValue="$0"
+                  sharesLabel="0 shares"
+                  daysLeft={5}
+                />
+              </Box>
+
+              <Box twClassName="border-b border-border-muted"></Box>
+
+              <Box twClassName="px-4 py-2">
+                <CampaignLeaderboard
+                  campaignId={campaign.id}
+                  onHeaderPress={handleLeaderboardPress}
+                />
+              </Box>
             </Box>
+          ) : (
+            campaign.details?.howItWorks && (
+              <CampaignHowItWorks howItWorks={campaign.details.howItWorks} />
+            )
           )}
-          <CampaignLeaderboard
-            campaignId={campaign.id}
-            onHeaderPress={handleLeaderboardPress}
-          />
         </ScrollView>
 
         <Box twClassName="px-4 pb-4 pt-2">

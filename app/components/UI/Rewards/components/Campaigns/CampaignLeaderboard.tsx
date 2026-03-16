@@ -14,8 +14,10 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
+import formatFiat from '../../../../../util/formatFiat';
 import { useGetCampaignLeaderboard } from '../../hooks/useGetCampaignLeaderboard';
 import type { LeaderboardEntryDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -47,8 +49,7 @@ interface SeparatorRow {
 type ListItem = LeaderboardRow | SeparatorRow;
 
 function formatScore(score: string): string {
-  const dollars = Math.floor(parseFloat(score));
-  return '$' + dollars.toLocaleString('en-US');
+  return formatFiat(new BigNumber(score), 'usd');
 }
 
 const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
@@ -108,7 +109,6 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="px-4 pt-4 pb-2"
         testID={CAMPAIGN_LEADERBOARD_TEST_IDS.HEADER}
       >
         <Text
@@ -151,7 +151,7 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="px-4 py-2"
+            twClassName="py-2"
             testID={CAMPAIGN_LEADERBOARD_TEST_IDS.SEPARATOR}
           >
             <Box twClassName="flex-1 h-px bg-border-muted" />
@@ -169,10 +169,10 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="py-3 px-4"
+          twClassName="py-3"
           testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ROW}-${rank}`}
         >
-          <Box twClassName="w-9 h-9 rounded-full bg-overlay-default items-center justify-center mr-4">
+          <Box twClassName="w-9 h-9 rounded-full bg-muted items-center justify-center mr-4">
             <Text color={color}>{rank}</Text>
           </Box>
           <Text color={color} twClassName="flex-1">

@@ -63,10 +63,12 @@ export function computePhaseProgressList(
     }
 
     let label = '';
-    if (isActive) {
+    if (isPast) {
+      label = strings('rewards.campaign.days_left', { count: 0 });
+    } else if (isActive) {
       const daysLeft = Math.ceil((phaseEndMs - now) / MS_PER_DAY);
       label = strings('rewards.campaign.days_left', { count: daysLeft });
-    } else if (!isPast) {
+    } else {
       const startDay = index * phaseDurationDays + 1;
       label = strings('rewards.campaign.starts_day', { day: startDay });
     }
@@ -102,15 +104,11 @@ const CampaignPhaseProgress: React.FC<CampaignPhaseProgressProps> = ({
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              color={
-                item.isActive || item.isPast
-                  ? TextColor.SuccessDefault
-                  : undefined
-              }
+              color={item.isActive ? TextColor.SuccessDefault : undefined}
               twClassName={
                 [
                   index > 0 ? 'text-right' : '',
-                  item.isActive || item.isPast ? '' : 'text-alternative',
+                  item.isActive ? '' : 'text-alternative',
                 ]
                   .filter(Boolean)
                   .join(' ') || undefined
@@ -134,7 +132,11 @@ const CampaignPhaseProgress: React.FC<CampaignPhaseProgressProps> = ({
             <ProgressBar
               progress={item.progress}
               width={null as unknown as number}
-              color={theme.colors.success.default}
+              color={
+                item.isPast
+                  ? theme.colors.success.muted
+                  : theme.colors.success.default
+              }
               height={6}
               borderRadius={3}
               borderWidth={0}

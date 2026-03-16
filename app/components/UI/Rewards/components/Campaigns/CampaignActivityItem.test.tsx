@@ -4,8 +4,7 @@ import { useSelector } from 'react-redux';
 import CampaignActivityItem from './CampaignActivityItem';
 import {
   selectCampaignProgress,
-  selectCampaignDaysLeft,
-  selectCampaignActivityType,
+  selectCampaignPhaseType,
 } from '../../../../../reducers/rewards/selectors';
 
 jest.mock('react-redux', () => ({
@@ -28,8 +27,7 @@ jest.mock('../../../../../util/theme', () => ({
 
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectCampaignProgress: jest.fn(),
-  selectCampaignDaysLeft: jest.fn(),
-  selectCampaignActivityType: jest.fn(),
+  selectCampaignPhaseType: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -53,36 +51,27 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockSelectProgress = selectCampaignProgress as jest.MockedFunction<
   typeof selectCampaignProgress
 >;
-const mockSelectDaysLeft = selectCampaignDaysLeft as jest.MockedFunction<
-  typeof selectCampaignDaysLeft
+const mockSelectActivityType = selectCampaignPhaseType as jest.MockedFunction<
+  typeof selectCampaignPhaseType
 >;
-const mockSelectActivityType =
-  selectCampaignActivityType as jest.MockedFunction<
-    typeof selectCampaignActivityType
-  >;
 
 const CAMPAIGN_ID = 'campaign-1';
 
 function setupSelectors({
   progress = 0.75,
-  daysLeft = 3,
   activityType = 'Hold',
 }: {
   progress?: number | null;
-  daysLeft?: number | null;
   activityType?: string | null;
 } = {}) {
   const progressSelector = jest.fn().mockReturnValue(progress);
-  const daysLeftSelector = jest.fn().mockReturnValue(daysLeft);
   const activityTypeSelector = jest.fn().mockReturnValue(activityType);
 
   mockSelectProgress.mockReturnValue(progressSelector);
-  mockSelectDaysLeft.mockReturnValue(daysLeftSelector);
   mockSelectActivityType.mockReturnValue(activityTypeSelector);
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === progressSelector) return progress;
-    if (selector === daysLeftSelector) return daysLeft;
     if (selector === activityTypeSelector) return activityType;
     return undefined;
   });
@@ -93,6 +82,7 @@ const defaultProps = {
   assetSymbol: 'ONDO',
   usdValue: '$3,750',
   sharesLabel: '8.23 shares',
+  daysLeft: 5,
 };
 
 describe('CampaignActivityItem', () => {
@@ -140,25 +130,17 @@ describe('CampaignActivityItem', () => {
   });
 
   it('renders days left', () => {
-    setupSelectors({ daysLeft: 3 });
-    const { getByTestId } = render(<CampaignActivityItem {...defaultProps} />);
+    const { getByTestId } = render(
+      <CampaignActivityItem {...defaultProps} daysLeft={3} />,
+    );
     expect(getByTestId('campaign-activity-item-days-left')).toHaveTextContent(
       '3 days left',
     );
   });
 
   it('does not render days left when daysLeft is 0', () => {
-    setupSelectors({ daysLeft: 0 });
     const { queryByTestId } = render(
-      <CampaignActivityItem {...defaultProps} />,
-    );
-    expect(queryByTestId('campaign-activity-item-days-left')).toBeNull();
-  });
-
-  it('does not render days left when daysLeft is null', () => {
-    setupSelectors({ daysLeft: null });
-    const { queryByTestId } = render(
-      <CampaignActivityItem {...defaultProps} />,
+      <CampaignActivityItem {...defaultProps} daysLeft={0} />,
     );
     expect(queryByTestId('campaign-activity-item-days-left')).toBeNull();
   });
@@ -198,7 +180,6 @@ describe('CampaignActivityItem', () => {
   it('calls selectors with correct campaignId', () => {
     render(<CampaignActivityItem {...defaultProps} campaignId="abc-123" />);
     expect(mockSelectProgress).toHaveBeenCalledWith('abc-123');
-    expect(mockSelectDaysLeft).toHaveBeenCalledWith('abc-123');
     expect(mockSelectActivityType).toHaveBeenCalledWith('abc-123');
   });
 });

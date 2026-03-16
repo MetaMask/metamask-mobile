@@ -65,7 +65,7 @@ const CampaignMechanicsView: React.FC = () => {
           {/* How it works section */}
           {howItWorks && (
             <Box
-              twClassName="border-b border-border-muted"
+              twClassName="p-4 border-b border-border-muted"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
             >
               <CampaignHowItWorks howItWorks={howItWorks} />
@@ -87,7 +87,7 @@ const CampaignMechanicsView: React.FC = () => {
               </Text>
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.Alternative}
+                color={TextColor.TextAlternative}
                 testID={CAMPAIGN_MECHANICS_TEST_IDS.NOTES_DESCRIPTION}
               >
                 {notes.description}
@@ -107,7 +107,7 @@ const CampaignMechanicsView: React.FC = () => {
                   </Text>
                   <Text
                     variant={TextVariant.BodyMd}
-                    color={TextColor.Alternative}
+                    color={TextColor.TextAlternative}
                     testID={`${CAMPAIGN_MECHANICS_TEST_IDS.NOTE_ITEM_DESCRIPTION}-${index}`}
                   >
                     {item.description}

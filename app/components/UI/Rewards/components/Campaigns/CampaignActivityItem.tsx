@@ -16,8 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import {
   selectCampaignProgress,
-  selectCampaignDaysLeft,
-  selectCampaignActivityType,
+  selectCampaignPhaseType,
 } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -31,6 +30,8 @@ interface CampaignActivityItemProps {
   sharesLabel: string;
   /** Asset icon URI */
   assetIconUrl?: string;
+  /** Days remaining in the campaign phase */
+  daysLeft: number;
 }
 
 /**
@@ -44,24 +45,24 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
   usdValue,
   sharesLabel,
   assetIconUrl,
+  daysLeft,
 }) => {
   const tw = useTailwind();
   const theme = useTheme();
 
   const progress = useSelector(selectCampaignProgress(campaignId));
-  const daysLeft = useSelector(selectCampaignDaysLeft(campaignId));
-  const activityType = useSelector(selectCampaignActivityType(campaignId));
+  const activityType = useSelector(selectCampaignPhaseType(campaignId));
 
   const progressValue = progress ?? 0;
 
   return (
-    <Box twClassName="py-3" testID={`campaign-activity-item-${campaignId}`}>
+    <Box testID={`campaign-activity-item-${campaignId}`}>
       {/* Asset row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.SpaceBetween}
-        twClassName="mb-2"
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="mb-2 w-full"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -84,8 +85,8 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
               testID="campaign-activity-item-icon-fallback"
             >
               <Text
-                variant={TextVariant.BodySmBold}
-                color={TextColor.Primary}
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
                 fontWeight={FontWeight.Bold}
               >
                 {assetSymbol.slice(0, 2).toUpperCase()}
@@ -96,7 +97,7 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
           {/* Ticker and shares */}
           <Box flexDirection={BoxFlexDirection.Column}>
             <Text
-              variant={TextVariant.BodyMdBold}
+              variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
               testID="campaign-activity-item-symbol"
             >
@@ -104,7 +105,7 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
             </Text>
             <Text
               variant={TextVariant.BodySm}
-              color={TextColor.Alternative}
+              color={TextColor.TextAlternative}
               testID="campaign-activity-item-shares"
             >
               {sharesLabel}
@@ -114,7 +115,7 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
 
         {/* USD value */}
         <Text
-          variant={TextVariant.BodyMdBold}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
           testID="campaign-activity-item-usd-value"
         >
@@ -123,7 +124,10 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
       </Box>
 
       {/* Progress bar */}
-      <View twClassName="mb-2" testID="campaign-activity-item-progress-bar">
+      <Box
+        twClassName="mb-2 w-full"
+        testID="campaign-activity-item-progress-bar"
+      >
         <ProgressBar
           progress={progressValue}
           width={null as unknown as number}
@@ -133,13 +137,14 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
           borderWidth={0}
           unfilledColor={theme.colors.border.muted}
         />
-      </View>
+      </Box>
 
       {/* Activity type and days left */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.SpaceBetween}
+        justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Center}
+        twClassName="w-full"
       >
         {activityType ? (
           <Text
@@ -154,7 +159,7 @@ const CampaignActivityItem: React.FC<CampaignActivityItemProps> = ({
           <View />
         )}
 
-        {daysLeft != null && daysLeft > 0 ? (
+        {daysLeft > 0 ? (
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.SuccessDefault}
