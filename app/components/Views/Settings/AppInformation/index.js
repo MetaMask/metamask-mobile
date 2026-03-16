@@ -217,7 +217,7 @@ class AppInformation extends PureComponent {
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <TouchableOpacity
-              delayLongPress={10 * 1000} // 10 seconds
+              delayLongPress={10 * 10} // 10 seconds
               onLongPress={this.handleLongPressFox}
               activeOpacity={1}
             >
