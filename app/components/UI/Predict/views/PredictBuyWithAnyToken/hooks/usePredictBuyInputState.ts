@@ -32,7 +32,7 @@ export const usePredictBuyInputState = () => {
   );
 
   const [isInputFocused, setIsInputFocusedState] = useState(
-    () => activeOrder?.isInputFocused ?? false,
+    () => activeOrder?.isInputFocused ?? !initialIsConfirmingFromRoute,
   );
   const shouldSyncCurrentValueRef = useRef(false);
   const shouldClearAmountErrorRef = useRef(false);
