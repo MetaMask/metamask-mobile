@@ -612,7 +612,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigateBack();
     } else {
       // Fallback to markets list if no previous screen
-      navigateToHome(source);
+      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
     }
   };
 

@@ -237,7 +237,7 @@ const PerpsHomeView = () => {
     );
     perpsNavigation.navigateToMarketList({
       defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       fromHome: true,
       button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
       button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,

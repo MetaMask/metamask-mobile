@@ -104,10 +104,13 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        perpsNavigation.navigateToMarketDetails(market, route.params?.source);
+        perpsNavigation.navigateToMarketDetails(
+          market,
+          PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        );
       }
     },
-    [onMarketSelect, perpsNavigation, route.params?.source],
+    [onMarketSelect, perpsNavigation],
   );
 
   // Compute available categories based on market counts (hide empty categories)
