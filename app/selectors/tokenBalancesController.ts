@@ -10,7 +10,7 @@ import { selectShowFiatInTestnets } from './settings';
 import { isTestNet } from '../util/networks';
 import { getTokenBalancesControllerTokenBalances } from './assets/assets-migration';
 
-export { getTokenBalancesControllerTokenBalances as selectTokenBalances };
+export { getTokenBalancesControllerTokenBalances as selectTokensBalances };
 
 export const selectHasAnyBalance = createSelector(
   [getTokenBalancesControllerTokenBalances],
