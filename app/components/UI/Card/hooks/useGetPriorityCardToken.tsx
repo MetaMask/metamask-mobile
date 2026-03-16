@@ -35,6 +35,7 @@ import {
 } from '@metamask/bridge-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { cardQueries } from '../queries';
+import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -149,6 +150,7 @@ export const useGetPriorityCardToken = (
     'eip155:0',
   )?.address;
   const allTokenBalances = useSelector(selectAllTokenBalances);
+  const allTokens = useSelector(getTokensControllerAllTokens);
 
   const getBalancesForChain = useCallback(
     (tokenChainId: CaipChainId): Record<Hex, string> =>
@@ -330,8 +332,7 @@ export const useGetPriorityCardToken = (
             priorityToken.caipChainId,
           ) as `0x${string}`;
 
-          const { allTokens } = TokensController.state;
-          const allTokensPerChain = allTokens[hexChainId as Hex] || {};
+          const allTokensPerChain = allTokens[hexChainId] || {};
           const allTokensPerAddress =
             allTokensPerChain[selectedAddress?.toLowerCase() as Hex] || [];
           const isNotOnAllTokens = !allTokensPerAddress?.find(
@@ -383,7 +384,13 @@ export const useGetPriorityCardToken = (
     return () => {
       isCancelled = true;
     };
-  }, [priorityToken, TokensController, NetworkController, selectedAddress]);
+  }, [
+    priorityToken,
+    TokensController,
+    NetworkController,
+    selectedAddress,
+    allTokens,
+  ]);
 
   const isLoadingFinal = useMemo(
     () => isLoadingAddToken || isLoading,

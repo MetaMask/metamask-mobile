@@ -181,6 +181,10 @@ import { rampsControllerInit } from './controllers/ramps-controller/ramps-contro
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import {
+  getAccountTrackerControllerAccountsByChainId,
+  getTokenRatesControllerMarketData,
+} from '../../selectors/assets/assets-migration';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -782,9 +786,7 @@ export class Engine {
     const {
       CurrencyRateController,
       AccountsController,
-      AccountTrackerController,
       TokenBalancesController,
-      TokenRatesController,
       TokensController,
       NetworkController,
     } = this.context;
@@ -810,10 +812,12 @@ export class Engine {
       selectedInternalAccount.address,
     );
     const { currentCurrency } = CurrencyRateController.state;
-    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+    const state = store.getState();
+    const { settings: { showFiatOnTestnets } = {} } = state;
 
-    const { accountsByChainId } = AccountTrackerController.state;
-    const { marketData } = TokenRatesController.state;
+    const accountsByChainId =
+      getAccountTrackerControllerAccountsByChainId(state);
+    const marketData = getTokenRatesControllerMarketData(state);
 
     let totalEthFiat = 0;
     let totalEthFiat1dAgo = 0;
