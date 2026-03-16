@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.69.1]
+
+### Changed
+
+- Updated Explore tab icon in the main tab bar to use the outline style (#27459)
+
+### Fixed
+
+- Fixed root pages scrollable behavior with SafeAreaView, standardizing safe area and header inset handling across main tab views (#27446)
+
 ## [7.69.0]
 
 ### Added
@@ -10917,7 +10927,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...HEAD
+[7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.69.0
 [7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.1...v7.68.2
 [7.68.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.68.1
