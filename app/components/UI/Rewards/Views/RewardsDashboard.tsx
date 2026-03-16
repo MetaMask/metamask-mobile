@@ -337,13 +337,12 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView
-        edges={{ bottom: 'additive' }}
+        edges={{ top: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
         <HeaderRoot
           title={strings('rewards.main_title')}
-          includesTopInset
           endButtonIconProps={[
             {
               iconName: IconName.Setting,
