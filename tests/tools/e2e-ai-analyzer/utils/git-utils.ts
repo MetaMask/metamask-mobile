@@ -357,8 +357,9 @@ export function getCherryPicksBetweenBuilds(
 
   try {
     // Get commits between the two build commits (excluding the prev build commit)
+    // Use null byte delimiter (%x00) to avoid issues with pipe characters in commit messages
     const log = execSync(
-      `git log ${prevCommit}..${currentCommit} --format="%H|%s|%an|%ad" --date=short`,
+      `git log ${prevCommit}..${currentCommit} --format="%H%x00%s%x00%an%x00%ad" --date=short`,
       {
         encoding: 'utf-8',
         cwd: baseDir,
@@ -372,7 +373,7 @@ export function getCherryPicksBetweenBuilds(
     const lines = log.split('\n').filter((l) => l);
 
     for (const line of lines) {
-      const [commit, message, author, date] = line.split('|');
+      const [commit, message, author, date] = line.split('\x00');
 
       // Skip the version bump commit itself
       if (message.includes('Bump version number')) continue;
@@ -406,8 +407,9 @@ export function getCherryPicksBetweenCommits(
 ): CherryPickInfo[] {
   try {
     // Get commits between the two commit SHAs
+    // Use null byte delimiter (%x00) to avoid issues with pipe characters in commit messages
     const log = execSync(
-      `git log ${fromCommit}..${toCommit} --format="%H|%s|%an|%ad" --date=short`,
+      `git log ${fromCommit}..${toCommit} --format="%H%x00%s%x00%an%x00%ad" --date=short`,
       {
         encoding: 'utf-8',
         cwd: baseDir,
@@ -421,7 +423,7 @@ export function getCherryPicksBetweenCommits(
     const lines = log.split('\n').filter((l) => l);
 
     for (const line of lines) {
-      const [commit, message, author, date] = line.split('|');
+      const [commit, message, author, date] = line.split('\x00');
 
       // Skip version bump commits
       if (message.includes('Bump version number')) continue;
