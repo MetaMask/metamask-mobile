@@ -7,13 +7,13 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../../../util/theme';
 import { formatVolume } from '../../../../utils/format';
 import type { PredictMarket } from '../../../../types';
 
@@ -24,8 +24,6 @@ export interface PredictMarketDetailsAboutProps {
 
 const PredictMarketDetailsAbout = memo(
   ({ market, onPolymarketResolution }: PredictMarketDetailsAboutProps) => {
-    const { colors } = useTheme();
-
     return (
       <Box twClassName="gap-6">
         <Box twClassName="gap-4">
@@ -43,7 +41,7 @@ const PredictMarketDetailsAbout = memo(
               <Icon
                 name={IconName.Chart}
                 size={IconSize.Md}
-                color={colors.text.muted}
+                color={IconColor.IconDefault}
               />
               <Text
                 variant={TextVariant.BodyMd}
@@ -75,7 +73,7 @@ const PredictMarketDetailsAbout = memo(
               <Icon
                 name={IconName.Clock}
                 size={IconSize.Md}
-                color={colors.text.muted}
+                color={IconColor.IconDefault}
               />
               <Text
                 variant={TextVariant.BodyMd}
@@ -109,7 +107,7 @@ const PredictMarketDetailsAbout = memo(
               <Icon
                 name={IconName.Bank}
                 size={IconSize.Md}
-                color={colors.text.muted}
+                color={IconColor.IconDefault}
               />
               <Text
                 variant={TextVariant.BodyMd}
@@ -136,7 +134,7 @@ const PredictMarketDetailsAbout = memo(
               <Icon
                 name={IconName.Export}
                 size={IconSize.Sm}
-                color={colors.primary.default}
+                color={IconColor.PrimaryDefault}
               />
             </Box>
           </Box>
