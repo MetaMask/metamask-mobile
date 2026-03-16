@@ -286,7 +286,6 @@
   },
   "PreferencesController": {
     "featureFlags": {},
-    "identities": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
     "useTokenDetection": true,
     "useNftDetection": true,
@@ -294,13 +293,10 @@
     "displayNftMedia": true,
     "dismissSmartAccountSuggestionEnabled": false,
     "securityAlertsEnabled": true,
-    "selectedAddress": "",
     "isMultiAccountBalancesEnabled": true,
-    "lostIdentities": {},
     "showMultiRpcModal": false,
     "showTestNetworks": false,
     "smartAccountOptIn": true,
-    "smartAccountOptInForAccounts": [],
     "showIncomingTransactions": {
       "0x1": true,
       "0x5": true,
@@ -323,7 +319,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x3e7": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -473,7 +470,8 @@
     "assetsBalance": {},
     "assetsInfo": {},
     "assetsPrice": {},
-    "customAssets": {}
+    "customAssets": {},
+    "selectedCurrency": "usd"
   },
   "PermissionController": {
     "subjects": {}
