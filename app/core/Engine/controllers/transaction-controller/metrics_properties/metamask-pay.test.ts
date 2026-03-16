@@ -484,4 +484,54 @@ describe('Metamask Pay Metrics', () => {
       sensitiveProperties: {},
     });
   });
+
+  describe('mm_pay_time_to_complete_s', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('adds mm_pay_time_to_complete_s for finalized parent MM Pay transaction', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1060000);
+
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      request.transactionMeta.submittedTime = 1000000;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toStrictEqual(
+        expect.objectContaining({
+          mm_pay_time_to_complete_s: 60,
+        }),
+      );
+    });
+
+    it('does not add mm_pay_time_to_complete_s for non-finalized events', () => {
+      request.eventType = TRANSACTION_EVENTS.TRANSACTION_SUBMITTED;
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      request.transactionMeta.submittedTime = 1000000;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
+    });
+
+    it('does not add mm_pay_time_to_complete_s when submittedTime is undefined', () => {
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
+    });
+
+    it('does not add mm_pay_time_to_complete_s for non-MM-Pay transactions', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1060000);
+
+      request.transactionMeta.type = TransactionType.contractInteraction;
+      request.transactionMeta.submittedTime = 1000000;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
+    });
+  });
 });
