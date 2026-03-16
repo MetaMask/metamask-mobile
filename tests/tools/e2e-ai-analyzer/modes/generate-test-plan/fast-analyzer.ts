@@ -174,6 +174,8 @@ export interface TestPlanResult {
     totalDeletions: number;
     highRiskCount: number;
     mediumRiskCount: number;
+    /** Risk score out of 100 (aligned with Extension format) */
+    releaseRiskScore: string;
   };
   scenarios: TestScenario[];
   signOffs: {
@@ -356,6 +358,20 @@ function extractVersion(prTitle: string): string {
 }
 
 /**
+ * Computes a risk score out of 100 based on high/medium risk scenario counts.
+ * Formula aligned with Extension team: min(100, round(10 * sqrt(highRisk * 4 + mediumRisk)))
+ * This gives higher weight to high-risk scenarios while capping at 100.
+ */
+function computeRiskScore(
+  highRiskCount: number,
+  mediumRiskCount: number,
+): string {
+  const raw = 10 * Math.sqrt(highRiskCount * 4 + mediumRiskCount);
+  const score = Math.min(100, Math.round(raw));
+  return `${score}/100`;
+}
+
+/**
  * Analyzes PR and generates test plan with single LLM call
  *
  * @param provider - LLM provider to use
@@ -421,6 +437,14 @@ export async function analyzeWithSingleCall(
     isHighImpactFile(f.filename),
   ).length;
 
+  // Count risk levels for score calculation
+  const highRiskCount = parsed.scenarios.filter(
+    (s) => s.riskLevel === 'high',
+  ).length;
+  const mediumRiskCount = parsed.scenarios.filter(
+    (s) => s.riskLevel === 'medium',
+  ).length;
+
   return {
     prNumber: prInfo.number,
     prTitle: prInfo.title,
@@ -434,10 +458,9 @@ export async function analyzeWithSingleCall(
       highImpactFiles,
       totalAdditions,
       totalDeletions,
-      highRiskCount: parsed.scenarios.filter((s) => s.riskLevel === 'high')
-        .length,
-      mediumRiskCount: parsed.scenarios.filter((s) => s.riskLevel === 'medium')
-        .length,
+      highRiskCount,
+      mediumRiskCount,
+      releaseRiskScore: computeRiskScore(highRiskCount, mediumRiskCount),
     },
     scenarios: parsed.scenarios,
     signOffs: getSignOffSummary(prInfo.teamSignOffs),
@@ -907,6 +930,7 @@ export function formatForSlack(result: TestPlanResult): string {
 
   // Summary stats
   lines.push(`📈 STATS`);
+  lines.push(`  • Release risk score: ${result.summary.releaseRiskScore}`);
   lines.push(
     `  • Files changed: ${result.summary.totalFiles} (${result.summary.highImpactFiles} high-impact)`,
   );
@@ -1031,6 +1055,10 @@ export function createCombinedTestPlan(
     (s) => s.riskLevel === 'medium',
   ).length;
 
+  // Total risk counts for combined score
+  const totalHighRisk = initialResult.summary.highRiskCount + cpHighRisk;
+  const totalMediumRisk = initialResult.summary.mediumRiskCount + cpMediumRisk;
+
   return {
     prNumber: initialResult.prNumber,
     prTitle: initialResult.prTitle,
@@ -1040,8 +1068,9 @@ export function createCombinedTestPlan(
     summary: {
       totalFilesChanged: initialResult.summary.totalFiles,
       highImpactFiles: initialResult.summary.highImpactFiles,
-      highRiskScenarios: initialResult.summary.highRiskCount + cpHighRisk,
-      mediumRiskScenarios: initialResult.summary.mediumRiskCount + cpMediumRisk,
+      highRiskScenarios: totalHighRisk,
+      mediumRiskScenarios: totalMediumRisk,
+      releaseRiskScore: computeRiskScore(totalHighRisk, totalMediumRisk),
       cherryPickCount: deltaResult?.cherryPicks.length || 0,
       initialBuild: deltaResult?.fromBuild,
       currentBuild: deltaResult?.toBuild || initialResult.buildNumber,
@@ -1109,6 +1138,9 @@ export function formatCombinedForSlack(result: CombinedTestPlanResult): string {
 
   // Summary stats
   lines.push(`📈 STATS`);
+  if (result.summary.releaseRiskScore) {
+    lines.push(`  • Release risk score: ${result.summary.releaseRiskScore}`);
+  }
   const highImpactLabel = result.summary.highImpactFiles
     ? ` (${result.summary.highImpactFiles} high-impact)`
     : '';

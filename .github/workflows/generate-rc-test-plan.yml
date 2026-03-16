@@ -185,6 +185,7 @@ jobs:
             <div class=\"summary\">
               <h2>📈 Summary</h2>
               <div class=\"summary-grid\">
+                <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.releaseRiskScore || '0/100'}</div><div class=\"stat-label\">Risk Score</div></div>
                 <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.totalFiles || 0}</div><div class=\"stat-label\">Files Changed</div></div>
                 <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.highImpactFiles || 0}</div><div class=\"stat-label\">High Impact</div></div>
                 <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.highRiskCount || 0}</div><div class=\"stat-label\">High Risk</div></div>
