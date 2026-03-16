@@ -75,6 +75,25 @@ describe('OnboardingSheet', () => {
   });
 
   describe('Behavior Tests', () => {
+    it('renders with undefined route params and safely handles button presses', () => {
+      const propsWithUndefinedParams = {
+        route: { params: undefined },
+      } as unknown as typeof defaultProps;
+
+      const { getByText } = render(
+        <OnboardingSheet {...propsWithUndefinedParams} />,
+      );
+
+      fireEvent.press(getByText(strings('onboarding.sign_in_with_google')));
+      fireEvent.press(getByText(strings('onboarding.sign_in_with_apple')));
+      fireEvent.press(getByText(strings('onboarding.import_srp')));
+
+      expect(mockOnPressContinueWithGoogle).not.toHaveBeenCalled();
+      expect(mockOnPressContinueWithApple).not.toHaveBeenCalled();
+      expect(mockOnPressCreate).not.toHaveBeenCalled();
+      expect(mockOnPressImport).not.toHaveBeenCalled();
+    });
+
     describe('Google button interactions', () => {
       it('calls onPressContinueWithGoogle with createWallet=false when import mode', () => {
         const { getByText } = render(<OnboardingSheet {...defaultProps} />);

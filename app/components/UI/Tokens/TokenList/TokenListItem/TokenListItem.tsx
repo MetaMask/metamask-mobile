@@ -26,9 +26,11 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import {
+  selectIsMusdConversionFlowEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -145,6 +147,11 @@ export const TokenListItem = React.memo(
     const isQuickConvertEnabled = useSelector(
       selectMusdQuickConvertEnabledFlag,
     );
+
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
 
     const { getEarnToken } = useEarnTokens();
 
@@ -294,6 +301,22 @@ export const TokenListItem = React.memo(
         };
       }
 
+      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
+      if (
+        isMusdConversionFlowEnabled &&
+        isMusdGeoEligible &&
+        asset &&
+        isMusdToken(asset.address)
+      ) {
+        return {
+          text: strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: TextColor.Success,
+          onPress: undefined,
+        };
+      }
+
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -336,6 +359,9 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
+      asset,
+      isMusdConversionFlowEnabled,
+      isMusdGeoEligible,
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,

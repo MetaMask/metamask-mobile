@@ -21,9 +21,10 @@ import { strings } from '../../../../../../locales/i18n';
 // Internal dependencies.
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
+import { PREDICT_UNAVAILABLE_TEST_IDS } from './PredictUnavailable.testIds';
 
 interface PredictUnavailableProps {
   onDismiss?: () => void;
@@ -115,23 +116,23 @@ const PredictUnavailable = forwardRef<
       isInteractable
       onClose={handleSheetClosed}
     >
-      <BottomSheetHeader onClose={handleClose} style={tw.style('px-6 py-4')}>
-        <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-          {strings('predict.unavailable.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        testID="header"
+        title={strings('predict.unavailable.title')}
+        onClose={handleClose}
+      />
 
       <TouchableOpacity
         onPress={handlePolymarketTermsPress}
-        testID="polymarket-terms-link"
+        testID={PREDICT_UNAVAILABLE_TEST_IDS.POLYMARKET_TERMS_LINK}
         activeOpacity={0.8}
       >
         <Box
           alignItems={BoxAlignItems.Start}
           justifyContent={BoxJustifyContent.Start}
-          twClassName="px-6 py-4"
+          twClassName="px-4 pb-4"
         >
-          <Text variant={TextVariant.BodyMd} twClassName="text-default">
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
             {strings('predict.unavailable.description')}{' '}
             <Text
               variant={TextVariant.BodyMd}
@@ -152,7 +153,7 @@ const PredictUnavailable = forwardRef<
             onPress: handleGotItPress,
           },
         ]}
-        style={tw.style('px-6 py-4')}
+        style={tw.style('px-4')}
       />
     </BottomSheet>
   );

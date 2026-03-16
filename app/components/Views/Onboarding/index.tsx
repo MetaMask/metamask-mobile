@@ -8,7 +8,6 @@ import React, {
 import {
   ActivityIndicator,
   BackHandler,
-  View,
   ScrollView,
   InteractionManager,
   Animated,
@@ -16,10 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { baseStyles, colors as importedColors } from '../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -52,7 +48,7 @@ import {
   markMetricsOptInUISeen,
   resetMetricsOptInUISeen,
 } from '../../../util/metrics/metricsOptInUIUtils';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -83,16 +79,11 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { JsonMap } from '@segment/analytics-react-native';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
-import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
@@ -100,7 +91,18 @@ import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
-import { createStyles } from './styles';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextButton,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface OnboardingState {
   warningModalVisible: boolean;
@@ -162,8 +164,7 @@ const Onboarding = () => {
   );
 
   const themeContext = useContext(ThemeContext);
-  const colors = themeContext.colors || mockTheme.colors;
-  const styles = createStyles(colors);
+  const tw = useTailwind();
 
   const [state, setState] = useState<OnboardingState>({
     warningModalVisible: false,
@@ -185,6 +186,7 @@ const Onboarding = () => {
   const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
   const warningCallback = useRef<() => boolean>(() => true);
+  const notificationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const animatedTimingStart = useCallback(
     (animatedRef: Animated.Value, toValue: number): void => {
@@ -205,10 +207,8 @@ const Onboarding = () => {
   }, []);
 
   const showNotification = useCallback((): void => {
-    // show notification
     animatedTimingStart(notificationAnimated, 0);
-    // hide notification
-    setTimeout(() => {
+    notificationTimer.current = setTimeout(() => {
       animatedTimingStart(notificationAnimated, 200);
     }, 4000);
     disableBackPress();
@@ -809,65 +809,70 @@ const Onboarding = () => {
 
   const renderLoader = useCallback(
     (): React.ReactElement => (
-      <View style={styles.loaderWrapper}>
-        <View style={styles.loader}>
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="flex-1 gap-y-8 mb-40"
+      >
+        <Box justifyContent={BoxJustifyContent.Center}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText}>{loadingMsg}</Text>
-        </View>
-      </View>
+          <Text
+            variant={TextVariant.BodyMd}
+            style={tw.style('mt-[30px] text-center text-default')}
+          >
+            {loadingMsg}
+          </Text>
+        </Box>
+      </Box>
     ),
-    [styles, loadingMsg],
+    [loadingMsg, tw],
   );
 
   const renderContent = useCallback(
     (): React.ReactElement => (
-      <View style={styles.ctas}>
+      <Box
+        justifyContent={BoxJustifyContent.Between}
+        alignItems={BoxAlignItems.Center}
+        twClassName={`flex-1 w-full px-5 ${Device.isMediumDevice() ? 'gap-y-4' : 'gap-y-6'}`}
+      >
         <OnboardingAnimation
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
         >
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
+            isInverse
             onPress={() => handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={importedColors.applePayBlack}
-              >
-                {strings('onboarding.start_exploring_now')}
-              </Text>
-            }
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={styles.blackButton}
-          />
+          >
+            {strings('onboarding.start_exploring_now')}
+          </Button>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
+            isInverse
             onPress={() => handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={importedColors.white}
-              >
-                {SEEDLESS_ONBOARDING_ENABLED
-                  ? strings('onboarding.import_using_srp_social_login')
-                  : strings('onboarding.import_using_srp')}
-              </Text>
-            }
-            style={styles.inverseBlackButton}
-          />
+            style={tw.style({
+              backgroundColor: importedColors.applePayBlack,
+              borderColor: 'transparent',
+            })}
+          >
+            {SEEDLESS_ONBOARDING_ENABLED
+              ? strings('onboarding.import_using_srp_social_login')
+              : strings('onboarding.import_using_srp')}
+          </Button>
         </OnboardingAnimation>
-      </View>
+      </Box>
     ),
     [
-      styles,
       state.startOnboardingAnimation,
       setStartFoxAnimation,
       handleCtaActions,
+      tw,
     ],
   );
 
@@ -891,11 +896,17 @@ const Onboarding = () => {
       return (
         <Animated.View
           style={[
-            styles.notificationContainer,
+            tw.style('flex-row items-end', { flex: 0.1 }),
             { transform: [{ translateY: notificationAnimated }] },
           ]}
         >
-          <ElevatedView style={styles.modalTypeView} elevation={100}>
+          <ElevatedView
+            style={tw.style(
+              'absolute bottom-0 left-0 right-0 bg-transparent',
+              Device.isIphoneX() ? 'pb-5' : 'pb-[10px]',
+            )}
+            elevation={100}
+          >
             <BaseNotification status="success" data={notificationData} />
           </ElevatedView>
         </Animated.View>
@@ -903,8 +914,8 @@ const Onboarding = () => {
     }, [
       route?.params?.delete,
       route?.params?.showErrorReportSentToast,
-      styles,
       notificationAnimated,
+      tw,
     ]);
 
   useEffect(() => {
@@ -934,6 +945,9 @@ const Onboarding = () => {
 
     return () => {
       mounted.current = false;
+      if (notificationTimer.current) {
+        clearTimeout(notificationTimer.current);
+      }
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
@@ -970,51 +984,51 @@ const Onboarding = () => {
     >
       <ThrowErrorIfNeeded />
       <SafeAreaView
-        style={[
-          baseStyles.flexGrow,
-          {
-            backgroundColor:
-              themeContext.themeAppearance === 'dark'
-                ? importedColors.gettingStartedTextColor
-                : importedColors.gettingStartedPageBackgroundColorLightMode,
-          },
-        ]}
+        style={tw.style('flex-1', {
+          backgroundColor:
+            themeContext.themeAppearance === 'dark'
+              ? importedColors.gettingStartedTextColor
+              : importedColors.gettingStartedPageBackgroundColorLightMode,
+        })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
         <ScrollView
-          style={baseStyles.flexGrow}
-          contentContainerStyle={styles.scroll}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('flex-1')}
         >
-          <View style={styles.wrapper}>
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="flex-1 py-4"
+          >
             {renderContent()}
 
             {loading && (
-              <View
-                style={[
-                  styles.loaderOverlay,
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="absolute top-0 left-0 right-0 bottom-0"
+                style={tw.style(
+                  { zIndex: 1000 },
                   {
                     backgroundColor:
                       themeContext.themeAppearance === 'dark'
                         ? importedColors.gettingStartedTextColor
                         : importedColors.gettingStartedPageBackgroundColorLightMode,
                   },
-                ]}
+                )}
               >
                 {renderLoader()}
-              </View>
+              </Box>
             )}
-          </View>
+          </Box>
 
           {existingUser && !loading && (
-            <View style={styles.footer}>
-              <Button
-                variant={ButtonVariants.Link}
-                onPress={onLogin}
-                label={strings('onboarding.unlock')}
-                width={ButtonWidthTypes.Full}
-                size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-              />
-            </View>
+            <Box twClassName="mb-10 -mt-10">
+              <TextButton onPress={onLogin} isInverse>
+                {strings('onboarding.unlock')}
+              </TextButton>
+            </Box>
           )}
         </ScrollView>
 
@@ -1024,7 +1038,7 @@ const Onboarding = () => {
           <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
         )}
 
-        <View>{handleSimpleNotification()}</View>
+        <Box>{handleSimpleNotification()}</Box>
 
         <FastOnboarding
           onPressContinueWithGoogle={onPressContinueWithGoogle}

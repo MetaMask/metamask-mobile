@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Platform,
   RefreshControl,
   ScrollView,
@@ -67,6 +68,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
+  CARD_SUPPORT_EMAIL,
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../constants';
@@ -691,6 +693,10 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
+  const contactSupportAction = useCallback(() => {
+    Linking.openURL(`mailto:${CARD_SUPPORT_EMAIL}`);
+  }, []);
+
   const userShippingAddress: ShippingAddress | undefined = useMemo(
     () => buildShippingAddress(kycStatus?.userDetails),
     [kycStatus?.userDetails],
@@ -945,6 +951,58 @@ const CardHome = () => {
     [isAuthenticated, kycStatus, warning, externalWalletDetailsData],
   );
 
+  const shouldRedirectToChooseCard = useMemo(
+    () =>
+      !isLoading &&
+      !cardSetupState.isKYCPending &&
+      !isCardProvisioning &&
+      isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      warning === CardStateWarning.NoCard &&
+      userLocation === 'us' &&
+      !!userShippingAddress,
+    [
+      isLoading,
+      cardSetupState.isKYCPending,
+      isCardProvisioning,
+      isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
+      isAuthenticated,
+      warning,
+      userLocation,
+      userShippingAddress,
+    ],
+  );
+
+  const navigateToChooseYourCard = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ORDER_METAL_CARD_BUTTON,
+        })
+        .build(),
+    );
+
+    navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
+      flow: 'home',
+      shippingAddress: userShippingAddress,
+      priorityToken,
+      allTokens,
+      delegationSettings,
+      externalWalletDetailsData,
+    });
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    userShippingAddress,
+    priorityToken,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  ]);
+
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
       return (
@@ -984,7 +1042,11 @@ const CardHome = () => {
           variant={ButtonVariants.Primary}
           label={strings('card.card_home.enable_card_button_label')}
           size={ButtonSize.Lg}
-          onPress={openOnboardingDelegationAction}
+          onPress={
+            shouldRedirectToChooseCard
+              ? navigateToChooseYourCard
+              : openOnboardingDelegationAction
+          }
           width={ButtonWidthTypes.Full}
           testID={cardSetupState.setupTestId}
         />
@@ -1027,6 +1089,8 @@ const CardHome = () => {
     tw,
     openOnboardingDelegationAction,
     isCardProvisioning,
+    shouldRedirectToChooseCard,
+    navigateToChooseYourCard,
   ]);
 
   const isUserEligibleForMetalCard = useMemo(
@@ -1590,6 +1654,18 @@ const CardHome = () => {
               twClassName="text-text-alternative"
             >
               {strings('card.card_home.manage_card_options.card_tos_title')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={contactSupportAction}
+            testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}
+            style={tw.style('py-4 px-4')}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {strings('card.card_home.contact_support')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
