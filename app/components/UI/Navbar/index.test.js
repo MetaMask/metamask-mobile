@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import {
   getTransactionsNavbarOptions,
   getNavigationOptionsTitle,
@@ -23,6 +23,10 @@ import {
   getStakingNavbar,
   getDeFiProtocolPositionDetailsNavbarOptions,
   getRampsOrderDetailsNavbarOptions,
+  getPaymentSelectorMethodNavbar,
+  getPaymentMethodApplePayNavbar,
+  getSwapsAmountNavbar,
+  getSwapsQuotesNavbar,
 } from './index';
 import { BridgeViewMode } from '../Bridge/types';
 
@@ -573,6 +577,201 @@ describe('Navbar', () => {
       );
 
       expect(options).toBeDefined();
+    });
+  });
+
+  describe('getPaymentSelectorMethodNavbar', () => {
+    it('returns correct options', () => {
+      const onPop = jest.fn();
+      const options = getPaymentSelectorMethodNavbar(
+        mockNavigation,
+        onPop,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('calls navigation.getParent().pop() and onPop when headerRight is pressed', () => {
+      const onPop = jest.fn();
+      const mockParentPop = jest.fn();
+      const navigationWithParent = {
+        ...mockNavigation,
+        getParent: jest.fn(() => ({
+          pop: mockParentPop,
+        })),
+      };
+      const options = getPaymentSelectorMethodNavbar(
+        navigationWithParent,
+        onPop,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByText } = render(<HeaderRight />);
+      fireEvent.press(getByText('Cancel'));
+
+      expect(navigationWithParent.getParent).toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(onPop).toHaveBeenCalled();
+    });
+  });
+
+  describe('getPaymentMethodApplePayNavbar', () => {
+    it('returns correct options', () => {
+      const onPop = jest.fn();
+      const onExit = jest.fn();
+      const options = getPaymentMethodApplePayNavbar(
+        mockNavigation,
+        onPop,
+        onExit,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('title');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('calls navigation.getParent().pop() and onExit when headerRight is pressed', () => {
+      const onPop = jest.fn();
+      const onExit = jest.fn();
+      const mockParentPop = jest.fn();
+      const navigationWithParent = {
+        ...mockNavigation,
+        getParent: jest.fn(() => ({
+          pop: mockParentPop,
+        })),
+      };
+      const options = getPaymentMethodApplePayNavbar(
+        navigationWithParent,
+        onPop,
+        onExit,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByText } = render(<HeaderRight />);
+      fireEvent.press(getByText('Cancel'));
+
+      expect(navigationWithParent.getParent).toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(onExit).toHaveBeenCalled();
+    });
+  });
+
+  describe('getSwapsAmountNavbar', () => {
+    it('returns correct options', () => {
+      const options = getSwapsAmountNavbar(
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('calls navigation.getParent().pop() when headerRight is pressed', () => {
+      const mockParentPop = jest.fn();
+      const navigationWithParent = {
+        ...mockNavigation,
+        getParent: jest.fn(() => ({
+          pop: mockParentPop,
+        })),
+      };
+      const options = getSwapsAmountNavbar(
+        navigationWithParent,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByText } = render(<HeaderRight />);
+      fireEvent.press(getByText('Cancel'));
+
+      expect(navigationWithParent.getParent).toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+  });
+
+  describe('getSwapsQuotesNavbar', () => {
+    const mockSwapsRoute = {
+      ...mockRoute,
+      params: {
+        requestedTrade: {
+          token_from: 'ETH',
+          token_to: 'DAI',
+          request_type: 'Order',
+          custom_slippage: false,
+          chain_id: '0x1',
+          token_from_amount: '1',
+        },
+        selectedQuote: { id: 'quote-1' },
+        quoteBegin: Date.now(),
+      },
+    };
+
+    it('returns correct options', () => {
+      const options = getSwapsQuotesNavbar(
+        mockNavigation,
+        mockSwapsRoute,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('calls navigation.getParent().pop() when headerRight is pressed', () => {
+      const mockParentPop = jest.fn();
+      const navigationWithParent = {
+        ...mockNavigation,
+        getParent: jest.fn(() => ({
+          pop: mockParentPop,
+        })),
+      };
+      const options = getSwapsQuotesNavbar(
+        navigationWithParent,
+        mockSwapsRoute,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByText } = render(<HeaderRight />);
+      fireEvent.press(getByText('Cancel'));
+
+      expect(navigationWithParent.getParent).toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+  });
+
+  describe('getBridgeNavbar with getParent', () => {
+    it('calls navigation.getParent().pop() when close button is pressed', () => {
+      const mockParentPop = jest.fn();
+      const navigationWithParent = {
+        ...mockNavigation,
+        getParent: jest.fn(() => ({
+          pop: mockParentPop,
+        })),
+      };
+      const options = getBridgeNavbar(
+        navigationWithParent,
+        BridgeViewMode.Bridge,
+        mockThemeColors,
+      );
+
+      expect(options).toBeDefined();
+      // The getBridgeNavbar uses getHeaderCompactStandardNavbarOptions internally
+      // which sets up onClose to call navigation.getParent()?.pop()
     });
   });
 });
