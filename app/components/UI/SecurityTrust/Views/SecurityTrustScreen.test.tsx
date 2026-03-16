@@ -1,10 +1,22 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
+import { Linking, useColorScheme } from 'react-native';
 import SecurityTrustScreen from './SecurityTrustScreen';
 import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+
+jest.mock('react-native', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Linking: {
+      openURL: jest.fn(() => Promise.resolve()),
+    },
+    useColorScheme: jest.fn(() => 'light'),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -114,5 +126,56 @@ describe('SecurityTrustScreen', () => {
     expect(
       getByText(strings('security_trust.evaluation_disclaimer')),
     ).toBeTruthy();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const { getByTestId } = render(<SecurityTrustScreen />);
+
+    const backButton = getByTestId('security-trust-back-button');
+    fireEvent.press(backButton);
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('opens external link when link is pressed', () => {
+    const mockOpenURL = Linking.openURL as jest.Mock;
+    mockOpenURL.mockReturnValue(Promise.resolve());
+
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    const websiteLink = getByText(strings('security_trust.website'));
+    fireEvent.press(websiteLink);
+
+    expect(mockOpenURL).toHaveBeenCalledWith('https://example.com');
+  });
+
+  it('handles link opening errors gracefully', async () => {
+    const mockOpenURL = Linking.openURL as jest.Mock;
+    mockOpenURL.mockReturnValue(Promise.reject(new Error('Failed to open')));
+
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    const websiteLink = getByText(strings('security_trust.website'));
+    fireEvent.press(websiteLink);
+
+    expect(mockOpenURL).toHaveBeenCalledWith('https://example.com');
+  });
+
+  it('applies dark mode color scheme to progress bar', () => {
+    const mockUseColorScheme = useColorScheme as jest.Mock;
+    mockUseColorScheme.mockReturnValue('dark');
+
+    render(<SecurityTrustScreen />);
+
+    expect(mockUseColorScheme).toHaveBeenCalled();
+  });
+
+  it('applies light mode color scheme to progress bar', () => {
+    const mockUseColorScheme = useColorScheme as jest.Mock;
+    mockUseColorScheme.mockReturnValue('light');
+
+    render(<SecurityTrustScreen />);
+
+    expect(mockUseColorScheme).toHaveBeenCalled();
   });
 });

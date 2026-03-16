@@ -139,6 +139,7 @@ const SecurityTrustScreen: React.FC = () => {
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="security-trust-back-button"
         >
           <Icon
             name={IconName.ArrowLeft}
