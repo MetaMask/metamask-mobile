@@ -18,10 +18,16 @@ export const getAccountTrackerControllerAccountsByChainId =
   createDeepEqualSelector(
     [
       selectIsAssetsUnifyStateEnabled,
-      (state) => state.AccountTrackerController?.accountsByChainId ?? {},
-      (state) => state.AssetsController?.assetsBalance ?? {},
-      (state) => state.AssetsController?.assetsInfo ?? {},
-      (state) => state.AccountsController?.internalAccounts?.accounts ?? {},
+      (state) =>
+        state.engine?.backgroundState?.AccountTrackerController
+          ?.accountsByChainId ?? {},
+      (state) =>
+        state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+      (state) =>
+        state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+      (state) =>
+        state.engine?.backgroundState?.AccountsController?.internalAccounts
+          ?.accounts ?? {},
     ],
     (
       isAssetsUnifyStateEnabled: boolean,
