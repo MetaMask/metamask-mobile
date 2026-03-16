@@ -359,7 +359,6 @@ const SecurityTrustScreen: React.FC = () => {
               <Box
                 key={label}
                 twClassName="flex-1 py-1"
-                gap={3}
                 alignItems={BoxAlignItems.Start}
               >
                 <Text
