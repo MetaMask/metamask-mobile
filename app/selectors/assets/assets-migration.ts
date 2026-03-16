@@ -537,11 +537,9 @@ export const getCurrencyRateControllerCurrentCurrency = createDeepEqualSelector(
   [
     selectIsAssetsUnifyStateEnabled,
     (state) =>
-      state.engine?.backgroundState?.CurrencyRateController?.currentCurrency ??
-      {},
+      state.engine?.backgroundState?.CurrencyRateController?.currentCurrency,
     (state) =>
-      state.engine?.backgroundState?.PreferencesController?.selectedCurrency ??
-      {},
+      state.engine?.backgroundState?.AssetsController?.selectedCurrency,
   ],
   (
     isAssetsUnifyStateEnabled: boolean,
