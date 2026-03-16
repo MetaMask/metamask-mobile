@@ -38,6 +38,7 @@ import {
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
+import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -59,6 +60,14 @@ const SecurityTrustScreen: React.FC = () => {
   const params = route.params as TokenDetailsRouteParams;
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
+  const networkName = useNetworkName(params?.chainId as Hex);
+
+  // Get action handlers from hook (single source of truth)
+  const { onBuy, goToSwaps, hasEligibleSwapTokens, networkModal } =
+    useTokenActions({
+      token: params,
+      networkName,
+    });
 
   const fees = securityData?.fees ?? null;
   const features = securityData?.features ?? [];
@@ -113,7 +122,6 @@ const SecurityTrustScreen: React.FC = () => {
   }, [securityData?.created]);
 
   const tokenType = params?.isNative ? 'Native' : 'ERC-20';
-  const networkName = useNetworkName(params?.chainId as Hex);
 
   const openLink = useCallback((url: string) => {
     Linking.openURL(url).catch(() => null);
@@ -131,6 +139,7 @@ const SecurityTrustScreen: React.FC = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
+      {networkModal}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -606,7 +615,9 @@ const SecurityTrustScreen: React.FC = () => {
       <TokenDetailsStickyFooter
         token={params}
         securityData={securityData}
-        networkName={networkName}
+        onBuy={onBuy}
+        goToSwaps={goToSwaps}
+        hasEligibleSwapTokens={hasEligibleSwapTokens}
       />
     </View>
   );

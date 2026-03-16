@@ -114,6 +114,15 @@ jest.mock('../../TokenDetails/components/TokenDetailsStickyFooter', () => ({
   default: () => null,
 }));
 
+jest.mock('../../TokenDetails/hooks/useTokenActions', () => ({
+  useTokenActions: jest.fn(() => ({
+    onBuy: jest.fn(),
+    goToSwaps: jest.fn(),
+    hasEligibleSwapTokens: true,
+    networkModal: null,
+  })),
+}));
+
 describe('SecurityTrustScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -236,7 +245,7 @@ describe('SecurityTrustScreen', () => {
   it('renders feature tags from TokenSecurityFeature objects', () => {
     const { getByText } = render(<SecurityTrustScreen />);
 
-    expect(getByText('Verified Contract')).toBeTruthy();
-    expect(getByText('High Reputation')).toBeTruthy();
+    expect(getByText('Published contract')).toBeTruthy();
+    expect(getByText('Established reputation')).toBeTruthy();
   });
 });

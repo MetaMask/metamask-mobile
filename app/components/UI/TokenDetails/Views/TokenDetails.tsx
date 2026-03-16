@@ -154,10 +154,11 @@ const TokenDetails: React.FC<{
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  const { onBuy, onSend, onReceive, goToSwaps } = useTokenActions({
-    token,
-    networkName,
-  });
+  const { onBuy, onSend, onReceive, goToSwaps, hasEligibleSwapTokens } =
+    useTokenActions({
+      token,
+      networkName,
+    });
 
   const {
     transactions,
@@ -299,7 +300,9 @@ const TokenDetails: React.FC<{
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
-          networkName={networkName}
+          onBuy={onBuy}
+          goToSwaps={goToSwaps}
+          hasEligibleSwapTokens={hasEligibleSwapTokens}
         />
       )}
     </View>

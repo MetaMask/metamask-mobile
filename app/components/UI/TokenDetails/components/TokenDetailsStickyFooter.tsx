@@ -5,7 +5,6 @@ import { IconName, IconColor } from '@metamask/design-system-react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { useTokenActions } from '../hooks/useTokenActions';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import BottomSheetFooter, {
@@ -22,23 +21,22 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
-  networkName: string | undefined;
+  /** Action handlers from parent's useTokenActions hook */
+  onBuy: () => void;
+  goToSwaps: () => void;
+  hasEligibleSwapTokens: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   token,
   securityData,
-  networkName,
+  onBuy,
+  goToSwaps,
+  hasEligibleSwapTokens,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-
-  const { onBuy, goToSwaps, hasEligibleSwapTokens, networkModal } =
-    useTokenActions({
-      token,
-      networkName,
-    });
 
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen } = useRWAToken();
@@ -129,7 +127,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   return (
     <>
-      {networkModal}
       {isTokenTradingOpen(token as BridgeToken) && (
         <BottomSheetFooter
           style={footerStyle}
