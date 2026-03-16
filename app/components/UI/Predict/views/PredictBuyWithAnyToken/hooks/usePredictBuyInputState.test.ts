@@ -37,7 +37,7 @@ describe('usePredictBuyInputState', () => {
   });
 
   describe('currentValue', () => {
-    it('returns amount from activeOrder when set', () => {
+    it('initializes amount from activeOrder when set', () => {
       mockActiveOrder = { amount: 42 };
 
       const { result } = renderHook(() => usePredictBuyInputState());
@@ -63,7 +63,7 @@ describe('usePredictBuyInputState', () => {
   });
 
   describe('setCurrentValue', () => {
-    it('delegates to PredictController.setOrderAmount with new amount', () => {
+    it('updates currentValue immediately and syncs to PredictController', () => {
       mockActiveOrder = { amount: 10 };
 
       const { result } = renderHook(() => usePredictBuyInputState());
@@ -72,6 +72,7 @@ describe('usePredictBuyInputState', () => {
         result.current.setCurrentValue(20);
       });
 
+      expect(result.current.currentValue).toBe(20);
       expect(mockSetOrderAmount).toHaveBeenCalledWith(20, true);
     });
 
@@ -108,6 +109,7 @@ describe('usePredictBuyInputState', () => {
         result.current.setCurrentValue((prev) => prev + 5);
       });
 
+      expect(result.current.currentValue).toBe(10);
       expect(mockSetOrderAmount).toHaveBeenCalledWith(10, true);
     });
 
@@ -126,7 +128,7 @@ describe('usePredictBuyInputState', () => {
   });
 
   describe('isInputFocused', () => {
-    it('returns isInputFocused from activeOrder', () => {
+    it('initializes isInputFocused from activeOrder', () => {
       mockActiveOrder = { isInputFocused: true };
 
       const { result } = renderHook(() => usePredictBuyInputState());
@@ -142,7 +144,7 @@ describe('usePredictBuyInputState', () => {
       expect(result.current.isInputFocused).toBe(false);
     });
 
-    it('setIsInputFocused calls updateActiveOrder with isInputFocused', () => {
+    it('updates isInputFocused immediately and syncs to activeOrder', () => {
       mockActiveOrder = { isInputFocused: false };
 
       const { result } = renderHook(() => usePredictBuyInputState());
@@ -151,6 +153,7 @@ describe('usePredictBuyInputState', () => {
         result.current.setIsInputFocused(true);
       });
 
+      expect(result.current.isInputFocused).toBe(true);
       expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
         isInputFocused: true,
       });
