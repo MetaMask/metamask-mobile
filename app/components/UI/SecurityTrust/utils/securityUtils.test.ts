@@ -7,9 +7,99 @@ import {
   formatFeePercent,
   getTop10HoldingPct,
   formatCompactSupply,
+  getResultTypeConfig,
 } from './securityUtils';
+import {
+  TextColor,
+  IconName,
+  IconColor,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
 
 describe('securityUtils', () => {
+  describe('getResultTypeConfig', () => {
+    it('returns config for Verified result type', () => {
+      const config = getResultTypeConfig('Verified');
+
+      expect(config.label).toBe(strings('security_trust.known'));
+      expect(config.textColor).toBe(TextColor.SuccessDefault);
+      expect(config.subtitle).toBe(strings('security_trust.subtitle_known'));
+      expect(config.icon).toBe(IconName.SecurityTick);
+      expect(config.iconColor).toBe(IconColor.SuccessDefault);
+    });
+
+    it('returns config for Benign result type', () => {
+      const config = getResultTypeConfig('Benign');
+
+      expect(config.label).toBe(strings('security_trust.no_issues'));
+      expect(config.textColor).toBe(TextColor.SuccessDefault);
+      expect(config.subtitle).toBe(
+        strings('security_trust.subtitle_no_issues'),
+      );
+      expect(config.icon).toBe(IconName.SecurityTick);
+      expect(config.iconColor).toBe(IconColor.SuccessDefault);
+    });
+
+    it('returns config for Warning result type', () => {
+      const config = getResultTypeConfig('Warning');
+
+      expect(config.label).toBe(strings('security_trust.suspicious'));
+      expect(config.textColor).toBe(TextColor.WarningDefault);
+      expect(config.subtitle).toBe(
+        strings('security_trust.subtitle_suspicious'),
+      );
+      expect(config.icon).toBe(IconName.Warning);
+      expect(config.iconColor).toBe(IconColor.WarningDefault);
+    });
+
+    it('returns config for Spam result type', () => {
+      const config = getResultTypeConfig('Spam');
+
+      expect(config.label).toBe(strings('security_trust.suspicious'));
+      expect(config.textColor).toBe(TextColor.WarningDefault);
+      expect(config.subtitle).toBe(
+        strings('security_trust.subtitle_suspicious'),
+      );
+      expect(config.icon).toBe(IconName.Warning);
+      expect(config.iconColor).toBe(IconColor.WarningDefault);
+    });
+
+    it('returns config for Malicious result type', () => {
+      const config = getResultTypeConfig('Malicious');
+
+      expect(config.label).toBe(strings('security_trust.malicious_label'));
+      expect(config.textColor).toBe(TextColor.ErrorDefault);
+      expect(config.subtitle).toBe(
+        strings('security_trust.subtitle_malicious'),
+      );
+      expect(config.icon).toBe(IconName.Danger);
+      expect(config.iconColor).toBe(IconColor.ErrorDefault);
+    });
+
+    it('returns default config for undefined result type', () => {
+      const config = getResultTypeConfig(undefined);
+
+      expect(config.label).toBe(strings('security_trust.data_unavailable'));
+      expect(config.textColor).toBe(TextColor.TextAlternative);
+      expect(config.subtitle).toBe(
+        strings('security_trust.subtitle_unavailable'),
+      );
+      expect(config.icon).toBeUndefined();
+      expect(config.iconColor).toBeUndefined();
+    });
+
+    it('returns default config for unknown result type', () => {
+      const config = getResultTypeConfig('UnknownType');
+
+      expect(config.label).toBe(strings('security_trust.data_unavailable'));
+      expect(config.textColor).toBe(TextColor.TextAlternative);
+      expect(config.subtitle).toBe(
+        strings('security_trust.subtitle_unavailable'),
+      );
+      expect(config.icon).toBeUndefined();
+      expect(config.iconColor).toBeUndefined();
+    });
+  });
   describe('getFeatureTags', () => {
     const makeFeature = (featureId: string): TokenSecurityFeature =>
       ({ featureId }) as TokenSecurityFeature;
