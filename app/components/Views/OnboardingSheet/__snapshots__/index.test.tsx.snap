@@ -481,13 +481,16 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                   "borderWidth": 1,
                   "columnGap": 8,
                   "flexDirection": "row",
-                  "height": 48,
+                  "height": "auto",
                   "justifyContent": "center",
+                  "minHeight": 48,
                   "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
+                  "paddingBottom": 12,
                   "paddingLeft": 16,
                   "paddingRight": 16,
+                  "paddingTop": 12,
                   "width": "100%",
                 },
                 {
@@ -504,7 +507,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             <Text
               accessibilityRole="text"
               ellipsizeMode="clip"
-              numberOfLines={1}
+              numberOfLines={0}
               style={
                 [
                   {
@@ -1091,13 +1094,16 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                   "borderWidth": 1,
                   "columnGap": 8,
                   "flexDirection": "row",
-                  "height": 48,
+                  "height": "auto",
                   "justifyContent": "center",
+                  "minHeight": 48,
                   "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
+                  "paddingBottom": 12,
                   "paddingLeft": 16,
                   "paddingRight": 16,
+                  "paddingTop": 12,
                   "width": "100%",
                 },
                 {
@@ -1114,7 +1120,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             <Text
               accessibilityRole="text"
               ellipsizeMode="clip"
-              numberOfLines={1}
+              numberOfLines={0}
               style={
                 [
                   {
