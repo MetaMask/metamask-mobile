@@ -5161,6 +5161,7 @@ describe('Authentication', () => {
 
     describe('when biometric authentication fails due to changed biometrics', () => {
       const userNotAuthenticatedError = new Error('User not authenticated');
+      const passwordToUse = 'password';
 
       beforeEach(() => {
         const Engine = jest.requireMock('../Engine');
