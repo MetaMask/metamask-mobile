@@ -330,20 +330,17 @@ exports[`ActivityView matches snapshot 1`] = `
                     <View
                       style={
                         {
-                          "bottom": "off",
-                          "left": "off",
-                          "right": "off",
-                          "top": "additive",
+                          "flex": 1,
                         }
                       }
                     >
                       <RNCSafeAreaView
                         edges={
                           {
-                            "bottom": "additive",
+                            "bottom": "off",
                             "left": "off",
                             "right": "off",
-                            "top": "off",
+                            "top": "additive",
                           }
                         }
                         style={
@@ -353,8 +350,9 @@ exports[`ActivityView matches snapshot 1`] = `
                               "flexGrow": 1,
                               "flexShrink": 1,
                             },
-                            false,
-                            undefined,
+                            {
+                              "backgroundColor": "#ffffff",
+                            },
                           ]
                         }
                         testID="activity-view-safe-area"
@@ -370,9 +368,7 @@ exports[`ActivityView matches snapshot 1`] = `
                                 "paddingLeft": 16,
                                 "paddingRight": 8,
                               },
-                              {
-                                "marginTop": 0,
-                              },
+                              false,
                               undefined,
                             ]
                           }
