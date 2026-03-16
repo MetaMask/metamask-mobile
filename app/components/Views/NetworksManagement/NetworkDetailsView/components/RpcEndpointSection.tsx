@@ -94,11 +94,11 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
             ref={inputRpcURL}
             style={[
               styles.input,
-              warningRpcUrl
-                ? isRpcUrlFieldFocused
-                  ? styles.inputWithFocus
-                  : styles.inputWithError
-                : undefined,
+              isRpcUrlFieldFocused
+                ? styles.inputWithFocus
+                : warningRpcUrl
+                  ? styles.inputWithError
+                  : undefined,
             ]}
             autoCapitalize="none"
             autoCorrect={false}
@@ -393,11 +393,11 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                   ref={inputRpcURL}
                   style={[
                     styles.input,
-                    warningRpcUrl
-                      ? isRpcUrlFieldFocused
-                        ? styles.inputWithFocus
-                        : styles.inputWithError
-                      : undefined,
+                    isRpcUrlFieldFocused
+                      ? styles.inputWithFocus
+                      : warningRpcUrl
+                        ? styles.inputWithError
+                        : undefined,
                   ]}
                   autoCapitalize="none"
                   autoCorrect={false}
