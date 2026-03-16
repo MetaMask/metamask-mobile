@@ -3951,6 +3951,22 @@ export class PerpsController extends BaseController<
         }),
       );
     }
+
+    // Fallback: if remote flags are missing or lack blockedRegions,
+    // refreshEligibilityOnFeatureFlagChange won't trigger refreshEligibility().
+    // Call it directly so the fallback region list (set in constructor) is used,
+    // matching the non-deferred constructor behavior.
+    this.refreshEligibility().catch((error) => {
+      this.#logError(
+        ensureError(
+          error,
+          'PerpsController.startEligibilityMonitoring.fallback',
+        ),
+        this.#getErrorContext('startEligibilityMonitoring', {
+          operation: 'fallbackRefreshEligibility',
+        }),
+      );
+    });
   }
 
   async refreshEligibility(): Promise<void> {

@@ -732,10 +732,28 @@ describe('PerpsController', () => {
         deferEligibilityCheck: true,
       });
 
+      // Reset mocks after construction to isolate startEligibilityMonitoring behavior
+      testMockCall.mockClear();
+      mockFeatureFlagConfigurationServiceInstance.refreshEligibility.mockClear();
+
+      // Re-wire the mock so it still returns flags when called again
+      testMockCall.mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
       // Act
       deferredController.startEligibilityMonitoring();
 
-      // Assert — reads current remote feature flag state
+      // Assert — startEligibilityMonitoring itself reads remote flags and triggers eligibility
       expect(testMockCall).toHaveBeenCalledWith(
         'RemoteFeatureFlagController:getState',
       );
