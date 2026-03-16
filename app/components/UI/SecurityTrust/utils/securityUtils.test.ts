@@ -114,8 +114,8 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Verified');
 
         expect(tags).toEqual([
-          { label: 'Verified Contract' },
-          { label: 'High Reputation' },
+          { label: 'Published contract' },
+          { label: 'Established reputation' },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -128,7 +128,7 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Verified');
 
-        expect(tags).toEqual([{ label: 'Verified Contract' }]);
+        expect(tags).toEqual([{ label: 'Published contract' }]);
       });
 
       it('caps display at 4 positive tags with no remainingCount', () => {
@@ -151,7 +151,7 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, undefined);
 
-        expect(tags).toEqual([{ label: 'High Reputation' }]);
+        expect(tags).toEqual([{ label: 'Established reputation' }]);
       });
     });
 
@@ -165,8 +165,8 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Warning');
 
         expect(tags).toEqual([
-          { label: 'Honeypot Risk' },
-          { label: 'Suspicious Airdrop' },
+          { label: 'Honeypot risk' },
+          { label: 'Suspicious airdrop' },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -176,7 +176,7 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Spam');
 
-        expect(tags).toEqual([{ label: 'Impersonator' }]);
+        expect(tags).toEqual([{ label: 'Likely impersonator' }]);
       });
 
       it('ignores Malicious features when resultType is Warning', () => {
@@ -184,7 +184,7 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Warning');
 
-        expect(tags).toEqual([{ label: 'Honeypot Risk' }]);
+        expect(tags).toEqual([{ label: 'Honeypot risk' }]);
       });
 
       it('caps display at 3 and returns correct remainingCount', () => {
@@ -213,8 +213,8 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Malicious');
 
         expect(tags).toEqual([
-          { label: 'Rugpull Risk' },
-          { label: 'Known Malicious' },
+          { label: 'Rugpull risk' },
+          { label: 'Known malicious' },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -224,7 +224,7 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Malicious');
 
-        expect(tags).toEqual([{ label: 'Rugpull Risk' }]);
+        expect(tags).toEqual([{ label: 'Rugpull risk' }]);
       });
 
       it('caps display at 3 and returns correct remainingCount', () => {
