@@ -207,6 +207,7 @@ const PredictBuyWithAnyToken = () => {
       <PredictBuyPreviewHeader
         market={market}
         outcome={outcome}
+        outcomeToken={outcomeToken}
         preview={preview}
         onBack={handleBack}
       />
