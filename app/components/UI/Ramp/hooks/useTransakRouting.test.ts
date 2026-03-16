@@ -864,8 +864,9 @@ describe('useTransakRouting', () => {
       const OriginalURL = global.URL;
       const urlSpy = jest
         .spyOn(global, 'URL')
-        .mockImplementation((url: string, base?: string) => {
-          if (url === parseThrowingUrl) {
+        .mockImplementation((url: string | URL, base?: string | URL) => {
+          const urlStr = typeof url === 'string' ? url : url.href;
+          if (urlStr === parseThrowingUrl) {
             throw new TypeError('Invalid URL');
           }
           return new OriginalURL(url, base);

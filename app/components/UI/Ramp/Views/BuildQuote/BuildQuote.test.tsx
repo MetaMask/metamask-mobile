@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
@@ -74,13 +75,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn((selector: () => unknown) => selector()),
-}));
-
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
+  createNavigationDetails:
+    (name: string, screen?: string) => (params?: object) => [
+      name,
+      screen ? { screen, params } : params,
+    ],
 }));
 
 jest.mock('../../hooks/useRampsController', () => ({
@@ -124,9 +125,19 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/device', () => ({
-  isAndroid: jest.fn(),
-}));
+jest.mock('../../../../../util/device', () => {
+  const mockIsAndroid = jest.fn();
+  const mockIsIos = jest.fn(() => true);
+  return {
+    __esModule: true,
+    default: {
+      isAndroid: mockIsAndroid,
+      isIos: mockIsIos,
+    },
+    isAndroid: mockIsAndroid,
+    isIos: mockIsIos,
+  };
+});
 
 jest.mock('react-native-inappbrowser-reborn', () => ({
   openAuth: jest.fn(),
@@ -136,6 +147,8 @@ jest.mock('react-native-inappbrowser-reborn', () => ({
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeEventListener: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useStyles', () => ({
@@ -293,7 +306,9 @@ describe('BuildQuote', () => {
         browser: 'IN_APP_OS_BROWSER',
       });
 
-      const { getByTestId } = renderWithProvider(<BuildQuote />);
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
@@ -332,7 +347,9 @@ describe('BuildQuote', () => {
         orderId: 'ord-123',
       });
 
-      const { getByTestId } = renderWithProvider(<BuildQuote />);
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
@@ -360,7 +377,9 @@ describe('BuildQuote', () => {
 
   describe('updateAmount', () => {
     it('updates amount from string input (empty string maps to "0")', async () => {
-      const { getByTestId } = renderWithProvider(<BuildQuote />);
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId('keypad-trigger-empty'));
@@ -371,7 +390,9 @@ describe('BuildQuote', () => {
     });
 
     it('updates amount from string input with parsed valueAsNumber', async () => {
-      const { getByTestId } = renderWithProvider(<BuildQuote />);
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId('keypad-trigger-string'));
@@ -382,7 +403,9 @@ describe('BuildQuote', () => {
     });
 
     it('uses valueAsNumber when provided with string input', async () => {
-      const { getByTestId } = renderWithProvider(<BuildQuote />);
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId('keypad-trigger-with-value-as-number'));
@@ -393,7 +416,9 @@ describe('BuildQuote', () => {
     });
 
     it('updates amount from number input via QuickAmounts', async () => {
-      const { getByTestId } = renderWithProvider(<BuildQuote />);
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId('keypad-trigger-empty'));
@@ -410,7 +435,9 @@ describe('BuildQuote', () => {
     it('clears rampsError when amount is updated', async () => {
       mockUseParams.mockReturnValue({ nativeFlowError: 'Some error' });
 
-      const { getByTestId } = renderWithProvider(<BuildQuote />);
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
 
       await act(async () => {
