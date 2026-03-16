@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.69.1]
 
-### Changed
-
-- Updated Explore tab icon in the main tab bar to use the outline style (#27459)
-
 ### Fixed
 
 - Fixed root pages scrollable behavior with SafeAreaView, standardizing safe area and header inset handling across main tab views (#27446)
