@@ -165,6 +165,7 @@ jobs:
       total_splits: 3
       changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
+      artifact_name_prefix: ''
     secrets: inherit
 
   report-android-smoke-tests:
@@ -187,7 +188,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-android-*'
+          pattern: 'test-e2e-flask-android-smoke-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
