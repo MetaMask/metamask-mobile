@@ -361,7 +361,7 @@ jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
   ]),
 }));
 
-const mockUseIsPerpsBalanceSelected = jest.fn(() => false);
+const mockUseIsPerpsBalanceSelected = jest.fn<boolean, unknown[]>(() => false);
 jest.mock('../../hooks/useIsPerpsBalanceSelected', () => ({
   useIsPerpsBalanceSelected: (...args: unknown[]) =>
     mockUseIsPerpsBalanceSelected(...args),

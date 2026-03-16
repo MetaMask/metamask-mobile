@@ -91,7 +91,7 @@ export function setupTrendingApiFetchMock(
   nock('https://token.api.cx.metamask.io')
     .get('/v3/tokens/trending')
     .query(true)
-    .reply(200, (uri) => replyBody(uri))
+    .reply(200, (uri: string) => replyBody(uri))
     .persist();
 }
 
