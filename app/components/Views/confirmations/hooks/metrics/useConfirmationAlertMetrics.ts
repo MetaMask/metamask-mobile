@@ -127,6 +127,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
   [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
+  [AlertKeys.TokenContractAddress]: 'token_contract_address',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
 };

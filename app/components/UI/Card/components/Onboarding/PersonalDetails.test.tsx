@@ -252,6 +252,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.onboarding.personal_details.continue': 'Continue',
       'card.onboarding.personal_details.ssn_error': 'Invalid SSN',
       'card.onboarding.personal_details.age_error': 'Must be 18 or older',
+      'card.card_onboarding.personal_details.name_mismatch_error':
+        'First and last name must match your verified identity',
     };
     return mockStrings[key] || key;
   }),
@@ -1121,6 +1123,203 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(lastNameInput, 'Doe');
 
       expect(queryByTestId('personal-details-ssn-input')).toBeNull();
+    });
+  });
+
+  describe('Error Reset on Name Change', () => {
+    it('clears registration error when first name is edited', () => {
+      const mockResetRegister = jest.fn();
+      (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
+        registerPersonalDetails: mockRegisterPersonalDetails,
+        isLoading: false,
+        isError: true,
+        error: 'Registration failed',
+        reset: mockResetRegister,
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Jane',
+      );
+
+      expect(mockResetRegister).toHaveBeenCalled();
+    });
+
+    it('clears registration error when last name is edited', () => {
+      const mockResetRegister = jest.fn();
+      (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
+        registerPersonalDetails: mockRegisterPersonalDetails,
+        isLoading: false,
+        isError: true,
+        error: 'Registration failed',
+        reset: mockResetRegister,
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Smith',
+      );
+
+      expect(mockResetRegister).toHaveBeenCalled();
+    });
+  });
+
+  describe('Name Validation', () => {
+    const setupWithUserData = (userData: Record<string, unknown> | null) => {
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: userData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+    };
+
+    it('does not show name error when pre-filled names match Veriff data', () => {
+      setupWithUserData({
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { queryByTestId } = render(<PersonalDetails />);
+
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show name error when no userData is provided', () => {
+      setupWithUserData(null);
+
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'John',
+      );
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Doe',
+      );
+
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows name error when firstName is edited to drop middle name', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
+    });
+
+    it('shows name error when lastName is edited to drop second surname', () => {
+      setupWithUserData({
+        firstName: 'John',
+        lastName: 'Garcia Lopez',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Garcia',
+      );
+
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
+    });
+
+    it('clears name error when names are corrected back to match', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria Elena',
+      );
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('allows different name splits as long as full name matches', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Elena Garcia',
+      );
+
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('disables continue button when name mismatch exists', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia Lopez',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+
+      const continueButton = getByTestId('personal-details-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
     });
   });
 });
