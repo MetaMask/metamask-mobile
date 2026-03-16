@@ -2,16 +2,14 @@
 export { default as Assertions } from './Assertions.ts';
 export { default as Gestures } from './Gestures.ts';
 export { default as Matchers } from './Matchers.ts';
-export {
-  default as Utilities,
-  BASE_DEFAULTS,
-  sleep,
-  boxedStep,
-  getDriver,
-} from './Utilities.ts';
+export { default as Utilities, BASE_DEFAULTS, sleep } from './Utilities.ts';
 export { Logger, createLogger, LogLevel, logger } from './logger.ts';
 export { default as PortManager, ResourceType } from './PortManager.ts';
 export * from './types.ts';
+export { boxedStep, getDriver } from './PlaywrightUtilities.ts';
+
+// Mock server utilities
+export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
 
 // Dapp server exports for standalone usage (e.g., Appwright tests)
 export { default as DappServer } from './DappServer.ts';

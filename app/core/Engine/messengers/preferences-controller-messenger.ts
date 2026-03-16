@@ -20,7 +20,7 @@ export function getPreferencesControllerMessenger(
   });
   rootMessenger.delegate({
     actions: [],
-    events: ['KeyringController:stateChange'],
+    events: [],
     messenger,
   });
   return messenger;

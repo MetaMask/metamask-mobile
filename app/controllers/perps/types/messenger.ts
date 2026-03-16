@@ -33,7 +33,7 @@ export type PerpsControllerAllowedActions =
   | TransactionControllerAddTransactionAction
   | RemoteFeatureFlagControllerGetStateAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
-  | AuthenticationController.AuthenticationControllerGetBearerToken;
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
 
 /**
  * Events from other controllers that PerpsController is allowed to subscribe to.

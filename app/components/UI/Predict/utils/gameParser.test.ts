@@ -8,6 +8,7 @@ import {
   formatPeriodDisplay,
   mapApiTeamToPredictTeam,
   buildGameData,
+  extractNeededTeamsFromEvents,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -490,6 +491,126 @@ describe('gameParser', () => {
       const result = parseScore('42-35');
 
       expect(result).toEqual({ away: 42, home: 35, raw: '42-35' });
+    });
+  });
+
+  describe('extractNeededTeamsFromEvents', () => {
+    it('extracts teams from a single NFL game event', () => {
+      const event = createMockEvent();
+
+      const result = extractNeededTeamsFromEvents([event], ['nfl']);
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+    });
+
+    it('extracts teams from multiple events across leagues', () => {
+      const nflEvent = createMockEvent({
+        slug: 'nfl-sea-den-2025-01-12',
+        tags: [
+          { id: '1', label: 'NFL', slug: 'nfl' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+      });
+      const nbaEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'nba-lal-bos-2025-01-12',
+        title: 'Lakers vs Celtics',
+        tags: [
+          { id: '3', label: 'NBA', slug: 'nba' },
+          { id: '4', label: 'Games', slug: 'games' },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [nflEvent, nbaEvent],
+        ['nfl', 'nba'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.get('nba')).toEqual(['lal', 'bos']);
+    });
+
+    it('deduplicates team abbreviations across events', () => {
+      const event1 = createMockEvent({
+        id: 'event-1',
+        slug: 'nfl-sea-den-2025-01-12',
+      });
+      const event2 = createMockEvent({
+        id: 'event-2',
+        slug: 'nfl-sea-gb-2025-01-13',
+        title: 'Seahawks vs Packers',
+      });
+
+      const result = extractNeededTeamsFromEvents([event1, event2], ['nfl']);
+
+      const teams = result.get('nfl');
+      expect(teams).toHaveLength(3);
+      expect(teams).toContain('sea');
+      expect(teams).toContain('den');
+      expect(teams).toContain('gb');
+    });
+
+    it('skips non-sports events', () => {
+      const sportsEvent = createMockEvent();
+      const nonSportsEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'crypto-btc-eth-2025-01-12',
+        tags: [],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [sportsEvent, nonSportsEvent],
+        ['nfl'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.size).toBe(1);
+    });
+
+    it('skips events for unsupported leagues', () => {
+      const nflEvent = createMockEvent();
+      const nbaEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'nba-lal-bos-2025-01-12',
+        tags: [
+          { id: '3', label: 'NBA', slug: 'nba' },
+          { id: '4', label: 'Games', slug: 'games' },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [nflEvent, nbaEvent],
+        ['nfl'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.get('nba')).toBeUndefined();
+    });
+
+    it('returns empty map for empty events array', () => {
+      const result = extractNeededTeamsFromEvents([], ['nfl']);
+
+      expect(result.size).toBe(0);
+    });
+
+    it('skips events with invalid slugs', () => {
+      const validEvent = createMockEvent();
+      const invalidEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'invalid-slug',
+        tags: [
+          { id: '1', label: 'NFL', slug: 'nfl' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [validEvent, invalidEvent],
+        ['nfl'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.size).toBe(1);
     });
   });
 });
