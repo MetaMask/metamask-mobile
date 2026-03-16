@@ -80,86 +80,95 @@ interface FeatureDefinition {
 
 /** Positive-signal features (Benign / Info) */
 const POSITIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
-  HIGH_REPUTATION_TOKEN: { label: 'High Reputation', type: 'Benign' },
-  LISTED_ON_CENTRALIZED_EXCHANGE: { label: 'Listed on CEX', type: 'Benign' },
-  VERIFIED_CONTRACT: { label: 'Verified Contract', type: 'Info' },
-  HIGH_TRADE_VOLUME: { label: 'High Trade Volume', type: 'Info' },
+  HIGH_REPUTATION_TOKEN: { label: 'Established reputation', type: 'Benign' },
+  LISTED_ON_CENTRALIZED_EXCHANGE: {
+    label: 'Listed on exchange',
+    type: 'Benign',
+  },
+  VERIFIED_CONTRACT: { label: 'Verified contract', type: 'Info' },
+  HIGH_TRADE_VOLUME: { label: 'High trading volume', type: 'Info' },
 };
 
 /** Negative-signal features (Malicious / Spam / Warning / risk-bearing Info) */
 const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
   // Malicious
-  KNOWN_MALICIOUS: { label: 'Known Malicious', type: 'Malicious' },
-  METADATA: { label: 'Suspicious Metadata', type: 'Malicious' },
+  KNOWN_MALICIOUS: { label: 'Known malicious', type: 'Malicious' },
+  METADATA: { label: 'Suspicious metadata', type: 'Malicious' },
   IMPERSONATOR_SENSITIVE_ASSET: {
-    label: 'Sensitive Asset Impersonator',
+    label: 'Impersonates a sensitive asset',
     type: 'Malicious',
   },
-  STATIC_CODE_SIGNATURE: { label: 'Suspicious Code', type: 'Malicious' },
-  RUGPULL: { label: 'Rugpull Risk', type: 'Malicious' },
-  HIGH_TRANSFER_FEE: { label: 'High Transfer Fee', type: 'Malicious' },
-  HIGH_BUY_FEE: { label: 'High Buy Fee', type: 'Malicious' },
-  HIGH_SELL_FEE: { label: 'High Sell Fee', type: 'Malicious' },
-  UNSELLABLE_TOKEN: { label: 'Unsellable Token', type: 'Malicious' },
-  SANCTIONED_CREATOR: { label: 'Sanctioned Creator', type: 'Malicious' },
+  STATIC_CODE_SIGNATURE: { label: 'Suspicious code', type: 'Malicious' },
+  RUGPULL: { label: 'Rugpull risk', type: 'Malicious' },
+  HIGH_TRANSFER_FEE: { label: 'High transfer fee', type: 'Malicious' },
+  HIGH_BUY_FEE: { label: 'High buy fee', type: 'Malicious' },
+  HIGH_SELL_FEE: { label: 'High sell fee', type: 'Malicious' },
+  UNSELLABLE_TOKEN: { label: 'Unsellable token', type: 'Malicious' },
+  SANCTIONED_CREATOR: { label: 'Sanctioned creator', type: 'Malicious' },
   SIMILAR_MALICIOUS_CONTRACT: {
-    label: 'Similar Malicious Contract',
+    label: 'Resembles malicious contract',
     type: 'Malicious',
   },
-  TOKEN_BACKDOOR: { label: 'Token Backdoor', type: 'Malicious' },
-  POST_DUMP: { label: 'Post Dump', type: 'Malicious' },
+  TOKEN_BACKDOOR: { label: 'Token backdoor', type: 'Malicious' },
+  POST_DUMP: { label: 'Possible price manipulation', type: 'Malicious' },
 
   // Spam
-  IMPERSONATOR_HIGH_CONFIDENCE: { label: 'Impersonator', type: 'Spam' },
+  IMPERSONATOR_HIGH_CONFIDENCE: { label: 'Likely impersonator', type: 'Spam' },
   IMPERSONATOR_MEDIUM_CONFIDENCE: {
-    label: 'Impersonator',
+    label: 'Possible impersonator',
     type: 'Spam',
   },
 
   // Warning
-  AIRDROP_PATTERN: { label: 'Suspicious Airdrop', type: 'Warning' },
+  AIRDROP_PATTERN: { label: 'Suspicious airdrop', type: 'Warning' },
   IMPERSONATOR: { label: 'Impersonator', type: 'Warning' },
-  INORGANIC_VOLUME: { label: 'Inorganic Volume', type: 'Warning' },
-  DYNAMIC_ANALYSIS: { label: 'Suspicious Behavior', type: 'Warning' },
-  UNSTABLE_TOKEN_PRICE: { label: 'Unstable Price', type: 'Warning' },
-  INAPPROPRIATE_CONTENT: { label: 'Inappropriate Content', type: 'Warning' },
-  HONEYPOT: { label: 'Honeypot Risk', type: 'Warning' },
-  SPAM_TEXT: { label: 'Spam Text', type: 'Warning' },
+  INORGANIC_VOLUME: { label: 'Artificial volume', type: 'Warning' },
+  DYNAMIC_ANALYSIS: { label: 'Suspicious behavior', type: 'Warning' },
+  UNSTABLE_TOKEN_PRICE: { label: 'Unstable price', type: 'Warning' },
+  INAPPROPRIATE_CONTENT: { label: 'Inappropriate content', type: 'Warning' },
+  HONEYPOT: { label: 'Honeypot risk', type: 'Warning' },
+  SPAM_TEXT: { label: 'Spam text', type: 'Warning' },
   INSUFFICIENT_LOCKED_LIQUIDITY: {
-    label: 'Insufficient Locked Liquidity',
+    label: 'Low locked liquidity',
     type: 'Warning',
   },
   CONCENTRATED_SUPPLY_DISTRIBUTION: {
-    label: 'Concentrated Supply',
+    label: 'Concentrated supply',
     type: 'Warning',
   },
-  WASH_TRADING: { label: 'Wash Trading', type: 'Warning' },
-  FAKE_VOLUME: { label: 'Fake Volume', type: 'Warning' },
-  HIDDEN_SUPPLY_BY_KEY_HOLDER: { label: 'Hidden Supply', type: 'Warning' },
-  HEAVILY_SNIPED: { label: 'Heavily Sniped', type: 'Warning' },
-  FAKE_TRADE_MAKER_COUNT: { label: 'Fake Maker Count', type: 'Warning' },
-  LOW_REPUTATION_CREATOR: { label: 'Low Reputation Creator', type: 'Warning' },
-  SNIPE_AT_MINT: { label: 'Sniped at Mint', type: 'Warning' },
+  WASH_TRADING: { label: 'Wash trading', type: 'Warning' },
+  FAKE_VOLUME: { label: 'Fake volume', type: 'Warning' },
+  HIDDEN_SUPPLY_BY_KEY_HOLDER: { label: 'Undisclosed supply', type: 'Warning' },
+  HEAVILY_SNIPED: { label: 'Heavy bot activity', type: 'Warning' },
+  FAKE_TRADE_MAKER_COUNT: { label: 'Inflated trader count', type: 'Warning' },
+  LOW_REPUTATION_CREATOR: {
+    label: 'Creator has low reputation',
+    type: 'Warning',
+  },
+  SNIPE_AT_MINT: { label: 'Bot activity at launch', type: 'Warning' },
 
   // Info – risk-bearing capabilities
-  IMPERSONATOR_LOW_CONFIDENCE: { label: 'Impersonator', type: 'Warning' }, // used to be Info, but now it's Warning
+  IMPERSONATOR_LOW_CONFIDENCE: {
+    label: 'Unconfirmed impersonator',
+    type: 'Warning',
+  }, // used to be Info, but now it's Warning
   IS_MINTABLE: { label: 'Mintable', type: 'Info' },
-  CAN_BLACKLIST: { label: 'Can Blacklist', type: 'Info' },
-  CAN_WHITELIST: { label: 'Can Whitelist', type: 'Info' },
-  HAS_TRADING_COOLDOWN: { label: 'Trading Cooldown', type: 'Info' },
-  EXTERNAL_FUNCTIONS: { label: 'External Calls', type: 'Info' },
-  HIDDEN_OWNER: { label: 'Hidden Owner', type: 'Info' },
-  TRANSFER_PAUSEABLE: { label: 'Transfers Pauseable', type: 'Info' },
-  PROXY_CONTRACT: { label: 'Proxy Contract', type: 'Info' },
-  MODIFIABLE_TAXES: { label: 'Modifiable Taxes', type: 'Info' },
-  OWNER_CAN_CHANGE_BALANCE: { label: 'Owner Can Change Balance', type: 'Info' },
-  TRANSFER_FROM_REVERTS: { label: 'TransferFrom Reverts', type: 'Info' },
-  TRANSFER_HOOK_ENABLED: { label: 'Transfer Hook Enabled', type: 'Info' },
+  CAN_BLACKLIST: { label: 'Can blacklist', type: 'Info' },
+  CAN_WHITELIST: { label: 'Can whitelist', type: 'Info' },
+  HAS_TRADING_COOLDOWN: { label: 'Trading cooldown', type: 'Info' },
+  EXTERNAL_FUNCTIONS: { label: 'External calls', type: 'Info' },
+  HIDDEN_OWNER: { label: 'Hidden owner', type: 'Info' },
+  TRANSFER_PAUSEABLE: { label: 'Transfers pauseable', type: 'Info' },
+  PROXY_CONTRACT: { label: 'Proxy contract', type: 'Info' },
+  MODIFIABLE_TAXES: { label: 'Modifiable taxes', type: 'Info' },
+  OWNER_CAN_CHANGE_BALANCE: { label: 'Owner can change balance', type: 'Info' },
+  TRANSFER_FROM_REVERTS: { label: 'Transfer reversals enabled', type: 'Info' },
+  TRANSFER_HOOK_ENABLED: { label: 'Transfer hook enabled', type: 'Info' },
   CONFIDENTIAL_TRANSFERS_ENABLED: {
-    label: 'Confidential Transfers',
+    label: 'Confidential transfers',
     type: 'Info',
   },
-  NON_TRANSERABLE: { label: 'Non-Transferable', type: 'Info' },
+  NON_TRANSERABLE: { label: 'Non-transferable', type: 'Info' },
 };
 
 export interface FeatureTagsResult {
