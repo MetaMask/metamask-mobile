@@ -143,7 +143,7 @@ const PredictMarketDetailsActions = memo(
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
-                  style={getActionButtonStyle('bg-success-muted')}
+                  style={getActionButtonStyle('flex-1 bg-success-muted')}
                   isFullWidth
                   onPress={() => {
                     if (yesToken) {
@@ -161,7 +161,7 @@ const PredictMarketDetailsActions = memo(
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
-                  style={getActionButtonStyle('bg-error-muted')}
+                  style={getActionButtonStyle('flex-1 bg-error-muted')}
                   isFullWidth
                   onPress={() => {
                     if (noToken) {
