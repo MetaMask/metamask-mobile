@@ -119,6 +119,9 @@ describe('useSubmitBridgeTx', () => {
           },
         },
       },
+      bridge: {
+        abTestContext: undefined,
+      },
       swaps: {
         featureFlags: {
           smart_transactions: {
@@ -170,6 +173,9 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
+      undefined,
+      undefined,
+      undefined,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -217,6 +223,9 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
+      undefined,
+      undefined,
+      undefined,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -379,6 +388,7 @@ describe('useSubmitBridgeTx', () => {
     expect(mockHandleIntentTransaction).toHaveBeenCalledWith(
       mockQuoteResponse,
       '0x1234567890123456789012345678901234567890',
+      undefined,
     );
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);

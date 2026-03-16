@@ -22,6 +22,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
+  ORDER_TYPE: 'order_type',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',
@@ -128,6 +129,8 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  RETRY_PROMPTED: 'retry_prompted',
+  RETRY_SUBMITTED: 'retry_submitted',
 } as const;
 
 export type PredictTradeStatusValue =

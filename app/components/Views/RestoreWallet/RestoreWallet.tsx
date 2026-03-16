@@ -14,14 +14,13 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import EngineService from '../../../core/EngineService';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
@@ -50,9 +49,7 @@ const RestoreWallet = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { replace } = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
   const { previousScreen } = useParams<RestoreWalletParams>();
@@ -79,13 +76,17 @@ const RestoreWallet = () => {
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();
     if (restoreResult.success) {
-      replace(...createWalletRestoredNavDetails());
+      navigation.dispatch(
+        StackActions.replace(...createWalletRestoredNavDetails()),
+      );
       setLoading(false);
     } else {
-      replace(...createWalletResetNeededNavDetails());
+      navigation.dispatch(
+        StackActions.replace(...createWalletResetNeededNavDetails()),
+      );
       setLoading(false);
     }
-  }, [deviceMetaData, replace, trackEvent, createEventBuilder]);
+  }, [deviceMetaData, navigation, trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.screen}>

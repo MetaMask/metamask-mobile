@@ -116,6 +116,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: '1.0',
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -134,6 +135,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -152,6 +154,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -170,6 +173,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -191,6 +195,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -211,6 +216,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -228,6 +234,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -249,6 +256,7 @@ describe('handleSwapUrl', () => {
         sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });

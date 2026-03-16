@@ -3,6 +3,23 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictActivity from './PredictActivity';
 import { PredictActivityType, type PredictActivityItem } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockEventBuilder = {
+  addProperties: jest.fn().mockReturnValue({ build: mockBuild }),
+  build: mockBuild,
+};
+const mockCreateEventBuilder = jest.fn(() => mockEventBuilder);
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -129,6 +146,50 @@ describe('PredictActivity', () => {
 
       expect(screen.getByText('Claim')).toBeOnTheScreen();
       expect(screen.queryByText('$123.45 on Yes • 34¢')).toBeNull();
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when pressed', () => {
+      const item = createActivityItem();
+
+      render(<PredictActivity item={item} />);
+      fireEvent.press(screen.getByText('Buy'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'predict_buy',
+          monetized_primitive: MonetizedPrimitive.Predict,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks correct transaction_type for sell activity', () => {
+      const item = createActivityItem({
+        type: PredictActivityType.SELL,
+        entry: {
+          type: 'sell',
+          timestamp: 0,
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 0,
+          amount: 1234.5,
+          price: 0.34,
+        },
+      });
+
+      render(<PredictActivity item={item} />);
+      fireEvent.press(screen.getByText('Sell'));
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'predict_sell',
+        }),
+      );
     });
   });
 });

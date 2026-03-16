@@ -28,9 +28,7 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
-import { MetaMetrics } from '../../../Analytics';
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
@@ -63,6 +61,27 @@ export interface BridgeState {
    * When false, changing source network will update dest to the default for that network.
    */
   isDestTokenManuallySet: boolean;
+  /**
+   * Network filter for the token selector screen.
+   * When set, only tokens from this chain are shown.
+   * When undefined, tokens from all chains are shown ("All" filter).
+   */
+  tokenSelectorNetworkFilter: CaipChainId | undefined;
+  abTestContext?: {
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
+  };
+  /**
+   * Ordered list of chain IDs shown as pills in the token selector.
+   * Shared across source and dest pickers so pill order persists within a session.
+   * When undefined, defaults to the first N entries from chainRanking.
+   */
+  visiblePillChainIds: CaipChainId[] | undefined;
+  /**
+   * The requestId of the quote manually selected by the user.
+   * When set, this quote becomes the active quote across all components.
+   * When undefined, the recommended quote (best quote) is used.
+   */
+  selectedQuoteRequestId: string | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -82,6 +101,10 @@ export const initialState: BridgeState = {
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
+  abTestContext: undefined,
+  tokenSelectorNetworkFilter: undefined,
+  visiblePillChainIds: undefined,
+  selectedQuoteRequestId: undefined,
 };
 
 const name = 'bridge';
@@ -130,7 +153,9 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    resetBridgeState: () => initialState,
+    resetBridgeState: () => ({
+      ...initialState,
+    }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = action.payload;
     },
@@ -169,6 +194,34 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setAbTestContext: (
+      state,
+      action: PayloadAction<BridgeState['abTestContext']>,
+    ) => {
+      state.abTestContext = action.payload;
+    },
+    setTokenSelectorNetworkFilter: (
+      state,
+      action: PayloadAction<CaipChainId | undefined>,
+    ) => {
+      state.tokenSelectorNetworkFilter = action.payload;
+    },
+    setVisiblePillChainIds: (
+      state,
+      action: PayloadAction<CaipChainId[] | undefined>,
+    ) => {
+      state.visiblePillChainIds = action.payload;
+    },
+    /**
+     * Sets the requestId of the manually selected quote.
+     * Pass undefined to reset to the recommended quote.
+     */
+    setSelectedQuoteRequestId: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.selectedQuoteRequestId = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -274,50 +327,16 @@ const isAllowedBridgeChainId = (caipChainId: string): boolean => {
 };
 
 /**
- * Base selector: filters chainRanking from feature flags by ALLOWED_BRIDGE_CHAIN_IDS.
- * This is the single place where the allowlist check is applied to chainRanking.
- * All other chain ranking selectors should derive from this.
+ * Selector that returns chainRanking from feature flags filtered by
+ * ALLOWED_BRIDGE_CHAIN_IDS. This ensures chains added to the remote flag
+ * in the future won't be surfaced by older app versions that lack support.
  */
-const selectAllowedChainRanking = createSelector(
+export const selectAllowedChainRanking = createSelector(
   selectBridgeFeatureFlags,
   (bridgeFeatureFlags) =>
     (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
       isAllowedBridgeChainId(chain.chainId),
     ),
-);
-
-/**
- * Selector that returns all chains from chainRanking that are supported by this
- * version of the client (filtered by ALLOWED_BRIDGE_CHAIN_IDS).
- * Used by NetworkPills in DEST mode to show all available destination networks.
- */
-export const selectDestChainRanking = selectAllowedChainRanking;
-
-/**
- * Selector that returns the chainRanking filtered by:
- * 1. Chains supported by this version of the client (via selectAllowedChainRanking)
- * 2. User-configured networks
- * Used by NetworkPills in SOURCE mode to show all networks the user has added.
- */
-export const selectSourceChainRanking = createSelector(
-  selectAllowedChainRanking,
-  selectNetworkConfigurations,
-  (allowedChains, networkConfigurations) => {
-    const configuredChainIds = new Set(Object.keys(networkConfigurations));
-
-    return allowedChains.filter((chain) => {
-      const { chainId } = chain;
-
-      // For EVM chains (eip155:*), extract the hex chain ID and check if user has it configured
-      if (chainId.startsWith('eip155:')) {
-        const hexChainId = formatChainIdToHex(chainId);
-        return configuredChainIds.has(hexChainId);
-      }
-
-      // For non-EVM chains, check directly against the CAIP chain ID
-      return configuredChainIds.has(chainId);
-    });
-  },
 );
 
 /**
@@ -416,6 +435,11 @@ export const selectDestAddress = createSelector(
   (bridgeState) => bridgeState.destAddress,
 );
 
+export const selectSelectedQuoteRequestId = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.selectedQuoteRequestId,
+);
+
 // Selectors for gas included STX/SendBundle support
 export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
   state.bridge.isGasIncludedSTXSendBundleSupported;
@@ -426,11 +450,13 @@ export const selectIsGasIncluded7702Supported = (state: RootState) =>
 
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
+  gasFeeEstimatesByChainId:
+    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+    {},
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
-  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
   },
@@ -438,11 +464,38 @@ const selectControllerFields = (state: RootState) => ({
 
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
-  (requiredControllerFields) =>
-    selectBridgeQuotesBase(requiredControllerFields, {
-      sortOrder: SortOrder.COST_ASC, // TODO for v1 we don't allow user to select alternative quotes, hardcode for now
-      selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
-    }),
+  selectSelectedQuoteRequestId,
+  (
+    requiredControllerFields,
+    selectedQuoteRequestId,
+  ): ReturnType<typeof selectBridgeQuotesBase> => {
+    // First get all quotes
+    const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
+      sortOrder: SortOrder.COST_ASC,
+      selectedQuote: null,
+    });
+
+    // If no selectedQuoteRequestId, return the default result
+    if (!selectedQuoteRequestId) {
+      return allQuotesResult;
+    }
+
+    // Find the quote with the matching requestId
+    const selectedQuote = allQuotesResult.sortedQuotes?.find(
+      (quote) => quote.quote.requestId === selectedQuoteRequestId,
+    );
+
+    // If found, recalculate with the selected quote
+    if (selectedQuote) {
+      return selectBridgeQuotesBase(requiredControllerFields, {
+        sortOrder: SortOrder.COST_ASC,
+        selectedQuote,
+      });
+    }
+
+    // If not found, return default result
+    return allQuotesResult;
+  },
 );
 
 export const selectIsSolanaSourced = createSelector(
@@ -525,34 +578,6 @@ export const selectIsSwap = createSelector(
     sourceToken.chainId === destToken.chainId,
 );
 
-/**
- * Selector that returns the gas included quote params for bridge and swap transactions.
- * Combines isSwap, STX/SendBundle support, and 7702 support to determine the correct
- * gas included parameters.
- */
-export const selectGasIncludedQuoteParams = createSelector(
-  [
-    selectIsSwap,
-    selectIsGasIncludedSTXSendBundleSupported,
-    selectIsGasIncluded7702Supported,
-  ],
-  (isSwap, gasIncludedSTXSendBundleSupport, gasIncluded7702Support) => {
-    // If STX send bundle support is true, we favor it over 7702.
-    if (gasIncludedSTXSendBundleSupport) {
-      return { gasIncluded: true, gasIncluded7702: false };
-    }
-
-    // If 7702 support is true, we use it for swap transactions.
-    const gasIncludedWith7702Enabled =
-      Boolean(isSwap) && gasIncluded7702Support;
-
-    return {
-      gasIncluded: gasIncludedWith7702Enabled,
-      gasIncluded7702: gasIncludedWith7702Enabled,
-    };
-  },
-);
-
 export const selectIsEvmSwap = createSelector(
   selectIsSwap,
   selectIsSolanaSwap,
@@ -574,9 +599,24 @@ export const selectIsSelectingToken = createSelector(
   (bridgeState) => bridgeState.isSelectingToken,
 );
 
+export const selectTokenSelectorNetworkFilter = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
+);
+
+export const selectVisiblePillChainIds = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.visiblePillChainIds,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
+);
+
+export const selectAbTestContext = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.abTestContext,
 );
 
 export const selectIsGaslessSwapEnabled = createSelector(
@@ -656,4 +696,8 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setAbTestContext,
+  setTokenSelectorNetworkFilter,
+  setVisiblePillChainIds,
+  setSelectedQuoteRequestId,
 } = actions;

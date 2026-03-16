@@ -1,5 +1,7 @@
-import type { PerpsMarketData } from '../../controllers/types';
-import type { SortField } from '../../utils/sortMarkets';
+import {
+  type PerpsMarketData,
+  type SortField,
+} from '@metamask/perps-controller';
 
 /**
  * Props for PerpsMarketRowItem component

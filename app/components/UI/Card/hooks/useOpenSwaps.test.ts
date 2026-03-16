@@ -52,11 +52,8 @@ jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_ADD_FUNDS_SWAPS_CLICKED: 'CARD_ADD_FUNDS_SWAPS_CLICKED',
-  },
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 describe('useOpenSwaps', () => {
@@ -133,14 +130,16 @@ describe('useOpenSwaps', () => {
     );
     useSwapBridgeNavigation.mockReturnValue({ goToSwaps: mockGoToSwaps });
 
-    // Mock useMetrics
-    const useMetricsMock = jest.requireMock('../../../hooks/useMetrics');
+    // Mock useAnalytics
+    const useAnalyticsMock = jest.requireMock(
+      '../../../hooks/useAnalytics/useAnalytics',
+    );
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnValue({
         build: jest.fn().mockReturnValue('mock-event'),
       }),
     });
-    useMetricsMock.useMetrics.mockReturnValue({
+    useAnalyticsMock.useAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });

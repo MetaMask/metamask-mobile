@@ -43,7 +43,7 @@ import AppConstants from '../../../../../../core/AppConstants';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
 
-interface OrderDetailsParams {
+export interface OrderDetailsParams {
   orderId?: string;
   redirectToSendTransaction?: boolean;
 }
@@ -163,7 +163,7 @@ const OrderDetails = () => {
       } catch (fetchError) {
         Logger.error(fetchError as Error, {
           message: 'FiatOrders::OrderDetails error while processing order',
-          order,
+          orderId: order.id,
         });
         setError((fetchError as Error).message || 'An error as occurred');
       } finally {

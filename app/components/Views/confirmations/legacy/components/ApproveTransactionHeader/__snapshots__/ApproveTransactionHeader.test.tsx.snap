@@ -15,7 +15,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "center",
         "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
+        "borderColor": "#949596",
         "borderRadius": 99,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -61,7 +61,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "flexShrink": 1,
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
@@ -77,7 +77,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
+        "borderColor": "#949596",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -224,7 +224,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -247,7 +247,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -265,7 +265,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -280,7 +280,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -309,7 +309,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
+        "borderColor": "#949596",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -456,7 +456,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -479,7 +479,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -497,7 +497,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -512,7 +512,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,

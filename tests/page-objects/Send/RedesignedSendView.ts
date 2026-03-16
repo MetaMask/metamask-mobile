@@ -124,9 +124,17 @@ class SendView {
   }
 
   async pressReviewButton() {
+    await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
     await Utilities.waitForElementToBeEnabled(this.reviewButton);
+    await Utilities.waitForElementToStopMoving(this.reviewButton, {
+      timeout: 10000,
+      interval: 250,
+      stableCount: 3,
+    });
     await Gestures.waitAndTap(this.reviewButton, {
       elemDescription: 'Review button',
+      checkStability: false,
+      timeout: 20000,
     });
   }
 
@@ -166,9 +174,13 @@ class SendView {
   }
 
   async checkInsufficientFundsError(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.insufficientFundsError, {
-      description: 'Insufficient funds error message',
-    });
+    await Assertions.expectElementToHaveText(
+      this.insufficientFundsError,
+      SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
+      {
+        description: 'Insufficient funds error message',
+      },
+    );
   }
 }
 export default new SendView();

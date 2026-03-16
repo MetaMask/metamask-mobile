@@ -1,3 +1,5 @@
 import { RampIntent } from '../../Aggregator/types';
 
-export type DepositNavigationParams = RampIntent;
+export type DepositNavigationParams = RampIntent & {
+  shouldRouteImmediately?: boolean;
+};

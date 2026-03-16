@@ -28,11 +28,12 @@ import Text, {
 import Keypad from '../../../../../components/Base/Keypad';
 import { useTheme } from '../../../../../util/theme';
 
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -48,10 +49,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import {
-  TP_SL_VIEW_CONFIG,
-  PERPS_CONSTANTS,
-} from '../../constants/perpsConfig';
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation();
@@ -227,6 +225,9 @@ const PerpsTPSLView: React.FC = () => {
       // Add initial TP/SL state to understand what user already has set
       [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
       [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: !!initialStopLossPrice,
+      [PERPS_EVENT_PROPERTY.SOURCE]: isEditingExistingPosition
+        ? PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN
+        : PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
     },
   });
 

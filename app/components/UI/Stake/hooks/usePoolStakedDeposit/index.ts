@@ -10,7 +10,8 @@ import { formatEther } from 'ethers/lib/utils';
 import { NetworkClientId } from '@metamask/network-controller';
 import { addTransaction } from '../../../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { EVENT_PROVIDERS } from '../../constants/events';
 import { useStakeContext } from '../useStakeContext';
@@ -35,8 +36,8 @@ const attemptDepositTransaction =
   (
     pooledStakingContract: PooledStakingContract,
     networkClientId: NetworkClientId,
-    trackEvent: ReturnType<typeof useMetrics>['trackEvent'],
-    createEventBuilder: ReturnType<typeof useMetrics>['createEventBuilder'],
+    trackEvent: ReturnType<typeof useAnalytics>['trackEvent'],
+    createEventBuilder: ReturnType<typeof useAnalytics>['createEventBuilder'],
   ) =>
   async (
     depositValueWei: string,
@@ -97,7 +98,7 @@ const attemptDepositTransaction =
 const usePoolStakedDeposit = () => {
   const { networkClientId, stakingContract } =
     useStakeContext() as Required<Stake>;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Linter is complaining that function may use other dependencies
   // We will simply ignore since we don't want to use inline function

@@ -8,18 +8,18 @@ import {
   formatChange,
   formatPercentage,
   HyperLiquidMarketData,
-} from './marketDataTransform';
+} from './mobileMarketDataFormatters';
 import {
   formatVolume,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
-import { HIP3_ASSET_MARKET_TYPES } from '../constants/hyperLiquidConfig';
-import type {
-  AllMidsResponse,
-  PerpsAssetCtx,
-  PredictedFunding,
-} from '../types/hyperliquid-types';
+import {
+  HIP3_ASSET_MARKET_TYPES,
+  type AllMidsResponse,
+  type PerpsAssetCtx,
+  type PredictedFunding,
+} from '@metamask/perps-controller';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({

@@ -1,6 +1,8 @@
 import { HttpTransport, InfoClient } from '@nktkas/hyperliquid';
-import { createStandaloneInfoClient } from './standaloneInfoClient';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  createStandaloneInfoClient,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 
 // Mock the hyperliquid library
 jest.mock('@nktkas/hyperliquid', () => ({

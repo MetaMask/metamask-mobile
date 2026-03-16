@@ -14,6 +14,11 @@ import {
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
 import useTooltipModal from '../../../hooks/useTooltipModal';
 import AppConstants from '../../../../core/AppConstants';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
+
+const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const styles = StyleSheet.create({
   headerTitle: {
@@ -39,6 +44,8 @@ const styles = StyleSheet.create({
 export function useMusdConversionNavbar() {
   const { openTooltipModal } = useTooltipModal();
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const renderHeaderTitle = useCallback(
     () => (
       <View style={styles.headerTitle}>
@@ -57,7 +64,7 @@ export function useMusdConversionNavbar() {
       <View style={styles.headerLeft}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconProps={{ color: IconColor.IconDefault }}
           onPress={onBackPress}
         />
@@ -66,9 +73,17 @@ export function useMusdConversionNavbar() {
     [],
   );
 
-  const handleTermsOfUsePressed = () => {
+  const handleTermsOfUsePressed = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
+        .addProperties({
+          location: EVENT_LOCATIONS.CUSTOM_AMOUNT_NAVBAR,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        })
+        .build(),
+    );
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  };
+  }, [createEventBuilder, trackEvent]);
 
   const onInfoPress = useCallback(() => {
     openTooltipModal(
@@ -88,14 +103,14 @@ export function useMusdConversionNavbar() {
       strings('earn.musd_conversion.powered_by_relay'),
       strings('earn.musd_conversion.ok'),
     );
-  }, [openTooltipModal]);
+  }, [handleTermsOfUsePressed, openTooltipModal]);
 
   const renderHeaderRight = useCallback(
     () => (
       <View style={styles.headerRight}>
         <ButtonIcon
           iconName={IconName.Info}
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconProps={{ color: IconColor.IconDefault }}
           onPress={onInfoPress}
         />

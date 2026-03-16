@@ -15,16 +15,20 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -61,8 +65,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -96,7 +100,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -110,7 +114,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -142,20 +146,20 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -182,16 +186,20 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -228,8 +236,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -263,7 +271,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -277,7 +285,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -309,20 +317,20 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -349,16 +357,20 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -395,8 +407,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -430,7 +442,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -444,7 +456,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -476,20 +488,20 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -516,16 +528,20 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -562,8 +578,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -597,7 +613,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -611,7 +627,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -643,20 +659,20 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -683,16 +699,20 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -729,8 +749,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -764,7 +784,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -778,7 +798,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -810,20 +830,20 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -865,16 +885,20 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -911,8 +935,8 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -946,7 +970,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -960,7 +984,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -992,20 +1016,19 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -1032,16 +1055,20 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1078,8 +1105,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -1113,7 +1140,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1127,7 +1154,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1160,20 +1187,20 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -1200,16 +1227,20 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1246,8 +1277,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -1281,7 +1312,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1295,7 +1326,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1327,20 +1358,19 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -1367,16 +1397,20 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1413,8 +1447,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -1448,7 +1482,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1462,7 +1496,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1494,20 +1528,20 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -1534,16 +1568,20 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1580,8 +1618,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -1615,7 +1653,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1629,7 +1667,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1661,20 +1699,19 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -1701,16 +1738,20 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1747,8 +1788,8 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -1782,7 +1823,7 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1796,7 +1837,7 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
           accessibilityRole="text"
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#babbbe",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1828,20 +1869,20 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#66676a"
         style={
           {
             "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"

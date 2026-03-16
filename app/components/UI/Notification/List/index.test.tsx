@@ -129,7 +129,7 @@ describe('NotificationsListItem', () => {
         n.type === TRIGGER_TYPES.ETH_SENT ||
         n.type === TRIGGER_TYPES.ETH_RECEIVED
       ) {
-        n.payload.chain_id = 123; // unsupported chainId
+        n.payload = undefined as never; // no valid network metadata
       }
 
       return n;
@@ -152,7 +152,7 @@ describe('NotificationsListItem', () => {
         n.type === TRIGGER_TYPES.ERC20_SENT ||
         n.type === TRIGGER_TYPES.ERC20_RECEIVED
       ) {
-        n.payload.chain_id = 123; // unsupported chainId
+        n.payload = undefined as never; // no valid network metadata
       }
 
       return n;

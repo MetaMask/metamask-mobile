@@ -121,6 +121,36 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   },
 });
 
+export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
+  homepageSectionsV1: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});
+
+export const remoteFeatureFlagRampsUnifiedV1Enabled = (active = true) => ({
+  rampsUnifiedBuyV1: {
+    active,
+    minimumVersion: '7.61.0',
+  },
+});
+
+export const remoteFeatureFlagRampsUnifiedV2Enabled = (active = true) => ({
+  rampsUnifiedBuyV2: {
+    active,
+    minimumVersion: '7.63.0',
+  },
+});
+
+/**
+ * Enables both V1 and V2 unified ramps.
+ * V2 requires V1 to be enabled for the buy button to show.
+ */
+export const remoteFeatureFlagRampsUnifiedEnabled = (active = true) => ({
+  ...remoteFeatureFlagRampsUnifiedV1Enabled(active),
+  ...remoteFeatureFlagRampsUnifiedV2Enabled(active),
+});
+
 export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
 });

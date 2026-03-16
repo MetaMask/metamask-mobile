@@ -1,11 +1,19 @@
-import type { PerpsMarketData } from '../controllers/types';
-import { parseVolume } from '../hooks/usePerpsMarkets';
-import { sortMarkets, type SortDirection, type SortField } from './sortMarkets';
+import {
+  parseVolume,
+  sortMarkets,
+  type SortDirection,
+  type SortField,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 
 // Mock dependencies
-jest.mock('../hooks/usePerpsMarkets', () => ({
-  parseVolume: jest.fn(),
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+  return {
+    ...actual,
+    parseVolume: jest.fn(),
+  };
+});
 
 const mockParseVolume = parseVolume as jest.MockedFunction<typeof parseVolume>;
 
@@ -57,9 +65,6 @@ describe('sortMarkets', () => {
       expect(result[0].symbol).toBe('ETH');
       expect(result[1].symbol).toBe('BTC');
       expect(result[2].symbol).toBe('SOL');
-      expect(mockParseVolume).toHaveBeenCalledWith('$2M');
-      expect(mockParseVolume).toHaveBeenCalledWith('$1M');
-      expect(mockParseVolume).toHaveBeenCalledWith('$500K');
     });
 
     it('sorts markets by volume in ascending order when specified', () => {
@@ -330,9 +335,6 @@ describe('sortMarkets', () => {
       expect(result[0].symbol).toBe('ETH');
       expect(result[1].symbol).toBe('BTC');
       expect(result[2].symbol).toBe('SOL');
-      expect(mockParseVolume).toHaveBeenCalledWith('$2M');
-      expect(mockParseVolume).toHaveBeenCalledWith('$1M');
-      expect(mockParseVolume).toHaveBeenCalledWith('$500K');
     });
 
     it('sorts markets by open interest in ascending order when specified', () => {

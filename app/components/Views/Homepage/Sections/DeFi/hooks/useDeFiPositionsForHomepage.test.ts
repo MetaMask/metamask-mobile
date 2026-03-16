@@ -1,0 +1,155 @@
+import { renderHook } from '@testing-library/react-hooks';
+import { useDeFiPositionsForHomepage } from './useDeFiPositionsForHomepage';
+
+const mockSelectDefiPositionsByChainIds = jest.fn();
+
+jest.mock('../../../../../../selectors/defiPositionsController', () => ({
+  selectDefiPositionsByChainIds: (_state: unknown, _chainIds: unknown) =>
+    mockSelectDefiPositionsByChainIds(),
+}));
+
+jest.mock('../../../../../../selectors/networkEnablementController', () => ({
+  selectEVMEnabledNetworks: () => [],
+}));
+
+jest.mock('../../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageSectionsV1Enabled: () => false,
+}));
+
+jest.mock(
+  '../../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({ popularEvmNetworks: [] }),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+const mockSortAssets = jest.fn(
+  (assets: unknown[], _config?: unknown): unknown[] => assets,
+);
+
+jest.mock('../../../../../UI/Tokens/util', () => ({
+  sortAssets: (assets: unknown[], config: unknown) => {
+    mockSortAssets(assets, config);
+    return assets;
+  },
+}));
+
+const createMockProtocolAggregate = (name: string, marketValue: number) => ({
+  protocolDetails: {
+    name,
+    iconUrl: `https://example.com/${name}.png`,
+  },
+  aggregatedMarketValue: marketValue,
+  positionTypes: {},
+});
+
+describe('useDeFiPositionsForHomepage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns loading state when defiPositionsByChainIds is undefined', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue(undefined);
+
+    const { result } = renderHook(() => useDeFiPositionsForHomepage());
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.hasError).toBe(false);
+    expect(result.current.isEmpty).toBe(false);
+    expect(result.current.positions).toEqual([]);
+  });
+
+  it('returns error state when defiPositionsByChainIds is null', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue(null);
+
+    const { result } = renderHook(() => useDeFiPositionsForHomepage());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasError).toBe(true);
+    expect(result.current.isEmpty).toBe(false);
+    expect(result.current.positions).toEqual([]);
+  });
+
+  it('returns empty state when defiPositionsByChainIds is empty object', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue({});
+
+    const { result } = renderHook(() => useDeFiPositionsForHomepage());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasError).toBe(false);
+    expect(result.current.isEmpty).toBe(true);
+    expect(result.current.positions).toEqual([]);
+  });
+
+  it('returns positions flattened from multiple chains', () => {
+    const mockPositions = {
+      '0x1': {
+        protocols: {
+          aave: createMockProtocolAggregate('Aave', 1000),
+          uniswap: createMockProtocolAggregate('Uniswap', 500),
+        },
+      },
+      '0x89': {
+        protocols: {
+          quickswap: createMockProtocolAggregate('QuickSwap', 300),
+        },
+      },
+    };
+
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
+
+    const { result } = renderHook(() => useDeFiPositionsForHomepage());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasError).toBe(false);
+    expect(result.current.isEmpty).toBe(false);
+    expect(result.current.positions).toHaveLength(3);
+  });
+
+  it('limits positions to maxPositions parameter', () => {
+    const mockPositions = {
+      '0x1': {
+        protocols: {
+          aave: createMockProtocolAggregate('Aave', 1000),
+          uniswap: createMockProtocolAggregate('Uniswap', 500),
+          compound: createMockProtocolAggregate('Compound', 400),
+          curve: createMockProtocolAggregate('Curve', 300),
+        },
+      },
+    };
+
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
+
+    const { result } = renderHook(() => useDeFiPositionsForHomepage(2));
+
+    expect(result.current.positions).toHaveLength(2);
+  });
+
+  it('sorts positions by market value using homepage sort config (not user preference)', () => {
+    const mockPositions = {
+      '0x1': {
+        protocols: {
+          aave: createMockProtocolAggregate('Aave', 1000),
+          uniswap: createMockProtocolAggregate('Uniswap', 500),
+        },
+      },
+    };
+
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
+
+    renderHook(() => useDeFiPositionsForHomepage());
+
+    expect(mockSortAssets).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({
+        key: 'protocolAggregate.aggregatedMarketValue',
+        order: 'dsc',
+        sortCallback: 'stringNumeric',
+      }),
+    );
+  });
+});

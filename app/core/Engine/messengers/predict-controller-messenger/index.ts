@@ -41,6 +41,7 @@ export function getPredictControllerMessenger(
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'TransactionController:transactionRejected',
+      'TransactionController:transactionStatusUpdated',
       'RemoteFeatureFlagController:stateChange',
     ],
     messenger,

@@ -26,6 +26,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { ensureError } from '../../utils/predictErrorHandler';
@@ -71,11 +72,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { navigateToBuyPreview } = usePredictNavigation();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 
@@ -139,15 +140,15 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   ) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
+        navigateToBuyPreview(
+          {
             market,
             outcome,
             outcomeToken,
             entryPoint: resolvedEntryPoint,
           },
-        });
+          { throughRoot: true },
+        );
       },
       {
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -253,10 +254,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 >
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
+                    size={ButtonSize.Sm}
                     label={
                       <Text
-                        variant={TextVariant.BodySm}
+                        variant={
+                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
+                        }
                         style={tw.style('font-medium')}
                         color={TextColor.SuccessDefault}
                         numberOfLines={1}
@@ -270,12 +273,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
+                    size={ButtonSize.Sm}
                     width={ButtonWidthTypes.Full}
                     label={
                       <Text
                         variant={
-                          isCarousel ? TextVariant.BodyXs : TextVariant.BodySm
+                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
                         }
                         style={tw.style('font-medium')}
                         color={TextColor.ErrorDefault}

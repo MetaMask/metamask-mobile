@@ -92,7 +92,9 @@ export function useTransactionCustomAmount({
     (value: boolean) => {
       const { TransactionPayController } = Engine.context;
 
-      TransactionPayController.setIsMaxAmount(transactionId, value);
+      TransactionPayController.setTransactionConfig(transactionId, (config) => {
+        config.isMaxAmount = value;
+      });
     },
     [transactionId],
   );
@@ -190,9 +192,7 @@ function useTokenBalance(tokenUsdRate: number) {
     payToken?.balanceUsd ?? 0,
   ).toNumber();
 
-  const { balance: predictBalanceHuman } = usePredictBalance({
-    loadOnMount: true,
-  });
+  const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
   const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
     .multipliedBy(tokenUsdRate)

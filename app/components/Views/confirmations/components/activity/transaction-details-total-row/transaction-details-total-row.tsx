@@ -29,21 +29,30 @@ export function TransactionDetailsTotalRow() {
     useTokenAmount({ transactionMeta }) ?? {};
 
   const { metamaskPay } = transactionMeta;
-  const { totalFiat: payTotal } = metamaskPay || {};
+  const { totalFiat: payTotal, targetFiat } = metamaskPay || {};
+
+  // For predict withdrawals, "Received total" should show what the user
+  // actually received (targetFiat), not the total cost (totalFiat).
+  const isReceiveType = hasTransactionType(transactionMeta, RECEIVE_TYPES);
+  const effectivePayTotal = isReceiveType && targetFiat ? targetFiat : payTotal;
 
   const useUserCurrency = hasTransactionType(
     transactionMeta,
     USER_CURRENCY_TYPES,
   );
   const total =
-    payTotal ?? (useUserCurrency ? fiatUnformatted : amountUnformatted);
+    effectivePayTotal ??
+    (useUserCurrency ? fiatUnformatted : amountUnformatted);
 
   const totalFormatted = useMemo(
     () => formatFiat(new BigNumber(total ?? '0')),
     [formatFiat, total],
   );
 
-  if (!payTotal && !hasTransactionType(transactionMeta, FALLBACK_TYPES)) {
+  if (
+    !effectivePayTotal &&
+    !hasTransactionType(transactionMeta, FALLBACK_TYPES)
+  ) {
     return null;
   }
 

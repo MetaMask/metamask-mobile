@@ -68,7 +68,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -112,8 +112,8 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -143,7 +143,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -151,13 +151,12 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                           "backgroundColor": "#ffffff",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
@@ -291,8 +290,8 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -322,7 +321,7 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -330,13 +329,12 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                           "backgroundColor": "#ffffff",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--date-input"
@@ -455,8 +453,8 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -486,7 +484,7 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -494,13 +492,12 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                           "backgroundColor": "#ffffff",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
@@ -619,8 +616,8 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -650,7 +647,7 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -658,13 +655,12 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                           "backgroundColor": "#ffffff",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--time-input"
@@ -754,7 +750,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -798,8 +794,8 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -829,7 +825,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -837,13 +833,12 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                           "backgroundColor": "#ffffff",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"

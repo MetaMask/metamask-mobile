@@ -1,29 +1,55 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
-import { useWrapWithCache } from './useWrapWithCache';
-import { useSelector } from 'react-redux';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { DelegationSettingsResponse } from '../types';
+import { cardQueries } from '../queries';
+
+const STALE_TIME = 10 * 60 * 1000; // 10 minutes
+const QUERY_KEY = cardQueries.dashboard.keys.delegationSettings();
 
 /**
- * Hook to fetch and cache delegation settings from the Card SDK
+ * Hook to fetch and cache delegation settings from the Card SDK.
  *
  * @returns Object containing delegation settings data, loading state, error, and fetch function
  */
 const useGetDelegationSettings = () => {
   const { sdk } = useCardSDK();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const queryClient = useQueryClient();
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
-  const fetchDelegationSettings = useCallback(async () => {
-    if (!sdk || !isAuthenticated) {
-      return null;
-    }
-    return sdk.getDelegationSettings();
-  }, [sdk, isAuthenticated]);
+  const queryFn = useMemo(
+    () => () => {
+      const currentSdk = sdkRef.current;
+      if (!currentSdk) throw new Error('SDK not initialized');
+      return currentSdk.getDelegationSettings();
+    },
+    [],
+  );
 
-  return useWrapWithCache('delegation-settings', fetchDelegationSettings, {
-    cacheDuration: 10 * 60 * 1000, // 10 minutes cache
-    fetchOnMount: false, // Disabled - fetchAllData orchestrates fetching
-  });
+  const { data, isLoading, error } =
+    useQuery<DelegationSettingsResponse | null>({
+      queryKey: QUERY_KEY,
+      queryFn,
+      enabled: false,
+      staleTime: STALE_TIME,
+    });
+
+  const fetchData = useCallback(async () => {
+    const result = await queryClient.fetchQuery({
+      queryKey: QUERY_KEY,
+      queryFn,
+      staleTime: STALE_TIME,
+    });
+    return result ?? null;
+  }, [queryClient, queryFn]);
+
+  return {
+    data: data ?? null,
+    isLoading,
+    error: error as Error | null,
+    fetchData,
+  };
 };
 
 export default useGetDelegationSettings;

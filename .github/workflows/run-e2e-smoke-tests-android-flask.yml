@@ -44,8 +44,23 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
       - name: Setup project
-        run: yarn setup:github-ci --no-build-ios
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios
 
       - name: Configure Keystore
         uses: MetaMask/github-tools/.github/actions/configure-keystore@v1
@@ -150,6 +165,7 @@ jobs:
       total_splits: 3
       changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
+      artifact_name_prefix: ''
     secrets: inherit
 
   report-android-smoke-tests:
@@ -172,7 +188,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-android-*'
+          pattern: 'test-e2e-flask-android-smoke-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3

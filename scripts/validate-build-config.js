@@ -7,11 +7,11 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-const BUILDS_PATH = path.join(__dirname, '../.github/builds.yml');
+const BUILDS_PATH = path.join(__dirname, '../builds.yml');
 
 function validate() {
   if (!fs.existsSync(BUILDS_PATH)) {
-    console.error('❌ .github/builds.yml not found');
+    console.error('❌ builds.yml not found');
     process.exit(1);
   }
 

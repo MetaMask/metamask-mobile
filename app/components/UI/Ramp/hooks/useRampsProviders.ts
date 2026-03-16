@@ -1,9 +1,16 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectProviders } from '../../../../selectors/rampsController';
+import {
+  selectProviders,
+  selectRampsOrders,
+} from '../../../../selectors/rampsController';
 import { type Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-import { determinePreferredProvider } from '../utils/determinePreferredProvider';
+import {
+  determinePreferredProvider,
+  completedOrdersFromFiatOrders,
+  completedOrdersFromRampsOrders,
+} from '../utils/determinePreferredProvider';
 import { getOrders } from '../../../../reducers/fiatOrders';
 
 /**
@@ -47,7 +54,16 @@ export function useRampsProviders(): UseRampsProvidersResult {
     error,
   } = useSelector(selectProviders);
 
-  const orders = useSelector(getOrders);
+  const legacyOrders = useSelector(getOrders);
+  const controllerOrders = useSelector(selectRampsOrders);
+
+  const completedOrders = useMemo(
+    () => [
+      ...completedOrdersFromFiatOrders(legacyOrders),
+      ...completedOrdersFromRampsOrders(controllerOrders),
+    ],
+    [legacyOrders, controllerOrders],
+  );
 
   const setSelectedProvider = useCallback(
     (provider: Provider | null) =>
@@ -57,9 +73,11 @@ export function useRampsProviders(): UseRampsProvidersResult {
 
   useEffect(() => {
     if (providers.length > 0 && !selectedProvider) {
-      setSelectedProvider(determinePreferredProvider(orders, providers));
+      setSelectedProvider(
+        determinePreferredProvider(completedOrders, providers),
+      );
     }
-  }, [providers, selectedProvider, setSelectedProvider, orders]);
+  }, [providers, selectedProvider, setSelectedProvider, completedOrders]);
 
   return {
     providers,

@@ -43,6 +43,10 @@ MetaMask Mobile supports multiple deeplink protocols to enable various app inter
 
 All deeplinks are processed through a unified pipeline that handles security verification, user consent, and routing to appropriate handlers.
 
+> [!IMPORTANT]
+> Each new deeplink must have a matching identical deeplink in the [MetaMask extension](https://github.com/MetaMask/metamask-extension) client and an entry in the Branch LinkHub. Failure to do so will lead to broken user flows.
+> If you are creating a deeplink for an experience that is only supported on the mobile app, create a matching deeplink on extension that redirects to a webpage which guides users to try that experience on the mobile app.
+
 ## Link Types
 
 > 📊 **[View Scenario Examples](./deeplinking-diagrams.md#common-scenarios)** - See visual flows for each link type
@@ -888,6 +892,7 @@ describe('Dynamic signature verification', () => {
 | `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                 |
 | `send`                 | Send transaction            | Recursive `parse()` call |                                                 |
 | `home`                 | Navigate home               | `navigateToHomeUrl`      | Params: `previewToken`, `openNetworkSelector`   |
+| `asset`                | Asset overview              | `handleAssetUrl`         | Params: `assetId` (CAIP-19)                     |
 | `dapp`                 | Open dApp browser           | `handleBrowserUrl`       |                                                 |
 | `create-account`       | Create new account          | `handleCreateAccountUrl` |                                                 |
 | `perps`                | Perpetuals trading          | `handlePerpsUrl`         | Params: `screen` (tabs/markets/asset), `symbol` |

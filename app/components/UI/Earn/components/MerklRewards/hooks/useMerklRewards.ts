@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
@@ -13,7 +12,6 @@ import {
 import {
   fetchMerklRewardsForAsset,
   getClaimedAmountFromContract,
-  getClaimChainId,
 } from '../merkl-client';
 import Logger from '../../../../../../util/Logger';
 
@@ -26,7 +24,7 @@ const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
 export const eligibleTokens: Record<Hex, Hex[]> = {
   [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET, MUSD_ADDRESS_MAINNET], // mUSD and test token
   [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // mUSD and test token
-  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA], // Linea fork
+  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // Linea fork
 };
 
 /**
@@ -34,7 +32,7 @@ export const eligibleTokens: Record<Hex, Hex[]> = {
  * Compares addresses case-insensitively since Ethereum addresses are case-insensitive
  * Returns false for native tokens (undefined/null address)
  */
-export const isEligibleForMerklRewards = (
+export const isTokenEligibleForMerklRewards = (
   chainId: Hex,
   address: Hex | undefined | null,
 ): boolean => {
@@ -82,7 +80,7 @@ export const useMerklRewards = ({
         return;
       }
 
-      const isEligible = isEligibleForMerklRewards(
+      const isEligible = isTokenEligibleForMerklRewards(
         asset.chainId as Hex,
         asset.address as Hex | undefined,
       );
@@ -117,7 +115,7 @@ export const useMerklRewards = ({
         // but the contract's claimed mapping is updated immediately
         // If the contract call fails, fall back to the API's claimed value
         // For mUSD, we always check the Linea contract since that's where claims happen
-        const claimChainId = getClaimChainId(asset);
+        const claimChainId = CHAIN_IDS.LINEA_MAINNET as Hex;
         const claimedFromContract = await getClaimedAmountFromContract(
           selectedAddress,
           matchingReward.token.address as Hex,
@@ -139,31 +137,11 @@ export const useMerklRewards = ({
           matchingReward.token.decimals ?? asset.decimals ?? 18;
 
         if (unclaimedBaseUnits > 0n) {
-          // Convert from wei to token amount
-          const unclaimedAmount = renderFromTokenMinimalUnit(
-            unclaimedBaseUnits.toString(),
-            tokenDecimals,
-            2, // Show 2 decimal places
-          );
-          // Handle the "< 0.00001" case from renderFromTokenMinimalUnit
-          // by showing "< 0.01" for consistency with 2 decimal places
-          // Also ensure we always show exactly 2 decimal places for currency display
-          let displayAmount: string;
-          if (unclaimedAmount.startsWith('<')) {
-            displayAmount = '< 0.01';
-          } else {
-            // Ensure exactly 2 decimal places (e.g., "0.9" -> "0.90")
-            const numValue = parseFloat(unclaimedAmount);
-            displayAmount = numValue.toFixed(2);
-          }
-          // Double-check that the rendered amount is not '0' or '0.00'
-          // This handles edge cases where very small amounts round to zero
-          if (
-            displayAmount &&
-            displayAmount !== '0' &&
-            displayAmount !== '0.00'
-          ) {
-            // Final check before setting state to ensure effect is still active
+          const unclaimedDecimal =
+            Number(unclaimedBaseUnits) / Math.pow(10, tokenDecimals);
+          const displayAmount =
+            unclaimedDecimal < 0.01 ? '< 0.01' : unclaimedDecimal.toFixed(2);
+          if (displayAmount !== '0' && displayAmount !== '0.00') {
             if (!controller.signal.aborted) {
               setClaimableReward(displayAmount);
             }

@@ -33,6 +33,8 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
         emoji: '🇫🇷',
         id: '/regions/fr',
         name: 'France',
+        countryName: 'France',
+        countryIsoCode: 'FR',
         support: { buy: true, sell: true, recurringBuy: true },
         unsupported: false,
         recommended: false,

@@ -110,6 +110,15 @@ export const mockedEngine = {
       addTransactionBatch: jest.fn(),
       isAtomicBatchSupported: jest.fn(),
     },
+    RampsController: {
+      getQuotes: jest.fn().mockResolvedValue({
+        success: [],
+        sorted: [],
+        error: [],
+        customActions: [],
+      }),
+      getWidgetUrl: jest.fn(),
+    },
   },
   hasFunds: jest.fn(),
   resetState: jest.fn(),

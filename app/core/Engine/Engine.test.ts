@@ -160,6 +160,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
+    expect(engine.context).toHaveProperty('AiDigestController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -261,15 +262,10 @@ describe('Engine', () => {
       .spyOn(engine.context.AccountsController, 'setSelectedAccount')
       .mockImplementation();
 
-    const setSelectedAddressSpy = jest
-      .spyOn(engine.context.PreferencesController, 'setSelectedAddress')
-      .mockImplementation();
-
     engine.setSelectedAccount(validAddress);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setSelectedAccountSpy).toHaveBeenCalledWith(mockAccount.id);
-    expect(setSelectedAddressSpy).toHaveBeenCalledWith(validAddress);
   });
 
   it('setAccountLabel successfully updates account label when address exists', () => {
@@ -284,15 +280,10 @@ describe('Engine', () => {
       .spyOn(engine.context.AccountsController, 'setAccountName')
       .mockImplementation();
 
-    const setAccountLabelSpy = jest
-      .spyOn(engine.context.PreferencesController, 'setAccountLabel')
-      .mockImplementation();
-
     engine.setAccountLabel(validAddress, label);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setAccountNameSpy).toHaveBeenCalledWith(mockAccount.id, label);
-    expect(setAccountLabelSpy).toHaveBeenCalledWith(validAddress, label);
   });
 
   it('setAccountLabel throws an error if no account exists for the given address', () => {

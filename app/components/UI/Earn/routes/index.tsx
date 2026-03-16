@@ -4,6 +4,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
 import EarnMusdConversionEducationView from '../Views/EarnMusdConversionEducationView';
+import MusdQuickConvertView from '../Views/MusdQuickConvertView';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
@@ -43,6 +44,10 @@ const EarnScreenStack = () => {
         component={EarnMusdConversionEducationView}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name={Routes.EARN.MUSD.QUICK_CONVERT}
+        component={MusdQuickConvertView}
+      />
     </Stack.Navigator>
   );
 };
@@ -57,6 +62,11 @@ const EarnModalStack = () => (
     <ModalStack.Screen
       name={Routes.EARN.MODALS.LENDING_LEARN_MORE}
       component={LendingLearnMoreModal}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+      component={Confirm}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

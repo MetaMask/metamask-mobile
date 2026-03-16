@@ -15,6 +15,7 @@ import {
   OutboundResponse,
   SetClientActive,
   SnapsRegistryStateChangeEvent,
+  SnapInterfaceControllerSetInterfaceDisplayedAction,
 } from '@metamask/snaps-controllers';
 import {
   GetEndowments,
@@ -36,9 +37,9 @@ import {
   UpdateRequestState,
 } from '@metamask/approval-controller';
 import {
-  KeyringControllerGetKeyringsByTypeAction,
   KeyringControllerLockEvent,
   KeyringControllerUnlockEvent,
+  KeyringControllerWithKeyringAction,
 } from '@metamask/keyring-controller';
 import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
@@ -78,6 +79,7 @@ type Actions =
   | ResolveVersion
   | CreateInterface
   | GetInterface
+  | SnapInterfaceControllerSetInterfaceDisplayedAction
   | NetworkControllerGetNetworkClientByIdAction
   | SelectedNetworkControllerGetNetworkClientIdForDomainAction
   | StorageServiceSetItemAction
@@ -140,6 +142,7 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
       'SnapsRegistry:resolveVersion',
       `SnapInterfaceController:createInterface`,
       `SnapInterfaceController:getInterface`,
+      'SnapInterfaceController:setInterfaceDisplayed',
       'NetworkController:getNetworkClientById',
       'SelectedNetworkController:getNetworkClientIdForDomain',
       'StorageService:setItem',
@@ -160,7 +163,7 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
 }
 
 type InitActions =
-  | KeyringControllerGetKeyringsByTypeAction
+  | KeyringControllerWithKeyringAction
   | PreferencesControllerGetStateAction
   | SetClientActive
   | AnalyticsControllerActions;
@@ -190,7 +193,7 @@ export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
   });
   rootMessenger.delegate({
     actions: [
-      'KeyringController:getKeyringsByType',
+      'KeyringController:withKeyring',
       'PreferencesController:getState',
       'SnapController:setClientActive',
       'AnalyticsController:trackEvent',

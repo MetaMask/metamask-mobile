@@ -57,7 +57,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
@@ -71,7 +71,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -122,7 +122,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -140,7 +140,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -254,8 +254,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -286,20 +286,19 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -414,8 +413,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -447,20 +446,19 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -510,8 +508,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -542,21 +540,20 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     secureTextEntry={true}
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -671,8 +668,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -703,20 +700,19 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -766,8 +762,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -798,20 +794,19 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -889,7 +884,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
@@ -903,7 +898,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -982,7 +977,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             }
           >
             <View
-              backgroundColor="#f3f5f9"
+              backgroundColor="#f3f3f4"
               borderRadius={8}
               color="Default"
               flexDirection="column"
@@ -992,7 +987,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#f3f5f9",
+                    "backgroundColor": "#f3f3f4",
                     "color": "Default",
                     "flexDirection": "column",
                     "gap": 8,
@@ -1042,7 +1037,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1076,7 +1071,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#b7bbc8",
+                          "color": "#babbbe",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1090,7 +1085,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1205,7 +1200,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       ellipsizeMode="tail"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1220,7 +1215,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       ellipsizeMode="tail"
                       style={
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1248,7 +1243,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     ellipsizeMode="tail"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1264,7 +1259,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     ellipsizeMode="tail"
                     style={
                       {
-                        "color": "#686e7d",
+                        "color": "#66676a",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1315,7 +1310,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1333,7 +1328,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1356,7 +1351,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#131416",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
@@ -1396,7 +1391,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1504,7 +1499,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
@@ -1518,7 +1513,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -1568,7 +1563,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1586,7 +1581,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1609,7 +1604,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#131416",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
@@ -1649,7 +1644,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1789,7 +1784,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1833,8 +1828,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -1953,20 +1948,19 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       onFocus={[Function]}
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       style={
                         {
                           "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -2119,8 +2113,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -2151,20 +2145,19 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -2242,7 +2235,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
@@ -2256,7 +2249,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -2306,7 +2299,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -2324,7 +2317,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2347,7 +2340,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#131416",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
@@ -2387,7 +2380,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,

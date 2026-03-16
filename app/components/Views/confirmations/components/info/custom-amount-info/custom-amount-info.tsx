@@ -4,6 +4,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { ReceiveRow } from '../../rows/receive-row';
 import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
@@ -19,6 +20,8 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -86,21 +89,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
   }) => {
     useClearConfirmationOnBackSwipe();
+
+    const { canSelectWithdrawToken } = useTransactionPayWithdraw();
+
     useAutomaticTransactionPayToken({
       disable: disablePay,
       preferredToken,
     });
     useTransactionPayMetrics();
+    useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const availableTokens = useTransactionPayAvailableTokens();
-    const hasTokens = availableTokens.length > 0;
+    const { hasTokens } = useTransactionPayAvailableTokens();
 
-    const isResultReady = useIsResultReady({
-      isKeyboardVisible,
-    });
+    const isResultReady = useIsResultReady({ isKeyboardVisible });
 
     const {
       amountFiat,
@@ -161,7 +165,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <Box>
               <BridgeFeeRow />
               <BridgeTimeRow />
-              <TotalRow />
+              {canSelectWithdrawToken ? (
+                <ReceiveRow inputAmountUsd={amountFiat} />
+              ) : (
+                <TotalRow />
+              )}
               <PercentageRow />
             </Box>
           )}

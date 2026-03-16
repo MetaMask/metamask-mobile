@@ -22,7 +22,7 @@ import Banner, {
   BannerVariant,
   BannerAlertSeverity,
 } from '../../../../../../component-library/components/Banners/Banner';
-import { useMetrics } from '../../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../../../components/hooks/useAnalytics/useAnalytics';
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
 import {
   selectSeedlessOnboardingAuthConnection,
@@ -42,15 +42,15 @@ const ProtectYourWallet = ({
   toggleHint,
 }: IProtectYourWalletProps) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 
   const openSRPQuiz = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      shouldUpdateNav: true,
     });
   };
 

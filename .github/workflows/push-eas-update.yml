@@ -3,12 +3,8 @@ name: Push OTA Update
 on:
   workflow_dispatch:
     inputs:
-      commit_hash:
-        description: 'Commit hash to publish'
-        required: true
-        type: string
       pr_number:
-        description: 'PR number associated with the commit'
+        description: 'PR number to publish (uses PR branch HEAD commit)'
         required: true
         type: string
       base_branch:
@@ -43,7 +39,6 @@ permissions:
   id-token: write
 
 env:
-  TARGET_COMMIT_HASH: ${{ inputs.commit_hash }}
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
   UPDATE_MESSAGE: ${{ inputs.message }}
@@ -51,13 +46,52 @@ env:
   OTA_PUSH_PLATFORM: ${{ inputs.platform }}
 
 jobs:
+  validate-pr:
+    name: Resolve PR HEAD commit
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
+      commit_sha: ${{ steps.resolve-pr.outputs.commit_sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve PR HEAD commit
+        id: resolve-pr
+        env:
+          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          .github/scripts/validate-pr-commit.sh
+
+  ota-summary:
+    name: OTA Update Summary
+    needs: validate-pr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display OTA Summary
+        run: |
+          {
+            echo "### OTA Update Summary"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Update version** | ${UPDATE_MESSAGE} |"
+            echo "| **Target version** | ${BASE_BRANCH_REF} |"
+            echo "| **Environment** | ${TARGET_CHANNEL} |"
+            echo "| **Target commit** | ${{ needs.validate-pr.outputs.commit_sha }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   setup-dependencies:
     name: Setup Dependencies (PR)
     needs:
       - validate-pr
     uses: ./.github/workflows/setup-node-modules.yml
     with:
-      ref: ${{ inputs.commit_hash }}
+      ref: ${{ needs.validate-pr.outputs.commit_sha }}
       fetch-depth: 0
       upload-artifact: true
       artifact-name: node-modules-eas-update-pr
@@ -78,6 +112,7 @@ jobs:
   fingerprint-comparison:
     name: Compare Expo Fingerprints
     needs:
+      - validate-pr
       - setup-dependencies
       - setup-dependencies-base
     runs-on: ubuntu-latest
@@ -92,7 +127,7 @@ jobs:
       - name: Checkout target commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.TARGET_COMMIT_HASH }}
+          ref: ${{ needs.validate-pr.outputs.commit_sha }}
           fetch-depth: 0
 
       - name: Checkout base branch snapshot
@@ -105,7 +140,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Validate artifact compatibility (PR commit)
         uses: ./.github/actions/validate-artifact-compatibility
@@ -197,7 +232,7 @@ jobs:
           BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
           MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
           MATCHES: ${{ steps.compare.outputs.equal }}
-          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+          TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
           BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
         run: |
           {
@@ -207,28 +242,6 @@ jobs:
             echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
-
-  validate-pr:
-    name: Validate PR and Commit
-    runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate PR contains commit
-        id: validate-pr
-        env:
-          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
-          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          .github/scripts/validate-pr-commit.sh
 
   approval:
     name: Require OTA Update Approval
@@ -258,6 +271,7 @@ jobs:
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       needs.approval.result == 'success'
     env:
+      TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
       ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
@@ -310,8 +324,12 @@ jobs:
       QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
       QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
       QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+      QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+      QUICKNODE_BSC_URL: ${{ secrets.QUICKNODE_BSC_URL }}
+      QUICKNODE_SEI_URL: ${{ secrets.QUICKNODE_SEI_URL }}
+      MM_CHARTING_LIBRARY_URL: ${{ secrets.MM_CHARTING_LIBRARY_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -322,7 +340,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Validate artifact compatibility
         uses: ./.github/actions/validate-artifact-compatibility

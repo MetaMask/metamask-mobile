@@ -27,6 +27,8 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
   RemoteFeatureFlagControllerMessenger
 > = ({ controllerMessenger, persistedState, getState, analyticsId }) => {
   const disabled = !selectBasicFunctionalityEnabled(getState());
+  const prevClientVersion =
+    persistedState?.AppMetadataController?.currentAppVersion;
 
   const controller = new RemoteFeatureFlagController({
     messenger: controllerMessenger,
@@ -34,6 +36,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
     disabled,
     getMetaMetricsId: () => analyticsId,
     clientVersion: getBaseSemVerVersion(),
+    prevClientVersion,
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {

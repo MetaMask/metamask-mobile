@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import {
-  selectNativeCurrencyByChainId,
-  selectSelectedNetworkClientId,
-} from '../../../../selectors/networkController';
+import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -24,8 +21,6 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
-import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../util/address';
 
 export interface UseTokenPriceResult {
@@ -64,7 +59,6 @@ export const useTokenPrice = ({
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const allTokenMarketData = useSelector(selectTokenMarketData);
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, chainId),
@@ -85,23 +79,6 @@ export const useTokenPrice = ({
     timePeriod,
     vsCurrency: currentCurrency,
   });
-
-  useEffect(() => {
-    const { SwapsController } = Engine.context;
-    const fetchTokenWithCache = async () => {
-      try {
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'Swaps: error while fetching tokens with cache in useTokenPrice',
-        );
-      }
-    };
-    fetchTokenWithCache();
-  }, [selectedNetworkClientId]);
 
   const chartNavigationButtons: TimePeriod[] = useMemo(
     () =>

@@ -169,6 +169,8 @@ export enum TraceName {
   PerpsWithdrawView = 'Perps Withdraw View',
   PerpsConnectionEstablishment = 'Perps Connection Establishment',
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
+  PerpsMarketDataPreload = 'Perps Market Data Preload',
+  PerpsUserDataPreload = 'Perps User Data Preload',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',
@@ -205,6 +207,9 @@ export enum TraceName {
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
   MusdConversionConfirm = 'mUSD Conversion Confirm',
+  // Market Insights
+  MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
+  MarketInsightsViewLoad = 'Market Insights View Load',
 }
 
 export enum TraceOperation {
@@ -253,6 +258,8 @@ export enum TraceOperation {
   // mUSD Conversion
   MusdConversionOperation = 'musd.conversion.operation',
   MusdConversionDataFetch = 'musd.conversion.data_fetch',
+  // Market Insights
+  MarketInsightsLoad = 'market_insights.load',
 }
 
 const ID_DEFAULT = 'default';

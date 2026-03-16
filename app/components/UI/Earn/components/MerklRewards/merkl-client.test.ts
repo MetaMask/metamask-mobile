@@ -8,6 +8,7 @@ import {
   AGLAMERKL_ADDRESS_MAINNET,
   MERKL_DISTRIBUTOR_ADDRESS,
   DISTRIBUTOR_CLAIMED_ABI,
+  MERKL_API_BASE_URL,
 } from './constants';
 
 // Mock @metamask/transaction-controller to avoid import issues in tests
@@ -22,7 +23,6 @@ jest.mock('@metamask/transaction-controller', () => ({
 
 // Use chain IDs directly to avoid import issues in tests
 const MAINNET_CHAIN_ID = '0x1' as const;
-const LINEA_MAINNET_CHAIN_ID = '0xe708' as const;
 
 // Mock musd constants
 jest.mock('../../constants/musd', () => ({
@@ -33,7 +33,12 @@ jest.mock('../../constants/musd', () => ({
 }));
 
 // Import after mocks are set up
-import { getClaimedAmountFromContract, getClaimChainId } from './merkl-client';
+import {
+  getClaimedAmountFromContract,
+  fetchMerklRewards,
+  clearMerklRewardsCache,
+  MerklRewardData,
+} from './merkl-client';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine', () => ({
@@ -306,61 +311,403 @@ describe('getClaimedAmountFromContract', () => {
   });
 });
 
-describe('getClaimChainId', () => {
-  const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+// ---------------------------------------------------------------------------
+// fetchMerklRewards – caching & deduplication
+// ---------------------------------------------------------------------------
 
-  it('returns Linea chain ID for mUSD on mainnet', () => {
-    const asset = {
-      address: MUSD_ADDRESS,
-      chainId: MAINNET_CHAIN_ID,
-    };
+describe('fetchMerklRewards caching', () => {
+  const mockUserAddress = '0xabc0000000000000000000000000000000000001';
+  const mockTokenAddress = '0xdef0000000000000000000000000000000000002' as Hex;
+  const mockChainId = MAINNET_CHAIN_ID as Hex;
 
-    const result = getClaimChainId(asset as never);
+  const mockRewardData: MerklRewardData[] = [
+    {
+      rewards: [
+        {
+          token: {
+            address: mockTokenAddress,
+            chainId: 1,
+            symbol: 'TST',
+            decimals: 18,
+            price: 1,
+          },
+          pending: '0',
+          proofs: ['0xproof1'],
+          amount: '1000000000000000000',
+          claimed: '0',
+          recipient: mockUserAddress,
+        },
+      ],
+    },
+  ];
 
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    // Reset cache between tests
+    clearMerklRewardsCache();
+    jest.restoreAllMocks();
+
+    fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
   });
 
-  it('returns Linea chain ID for mUSD on Linea', () => {
-    const asset = {
-      address: MUSD_ADDRESS,
-      chainId: LINEA_MAINNET_CHAIN_ID,
-    };
-
-    const result = getClaimChainId(asset as never);
-
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  it('returns Linea chain ID for mUSD with uppercase address', () => {
-    const asset = {
-      address: MUSD_ADDRESS.toUpperCase(),
-      chainId: MAINNET_CHAIN_ID,
-    };
+  it('returns data from the API on first call', async () => {
+    const result = await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
 
-    const result = getClaimChainId(asset as never);
-
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(mockRewardData[0].rewards[0]);
   });
 
-  it('returns asset chain ID for non-mUSD tokens', () => {
-    const asset = {
-      address: AGLAMERKL_ADDRESS_MAINNET,
-      chainId: MAINNET_CHAIN_ID,
-    };
+  it('returns cached data on second call without hitting the network', async () => {
+    // First call – populates cache
+    await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
 
-    const result = getClaimChainId(asset as never);
+    // Second call – should use cache
+    const result = await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
 
-    expect(result).toBe(MAINNET_CHAIN_ID);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(mockRewardData[0].rewards[0]);
   });
 
-  it('returns asset chain ID for other tokens on Linea', () => {
-    const asset = {
-      address: '0x1111111111111111111111111111111111111111',
-      chainId: LINEA_MAINNET_CHAIN_ID,
-    };
+  it('deduplicates concurrent requests to the same URL', async () => {
+    // Fire two requests concurrently
+    const [result1, result2] = await Promise.all([
+      fetchMerklRewards({
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+      }),
+      fetchMerklRewards({
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+      }),
+    ]);
 
-    const result = getClaimChainId(asset as never);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(result1).toEqual(result2);
+  });
 
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
+  it('fetches fresh data after clearMerklRewardsCache()', async () => {
+    // Populate cache
+    await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // Invalidate
+    clearMerklRewardsCache();
+
+    // Should hit the network again
+    await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('fetches fresh data after TTL expires', async () => {
+    // Populate cache
+    await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // Advance time past TTL (2 minutes)
+    const now = Date.now();
+    jest.spyOn(Date, 'now').mockReturnValue(now + 2 * 60 * 1000 + 1);
+
+    await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not share cache across different URLs', async () => {
+    const otherAddress = '0xother000000000000000000000000000000000099';
+
+    await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    await fetchMerklRewards({
+      userAddress: otherAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    // Two different URLs → two network calls
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns null (throwOnError=false) when API returns non-ok and no cache', async () => {
+    fetchSpy.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+
+    const result = await fetchMerklRewards(
+      {
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+      },
+      false,
+    );
+
+    expect(result).toBeNull();
+  });
+
+  it('throws (throwOnError=true) when API returns non-ok and no cache', async () => {
+    fetchSpy.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+
+    await expect(
+      fetchMerklRewards({
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+      }),
+    ).rejects.toThrow('Failed to fetch Merkl rewards: 500');
+  });
+
+  it('does not cache failed responses', async () => {
+    fetchSpy.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+
+    // First call fails
+    await fetchMerklRewards(
+      {
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+      },
+      false,
+    );
+
+    // Reset mock to succeed
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
+
+    // Second call should hit the network (no stale failure cached)
+    const result = await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(result).toEqual(mockRewardData[0].rewards[0]);
+  });
+
+  it('constructs the correct URL with the expected base', async () => {
+    await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    const calledUrl = fetchSpy.mock.calls[0][0];
+    expect(calledUrl).toBe(
+      `${MERKL_API_BASE_URL}/users/${mockUserAddress}/rewards?chainId=1`,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AbortSignal handling (throwIfAborted polyfill)
+// ---------------------------------------------------------------------------
+
+describe('fetchMerklRewards abort signal handling', () => {
+  const mockUserAddress = '0xabc0000000000000000000000000000000000001';
+  const mockTokenAddress = '0xdef0000000000000000000000000000000000002' as Hex;
+  const mockChainId = MAINNET_CHAIN_ID as Hex;
+
+  const mockRewardData: MerklRewardData[] = [
+    {
+      rewards: [
+        {
+          token: {
+            address: mockTokenAddress,
+            chainId: 1,
+            symbol: 'TST',
+            decimals: 18,
+            price: 1,
+          },
+          pending: '0',
+          proofs: ['0xproof1'],
+          amount: '1000000000000000000',
+          claimed: '0',
+          recipient: mockUserAddress,
+        },
+      ],
+    },
+  ];
+
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    clearMerklRewardsCache();
+    jest.restoreAllMocks();
+
+    fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('throws AbortError immediately when signal is already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      fetchMerklRewards({
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+        signal: controller.signal,
+      }),
+    ).rejects.toThrow('The operation was aborted.');
+
+    // Should never reach the network
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('thrown error has name "AbortError"', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    try {
+      await fetchMerklRewards({
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+        signal: controller.signal,
+      });
+      fail('Expected an error to be thrown');
+    } catch (error) {
+      expect((error as Error).name).toBe('AbortError');
+    }
+  });
+
+  it('throws AbortError after shared request completes when signal is aborted during dedup wait', async () => {
+    const controller = new AbortController();
+
+    // Slow fetch so the second caller joins the pending promise
+    let resolveSlowFetch!: (value: Response) => void;
+    fetchSpy.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        resolveSlowFetch = resolve;
+      }),
+    );
+
+    // First call — no signal, starts the request
+    const firstPromise = fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    // Second call — with signal, joins the pending promise
+    const secondPromise = fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+      signal: controller.signal,
+    });
+
+    // Abort while the request is still in-flight
+    controller.abort();
+
+    // Resolve the shared fetch
+    resolveSlowFetch({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
+
+    // First call succeeds, second throws
+    await expect(firstPromise).resolves.toEqual(mockRewardData[0].rewards[0]);
+    await expect(secondPromise).rejects.toThrow('The operation was aborted.');
+  });
+
+  it('throws AbortError after new request completes when signal is aborted during fetch', async () => {
+    const controller = new AbortController();
+
+    let resolveSlowFetch!: (value: Response) => void;
+    fetchSpy.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        resolveSlowFetch = resolve;
+      }),
+    );
+
+    const promise = fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+      signal: controller.signal,
+    });
+
+    // Abort while fetch is in-flight
+    controller.abort();
+
+    // Resolve the fetch
+    resolveSlowFetch({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
+
+    await expect(promise).rejects.toThrow('The operation was aborted.');
+  });
+
+  it('succeeds when signal is provided but not aborted', async () => {
+    const controller = new AbortController();
+
+    const result = await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+      signal: controller.signal,
+    });
+
+    expect(result).toEqual(mockRewardData[0].rewards[0]);
+  });
+
+  it('succeeds when no signal is provided (undefined)', async () => {
+    const result = await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    expect(result).toEqual(mockRewardData[0].rewards[0]);
   });
 });

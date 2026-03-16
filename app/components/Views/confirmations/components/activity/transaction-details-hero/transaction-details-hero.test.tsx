@@ -1,5 +1,4 @@
 import React from 'react';
-import { Interface } from '@ethersproject/abi';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import {
@@ -10,7 +9,8 @@ import { TransactionDetailsHero } from './transaction-details-hero';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { DISTRIBUTOR_CLAIM_ABI } from '../../../../../UI/Earn/components/MerklRewards/constants';
+import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../../../UI/Earn/components/MerklRewards/constants';
+import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
@@ -170,23 +170,32 @@ describe('TransactionDetailsHero', () => {
 
   it('renders claim amount for musdClaim with valid claim data', () => {
     const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
-    const TOKEN_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
     const claimAmount = '75500000'; // 75.5 mUSD (6 decimals)
 
-    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-    const claimData = contractInterface.encodeFunctionData('claim', [
-      [USER_ADDRESS],
-      [TOKEN_ADDRESS],
-      [claimAmount],
-      [[]],
-    ]);
+    const ERC20_TRANSFER_TOPIC =
+      '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+    const mockLogs = [
+      {
+        address: MUSD_TOKEN_ADDRESS,
+        data: '0x' + BigInt(claimAmount).toString(16).padStart(64, '0'),
+        topics: [
+          ERC20_TRANSFER_TOPIC,
+          '0x000000000000000000000000' +
+            MERKL_DISTRIBUTOR_ADDRESS.slice(2).toLowerCase(),
+          '0x000000000000000000000000' + USER_ADDRESS.slice(2).toLowerCase(),
+        ],
+      },
+    ];
 
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
         type: TransactionType.musdClaim,
         txParams: {
-          data: claimData,
+          from: USER_ADDRESS,
+        },
+        txReceipt: {
+          logs: mockLogs,
         },
       } as unknown as TransactionMeta,
     });

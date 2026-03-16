@@ -94,6 +94,7 @@ const createTestStore = (initialState = {}) =>
             user: null,
           },
           userCardLocation: 'international',
+          geoLocation: 'UNKNOWN',
           ...initialState,
         },
         action = { type: '', payload: null },
@@ -379,6 +380,86 @@ describe('SignUp Component', () => {
       fireEvent.press(countrySelect);
 
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('prefills country when geoLocation matches a supported country', () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'CA' });
+
+      const { getByText } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByText('Canada')).toBeOnTheScreen();
+      expect(storeWithGeo.getState().card.userCardLocation).toBe(
+        'international',
+      );
+    });
+
+    it('prefills country and sets US location when geoLocation is US', () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+
+      render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(storeWithGeo.getState().card.onboarding.selectedCountry).toEqual(
+        expect.objectContaining({ key: 'US', name: 'United States' }),
+      );
+      expect(storeWithGeo.getState().card.userCardLocation).toBe('us');
+    });
+
+    it('does not prefill country when geoLocation is UNKNOWN', () => {
+      const storeWithUnknown = createTestStore({ geoLocation: 'UNKNOWN' });
+
+      render(
+        <Provider store={storeWithUnknown}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(
+        storeWithUnknown.getState().card.onboarding.selectedCountry,
+      ).toBeNull();
+    });
+
+    it('does not prefill country when geoLocation does not match any available region', () => {
+      const storeWithUnsupported = createTestStore({ geoLocation: 'JP' });
+
+      render(
+        <Provider store={storeWithUnsupported}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(
+        storeWithUnsupported.getState().card.onboarding.selectedCountry,
+      ).toBeNull();
+    });
+
+    it('does not override an already selected country with geoLocation', () => {
+      const storeWithExisting = createTestStore({
+        geoLocation: 'US',
+        onboarding: {
+          selectedCountry: { key: 'DE', name: 'Germany' },
+          onboardingId: null,
+          contactVerificationId: null,
+          user: null,
+        },
+      });
+
+      render(
+        <Provider store={storeWithExisting}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(
+        storeWithExisting.getState().card.onboarding.selectedCountry,
+      ).toEqual(expect.objectContaining({ key: 'DE', name: 'Germany' }));
     });
   });
 

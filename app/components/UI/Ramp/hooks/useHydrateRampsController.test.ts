@@ -9,6 +9,8 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       hydrateState: jest.fn().mockResolvedValue(undefined),
+      init: jest.fn().mockResolvedValue(undefined),
+      startOrderPolling: jest.fn(),
     },
   },
 }));
@@ -70,6 +72,28 @@ describe('useHydrateRampsController', () => {
     });
 
     expect(Engine.context.RampsController.hydrateState).not.toHaveBeenCalled();
+  });
+
+  it('calls init once when userRegion is null', () => {
+    const store = createMockStore(null);
+    renderHook(() => useHydrateRampsController(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(Engine.context.RampsController.init).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls startOrderPolling when backup init resolves (userRegion null)', async () => {
+    const store = createMockStore(null);
+    renderHook(() => useHydrateRampsController(), {
+      wrapper: wrapper(store),
+    });
+
+    await Promise.resolve();
+
+    expect(
+      Engine.context.RampsController.startOrderPolling,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('calls hydrateState again when regionCode changes', () => {

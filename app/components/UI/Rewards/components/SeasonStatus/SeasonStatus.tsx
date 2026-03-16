@@ -11,7 +11,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-rewards-points.svg';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import {
   selectSeasonStatusLoading,
@@ -29,7 +29,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const SeasonStatus: React.FC = () => {
   const theme = useTheme();
   const { fetchSeasonStatus } = useSeasonStatus({
-    onlyForExplicitFetch: false,
+    onlyForExplicitFetch: true,
   });
   const tw = useTailwind();
   const balanceTotal = useSelector(selectBalanceTotal);

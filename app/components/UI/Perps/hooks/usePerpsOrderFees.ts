@@ -11,12 +11,12 @@ import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
-  DEVELOPMENT_CONFIG,
+  PerpsMeasurementName,
   PERFORMANCE_CONFIG,
-} from '../constants/perpsConfig';
-import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+  formatAccountToCaipAccountId,
+} from '@metamask/perps-controller';
+import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
 

@@ -56,6 +56,14 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
     setConfirmationMetric: jest.fn(),
   }),
 }));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+    })),
+  }),
+}));
 
 const mockGoToBuy = jest.fn();
 
@@ -188,7 +196,10 @@ describe('CustomAmountInfo', () => {
     });
 
     useAccountTokensMock.mockReturnValue([]);
-    useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [{}] as AssetType[],
+      hasTokens: true,
+    });
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionConfirmMock.mockReturnValue({} as never);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -247,7 +258,10 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders buy button if no available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
 
     const { getByText } = render();
 
@@ -257,7 +271,10 @@ describe('CustomAmountInfo', () => {
   });
 
   it('navigates to ramps if buy button pressed', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
 
     useAccountTokensMock.mockReturnValue([
       {

@@ -33,6 +33,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
 // Mock usePredictEligibility hook
 const mockUsePredictEligibility = jest.fn();
 jest.mock('../../hooks/usePredictEligibility', () => ({
@@ -120,7 +129,8 @@ describe('PredictMarketSingle', () => {
     });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
   });
 
@@ -356,7 +366,8 @@ describe('PredictMarketSingle', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(
@@ -383,7 +394,8 @@ describe('PredictMarketSingle', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(

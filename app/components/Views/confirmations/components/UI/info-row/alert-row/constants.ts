@@ -11,4 +11,5 @@ export enum RowAlertKey {
   RequestFrom = 'requestFrom',
   IncomingTokens = 'IncomingTokens',
   InteractingWith = 'interactingWith',
+  Spender = 'spender',
 }

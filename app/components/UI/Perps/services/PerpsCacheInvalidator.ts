@@ -1,7 +1,7 @@
 /**
  * PerpsCacheInvalidator
  *
- * Generic cache invalidation service for Perps readOnly queries.
+ * Generic cache invalidation service for Perps standalone queries.
  * Provides loosely-coupled invalidation between cache consumers (hooks)
  * and cache invalidators (services that modify data).
  *
@@ -10,7 +10,7 @@
  * - Services call invalidate() after successful operations
  * - Subscribers clear their caches and re-fetch data
  *
- * This pattern allows readOnly hooks (usePerpsPositionForAsset, etc.) to
+ * This pattern allows standalone hooks (usePerpsPositionForAsset, etc.) to
  * maintain fast cached data while still being notified when that data
  * becomes stale due to user actions in the perps environment.
  *

@@ -8,6 +8,8 @@ import {
   PointsEventDto,
   SeasonActivityTypeDto,
   SnapshotDto,
+  SeasonWayToEarnDto,
+  CampaignDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -61,6 +63,7 @@ export interface RewardsState {
   seasonEndDate: Date | null;
   seasonTiers: SeasonTierDto[];
   seasonActivityTypes: SeasonActivityTypeDto[];
+  seasonWaysToEarn: SeasonWayToEarnDto[];
   seasonShouldInstallNewVersion: string | null;
 
   // Subscription Referral state
@@ -117,6 +120,11 @@ export interface RewardsState {
   snapshots: SnapshotDto[] | null;
   snapshotsLoading: boolean;
   snapshotsError: boolean;
+
+  // Campaigns state
+  campaigns: CampaignDto[];
+  campaignsLoading: boolean;
+  campaignsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -130,6 +138,7 @@ export const initialState: RewardsState = {
   seasonEndDate: null,
   seasonTiers: [],
   seasonActivityTypes: [],
+  seasonWaysToEarn: [],
 
   referralDetailsLoading: false,
   referralDetailsError: false,
@@ -182,6 +191,11 @@ export const initialState: RewardsState = {
   snapshots: null,
   snapshotsLoading: false,
   snapshotsError: false,
+
+  // Campaigns initial state
+  campaigns: [],
+  campaignsLoading: false,
+  campaignsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -219,6 +233,7 @@ const rewardsSlice = createSlice({
         : null;
       state.seasonTiers = action.payload?.season.tiers || [];
       state.seasonActivityTypes = action.payload?.season.activityTypes || [];
+      state.seasonWaysToEarn = action.payload?.season.waysToEarn || [];
       state.seasonShouldInstallNewVersion =
         action.payload?.season?.shouldInstallNewVersion || null;
 
@@ -330,6 +345,7 @@ const rewardsSlice = createSlice({
         state.seasonEndDate = initialState.seasonEndDate;
         state.seasonTiers = initialState.seasonTiers;
         state.seasonActivityTypes = initialState.seasonActivityTypes;
+        state.seasonWaysToEarn = initialState.seasonWaysToEarn;
         state.referralCode = initialState.referralCode;
         state.refereeCount = initialState.refereeCount;
         state.currentTier = initialState.currentTier;
@@ -448,6 +464,21 @@ const rewardsSlice = createSlice({
       state.snapshotsError = action.payload;
     },
 
+    // Campaigns reducers
+    setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
+      state.campaigns = action.payload;
+      state.campaignsError = false;
+    },
+    setCampaignsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.campaigns.length) {
+        return;
+      }
+      state.campaignsLoading = action.payload;
+    },
+    setCampaignsError: (state, action: PayloadAction<boolean>) => {
+      state.campaignsError = action.payload;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -533,6 +564,7 @@ const rewardsSlice = createSlice({
             seasonEndDate: action.payload.rewards.seasonEndDate,
             seasonTiers: action.payload.rewards.seasonTiers,
             seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
+            seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
             seasonShouldInstallNewVersion:
               action.payload.rewards.seasonShouldInstallNewVersion,
             referralCode: action.payload.rewards.referralCode,
@@ -604,6 +636,10 @@ export const {
   setSnapshots,
   setSnapshotsLoading,
   setSnapshotsError,
+  // Campaigns actions
+  setCampaigns,
+  setCampaignsLoading,
+  setCampaignsError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

@@ -4,7 +4,7 @@ exports[`Tag should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 4,
       "height": 24,
       "justifyContent": "center",
@@ -16,7 +16,7 @@ exports[`Tag should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Medium",
         "fontSize": 12,
         "letterSpacing": 0.25,

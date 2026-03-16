@@ -127,10 +127,20 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
   [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
+  [AlertKeys.TokenContractAddress]: 'token_contract_address',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
 };
 
 function getAlertName(alertKey: string): string {
-  return ALERTS_NAME_METRICS[alertKey as AlertKeys] ?? alertKey;
+  const exactMatch = ALERTS_NAME_METRICS[alertKey as AlertKeys];
+  if (exactMatch) return exactMatch;
+
+  const baseKey = Object.keys(ALERTS_NAME_METRICS)
+    .filter((k) => alertKey.startsWith(k))
+    .sort((a, b) => b.length - a.length)[0];
+
+  if (baseKey) return ALERTS_NAME_METRICS[baseKey as AlertKeys];
+
+  return alertKey;
 }

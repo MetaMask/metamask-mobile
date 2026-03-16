@@ -82,8 +82,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue('mockEvent'),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     isEnabled: jest.fn(() => true),
     createEventBuilder: mockCreateEventBuilder,
@@ -232,6 +232,7 @@ describe('AssetOptions Component', () => {
   const mockNavigation = {
     navigate: jest.fn(),
     goBack: jest.fn(),
+    isFocused: jest.fn().mockReturnValue(true),
   };
 
   beforeEach(() => {

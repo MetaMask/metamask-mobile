@@ -13,6 +13,7 @@ import { formatPrice } from '../../utils/format';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -21,23 +22,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
-jest.mock('../../hooks/useLivePositions', () => ({
-  useLivePositions: jest.fn((positions: unknown[]) => ({
+jest.mock('../../hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],
     isConnected: false,
     lastUpdateTime: null,
   })),
 }));
-jest.mock('../../hooks/usePredictOptimisticPositionRefresh', () => ({
-  usePredictOptimisticPositionRefresh: jest.fn(
-    ({ position }: { position: unknown }) => position,
-  ),
-}));
 jest.mock('../../utils/format');
 
-const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-  typeof usePredictPositions
->;
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
   typeof usePredictActionGuard
 >;
@@ -61,11 +55,11 @@ const setupPositionsMock = (config: MockPositionsConfig = {}) => {
   } = config;
 
   mockUsePredictPositions.mockImplementation((options) => ({
-    positions: options?.claimable ? claimablePositions : livePositions,
+    data: options?.claimable ? claimablePositions : livePositions,
     isLoading,
-    isRefreshing,
+    isRefetching: isRefreshing,
     error,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   }));
 };
 
@@ -73,7 +67,7 @@ const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
 ): PredictMarket => ({
   id: 'market-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'will-btc-hit-100k',
   title: 'Will BTC hit 100k?',
   description: 'Bitcoin price prediction market',
@@ -86,7 +80,7 @@ const createMockMarket = (
   outcomes: [
     {
       id: 'outcome-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       title: 'Yes',
       description: 'BTC will hit 100k',
@@ -98,7 +92,7 @@ const createMockMarket = (
     },
     {
       id: 'outcome-2',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       title: 'No',
       description: 'BTC will not hit 100k',
@@ -118,7 +112,7 @@ const createMockPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition => ({
   id: 'position-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -403,7 +397,8 @@ describe('PredictPicks', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
-        autoRefreshTimeout: 10000,
+        claimable: false,
+        refetchInterval: 10000,
       });
     });
 
@@ -422,14 +417,14 @@ describe('PredictPicks', () => {
       });
     });
 
-    it('passes autoRefreshTimeout of 10000ms to hook', () => {
+    it('passes refetchInterval of 10000ms to hook', () => {
       setupPositionsMock();
 
       render(<PredictPicks market={createMockMarket()} />);
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith(
         expect.objectContaining({
-          autoRefreshTimeout: 10000,
+          refetchInterval: 10000,
         }),
       );
     });
@@ -560,7 +555,7 @@ describe('PredictPicks', () => {
       );
     });
 
-    it('calls usePredictActionGuard with market.providerId', () => {
+    it('calls usePredictActionGuard with navigation only', () => {
       const market = createMockMarket({ providerId: 'custom-provider' });
       setupPositionsMock({ livePositions: [createMockPosition()] });
 
@@ -568,7 +563,7 @@ describe('PredictPicks', () => {
 
       expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'custom-provider',
+          navigation: expect.any(Object),
         }),
       );
     });

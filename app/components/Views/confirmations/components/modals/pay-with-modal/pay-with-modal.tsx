@@ -1,18 +1,35 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
+import { noop } from 'lodash';
+import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import { AssetType } from '../../../types/token';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import {
+  AssetType,
+  isHighlightedItemInAssetList,
+  isHighlightedItemOutsideAssetList,
+  TokenListItem,
+} from '../../../types/token';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from '../../../hooks/pay/useTransactionPayData';
+import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
@@ -26,7 +43,10 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken, setPayToken } = useTransactionPayToken();
+  const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const fiatHighlightedActions = useFiatPaymentHighlightedActions();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -34,11 +54,39 @@ export function PayWithModal() {
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
+  const withdrawTokenFilter = useWithdrawTokenFilter();
+  const blockedTokens = useTransactionPayBlockedTokens();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
     bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
+
+  const wrapHighlightedItemCallbacks = useCallback(
+    (items: TokenListItem[]): TokenListItem[] =>
+      items.map((item) => {
+        if (isHighlightedItemInAssetList(item)) {
+          return {
+            ...item,
+            action: () => close(item.action),
+          };
+        }
+
+        if (isHighlightedItemOutsideAssetList(item)) {
+          return {
+            ...item,
+            action: () => close(item.action),
+            actions: item.actions?.map((actionItem) => ({
+              ...actionItem,
+              onPress: () => close(actionItem.onPress),
+            })),
+          };
+        }
+
+        return item;
+      }),
+    [close],
+  );
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
@@ -59,6 +107,31 @@ export function PayWithModal() {
           return;
         }
 
+        // Ensure the token is tracked by TokensController so the pay
+        // controller can resolve its metadata (symbol, decimals, balance).
+        // This is needed for zero-balance tokens from the catalog.
+        if (isWithdraw && token.balance === '0' && !token.isNative) {
+          const { TokensController, NetworkController } = Engine.context;
+          try {
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(
+                token.chainId as Hex,
+              );
+            TokensController.addTokens(
+              [
+                {
+                  address: token.address,
+                  symbol: token.symbol,
+                  decimals: token.decimals,
+                },
+              ],
+              networkClientId,
+            ).catch(noop);
+          } catch {
+            // Network not configured — skip
+          }
+        }
+
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
@@ -69,6 +142,7 @@ export function PayWithModal() {
     },
     [
       close,
+      isWithdraw,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       setPayToken,
@@ -77,37 +151,59 @@ export function PayWithModal() {
   );
 
   const tokenFilter = useCallback(
-    (tokens: AssetType[]) => {
+    (tokens: AssetType[]): TokenListItem[] => {
+      if (isTransactionPayWithdraw(transactionMeta)) {
+        return withdrawTokenFilter(tokens);
+      }
+
+      // Standard deposit/payment token filtering
       const availableTokens = getAvailableTokens({
         payToken,
         requiredTokens,
         tokens,
+        blockedTokens,
+        fiatPayment,
       });
+
+      let filteredTokens: TokenListItem[] = availableTokens;
 
       if (
         hasTransactionType(transactionMeta, [TransactionType.musdConversion])
       ) {
-        return musdTokenFilter(availableTokens);
-      }
-
-      if (
+        filteredTokens = musdTokenFilter(availableTokens);
+      } else if (
         hasTransactionType(transactionMeta, [
           TransactionType.perpsDepositAndOrder,
         ])
       ) {
-        return perpsBalanceTokenFilter(availableTokens);
+        filteredTokens = perpsBalanceTokenFilter(availableTokens);
       }
 
-      return availableTokens;
+      const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
+      const wrappedFiatActions = wrapHighlightedItemCallbacks(
+        fiatHighlightedActions,
+      );
+
+      return [...wrappedFiatActions, ...wrappedTokens];
     },
     [
+      blockedTokens,
+      fiatHighlightedActions,
+      fiatPayment,
+      withdrawTokenFilter,
       musdTokenFilter,
       payToken,
       requiredTokens,
       transactionMeta,
       perpsBalanceTokenFilter,
+      wrapHighlightedItemCallbacks,
     ],
   );
+
+  // Dynamic title based on transaction type
+  const modalTitle = isWithdraw
+    ? strings('pay_with_modal.title_receive')
+    : strings('pay_with_modal.title');
 
   return (
     <BottomSheet
@@ -116,7 +212,7 @@ export function PayWithModal() {
       keyboardAvoidingViewEnabled={false}
     >
       <HeaderCompactStandard
-        title={strings('pay_with_modal.title')}
+        title={modalTitle}
         // HeaderCompactStandard close handler receives a press event; we must ignore it so it
         // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
         onClose={() => close()}

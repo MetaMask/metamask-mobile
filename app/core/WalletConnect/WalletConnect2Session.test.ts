@@ -339,7 +339,7 @@ describe('WalletConnect2Session', () => {
 
     expect(newSession).toBeTruthy();
     // The session should initialize successfully with normalized URL
-    expect((newSession as any).hostname).toBe('example.com');
+    expect((newSession as any).selfReportedHostname).toBe('example.com');
   });
 
   it('throws error for completely invalid URLs', () => {

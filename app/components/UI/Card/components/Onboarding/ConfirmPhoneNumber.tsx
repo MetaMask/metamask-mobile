@@ -22,7 +22,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const CODE_LENGTH = 6;
@@ -41,7 +42,7 @@ const ConfirmPhoneNumber = () => {
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { phoneNumber, phoneCountryCode } = useParams<{
     phoneNumber: string;
     phoneCountryCode: string;

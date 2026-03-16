@@ -12,7 +12,6 @@ import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   KeyringControllerLockEvent,
   KeyringControllerUnlockEvent,
-  KeyringControllerGetKeyringsByTypeAction,
 } from '@metamask/keyring-controller';
 import { store, runSaga } from '../../../../store';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -146,60 +145,6 @@ describe('SnapControllerInit', () => {
     baseMessenger.publish('KeyringController:unlock');
 
     expect(spy).toHaveBeenCalledWith('SnapController:setClientActive', true);
-  });
-
-  describe('getMnemonicSeed', () => {
-    it('returns the mnemonic seed', async () => {
-      const messenger = new ExtendedMessenger<
-        MockAnyNamespace,
-        KeyringControllerGetKeyringsByTypeAction,
-        never
-      >({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
-
-      snapControllerInit(getInitRequestMock(messenger));
-
-      const mock = jest.mocked(SnapController);
-      const getMnemonicSeed = mock.mock.calls[0][0].getMnemonicSeed;
-
-      const seed = new Uint8Array([1, 2, 3, 4]);
-      messenger.registerActionHandler(
-        'KeyringController:getKeyringsByType',
-        () => [
-          {
-            type: 'HD Key Tree',
-            seed,
-          },
-        ],
-      );
-
-      await expect(getMnemonicSeed()).resolves.toBe(seed);
-    });
-
-    it('throws an error if the keyring is not available', async () => {
-      const messenger = new ExtendedMessenger<
-        MockAnyNamespace,
-        KeyringControllerGetKeyringsByTypeAction,
-        never
-      >({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
-
-      snapControllerInit(getInitRequestMock(messenger));
-
-      const controllerMock = jest.mocked(SnapController);
-      const getMnemonicSeed = controllerMock.mock.calls[0][0].getMnemonicSeed;
-
-      messenger.registerActionHandler(
-        'KeyringController:getKeyringsByType',
-        () => [],
-      );
-
-      await expect(getMnemonicSeed()).rejects.toThrow(
-        'Primary keyring mnemonic unavailable.',
-      );
-    });
   });
 
   describe('getFeatureFlags', () => {

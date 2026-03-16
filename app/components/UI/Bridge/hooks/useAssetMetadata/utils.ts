@@ -18,9 +18,33 @@ import {
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { TokenRwaData } from '@metamask/assets-controllers';
 
 const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
 const STATIC_METAMASK_BASE_URL = 'https://static.cx.metamask.io';
+
+const normalizeAssetIdForImageUrl = (
+  assetId: CaipAssetType,
+  chainId: CaipChainId,
+): CaipAssetType => {
+  if (isNonEvmChainId(chainId)) {
+    return assetId;
+  }
+
+  const {
+    chainId: parsedChainId,
+    assetNamespace,
+    assetReference,
+  } = parseCaipAssetType(assetId);
+
+  if (assetNamespace !== 'erc20') {
+    return assetId;
+  }
+
+  return CaipAssetTypeStruct.create(
+    `${parsedChainId}/${assetNamespace}:${assetReference.toLowerCase()}`,
+  );
+};
 
 export const toAssetId = (
   address: Hex | CaipAssetType | string,
@@ -58,7 +82,12 @@ export const getAssetImageUrl = (
     return undefined;
   }
 
-  return `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/${assetIdInCaip
+  const normalizedAssetId = normalizeAssetIdForImageUrl(
+    assetIdInCaip,
+    chainIdInCaip,
+  );
+
+  return `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/${normalizedAssetId
     .split(':')
     .join('/')}.png`;
 };
@@ -68,6 +97,8 @@ interface AssetMetadata {
   symbol: string;
   name: string;
   decimals: number;
+  iconUrl?: string;
+  rwaData?: TokenRwaData;
 }
 
 /**
@@ -93,14 +124,15 @@ export const fetchAssetMetadata = async (
   }
 
   try {
-    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}`;
+    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}&includeIconUrl=true&includeRwaData=true`;
     const [assetMetadata]: AssetMetadata[] = await handleFetch(url);
 
     const commonFields = {
       symbol: assetMetadata.symbol,
       decimals: assetMetadata.decimals,
       name: assetMetadata.name,
-      image: getAssetImageUrl(assetId, chainIdInCaip),
+      image: getAssetImageUrl(assetId, chainIdInCaip) || assetMetadata.iconUrl,
+      rwaData: assetMetadata.rwaData,
       assetId,
     };
 

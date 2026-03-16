@@ -3,7 +3,7 @@ import {
   type AnalyticsUserTraits,
   analyticsControllerSelectors,
 } from '@metamask/analytics-controller';
-import { whenEngineReady } from '../../core/Analytics/whenEngineReady';
+import { whenEngineReady } from './whenEngineReady';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
 import {

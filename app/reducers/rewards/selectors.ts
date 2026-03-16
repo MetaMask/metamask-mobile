@@ -52,6 +52,9 @@ export const selectSeasonTiers = (state: RootState) =>
 export const selectSeasonActivityTypes = (state: RootState) =>
   state.rewards.seasonActivityTypes;
 
+export const selectSeasonWaysToEarn = (state: RootState) =>
+  state.rewards.seasonWaysToEarn;
+
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
 
@@ -156,3 +159,12 @@ export const selectSnapshotsLoading = (state: RootState) =>
 
 export const selectSnapshotsError = (state: RootState) =>
   state.rewards.snapshotsError;
+
+// Campaigns selectors
+export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
+
+export const selectCampaignsLoading = (state: RootState) =>
+  state.rewards.campaignsLoading;
+
+export const selectCampaignsError = (state: RootState) =>
+  state.rewards.campaignsError;

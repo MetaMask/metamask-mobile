@@ -1,15 +1,16 @@
 import React, { useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictPosition as PredictPositionType } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictPositionsSelectorsIDs } from '../../Predict.testIds';
 import PredictPosition from '../PredictPosition/PredictPosition';
@@ -25,8 +26,8 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
   activePositions,
   claimablePositions,
 }) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const handlePositionPress = useCallback(
     (marketId: string) => {
@@ -54,6 +55,7 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
             key={`${item.outcomeId}:${item.outcomeIndex}`}
             position={item}
             onPress={() => handlePositionPress(item.marketId)}
+            privacyMode={Boolean(privacyMode)}
           />
         ))}
       </Box>
@@ -77,6 +79,7 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
                 key={`${item.outcomeId}:${item.outcomeIndex}`}
                 position={item}
                 onPress={() => handlePositionPress(item.marketId)}
+                privacyMode={Boolean(privacyMode)}
               />
             ))}
           </Box>

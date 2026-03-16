@@ -7,6 +7,7 @@ import ContractAddressRegistry from '../../app/util/test/contract-address-regist
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
+import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 
 /*
@@ -91,10 +92,24 @@ export interface LongPressOptions extends GestureOptions {
   duration?: number;
 }
 
+export interface MatcherOptions {
+  exact?: boolean;
+}
+
+/**
+ * The options for the scroll gesture.
+ * @param {string} direction - The direction to scroll.
+ * @param {number} scrollAmount - The amount to scroll.
+ * @param {number} delay - The delay before the scroll.
+ * @param {number} startPositionX - The starting position on the X axis.
+ * @param {number} startPositionY - The starting position on the Y axis.
+ */
 export interface ScrollOptions extends GestureOptions {
   direction?: 'up' | 'down' | 'left' | 'right';
   scrollAmount?: number;
   delay?: number;
+  startPositionX?: number;
+  startPositionY?: number;
 }
 
 // Assertions
@@ -122,10 +137,24 @@ export interface RampsRegion {
   emoji: string;
   id: string;
   name: string;
+  countryName: string;
+  countryIsoCode: string;
+  stateName?: string;
+  stateIsoCode?: string;
   support: { buy: boolean; sell: boolean; recurringBuy: boolean };
   unsupported: boolean;
   recommended: boolean;
   detected: boolean;
+}
+
+/**
+ * Returns the full ISO 3166-2 location code for a region,
+ * combining country and subdivision when present (e.g. 'US-CA', 'FR').
+ */
+export function getRegionLocationCode(region: RampsRegion): string {
+  return region.stateIsoCode
+    ? `${region.countryIsoCode}-${region.stateIsoCode}`
+    : region.countryIsoCode;
 }
 
 export enum ServerStatus {
@@ -155,13 +184,12 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
-export enum PerpsModifiersCommandTypes {
+export enum E2ECommandTypes {
   pushPrice = 'push-price',
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
+  exportState = 'export-state',
 }
-
-export type CommandType = PerpsModifiersCommandTypes;
 
 export enum GanacheHardfork {
   london = 'london',
@@ -300,9 +328,10 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
 export interface WithFixturesOptions {
   fixture:
     | FixtureBuilder
+    | Fixture
     | ((ctx: {
         localNodes?: LocalNode[];
-      }) => FixtureBuilder | Promise<FixtureBuilder>);
+      }) => FixtureBuilder | Fixture | Promise<FixtureBuilder | Fixture>);
   restartDevice?: boolean;
   smartContracts?: string[];
   disableLocalNodes?: boolean;

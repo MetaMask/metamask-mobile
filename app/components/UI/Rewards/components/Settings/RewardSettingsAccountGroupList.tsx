@@ -17,7 +17,7 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
@@ -25,10 +25,10 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
-import RewardSettingsOptOut from './RewardSettingsOptOut';
 import ReferredByCodeSection from './ReferredByCodeSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
 
@@ -348,9 +348,9 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListFooterComponent = useCallback(
     () => (
-      <Box>
+      <Box twClassName="gap-4">
         <ReferredByCodeSection />
-        <RewardSettingsOptOut />
+        <RewardsEnvironmentToggle />
       </Box>
     ),
     [],

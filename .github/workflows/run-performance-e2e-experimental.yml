@@ -3,8 +3,17 @@
 name: Performance E2E Tests for Experimental Builds
 on:
   schedule:
-    - cron: '0 */3 * * 1-6'  # Every 3 hours, Mon–Fri (aligned with main performance workflow)
+    - cron: '0 */3 * * 1-6' # Every 3 hours, Mon–Fri (aligned with main performance workflow)
   workflow_dispatch:
+    inputs:
+      sentry_target:
+        description: 'Sentry target for performance events (test or real)'
+        required: false
+        type: choice
+        options:
+          - test
+          - real
+        default: test
   push:
     branches:
       - main
@@ -53,4 +62,5 @@ jobs:
     with:
       branch_name: main
       build_variant: exp
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
     secrets: inherit

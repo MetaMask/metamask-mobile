@@ -2,7 +2,7 @@
 import BN from 'bnjs4';
 
 import * as controllerUtilsModule from '@metamask/controller-utils';
-import { ERC721, ERC1155, ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { ERC721, ERC1155 } from '@metamask/controller-utils';
 import * as bridgeControllerModule from '@metamask/bridge-controller';
 
 import { handleMethodData } from '../../util/transaction-controller';
@@ -32,6 +32,7 @@ import {
   parseTransactionLegacy,
   getIsNativeTokenTransferred,
   getIsSwapApproveOrSwapTransaction,
+  isHardwareSwapApproveOrSwapTransaction,
   getIsSwapApproveTransaction,
   getIsSwapTransaction,
   INCREASE_ALLOWANCE_SIGNATURE,
@@ -65,6 +66,7 @@ import {
   isTransactionIncomplete,
 } from '.';
 import Engine from '../../core/Engine';
+import { isHardwareAccount } from '../address';
 import { strings } from '../../../locales/i18n';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 import {
@@ -149,6 +151,10 @@ jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
 jest.mock('../../util/transaction-controller');
+jest.mock('../address', () => ({
+  ...jest.requireActual('../address'),
+  isHardwareAccount: jest.fn(),
+}));
 
 const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';
@@ -1261,6 +1267,7 @@ const dappTxMeta = {
 };
 const sendEthTxMeta = {
   chainId: '0x1',
+  type: TransactionType.simpleSend,
   origin: 'MetaMask Mobile',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1276,6 +1283,7 @@ const sendEthTxMeta = {
 };
 const sendERC20TxMeta = {
   chainId: '0x1',
+  type: TransactionType.tokenMethodTransfer,
   origin: 'MetaMask Mobile',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1292,6 +1300,7 @@ const sendERC20TxMeta = {
 
 const swapFlowApproveERC20TxMeta = {
   chainId: '0x1',
+  type: TransactionType.swapApproval,
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1307,6 +1316,7 @@ const swapFlowApproveERC20TxMeta = {
 };
 const swapFlowSwapERC20TxMeta = {
   chainId: '0x1',
+  type: TransactionType.swap,
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1322,6 +1332,7 @@ const swapFlowSwapERC20TxMeta = {
 };
 const swapFlowSwapEthTxMeta = {
   chainId: '0x1',
+  type: TransactionType.swap,
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1340,61 +1351,61 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
   it('returns true if the transaction is an approve tx in the swap flow for ERC20 from token', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       swapFlowApproveERC20TxMeta.transaction.data,
-      swapFlowApproveERC20TxMeta.origin,
       swapFlowApproveERC20TxMeta.transaction.to,
       swapFlowApproveERC20TxMeta.chainId,
+      swapFlowApproveERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap tx in the swap flow for ERC20 from token', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       swapFlowSwapERC20TxMeta.transaction.data,
-      swapFlowSwapERC20TxMeta.origin,
       swapFlowSwapERC20TxMeta.transaction.to,
       swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap tx in the swap flow for ETH from token', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       swapFlowSwapEthTxMeta.transaction.data,
-      swapFlowSwapEthTxMeta.origin,
       swapFlowSwapEthTxMeta.transaction.to,
       swapFlowSwapEthTxMeta.chainId,
+      swapFlowSwapEthTxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns false if the transaction is a send ERC20 tx', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       sendERC20TxMeta.transaction.data,
-      sendERC20TxMeta.origin,
       sendERC20TxMeta.transaction.to,
       sendERC20TxMeta.chainId,
+      sendERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a send ETH tx', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       sendEthTxMeta.transaction.data,
-      sendEthTxMeta.origin,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a dapp tx', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       dappTxMeta.transaction.data,
-      dappTxMeta.origin,
       dappTxMeta.transaction.to,
       dappTxMeta.chainId,
+      TransactionType.contractInteraction,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a token transfer from swap origin', () => {
     const tokenTransferFromSwapOrigin = {
       chainId: '0x1',
-      origin: ORIGIN_METAMASK,
+      type: TransactionType.swap,
       transaction: {
         from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
         data: '0xa9059cbb000000000000000000000000dc738206f559bdae106894a62876a119e470aee20000000000000000000000000000000000000000000000000de0b6b3a7640000',
@@ -1407,9 +1418,62 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
 
     const result = getIsSwapApproveOrSwapTransaction(
       tokenTransferFromSwapOrigin.transaction.data,
-      tokenTransferFromSwapOrigin.origin,
       tokenTransferFromSwapOrigin.transaction.to,
       tokenTransferFromSwapOrigin.chainId,
+      tokenTransferFromSwapOrigin.type,
+    );
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: isHardwareSwapApproveOrSwapTransaction', () => {
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+
+  beforeEach(() => {
+    isHardwareAccountMock.mockReset();
+  });
+
+  it('returns true when it is a swap transaction from a hardware wallet', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+
+    expect(result).toBe(true);
+    expect(isHardwareAccountMock).toHaveBeenCalledWith(
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+  });
+
+  it('returns false when it is a swap transaction but not from a hardware wallet', () => {
+    isHardwareAccountMock.mockReturnValue(false);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when it is from a hardware wallet but not a swap transaction', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      sendERC20TxMeta.transaction.data,
+      sendERC20TxMeta.transaction.to,
+      sendERC20TxMeta.chainId,
+      sendERC20TxMeta.type,
+      sendERC20TxMeta.transaction.from,
     );
 
     expect(result).toBe(false);
@@ -1420,45 +1484,45 @@ describe('Transactions utils :: getIsSwapApproveTransaction', () => {
   it('returns true if the transaction is an approve ERC20 tx in the swap flow', () => {
     const result = getIsSwapApproveTransaction(
       swapFlowApproveERC20TxMeta.transaction.data,
-      swapFlowApproveERC20TxMeta.origin,
       swapFlowApproveERC20TxMeta.transaction.to,
       swapFlowApproveERC20TxMeta.chainId,
+      swapFlowApproveERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns false if the transaction is a swap ERC20 tx in the swap flow', () => {
     const result = getIsSwapApproveTransaction(
       swapFlowSwapERC20TxMeta.transaction.data,
-      swapFlowSwapERC20TxMeta.origin,
       swapFlowSwapERC20TxMeta.transaction.to,
       swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a send ETH tx', () => {
     const result = getIsSwapApproveTransaction(
       sendEthTxMeta.transaction.data,
-      sendEthTxMeta.origin,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a send ERC20 tx', () => {
     const result = getIsSwapApproveTransaction(
       sendERC20TxMeta.transaction.data,
-      sendERC20TxMeta.origin,
       sendERC20TxMeta.transaction.to,
       sendERC20TxMeta.chainId,
+      sendERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a dapp tx', () => {
     const result = getIsSwapApproveTransaction(
       dappTxMeta.transaction.data,
-      dappTxMeta.origin,
       dappTxMeta.transaction.to,
       dappTxMeta.chainId,
+      TransactionType.contractInteraction,
     );
     expect(result).toBe(false);
   });
@@ -1468,45 +1532,45 @@ describe('Transactions utils :: getIsSwapTransaction', () => {
   it('returns false if the transaction is an approve ERC20 tx in the swap flow', () => {
     const result = getIsSwapTransaction(
       swapFlowApproveERC20TxMeta.transaction.data,
-      swapFlowApproveERC20TxMeta.origin,
       swapFlowApproveERC20TxMeta.transaction.to,
       swapFlowApproveERC20TxMeta.chainId,
+      swapFlowApproveERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns true if the transaction is a swap ERC20 tx in the swap flow', () => {
     const result = getIsSwapTransaction(
       swapFlowSwapERC20TxMeta.transaction.data,
-      swapFlowSwapERC20TxMeta.origin,
       swapFlowSwapERC20TxMeta.transaction.to,
       swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap ETH tx in the swap flow', () => {
     const result = getIsSwapTransaction(
       swapFlowSwapEthTxMeta.transaction.data,
-      swapFlowSwapEthTxMeta.origin,
       swapFlowSwapEthTxMeta.transaction.to,
       swapFlowSwapEthTxMeta.chainId,
+      swapFlowSwapEthTxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns false if the transaction is a send tx', () => {
     const result = getIsSwapTransaction(
       sendEthTxMeta.transaction.data,
-      sendEthTxMeta.origin,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a dapp tx', () => {
     const result = getIsSwapTransaction(
       dappTxMeta.transaction.data,
-      dappTxMeta.origin,
       dappTxMeta.transaction.to,
       dappTxMeta.chainId,
+      TransactionType.contractInteraction,
     );
     expect(result).toBe(false);
   });

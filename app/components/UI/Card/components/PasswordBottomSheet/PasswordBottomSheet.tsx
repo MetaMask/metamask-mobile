@@ -28,6 +28,7 @@ import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 
 interface PasswordBottomSheetParams {
   onSuccess: () => void;
+  description?: string;
 }
 
 export const createPasswordBottomSheetNavigationDetails =
@@ -38,7 +39,7 @@ export const createPasswordBottomSheetNavigationDetails =
 
 const PasswordBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { onSuccess } = useParams<PasswordBottomSheetParams>();
+  const { onSuccess, description } = useParams<PasswordBottomSheetParams>();
   const { reauthenticate } = useAuthentication();
   const theme = useTheme();
   const tw = useTailwind();
@@ -87,7 +88,7 @@ const PasswordBottomSheet: React.FC = () => {
           variant={TextVariant.BodyMD}
           style={tw.style('text-text-alternative mb-4')}
         >
-          {strings('card.password_bottomsheet.description')}
+          {description ?? strings('card.password_bottomsheet.description')}
         </Text>
 
         <TextInput

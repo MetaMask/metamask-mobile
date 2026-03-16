@@ -4,6 +4,7 @@ import { FiatOrder } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
 import { processDepositOrder } from '../Deposit/orderProcessor';
+import { processUnifiedOrder } from './unifiedOrderProcessor';
 
 function processOrder(
   order: FiatOrder,
@@ -15,6 +16,9 @@ function processOrder(
     case FIAT_ORDER_PROVIDERS.MOONPAY: {
       return order;
     }
+    case FIAT_ORDER_PROVIDERS.RAMPS_V2: {
+      return processUnifiedOrder(order, options);
+    }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
       return processAggregatorOrder(order, options);
     }
@@ -25,7 +29,13 @@ function processOrder(
       const unrecognizedProviderError = new Error(
         'FiatOrders::ProcessOrder unrecognized provider',
       );
-      Logger.error(unrecognizedProviderError, order);
+      Logger.error(unrecognizedProviderError, {
+        orderId: order.id,
+        provider: order.provider,
+        orderType: order.orderType,
+        state: order.state,
+        network: order.network,
+      });
       return order;
     }
   }

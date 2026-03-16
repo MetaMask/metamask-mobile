@@ -6,7 +6,8 @@ import { isCardUrl, isCardTravelUrl, isCardTosUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions } from '../util/metrics';
 import { Linking } from 'react-native';
 
@@ -45,7 +46,7 @@ export const useNavigateToInternalBrowserPage = (
   navigation: NavigationProp<ParamListBase>,
 ) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigateToInternalBrowserPage = useCallback(
     (page: CardInternalBrowserPage) => {

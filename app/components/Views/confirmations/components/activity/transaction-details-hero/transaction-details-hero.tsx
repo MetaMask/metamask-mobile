@@ -20,10 +20,9 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { PERPS_CURRENCY } from '../../../constants/perps';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
-import { MERKL_CLAIM_CHAIN_ID } from '../../../../../UI/Earn/components/MerklRewards/constants';
 import {
   convertMusdClaimAmount,
-  decodeMerklClaimAmount,
+  getClaimPayoutFromReceipt,
 } from '../../../../../UI/Earn/utils/musd';
 import {
   selectConversionRateByChainId,
@@ -115,11 +114,12 @@ function useDecodedAmount() {
  */
 function useClaimAmount(): { amount: BigNumber | null; isConverted: boolean } {
   const { transactionMeta } = useTransactionDetails();
-  const { networkNativeCurrency } = useNetworkInfo(MERKL_CLAIM_CHAIN_ID);
+  const { chainId } = transactionMeta;
+  const { networkNativeCurrency } = useNetworkInfo(chainId);
 
   const conversionRate = new BigNumber(
     useSelector((state: RootState) =>
-      selectConversionRateByChainId(state, MERKL_CLAIM_CHAIN_ID),
+      selectConversionRateByChainId(state, chainId),
     ) ?? 0,
   );
   const currencyRates = useSelector(selectCurrencyRates);
@@ -130,8 +130,13 @@ function useClaimAmount(): { amount: BigNumber | null; isConverted: boolean } {
     return { amount: null, isConverted: false };
   }
 
-  const { data } = transactionMeta.txParams ?? {};
-  const claimAmountRaw = decodeMerklClaimAmount(data as string);
+  const { from } = transactionMeta.txParams ?? {};
+  const claimAmountRaw = getClaimPayoutFromReceipt(
+    transactionMeta.txReceipt?.logs as Parameters<
+      typeof getClaimPayoutFromReceipt
+    >[0],
+    from as string,
+  );
 
   if (!claimAmountRaw) {
     return { amount: null, isConverted: false };

@@ -6,7 +6,8 @@ import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { trace, TraceName } from '../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EVENT_LOCATIONS } from '../constants/events/earnEvents';
 import type { TokenI } from '../../Tokens/types';
@@ -24,7 +25,7 @@ export const useStablecoinLendingRedirect = ({
   location = EVENT_LOCATIONS.HOME_SCREEN,
   onNavigate,
 }: UseStablecoinLendingRedirectParams) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),

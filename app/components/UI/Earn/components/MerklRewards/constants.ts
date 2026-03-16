@@ -23,6 +23,14 @@ export const DISTRIBUTOR_CLAIMED_ABI = [
   'function claimed(address user, address token) external view returns (uint208 amount, uint48 timestamp, bytes32 merkleRoot)',
 ];
 
+/**
+ * Cache TTL for Merkl rewards API responses (2 minutes).
+ * Merkle trees update infrequently, so cached data stays valid for a while.
+ * This allows the "Claim bonus" tap to use pre-warmed data from the
+ * display fetch that runs on mount, eliminating the API latency.
+ */
+export const MERKL_REWARDS_CACHE_TTL_MS = 2 * 60 * 1000;
+
 // ABI for the claim method
 export const DISTRIBUTOR_CLAIM_ABI = [
   'function claim(address[] calldata users, address[] calldata tokens, uint256[] calldata amounts, bytes32[][] calldata proofs)',

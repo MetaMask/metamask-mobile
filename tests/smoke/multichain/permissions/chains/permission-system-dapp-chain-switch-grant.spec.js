@@ -12,10 +12,8 @@ import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAc
 import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
+describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
@@ -30,17 +28,13 @@ describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
             },
           ],
           fixture: new FixtureBuilder()
-            .withNetworkController(CustomNetworks.ElysiumTestnet)
-            .withNetworkController(CustomNetworks.EthereumMainCustom)
+            .withNetworkController(CustomNetworks.ElysiumTestnet.providerConfig)
+            .withNetworkController(
+              CustomNetworks.EthereumMainCustom.providerConfig,
+            )
             .withPermissionController()
             .build(),
           restartDevice: true,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(false),
-            );
-          },
         },
         async () => {
           // Setup: Login and navigate to browser
@@ -69,11 +63,10 @@ describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
           // Navigate back to second Dapp and verify chain permissions
-          await ConnectedAccountsModal.tapManagePermissionsButton();
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
           const networkPicker = ConnectedAccountsModal.networkPicker;
-          await Assertions.expectElementToHaveLabel(networkPicker, 'E');
+          await Assertions.expectElementToHaveLabel(networkPicker, 'l E');
         },
       );
     });

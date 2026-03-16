@@ -3,6 +3,7 @@ import Engine from '../../../../core/Engine';
 import { usePredictTrading } from './usePredictTrading';
 import { Side } from '../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -16,6 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
       calculateCashOutAmounts: jest.fn(),
       getBalance: jest.fn(),
       deposit: jest.fn(),
+      payWithAnyTokenConfirmation: jest.fn(),
     },
   },
 }));
@@ -27,56 +29,6 @@ describe('usePredictTrading', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('getPositions', () => {
-    it('calls PredictController.getPositions and returns positions', async () => {
-      const mockPositions = [
-        {
-          id: 'pos1',
-          market: 'BTC/UP',
-          side: 'UP',
-          size: '10',
-          entryPrice: '100',
-          payout: '180',
-          status: 'OPEN',
-        },
-      ];
-
-      (
-        Engine.context.PredictController.getPositions as jest.Mock
-      ).mockResolvedValue(mockPositions);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      const response = await result.current.getPositions({
-        address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
-      });
-
-      expect(
-        Engine.context.PredictController.getPositions,
-      ).toHaveBeenCalledWith({
-        address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
-      });
-      expect(response).toEqual(mockPositions);
-    });
-
-    it('throws error when PredictController.getPositions fails', async () => {
-      const mockError = new Error('Failed to fetch predict positions');
-      (
-        Engine.context.PredictController.getPositions as jest.Mock
-      ).mockRejectedValue(mockError);
-      const { result } = renderHook(() => usePredictTrading());
-
-      await expect(
-        result.current.getPositions({
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-        }),
-      ).rejects.toThrow('Failed to fetch predict positions');
-    });
   });
 
   describe('placeOrder', () => {
@@ -108,12 +60,10 @@ describe('usePredictTrading', () => {
       };
 
       const response = await result.current.placeOrder({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
       expect(response).toEqual(mockBuyResult);
@@ -147,12 +97,10 @@ describe('usePredictTrading', () => {
       };
 
       const response = await result.current.placeOrder({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
       expect(response).toEqual(mockSellResult);
@@ -181,7 +129,6 @@ describe('usePredictTrading', () => {
 
       await expect(
         result.current.placeOrder({
-          providerId: 'polymarket',
           preview: mockPreview,
         }),
       ).rejects.toThrow('Failed to place order');
@@ -203,13 +150,13 @@ describe('usePredictTrading', () => {
       const { result } = renderHook(() => usePredictTrading());
 
       const response = await result.current.claim({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       });
 
       expect(
         Engine.context.PredictController.claimWithConfirmation,
       ).toHaveBeenCalledWith({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       });
       expect(response).toEqual(mockClaimResult);
     });
@@ -222,7 +169,7 @@ describe('usePredictTrading', () => {
       const { result } = renderHook(() => usePredictTrading());
 
       await expect(
-        result.current.claim({ providerId: 'polymarket' }),
+        result.current.claim({ providerId: POLYMARKET_PROVIDER_ID }),
       ).rejects.toThrow('Failed to claim winnings');
     });
   });
@@ -238,12 +185,10 @@ describe('usePredictTrading', () => {
       const { result } = renderHook(() => usePredictTrading());
 
       const response = await result.current.getBalance({
-        providerId: 'polymarket',
         address: '0x1234567890123456789012345678901234567890',
       });
 
       expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         address: '0x1234567890123456789012345678901234567890',
       });
       expect(response).toBe(mockBalance);
@@ -258,7 +203,6 @@ describe('usePredictTrading', () => {
 
       await expect(
         result.current.getBalance({
-          providerId: 'polymarket',
           address: '0x1234567890123456789012345678901234567890',
         }),
       ).rejects.toThrow('Failed to fetch balance');
@@ -273,15 +217,49 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.getBalance({
-        providerId: 'polymarket',
-      });
+      const response = await result.current.getBalance({});
 
       // The hook calls the controller directly, so the controller handles the default address
-      expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-      });
+      expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith(
+        {},
+      );
       expect(response).toBe(mockBalance);
+    });
+  });
+
+  describe('payWithAnyTokenConfirmation', () => {
+    it('calls PredictController.payWithAnyTokenConfirmation and returns result', async () => {
+      const mockResult = {
+        success: true,
+        response: { batchId: 'batch-123' },
+      };
+
+      (
+        Engine.context.PredictController
+          .payWithAnyTokenConfirmation as jest.Mock
+      ).mockResolvedValue(mockResult);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const response = await result.current.payWithAnyTokenConfirmation();
+
+      expect(
+        Engine.context.PredictController.payWithAnyTokenConfirmation,
+      ).toHaveBeenCalled();
+      expect(response).toEqual(mockResult);
+    });
+
+    it('throws error when PredictController.payWithAnyTokenConfirmation fails', async () => {
+      const mockError = new Error('Failed to pay with any token');
+      (
+        Engine.context.PredictController
+          .payWithAnyTokenConfirmation as jest.Mock
+      ).mockRejectedValue(mockError);
+      const { result } = renderHook(() => usePredictTrading());
+
+      await expect(
+        result.current.payWithAnyTokenConfirmation(),
+      ).rejects.toThrow('Failed to pay with any token');
     });
   });
 
@@ -289,19 +267,22 @@ describe('usePredictTrading', () => {
     it('returns stable function references', () => {
       const { result, rerender } = renderHook(() => usePredictTrading());
 
-      const initialGetPositions = result.current.getPositions;
       const initialPlaceOrder = result.current.placeOrder;
       const initialClaim = result.current.claim;
       const initialGetBalance = result.current.getBalance;
       const initialPreviewOrder = result.current.previewOrder;
+      const initialPayWithAnyTokenConfirmation =
+        result.current.payWithAnyTokenConfirmation;
 
       rerender({});
 
-      expect(result.current.getPositions).toBe(initialGetPositions);
       expect(result.current.placeOrder).toBe(initialPlaceOrder);
       expect(result.current.claim).toBe(initialClaim);
       expect(result.current.getBalance).toBe(initialGetBalance);
       expect(result.current.previewOrder).toBe(initialPreviewOrder);
+      expect(result.current.payWithAnyTokenConfirmation).toBe(
+        initialPayWithAnyTokenConfirmation,
+      );
     });
   });
 });

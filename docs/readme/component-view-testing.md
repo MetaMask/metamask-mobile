@@ -85,7 +85,7 @@ This framework provides:
 
 ## Principles
 
-- Single Engine mock: `app/util/test/component-view/mocks.ts`
+- Single Engine mock: `tests/component-view/mocks.ts`
   - Provides minimal controller APIs and stubs for background interactions (e.g., `NetworkController.getNetworkClientById`)
   - Deterministic native data (e.g., `react-native-device-info`)
 - State-driven tests:
@@ -170,7 +170,7 @@ describeForPlatforms('BridgeView', ({ os }) => {
 ## Layout
 
 ```
-app/util/test/component-view/
+tests/component-view/
 ├─ mocks.ts                     # Engine + native mocks (single source of truth)
 ├─ render.ts                    # Base render helper for any screen
 ├─ stateFixture.ts              # State builder with chainable helpers
@@ -191,7 +191,7 @@ Configuration:
 ### 1) Import the Engine mock once per test file
 
 ```ts
-import '../../util/test/component-view/mocks';
+import '../../../tests/component-view/mocks';
 ```
 
 This ensures only the Engine (and allowed native bits) are mocked globally.
@@ -199,7 +199,7 @@ This ensures only the Engine (and allowed native bits) are mocked globally.
 ### 2) Render a screen using a view-specific renderer
 
 ```ts
-import { renderBridgeView } from '../../util/test/component-view/renderers/bridge';
+import { renderBridgeView } from '../../../tests/component-view/renderers/bridge';
 
 const { getByTestId } = renderBridgeView({
   deterministicFiat: true,
@@ -252,7 +252,7 @@ You can still call `.withOverrides()` or use any builder helper for special case
 Render Wallet with its preset:
 
 ```ts
-import { renderWalletView } from '../../util/test/component-view/renderers/wallet';
+import { renderWalletView } from '../../../tests/component-view/renderers/wallet';
 import { WalletViewSelectorsIDs } from '../../../components/Views/Wallet/WalletView.testIds';
 
 const { getByTestId } = renderWalletView({
@@ -311,8 +311,8 @@ For tests that need exact fiat value assertions:
 
 ## Adding New View Presets
 
-1. Create `app/util/test/component-view/presets/<view>.ts` with a function like `initialState<PascalView>()`
-2. Add `app/util/test/component-view/renderers/<view>.ts` with a function `render<PascalView>(options)`
+1. Create `tests/component-view/presets/<view>.ts` with a function like `initialState<PascalView>()`
+2. Add `tests/component-view/renderers/<view>.ts` with a function `render<PascalView>(options)`
 3. Keep Engine mocks centralized in `mocks.ts`
 4. Only use state overrides and builder helpers to cover scenarios
 

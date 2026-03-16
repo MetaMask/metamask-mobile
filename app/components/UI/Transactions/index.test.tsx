@@ -4,7 +4,6 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { render, cleanup } from '@testing-library/react-native';
-import { DeviceEventEmitter } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -20,6 +19,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -79,14 +79,6 @@ jest.mock('../TransactionElement', () => ({
 }));
 
 // Mock other connected components
-jest.mock(
-  '../../Views/confirmations/legacy/components/UpdateEIP1559Tx',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
-
 jest.mock('../TransactionActionModal', () => ({
   __esModule: true,
   default: () => null,
@@ -127,15 +119,6 @@ jest.mock('../../../util/accounts', () => ({
   ),
 }));
 
-// Mock DeviceEventEmitter - use a holder object to avoid hoisting issues with jest.mock
-const mockDeviceEventEmitterHolder: {
-  addListener: jest.Mock;
-  remove: jest.Mock;
-} = {
-  addListener: jest.fn(),
-  remove: jest.fn(),
-};
-
 // Mock React Native components and StyleSheet
 jest.mock('react-native', () => {
   const RN = jest.requireActual(
@@ -150,10 +133,6 @@ jest.mock('react-native', () => {
     },
     InteractionManager: {
       runAfterInteractions: jest.fn((callback: () => void) => callback()),
-    },
-    DeviceEventEmitter: {
-      addListener: (...args: unknown[]) =>
-        mockDeviceEventEmitterHolder.addListener(...args),
     },
   };
 });
@@ -360,19 +339,14 @@ describe('Transactions', () => {
       expect(mockGasFeeEstimates.medium.suggestedMaxFeePerGas).toBe('20');
     });
 
-    it('handles EIP-1559 transaction parameters', () => {
+    it('handles EIP-1559 transaction parameters (controller shape)', () => {
       const eip1559Tx = {
-        suggestedMaxFeePerGasHex: '4a817c800',
-        suggestedMaxPriorityFeePerGasHex: '77359400',
+        maxFeePerGas: '0x4a817c800',
+        maxPriorityFeePerGas: '0x77359400',
       };
 
-      const result = {
-        maxFeePerGas: `0x${eip1559Tx.suggestedMaxFeePerGasHex}`,
-        maxPriorityFeePerGas: `0x${eip1559Tx.suggestedMaxPriorityFeePerGasHex}`,
-      };
-
-      expect(result.maxFeePerGas).toBe('0x4a817c800');
-      expect(result.maxPriorityFeePerGas).toBe('0x77359400');
+      expect(eip1559Tx.maxFeePerGas).toBe('0x4a817c800');
+      expect(eip1559Tx.maxPriorityFeePerGas).toBe('0x77359400');
     });
 
     it('generates block explorer URLs for mainnet addresses', () => {
@@ -1241,23 +1215,15 @@ describe('Transactions', () => {
       expect(foundIndex).toBe(0);
     });
 
-    it('should exercise getCancelOrSpeedupValues with EIP-1559', () => {
-      // Test getCancelOrSpeedupValues method logic
-      const transactionObject = {
-        suggestedMaxFeePerGasHex: '4a817c800',
-        suggestedMaxPriorityFeePerGasHex: '77359400',
-      };
-
-      // Call getCancelOrSpeedupValues to cover EIP-1559 logic
-      const result = transactionObject.suggestedMaxFeePerGasHex
-        ? {
-            maxFeePerGas: `0x${transactionObject.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${transactionObject.suggestedMaxPriorityFeePerGasHex}`,
-          }
-        : undefined;
-
-      expect(result?.maxFeePerGas).toBe('0x4a817c800');
-      expect(result?.maxPriorityFeePerGas).toBe('0x77359400');
+    it('should exercise getCancelOrSpeedupValues (no arg, derives from existingTx)', () => {
+      // getCancelOrSpeedupValues() takes no arg; when existingTx has gasPrice 0x0 it returns { gasPrice } from estimate
+      const mockExistingTx = { txParams: { gasPrice: '0x0' } };
+      const existingGasPriceHex = mockExistingTx.txParams.gasPrice;
+      const shouldReturnEstimate =
+        existingGasPriceHex === undefined ||
+        existingGasPriceHex === '0x0' ||
+        parseInt(String(existingGasPriceHex), 16) === 0;
+      expect(shouldReturnEstimate).toBe(true);
     });
 
     it('should exercise getCancelOrSpeedupValues with legacy transaction', () => {
@@ -1464,19 +1430,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const estimate = instance.getGasPriceEstimate();
     expect(estimate).toBeDefined();
 
-    // Test getCancelOrSpeedupValues method directly
-    const transactionObject = {
-      suggestedMaxFeePerGasHex: '4a817c800',
-      suggestedMaxPriorityFeePerGasHex: '77359400',
-    };
-    const result = instance.getCancelOrSpeedupValues(transactionObject);
-    expect(result.maxFeePerGas).toBe('0x4a817c800');
-    expect(result.maxPriorityFeePerGas).toBe('0x77359400');
+    // Test getCancelOrSpeedupValues (no arg; derives from existingTx)
+    instance.existingTx = { txParams: { gasPrice: '0x0' } };
+    const result = instance.getCancelOrSpeedupValues();
+    expect(result?.gasPrice).toBeDefined();
 
-    // Test legacy gas pricing
-    instance.existingGas = { gasPrice: 0 };
-    const legacyResult = instance.getCancelOrSpeedupValues({});
-    expect(legacyResult.gasPrice).toBeDefined();
+    instance.existingTx = { txParams: { gasPrice: '0x64' } };
+    const legacyResult = instance.getCancelOrSpeedupValues();
+    expect(legacyResult).toBeUndefined();
   });
 
   it('should test updateBlockExplorer method directly', () => {
@@ -1563,12 +1524,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test onSpeedUpAction method directly', () => {
     instance.setState = jest.fn();
-    const existingGas = { isEIP1559Transaction: false, gasPrice: 20000000000 };
     const tx = { id: 'tx-123' };
 
-    instance.onSpeedUpAction(true, existingGas, tx);
+    instance.onSpeedUpAction(true, tx);
 
-    expect(instance.existingGas).toBe(existingGas);
     expect(instance.speedUpTxId).toBe('tx-123');
     expect(instance.existingTx).toBe(tx);
     expect(instance.setState).toHaveBeenCalled();
@@ -1576,47 +1535,32 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test onCancelAction method directly', () => {
     instance.setState = jest.fn();
-    const existingGas = { isEIP1559Transaction: true };
     const tx = { id: 'tx-456' };
 
-    instance.onCancelAction(true, existingGas, tx);
+    instance.onCancelAction(true, tx);
 
-    expect(instance.existingGas).toBe(existingGas);
     expect(instance.cancelTxId).toBe('tx-456');
     expect(instance.existingTx).toBe(tx);
-    expect(instance.setState).toHaveBeenCalledWith({ cancel1559IsOpen: true });
+    expect(instance.setState).toHaveBeenCalledWith({
+      speedUpIsOpen: false,
+      cancelIsOpen: true,
+      confirmDisabled: false,
+    });
   });
 
-  it('should test onSpeedUpCompleted method directly', () => {
+  it('should test closeSpeedUpCancelModal method directly', () => {
     instance.setState = jest.fn();
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.speedUpTxId = 'tx-123';
+    instance.cancelTxId = 'tx-456';
     instance.existingTx = { id: 'tx-123' };
 
-    instance.onSpeedUpCompleted();
+    instance.closeSpeedUpCancelModal();
 
     expect(instance.setState).toHaveBeenCalledWith({
-      speedUp1559IsOpen: false,
       speedUpIsOpen: false,
-    });
-    expect(instance.existingGas).toBeNull();
-    expect(instance.speedUpTxId).toBeNull();
-    expect(instance.existingTx).toBeNull();
-  });
-
-  it('should test onCancelCompleted method directly', () => {
-    instance.setState = jest.fn();
-    instance.existingGas = { gasPrice: 20000000000 };
-    instance.cancelTxId = 'tx-456';
-    instance.existingTx = { id: 'tx-456' };
-
-    instance.onCancelCompleted();
-
-    expect(instance.setState).toHaveBeenCalledWith({
-      cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
-    expect(instance.existingGas).toBeNull();
+    expect(instance.speedUpTxId).toBeNull();
     expect(instance.cancelTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
@@ -1653,7 +1597,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onSpeedUpAction = jest.fn();
     instance.onCancelAction = jest.fn();
     instance.speedUpTxId = 'speed-up-tx';
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.existingTx = { id: 'speed-up-tx' };
 
     instance.retry();
@@ -1729,19 +1672,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test gas and EIP-1559 patterns for coverage', () => {
-    // Test EIP-1559 transaction handling
+    // Test EIP-1559 transaction handling (controller shape)
     const eip1559Tx = {
-      suggestedMaxFeePerGasHex: '4a817c800',
-      suggestedMaxPriorityFeePerGasHex: '77359400',
+      maxFeePerGas: '0x4a817c800',
+      maxPriorityFeePerGas: '0x77359400',
     };
-    const result = eip1559Tx.suggestedMaxFeePerGasHex
-      ? {
-          maxFeePerGas: `0x${eip1559Tx.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${eip1559Tx.suggestedMaxPriorityFeePerGasHex}`,
-        }
-      : undefined;
-    expect(result?.maxFeePerGas).toBe('0x4a817c800');
-    expect(result?.maxPriorityFeePerGas).toBe('0x77359400');
+    expect(eip1559Tx.maxFeePerGas).toBe('0x4a817c800');
+    expect(eip1559Tx.maxPriorityFeePerGas).toBe('0x77359400');
 
     // Test legacy gas handling
     const mockExistingGas = { gasPrice: 0 };
@@ -1905,8 +1842,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test componentDidUpdate method directly', () => {
     instance.updateBlockExplorer = jest.fn();
-    instance.onSpeedUpCompleted = jest.fn();
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
     instance.existingTx = { id: 'tx-123' };
     instance.props = {
       ...defaultTestProps,
@@ -1916,8 +1852,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.componentDidUpdate();
 
     expect(instance.updateBlockExplorer).toHaveBeenCalled();
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test init method directly', () => {
@@ -1983,16 +1918,16 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
-      suggestedMaxFeePerGasHex: '123',
-      suggestedMaxPriorityFeePerGasHex: '456',
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x456',
     };
 
     await instance.speedUpTransaction(transactionObject);
 
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test cancelTransaction method directly', async () => {
@@ -2002,11 +1937,11 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
-      suggestedMaxFeePerGasHex: '123',
-      suggestedMaxPriorityFeePerGasHex: '456',
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x456',
     };
 
     await instance.cancelTransaction(transactionObject);
@@ -2014,7 +1949,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(
       Engine.context.TransactionController.stopTransaction,
     ).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test renderLoader method directly', () => {
@@ -2096,6 +2031,56 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result).toBeDefined();
   });
 
+  it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
+    instance.context = {
+      colors: {
+        background: { default: '#fff' },
+        text: { muted: '#999' },
+        primary: { default: '#037dd6' },
+        icon: { default: '#24272a' },
+      },
+      typography: {},
+    };
+    instance.state = {
+      refreshing: false,
+      confirmDisabled: false,
+    };
+    instance.props = {
+      ...defaultTestProps,
+      submittedTransactions: [],
+      confirmedTransactions: [],
+      transactions: [{ id: 'tx-1' }],
+      isSigningQRObject: false,
+    };
+    instance.existingTx = { id: 'tx-1', chainId: '0x1' };
+
+    // When both closed: modal mounted but not visible (exit animation can run)
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = false;
+    let listResult = instance.renderList();
+    let listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(false);
+
+    // When speed up open: one modal, isVisible true, isCancel false
+    instance.state.speedUpIsOpen = true;
+    instance.state.cancelIsOpen = false;
+    listResult = instance.renderList();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(false);
+
+    // When cancel open: one modal, isVisible true, isCancel true
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = true;
+    listResult = instance.renderList();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(true);
+  });
+
   it('should test render method directly', () => {
     instance.context = {
       colors: {
@@ -2106,15 +2091,12 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
-      speedUp1559IsOpen: false,
-      cancel1559IsOpen: false,
       retryIsOpen: false,
       errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
-    instance.renderUpdateTxEIP1559Gas = jest.fn();
     instance.toggleRetry = jest.fn();
     instance.retry = jest.fn();
 
@@ -2175,19 +2157,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test getCancelOrSpeedupValues edge cases', () => {
-    // Test when transactionObject has no suggested values
-    instance.existingGas = { gasPrice: 100 };
-    const result1 = instance.getCancelOrSpeedupValues({});
-    expect(result1).toBeUndefined(); // Should return undefined for non-zero gasPrice
+    // getCancelOrSpeedupValues() takes no arg; derives from existingTx only
+    instance.existingTx = { txParams: { gasPrice: '0x64' } };
+    const result1 = instance.getCancelOrSpeedupValues();
+    expect(result1).toBeUndefined();
 
-    // Test when gasPrice is 0 but no suggested values
-    instance.existingGas = { gasPrice: 0 };
-    const result2 = instance.getCancelOrSpeedupValues({});
-    expect(result2.gasPrice).toBeDefined();
-
-    // Test with null/undefined transactionObject
-    const result3 = instance.getCancelOrSpeedupValues(null);
-    expect(result3.gasPrice).toBeDefined();
+    instance.existingTx = { txParams: { gasPrice: '0x0' } };
+    const result2 = instance.getCancelOrSpeedupValues();
+    expect(result2?.gasPrice).toBeDefined();
   });
 
   it('should test getGasPriceEstimate with different scenarios', () => {
@@ -2351,7 +2328,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.speedUpTxId = 'tx-123';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       suggestedMaxFeePerGasHex: '123',
@@ -2366,7 +2343,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.cancelTxId = 'tx-456';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     await instance.cancelTransaction(transactionObject);
 
@@ -2381,7 +2358,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     // Test retry with speedUpTxId
     instance.speedUpTxId = 'speed-up-tx';
     instance.cancelTxId = null;
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.existingTx = { id: 'speed-up-tx' };
 
     instance.retry();
@@ -2403,238 +2379,5 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.retry();
 
     expect(instance.setState).toHaveBeenCalled();
-  });
-});
-
-describe('UnconnectedTransactions Scroll to MerklRewards', () => {
-  let mockScrollToOffset: jest.Mock;
-  let instance: UnconnectedTransactions;
-  let addListenerSpy: jest.SpyInstance;
-  let mockRemove: jest.Mock;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-
-    mockScrollToOffset = jest.fn();
-    mockRemove = jest.fn();
-
-    // Spy on DeviceEventEmitter.addListener
-    addListenerSpy = jest
-      .spyOn(DeviceEventEmitter, 'addListener')
-      .mockReturnValue({
-        remove: mockRemove,
-      } as unknown as ReturnType<typeof DeviceEventEmitter.addListener>);
-
-    // Create instance with mocked FlatList ref
-    instance = new UnconnectedTransactions(defaultTestProps);
-    instance.flatList = {
-      current: {
-        scrollToOffset: mockScrollToOffset,
-      },
-    };
-    instance.mounted = true;
-    instance.scrollTimeout = null;
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    addListenerSpy.mockRestore();
-    if (instance.scrollToMerklRewardsListener) {
-      instance.scrollToMerklRewardsListener.remove();
-    }
-  });
-
-  it('adds scroll listener in componentDidMount', () => {
-    instance.componentDidMount();
-
-    expect(addListenerSpy).toHaveBeenCalledWith(
-      'scrollToMerklRewards',
-      expect.any(Function),
-    );
-  });
-
-  it('scrolls to offset when scroll event is received', () => {
-    instance.componentDidMount();
-
-    // Get the callback passed to addListener
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    // Simulate scroll event
-    scrollCallback({ y: 500 });
-
-    // Fast-forward timers to trigger setTimeout
-    jest.advanceTimersByTime(100);
-
-    expect(mockScrollToOffset).toHaveBeenCalledWith({
-      offset: 500,
-      animated: true,
-    });
-  });
-
-  it('debounces multiple rapid scroll events', () => {
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    // Trigger multiple rapid events
-    scrollCallback({ y: 500 });
-    scrollCallback({ y: 600 });
-    scrollCallback({ y: 700 });
-
-    // Only advance timers for the last one
-    jest.advanceTimersByTime(100);
-
-    // Should only be called once (last one)
-    expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
-    expect(mockScrollToOffset).toHaveBeenCalledWith({
-      offset: 700,
-      animated: true,
-    });
-  });
-
-  it('does not scroll if FlatList ref is not available', () => {
-    instance.flatList = { current: null };
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    scrollCallback({ y: 500 });
-    jest.advanceTimersByTime(100);
-
-    expect(mockScrollToOffset).not.toHaveBeenCalled();
-  });
-
-  it('does not scroll if component is not mounted', () => {
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    // Set mounted to false AFTER componentDidMount (simulating unmount)
-    instance.mounted = false;
-
-    scrollCallback({ y: 500 });
-    jest.advanceTimersByTime(100);
-
-    expect(mockScrollToOffset).not.toHaveBeenCalled();
-  });
-
-  it('logs error and does not crash when scrollToOffset throws', () => {
-    const mockError = new Error('Scroll failed');
-    mockScrollToOffset.mockImplementation(() => {
-      throw mockError;
-    });
-
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    scrollCallback({ y: 500 });
-    jest.advanceTimersByTime(100);
-
-    // Should not crash, error should be logged
-    expect(Logger.error).toHaveBeenCalledWith(
-      mockError,
-      'Failed to scroll to MerklRewards',
-      {
-        y: 500,
-      },
-    );
-  });
-
-  it('removes listener in componentWillUnmount', () => {
-    instance.componentDidMount();
-    instance.componentWillUnmount();
-
-    expect(mockRemove).toHaveBeenCalled();
-  });
-
-  it('clears scroll timeout in componentWillUnmount', () => {
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    // Trigger scroll to set timeout
-    scrollCallback({ y: 500 });
-
-    // Unmount before timeout fires
-    instance.componentWillUnmount();
-    jest.advanceTimersByTime(100);
-
-    // Should not scroll after unmount
-    expect(mockScrollToOffset).not.toHaveBeenCalled();
-  });
-
-  it('ensures scroll offset is not negative', () => {
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    scrollCallback({ y: -100 });
-    jest.advanceTimersByTime(100);
-
-    expect(mockScrollToOffset).toHaveBeenCalledWith({
-      offset: 0, // Math.max(0, -100) = 0
-      animated: true,
-    });
-  });
-
-  it('does not scroll when y value is undefined', () => {
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    scrollCallback({ y: undefined });
-    jest.advanceTimersByTime(100);
-
-    expect(mockScrollToOffset).not.toHaveBeenCalled();
-  });
-
-  it('does not scroll if FlatList becomes null during timeout', () => {
-    instance.componentDidMount();
-    const scrollCallback = addListenerSpy.mock.calls.find(
-      (call) => call[0] === 'scrollToMerklRewards',
-    )?.[1];
-
-    // Trigger scroll event with valid y
-    scrollCallback({ y: 500 });
-
-    // FlatList becomes null during the 100ms timeout
-    instance.flatList = { current: null };
-
-    // Advance timers to trigger the setTimeout callback
-    jest.advanceTimersByTime(100);
-
-    // Should not scroll because flatList is now null
-    expect(mockScrollToOffset).not.toHaveBeenCalled();
-  });
-
-  it('does not throw on unmount when no listener exists', () => {
-    // Don't call componentDidMount, so no listener is created
-    instance.scrollToMerklRewardsListener = null;
-    instance.scrollTimeout = null;
-
-    // Should not throw when unmounting without a listener
-    expect(() => instance.componentWillUnmount()).not.toThrow();
-  });
-
-  it('removes listener on unmount when no pending timeout exists', () => {
-    instance.componentDidMount();
-
-    // Don't trigger any scroll event, so no timeout is pending
-    instance.scrollTimeout = null;
-
-    // Should handle unmount gracefully
-    expect(() => instance.componentWillUnmount()).not.toThrow();
-    expect(mockRemove).toHaveBeenCalled();
   });
 });

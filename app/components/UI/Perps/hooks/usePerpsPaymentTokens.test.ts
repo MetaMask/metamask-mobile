@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { BridgeToken } from '../../Bridge/types';
-import type { AccountState } from '../controllers/types';
+import { type AccountState } from '@metamask/perps-controller';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
 // Mock all dependencies
@@ -21,7 +21,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 // Mock constants
-jest.mock('../constants/hyperLiquidConfig', () => ({
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   HYPERLIQUID_MAINNET_CHAIN_ID: '0x3e7',
   HYPERLIQUID_TESTNET_CHAIN_ID: '0x1ee7',
   USDC_SYMBOL: 'USDC',

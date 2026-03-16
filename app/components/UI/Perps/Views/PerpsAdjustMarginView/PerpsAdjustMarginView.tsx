@@ -13,7 +13,7 @@ import Button, {
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position } from '../../controllers/types';
+import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
 import styleSheet from './PerpsAdjustMarginView.styles';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
@@ -39,7 +39,6 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -79,10 +78,19 @@ const PerpsAdjustMarginView: React.FC = () => {
       onSuccess: () => navigation.goBack(),
       onError: (errorMessage) => {
         submittedEstimateRef.current = null;
-        Logger.error(
-          new Error(errorMessage),
-          `Failed to ${mode} margin for ${routePosition?.symbol}`,
-        );
+        Logger.error(new Error(errorMessage), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+          },
+          context: {
+            name: 'PerpsAdjustMarginView',
+            data: {
+              action: mode === 'remove' ? 'remove_margin' : 'add_margin',
+              symbol: routePosition?.symbol,
+              error: errorMessage,
+            },
+          },
+        });
       },
     });
 

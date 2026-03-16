@@ -51,7 +51,7 @@ import { BridgeToken } from '../Bridge/types';
 import { useExploreSearch } from '../../Views/TrendingView/hooks/useExploreSearch';
 import { type SectionId } from '../../Views/TrendingView/sections.config';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData } from '../Perps/controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket } from '../Predict/types';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
@@ -621,8 +621,8 @@ const UrlAutocomplete = forwardRef<
         keyboardVerticalOffset={100}
       >
         {isSearchMode ? (
-          // Search mode: wrap with Perps providers for omni-search
-          <PerpsConnectionProvider>
+          // Search mode: wrap with PerpsConnectionProvider (context only) and PerpsStreamProvider for omni-search
+          <PerpsConnectionProvider suppressErrorView>
             <PerpsStreamProvider>
               <SearchContent
                 searchQuery={searchQuery}

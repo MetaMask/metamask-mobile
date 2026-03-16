@@ -32,9 +32,9 @@ import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
-import { MetaMetrics } from '../../core/Analytics';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { providerErrors } from '@metamask/rpc-errors';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -109,6 +109,19 @@ export function* appStateListenerTask() {
 export function* appLockStateMachine() {
   while (true) {
     yield take(UserActionType.LOCKED_APP);
+
+    // Reject any pending confirmations so the user doesn't see a stale confirmation after unlock.
+    try {
+      const { ApprovalController } = Engine.context;
+      if (ApprovalController) {
+        ApprovalController.clear(providerErrors.userRejectedRequest());
+      }
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to reject pending approvals on app lock',
+      );
+    }
 
     // Navigate to lock screen.
     NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
@@ -301,13 +314,6 @@ export function* startAppServices() {
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
-
-  // Configure MetaMetrics
-  try {
-    yield call(MetaMetrics.getInstance().configure);
-  } catch (err) {
-    Logger.error(err as Error, 'Error configuring MetaMetrics');
-  }
 
   // Apply vault initialization
   yield call(applyVaultInitialization);

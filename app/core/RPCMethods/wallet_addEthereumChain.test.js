@@ -2,9 +2,9 @@ import { InteractionManager } from 'react-native';
 import { wallet_addEthereumChain } from './wallet_addEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
-import MetaMetrics from '../Analytics/MetaMetrics';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../util/analytics/analytics';
 import { flushPromises } from '../../util/test/utils';
 
 jest.mock('../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
@@ -81,25 +81,22 @@ jest.mock('../../store', () => ({
   },
 }));
 
-jest.mock('../Analytics/MetaMetrics');
-jest.mock('../Analytics/MetricsEventBuilder');
+jest.mock('../../util/analytics/analytics');
+jest.mock('../../util/analytics/AnalyticsEventBuilder');
 
 const mockTrackEvent = jest.fn();
+const mockIdentify = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();
 const mockBuild = jest.fn().mockReturnValue({ name: 'test-event' });
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: mockAddProperties,
   build: mockBuild,
 });
-const mockAddTraitsToUser = jest.fn();
 
-MetaMetrics.getInstance = jest.fn().mockReturnValue({
-  trackEvent: mockTrackEvent,
-  addTraitsToUser: mockAddTraitsToUser,
-  updateDataRecordingFlag: jest.fn(),
-});
+analytics.trackEvent = mockTrackEvent;
+analytics.identify = mockIdentify;
 
-MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
+AnalyticsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 const correctParams = {
   chainId: '0x64',
@@ -485,7 +482,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledTimes(1);
     });
 
-    it('calls addTraitsToUser with chain ID list', async () => {
+    it('calls identify with chain ID list', async () => {
       jest
         .spyOn(Engine.context.NetworkController, 'addNetwork')
         .mockReturnValue(networkConfigurationResult);
@@ -499,7 +496,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       });
       await flushPromises();
 
-      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      expect(mockIdentify).toHaveBeenCalledWith({
         chain_id_list: ['eip155:1', 'eip155:100'],
       });
     });

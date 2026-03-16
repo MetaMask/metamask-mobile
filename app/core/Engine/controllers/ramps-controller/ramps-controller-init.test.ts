@@ -10,6 +10,7 @@ import {
 } from '@metamask/ramps-controller';
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
   const parts = regionCode.toLowerCase().split('-');
@@ -60,19 +61,56 @@ jest.mock('@metamask/ramps-controller', () => {
   };
 });
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '99.0.0',
+}));
+
+const createMockInitMessenger = (
+  overrides: {
+    active?: boolean;
+    minimumVersion?: string | null;
+  } = {},
+): RampsControllerInitMessenger => {
+  const { active = false, minimumVersion = null } = overrides;
+
+  return {
+    call: jest.fn().mockReturnValue({
+      remoteFeatureFlags: {
+        rampsUnifiedBuyV2: {
+          active,
+          minimumVersion,
+        },
+      },
+    }),
+    subscribe: jest.fn(),
+  } as unknown as RampsControllerInitMessenger;
+};
+
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<RampsControllerMessenger>
+    ControllerInitRequest<
+      RampsControllerMessenger,
+      RampsControllerInitMessenger
+    >
   >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockInit.mockResolvedValue(undefined);
+
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock = {
+      ...buildControllerInitRequestMock(baseControllerMessenger),
+      initMessenger: createMockInitMessenger(),
+    } as jest.Mocked<
+      ControllerInitRequest<
+        RampsControllerMessenger,
+        RampsControllerInitMessenger
+      >
+    >;
   });
 
   it('uses default state when no initial state is passed in', () => {
@@ -115,13 +153,31 @@ describe('ramps controller init', () => {
         isLoading: false,
         error: null,
       },
-      quotes: {
-        data: null,
-        selected: null,
-        isLoading: false,
-        error: null,
-      },
       requests: {},
+      nativeProviders: {
+        transak: {
+          isAuthenticated: false,
+          userDetails: {
+            data: null,
+            selected: null,
+            isLoading: false,
+            error: null,
+          },
+          buyQuote: {
+            data: null,
+            selected: null,
+            isLoading: false,
+            error: null,
+          },
+          kycRequirement: {
+            data: null,
+            selected: null,
+            isLoading: false,
+            error: null,
+          },
+        },
+      },
+      orders: [],
     };
 
     initRequestMock.persistedState = {
@@ -137,21 +193,84 @@ describe('ramps controller init', () => {
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
   });
 
-  it('calls init at startup', async () => {
-    rampsControllerInit(initRequestMock);
+  describe('when V2 feature flag is enabled', () => {
+    it('calls init at startup', async () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        active: true,
+        minimumVersion: '1.0.0',
+      });
 
-    await waitFor(() => {
-      expect(mockInit).toHaveBeenCalledTimes(1);
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => {
+        expect(mockInit).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('handles init failure gracefully', async () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        active: true,
+        minimumVersion: '1.0.0',
+      });
+      mockInit.mockRejectedValue(new Error('Network error'));
+
+      expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
+
+      await waitFor(() => {
+        expect(mockInit).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
-  it('handles init failure gracefully', async () => {
-    mockInit.mockRejectedValue(new Error('Network error'));
+  describe('when V2 feature flag is disabled', () => {
+    it('does not call init at startup', async () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        active: false,
+      });
 
-    expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
+      rampsControllerInit(initRequestMock);
 
-    await waitFor(() => {
-      expect(mockInit).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockInit).not.toHaveBeenCalled();
+      });
     });
+
+    it('does not call init when active is true but minimumVersion is missing', async () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        active: true,
+        minimumVersion: null,
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => {
+        expect(mockInit).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not call init when RemoteFeatureFlagController throws', async () => {
+      initRequestMock.initMessenger = {
+        call: jest.fn().mockImplementation(() => {
+          throw new Error('Controller not ready');
+        }),
+      } as unknown as RampsControllerInitMessenger;
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => {
+        expect(mockInit).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  it('always returns the controller instance regardless of flag state', () => {
+    initRequestMock.initMessenger = createMockInitMessenger({
+      active: false,
+    });
+
+    const result = rampsControllerInit(initRequestMock);
+
+    expect(result.controller).toBeDefined();
+    expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 });

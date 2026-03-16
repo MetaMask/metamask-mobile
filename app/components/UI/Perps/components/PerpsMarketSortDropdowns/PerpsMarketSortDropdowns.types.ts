@@ -1,4 +1,4 @@
-import type { SortOptionId } from '../../constants/perpsConfig';
+import { type SortOptionId } from '@metamask/perps-controller';
 
 /**
  * Props for PerpsMarketSortDropdowns component

@@ -34,7 +34,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#121314"
+        color="#131416"
         fill="currentColor"
         height={20}
         name="Activity"
@@ -58,7 +58,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -90,7 +90,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#121314"
+        color="#131416"
         fill="currentColor"
         height={20}
         name="Add"
@@ -114,7 +114,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -165,7 +165,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#121314"
+        color="#131416"
         fill="currentColor"
         height={20}
         name="Activity"
@@ -189,7 +189,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -221,7 +221,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#686e7d"
+            color="#66676a"
             fill="currentColor"
             height={20}
             name="Question"
@@ -255,7 +255,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#121314"
+        color="#131416"
         fill="currentColor"
         height={20}
         name="Add"
@@ -279,7 +279,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -311,7 +311,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#686e7d"
+            color="#66676a"
             fill="currentColor"
             height={20}
             name="Question"
@@ -375,7 +375,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -407,7 +407,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#686e7d"
+            color="#66676a"
             fill="currentColor"
             height={20}
             name="Question"
@@ -452,7 +452,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -484,7 +484,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#686e7d"
+            color="#66676a"
             fill="currentColor"
             height={20}
             name="Question"
@@ -548,7 +548,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -591,7 +591,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,

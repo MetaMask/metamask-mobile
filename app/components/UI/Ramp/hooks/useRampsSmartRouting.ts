@@ -124,7 +124,7 @@ export default function useRampsSmartRouting() {
         } else {
           dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
         }
-      } catch {
+      } catch (error) {
         dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
       }
     };

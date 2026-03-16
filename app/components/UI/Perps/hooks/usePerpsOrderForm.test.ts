@@ -9,12 +9,11 @@ import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
+import { TRADING_DEFAULTS, type Position } from '@metamask/perps-controller';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
 } from '../providers/PerpsStreamManager';
-import type { Position } from '../controllers/types';
 
 jest.mock('./usePerpsNetwork');
 jest.mock('./stream/usePerpsLiveAccount');

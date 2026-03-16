@@ -1,12 +1,3 @@
-import React, { memo } from 'react';
-import { strings } from '../../../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../../component-library/components/Buttons/Button';
-import ButtonHero from '../../../../../../../component-library/components-temp/Buttons/ButtonHero';
-import PredictDetailsButtonsSkeleton from '../../../../components/PredictDetailsButtonsSkeleton';
 import {
   Box,
   BoxAlignItems,
@@ -14,10 +5,16 @@ import {
   BoxJustifyContent,
   Text,
   TextColor,
-  TextVariant,
-  ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { memo } from 'react';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../../component-library/components/Buttons/Button';
+import PredictClaimButton from '../../../../components/PredictActionButtons/PredictClaimButton';
+import PredictDetailsButtonsSkeleton from '../../../../components/PredictDetailsButtonsSkeleton';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
 import {
   PredictMarketStatus,
@@ -31,12 +28,13 @@ export interface PredictMarketDetailsActionsProps {
   hasPositivePnl: boolean;
   marketStatus: PredictMarketStatus | undefined;
   singleOutcomeMarket: boolean;
-  isMarketFetching: boolean;
+  isMarketLoading: boolean;
   market: PredictMarket | null;
   openOutcomes: PredictOutcome[];
   yesPercentage: number;
   onClaimPress: () => void;
   onBuyPress: (token: PredictOutcomeToken) => void;
+  isClaimPending?: boolean;
 }
 
 const PredictMarketDetailsActions = memo(
@@ -45,12 +43,13 @@ const PredictMarketDetailsActions = memo(
     hasPositivePnl,
     marketStatus,
     singleOutcomeMarket,
-    isMarketFetching,
+    isMarketLoading,
     market,
     openOutcomes,
     yesPercentage,
     onClaimPress,
     onBuyPress,
+    isClaimPending = false,
   }: PredictMarketDetailsActionsProps) => {
     const tw = useTailwind();
 
@@ -59,19 +58,11 @@ const PredictMarketDetailsActions = memo(
         {(() => {
           if (!isClaimablePositionsLoading && hasPositivePnl) {
             return (
-              <ButtonHero
-                size={ButtonSizeHero.Lg}
-                style={tw.style('w-full')}
+              <PredictClaimButton
                 onPress={onClaimPress}
+                isLoading={isClaimPending}
                 testID={PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  style={tw.style('text-white font-medium')}
-                >
-                  {strings('confirm.predict_claim.button_label')}
-                </Text>
-              </ButtonHero>
+              />
             );
           }
 
@@ -134,7 +125,7 @@ const PredictMarketDetailsActions = memo(
           }
 
           // Show skeleton buttons while loading
-          if (isMarketFetching && !market) {
+          if (isMarketLoading) {
             return <PredictDetailsButtonsSkeleton />;
           }
 

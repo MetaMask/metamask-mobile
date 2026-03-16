@@ -1,6 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import path from 'path';
-import { GanacheHardfork } from './types.ts';
+import { GanacheHardfork, RampsRegion } from './types.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
 // The RPC URL for the local node
@@ -32,6 +32,9 @@ export const APP_PACKAGE_IDS = {
   IOS: 'io.metamask.MetaMask',
   ANDROID: 'io.metamask',
 } as const;
+
+// Package ID for the React Native playground APK (pre-installed on the device)
+export const PLAYGROUND_PACKAGE_ID = 'com.anonymous.multichainrnplayground';
 
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',
@@ -119,12 +122,14 @@ export enum RampsRegionsEnum {
   SPAIN = 'spain',
 }
 
-export const RampsRegions = {
+export const RampsRegions: Record<RampsRegionsEnum, RampsRegion> = {
   [RampsRegionsEnum.SAINT_LUCIA]: {
     currencies: ['/currencies/fiat/xcd'],
     emoji: '🇱🇨',
     id: '/regions/lc',
     name: 'Saint Lucia',
+    countryName: 'Saint Lucia',
+    countryIsoCode: 'LC',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -135,6 +140,8 @@ export const RampsRegions = {
     emoji: '🇫🇷',
     id: '/regions/fr',
     name: 'France',
+    countryName: 'France',
+    countryIsoCode: 'FR',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -145,6 +152,10 @@ export const RampsRegions = {
     emoji: '🇺🇸',
     id: '/regions/us-ca',
     name: 'California',
+    countryName: 'United States',
+    countryIsoCode: 'US',
+    stateName: 'California',
+    stateIsoCode: 'CA',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -155,6 +166,8 @@ export const RampsRegions = {
     emoji: '🇪🇸',
     id: '/regions/es',
     name: 'Spain',
+    countryName: 'Spain',
+    countryIsoCode: 'ES',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,

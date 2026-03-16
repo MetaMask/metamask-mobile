@@ -21,7 +21,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket,
   PredictOutcomeToken,
@@ -39,6 +38,7 @@ import {
 } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -62,9 +62,9 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
+  const { navigateToBuyPreview } = usePredictNavigation();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -95,7 +95,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        navigateToBuyPreview({
           market,
           outcome,
           outcomeToken: token,
@@ -129,7 +129,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           </Box>
           <Box twClassName="flex-1 -mt-1">
             <Text
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               style={tw.style('font-medium')}
             >

@@ -14,7 +14,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderRadius": 100,
         "flexDirection": "row",
         "justifyContent": "center",
@@ -49,7 +49,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
       numberOfLines={1}
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "flexShrink": 1,
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
@@ -63,7 +63,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
       Test Account
     </Text>
     <SvgMock
-      color="#686e7d"
+      color="#66676a"
       fill="currentColor"
       height={16}
       name="ArrowDown"

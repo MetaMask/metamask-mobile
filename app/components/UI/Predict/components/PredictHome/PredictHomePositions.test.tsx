@@ -71,9 +71,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => 'carousel'),
 }));
 
-const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-  typeof usePredictPositions
->;
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 
 describe('PredictHomePositions', () => {
   const createMockPosition = (overrides = {}): PredictPosition => ({
@@ -103,11 +101,11 @@ describe('PredictHomePositions', () => {
   });
 
   const defaultMockReturn = {
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   };
 
   beforeEach(() => {
@@ -153,11 +151,11 @@ describe('PredictHomePositions', () => {
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
+        data: [],
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
+        data: [],
       });
 
     const { getByTestId, queryByTestId } = render(<PredictHomePositions />);
@@ -172,11 +170,11 @@ describe('PredictHomePositions', () => {
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions,
+        data: positions,
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
+        data: [],
       });
 
     const { getByTestId, queryByTestId } = render(<PredictHomePositions />);
@@ -195,11 +193,11 @@ describe('PredictHomePositions', () => {
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
+        data: [],
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [claimablePosition],
+        data: [claimablePosition],
       });
 
     const { getByTestId, queryByTestId } = render(<PredictHomePositions />);
@@ -210,19 +208,19 @@ describe('PredictHomePositions', () => {
     expect(queryByTestId('predict-home-featured')).not.toBeOnTheScreen();
   });
 
-  it('invokes loadPositions refresh when ref refresh is called', async () => {
-    const mockLoadPositions = jest.fn().mockResolvedValue(undefined);
-    const mockLoadClaimable = jest.fn().mockResolvedValue(undefined);
+  it('invokes refetch when ref refresh is called', async () => {
+    const mockRefetch = jest.fn().mockResolvedValue(undefined);
+    const mockRefetchClaimable = jest.fn().mockResolvedValue(undefined);
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [createMockPosition()],
-        loadPositions: mockLoadPositions,
+        data: [createMockPosition()],
+        refetch: mockRefetch,
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
-        loadPositions: mockLoadClaimable,
+        data: [],
+        refetch: mockRefetchClaimable,
       });
 
     const ref = React.createRef<PredictHomePositionsHandle>();
@@ -232,16 +230,16 @@ describe('PredictHomePositions', () => {
       await ref.current?.refresh();
     });
 
-    expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
-    expect(mockLoadClaimable).toHaveBeenCalledWith({ isRefresh: true });
+    expect(mockRefetch).toHaveBeenCalled();
   });
 
   it('calls onError when active positions error occurs', () => {
     const mockOnError = jest.fn();
+    const error = new Error('Active positions error');
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        error: 'Active positions error',
+        error,
       })
       .mockReturnValueOnce(defaultMockReturn);
 
@@ -252,11 +250,12 @@ describe('PredictHomePositions', () => {
 
   it('calls onError when claimable positions error occurs', () => {
     const mockOnError = jest.fn();
+    const error = new Error('Claimable positions error');
     mockUsePredictPositions
       .mockReturnValueOnce(defaultMockReturn)
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        error: 'Claimable positions error',
+        error,
       });
 
     render(<PredictHomePositions onError={mockOnError} />);
@@ -268,13 +267,13 @@ describe('PredictHomePositions', () => {
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
-        isRefreshing: true,
+        data: [],
+        isRefetching: true,
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
-        isRefreshing: true,
+        data: [],
+        isRefetching: true,
       });
 
     const { getByTestId, queryByTestId } = render(<PredictHomePositions />);
@@ -297,11 +296,11 @@ describe('PredictHomePositions', () => {
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions,
+        data: positions,
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
+        data: [],
       });
 
     render(<PredictHomePositions isVisible />);
@@ -322,11 +321,11 @@ describe('PredictHomePositions', () => {
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions,
+        data: positions,
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
-        positions: [],
+        data: [],
       });
 
     render(<PredictHomePositions isVisible={false} />);

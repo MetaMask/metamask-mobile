@@ -89,6 +89,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    setLocale: jest.fn(),
     logout: jest.fn(),
     getGeolocation: jest.fn().mockResolvedValue({ ipCountryCode: 'US' }),
   })),

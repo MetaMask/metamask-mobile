@@ -6,7 +6,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
+      "borderColor": "#949596",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -58,7 +58,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -90,7 +90,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             }
           >
             <SvgMock
-              color="#686e7d"
+              color="#66676a"
               fill="currentColor"
               height={16}
               name="Question"
@@ -135,7 +135,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,

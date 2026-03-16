@@ -2,15 +2,15 @@ import React from 'react';
 import Options from '.';
 import { render } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useSelector } from 'react-redux';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -35,7 +35,7 @@ describe('Options', () => {
 
   beforeEach(() => {
     (useNavigation as jest.Mock).mockReturnValue({ push: jest.fn() });
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: jest.fn(),
       createEventBuilder: jest.fn().mockReturnValue({
         build: jest.fn(),

@@ -9,6 +9,8 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { TokenStandard } from '../../../types/token';
 import InfoRow from '../../UI/info-row/info-row';
+import AlertRow from '../../UI/info-row/alert-row';
+import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
 import { Pill } from '../../UI/pill';
 import styleSheet from '../shared-styles';
@@ -57,9 +59,9 @@ const SpenderInfoRow: React.FC<SpenderInfoRowProps> = ({
   spender,
   transactionMetadata,
 }) => (
-  <InfoRow label={strings('confirm.spender')}>
+  <AlertRow alertField={RowAlertKey.Spender} label={strings('confirm.spender')}>
     <Address address={spender ?? ''} chainId={transactionMetadata.chainId} />
-  </InfoRow>
+  </AlertRow>
 );
 
 export const SetApprovalForAll = () => {

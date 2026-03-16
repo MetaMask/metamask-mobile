@@ -53,16 +53,19 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}',
     transaction: 'https://solscan.io/tx/{txId}',
+    token: 'https://solscan.io/token/{address}',
   },
   [SolScope.Devnet]: {
     url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=devnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=devnet',
+    token: 'https://solscan.io/token/{address}?cluster=devnet',
   },
   [SolScope.Testnet]: {
     url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=testnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=testnet',
+    token: 'https://solscan.io/token/{address}?cluster=testnet',
   },
   [TrxScope.Mainnet]: {
     url: 'https://tronscan.org/',
@@ -137,14 +140,21 @@ export const PRICE_API_CURRENCIES = [
   'zar',
 ];
 
-// Tron resource asset symbols
-export const TRON_RESOURCE = {
+/**
+ * Tron special asset types that should be filtered out from asset selectors.
+ * These are virtual resources and staking state assets passed from the Tron Snap
+ * to the extension for informational purposes, not actual tradeable tokens.
+ */
+export const TRON_SPECIAL_ASSET_SYMBOLS = {
   ENERGY: 'energy',
   BANDWIDTH: 'bandwidth',
   MAX_ENERGY: 'max-energy',
   MAX_BANDWIDTH: 'max-bandwidth',
   STRX_ENERGY: 'strx-energy',
   STRX_BANDWIDTH: 'strx-bandwidth',
+  TRX_READY_FOR_WITHDRAWAL: 'trx-ready-for-withdrawal',
+  TRX_STAKING_REWARDS: 'trx-staking-rewards',
+  TRX_IN_LOCK_PERIOD: 'trx-in-lock-period',
 } as const;
 
 export enum TronResourceType {
@@ -152,11 +162,10 @@ export enum TronResourceType {
   BANDWIDTH = 'BANDWIDTH',
 }
 
-export type TronResourceSymbol =
-  (typeof TRON_RESOURCE)[keyof typeof TRON_RESOURCE];
+export type TronSpecialAssetSymbol =
+  (typeof TRON_SPECIAL_ASSET_SYMBOLS)[keyof typeof TRON_SPECIAL_ASSET_SYMBOLS];
 
-export const TRON_RESOURCE_SYMBOLS = Object.values(
-  TRON_RESOURCE,
-) as readonly TronResourceSymbol[];
-export const TRON_RESOURCE_SYMBOLS_SET: ReadonlySet<TronResourceSymbol> =
-  new Set(TRON_RESOURCE_SYMBOLS);
+export const TRON_SPECIAL_ASSET_SYMBOLS_SET: ReadonlySet<TronSpecialAssetSymbol> =
+  new Set(
+    Object.values(TRON_SPECIAL_ASSET_SYMBOLS) as TronSpecialAssetSymbol[],
+  );

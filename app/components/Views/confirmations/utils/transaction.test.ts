@@ -1,12 +1,16 @@
 import { Interface } from '@ethersproject/abi';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
   addMMOriginatedTransaction,
   get4ByteCode,
+  getErrorMessage,
+  getSeverity,
   hasTransactionType,
+  isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
 } from './transaction';
 import {
@@ -211,5 +215,100 @@ describe('hasTransactionType', () => {
         TransactionType.cancel,
       ]),
     ).toBe(false);
+  });
+});
+
+describe('isTransactionPayWithdraw', () => {
+  it('returns true for predictWithdraw transaction type', () => {
+    const txMeta = {
+      type: TransactionType.predictWithdraw,
+    } as TransactionMeta;
+
+    expect(isTransactionPayWithdraw(txMeta)).toBe(true);
+  });
+
+  it('returns false for non-withdrawal transaction types', () => {
+    const txMeta = {
+      type: TransactionType.simpleSend,
+    } as TransactionMeta;
+
+    expect(isTransactionPayWithdraw(txMeta)).toBe(false);
+  });
+
+  it('returns false for deposit transaction types', () => {
+    const txMeta = {
+      type: TransactionType.predictDeposit,
+    } as TransactionMeta;
+
+    expect(isTransactionPayWithdraw(txMeta)).toBe(false);
+  });
+
+  it('returns true when nested transaction is a withdrawal type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+    } as TransactionMeta;
+
+    expect(isTransactionPayWithdraw(txMeta)).toBe(true);
+  });
+
+  it('returns false for undefined transaction', () => {
+    expect(isTransactionPayWithdraw(undefined)).toBe(false);
+  });
+});
+
+describe('getSeverity', () => {
+  it('returns success for confirmed status', () => {
+    expect(getSeverity(TransactionStatus.confirmed)).toBe('success');
+  });
+
+  it('returns error for failed status', () => {
+    expect(getSeverity(TransactionStatus.failed)).toBe('error');
+  });
+
+  it('returns error for dropped status', () => {
+    expect(getSeverity(TransactionStatus.dropped)).toBe('error');
+  });
+
+  it('returns warning for pending status', () => {
+    expect(getSeverity(TransactionStatus.submitted)).toBe('warning');
+  });
+});
+
+describe('getErrorMessage', () => {
+  it('returns undefined when no error', () => {
+    expect(
+      getErrorMessage({ error: undefined } as unknown as TransactionMeta),
+    ).toBeUndefined();
+  });
+
+  it('returns error message', () => {
+    expect(
+      getErrorMessage({
+        error: { message: 'tx failed' },
+      } as unknown as TransactionMeta),
+    ).toBe('tx failed');
+  });
+
+  it('returns parsed stack message when available', () => {
+    expect(
+      getErrorMessage({
+        error: {
+          message: 'generic',
+          stack: 'Error: {"data":{"message":"nonce too low"}}',
+        },
+      } as unknown as TransactionMeta),
+    ).toBe('nonce too low');
+  });
+
+  it('falls back to error message when stack parsing fails', () => {
+    expect(
+      getErrorMessage({
+        error: {
+          message: 'fallback',
+          stack: 'not valid json',
+        },
+      } as unknown as TransactionMeta),
+    ).toBe('fallback');
   });
 });

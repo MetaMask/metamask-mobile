@@ -12,7 +12,7 @@ import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import styleSheet from './AssetOptions.styles';
@@ -131,7 +131,7 @@ const AssetOptions = (props: Props) => {
   }, [assets, networkId, address]);
 
   const explorer = useBlockExplorer(asset.chainId ?? networkId);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.onCloseBottomSheet(() => {

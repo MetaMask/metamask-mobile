@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsSelectModifyActionView from './PerpsSelectModifyActionView';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 let mockRouteParams: { position?: Position } = {};
 const mockGoBack = jest.fn();
@@ -161,6 +161,7 @@ describe('PerpsSelectModifyActionView', () => {
       asset: 'ETH',
       existingPosition: mockLongPosition,
       hideTPSL: true,
+      source: 'position_screen',
     });
   });
 
@@ -174,6 +175,7 @@ describe('PerpsSelectModifyActionView', () => {
       asset: 'ETH',
       existingPosition: mockShortPosition,
       hideTPSL: true,
+      source: 'position_screen',
     });
   });
 
@@ -209,6 +211,7 @@ describe('PerpsSelectModifyActionView', () => {
       asset: 'ETH',
       amount: '2.5',
       leverage: 10,
+      source: 'position_screen',
     });
   });
 
@@ -222,6 +225,7 @@ describe('PerpsSelectModifyActionView', () => {
       asset: 'ETH',
       amount: '2.5',
       leverage: 10,
+      source: 'position_screen',
     });
   });
 
@@ -274,6 +278,7 @@ describe('PerpsSelectModifyActionView', () => {
       asset: 'ETH',
       existingPosition: mockLongPosition,
       hideTPSL: true,
+      source: 'position_screen',
     });
   });
 });

@@ -2,9 +2,13 @@ import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { useLivePositions } from '../../hooks/useLivePositions';
+import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import type { PredictPosition } from '../../types';
 import PredictPicksForCardItem from './PredictPicksForCardItem';
+import {
+  PREDICT_PICKS_FOR_CARD_TEST_ID,
+  PREDICT_PICKS_FOR_CARD_TEST_IDS,
+} from './PredictPicksForCard.testIds';
 
 interface PredictPicksForCardProps {
   marketId: string;
@@ -23,19 +27,18 @@ interface PredictPicksForCardProps {
 
 const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
   marketId,
-  testID = 'predict-picks-for-card',
+  testID = PREDICT_PICKS_FOR_CARD_TEST_ID,
   showSeparator = false,
   positions: positionsProp,
 }) => {
-  const { positions: fetchedPositions } = usePredictPositions({
+  const { data: fetchedPositions = [] } = usePredictPositions({
     marketId,
-    autoRefreshTimeout: positionsProp ? undefined : 10000,
-    loadOnMount: !positionsProp,
-    refreshOnFocus: !positionsProp,
+    refetchInterval: positionsProp ? undefined : 10000,
+    enabled: !positionsProp,
   });
 
   const basePositions = positionsProp ?? fetchedPositions;
-  const { livePositions } = useLivePositions(basePositions);
+  const { livePositions } = usePredictLivePositions(basePositions);
 
   if (livePositions.length === 0) {
     return null;
@@ -45,7 +48,7 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
     <Box testID={testID} twClassName="flex-col gap-2">
       {showSeparator && (
         <Box
-          testID={`${testID}-separator`}
+          testID={`${testID}${PREDICT_PICKS_FOR_CARD_TEST_IDS.SEPARATOR}`}
           twClassName="h-px bg-border-muted my-2"
         />
       )}

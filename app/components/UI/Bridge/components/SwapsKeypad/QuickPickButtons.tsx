@@ -9,11 +9,11 @@ import { QuickPickButtonOption } from './types';
 
 interface Props {
   options: QuickPickButtonOption[];
-  hidden?: boolean;
+  show?: boolean;
 }
 
-export const QuickPickButtons = ({ options, hidden }: Props) => {
-  if (hidden) {
+export const QuickPickButtons = ({ options, show }: Props) => {
+  if (!show) {
     return null;
   }
 
@@ -23,7 +23,7 @@ export const QuickPickButtons = ({ options, hidden }: Props) => {
         <Button
           key={option.label}
           variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
+          size={ButtonSize.Lg}
           label={option.label}
           onPress={option.onPress}
           style={styles.button}

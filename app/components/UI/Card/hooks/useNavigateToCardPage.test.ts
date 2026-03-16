@@ -8,7 +8,8 @@ import {
 } from './useNavigateToCardPage';
 import { isCardUrl, isCardTravelUrl } from '../../../../util/url';
 import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { BrowserTab } from '../../Tokens/types';
 import { CardActions } from '../util/metrics';
 import { Linking } from 'react-native';
@@ -17,11 +18,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-  },
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../util/url', () => ({
@@ -104,7 +102,7 @@ const setupMocks = (
   mockEventBuilder: ReturnType<typeof createMockEventBuilder>,
 ) => {
   (useSelector as jest.Mock).mockReturnValue([]);
-  (useMetrics as jest.Mock).mockReturnValue({
+  (useAnalytics as jest.Mock).mockReturnValue({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   });

@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLivePrices } from './index';
-import type { PriceUpdate } from '../../controllers/types';
+import { type PriceUpdate } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockSubscribeToSymbols = jest.fn();

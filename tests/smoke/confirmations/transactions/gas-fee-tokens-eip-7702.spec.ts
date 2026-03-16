@@ -184,13 +184,11 @@ describe(
           : undefined;
       return new FixtureBuilder()
         .withNetworkController({
-          providerConfig: {
-            chainId: '0x539',
-            rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-            type: 'custom',
-            nickname: 'Local RPC',
-            ticker: 'ETH',
-          },
+          chainId: '0x539',
+          rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+          type: 'custom',
+          nickname: 'Local RPC',
+          ticker: 'ETH',
         })
         .withDisabledSmartTransactions()
         .build();
@@ -293,9 +291,18 @@ describe(
           await GasFeeTokenModal.checkBalance('USDC', usdcValues.balance);
           await GasFeeTokenModal.tapToken('USDC');
 
-          await Assertions.expectElementToBeVisible(
-            Matchers.getElementByText('USDC'),
-            { description: 'Selected Gas Fee Token is USDC' },
+          await Assertions.expectElementToNotBeVisible(
+            Matchers.getElementByText('Select a token'),
+            { description: 'Select a token modal closed', timeout: 10000 },
+          );
+
+          await Assertions.expectElementToHaveText(
+            RowComponents.NetworkFeeGasFeeTokenSymbol,
+            'USDC',
+            {
+              description: 'Gas fee token pill shows USDC',
+              timeout: 15000,
+            },
           );
 
           const symbolElementLabel =

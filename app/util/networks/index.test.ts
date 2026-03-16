@@ -19,6 +19,7 @@ import NetworkList, {
   isWhitelistedSymbol,
   isWhitelistedRpcUrl,
   isWhitelistedNetworkName,
+  canDeleteNetwork,
 } from '.';
 import {
   convertNetworkId,
@@ -159,6 +160,33 @@ describe('network-utils', () => {
 
     it(`should return false if the given chain ID is not a known testnet`, () => {
       expect(isTestNet('42')).toEqual(false);
+    });
+  });
+
+  describe('canDeleteNetwork', () => {
+    it('returns false for Ethereum mainnet', () => {
+      expect(canDeleteNetwork('0x1')).toBe(false);
+    });
+    it('returns false for Linea mainnet', () => {
+      expect(canDeleteNetwork(NETWORKS_CHAIN_ID.LINEA_MAINNET)).toBe(false);
+    });
+    it('returns false for Goerli', () => {
+      expect(canDeleteNetwork(NETWORKS_CHAIN_ID.GOERLI)).toBe(false);
+    });
+    it.each(TESTNET_CHAIN_IDS)(
+      'returns false for testnet chain ID %s',
+      (chainId) => {
+        expect(canDeleteNetwork(chainId)).toBe(false);
+      },
+    );
+    it('returns false for empty/falsy chainId', () => {
+      expect(canDeleteNetwork('')).toBe(false);
+    });
+    it('returns true for custom mainnet (e.g. Polygon)', () => {
+      expect(canDeleteNetwork(NETWORKS_CHAIN_ID.POLYGON)).toBe(true);
+    });
+    it('returns true for custom chain ID 0x2a', () => {
+      expect(canDeleteNetwork('0x2a')).toBe(true);
     });
   });
 

@@ -1,8 +1,6 @@
 import {
   calculateFundingCountdown,
   calculate24hHighLow,
-  getAssetIconUrl,
-  getAssetIconUrls,
   escapeRegex,
   compileMarketPattern,
   matchesMarketPattern,
@@ -10,16 +8,21 @@ import {
   validateMarketPattern,
   getPerpsDisplaySymbol,
   filterMarketsByQuery,
-} from './marketUtils';
-import type { CandleData } from '../types/perps-types';
-import type { PerpsMarketData } from '../controllers/types';
-import { CandlePeriod } from '../constants/chartConfig';
+  CandlePeriod,
+  type CandleData,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { getAssetIconUrl, getAssetIconUrls } from './marketUtils';
 
-jest.mock('../constants/hyperLiquidConfig', () => ({
-  HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
-  METAMASK_PERPS_ICONS_BASE_URL:
-    'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+  return {
+    ...actual,
+    HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
+    METAMASK_PERPS_ICONS_BASE_URL:
+      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
+  };
+});
 
 describe('marketUtils', () => {
   describe('calculateFundingCountdown', () => {

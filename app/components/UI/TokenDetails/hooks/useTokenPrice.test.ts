@@ -10,7 +10,6 @@ import {
 import { isAssetFromSearch } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import useTokenHistoricalPrices from '../../../hooks/useTokenHistoricalPrices';
-import Engine from '../../../../core/Engine';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -36,14 +35,6 @@ jest.mock('../../../../selectors/tokenRatesController', () => ({
 }));
 
 jest.mock('../../../hooks/useTokenHistoricalPrices', () => jest.fn());
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    SwapsController: {
-      fetchTokenWithCache: jest.fn(),
-    },
-  },
-}));
 
 jest.mock('../../Bridge/utils/exchange-rates', () => ({
   getTokenExchangeRate: jest.fn().mockResolvedValue(undefined),
@@ -229,22 +220,5 @@ describe('useTokenPrice', () => {
     });
     expect(result.current.comparePrice).toBe(145.0);
     expect(result.current.priceDiff).toBe(5.5);
-  });
-
-  it('calls SwapsController.fetchTokenWithCache on mount', async () => {
-    const token = {
-      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-      chainId: '0x1',
-    } as TokenI;
-
-    renderHook(() => useTokenPrice({ token }));
-
-    await waitFor(() => {
-      expect(
-        Engine.context.SwapsController.fetchTokenWithCache,
-      ).toHaveBeenCalledWith({
-        networkClientId: 'mainnet',
-      });
-    });
   });
 });

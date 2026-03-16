@@ -27,6 +27,9 @@ import rewardsReducer, {
   setSnapshots,
   setSnapshotsLoading,
   setSnapshotsError,
+  setCampaigns,
+  setCampaignsLoading,
+  setCampaignsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -43,6 +46,8 @@ import {
   RewardClaimStatus,
   PointsEventDto,
   SnapshotDto,
+  CampaignDto,
+  CampaignType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -273,6 +278,7 @@ describe('rewardsReducer', () => {
             },
           ],
           activityTypes: [],
+          waysToEarn: [],
         },
         balance: {
           total: 500,
@@ -372,9 +378,9 @@ describe('rewardsReducer', () => {
         ...initialState,
         seasonActivityTypes: [
           {
+            id: 'activity-referral',
             type: 'REFERRAL',
             title: 'Referral',
-            description: 'Refer a friend',
             icon: 'UserCircleAdd',
           },
         ],
@@ -384,6 +390,79 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithActivities, action);
 
       expect(state.seasonActivityTypes).toEqual([]);
+    });
+
+    it('should set seasonWaysToEarn from season data', () => {
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-ways',
+          name: 'Season Ways',
+          startDate: new Date('2024-02-01').getTime(),
+          endDate: new Date('2024-03-01').getTime(),
+          tiers: [],
+          activityTypes: [],
+          waysToEarn: [
+            {
+              id: 'way-swap',
+              type: 'SWAP',
+              title: 'Swap',
+              icon: 'SwapHorizontal',
+              shortDescription: '80 points per $100',
+              bottomSheetTitle: 'Swap tokens',
+              pointsEarningRule: '80 points per $100 swapped',
+              description: 'Swap tokens on supported networks.',
+              buttonLabel: 'Start a swap',
+              buttonAction: { deeplink: 'metamask://swap' },
+            },
+            {
+              id: 'way-referral',
+              type: 'REFERRAL',
+              title: 'Refer friends',
+              icon: 'People',
+              shortDescription: '10 points per 50 from friends',
+              bottomSheetTitle: 'Refer friends',
+              pointsEarningRule: '10 points per 50 pts earned',
+              description: 'Invite your friends.',
+              buttonLabel: 'Share link',
+              buttonAction: { route: { root: 'ReferralView', screen: '' } },
+            },
+          ],
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      const state = rewardsReducer(initialState, action);
+
+      expect(state.seasonWaysToEarn).toEqual(
+        mockSeasonStatus.season.waysToEarn,
+      );
+      expect(state.seasonWaysToEarn).toHaveLength(2);
+      expect(state.seasonWaysToEarn[0].type).toBe('SWAP');
+      expect(state.seasonWaysToEarn[1].type).toBe('REFERRAL');
+    });
+
+    it('should clear seasonWaysToEarn when season status is null', () => {
+      const stateWithWaysToEarn = {
+        ...initialState,
+        seasonWaysToEarn: [
+          {
+            id: 'way-swap',
+            type: 'SWAP',
+            title: 'Swap',
+            icon: 'SwapHorizontal',
+            shortDescription: '80 points per $100',
+            bottomSheetTitle: 'Swap tokens',
+            pointsEarningRule: '80 points per $100 swapped',
+            description: 'Swap tokens.',
+            buttonLabel: 'Start a swap',
+          },
+        ],
+      };
+      const action = setSeasonStatus(null);
+
+      const state = rewardsReducer(stateWithWaysToEarn, action);
+
+      expect(state.seasonWaysToEarn).toEqual([]);
     });
 
     it('should set seasonShouldInstallNewVersion when provided', () => {
@@ -1407,9 +1486,9 @@ describe('rewardsReducer', () => {
           ],
           seasonActivityTypes: [
             {
+              id: 'activity-predict',
               type: 'PREDICT',
               title: 'Predict',
-              description: 'Prediction',
               icon: 'Speedometer',
             },
           ],
@@ -2010,6 +2089,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
+        seasonWaysToEarn: [],
         seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
@@ -2056,6 +2136,9 @@ describe('rewardsReducer', () => {
         snapshots: null,
         snapshotsLoading: false,
         snapshotsError: false,
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
       };
       const action = resetRewardsState();
 
@@ -2111,6 +2194,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
+        seasonWaysToEarn: [],
         seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
@@ -2158,6 +2242,9 @@ describe('rewardsReducer', () => {
         snapshots: null,
         snapshotsLoading: false,
         snapshotsError: false,
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2205,9 +2292,9 @@ describe('rewardsReducer', () => {
         seasonId: 'persisted-season-id',
         seasonActivityTypes: [
           {
+            id: 'activity-musd-deposit',
             type: 'MUSD_DEPOSIT',
             title: 'mUSD deposit',
-            description: 'Deposit mUSD',
             icon: 'Coin',
           },
         ],
@@ -2223,6 +2310,39 @@ describe('rewardsReducer', () => {
 
       expect(state.seasonActivityTypes).toEqual(
         persistedRewardsState.seasonActivityTypes,
+      );
+    });
+
+    it('should restore seasonWaysToEarn from persisted state', () => {
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        seasonId: 'persisted-season-id',
+        seasonWaysToEarn: [
+          {
+            id: 'way-perps',
+            type: 'PERPS',
+            title: 'Perps',
+            icon: 'Rocket',
+            shortDescription: '10 points per $100',
+            bottomSheetTitle: 'Trade perps',
+            pointsEarningRule: '10 points per $100 traded',
+            description: 'Trade perps to earn points.',
+            buttonLabel: 'Start a trade',
+            buttonAction: { route: { root: 'PerpsRoot', screen: 'PerpsHome' } },
+          },
+        ],
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.seasonWaysToEarn).toEqual(
+        persistedRewardsState.seasonWaysToEarn,
       );
     });
 
@@ -4662,5 +4782,157 @@ describe('setSnapshotsError', () => {
     action = setSnapshotsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.snapshotsError).toBe(true);
+  });
+});
+
+const mockCampaign: CampaignDto = {
+  id: 'campaign-1',
+  type: 'ONDO_HOLDING' as CampaignType,
+  name: 'ONDO Holding Campaign',
+  startDate: '2025-01-01T00:00:00.000Z',
+  endDate: '2027-01-01T00:00:00.000Z',
+  termsAndConditions: null,
+  excludedRegions: [],
+  statusLabel: 'Active',
+};
+
+describe('setCampaigns', () => {
+  it('should set campaigns array', () => {
+    const action = setCampaigns([mockCampaign]);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaigns).toEqual([mockCampaign]);
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should replace existing campaigns with new ones', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+    };
+    const newCampaign: CampaignDto = {
+      ...mockCampaign,
+      id: 'campaign-2',
+      name: 'New Campaign',
+    };
+    const action = setCampaigns([newCampaign]);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaigns).toHaveLength(1);
+    expect(state.campaigns[0].id).toBe('campaign-2');
+  });
+
+  it('should set campaigns to empty array', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+    };
+    const action = setCampaigns([]);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaigns).toEqual([]);
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should reset campaignsError when setting campaigns', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+    };
+    const action = setCampaigns([mockCampaign]);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaigns).toEqual([mockCampaign]);
+    expect(state.campaignsError).toBe(false);
+  });
+});
+
+describe('setCampaignsLoading', () => {
+  it('should set campaignsLoading to true when no campaigns exist', () => {
+    const action = setCampaignsLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignsLoading).toBe(true);
+  });
+
+  it('should not set loading to true when campaigns already exist', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      campaignsLoading: false,
+    };
+    const action = setCampaignsLoading(true);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+
+  it('should set campaignsLoading to false when loading is true', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      campaignsLoading: true,
+    };
+    const action = setCampaignsLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+
+  it('should set campaignsLoading to false even when campaigns exist', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      campaignsLoading: true,
+    };
+    const action = setCampaignsLoading(false);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+});
+
+describe('setCampaignsError', () => {
+  it('should set campaignsError to true', () => {
+    const action = setCampaignsError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignsError).toBe(true);
+  });
+
+  it('should set campaignsError to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+    };
+    const action = setCampaignsError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should toggle error state correctly', () => {
+    let currentState = initialState;
+
+    let action = setCampaignsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(true);
+
+    action = setCampaignsError(false);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(false);
+
+    action = setCampaignsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(true);
   });
 });

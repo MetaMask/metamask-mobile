@@ -3,18 +3,15 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import KYCPending from './KYCPending';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'CARD_VIEWED',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -188,11 +185,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock styles/common
-jest.mock('../../../../../styles/common', () => ({
-  colors: {
-    white: '#FFFFFF',
-  },
-}));
+jest.mock('../../../../../styles/common', () => {
+  const { brandColor } = jest.requireActual('@metamask/design-tokens');
+  return {
+    colors: {
+      white: brandColor.white,
+    },
+  };
+});
 
 describe('KYCPending Component', () => {
   const mockNavigate = jest.fn();
@@ -209,7 +209,7 @@ describe('KYCPending Component', () => {
         build: jest.fn().mockReturnValue({ event: 'test' }),
       }),
     });
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });

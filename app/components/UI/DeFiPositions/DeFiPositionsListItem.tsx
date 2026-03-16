@@ -22,8 +22,10 @@ import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { useStyles } from '../../hooks/useStyles';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { getTokenAvatarUrl } from './get-token-avatar-url';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
@@ -40,7 +42,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 }: DeFiPositionsListItemProps) => {
   const { styles } = useStyles(styleSheet, undefined);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
 
   const networkIconAvatar = useMemo(
@@ -110,6 +112,9 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 
   return (
     <TouchableOpacity
+      testID={WalletViewSelectorsIDs.DEFI_POSITION_LIST_ITEM(
+        protocolAggregate.protocolDetails.name,
+      )}
       onPress={() => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_PROTOCOL_DETAILS_OPENED)
@@ -134,7 +139,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
       />
 
       <View style={styles.contentWrapper}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyMDMedium}>
           {protocolAggregate.protocolDetails.name}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
@@ -144,7 +149,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 
       <View style={styles.balance}>
         <SensitiveText
-          variant={TextVariant.BodyLGMedium}
+          variant={TextVariant.BodyMDMedium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >

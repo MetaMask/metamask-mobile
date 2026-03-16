@@ -47,7 +47,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
@@ -58,7 +58,8 @@ import PerpsOrderBookTable, {
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import {
   usePerpsMarkets,
   usePerpsNavigation,
@@ -79,7 +80,6 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
@@ -297,6 +297,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.ORDER_BOOK,
       [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     },
   });
 
@@ -398,6 +399,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     navigateToOrder({
       direction: 'long',
       asset: symbol || '',
+      source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
     });
   }, [
     isEligible,
@@ -436,6 +438,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     navigateToOrder({
       direction: 'short',
       asset: symbol || '',
+      source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
     });
   }, [
     isEligible,
@@ -499,7 +502,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <ButtonIcon
               iconName={IconName.ArrowLeft}
               iconColor={IconColor.Default}
-              size={ButtonIconSizes.Lg}
+              size={ButtonIconSizes.Md}
               onPress={handleBack}
               testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
             />

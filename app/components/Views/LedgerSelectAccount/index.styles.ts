@@ -22,7 +22,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
     },
     selectorContainer: {
-      flex: 1,
       flexDirection: 'column',
     },
     mainTitle: {
@@ -49,6 +48,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 5,
       borderWidth: 2,
       height: 45,
+      justifyContent: 'center',
       width: Device.getDeviceWidth() * 0.85,
     },
     navbarRightButton: {

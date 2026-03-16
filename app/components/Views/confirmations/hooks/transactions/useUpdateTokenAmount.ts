@@ -16,6 +16,7 @@ import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { getTokenTransferData } from '../../utils/transaction-pay';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import Logger from '../../../../../util/Logger';
 
 export function useUpdateTokenAmount() {
   const dispatch = useDispatch();
@@ -79,9 +80,9 @@ export function useUpdateTokenAmount() {
           transactionIndex: nestedCallIndex,
           transactionData: newData,
         }).catch((error) => {
-          console.error(
-            'Failed to update token amount in nested transaction',
+          Logger.error(
             error,
+            'Failed to update token amount in nested transaction',
           );
         });
 

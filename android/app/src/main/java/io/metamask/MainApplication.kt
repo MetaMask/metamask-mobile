@@ -84,7 +84,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         }
 
         // Enable debugging WebView from Chrome DevTools
-        if (BuildConfig.DEBUG || BuildConfig.IS_RAMP_UAT == "true" || BuildConfig.IS_RAMP_DEV == "true") {
+        if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 

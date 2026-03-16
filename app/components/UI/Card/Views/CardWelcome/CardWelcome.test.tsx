@@ -6,7 +6,7 @@ import CardWelcome from './CardWelcome';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Mocks
 const mockNavigate = jest.fn();
@@ -29,15 +29,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'Card Viewed',
-    CARD_BUTTON_CLICKED: 'Card Button Clicked',
-  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -55,9 +51,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ colors: { background: { default: '#fff' } } }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => actual.mockTheme,
+  };
+});
 
 const createTestStore = (initialState = {}) =>
   configureStore({

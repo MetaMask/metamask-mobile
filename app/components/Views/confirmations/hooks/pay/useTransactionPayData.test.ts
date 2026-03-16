@@ -4,6 +4,7 @@ import {
   TransactionPayTotals,
   TransactionPayRequiredToken,
   TransactionPaySourceAmount,
+  TransactionFiatPayment,
 } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
@@ -14,6 +15,8 @@ import {
   useTransactionPaySourceAmounts,
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
+  useTransactionPayFiatPayment,
 } from './useTransactionPayData';
 import { cloneDeep, merge } from 'lodash';
 import {
@@ -43,6 +46,11 @@ const TOTALS_MOCK = {
   total: { usd: '1000', fiat: '1234' },
 } as TransactionPayTotals;
 
+const FIAT_PAYMENT_MOCK: TransactionFiatPayment = {
+  selectedPaymentMethodId: 'pm-123',
+  amountFiat: '50.00',
+};
+
 const state = merge(
   {},
   simpleSendTransactionControllerMock,
@@ -55,10 +63,12 @@ const state = merge(
             [transactionIdMock]: {
               isLoading: true,
               isMaxAmount: true,
+              isPostQuote: true,
               quotes: [QUOTE_MOCK],
               sourceAmounts: [SOURCE_AMOUNT_MOCK],
               tokens: [REQUIRED_TOKEN_MOCK],
               totals: TOTALS_MOCK,
+              fiatPayment: FIAT_PAYMENT_MOCK,
             },
           },
         },
@@ -157,5 +167,55 @@ describe('useTransactionPayData', () => {
       renderHookWithProvider(useTransactionPayIsMaxAmount, { state }).result
         .current,
     ).toBe(true);
+  });
+
+  it('returns isPostQuote as true when set', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayIsPostQuote, { state }).result
+        .current,
+    ).toBe(true);
+  });
+
+  it('returns isPostQuote as false when not set', () => {
+    const updatedState = cloneDeep(state);
+    updatedState.engine.backgroundState.TransactionPayController.transactionData[
+      transactionIdMock
+    ].isPostQuote = false;
+
+    expect(
+      renderHookWithProvider(useTransactionPayIsPostQuote, {
+        state: updatedState,
+      }).result.current,
+    ).toBe(false);
+  });
+
+  it('returns fiatPayment', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayFiatPayment, { state }).result
+        .current,
+    ).toStrictEqual(FIAT_PAYMENT_MOCK);
+  });
+
+  it('returns false for isPostQuote when no transaction data', () => {
+    const stateWithoutTransactionData = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionPayController: {
+              transactionData: {},
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      renderHookWithProvider(useTransactionPayIsPostQuote, {
+        state: stateWithoutTransactionData,
+      }).result.current,
+    ).toBe(false);
   });
 });

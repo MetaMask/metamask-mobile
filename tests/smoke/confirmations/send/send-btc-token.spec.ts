@@ -5,6 +5,10 @@ import { SmokeConfirmations } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
+import Assertions from '../../../framework/Assertions';
+import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
+
+const TOKEN = 'Bitcoin';
 
 describe(SmokeConfirmations('Send Bitcoin'), () => {
   it('shows insufficient funds', async () => {
@@ -16,7 +20,16 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        await WalletView.tapOnToken('Bitcoin');
+        await Assertions.expectElementToNotBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description: 'Balance empty state container should not be visible',
+            timeout: 30000,
+          },
+        );
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.changeNetworkTo(TOKEN);
+        await WalletView.tapOnToken(TOKEN, 1);
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
         await SendView.checkInsufficientFundsError();

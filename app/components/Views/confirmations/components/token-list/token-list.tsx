@@ -6,19 +6,28 @@ import {
 } from '@metamask/design-system-react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { AssetType } from '../../types/token';
+import {
+  AssetType,
+  HighlightedItem as HighlightedItemType,
+} from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
 import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { Token } from '../UI/token';
+import { HighlightedItem } from '../UI/highlighted-item';
 
 const TOKEN_COUNT_PER_PAGE = 20;
 interface TokenListProps {
   onSelect?: (token: AssetType) => void;
   tokens: AssetType[];
+  highlightedAssets?: HighlightedItemType[];
 }
 
-export function TokenList({ onSelect, tokens }: TokenListProps) {
+export function TokenList({
+  onSelect,
+  tokens,
+  highlightedAssets = [],
+}: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
   const {
     updateAsset,
@@ -71,6 +80,12 @@ export function TokenList({ onSelect, tokens }: TokenListProps) {
   return (
     <>
       <Box>
+        {highlightedAssets.map((item, index) => (
+          <HighlightedItem
+            key={`highlighted-asset-${item.name}-${index}`}
+            item={item}
+          />
+        ))}
         {visibleTokens.map((token) => (
           <Token
             key={`${token.chainId}-${token.address}`}

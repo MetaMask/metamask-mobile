@@ -2,6 +2,7 @@ import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -17,16 +18,19 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import {
-  selectMerklCampaignClaimingEnabledFlag,
+  selectIsMusdConversionFlowEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -52,16 +56,12 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
-import {
-  useMerklRewards,
-  isEligibleForMerklRewards,
-} from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
+import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import BigNumber from 'bignumber.js';
-import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -104,11 +104,11 @@ const createStyles = (colors: Colors) =>
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
-  setShowScamWarningModal: (arg: boolean) => void;
-  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  setShowScamWarningModal: (chainId: string | null) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
+  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -116,12 +116,12 @@ export const TokenListItem = React.memo(
     assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
-    shouldShowTokenListItemCta,
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
+    shouldShowTokenListItemCta,
   }: TokenListItemProps) => {
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
@@ -144,11 +144,20 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
+    const isQuickConvertEnabled = useSelector(
+      selectMusdQuickConvertEnabledFlag,
+    );
+
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
+
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
 
-    const { initiateConversion, hasSeenConversionEducationScreen } =
+    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
@@ -156,28 +165,33 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    // Check for claimable Merkl rewards
-    const isMerklCampaignClaimingEnabled = useSelector(
-      selectMerklCampaignClaimingEnabledFlag,
-    );
-    const { claimableReward } = useMerklRewards({
-      asset,
-    });
+    const merklClaimData = useMerklBonusClaim(asset);
+    const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
-    const isEligibleForMerkl = useMemo(
-      () =>
-        asset?.chainId && asset?.address
-          ? isEligibleForMerklRewards(
-              asset.chainId as Hex,
-              asset.address as Hex | undefined,
-            )
-          : false,
-      [asset?.chainId, asset?.address],
-    );
+    const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
-    const hasClaimableBonus = Boolean(
-      isMerklCampaignClaimingEnabled && claimableReward && isEligibleForMerkl,
-    );
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      claimRewards,
+    ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -185,10 +199,15 @@ export const TokenListItem = React.memo(
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-        const getRedirectLocation = () =>
-          hasSeenConversionEducationScreen
-            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
-            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+        const getRedirectLocation = () => {
+          if (!hasSeenConversionEducationScreen) {
+            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+          }
+
+          return isQuickConvertEnabled
+            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+        };
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
@@ -218,13 +237,13 @@ export const TokenListItem = React.memo(
         }
 
         const assetChainId = toHex(asset.chainId);
-
-        await initiateConversion({
+        await initiateCustomConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -239,7 +258,8 @@ export const TokenListItem = React.memo(
       chainId,
       createEventBuilder,
       hasSeenConversionEducationScreen,
-      initiateConversion,
+      initiateCustomConversion,
+      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);
@@ -253,11 +273,10 @@ export const TokenListItem = React.memo(
       Number.isFinite(pricePercentChange1d);
 
     const onItemPress = useCallback(
-      (token: TokenI, scrollToMerklRewards?: boolean) => {
+      (token: TokenI) => {
         trace({ name: TraceName.AssetDetails });
         navigation.navigate('Asset', {
           ...token,
-          scrollToMerklRewards,
           source: isFullView
             ? TokenDetailsSource.MobileTokenListPage
             : TokenDetailsSource.MobileTokenList,
@@ -274,9 +293,27 @@ export const TokenListItem = React.memo(
     const secondaryBalanceDisplay = useMemo(() => {
       if (hasClaimableBonus) {
         return {
-          text: strings('earn.claim_bonus'),
+          text: merklClaimData.isClaiming
+            ? undefined
+            : strings('earn.claim_bonus'),
           color: TextColor.Primary,
-          onPress: asset ? () => onItemPress(asset as TokenI, true) : undefined,
+          onPress: merklClaimData.isClaiming ? undefined : handleClaimBonus,
+        };
+      }
+
+      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
+      if (
+        isMusdConversionFlowEnabled &&
+        isMusdGeoEligible &&
+        asset &&
+        isMusdToken(asset.address)
+      ) {
+        return {
+          text: strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: TextColor.Success,
+          onPress: undefined,
         };
       }
 
@@ -292,10 +329,7 @@ export const TokenListItem = React.memo(
 
       if (
         isStablecoinLendingEnabled &&
-        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-        new BigNumber(earnToken?.balanceFiatNumber || '0').gte(
-          MINIMUM_BALANCE_FOR_EARN_CTA,
-        )
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
       ) {
         return {
           text: `${strings('stake.earn')}`,
@@ -325,14 +359,17 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
+      asset,
+      isMusdConversionFlowEnabled,
+      isMusdGeoEligible,
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
-      earnToken,
       isStablecoinLendingEnabled,
-      asset,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      onItemPress,
+      merklClaimData.isClaiming,
+      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
@@ -375,12 +412,15 @@ export const TokenListItem = React.memo(
           asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
         }
         asset={asset}
-        balance={asset.balanceFiat}
-        secondaryBalance={secondaryBalanceDisplay.text}
+        balance={asset.balanceFiat || '—'}
+        secondaryBalance={secondaryBalanceDisplay.text || '-'}
         secondaryBalanceColor={secondaryBalanceDisplay.color}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
         onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
+        secondaryBalanceElement={
+          merklClaimData.isClaiming ? <Spinner /> : undefined
+        }
       >
         <BadgeWrapper
           style={styles.badge}
@@ -426,7 +466,10 @@ export const TokenListItem = React.memo(
               </SensitiveText>
             }
             {isStockToken(asset as BridgeToken) && (
-              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+              <StockBadge
+                style={styles.stockBadgeWrapper}
+                token={asset as BridgeToken}
+              />
             )}
           </View>
         </View>

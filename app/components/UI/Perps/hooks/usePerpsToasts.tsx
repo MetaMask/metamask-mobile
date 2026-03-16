@@ -14,19 +14,22 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
+  ButtonIconVariant,
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { PERPS_EVENT_VALUE } from '../constants/eventNames';
-import { OrderDirection } from '../types/perps-types';
+import {
+  PERPS_EVENT_VALUE,
+  OrderDirection,
+  getPerpsDisplaySymbol,
+  type Position,
+} from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
-import { Position } from '../controllers/types';
-import { getPerpsDisplaySymbol } from '../utils/marketUtils';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: NotificationFeedbackType;
@@ -76,6 +79,7 @@ export interface PerpsToastOptionsConfig {
       creationFailed: (error?: string) => PerpsToastOptions;
     };
     shared: {
+      submitting: () => PerpsToastOptions;
       cancellationInProgress: (
         direction: OrderDirection,
         amount: string,
@@ -583,6 +587,18 @@ const usePerpsToasts = (): {
         },
         // Used for both market and limit orders.
         shared: {
+          submitting: () => ({
+            ...perpsBaseToastOptions.inProgress,
+            hasNoTimeout: true,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.submitting_your_trade'),
+            ),
+            closeButtonOptions: {
+              variant: ButtonIconVariant.Icon,
+              iconName: IconName.Close,
+              onPress: () => toastRef?.current?.closeToast(),
+            },
+          }),
           cancellationInProgress: (
             direction: OrderDirection,
             amount: string,
@@ -731,7 +747,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {`${roeValue.toFixed(1)}%`}
+                        {`${roeValue.toFixed(2)}%`}
                       </Text>
                     </Text>,
                   ),
@@ -802,7 +818,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {`${roeValue.toFixed(1)}%`}
+                        {`${roeValue.toFixed(2)}%`}
                       </Text>
                     </Text>,
                   ),
@@ -981,6 +997,7 @@ const usePerpsToasts = (): {
       theme.colors.error.default,
       theme.colors.error.muted,
       theme.colors.success.default,
+      toastRef,
     ],
   );
 

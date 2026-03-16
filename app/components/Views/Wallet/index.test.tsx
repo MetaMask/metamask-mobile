@@ -37,18 +37,24 @@ jest.mock('../../UI/Predict/views/PredictTabView', () => ({
   default: jest.fn(() => null),
 }));
 
+// Mock AssetPollingProvider to assert chainIds when homepage sections are disabled
+const mockAssetPollingProvider = jest.fn<null, [{ chainIds?: string[] }]>(
+  () => null,
+);
+jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: (props: { chainIds?: string[] }) => {
+    mockAssetPollingProvider(props as { chainIds?: string[] });
+    return null;
+  },
+}));
+
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
   validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController//multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
+// Note: BIP-44 multichain accounts is now the default behavior
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = true;
@@ -95,11 +101,10 @@ import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import { screen as RNScreen, renderHook } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
@@ -114,7 +119,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -209,6 +214,9 @@ jest.mock('../../../core/Engine', () => {
         setDisabledNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: jest.fn(),
+        listPopularEvmNetworks: jest.fn(() => ['0x1']),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       },
     },
   };
@@ -283,6 +291,10 @@ const mockInitialState = {
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
   },
+  collectibles: {
+    favorites: {},
+    isNftFetchingProgress: false,
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -318,13 +330,6 @@ const mockInitialState = {
         activeAccount: null,
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS,
-        identities: {
-          [MOCK_ADDRESS]: {
-            address: MOCK_ADDRESS,
-            name: 'Account 1',
-          },
-        },
         useTokenDetection: true,
         isTokenNetworkFilterEqualToAllNetworks: false,
         tokenNetworkFilter: {
@@ -394,15 +399,25 @@ jest.mock('../../../util/address', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
-  useNetworkSelection: jest.fn(() => ({
-    selectNetwork: jest.fn(),
-  })),
-}));
-
 // Better navigation mock pattern (from WalletActions.test.tsx)
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
+
+// Mock core first so useIsFocused/useNavigation work when Wallet or children use them
+jest.mock('@react-navigation/core', () => {
+  const actualCore = jest.requireActual('@react-navigation/core');
+  return {
+    ...actualCore,
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: () => true,
+      dangerouslyGetParent: jest.fn(),
+    })),
+    useIsFocused: jest.fn(() => true),
+  };
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -411,11 +426,23 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: jest.fn(() => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+      dangerouslyGetParent: jest.fn(() => ({
+        dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+        addListener: jest.fn(() => jest.fn()),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => undefined),
+        })),
+      })),
     })),
     useRoute: jest.fn(() => ({
       params: {},
     })),
     useFocusEffect: jest.fn(),
+    useIsFocused: jest.fn(() => true),
   };
 });
 
@@ -481,31 +508,6 @@ describe('Wallet', () => {
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-  it('should render the address copy button', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const addressCopyButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
-    );
-    expect(addressCopyButton).toBeDefined();
-  });
-  it('should render the account picker', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const accountPicker = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.ACCOUNT_ICON,
-    );
-    expect(accountPicker).toBeDefined();
-  });
-
-  it('should render scan qr icon', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const scanButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
-    );
-    expect(scanButton).toBeDefined();
   });
 
   it('Should add tokens to state automatically when there are detected tokens', () => {
@@ -635,24 +637,19 @@ describe('Wallet', () => {
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // Assert
+      // Assert - onReceive navigates to MultichainAddressList with groupId and title
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-        {
-          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-          params: expect.objectContaining({
-            address: expect.any(String),
-            networkName: expect.any(String),
-            chainId: expect.any(String),
-            groupId: expect.any(String),
-          }),
-        },
+        Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+        expect.objectContaining({
+          groupId: expect.any(String),
+          title: expect.any(String),
+        }),
       );
     });
 
-    it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {
-      // Arrange - Create mock state with state2 enabled and required data
-      const mockStateWithState2 = {
+    it('should handle onReceive callback correctly with BIP-44 multichain accounts', () => {
+      // Arrange - Create mock state with required data
+      const mockStateWithMultichainAccounts = {
         ...mockInitialState,
         engine: {
           ...mockInitialState.engine,
@@ -669,14 +666,10 @@ describe('Wallet', () => {
 
       jest.mocked(useSelector).mockImplementation((callback) => {
         const selectorString = callback.toString();
-        // Override specific selectors for state2 test
-        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
-          return true;
-        }
         if (selectorString.includes('selectSelectedAccountGroupId')) {
           return 'group-id-123'; // Ensure this returns the group ID
         }
-        return callback(mockStateWithState2);
+        return callback(mockStateWithMultichainAccounts);
       });
 
       // Act
@@ -688,7 +681,7 @@ describe('Wallet', () => {
       // Assert - createAddressListNavigationDetails spreads an array [route, params]
       expect(mockNavigate).toHaveBeenCalled();
       expect(mockNavigate.mock.calls[0]).toBeDefined();
-      // Verify it was called with address list navigation (state2 behavior)
+      // Verify it was called with address list navigation
       const [route, params] = mockNavigate.mock.calls[0];
       expect(route).toBeDefined();
       expect(params).toBeDefined();
@@ -882,6 +875,17 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -952,6 +956,17 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -986,78 +1001,6 @@ describe('Wallet', () => {
     });
   });
 
-  describe('Network Manager Integration', () => {
-    const { useNetworkSelection } = jest.requireMock(
-      '../../../components/hooks/useNetworkSelection/useNetworkSelection',
-    );
-
-    // Common test configurations
-    const createMockSelectNetwork = () => jest.fn();
-
-    const createStateWithEnabledNetworks = (enabledNetworks: string[]) => ({
-      ...mockInitialState,
-      engine: {
-        backgroundState: {
-          ...mockInitialState.engine.backgroundState,
-          NetworkEnablementController: {
-            ...mockInitialState.engine.backgroundState
-              .NetworkEnablementController,
-            enabledNetworkMap: {
-              eip155: enabledNetworks.reduce(
-                (acc, network) => {
-                  acc[network] = true;
-                  return acc;
-                },
-                {} as Record<string, boolean>,
-              ),
-            },
-          },
-        },
-      },
-    });
-
-    const setupMocks = (mockSelectNetwork: jest.Mock) => {
-      jest.mocked(useNetworkSelection).mockReturnValue({
-        selectNetwork: mockSelectNetwork,
-      });
-    };
-
-    const renderWalletWithState = (state: unknown) => {
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback) => callback(state));
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-    };
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should call selectNetwork when no enabled EVM networks', () => {
-      const mockSelectNetwork = createMockSelectNetwork();
-      setupMocks(mockSelectNetwork);
-
-      const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
-      renderWalletWithState(stateWithNoEnabledNetworks);
-
-      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
-    });
-
-    it('should not call selectNetwork when there are enabled EVM networks', () => {
-      const mockSelectNetwork = createMockSelectNetwork();
-      setupMocks(mockSelectNetwork);
-
-      const stateWithEnabledNetworks = createStateWithEnabledNetworks([
-        '0x1',
-        '0x5',
-      ]);
-      renderWalletWithState(stateWithEnabledNetworks);
-
-      expect(mockSelectNetwork).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Perps Tab Visibility', () => {
     let mockPerpsTabView: jest.Mock;
     let mockNavigation: NavigationProp<ParamListBase>;
@@ -1073,6 +1016,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1090,7 +1044,7 @@ describe('Wallet', () => {
       mockPredictGTMModalEnabled = false; // Reset to default
     });
 
-    it('should register visibility callback when Perps is enabled', () => {
+    it('renders PerpsTabView without visibility props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1116,20 +1070,17 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Debug: Check if TabsList was rendered
       expect(mockTabsListComponent).toHaveBeenCalled();
-
-      // Check that PerpsTabView was rendered
       expect(mockPerpsTabView).toHaveBeenCalled();
 
-      // Check the props it was called with
+      // With PerpsAlwaysOnProvider managing lifecycle, PerpsTabView no longer
+      // receives visibility props — lifecycle is centralized at the wallet root.
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.onVisibilityChange).toBeDefined();
-      expect(typeof perpsTabViewProps.onVisibilityChange).toBe('function');
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.onVisibilityChange).toBeUndefined();
+      expect(perpsTabViewProps.isVisible).toBeUndefined();
     });
 
-    it('should calculate correct perpsTabIndex when Perps is enabled', () => {
+    it('renders PerpsTabView with only tab-related props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1155,9 +1106,10 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Perps should be at index 1 when enabled (after Tokens at index 0)
+      expect(mockPerpsTabView).toHaveBeenCalled();
+      // tabLabel and key are the only props passed — no isVisible or onVisibilityChange
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.tabLabel).toBeDefined();
     });
 
     it('should not render PerpsTabView when Perps is disabled', () => {
@@ -1249,6 +1201,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1474,6 +1437,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Reset flags to default state

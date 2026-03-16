@@ -2,8 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
-import type { OrderFill } from '../controllers/types';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -18,6 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getActiveProvider: jest.fn(),
+      getActiveProviderOrNull: jest.fn(),
     },
   },
 }));
@@ -31,9 +31,9 @@ const mockUsePerpsLiveFills = usePerpsLiveFills as jest.MockedFunction<
   typeof usePerpsLiveFills
 >;
 
-const mockGetActiveProvider = Engine.context.PerpsController
-  .getActiveProvider as jest.MockedFunction<
-  typeof Engine.context.PerpsController.getActiveProvider
+const mockGetActiveProviderOrNull = Engine.context.PerpsController
+  .getActiveProviderOrNull as jest.MockedFunction<
+  typeof Engine.context.PerpsController.getActiveProviderOrNull
 >;
 
 // Test data
@@ -90,7 +90,7 @@ describe('usePerpsMarketFills', () => {
       getOrderFills: jest.fn().mockResolvedValue([]),
     };
 
-    mockGetActiveProvider.mockReturnValue(
+    mockGetActiveProviderOrNull.mockReturnValue(
       mockProvider as unknown as ReturnType<
         typeof Engine.context.PerpsController.getActiveProvider
       >,
@@ -412,7 +412,7 @@ describe('usePerpsMarketFills', () => {
 
     it('handles missing provider gracefully', async () => {
       // Arrange
-      mockGetActiveProvider.mockReturnValue(
+      mockGetActiveProviderOrNull.mockReturnValue(
         null as unknown as ReturnType<
           typeof Engine.context.PerpsController.getActiveProvider
         >,

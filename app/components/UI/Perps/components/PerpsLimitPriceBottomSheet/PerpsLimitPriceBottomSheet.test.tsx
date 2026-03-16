@@ -65,19 +65,16 @@ jest.mock('react-native-safe-area-context', () => {
 
 // Mock theme
 const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-  mockTheme: {
-    colors: {
-      background: { default: '#FFFFFF', alternative: '#f0f0f0' },
-      text: { default: '#000000', alternative: '#666666', muted: '#999999' },
-      border: { muted: '#CCCCCC' },
-      success: { default: '#00FF00' },
-      primary: { default: '#0066cc' },
-      error: { default: '#ff0000' },
-    },
-  },
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: mockUseTheme,
+    mockTheme,
+  };
+});
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 // Mock useTailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -126,7 +123,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 // Mock eventNames constants
-jest.mock('../../constants/eventNames', () => ({
+jest.mock('@metamask/perps-controller/constants/eventNames', () => ({
   PERPS_EVENT_PROPERTY: {
     INTERACTION_TYPE: 'interaction_type',
     SETTING_TYPE: 'setting_type',
@@ -304,48 +301,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   },
 }));
 
-// Mock styles
-jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
-  createStyles: () => ({
-    container: { paddingHorizontal: 16 },
-    priceInfo: { marginTop: 8, marginBottom: 16 },
-    priceRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    priceLabel: { fontSize: 14, color: '#666' },
-    priceValue: { fontSize: 16, fontWeight: '500' },
-    limitPriceDisplay: {
-      backgroundColor: '#f0f0f0',
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    limitPriceValue: { fontSize: 32, fontWeight: '600' },
-    limitPriceCurrency: { fontSize: 18, color: '#666' },
-    percentageButtonsRow: { flexDirection: 'row', marginBottom: 10, gap: 8 },
-    percentageButton: {
-      flex: 1,
-      backgroundColor: '#fff',
-      borderRadius: 8,
-      paddingVertical: 12,
-      alignItems: 'center',
-    },
-    keypadContainer: { marginBottom: 16, padding: 0 },
-    footerContainer: { paddingHorizontal: 16, paddingBottom: 24 },
-  }),
-}));
-
 describe('PerpsLimitPriceBottomSheet', () => {
-  const mockTheme = {
-    colors: {
-      background: { alternative: '#f0f0f0', default: '#ffffff' },
-      text: { default: '#000000', muted: '#666666', alternative: '#999999' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0066cc' },
-      error: { default: '#ff0000' },
-    },
-  };
-
   const defaultProps = {
     isVisible: true,
     onClose: jest.fn(),
@@ -357,7 +313,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
 
     // Mock stream hooks
     const { usePerpsLivePrices, usePerpsTopOfBook } =

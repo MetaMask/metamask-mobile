@@ -1,3 +1,4 @@
+// Migrated to tests/page-objects/MMConnect/DappConnectionModal.ts
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 
@@ -153,6 +154,7 @@ class DappConnectionModal {
         }
 
         const element = await this.getNetworkButton(networkName);
+        await AppwrightGestures.scrollIntoView(this.device, element);
         await AppwrightGestures.tap(element)
     }
 

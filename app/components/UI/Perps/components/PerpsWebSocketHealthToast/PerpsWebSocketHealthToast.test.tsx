@@ -5,7 +5,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsWebSocketHealthToast from './PerpsWebSocketHealthToast';
-import { WebSocketConnectionState } from '../../controllers/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
 
 // Mock dependencies

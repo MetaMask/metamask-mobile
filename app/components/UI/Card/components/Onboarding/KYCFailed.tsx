@@ -22,10 +22,12 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { brandColor } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../../../styles/common';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 
@@ -49,7 +51,7 @@ const KYCFailed = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const dynamicStyles = useMemo<{
@@ -100,13 +102,13 @@ const KYCFailed = () => {
   }, [navigation]);
 
   return (
-    <Box twClassName="flex-1" style={tw.style('bg-[#330745]')}>
+    <Box twClassName="flex-1" style={tw.style(`bg-[${brandColor.purple800}]`)}>
       {/* Header with back button */}
       <SafeAreaView edges={['top']} style={staticStyles.headerContainer}>
         <Box twClassName="px-4 py-2 items-start">
           <ButtonIcon
             iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Lg}
+            size={ButtonIconSizes.Md}
             iconColor={importedColors.white}
             onPress={navigateToHome}
             testID="kyc-failed-back-button"

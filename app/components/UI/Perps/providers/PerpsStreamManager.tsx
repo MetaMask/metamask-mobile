@@ -12,23 +12,23 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import PerpsConnectionManager from '../services/PerpsConnectionManager';
-import type {
-  PriceUpdate,
-  Position,
-  Order,
-  OrderFill,
-  AccountState,
-  PerpsMarketData,
-} from '../controllers/types';
 import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
-  PROVIDER_CONFIG,
-} from '../constants/perpsConfig';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
+  PerpsMeasurementName,
+  type PriceUpdate,
+  type Position,
+  type Order,
+  type OrderFill,
+  type AccountState,
+  type PerpsMarketData,
+  findEvmAccount,
+} from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { findEvmAccount } from '../utils/accountUtils';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
+import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -38,7 +38,7 @@ import { CandleStreamChannel } from './channels/CandleStreamChannel';
 function getEvmAccountFromSelectedAccountGroup() {
   const { AccountTreeController } = Engine.context;
   const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
-  return findEvmAccount(accounts);
+  return findEvmAccount(accounts as InternalAccount[]);
 }
 
 // Generic subscription parameters
@@ -62,6 +62,11 @@ abstract class StreamChannel<T> {
   protected wsConnectionStartTime: number | null = null;
   // Flag to pause emission during operations (keeps WebSocket alive)
   protected isPaused = false;
+  // Retry counter for deferred connect() calls
+  protected connectRetryCount = 0;
+  // Timer handle for deferConnect so it can be cancelled on disconnect
+  protected deferConnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly MAX_CONNECT_RETRIES = 150; // 30s at 200ms
 
   protected notifySubscribers(updates: T) {
     // Block emission if paused (WebSocket continues receiving updates)
@@ -91,15 +96,13 @@ abstract class StreamChannel<T> {
       // This ensures callbacks fire at most once per throttleMs interval
       // WITHOUT resetting the countdown on every update (which would be debouncing)
       // The conditional check prevents timer accumulation - no memory leaks
-      if (!subscriber.timer) {
-        subscriber.timer = setTimeout(() => {
-          if (subscriber.pendingUpdate) {
-            subscriber.callback(subscriber.pendingUpdate);
-            subscriber.pendingUpdate = undefined;
-          }
-          subscriber.timer = undefined;
-        }, subscriber.throttleMs);
-      }
+      subscriber.timer ??= setTimeout(() => {
+        if (subscriber.pendingUpdate) {
+          subscriber.callback(subscriber.pendingUpdate);
+          subscriber.pendingUpdate = undefined;
+        }
+        subscriber.timer = undefined;
+      }, subscriber.throttleMs);
     });
   }
 
@@ -118,7 +121,7 @@ abstract class StreamChannel<T> {
 
     // Give immediate cached data if available
     const cached = this.getCachedData();
-    if (cached) {
+    if (cached != null) {
       params.callback(cached);
       // Mark as having received first update since we provided cached data
       subscription.hasReceivedFirstUpdate = true;
@@ -148,6 +151,106 @@ abstract class StreamChannel<T> {
   }
 
   /**
+   * Schedule a deferred connect() retry with safety checks.
+   * Aborts if no subscribers remain or max retries exceeded.
+   */
+  protected deferConnect(delayMs: number): void {
+    if (this.subscribers.size === 0) {
+      this.connectRetryCount = 0;
+      return;
+    }
+
+    if (this.connectRetryCount >= StreamChannel.MAX_CONNECT_RETRIES) {
+      DevLogger.log(
+        `${this.constructor.name}: Max connect retries exceeded (${StreamChannel.MAX_CONNECT_RETRIES}), giving up`,
+      );
+      this.connectRetryCount = 0;
+      return;
+    }
+
+    this.connectRetryCount++;
+    if (this.deferConnectTimer) {
+      clearTimeout(this.deferConnectTimer);
+    }
+    this.deferConnectTimer = setTimeout(() => {
+      this.deferConnectTimer = null;
+      this.connect();
+    }, delayMs);
+  }
+
+  /**
+   * Common initialization guard for connect().
+   * Returns true if the channel is ready to connect, false if deferred.
+   * Resets connectRetryCount on success.
+   *
+   * When the connection manager is actively connecting, awaits the connection
+   * promise and retries connect() once resolved, instead of blind 200ms polling.
+   */
+  protected ensureReady(): boolean {
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
+      return false;
+    }
+    const connState = PerpsConnectionManager.getConnectionState();
+    if (!connState.isInitialized) {
+      // If actively connecting, await the connection promise instead of polling
+      if (connState.isConnecting) {
+        DevLogger.log(
+          `${this.constructor.name}: ensureReady: awaiting active connection`,
+        );
+        this.awaitConnectionThenConnect();
+        return false;
+      }
+      this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
+      return false;
+    }
+    this.connectRetryCount = 0;
+    return true;
+  }
+
+  /**
+   * Await the PerpsConnectionManager connection promise, then retry connect().
+   * This replaces blind 200ms polling when we know a connection is in progress.
+   */
+  private awaitConnectionThenConnect(): void {
+    // Prevent duplicate awaits — only one outstanding wait at a time
+    if (this.deferConnectTimer) {
+      return;
+    }
+    // Use a sentinel timer value to signal that we're waiting on the promise
+    // This prevents deferConnect from also scheduling a parallel timer
+    const noop = () => {
+      /* sentinel timer */
+    };
+    const sentinel = setTimeout(noop, 0);
+    this.deferConnectTimer = sentinel;
+
+    PerpsConnectionManager.waitForConnection()
+      .then(() => {
+        // Only clear if our sentinel is still the active timer; a disconnect()
+        // followed by a new subscribe() may have replaced it with a real timer.
+        if (this.deferConnectTimer === sentinel) {
+          this.deferConnectTimer = null;
+        }
+        if (this.subscribers.size > 0) {
+          this.connect();
+        }
+      })
+      .catch(() => {
+        if (this.deferConnectTimer === sentinel) {
+          this.deferConnectTimer = null;
+        }
+        // Connection failed — fall back to normal defer polling
+        if (this.subscribers.size > 0) {
+          DevLogger.log(
+            `${this.constructor.name}: awaitConnectionThenConnect: connection failed, falling back to polling`,
+          );
+          this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
+        }
+      });
+  }
+
+  /**
    * Reconnect the channel after WebSocket reconnection
    * Clears dead subscription and re-establishes if there are active subscribers
    */
@@ -160,6 +263,11 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
+    this.connectRetryCount = 0;
+    if (this.deferConnectTimer) {
+      clearTimeout(this.deferConnectTimer);
+      this.deferConnectTimer = null;
+    }
     // This prevents orphaned timers from continuing to run after disconnect
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {
@@ -208,6 +316,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.hasReceivedFirstUpdate = false;
     });
 
     // Disconnect the old WebSocket subscription to stop receiving old account data
@@ -238,7 +347,7 @@ abstract class StreamChannel<T> {
 
 // Specific channel for prices
 class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
-  private symbols = new Set<string>();
+  private readonly symbols = new Set<string>();
   private prewarmUnsubscribe?: () => void;
   private actualPriceUnsubscribe?: () => void;
   private allMarketSymbols: string[] = [];
@@ -251,6 +360,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     if (this.wsSubscription) {
       return;
     }
+
+    if (!this.ensureReady()) return;
 
     // If we have a prewarm subscription, we're already subscribed to all markets
     // No need to create another subscription
@@ -371,109 +482,99 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return this.prewarmUnsubscribe;
     }
 
-    try {
-      const controller = Engine.context.PerpsController;
+    const controller = Engine.context.PerpsController;
+    if (!controller) return () => undefined;
 
-      // Increment cycle ID to detect stale promises from previous prewarm cycles
-      // This prevents subscription leaks when user navigates: Perps → away → back quickly
-      this.prewarmCycleId++;
-      const currentCycleId = this.prewarmCycleId;
+    // Increment cycle ID to detect stale promises from previous prewarm cycles
+    // This prevents subscription leaks when user navigates: Perps → away → back quickly
+    this.prewarmCycleId++;
+    const currentCycleId = this.prewarmCycleId;
 
-      // Start market fetch in background (non-blocking)
-      // We need the symbols to register subscribers, but we can return immediately
-      const marketsPromise = controller.getMarkets();
-
-      // Set up subscription once markets arrive (fire-and-forget)
-      marketsPromise
-        .then((markets) => {
-          // If this promise is from a stale cycle, don't set up subscription
-          // This prevents leaks when prewarm is called multiple times rapidly
-          if (currentCycleId !== this.prewarmCycleId) {
-            DevLogger.log('PriceStreamChannel: Skipping stale prewarm cycle', {
-              currentCycleId,
-              activeCycleId: this.prewarmCycleId,
-            });
-            return;
-          }
-
-          // If already cleaned up, don't set up subscription
-          if (this.prewarmUnsubscribe === undefined) {
-            return;
-          }
-
-          this.allMarketSymbols = markets.map((market) => market.name);
-
-          DevLogger.log(
-            'PriceStreamChannel: Pre-warming with all market symbols',
-            {
-              symbolCount: this.allMarketSymbols.length,
-              symbols: this.allMarketSymbols.slice(0, 10),
-            },
-          );
-
-          // Subscribe to all market prices
-          const unsub = controller.subscribeToPrices({
-            symbols: this.allMarketSymbols,
-            callback: (updates: PriceUpdate[]) => {
-              const priceMap: Record<string, PriceUpdate> = {};
-              updates.forEach((update) => {
-                const priceUpdate: PriceUpdate = {
-                  symbol: update.symbol,
-                  price: update.price,
-                  timestamp: Date.now(),
-                  percentChange24h: update.percentChange24h,
-                  bestBid: update.bestBid,
-                  bestAsk: update.bestAsk,
-                  spread: update.spread,
-                  markPrice: update.markPrice,
-                  funding: update.funding,
-                  openInterest: update.openInterest,
-                  volume24h: update.volume24h,
-                };
-                this.priceCache.set(update.symbol, priceUpdate);
-                priceMap[update.symbol] = priceUpdate;
-              });
-
-              if (this.subscribers.size > 0) {
-                this.notifySubscribers(priceMap);
-              }
-            },
+    // Start market fetch in background (non-blocking)
+    // We need the symbols to register subscribers, but we can return immediately
+    controller
+      .getMarkets()
+      .then((markets) => {
+        // If this promise is from a stale cycle, don't set up subscription
+        // This prevents leaks when prewarm is called multiple times rapidly
+        if (currentCycleId !== this.prewarmCycleId) {
+          DevLogger.log('PriceStreamChannel: Skipping stale prewarm cycle', {
+            currentCycleId,
+            activeCycleId: this.prewarmCycleId,
           });
+          return;
+        }
 
-          // Store the actual unsubscribe function
-          this.actualPriceUnsubscribe = unsub;
-        })
-        .catch((error) => {
-          Logger.error(
-            ensureError(error, 'PriceStreamChannel.prewarm.backgroundFetch'),
-            {
-              context: 'PriceStreamChannel.prewarm.backgroundFetch',
-            },
-          );
-          // Reset state so subsequent prewarm/connect calls can recover
-          this.prewarmUnsubscribe = undefined;
-          this.allMarketSymbols = [];
-          // Reconnect waiting subscribers that were skipped because prewarm was pending
-          if (this.subscribers.size > 0) {
-            this.connect();
-          }
+        // If already cleaned up, don't set up subscription
+        if (this.prewarmUnsubscribe === undefined) {
+          return;
+        }
+
+        this.allMarketSymbols = markets.map((market) => market.name);
+
+        DevLogger.log(
+          'PriceStreamChannel: Pre-warming with all market symbols',
+          {
+            symbolCount: this.allMarketSymbols.length,
+            symbols: this.allMarketSymbols.slice(0, 10),
+          },
+        );
+
+        // Subscribe to all market prices
+        const unsub = controller.subscribeToPrices({
+          symbols: this.allMarketSymbols,
+          callback: (updates: PriceUpdate[]) => {
+            const priceMap: Record<string, PriceUpdate> = {};
+            updates.forEach((update) => {
+              const priceUpdate: PriceUpdate = {
+                symbol: update.symbol,
+                price: update.price,
+                timestamp: Date.now(),
+                percentChange24h: update.percentChange24h,
+                bestBid: update.bestBid,
+                bestAsk: update.bestAsk,
+                spread: update.spread,
+                markPrice: update.markPrice,
+                funding: update.funding,
+                openInterest: update.openInterest,
+                volume24h: update.volume24h,
+              };
+              this.priceCache.set(update.symbol, priceUpdate);
+              priceMap[update.symbol] = priceUpdate;
+            });
+
+            if (this.subscribers.size > 0) {
+              this.notifySubscribers(priceMap);
+            }
+          },
         });
 
-      // Return cleanup function immediately (before markets load)
-      this.prewarmUnsubscribe = () => {
-        DevLogger.log('PriceStreamChannel: Cleaning up prewarm subscription');
-        this.cleanupPrewarm();
-      };
-
-      return this.prewarmUnsubscribe;
-    } catch (error) {
-      Logger.error(ensureError(error, 'PriceStreamChannel.prewarm'), {
-        context: 'PriceStreamChannel.prewarm',
+        // Store the actual unsubscribe function
+        this.actualPriceUnsubscribe = unsub;
+      })
+      .catch((error) => {
+        Logger.error(
+          ensureError(error, 'PriceStreamChannel.prewarm.backgroundFetch'),
+          {
+            context: 'PriceStreamChannel.prewarm.backgroundFetch',
+          },
+        );
+        // Reset state so subsequent prewarm/connect calls can recover
+        this.prewarmUnsubscribe = undefined;
+        this.allMarketSymbols = [];
+        // Reconnect waiting subscribers that were skipped because prewarm was pending
+        if (this.subscribers.size > 0) {
+          this.connect();
+        }
       });
-      return () => {
-        // No-op
-      };
-    }
+
+    // Return cleanup function immediately (before markets load)
+    this.prewarmUnsubscribe = () => {
+      DevLogger.log('PriceStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+
+    return this.prewarmUnsubscribe;
   }
 
   /**
@@ -489,22 +590,15 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   }
 }
 
-// Specific channel for orders
-class OrderStreamChannel extends StreamChannel<Order[]> {
+// Specific channel for orders (null = cleared on account switch; hooks show skeleton until next update)
+class OrderStreamChannel extends StreamChannel<Order[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      setTimeout(
-        () => this.connect(),
-        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
-      );
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // Start trace for first data measurement (before subscription)
     this.firstDataTraceId = uuidv4();
@@ -565,13 +659,13 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 
   protected getCachedData() {
-    // Return null if no cache exists to distinguish from empty array
     const cached = this.cache.get('orders');
-    return cached !== undefined ? cached : null;
+    if (cached !== undefined) return cached;
+    return getPreloadedData<Order[]>('cachedOrders');
   }
 
-  protected getClearedData(): Order[] {
-    return [];
+  protected getClearedData(): Order[] | null {
+    return null;
   }
 
   /**
@@ -624,22 +718,15 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 }
 
-// Specific channel for positions
-class PositionStreamChannel extends StreamChannel<Position[]> {
+// Specific channel for positions (null = cleared on account switch; hooks show skeleton until next update)
+class PositionStreamChannel extends StreamChannel<Position[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      setTimeout(
-        () => this.connect(),
-        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
-      );
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // Start trace for first data measurement (before subscription)
     this.firstDataTraceId = uuidv4();
@@ -704,13 +791,13 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   }
 
   protected getCachedData() {
-    // Return null if no cache exists to distinguish from empty array
     const cached = this.cache.get('positions');
-    return cached !== undefined ? cached : null;
+    if (cached !== undefined) return cached;
+    return getPreloadedData<Position[]>('cachedPositions');
   }
 
-  protected getClearedData(): Position[] {
-    return [];
+  protected getClearedData(): Position[] | null {
+    return null;
   }
 
   /**
@@ -824,6 +911,8 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   protected connect() {
     if (this.wsSubscription) return;
 
+    if (!this.ensureReady()) return;
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
       callback: (fills: OrderFill[], isSnapshot?: boolean) => {
         let updated: OrderFill[];
@@ -888,6 +977,13 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
       this.prewarmUnsubscribe = undefined;
     }
   }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
 }
 
 // Specific channel for account state
@@ -898,14 +994,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      setTimeout(
-        () => this.connect(),
-        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
-      );
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // Start trace for first data measurement (before subscription)
     this.firstDataTraceId = uuidv4();
@@ -970,8 +1059,9 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 
   protected getCachedData(): AccountState | null {
-    // Return cached data for instant display
-    return this.cache.get('account') || null;
+    const cached = this.cache.get('account');
+    if (cached !== undefined) return cached;
+    return getPreloadedData<AccountState>('cachedAccountState');
   }
 
   protected getClearedData(): AccountState | null {
@@ -1035,14 +1125,7 @@ class OICapStreamChannel extends StreamChannel<string[]> {
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      setTimeout(
-        () => this.connect(),
-        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
-      );
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // Subscribe to OI cap updates (zero overhead - extracted from existing webData3)
     this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
@@ -1068,7 +1151,7 @@ class OICapStreamChannel extends StreamChannel<string[]> {
   protected getCachedData(): string[] | null {
     // Return null if no cache exists to distinguish from empty array
     const cached = this.cache.get('oiCaps');
-    return cached !== undefined ? cached : null;
+    return cached ?? null;
   }
 
   protected getClearedData(): string[] {
@@ -1132,6 +1215,8 @@ class TopOfBookStreamChannel extends StreamChannel<
     if (!this.currentSymbol || this.wsSubscription) {
       return;
     }
+
+    if (!this.ensureReady()) return;
 
     DevLogger.log(`TopOfBookStreamChannel: Subscribing to top of book`, {
       symbol: this.currentSymbol,
@@ -1219,24 +1304,30 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     PERFORMANCE_CONFIG.MarketDataCacheDurationMs;
 
   protected connect() {
+    if (!this.ensureReady()) return;
+
     // Check if connection manager is still connecting - retry later if so
     if (PerpsConnectionManager.isCurrentlyConnecting()) {
-      setTimeout(() => this.connect(), 200);
+      this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
       return;
     }
 
-    // Get current provider ID
+    // Get current provider ID + network as a composite key.
+    // Network changes (testnet toggle) must also invalidate the market cache.
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
+    // Note: uses state.isTestnet directly. If PROVIDER_CONFIG.MYX_TESTNET_ONLY is
+    // ever re-enabled, this key would diverge from PerpsController.#providerIsTestnet().
+    const currentNetworkKey = `${currentProviderId}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
 
-    // Invalidate cache if provider changed
-    if (this.cachedProviderId && this.cachedProviderId !== currentProviderId) {
+    // Invalidate cache if provider OR network changed
+    if (this.cachedProviderId && this.cachedProviderId !== currentNetworkKey) {
       DevLogger.log(
-        'PerpsStreamManager: Provider changed, invalidating cache',
+        'PerpsStreamManager: Provider/network changed, invalidating cache',
         {
           from: this.cachedProviderId,
-          to: currentProviderId,
+          to: currentNetworkKey,
         },
       );
       this.cache.delete('markets');
@@ -1285,46 +1376,61 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     this.fetchPromise = (async () => {
       const fetchStartTime = Date.now();
       try {
+        const controller = Engine.context.PerpsController;
+
+        // One-time read of controller-level preloaded cache (REST snapshot).
+        // This avoids an HTTP round-trip when the controller already has fresh data.
+        const controllerNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+        const cachedForProvider =
+          controller.getCachedMarketDataForActiveProvider?.();
+        if (
+          cachedForProvider &&
+          cachedForProvider.length > 0 &&
+          (!this.cachedProviderId ||
+            this.cachedProviderId === controllerNetworkKey)
+        ) {
+          DevLogger.log(
+            'PerpsStreamManager: Using controller preloaded market data',
+            {
+              marketCount: cachedForProvider.length,
+            },
+          );
+          this.cache.set('markets', cachedForProvider);
+          this.lastFetchTime = Date.now();
+          this.cachedProviderId = controllerNetworkKey;
+          this.notifySubscribers(cachedForProvider);
+          return;
+        }
+
         DevLogger.log(
           'PerpsStreamManager: Fetching fresh market data from API',
         );
 
-        const controller = Engine.context.PerpsController;
-        const provider = controller.getActiveProviderOrNull();
-        if (!provider) {
-          DevLogger.log(
-            'PerpsStreamManager: Provider not ready, skipping fetch',
-          );
-          return;
-        }
+        // Snapshot provider + network BEFORE the async call to avoid race conditions.
+        // If the user switches providers or toggles testnet while getMarketDataWithPrices()
+        // is in-flight, we must not tag the returned data with the new network key.
+        const preFetchNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
 
-        // Snapshot provider ID BEFORE the async call to avoid race conditions.
-        // If the user switches providers while getMarketDataWithPrices() is
-        // in-flight, we must not tag the returned data with the new provider's ID.
-        const preFetchProviderId =
-          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-
-        const data = await provider.getMarketDataWithPrices();
+        const data = await controller.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
 
-        // If provider changed during fetch, discard stale data
-        const currentProviderId =
-          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-        if (preFetchProviderId !== currentProviderId) {
+        // If provider or network changed during fetch, discard stale data
+        const postFetchNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+        if (preFetchNetworkKey !== postFetchNetworkKey) {
           DevLogger.log(
-            'PerpsStreamManager: Provider changed during fetch, discarding data',
+            'PerpsStreamManager: Provider/network changed during fetch, discarding data',
             {
-              fetchedFor: preFetchProviderId,
-              currentProvider: currentProviderId,
+              fetchedFor: preFetchNetworkKey,
+              current: postFetchNetworkKey,
             },
           );
           return;
         }
 
-        // Update cache and track which provider this data came from
+        // Update cache and track which provider+network this data came from
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
-        this.cachedProviderId = preFetchProviderId;
+        this.cachedProviderId = preFetchNetworkKey;
 
         // Notify all subscribers
         this.notifySubscribers(data);
@@ -1339,12 +1445,26 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         });
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
+        const existing = this.cache.get('markets');
+        const cacheStalenessMs = this.lastFetchTime
+          ? Date.now() - this.lastFetchTime
+          : null;
         Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
-          context: 'PerpsStreamManager.fetchMarketData',
-          fetchTimeMs: fetchTime,
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+          },
+          context: {
+            name: 'PerpsStreamManager',
+            data: {
+              method: 'fetchMarketData',
+              fetchTimeMs: fetchTime,
+              hadCachedData: !!existing,
+              cachedMarketCount: existing?.length ?? 0,
+              cacheStalenessMs,
+            },
+          },
         });
         // Keep existing cache if fetch fails
-        const existing = this.cache.get('markets');
         if (existing) {
           DevLogger.log(
             'PerpsStreamManager: Using stale cache after fetch failure',
@@ -1371,7 +1491,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   }
 
   protected getCachedData(): PerpsMarketData[] | null {
-    return this.cache.get('markets') || null;
+    // Return channel cache if available (from previous fetch)
+    const cached = this.cache.get('markets');
+    if (cached !== undefined) return cached;
+
+    // Fallback: read per-provider cache via helper
+    const controller = Engine.context.PerpsController;
+    return controller.getCachedMarketDataForActiveProvider?.() ?? null;
   }
 
   protected getClearedData(): PerpsMarketData[] {
@@ -1397,25 +1523,30 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   }
 
   /**
-   * Clear cache and reset fetch time
+   * Clear cache and reset fetch time.
+   *
+   * @param skipNotify - When true, subscribers keep their current data (used on
+   * account switches where market data is global and stays valid). When false
+   * (default), subscribers are notified with `[]` and their throttle state is
+   * reset so the next fetch result is delivered immediately.
    */
-  public clearCache(): void {
-    // Clear the cache
+  public clearCache(skipNotify = false): void {
     this.cache.clear();
     this.lastFetchTime = 0;
     this.fetchPromise = null;
     this.cachedProviderId = null;
 
-    // Notify subscribers with empty array (no market data) instead of null (loading)
     this.subscribers.forEach((subscriber) => {
-      // Clear any pending updates and timers
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-      // Send empty array to indicate "no market data" rather than "loading"
-      subscriber.callback([]);
+
+      if (!skipNotify) {
+        subscriber.hasReceivedFirstUpdate = false;
+        subscriber.callback([]);
+      }
     });
   }
 }
@@ -1430,7 +1561,9 @@ export class PerpsStreamManager {
   public readonly marketData = new MarketDataChannel();
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
-  public readonly candles = new CandleStreamChannel();
+  public readonly candles = new CandleStreamChannel(
+    () => PerpsConnectionManager.getConnectionState().isInitialized,
+  );
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();

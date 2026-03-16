@@ -23,10 +23,9 @@ import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
-import { MetaMetrics } from '../../core/Analytics';
-import Logger from '../../util/Logger';
 import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { providerErrors } from '@metamask/rpc-errors';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -57,9 +56,7 @@ jest.mock('../../core/AppStateEventListener', () => ({
 jest.mock('../../core/Analytics', () => ({
   __esModule: true,
   MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({
-      configure: jest.fn().mockResolvedValue(true),
-    }),
+    getInstance: jest.fn().mockReturnValue({}),
   },
 }));
 
@@ -78,6 +75,9 @@ jest.mock('../../core/Engine', () => ({
     },
     AccountsController: {
       updateAccounts: jest.fn(),
+    },
+    ApprovalController: {
+      clear: jest.fn(),
     },
     RemoteFeatureFlagController: {
       state: {
@@ -348,9 +348,13 @@ describe('appStateListenerTask', () => {
 });
 
 describe('appLockStateMachine', () => {
+  const mockApprovalControllerClear = Engine.context.ApprovalController
+    .clear as jest.Mock;
+
   beforeEach(() => {
     mockNavigate.mockClear();
     mockReset.mockClear();
+    mockApprovalControllerClear.mockClear();
   });
 
   it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
@@ -361,6 +365,29 @@ describe('appLockStateMachine', () => {
       .run();
 
     // Verify navigation to LockScreen
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+  });
+
+  it('clears pending approvals via ApprovalController.clear when app is locked', async () => {
+    await expectSaga(appLockStateMachine)
+      .dispatch({ type: UserActionType.LOCKED_APP })
+      .run();
+
+    expect(mockApprovalControllerClear).toHaveBeenCalledWith(
+      providerErrors.userRejectedRequest(),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+  });
+
+  it('navigates to LockScreen even when ApprovalController.clear throws', async () => {
+    mockApprovalControllerClear.mockImplementationOnce(() => {
+      throw new Error('clear failed');
+    });
+
+    await expectSaga(appLockStateMachine)
+      .dispatch({ type: UserActionType.LOCKED_APP })
+      .run();
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 });
@@ -385,32 +412,6 @@ describe('startAppServices', () => {
     // Verify services are started
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
-    expect(MetaMetrics.getInstance().configure).toHaveBeenCalled();
-  });
-
-  it('logs error when MetaMetrics.configure fails', async () => {
-    MetaMetrics.getInstance().configure = jest
-      .fn()
-      .mockRejectedValueOnce(new Error('Failed to configure MetaMetrics'));
-
-    await expectSaga(startAppServices)
-      .withState({
-        onboarding: { completedOnboarding: false },
-        user: { existingUser: true },
-      })
-      // Dispatch both required actions
-      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .run();
-
-    // Verify services are started
-    expect(EngineService.start).toHaveBeenCalled();
-    expect(AppStateEventProcessor.start).toHaveBeenCalled();
-    expect(MetaMetrics.getInstance().configure).toHaveBeenCalled();
-    expect(Logger.error).toHaveBeenCalledWith(
-      new Error('Failed to configure MetaMetrics'),
-      'Error configuring MetaMetrics',
-    );
   });
 
   it('does not start app services if persisted data is not loaded', async () => {
@@ -424,12 +425,9 @@ describe('startAppServices', () => {
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
     expect(WC2Manager.init).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
-    expect(MetaMetrics.getInstance().configure).not.toHaveBeenCalled();
   });
 
   it('requests authentication on app start', async () => {
-    MetaMetrics.getInstance().configure = jest.fn().mockResolvedValueOnce(true);
-
     await expectSaga(startAppServices)
       .withState({
         onboarding: { completedOnboarding: false },

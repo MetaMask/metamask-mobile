@@ -8,6 +8,7 @@ import {
   Icon,
   IconSize,
   IconName,
+  Label,
 } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
@@ -15,7 +16,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -24,6 +24,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
+  selectCardGeoLocation,
   selectSelectedCountry,
   setContactVerificationId,
   setSelectedCountry,
@@ -31,9 +32,10 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { TouchableOpacity } from 'react-native';
+import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -41,6 +43,7 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import SelectField from './SelectField';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -53,8 +56,12 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const selectedCountry = useSelector(selectSelectedCountry);
-  const { data: registrationSettings } = useRegistrationSettings();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const geoLocation = useSelector(selectCardGeoLocation);
+  const {
+    data: registrationSettings,
+    isLoading: isLoadingRegistrationSettings,
+  } = useRegistrationSettings();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
     trackEvent(
@@ -91,6 +98,22 @@ const SignUp = () => {
         areaCode: country.callingCode,
       }));
   }, [registrationSettings]);
+
+  useEffect(() => {
+    if (selectedCountry || !regions.length || geoLocation === 'UNKNOWN') {
+      return;
+    }
+
+    const matchedRegion = regions.find((region) => region.key === geoLocation);
+    if (matchedRegion) {
+      dispatch(setSelectedCountry(matchedRegion));
+      dispatch(
+        setUserCardLocation(
+          matchedRegion.key === 'US' ? 'us' : 'international',
+        ),
+      );
+    }
+  }, [regions, geoLocation, selectedCountry, dispatch]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -198,6 +221,7 @@ const SignUp = () => {
   ]);
 
   const handleCountrySelect = useCallback(() => {
+    if (isLoadingRegistrationSettings) return;
     resetEmailVerificationSend();
     setOnValueChange((region) => {
       dispatch(setSelectedCountry(region));
@@ -211,7 +235,13 @@ const SignUp = () => {
         regions,
       }),
     );
-  }, [dispatch, navigation, regions, resetEmailVerificationSend]);
+  }, [
+    dispatch,
+    navigation,
+    regions,
+    resetEmailVerificationSend,
+    isLoadingRegistrationSettings,
+  ]);
 
   useEffect(() => () => clearOnValueChange(), []);
 
@@ -219,17 +249,21 @@ const SignUp = () => {
     <>
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <TouchableOpacity
-            onPress={handleCountrySelect}
-            testID="signup-country-select"
+        {isLoadingRegistrationSettings && !selectedCountry ? (
+          <Box
+            twClassName="flex-row items-center justify-center h-12 rounded-xl border border-solid border-border-muted bg-background-muted"
+            testID="signup-country-loading"
           >
-            <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-              <Text variant={TextVariant.BodyMd}>{selectedCountry?.name}</Text>
-              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
-            </Box>
-          </TouchableOpacity>
-        </Box>
+            <ActivityIndicator size="small" />
+          </Box>
+        ) : (
+          <SelectField
+            value={selectedCountry?.name}
+            onPress={handleCountrySelect}
+            isDisabled={isLoadingRegistrationSettings}
+            testID="signup-country-select"
+          />
+        )}
       </Box>
 
       <Box>

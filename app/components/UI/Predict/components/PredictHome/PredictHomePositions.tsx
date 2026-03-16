@@ -37,43 +37,32 @@ const PredictHomePositions = forwardRef<
   const featuredVariant = useSelector(selectPredictHomeFeaturedVariant);
 
   const {
-    positions: activePositions,
-    isRefreshing,
-    loadPositions,
+    data: activePositions = [],
+    isRefetching: isRefreshing,
+    refetch,
     isLoading: isActiveLoading,
     error: activeError,
-  } = usePredictPositions({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  } = usePredictPositions({ claimable: false });
 
   const {
-    positions: claimablePositions,
-    loadPositions: loadClaimablePositions,
+    data: claimablePositions = [],
     isLoading: isClaimableLoading,
     error: claimableError,
-  } = usePredictPositions({
-    claimable: true,
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  } = usePredictPositions({ claimable: true });
 
   const isLoading = isActiveLoading || isClaimableLoading;
   const hasPositions =
     activePositions.length > 0 || claimablePositions.length > 0;
 
   useEffect(() => {
-    const combinedError = activeError || claimableError || accountStateError;
-    onError?.(combinedError);
+    const combinedError =
+      activeError?.message || claimableError?.message || accountStateError;
+    onError?.(combinedError ?? null);
   }, [activeError, claimableError, accountStateError, onError]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
-      await Promise.all([
-        loadPositions({ isRefresh: true }),
-        loadClaimablePositions({ isRefresh: true }),
-        accountStateRef.current?.refresh(),
-      ]);
+      await Promise.all([refetch(), accountStateRef.current?.refresh()]);
     },
   }));
 

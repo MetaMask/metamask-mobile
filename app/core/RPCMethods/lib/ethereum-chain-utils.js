@@ -11,8 +11,9 @@ import {
   Caip25EndowmentPermissionName,
   getPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Engine from '../../Engine';
 import { isSnapId } from '@metamask/snaps-utils';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
@@ -221,7 +222,7 @@ export async function switchToNetwork({
   nativeCurrency,
   rpcUrl,
   chainId,
-  analytics,
+  analytics: analyticsParams,
   origin,
   autoApprove = false,
   hooks,
@@ -280,19 +281,19 @@ export async function switchToNetwork({
   );
 
   const fromChainId = hooks.fromNetworkConfiguration?.chainId;
-  const analyticsParams = {
+  const eventProperties = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
     symbol: nativeCurrency || 'ETH',
     from_network: fromChainId,
     to_network: chainId,
     custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(chainId),
-    ...analytics,
+    ...analyticsParams,
   };
 
-  MetaMetrics.getInstance().trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-      .addProperties(analyticsParams)
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+      .addProperties(eventProperties)
       .build(),
   );
 }

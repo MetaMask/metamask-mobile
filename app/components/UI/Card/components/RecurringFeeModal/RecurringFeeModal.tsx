@@ -14,12 +14,13 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import { RecurringFeeModalSelectors } from './RecurringFeeModal.testIds';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const RecurringFeeModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

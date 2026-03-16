@@ -1,15 +1,14 @@
 import React from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 
 export const PerpsHIP3DebugButton = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   const handleDebugPress = () => {
     navigation.navigate(Routes.PERPS.ROOT, {
