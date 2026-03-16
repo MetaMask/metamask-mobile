@@ -22,7 +22,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
     },
     selectorContainer: {
-      flex: 1,
       flexDirection: 'column',
     },
     mainTitle: {
