@@ -12,7 +12,6 @@ import {
   OrderPreview,
   PlaceOrderParams,
 } from '../../../types';
-import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
@@ -60,16 +59,6 @@ export const usePredictBuyActions = ({
     preview: previewFromRoute,
   } = route.params;
 
-  const handleDepositFailed = useCallback(
-    async (depositErrorMessage?: string) => {
-      setIsConfirming(false);
-      PredictController.onDepositFailed(
-        depositErrorMessage ?? strings('predict.deposit.error_description'),
-      );
-    },
-    [PredictController, setIsConfirming],
-  );
-
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
     PredictController.onConfirmOrder({
@@ -86,14 +75,6 @@ export const usePredictBuyActions = ({
 
   const handleBackSwipe = useCallback(() => {
     PredictController.onOrderCancelled();
-  }, [PredictController]);
-
-  const handlePlaceOrderSuccess = useCallback(() => {
-    PredictController.onOrderSuccess();
-  }, [PredictController]);
-
-  const handlePlaceOrderError = useCallback(() => {
-    PredictController.onOrderError();
   }, [PredictController]);
 
   const handlePlaceOrder = useCallback(async () => {
@@ -120,10 +101,13 @@ export const usePredictBuyActions = ({
     });
 
     if (orderResult.status !== 'success') {
-      setIsConfirming(false);
-      PredictController.onOrderResultError();
+      PredictController.onOrderError();
+      return;
     }
+
+    PredictController.onOrderSuccess();
   }, [
+    PredictController,
     livePreview,
     previewFromRoute,
     batchId,
@@ -131,8 +115,6 @@ export const usePredictBuyActions = ({
     placeOrder,
     analyticsProperties,
     resetSelectedPaymentToken,
-    setIsConfirming,
-    PredictController,
   ]);
 
   const handlePlaceOrderRef = useRef(handlePlaceOrder);
@@ -170,7 +152,9 @@ export const usePredictBuyActions = ({
 
   useEffect(() => {
     if (
+      currentState === ActiveOrderState.DEPOSIT ||
       currentState === ActiveOrderState.DEPOSITING ||
+      currentState === ActiveOrderState.PLACE_ORDER ||
       currentState === ActiveOrderState.PLACING_ORDER
     ) {
       setIsConfirming(true);
@@ -241,8 +225,5 @@ export const usePredictBuyActions = ({
     handleBack,
     handleBackSwipe,
     handleConfirm,
-    handleDepositFailed,
-    handlePlaceOrderSuccess,
-    handlePlaceOrderError,
   };
 };

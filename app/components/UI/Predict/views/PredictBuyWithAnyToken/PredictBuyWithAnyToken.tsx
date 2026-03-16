@@ -46,7 +46,6 @@ import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags'
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
-import { usePredictOrderTracking } from './hooks/usePredictOrderTracking';
 
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
@@ -91,7 +90,6 @@ const PredictBuyWithAnyToken = () => {
     placeOrder,
     isLoading: isPlaceOrderLoading,
     error: placeOrderError,
-    result,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
@@ -154,13 +152,7 @@ const PredictBuyWithAnyToken = () => {
     isConfirming,
   });
 
-  const {
-    handleBack,
-    handleBackSwipe,
-    handleConfirm,
-    handlePlaceOrderSuccess,
-    handlePlaceOrderError,
-  } = usePredictBuyActions({
+  const { handleBack, handleBackSwipe, handleConfirm } = usePredictBuyActions({
     currentValue,
     analyticsProperties,
     preview,
@@ -199,13 +191,6 @@ const PredictBuyWithAnyToken = () => {
       hasBalance: availableBalance !== undefined,
       isBalanceLoading,
     },
-  });
-
-  usePredictOrderTracking({
-    result,
-    error: placeOrderError,
-    onSuccess: handlePlaceOrderSuccess,
-    onError: handlePlaceOrderError,
   });
 
   const edges = useMemo(

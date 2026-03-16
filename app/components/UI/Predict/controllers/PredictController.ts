@@ -1986,20 +1986,12 @@ export class PredictController extends BaseController<
     });
   }
 
-  public onDepositFailed(errorMessage: string): void {
+  public onDepositOrderFailed(errorMessage?: string): void {
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
         state.activeOrder.error = errorMessage;
         delete state.activeOrder.batchId;
-      }
-    });
-  }
-
-  public onOrderResultError(): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.PREVIEW;
       }
     });
   }
@@ -2369,12 +2361,7 @@ export class PredictController extends BaseController<
 
       const errorMessage = e.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
-      this.update((state) => {
-        if (state.activeOrder) {
-          state.activeOrder.error = errorMessage;
-          state.activeOrder.batchId = PREDICTION_ERROR_TRANSACTION_BATCH_ID;
-        }
-      });
+      this.onDepositOrderFailed(errorMessage);
 
       Logger.error(
         e,
@@ -2469,7 +2456,7 @@ export class PredictController extends BaseController<
     });
 
     try {
-      this.handleTransactionSideEffects(type, status, address);
+      this.handleTransactionSideEffects(type, status, address, transactionMeta);
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -2496,6 +2483,7 @@ export class PredictController extends BaseController<
     type: PredictTransactionEventType,
     status: PredictTransactionEventStatus,
     address: string,
+    transactionMeta: TransactionMeta,
   ): void {
     const isTerminal =
       status === 'confirmed' || status === 'failed' || status === 'rejected';
@@ -2506,6 +2494,15 @@ export class PredictController extends BaseController<
 
     if (type === 'depositAndOrder' && status === 'confirmed') {
       this.onDepositOrderSuccess();
+    }
+
+    if (
+      type === 'depositAndOrder' &&
+      (status === 'failed' || status === 'rejected')
+    ) {
+      this.onDepositOrderFailed(
+        transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED,
+      );
     }
 
     if (type === 'claim' && isTerminal) {
