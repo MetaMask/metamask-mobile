@@ -137,6 +137,147 @@ Component input → Hook state → Validation → Controller action
 | Price history            | `usePredictPriceHistory` | Price history fetching with pagination, search, infinite scroll, and retry logic |
 | Order notifications      | `usePredictOrders`       | Automatic toast notifications, status tracking                                   |
 
+## PredictBuyWithAnyToken
+
+The buy/order flow lives in `views/PredictBuyWithAnyToken/`. This is the primary screen where users place prediction market orders, handling direct orders, deposit-and-order flows, and pay-with-any-token flows.
+
+### Components
+
+| Component                    | Description                                                          |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `PredictBuyActionButton`     | Main CTA button with loading/disabled states tied to order lifecycle |
+| `PredictBuyAmountSection`    | Keypad and amount input for entering bet size                        |
+| `PredictBuyBottomContent`    | Bottom area layout (fee summary, action button, errors)              |
+| `PredictBuyMinimumError`     | Error display when amount is below the minimum bet                   |
+| `PredictBuyPreviewHeader`    | Header showing market/outcome info and back navigation               |
+| `PredictFeeSummary`          | Breakdown of MetaMask fee, provider fee, deposit fee, and total      |
+| `PredictPayWithAnyTokenInfo` | Confirmation screen info component for deposit-and-order tx type     |
+| `PredictPayWithRow`          | Payment token selector row (Predict balance or external tokens)      |
+
+### Hooks
+
+| Hook                            | Description                                                                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `usePredictBuyPreviewActions`   | Core orchestrator — wires `activeOrder` state transitions to navigation and side effects (confirm, back, deposit, place order)   |
+| `usePredictBuyConditions`       | Derives boolean flags (`canPlaceBet`, `isPlacingOrder`, `isBelowMinimum`, `isPayFeesLoading`, etc.) from order and preview state |
+| `usePredictBuyInfo`             | Computes display values (toWin, fees, total, errorMessage) from preview and pay totals                                           |
+| `usePredictBuyInputState`       | Manages keypad input value, user-change tracking, and input focus state                                                          |
+| `usePredictBuyAvailableBalance` | Resolves the available balance for the selected payment method (Predict balance or external token)                               |
+| `usePredictBuyBackSwipe`        | Handles iOS swipe-back gesture to cancel the active order                                                                        |
+
+## Active Order Lifecycle
+
+The `activeOrder` in `PredictControllerState` tracks the full lifecycle of a single order from preview to completion. Only one order can be active at a time.
+
+### State Shape
+
+```typescript
+activeOrder?: {
+  amount?: number;           // USD amount for the order
+  batchId?: string;          // Transaction batch ID (for deposit-and-order flow)
+  isInputFocused?: boolean;  // Whether the keypad is focused
+  state: ActiveOrderState;   // Current lifecycle state
+  error?: string;            // Error message from failed operations
+} | null;
+```
+
+### ActiveOrderState
+
+```typescript
+enum ActiveOrderState {
+  PREVIEW = 'preview', // User is editing amount on the keypad
+  DEPOSIT = 'deposit', // Deposit step initiated (confirm route)
+  DEPOSITING = 'depositing', // Deposit transaction in progress
+  PLACE_ORDER = 'place_order', // Ready to submit order to provider
+  PLACING_ORDER = 'placing_order', // Order submission in flight
+  REDIRECTING = 'redirecting', // Navigating to confirmation screen
+  PAY_WITH_ANY_TOKEN = 'pay_with_any_token', // On confirmation screen with external token
+  SUCCESS = 'success', // Order completed, about to dismiss
+}
+```
+
+### State Machine
+
+```
+                                                         CANCELLED (null)
+                                                         <- back/swipe from any state
+                                                         <- depositAndOrder tx rejected
+                                                           (PAY_WITH_ANY_TOKEN also
+                                                            calls onApprovalReject)
+
+    +------------+
+    |            |   select non-balance token
+----+ PREVIEW    +---------------------------------> +--------------+
+    |            |<-- select balance token ---------- | REDIRECTING  |<--+
+    +--+----^----+                                   +------+-------+   |
+       |    |                                               |           |
+       |    |                                          navigates to     |
+       |    |                                          confirmation     |
+       |    |                                               |           |
+       |    |                                        +------v--------+  |
+       |    |                                        | PAY_WITH_     |  |
+       |    |                                        | ANY_TOKEN     |  |
+       |    |                                        +------+--------+  |
+       |    |                                               |           |
+       |    |                                     confirm   |           |
+       |    |                                    (isDeposit |           |
+       |    |                                     = true)   |           |
+       |    |                                               |           |
+       |    |                                        +------v-------+   |
+       |    |                                        |  DEPOSIT     |   |
+       |    |                                        +------+-------+   |
+       |    |                                               |           |
+       |    |                                        +------v--------+  |
+       |    |                                        |              |   |
+       |    |                                        |  DEPOSITING  +---+
+       |    |                                        |              | tx failed
+       |    |                                        +------+-------+
+       |    |                                               |
+       |    | order error                              tx confirmed
+       |    | or not_filled                    (onDepositOrderSuccess)
+       |    |                                               |
+  confirm  |                                               |
+  (no dep) |                                               |
+       |   |                                               |
+       v   |                                               |
+    +------+----+<-----------------------------------------+
+    |           |
+    | PLACE_    |
+    | ORDER     |
+    |           |
+    +------+----+
+           |
+    +------v--------+
+    |  PLACING_     |
+    |  ORDER        |
+    +------+--------+
+           |
+      +----+-----+
+   success   not_filled (-> PREVIEW + retry sheet)
+      |
+   +--v--------+
+   | SUCCESS   |-- auto-pop + onPlaceOrderEnd() -> null
+   +-----------+
+```
+
+### Controller Methods (State Transitions)
+
+| Method                       | Transition                            | Side Effects                           |
+| ---------------------------- | ------------------------------------- | -------------------------------------- |
+| `initializeOrder()`          | -> PREVIEW                            | Clears payment token, tracks INITIATED |
+| `onConfirmOrder(isDeposit)`  | -> DEPOSIT or PLACE_ORDER             | Clears error                           |
+| `onDepositOrder()`           | -> DEPOSITING                         |                                        |
+| `onDepositOrderSuccess()`    | -> PLACE_ORDER                        | Clears payment token                   |
+| `onDepositOrderFailed()`     | -> REDIRECTING                        | Sets error, deletes batchId, retries   |
+| `onPlaceOrder()`             | -> PLACING_ORDER                      |                                        |
+| `onOrderSuccess()`           | -> SUCCESS                            |                                        |
+| `onOrderError()`             | -> PREVIEW                            | Clears payment token                   |
+| `onOrderCancelled()`         | -> null                               | Clears payment token                   |
+| `onPlaceOrderEnd()`          | -> null                               | Clears payment token                   |
+| `onBuyPaymentTokenChange()`  | PAY_WITH_ANY_TOKEN+balance -> PREVIEW | Clears error                           |
+|                              | PREVIEW+non-balance -> REDIRECTING    | Starts payWithAnyTokenConfirmation     |
+| `onConfirmationRedirected()` | -> PAY_WITH_ANY_TOKEN                 |                                        |
+
 ## Core Types and Utilities
 
 ### Key Types (`/types/index.ts`)
