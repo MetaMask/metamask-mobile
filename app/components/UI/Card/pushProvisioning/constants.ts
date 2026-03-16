@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
  * Minimum account creation date for push provisioning eligibility.
  * Accounts created before this date are not eligible.
  */
-export const PROVISIONING_ELIGIBLE_AFTER = '2026-01-01T00:00:00.000Z';
+export const PROVISIONING_ELIGIBLE_AFTER = '2025-11-10T00:00:00.000Z';
 
 /**
  * Get the wallet name for the current platform
