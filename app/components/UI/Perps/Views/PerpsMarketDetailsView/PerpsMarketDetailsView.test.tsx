@@ -1071,6 +1071,8 @@ describe('PerpsMarketDetailsView', () => {
         },
         isInitialLoading: false,
       });
+      mockEnsureArbitrumNetworkExists.mockClear();
+      mockEnsureArbitrumNetworkExists.mockResolvedValue(undefined);
       mockDepositWithConfirmation.mockRejectedValueOnce(
         new Error('Deposit failed'),
       );
@@ -1089,6 +1091,7 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(addFundsButton);
       });
       await waitFor(() => {
+        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
       });
     });
