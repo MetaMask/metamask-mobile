@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { FlatList, type ListRenderItemInfo } from 'react-native';
+import { FlatList, Pressable, type ListRenderItemInfo } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -28,6 +28,10 @@ export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
 
 interface CampaignLeaderboardProps {
   campaignId: string;
+  /** Called when the leaderboard header row is pressed (e.g. to navigate to full view). */
+  onHeaderPress?: () => void;
+  /** Whether to render the internal "Leaderboard" header row. Defaults to true. */
+  showInternalHeader?: boolean;
 }
 
 interface LeaderboardRow {
@@ -49,6 +53,8 @@ function formatScore(score: string): string {
 
 const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   campaignId,
+  onHeaderPress,
+  showInternalHeader = true,
 }) => {
   const { leaderboard } = useGetCampaignLeaderboard(campaignId);
   const userReferralCode = useSelector(selectReferralCode);
@@ -96,8 +102,9 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
     }
   }, [leaderboard, userListIndex, listData.length]);
 
-  const renderHeader = useCallback(
-    () => (
+  const renderHeader = useCallback(() => {
+    if (!showInternalHeader) return null;
+    const content = (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -123,9 +130,19 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
           color={IconColor.IconDefault}
         />
       </Box>
-    ),
-    [],
-  );
+    );
+    if (onHeaderPress) {
+      return (
+        <Pressable
+          onPress={onHeaderPress}
+          testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.HEADER}-pressable`}
+        >
+          {content}
+        </Pressable>
+      );
+    }
+    return content;
+  }, [showInternalHeader, onHeaderPress]);
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<ListItem>) => {

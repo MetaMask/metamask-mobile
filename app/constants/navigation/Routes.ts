@@ -102,6 +102,7 @@ const Routes = {
   CAMPAIGNS_VIEW: 'CampaignsView',
   CAMPAIGN_DETAILS: 'CampaignDetails',
   CAMPAIGN_MECHANICS: 'CampaignMechanics',
+  CAMPAIGN_LEADERBOARD: 'CampaignLeaderboard',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
   SITES_FULL_VIEW: 'SitesFullView',

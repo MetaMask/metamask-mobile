@@ -54,6 +54,12 @@ const CampaignDetailsView: React.FC = () => {
     });
   }, [navigation, campaign.id]);
 
+  const handleLeaderboardPress = useCallback(() => {
+    navigation.navigate(Routes.CAMPAIGN_LEADERBOARD, {
+      campaignId: campaign.id,
+    });
+  }, [navigation, campaign.id]);
+
   const handleCtaPress = useCallback(async () => {
     if (isOptedIn) {
       handleDeeplink({ uri: SWAP_DEEPLINK });
@@ -91,7 +97,10 @@ const CampaignDetailsView: React.FC = () => {
               <CampaignHowItWorks howItWorks={campaign.details.howItWorks} />
             </Box>
           )}
-          <CampaignLeaderboard campaignId={campaign.id} />
+          <CampaignLeaderboard
+            campaignId={campaign.id}
+            onHeaderPress={handleLeaderboardPress}
+          />
         </ScrollView>
 
         <Box twClassName="px-4 pb-4 pt-2">

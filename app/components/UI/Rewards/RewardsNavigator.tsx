@@ -6,6 +6,7 @@ import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import CampaignDetailsView from './Views/CampaignDetailsView';
+import CampaignLeaderboardView from './Views/CampaignLeaderboardView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
 import CampaignsView from './Views/CampaignsView';
 import { useSelector } from 'react-redux';
@@ -89,6 +90,11 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.CAMPAIGN_MECHANICS}
             component={CampaignMechanicsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.CAMPAIGN_LEADERBOARD}
+            component={CampaignLeaderboardView}
             options={{ headerShown: false }}
           />
         </>

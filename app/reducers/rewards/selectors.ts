@@ -285,3 +285,20 @@ export const selectCampaignNotes =
     }
     return null;
   };
+
+/**
+ * Returns the current user's leaderboard rank and score for a campaign.
+ * Matches by referral code. Returns null if not found or leaderboard not loaded.
+ */
+export const selectCampaignUserLeaderboardEntry =
+  (campaignId: string) =>
+  (state: RootState): { rank: number; totalScore: string } | null => {
+    const leaderboard = state.rewards.campaignLeaderboards[campaignId];
+    const referralCode = state.rewards.referralCode;
+    if (!leaderboard || !referralCode) return null;
+    const index = leaderboard.top20.findIndex(
+      (entry) => entry.referralCode === referralCode,
+    );
+    if (index < 0) return null;
+    return { rank: index + 1, totalScore: leaderboard.top20[index].totalScore };
+  };

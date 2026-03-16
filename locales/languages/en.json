@@ -7801,6 +7801,11 @@
     "campaign_mechanics": {
       "title": "Mechanics"
     },
+    "campaign_leaderboard": {
+      "title": "Pending Leaderboard",
+      "qualifying_deposits": "Qualifying Deposits",
+      "rank_of_total": "of {{count}}"
+    },
     "campaigns_preview": {
       "title": "Campaigns",
       "coming_soon": "Coming soon",
