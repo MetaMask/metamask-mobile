@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import SecurityBadgeBottomSheet from './SecurityBadgeBottomSheet';
 import { IconName, IconColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -36,20 +36,29 @@ const mockRouteParams = {
   chainId: '0x1',
 };
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useRoute: () => ({
-    params: mockRouteParams,
-  }),
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-  }),
+let mockUseRouteImpl = jest.fn(() => ({
+  params: mockRouteParams,
 }));
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useRoute: () => mockUseRouteImpl(),
+    useNavigation: () => ({
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+      isFocused: jest.fn(() => true),
+    }),
+  };
+});
 
 describe('SecurityBadgeBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRouteImpl = jest.fn(() => ({
+      params: mockRouteParams,
+    }));
   });
 
   it('renders without crashing', () => {
@@ -80,5 +89,61 @@ describe('SecurityBadgeBottomSheet', () => {
 
     expect(getByText('Test Title')).toBeTruthy();
     expect(getByText('Test Description')).toBeTruthy();
+  });
+
+  it('displays proceed and cancel buttons when onProceed is provided', () => {
+    const mockOnProceed = jest.fn();
+
+    mockUseRouteImpl = jest.fn(() => ({
+      params: {
+        ...mockRouteParams,
+        onProceed: mockOnProceed,
+      },
+    }));
+
+    const { getByText, queryByText } = render(<SecurityBadgeBottomSheet />);
+
+    expect(getByText(strings('security_trust.proceed'))).toBeTruthy();
+    expect(getByText(strings('security_trust.cancel'))).toBeTruthy();
+    expect(queryByText(strings('security_trust.got_it'))).toBeNull();
+  });
+
+  it('calls onProceed and tracks action when proceed button is pressed', () => {
+    const mockOnProceed = jest.fn();
+
+    mockUseRouteImpl = jest.fn(() => ({
+      params: {
+        ...mockRouteParams,
+        onProceed: mockOnProceed,
+      },
+    }));
+
+    const { getByText } = render(<SecurityBadgeBottomSheet />);
+
+    fireEvent.press(getByText(strings('security_trust.proceed')));
+
+    expect(mockOnProceed).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
+    );
+  });
+
+  it('tracks cancel action when cancel button is pressed', () => {
+    const mockOnProceed = jest.fn();
+
+    mockUseRouteImpl = jest.fn(() => ({
+      params: {
+        ...mockRouteParams,
+        onProceed: mockOnProceed,
+      },
+    }));
+
+    const { getByText } = render(<SecurityBadgeBottomSheet />);
+
+    fireEvent.press(getByText(strings('security_trust.cancel')));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
+    );
   });
 });
