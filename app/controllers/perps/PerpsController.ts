@@ -8,7 +8,6 @@ import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
-import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CandlePeriod } from './constants/chartConfig';
@@ -2031,7 +2030,7 @@ export class PerpsController extends BaseController<
         skipInitialGasEstimate: true,
       };
 
-      addBreadcrumb({
+      this.#options.infrastructure.tracer.addBreadcrumb({
         category: 'perps',
         message: 'Deposit action started',
         level: 'info',
