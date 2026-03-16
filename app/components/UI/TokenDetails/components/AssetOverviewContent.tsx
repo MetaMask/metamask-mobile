@@ -739,11 +739,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               alignItems={BoxAlignItems.Start}
               twClassName="self-stretch mx-4 mt-3 min-h-[100px] min-w-[280px] py-3 pl-6 pr-4 gap-4 rounded-2xl bg-error-muted"
             >
-              <Icon
-                name={IconName.Danger}
-                size={IconSize.Md}
-                color={IconColor.ErrorDefault}
-              />
+              <Box twClassName="pt-[2px]">
+                <Icon
+                  name={IconName.Danger}
+                  size={IconSize.Md}
+                  color={IconColor.ErrorDefault}
+                />
+              </Box>
               <Box
                 flexDirection={BoxFlexDirection.Column}
                 alignItems={BoxAlignItems.Start}

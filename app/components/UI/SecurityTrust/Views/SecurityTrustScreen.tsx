@@ -306,7 +306,13 @@ const SecurityTrustScreen: React.FC = () => {
               gap={2}
               twClassName="flex-1"
             >
-              <Box twClassName="w-3 h-3 rounded-full bg-[rgba(133,139,154,0.5)]" />
+              <Box
+                twClassName={`w-3 h-3 rounded-full ${
+                  colorScheme === 'dark'
+                    ? 'bg-[rgba(237,239,242,0.3)]'
+                    : 'bg-[rgba(133,139,154,0.77)]'
+                }`}
+              />
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
@@ -553,8 +559,7 @@ const SecurityTrustScreen: React.FC = () => {
                   </Text>
                 </ButtonBase>
               )}
-              {params?.address &&
-                !params.isNative &&
+              {Boolean(params?.address && !params.isNative) &&
                 (() => {
                   const blockExplorerUrl = explorer.getBlockExplorerTokenUrl(
                     params.address,
