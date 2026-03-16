@@ -461,8 +461,11 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
       }
     } else {
       valueEnd = valueStart;
-      while (valueEnd < entryEnd && content[valueEnd] !== ',') {
+      while (valueEnd < entryEnd) {
         const ch = content[valueEnd];
+        if (ch === ',' || ch === '}' || ch === '\n') {
+          break;
+        }
         if (ch === "'" || ch === '"') {
           valueEnd += 1;
           while (valueEnd < entryEnd && content[valueEnd] !== ch) {
@@ -537,8 +540,11 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
       }
     } else {
       valueEnd = valueStart;
-      while (valueEnd < entryEnd2 && content[valueEnd] !== ',') {
+      while (valueEnd < entryEnd2) {
         const ch = content[valueEnd];
+        if (ch === ',' || ch === '}' || ch === '\n') {
+          break;
+        }
         if (ch === "'" || ch === '"') {
           valueEnd += 1;
           while (valueEnd < entryEnd2 && content[valueEnd] !== ch) {
