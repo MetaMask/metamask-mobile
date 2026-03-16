@@ -669,7 +669,10 @@ createEnvFile() {
 	echo "📝 Creating .env file from environment variables..."
 
 	# List of environment variable names to export
+	# METAMASK_ENVIRONMENT and METAMASK_BUILD_TYPE are required so OTA bundle uses correct env (e.g. production ramps, not staging).
 	local ENV_VARS=(
+		"METAMASK_ENVIRONMENT"
+		"METAMASK_BUILD_TYPE"
 		"MM_MUSD_CONVERSION_FLOW_ENABLED"
 		"MM_NETWORK_UI_REDESIGN_ENABLED"
 		"MM_NOTIFICATIONS_UI_ENABLED"

@@ -277,7 +277,7 @@ jobs:
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
       GIT_BRANCH: ${{ github.ref_name }}
-      RAMP_INTERNAL_BUILD: 'true'
+      # Build config (RAMP_INTERNAL_BUILD, METAMASK_ENVIRONMENT, etc.) comes from builds.yml via "Apply build config" step below.
       MM_MUSD_CONVERSION_FLOW_ENABLED: 'false'
       MM_NETWORK_UI_REDESIGN_ENABLED: 'false'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -370,6 +370,21 @@ jobs:
           fi
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
           echo "✅ Artifacts verified"
+
+      - name: Apply build config (builds.yml)
+        run: |
+          case "${TARGET_CHANNEL}" in
+            production) BUILD_NAME="main-prod" ;;
+            rc)         BUILD_NAME="main-rc" ;;
+            exp)        BUILD_NAME="main-exp" ;;
+            *)
+              echo "❌ Unknown channel: ${TARGET_CHANNEL}"
+              exit 1
+              ;;
+          esac
+          echo "📋 Applying build config for ${BUILD_NAME} (channel: ${TARGET_CHANNEL})"
+          node scripts/apply-build-config.js "${BUILD_NAME}" --export-github-env >> "$GITHUB_ENV"
+          echo "✅ Build config applied (METAMASK_ENVIRONMENT, RAMP_INTERNAL_BUILD, etc. from builds.yml)"
 
       - name: Determine signing secret name
         shell: bash
