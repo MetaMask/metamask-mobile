@@ -13,11 +13,11 @@ import {
   Animated,
   useColorScheme,
 } from 'react-native';
-import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
+import Video from 'react-native-video';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const MarketInsightsBackgroundAnimationLight = require('../../animations/market-insights-background-light.riv');
+const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const MarketInsightsBackgroundAnimationDark = require('../../animations/market-insights-background-dark.riv');
+const MarketInsightsBackgroundVideoDark = require('../../animations/market-insights-background-dark.mp4');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -78,7 +78,6 @@ import { getDecimalChainId } from '../../../../../util/networks';
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
-const BACKGROUND_ANIMATION_HEIGHT = 47;
 const SECTION_ANIMATION_DELAYS_MS = {
   topArticle: 50,
   closerLook: 130,
@@ -178,11 +177,11 @@ const MarketInsightsView: React.FC = () => {
   );
 
   const isDarkMode = useColorScheme() === 'dark';
-  const backgroundAnimation = useMemo(
+  const backgroundVideo = useMemo(
     () =>
       isDarkMode
-        ? MarketInsightsBackgroundAnimationDark
-        : MarketInsightsBackgroundAnimationLight,
+        ? MarketInsightsBackgroundVideoDark
+        : MarketInsightsBackgroundVideoLight,
     [isDarkMode],
   );
 
@@ -190,8 +189,6 @@ const MarketInsightsView: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
   const hasTrackedViewRef = useRef(false);
-  const backgroundAnimationRef = useRef<RiveRef>(null);
-  const transitionEndedRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
   const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(false);
@@ -374,21 +371,6 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = false;
   }, [caip19Id]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('transitionEnd' as never, () => {
-      transitionEndedRef.current = true;
-      backgroundAnimationRef.current?.play();
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  // Trigger .play here once the report is available and the transition is done.
-  useEffect(() => {
-    if (report && transitionEndedRef.current) {
-      backgroundAnimationRef.current?.play();
-    }
-  }, [report]);
-
   const handleThumbsUpPress = useCallback(() => {
     trackMarketInsightsInteraction('thumbs_up');
     showFeedbackSubmittedToast();
@@ -476,29 +458,27 @@ const MarketInsightsView: React.FC = () => {
       twClassName="flex-1 bg-default"
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
-      <Box
-        twClassName={`absolute top-0 left-0 right-0 h-[${insets.top + BACKGROUND_ANIMATION_HEIGHT}px]`}
-      >
-        <Rive
-          ref={backgroundAnimationRef}
-          source={backgroundAnimation}
-          style={tw.style('w-full h-full', { transform: [{ scale: 1.1 }] })}
-          fit={Fit.Cover}
-          alignment={Alignment.TopCenter}
-          autoplay={false}
-          testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-        />
-      </Box>
-
       <Box twClassName={`pt-[${insets.top}px]`}>
         <MarketInsightsViewHeader onBackPress={handleBackPress} />
       </Box>
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style(`pt-2 pb-4`)}
+        contentContainerStyle={tw.style('pb-4')}
         showsVerticalScrollIndicator={false}
       >
+        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
+          <Video
+            source={backgroundVideo}
+            style={tw.style('w-full h-full')}
+            resizeMode="cover"
+            muted
+            paused={false}
+            controls={false}
+            disableFocus
+            testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+          />
+        </Box>
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">
             <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
