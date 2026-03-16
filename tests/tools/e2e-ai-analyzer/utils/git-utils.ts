@@ -171,7 +171,6 @@ export function getPRFiles(prNumber: number, repo: string): string[] {
   }
 }
 
-
 /**
  * Filters diff output to only include specified files
  */
@@ -191,6 +190,51 @@ function filterDiffByFiles(diff: string, files: string[]): string {
   }
 
   return fileDiffs.join('\n\n') || 'No diffs found for specified files';
+}
+
+/**
+ * Gets patches for multiple files from a PR using GitHub API
+ * Works even for large PRs (300+ files) where `gh pr diff` fails
+ */
+export function getFilePatchesFromAPI(
+  prNumber: number,
+  repo: string,
+  filePaths: string[],
+): Map<string, string> {
+  const patches = new Map<string, string>();
+
+  if (filePaths.length === 0) return patches;
+
+  try {
+    // Fetch all files with patches in one API call
+    const result = execSync(
+      `gh api repos/${repo}/pulls/${prNumber}/files --paginate`,
+      {
+        encoding: 'utf-8',
+        maxBuffer: 50 * 1024 * 1024,
+      },
+    );
+
+    // Parse JSON arrays (--paginate returns newline-separated arrays)
+    const jsonArrays = result
+      .trim()
+      .split('\n')
+      .filter((line) => line.startsWith('['));
+    const fileSet = new Set(filePaths);
+
+    for (const jsonStr of jsonArrays) {
+      const files = JSON.parse(jsonStr);
+      for (const file of files) {
+        if (fileSet.has(file.filename) && file.patch) {
+          patches.set(file.filename, file.patch);
+        }
+      }
+    }
+
+    return patches;
+  } catch {
+    return patches;
+  }
 }
 
 /**
@@ -397,7 +441,9 @@ export function getCherryPicksBetweenCommits(
     return cherryPicks;
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.warn(`   Failed to get commits between ${fromCommit}..${toCommit}: ${msg}`);
+    console.warn(
+      `   Failed to get commits between ${fromCommit}..${toCommit}: ${msg}`,
+    );
     return [];
   }
 }

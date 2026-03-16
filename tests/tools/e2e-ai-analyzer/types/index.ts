@@ -263,6 +263,12 @@ export interface ParsedArgs {
   initialCommit?: string;
   /** Initial build number (first build of RC) for delta comparison */
   initialBuildNumber?: number;
+  /** Features to exclude from analysis (behind feature flags, not releasing) */
+  excludedFeatures?: string[];
+  /** Automatically fetch feature flags from remote API */
+  autoFF?: boolean;
+  /** Show feature flag status without running analysis */
+  showFFStatus?: boolean;
 }
 
 export interface ToolInput {

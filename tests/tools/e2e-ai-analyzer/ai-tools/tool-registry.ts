@@ -12,7 +12,7 @@ import { TOOL_LIMITS } from '../config';
  * Gets tool definitions for the AI agent
  * @param options.finalizeToolName - Name of the finalize tool for this mode
  */
-export function getToolDefinitions(options?: {
+export function getToolDefinitions(_options?: {
   finalizeToolName?: string;
 }): LLMTool[] {
   const allTools: LLMTool[] = [
@@ -225,7 +225,8 @@ export function getToolDefinitions(options?: {
           },
           feature_areas: {
             type: 'array',
-            description: 'Prioritized list of feature areas with test scenarios',
+            description:
+              'Prioritized list of feature areas with test scenarios',
             items: {
               type: 'object',
               properties: {
@@ -278,7 +279,8 @@ export function getToolDefinitions(options?: {
                 priority: { type: 'number' },
                 exploratory_priority: {
                   type: 'number',
-                  description: 'Score 1-10 indicating how much this area needs exploratory testing',
+                  description:
+                    'Score 1-10 indicating how much this area needs exploratory testing',
                 },
                 exploration_charters: {
                   type: 'array',
@@ -287,14 +289,23 @@ export function getToolDefinitions(options?: {
                     type: 'object',
                     properties: {
                       id: { type: 'string' },
-                      mission: { type: 'string', description: 'The exploration goal' },
-                      context: { type: 'string', description: 'Why this matters for this release' },
+                      mission: {
+                        type: 'string',
+                        description: 'The exploration goal',
+                      },
+                      context: {
+                        type: 'string',
+                        description: 'Why this matters for this release',
+                      },
                       what_ifs: {
                         type: 'array',
                         items: { type: 'string' },
                         description: 'Specific questions to investigate',
                       },
-                      time_box: { type: 'string', description: 'Suggested exploration time' },
+                      time_box: {
+                        type: 'string',
+                        description: 'Suggested exploration time',
+                      },
                     },
                     required: ['id', 'mission', 'what_ifs'],
                   },
@@ -323,12 +334,19 @@ export function getToolDefinitions(options?: {
           },
           exploration_themes: {
             type: 'array',
-            description: 'Cross-cutting exploration approaches that apply across features',
+            description:
+              'Cross-cutting exploration approaches that apply across features',
             items: {
               type: 'object',
               properties: {
-                name: { type: 'string', description: 'Theme name (e.g., "Interruption Testing")' },
-                description: { type: 'string', description: 'What this theme covers' },
+                name: {
+                  type: 'string',
+                  description: 'Theme name (e.g., "Interruption Testing")',
+                },
+                description: {
+                  type: 'string',
+                  description: 'What this theme covers',
+                },
                 techniques: {
                   type: 'array',
                   items: { type: 'string' },
@@ -337,7 +355,8 @@ export function getToolDefinitions(options?: {
                 applicable_areas: {
                   type: 'array',
                   items: { type: 'string' },
-                  description: 'Feature areas where this theme is especially relevant',
+                  description:
+                    'Feature areas where this theme is especially relevant',
                 },
               },
               required: ['name', 'description', 'techniques'],
@@ -345,14 +364,24 @@ export function getToolDefinitions(options?: {
           },
           exploratory_focus_areas: {
             type: 'array',
-            description: 'Top 3-5 areas most deserving of creative exploratory testing',
+            description:
+              'Top 3-5 areas most deserving of creative exploratory testing',
             items: {
               type: 'object',
               properties: {
                 feature_area: { type: 'string' },
-                exploratory_priority: { type: 'number', description: 'Score 1-10' },
-                reason: { type: 'string', description: 'Why this area needs exploration' },
-                suggested_time_box: { type: 'string', description: 'Recommended exploration time' },
+                exploratory_priority: {
+                  type: 'number',
+                  description: 'Score 1-10',
+                },
+                reason: {
+                  type: 'string',
+                  description: 'Why this area needs exploration',
+                },
+                suggested_time_box: {
+                  type: 'string',
+                  description: 'Recommended exploration time',
+                },
               },
               required: ['feature_area', 'exploratory_priority', 'reason'],
             },

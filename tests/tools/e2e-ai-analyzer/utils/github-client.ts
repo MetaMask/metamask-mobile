@@ -5,19 +5,19 @@
 
 import { execSync } from 'child_process';
 
-export type PullRequestFile = {
+export interface PullRequestFile {
   filename: string;
   additions: number;
   deletions: number;
   status: 'added' | 'removed' | 'modified' | 'renamed';
-};
+}
 
-export type TeamSignOff = {
+export interface TeamSignOff {
   team: string;
   signedOff: boolean;
-};
+}
 
-export type PullRequestInfo = {
+export interface PullRequestInfo {
   number: number;
   title: string;
   body: string;
@@ -29,7 +29,7 @@ export type PullRequestInfo = {
   teamSignOffs: TeamSignOff[];
   /** Actual total file count (may be > files.length due to pagination limits) */
   actualFileCount?: number;
-};
+}
 
 /**
  * Fetches PR information using gh CLI
@@ -43,10 +43,10 @@ export function getPullRequestInfo(
   console.log(`📥 Fetching PR #${prNumber} from GitHub...`);
 
   // Get PR details including actual file count
-  const prJson = execSync(
-    `gh api repos/${repo}/pulls/${prNumber}`,
-    { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 },
-  );
+  const prJson = execSync(`gh api repos/${repo}/pulls/${prNumber}`, {
+    encoding: 'utf-8',
+    maxBuffer: 10 * 1024 * 1024,
+  });
   const prData = JSON.parse(prJson);
 
   // Get PR metadata (title, body, commits)
@@ -69,7 +69,10 @@ export function getPullRequestInfo(
     );
 
     // --paginate returns newline-separated JSON arrays, need to parse each
-    const jsonArrays = allFilesJson.trim().split('\n').filter(line => line.startsWith('['));
+    const jsonArrays = allFilesJson
+      .trim()
+      .split('\n')
+      .filter((line) => line.startsWith('['));
     for (const jsonStr of jsonArrays) {
       const pageFiles = JSON.parse(jsonStr);
       for (const f of pageFiles) {
@@ -107,7 +110,9 @@ export function getPullRequestInfo(
   const teamSignOffs = parseTeamSignOffs(pr.body || '');
 
   console.log(`   ✓ Found: ${pr.title}`);
-  console.log(`   ✓ ${actualFileCount} files changed (fetched ${files.length} for analysis)`);
+  console.log(
+    `   ✓ ${actualFileCount} files changed (fetched ${files.length} for analysis)`,
+  );
   console.log(`   ✓ ${prData.commits || pr.commits?.length || 0} commits`);
   console.log(
     `   ✓ ${teamSignOffs.filter((t) => t.signedOff).length}/${teamSignOffs.length} teams signed off`,
@@ -195,14 +200,15 @@ export function getLatestBuildFromPRComments(
 
     // Look for github-actions bot comments with build info
     // Pattern: "RC 7.65.0 (3701)" or "download build 3701"
-    const buildPattern = /(?:RC\s+[\d.]+\s*\((\d+)\)|download\s+build\s+(\d+))/i;
+    const buildPattern =
+      /(?:RC\s+[\d.]+\s*\((\d+)\)|download\s+build\s+(\d+))/i;
 
     // Search comments in reverse order (newest first)
     const comments = data.comments || [];
     for (let i = comments.length - 1; i >= 0; i--) {
       const comment = comments[i];
       // Check if it's from github-actions bot and has build info
-      if (comment.body && comment.body.includes('RC Builds Ready for Testing')) {
+      if (comment.body?.includes('RC Builds Ready for Testing')) {
         const match = comment.body.match(buildPattern);
         if (match) {
           const buildNum = parseInt(match[1] || match[2], 10);

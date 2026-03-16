@@ -33,6 +33,10 @@ import {
   createCombinedTestPlan,
   formatCombinedForSlack,
 } from './modes/generate-test-plan/fast-analyzer';
+import {
+  fetchFeatureFlags,
+  formatFeatureFlagSummary,
+} from './utils/feature-flags';
 
 /**
  * Validates provided files against actual git changes
@@ -129,6 +133,22 @@ function parseArgs(args: string[]): ParsedArgs {
       case '--initial-build':
         options.initialBuildNumber = parseInt(args[++i], 10);
         break;
+      case '--exclude-features':
+      case '-ef': {
+        // Comma-separated list of features to exclude
+        const featuresArg = args[++i];
+        options.excludedFeatures = featuresArg
+          .split(',')
+          .map((f) => f.trim())
+          .filter((f) => f.length > 0);
+        break;
+      }
+      case '--auto-ff':
+        options.autoFF = true;
+        break;
+      case '--show-ff':
+        options.showFFStatus = true;
+        break;
     }
   }
 
@@ -182,6 +202,9 @@ Options:
   --initial-commit <sha>        Initial build commit (first RC cut) for combined output
   --initial-build <number>      Initial build number (first RC cut) for combined output
   -v, --version <version>       Release version (e.g., 7.65.0) for test plan title
+  -ef, --exclude-features <f>   Features with FF-gated new functionality (tests existing only)
+  --auto-ff                     Auto-fetch feature flags from remote API to detect disabled features
+  --show-ff                     Show current feature flag status and exit
   --list-skills                 List all available skills
   -h, --help                    Show this help message
 
@@ -255,6 +278,17 @@ async function main() {
   }
 
   const options = parseArgs(args);
+
+  // Handle --show-ff (show feature flag status and exit)
+  if (options.showFFStatus) {
+    const ffSummary = fetchFeatureFlags();
+    console.log('\n' + formatFeatureFlagSummary(ffSummary));
+    console.log('\nDisabled flags:');
+    ffSummary.disabledFlags.forEach((flag) => {
+      console.log(`  • ${flag}`);
+    });
+    process.exit(0);
+  }
 
   // Handle --list-skills
   if (options.listSkills) {
@@ -374,25 +408,72 @@ async function main() {
     `\n📋 Available providers: ${availableProviders.map((p) => p.type).join(' → ')}`,
   );
 
+  // Auto-fetch feature flags if requested
+  const excludedFeatures = options.excludedFeatures || [];
+  if (options.autoFF) {
+    console.log('\n🔍 Auto-detecting disabled feature flags...');
+    const ffSummary = fetchFeatureFlags();
+
+    // Get ALL disabled flags (these are specific features that are OFF)
+    const disabledFlags = ffSummary.disabledFlags;
+
+    if (disabledFlags.length > 0) {
+      console.log(`   Found ${disabledFlags.length} disabled flags`);
+
+      // Show disabled flags grouped by area
+      for (const [area, flags] of ffSummary.disabledByArea.entries()) {
+        console.log(`   ${area}: ${flags.length} disabled`);
+        flags.slice(0, 3).forEach((f) => console.log(`     - ${f}`));
+        if (flags.length > 3) {
+          console.log(`     ... and ${flags.length - 3} more`);
+        }
+      }
+
+      // Merge disabled flag names with manual excludes
+      const manualSet = new Set(excludedFeatures);
+      for (const flag of disabledFlags) {
+        if (!manualSet.has(flag)) {
+          excludedFeatures.push(flag);
+        }
+      }
+    } else {
+      console.log('   No disabled flags found');
+    }
+  }
+
+  // Update options with merged excludes
+  options.excludedFeatures = excludedFeatures;
+
   // FAST PATH: generate-test-plan mode with PR number
   if (mode === 'generate-test-plan' && options.prNumber) {
     // COMBINED MODE: initial-commit provided - generate combined output
     if (options.initialCommit) {
-      console.log(`\n📦 Combined mode: generating full test plan with cherry-picks from initial build`);
+      console.log(
+        `\n📦 Combined mode: generating full test plan with cherry-picks from initial build`,
+      );
       console.log(`   Initial commit: ${options.initialCommit}`);
 
       const prInfo = getPullRequestInfo(options.prNumber, githubRepo);
-      const version = options.releaseVersion || prInfo.title.match(/\d+\.\d+\.\d+/)?.[0] || 'unknown';
+      const version =
+        options.releaseVersion ||
+        prInfo.title.match(/\d+\.\d+\.\d+/)?.[0] ||
+        'unknown';
 
       // Get latest build number
-      const latestBuild = getLatestBuildFromPRComments(options.prNumber, githubRepo);
+      const latestBuild = getLatestBuildFromPRComments(
+        options.prNumber,
+        githubRepo,
+      );
       if (latestBuild) {
         console.log(`   Current build: ${latestBuild}`);
       }
 
       // Get current HEAD commit
       const { execSync } = await import('child_process');
-      const currentCommit = execSync('git rev-parse HEAD', { encoding: 'utf-8', cwd: baseDir }).trim();
+      const currentCommit = execSync('git rev-parse HEAD', {
+        encoding: 'utf-8',
+        cwd: baseDir,
+      }).trim();
       console.log(`   Current commit: ${currentCommit.substring(0, 7)}`);
 
       // Get cherry-picks between initial and current
@@ -412,10 +493,15 @@ async function main() {
 
           // Step 1: Generate initial analysis
           console.log(`\n📋 Step 1: Generating initial scenarios...`);
-          const initialResult = await analyzeWithSingleCall(provider, prInfo, latestBuild);
+          const initialResult = await analyzeWithSingleCall(
+            provider,
+            prInfo,
+            latestBuild,
+            options.excludedFeatures || [],
+          );
 
           // Step 2: Generate delta analysis (if there are cherry-picks)
-          let deltaResult = undefined;
+          let deltaResult;
           if (cherryPicks.length > 0) {
             console.log(`\n🍒 Step 2: Generating cherry-pick scenarios...`);
             deltaResult = await analyzeDeltaWithLLM(
@@ -436,7 +522,10 @@ async function main() {
 
           // Step 3: Combine results
           console.log(`\n🔗 Step 3: Combining results...`);
-          const combinedResult = createCombinedTestPlan(initialResult, deltaResult);
+          const combinedResult = createCombinedTestPlan(
+            initialResult,
+            deltaResult,
+          );
 
           // Format for Slack
           const slackOutput = formatCombinedForSlack(combinedResult);
@@ -445,8 +534,13 @@ async function main() {
           // Write to files
           const fs = await import('fs');
           fs.writeFileSync('release-test-plan.md', slackOutput);
-          fs.writeFileSync('release-test-plan.json', JSON.stringify(combinedResult, null, 2));
-          console.log('\n💾 Saved to release-test-plan.md and release-test-plan.json');
+          fs.writeFileSync(
+            'release-test-plan.json',
+            JSON.stringify(combinedResult, null, 2),
+          );
+          console.log(
+            '\n💾 Saved to release-test-plan.md and release-test-plan.json',
+          );
           return;
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
@@ -464,7 +558,9 @@ async function main() {
 
     // Check if this is delta mode (comparing builds)
     if (options.fromCommit && options.toCommit) {
-      console.log(`\n🍒 Delta mode: comparing ${options.fromCommit} → ${options.toCommit}`);
+      console.log(
+        `\n🍒 Delta mode: comparing ${options.fromCommit} → ${options.toCommit}`,
+      );
 
       // Get PR info for sign-offs
       const prInfo = getPullRequestInfo(options.prNumber, githubRepo);
@@ -476,11 +572,17 @@ async function main() {
         baseDir,
       );
 
-      const version = options.releaseVersion || prInfo.title.match(/\d+\.\d+\.\d+/)?.[0] || 'unknown';
+      const version =
+        options.releaseVersion ||
+        prInfo.title.match(/\d+\.\d+\.\d+/)?.[0] ||
+        'unknown';
 
       // Get build number from PR comments
       console.log(`   Fetching build number from PR comments...`);
-      const latestBuild = getLatestBuildFromPRComments(options.prNumber, githubRepo);
+      const latestBuild = getLatestBuildFromPRComments(
+        options.prNumber,
+        githubRepo,
+      );
       if (latestBuild) {
         console.log(`   ✓ Latest build: ${latestBuild}`);
       }
@@ -519,7 +621,10 @@ async function main() {
           // Write to files
           const fs = await import('fs');
           fs.writeFileSync('release-delta.md', deltaMarkdown);
-          fs.writeFileSync('release-delta.json', JSON.stringify(deltaResult, null, 2));
+          fs.writeFileSync(
+            'release-delta.json',
+            JSON.stringify(deltaResult, null, 2),
+          );
           console.log('\n💾 Saved to release-delta.md and release-delta.json');
           return;
         } catch (error) {
@@ -542,7 +647,10 @@ async function main() {
     const prInfo = getPullRequestInfo(options.prNumber, githubRepo);
 
     // Fetch build number from PR comments
-    const buildNumber = getLatestBuildFromPRComments(options.prNumber, githubRepo);
+    const buildNumber = getLatestBuildFromPRComments(
+      options.prNumber,
+      githubRepo,
+    );
     if (buildNumber) {
       console.log(`   ✓ Latest build: ${buildNumber}`);
     }
@@ -554,7 +662,12 @@ async function main() {
       try {
         console.log(`\n🚀 Using ${provider.displayName}...`);
 
-        const result = await analyzeWithSingleCall(provider, prInfo, buildNumber);
+        const result = await analyzeWithSingleCall(
+          provider,
+          prInfo,
+          buildNumber,
+          options.excludedFeatures || [],
+        );
 
         // Output Slack-formatted result
         const slackOutput = formatForSlack(result);
@@ -563,8 +676,13 @@ async function main() {
         // Write to files
         const fs = await import('fs');
         fs.writeFileSync('release-test-plan.md', slackOutput);
-        fs.writeFileSync('release-test-plan.json', JSON.stringify(result, null, 2));
-        console.log('\n💾 Saved to release-test-plan.md and release-test-plan.json');
+        fs.writeFileSync(
+          'release-test-plan.json',
+          JSON.stringify(result, null, 2),
+        );
+        console.log(
+          '\n💾 Saved to release-test-plan.md and release-test-plan.json',
+        );
         return;
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));

@@ -12,7 +12,11 @@ import {
   TeamSignOff,
   getSignOffSummary,
 } from '../../utils/github-client';
-import { CherryPickInfo, getPRDiff, getCommitDiff } from '../../utils/git-utils';
+import {
+  CherryPickInfo,
+  getFilePatchesFromAPI,
+  getCommitDiff,
+} from '../../utils/git-utils';
 
 // Repository for fetching diffs
 const DEFAULT_REPO = 'MetaMask/metamask-mobile';
@@ -53,6 +57,7 @@ function isHighImpactFile(filename: string): boolean {
 
 /**
  * Extracts and summarizes diffs for high-impact files from a PR
+ * Uses GitHub API to fetch individual file patches (works for large PRs)
  * Returns a truncated summary to fit within token limits
  */
 function getHighImpactDiffs(
@@ -69,85 +74,99 @@ function getHighImpactDiffs(
     return '';
   }
 
-  try {
-    // Fetch full PR diff
-    const fullDiff = getPRDiff(prNumber, DEFAULT_REPO, undefined, 50000);
+  console.log(
+    `   Found ${highImpactFiles.length} high-impact files, fetching patches...`,
+  );
 
-    if (!fullDiff || fullDiff.includes('Could not fetch')) {
+  try {
+    // Fetch patches for high-impact files using GitHub API (works for large PRs)
+    const filenames = highImpactFiles.map((f) => f.filename);
+    const patches = getFilePatchesFromAPI(prNumber, DEFAULT_REPO, filenames);
+
+    if (patches.size === 0) {
+      console.log(`   No patches returned from API`);
       return '';
     }
 
-    // Extract diffs for high-impact files only
-    const fileDiffs: { filename: string; diff: string }[] = [];
-    const sections = fullDiff.split('diff --git');
-
-    for (const section of sections) {
-      if (!section.trim()) continue;
-
-      for (const file of highImpactFiles) {
-        if (section.includes(file.filename)) {
-          // Extract just the changed lines (+ and - lines)
-          const lines = section.split('\n');
-          const changedLines = lines.filter(
-            (line) =>
-              line.startsWith('+') ||
-              line.startsWith('-') ||
-              line.startsWith('@@'),
-          );
-          // Include file header and changed lines
-          const headerLines = lines.slice(0, 4);
-          const summary = [...headerLines, ...changedLines.slice(0, 100)].join(
-            '\n',
-          );
-          fileDiffs.push({ filename: file.filename, diff: summary });
-          break;
-        }
-      }
-    }
+    console.log(`   Got patches for ${patches.size} files`);
 
     // Build output, respecting max lines
     let totalLines = 0;
     const output: string[] = [];
 
-    for (const { filename, diff } of fileDiffs) {
-      const diffLines = diff.split('\n').length;
-      if (totalLines + diffLines > maxTotalLines) {
+    for (const file of highImpactFiles) {
+      const patch = patches.get(file.filename);
+      if (!patch) continue;
+
+      // Extract just the changed lines (+ and - lines)
+      const lines = patch.split('\n');
+      const changedLines = lines.filter(
+        (line) =>
+          line.startsWith('+') || line.startsWith('-') || line.startsWith('@@'),
+      );
+
+      // Limit per-file to 100 lines to fit more files
+      const summary = changedLines.slice(0, 100).join('\n');
+      const summaryLines = summary.split('\n').length;
+
+      if (totalLines + summaryLines > maxTotalLines) {
         // Truncate this diff to fit
         const remaining = maxTotalLines - totalLines;
         if (remaining > 20) {
-          output.push(`### ${filename}`);
-          output.push(diff.split('\n').slice(0, remaining).join('\n'));
+          output.push(`### ${file.filename}`);
+          output.push(changedLines.slice(0, remaining).join('\n'));
           output.push('... [truncated]');
         }
         break;
       }
-      output.push(`### ${filename}`);
-      output.push(diff);
+
+      output.push(`### ${file.filename}`);
+      output.push(summary);
       output.push('');
-      totalLines += diffLines;
+      totalLines += summaryLines;
     }
 
     return output.join('\n');
   } catch (error) {
-    console.warn('   Could not fetch diffs for high-impact files');
+    console.warn('   Could not fetch diffs for high-impact files:', error);
     return '';
   }
 }
 
-export type TestScenario = {
+export interface TestScenario {
   area: string;
   riskLevel: 'high' | 'medium';
   testSteps: string[];
   whyThisMatters: string;
-};
+  /** Pre-conditions required before testing */
+  preconditions?: string[];
+  /** Expected outcomes for validation */
+  expectedOutcomes?: string[];
+}
 
-export type TestPlanResult = {
+/** Executive summary for quick release overview */
+export interface ExecutiveSummary {
+  /** One-line release focus */
+  releaseFocus: string;
+  /** Key changes in this release (3-5 bullets) */
+  keyChanges: string[];
+  /** Critical areas requiring attention */
+  criticalAreas: string[];
+  /** Overall risk assessment */
+  overallRisk: 'low' | 'medium' | 'high';
+  /** Go/no-go recommendation */
+  recommendation: string;
+}
+
+export interface TestPlanResult {
   prNumber: number;
   prTitle: string;
   version: string;
   buildNumber?: number;
   generatedAt: string;
   model: string;
+  /** Executive summary for stakeholders */
+  executiveSummary?: ExecutiveSummary;
   summary: {
     totalFiles: number;
     highImpactFiles: number;
@@ -161,17 +180,21 @@ export type TestPlanResult = {
     signedOff: string[];
     needsAttention: string[];
   };
-};
+  /** Features excluded from analysis */
+  excludedFeatures?: string[];
+}
 
 /**
  * Combined test plan format - aligned with Extension team format
  * Cherry-pick scenarios on top, initial scenarios below
  */
-export type CombinedTestPlanResult = {
+export interface CombinedTestPlanResult {
   prNumber: number;
   prTitle: string;
   generatedAt: string;
   modelUsed: string;
+  /** Executive summary for stakeholders */
+  executiveSummary?: ExecutiveSummary;
   summary: {
     totalFilesChanged: number;
     highImpactFiles?: number;
@@ -188,22 +211,28 @@ export type CombinedTestPlanResult = {
     cherryPickScenarios: CherryPickTestScenario[];
     initialScenarios: TestScenario[];
   };
-};
+  /** Features excluded from analysis */
+  excludedFeatures?: string[];
+}
 
-export type CherryPickTestScenario = {
+export interface CherryPickTestScenario {
   area: string;
   riskLevel: 'high' | 'medium';
   testSteps: string[];
   whyThisMatters: string;
   cherryPickPR?: string;
   cherryPickMessage?: string;
-};
+}
 
 /**
  * Builds the prompt for test plan generation
  * Now includes actual diff content for high-impact files
  */
-function buildPrompt(prInfo: PullRequestInfo, diffContent: string): string {
+function buildPrompt(
+  prInfo: PullRequestInfo,
+  diffContent: string,
+  excludedFeatures: string[] = [],
+): string {
   const totalAdditions = prInfo.files.reduce((sum, f) => sum + f.additions, 0);
   const totalDeletions = prInfo.files.reduce((sum, f) => sum + f.deletions, 0);
 
@@ -223,6 +252,22 @@ ${diffContent}
 `
     : '';
 
+  // Build excluded features section - now supports specific flag names
+  const excludedSection =
+    excludedFeatures.length > 0
+      ? `
+## DISABLED FEATURE FLAGS (do NOT test these specific features)
+The following feature flags are DISABLED - these specific capabilities are NOT available to users:
+${excludedFeatures.map((f) => `- ${f}`).join('\n')}
+
+IMPORTANT:
+- DO NOT create test steps that test the disabled functionality listed above
+- DO create test scenarios for the core feature if it's enabled (e.g., Perps trading works, but MYX provider doesn't)
+- Flag names indicate what's disabled: "perpsMyxProviderEnabled" = MYX provider is OFF, "perpsPerpGtmOnboardingModalEnabled" = onboarding modal is OFF
+- If a flag says "XyzEnabled" and it's disabled, don't test Xyz functionality
+`
+      : '';
+
   return `You are a QA engineer for MetaMask Mobile. Analyze this release PR and identify areas needing exploratory testing.
 
 ## PR Information
@@ -232,16 +277,27 @@ ${diffContent}
 
 ## Changed Files
 ${fileList}
-${diffSection}
+${diffSection}${excludedSection}
 ## Your Task
 
-Analyze the ACTUAL CODE CHANGES shown above to identify risky areas. Base your test scenarios on what the code is actually doing, not just file names.
+1. First, provide an EXECUTIVE SUMMARY for stakeholders
+2. Then, identify risky areas with DETAILED test scenarios (automation-ready)
 
+### Executive Summary Requirements:
+- **releaseFocus**: One sentence describing this release's main focus
+- **keyChanges**: 3-5 bullet points of key changes
+- **criticalAreas**: List areas requiring most attention
+- **overallRisk**: "low", "medium", or "high"
+- **recommendation**: Go/no-go recommendation with brief reasoning (do NOT mention feature flags or rollout strategies - focus only on testing readiness)
+
+### Test Scenario Requirements:
 For each scenario provide:
 1. **area**: Feature area (e.g., "Card", "Swaps", "Send Flow", "Account Management")
 2. **riskLevel**: "high" or "medium" only (skip low risk)
-3. **testSteps**: 3-5 specific test steps based on the actual changes
-4. **whyThisMatters**: Reference specific code changes that make this risky
+3. **preconditions**: Setup required before testing (e.g., "User has 2+ accounts", "Network is Ethereum mainnet"). Do NOT assume feature flags are enabled - focus on account state, network, and app prerequisites.
+4. **testSteps**: 5-8 DETAILED steps (automation-ready, specific actions with expected results)
+5. **expectedOutcomes**: What success looks like for each major step
+6. **whyThisMatters**: Reference specific code changes that make this risky
 
 ## Focus Areas for MetaMask Mobile
 - **Wallet Operations**: Account creation, import, backup, seed phrase
@@ -263,11 +319,25 @@ For each scenario provide:
 
 Return ONLY valid JSON:
 {
+  "executiveSummary": {
+    "releaseFocus": "string",
+    "keyChanges": ["change 1", "change 2", "change 3"],
+    "criticalAreas": ["area 1", "area 2"],
+    "overallRisk": "low" | "medium" | "high",
+    "recommendation": "string"
+  },
   "scenarios": [
     {
       "area": "string",
       "riskLevel": "high" | "medium",
-      "testSteps": ["1. step one", "2. step two", "3. step three"],
+      "preconditions": ["condition 1", "condition 2"],
+      "testSteps": [
+        "1. Navigate to X screen",
+        "2. Tap Y button - verify Z appears",
+        "3. Enter value A - verify input is accepted",
+        "..."
+      ],
+      "expectedOutcomes": ["outcome 1", "outcome 2"],
       "whyThisMatters": "explanation referencing actual code changes"
     }
   ]
@@ -287,11 +357,17 @@ function extractVersion(prTitle: string): string {
 
 /**
  * Analyzes PR and generates test plan with single LLM call
+ *
+ * @param provider - LLM provider to use
+ * @param prInfo - PR information including files, sign-offs, etc.
+ * @param buildNumber - Optional build number for the RC
+ * @param excludedFeatures - Features behind feature flags to exclude from analysis
  */
 export async function analyzeWithSingleCall(
   provider: ILLMProvider,
   prInfo: PullRequestInfo,
   buildNumber?: number,
+  excludedFeatures: string[] = [],
 ): Promise<TestPlanResult> {
   console.log(`🤖 Analyzing with ${provider.displayName}...`);
 
@@ -305,7 +381,11 @@ export async function analyzeWithSingleCall(
     console.log(`   ⚠ No high-impact diffs found, using file names only`);
   }
 
-  const prompt = buildPrompt(prInfo, diffContent);
+  if (excludedFeatures.length > 0) {
+    console.log(`   Disabled flags to exclude: ${excludedFeatures.length}`);
+  }
+
+  const prompt = buildPrompt(prInfo, diffContent, excludedFeatures);
 
   console.log(`   Generating test scenarios...`);
 
@@ -322,15 +402,24 @@ export async function analyzeWithSingleCall(
     throw new Error('No text response from LLM');
   }
 
-  // Parse JSON from response
-  const scenarios = parseResponse(textBlock.text);
+  // Parse JSON from response (includes executiveSummary and scenarios)
+  const parsed = parseResponse(textBlock.text);
 
-  console.log(`   ✓ Generated ${scenarios.length} test scenarios\n`);
+  console.log(`   ✓ Generated ${parsed.scenarios.length} test scenarios`);
+  if (parsed.executiveSummary) {
+    console.log(
+      `   ✓ Executive summary: ${parsed.executiveSummary.overallRisk} risk\n`,
+    );
+  } else {
+    console.log('');
+  }
 
   // Calculate summary
   const totalAdditions = prInfo.files.reduce((sum, f) => sum + f.additions, 0);
   const totalDeletions = prInfo.files.reduce((sum, f) => sum + f.deletions, 0);
-  const highImpactFiles = prInfo.files.filter((f) => isHighImpactFile(f.filename)).length;
+  const highImpactFiles = prInfo.files.filter((f) =>
+    isHighImpactFile(f.filename),
+  ).length;
 
   return {
     prNumber: prInfo.number,
@@ -339,23 +428,36 @@ export async function analyzeWithSingleCall(
     buildNumber,
     generatedAt: new Date().toISOString(),
     model: response.model,
+    executiveSummary: parsed.executiveSummary,
     summary: {
       totalFiles: prInfo.actualFileCount || prInfo.files.length,
       highImpactFiles,
       totalAdditions,
       totalDeletions,
-      highRiskCount: scenarios.filter((s) => s.riskLevel === 'high').length,
-      mediumRiskCount: scenarios.filter((s) => s.riskLevel === 'medium').length,
+      highRiskCount: parsed.scenarios.filter((s) => s.riskLevel === 'high')
+        .length,
+      mediumRiskCount: parsed.scenarios.filter((s) => s.riskLevel === 'medium')
+        .length,
     },
-    scenarios,
+    scenarios: parsed.scenarios,
     signOffs: getSignOffSummary(prInfo.teamSignOffs),
+    excludedFeatures:
+      excludedFeatures.length > 0 ? excludedFeatures : undefined,
   };
 }
 
 /**
- * Parses LLM response to extract scenarios
+ * Parsed response from LLM including executive summary and scenarios
  */
-function parseResponse(responseText: string): TestScenario[] {
+interface ParsedLLMResponse {
+  executiveSummary?: ExecutiveSummary;
+  scenarios: TestScenario[];
+}
+
+/**
+ * Parses LLM response to extract executive summary and scenarios
+ */
+function parseResponse(responseText: string): ParsedLLMResponse {
   // Try to extract JSON from response (may have markdown wrapping)
   let jsonText = responseText.trim();
 
@@ -373,9 +475,28 @@ function parseResponse(responseText: string): TestScenario[] {
 
   try {
     const parsed = JSON.parse(jsonText);
-    return parsed.scenarios || [];
+
+    // Extract executive summary if present
+    let executiveSummary: ExecutiveSummary | undefined;
+    if (parsed.executiveSummary) {
+      executiveSummary = {
+        releaseFocus: parsed.executiveSummary.releaseFocus || '',
+        keyChanges: parsed.executiveSummary.keyChanges || [],
+        criticalAreas: parsed.executiveSummary.criticalAreas || [],
+        overallRisk: parsed.executiveSummary.overallRisk || 'medium',
+        recommendation: parsed.executiveSummary.recommendation || '',
+      };
+    }
+
+    return {
+      executiveSummary,
+      scenarios: parsed.scenarios || [],
+    };
   } catch (error) {
-    console.error('Failed to parse LLM response:', responseText.substring(0, 500));
+    console.error(
+      'Failed to parse LLM response:',
+      responseText.substring(0, 500),
+    );
     throw new Error(`Failed to parse LLM response as JSON: ${error}`);
   }
 }
@@ -384,16 +505,16 @@ function parseResponse(responseText: string): TestScenario[] {
 // DELTA MODE - Cherry-pick focused analysis
 // ============================================
 
-export type DeltaTestScenario = {
+export interface DeltaTestScenario {
   area: string;
   cherryPick: string;
   prNumber: string;
   riskLevel: 'high' | 'medium';
   testSteps: string[];
   whyThisMatters: string;
-};
+}
 
-export type DeltaAnalysisResult = {
+export interface DeltaAnalysisResult {
   rcPrNumber: number;
   fromCommit: string;
   toCommit: string;
@@ -408,7 +529,7 @@ export type DeltaAnalysisResult = {
     signedOff: string[];
     needsAttention: string[];
   };
-};
+}
 
 /**
  * Gets diffs for cherry-pick commits
@@ -425,7 +546,9 @@ function getCherryPickDiffs(
 
   for (const cp of cherryPicks) {
     if (totalLines >= maxTotalLines) {
-      diffs.push(`\n... [${cherryPicks.length - diffs.length} more cherry-picks truncated]`);
+      diffs.push(
+        `\n... [${cherryPicks.length - diffs.length} more cherry-picks truncated]`,
+      );
       break;
     }
 
@@ -468,9 +591,10 @@ function buildDeltaPrompt(
     .map((cp) => `- ${cp.prNumber || cp.commit.substring(0, 7)}: ${cp.message}`)
     .join('\n');
 
-  const unsignedSection = unsignedTeams.length > 0
-    ? `\n## Teams that haven't signed off yet (need testing)\n${unsignedTeams.map(t => `- ${t}`).join('\n')}\n`
-    : '';
+  const unsignedSection =
+    unsignedTeams.length > 0
+      ? `\n## Teams that haven't signed off yet (need testing)\n${unsignedTeams.map((t) => `- ${t}`).join('\n')}\n`
+      : '';
 
   const diffSection = diffContent
     ? `
@@ -552,10 +676,12 @@ export async function analyzeDeltaWithLLM(
 ): Promise<DeltaAnalysisResult> {
   // Get teams that haven't signed off
   const unsignedTeams = teamSignOffs
-    .filter(t => !t.signedOff)
-    .map(t => t.team);
+    .filter((t) => !t.signedOff)
+    .map((t) => t.team);
 
-  console.log(`🤖 Analyzing ${cherryPicks.length} cherry-pick(s) + ${unsignedTeams.length} unsigned team(s) with ${provider.displayName}...`);
+  console.log(
+    `🤖 Analyzing ${cherryPicks.length} cherry-pick(s) + ${unsignedTeams.length} unsigned team(s) with ${provider.displayName}...`,
+  );
 
   // Fetch actual diffs for cherry-picks
   console.log(`   Fetching diffs for cherry-pick commits...`);
@@ -587,7 +713,9 @@ export async function analyzeDeltaWithLLM(
   // Parse JSON from response
   const scenarios = parseDeltaResponse(textBlock.text);
 
-  console.log(`   ✓ Generated ${scenarios.length} test scenarios for cherry-picks\n`);
+  console.log(
+    `   ✓ Generated ${scenarios.length} test scenarios for cherry-picks\n`,
+  );
 
   return {
     rcPrNumber,
@@ -626,7 +754,10 @@ function parseDeltaResponse(responseText: string): DeltaTestScenario[] {
     const parsed = JSON.parse(jsonText);
     return parsed.scenarios || [];
   } catch (error) {
-    console.error('Failed to parse delta LLM response:', responseText.substring(0, 500));
+    console.error(
+      'Failed to parse delta LLM response:',
+      responseText.substring(0, 500),
+    );
     throw new Error(`Failed to parse delta LLM response as JSON: ${error}`);
   }
 }
@@ -656,21 +787,30 @@ export function formatDeltaForSlack(result: DeltaAnalysisResult): string {
   lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
   lines.push(`RC ${result.version} | ${buildLabel}`);
   lines.push(`Generated: ${date}`);
-  lines.push(`• https://github.com/MetaMask/metamask-mobile/pull/${result.rcPrNumber}`);
+  lines.push(
+    `• https://github.com/MetaMask/metamask-mobile/pull/${result.rcPrNumber}`,
+  );
   lines.push('');
 
   // Cherry-picks summary - clean up the message to remove "chore(runway): cherry-pick" prefix
   lines.push(`${result.cherryPicks.length} cherry-pick(s) in this build:`);
   result.cherryPicks.forEach((cp) => {
     // Remove "chore(runway): cherry-pick" prefix, keep only the actual fix message
-    const cleanMessage = cp.message.replace(/^chore\(runway\):\s*cherry-pick\s*/i, '');
+    const cleanMessage = cp.message.replace(
+      /^chore\(runway\):\s*cherry-pick\s*/i,
+      '',
+    );
     lines.push(`  • ${cleanMessage}`);
   });
   lines.push('');
 
   // Split scenarios: cherry-picks vs unsigned teams
-  const cherryPickScenarios = result.scenarios.filter(s => s.cherryPick && s.cherryPick !== 'N/A');
-  const unsignedTeamScenarios = result.scenarios.filter(s => !s.cherryPick || s.cherryPick === 'N/A');
+  const cherryPickScenarios = result.scenarios.filter(
+    (s) => s.cherryPick && s.cherryPick !== 'N/A',
+  );
+  const unsignedTeamScenarios = result.scenarios.filter(
+    (s) => !s.cherryPick || s.cherryPick === 'N/A',
+  );
 
   // Cherry-pick scenarios (high priority - new changes)
   if (cherryPickScenarios.length > 0) {
@@ -735,18 +875,55 @@ export function formatForSlack(result: TestPlanResult): string {
   lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
   lines.push(`RC ${result.version}${buildLabel ? ` | ${buildLabel}` : ''}`);
   lines.push(`Generated: ${date}`);
-  lines.push(`• https://github.com/MetaMask/metamask-mobile/pull/${result.prNumber}`);
+  lines.push(
+    `• https://github.com/MetaMask/metamask-mobile/pull/${result.prNumber}`,
+  );
   lines.push('');
 
-  // Summary
-  lines.push(`  • Files changed: ${result.summary.totalFiles} (${result.summary.highImpactFiles} high-impact)`);
+  // ======= EXECUTIVE SUMMARY (at top for stakeholders) =======
+  if (result.executiveSummary) {
+    const exec = result.executiveSummary;
+    const riskEmoji =
+      exec.overallRisk === 'high'
+        ? '🔴'
+        : exec.overallRisk === 'medium'
+          ? '🟡'
+          : '🟢';
+
+    lines.push(`📊 EXECUTIVE SUMMARY`);
+    lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    lines.push(`*${exec.releaseFocus}*`);
+    lines.push('');
+    lines.push(`Key changes:`);
+    exec.keyChanges.forEach((change) => {
+      lines.push(`  • ${change}`);
+    });
+    lines.push('');
+    lines.push(`Critical areas: ${exec.criticalAreas.join(', ')}`);
+    lines.push(`Overall risk: ${riskEmoji} ${exec.overallRisk.toUpperCase()}`);
+    lines.push(`Recommendation: ${exec.recommendation}`);
+    lines.push('');
+  }
+
+  // Summary stats
+  lines.push(`📈 STATS`);
+  lines.push(
+    `  • Files changed: ${result.summary.totalFiles} (${result.summary.highImpactFiles} high-impact)`,
+  );
   lines.push(`  • High risk areas: ${result.summary.highRiskCount}`);
   lines.push(`  • Medium risk areas: ${result.summary.mediumRiskCount}`);
+  if (result.excludedFeatures && result.excludedFeatures.length > 0) {
+    lines.push(
+      `  • Disabled flags: ${result.excludedFeatures.length} features excluded`,
+    );
+  }
   lines.push('');
 
   // Only show teams that need attention
   if (result.signOffs.needsAttention.length > 0) {
-    lines.push(`Teams needing sign-off (${result.signOffs.needsAttention.length}):`);
+    lines.push(
+      `Teams needing sign-off (${result.signOffs.needsAttention.length}):`,
+    );
     result.signOffs.needsAttention.forEach((team) => {
       lines.push(`  ⏳ ${team}`);
     });
@@ -764,11 +941,25 @@ export function formatForSlack(result: TestPlanResult): string {
     highRisk.forEach((scenario, i) => {
       lines.push(`${i + 1}. ${scenario.area}`);
       lines.push(`   Why: ${scenario.whyThisMatters}`);
+      if (scenario.preconditions && scenario.preconditions.length > 0) {
+        lines.push('');
+        lines.push('   Preconditions:');
+        scenario.preconditions.forEach((pre) => {
+          lines.push(`     ◦ ${pre}`);
+        });
+      }
       lines.push('');
       lines.push('   Test steps:');
       scenario.testSteps.forEach((step) => {
         lines.push(`     • ${step}`);
       });
+      if (scenario.expectedOutcomes && scenario.expectedOutcomes.length > 0) {
+        lines.push('');
+        lines.push('   Expected outcomes:');
+        scenario.expectedOutcomes.forEach((outcome) => {
+          lines.push(`     ✓ ${outcome}`);
+        });
+      }
       lines.push('');
     });
   }
@@ -781,11 +972,25 @@ export function formatForSlack(result: TestPlanResult): string {
     mediumRisk.forEach((scenario, i) => {
       lines.push(`${i + 1}. ${scenario.area}`);
       lines.push(`   Why: ${scenario.whyThisMatters}`);
+      if (scenario.preconditions && scenario.preconditions.length > 0) {
+        lines.push('');
+        lines.push('   Preconditions:');
+        scenario.preconditions.forEach((pre) => {
+          lines.push(`     ◦ ${pre}`);
+        });
+      }
       lines.push('');
       lines.push('   Test steps:');
       scenario.testSteps.forEach((step) => {
         lines.push(`     • ${step}`);
       });
+      if (scenario.expectedOutcomes && scenario.expectedOutcomes.length > 0) {
+        lines.push('');
+        lines.push('   Expected outcomes:');
+        scenario.expectedOutcomes.forEach((outcome) => {
+          lines.push(`     ✓ ${outcome}`);
+        });
+      }
       lines.push('');
     });
   }
@@ -819,14 +1024,19 @@ export function createCombinedTestPlan(
     : [];
 
   // Calculate risk counts including cherry-picks
-  const cpHighRisk = cherryPickScenarios.filter((s) => s.riskLevel === 'high').length;
-  const cpMediumRisk = cherryPickScenarios.filter((s) => s.riskLevel === 'medium').length;
+  const cpHighRisk = cherryPickScenarios.filter(
+    (s) => s.riskLevel === 'high',
+  ).length;
+  const cpMediumRisk = cherryPickScenarios.filter(
+    (s) => s.riskLevel === 'medium',
+  ).length;
 
   return {
     prNumber: initialResult.prNumber,
     prTitle: initialResult.prTitle,
     generatedAt: new Date().toISOString(),
     modelUsed: initialResult.model,
+    executiveSummary: initialResult.executiveSummary,
     summary: {
       totalFilesChanged: initialResult.summary.totalFiles,
       highImpactFiles: initialResult.summary.highImpactFiles,
@@ -841,6 +1051,7 @@ export function createCombinedTestPlan(
       cherryPickScenarios,
       initialScenarios: initialResult.scenarios,
     },
+    excludedFeatures: initialResult.excludedFeatures,
   };
 }
 
@@ -866,22 +1077,63 @@ export function formatCombinedForSlack(result: CombinedTestPlanResult): string {
   const version = result.prTitle.match(/(\d+\.\d+\.\d+)/)?.[1] || 'unknown';
   lines.push(`RC ${version}${buildLabel ? ` | ${buildLabel}` : ''}`);
   lines.push(`Generated: ${date}`);
-  lines.push(`• https://github.com/MetaMask/metamask-mobile/pull/${result.prNumber}`);
+  lines.push(
+    `• https://github.com/MetaMask/metamask-mobile/pull/${result.prNumber}`,
+  );
   lines.push('');
 
-  // Summary
-  const highImpactLabel = result.summary.highImpactFiles ? ` (${result.summary.highImpactFiles} high-impact)` : '';
-  lines.push(`  • Files changed: ${result.summary.totalFilesChanged}${highImpactLabel}`);
+  // ======= EXECUTIVE SUMMARY (at top for stakeholders) =======
+  if (result.executiveSummary) {
+    const exec = result.executiveSummary;
+    const riskEmoji =
+      exec.overallRisk === 'high'
+        ? '🔴'
+        : exec.overallRisk === 'medium'
+          ? '🟡'
+          : '🟢';
+
+    lines.push(`📊 EXECUTIVE SUMMARY`);
+    lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    lines.push(`*${exec.releaseFocus}*`);
+    lines.push('');
+    lines.push(`Key changes:`);
+    exec.keyChanges.forEach((change) => {
+      lines.push(`  • ${change}`);
+    });
+    lines.push('');
+    lines.push(`Critical areas: ${exec.criticalAreas.join(', ')}`);
+    lines.push(`Overall risk: ${riskEmoji} ${exec.overallRisk.toUpperCase()}`);
+    lines.push(`Recommendation: ${exec.recommendation}`);
+    lines.push('');
+  }
+
+  // Summary stats
+  lines.push(`📈 STATS`);
+  const highImpactLabel = result.summary.highImpactFiles
+    ? ` (${result.summary.highImpactFiles} high-impact)`
+    : '';
+  lines.push(
+    `  • Files changed: ${result.summary.totalFilesChanged}${highImpactLabel}`,
+  );
   lines.push(`  • High risk areas: ${result.summary.highRiskScenarios}`);
   lines.push(`  • Medium risk areas: ${result.summary.mediumRiskScenarios}`);
   if (result.summary.cherryPickCount && result.summary.cherryPickCount > 0) {
-    lines.push(`  • Cherry-picks since initial: ${result.summary.cherryPickCount}`);
+    lines.push(
+      `  • Cherry-picks since initial: ${result.summary.cherryPickCount}`,
+    );
+  }
+  if (result.excludedFeatures && result.excludedFeatures.length > 0) {
+    lines.push(
+      `  • Disabled flags: ${result.excludedFeatures.length} features excluded`,
+    );
   }
   lines.push('');
 
   // Teams needing sign-off
   if (result.teamsNeedingSignOff.length > 0) {
-    lines.push(`Teams needing sign-off (${result.teamsNeedingSignOff.length}):`);
+    lines.push(
+      `Teams needing sign-off (${result.teamsNeedingSignOff.length}):`,
+    );
     result.teamsNeedingSignOff.forEach((team) => {
       lines.push(`  ⏳ ${team}`);
     });
@@ -896,8 +1148,12 @@ export function formatCombinedForSlack(result: CombinedTestPlanResult): string {
     lines.push(`🍒 CHERRY-PICK SCENARIOS (since initial build)`);
     lines.push('');
 
-    const cpHigh = result.testScenarios.cherryPickScenarios.filter((s) => s.riskLevel === 'high');
-    const cpMedium = result.testScenarios.cherryPickScenarios.filter((s) => s.riskLevel === 'medium');
+    const cpHigh = result.testScenarios.cherryPickScenarios.filter(
+      (s) => s.riskLevel === 'high',
+    );
+    const cpMedium = result.testScenarios.cherryPickScenarios.filter(
+      (s) => s.riskLevel === 'medium',
+    );
 
     cpHigh.forEach((scenario, i) => {
       lines.push(`🔴 ${i + 1}. ${scenario.area}`);
@@ -933,7 +1189,9 @@ export function formatCombinedForSlack(result: CombinedTestPlanResult): string {
   lines.push('');
 
   // High risk scenarios
-  const highRisk = result.testScenarios.initialScenarios.filter((s) => s.riskLevel === 'high');
+  const highRisk = result.testScenarios.initialScenarios.filter(
+    (s) => s.riskLevel === 'high',
+  );
   if (highRisk.length > 0) {
     lines.push(`🔴 HIGH RISK AREAS`);
     lines.push('');
@@ -950,7 +1208,9 @@ export function formatCombinedForSlack(result: CombinedTestPlanResult): string {
   }
 
   // Medium risk scenarios
-  const mediumRisk = result.testScenarios.initialScenarios.filter((s) => s.riskLevel === 'medium');
+  const mediumRisk = result.testScenarios.initialScenarios.filter(
+    (s) => s.riskLevel === 'medium',
+  );
   if (mediumRisk.length > 0) {
     lines.push(`🟡 MEDIUM RISK AREAS`);
     lines.push('');

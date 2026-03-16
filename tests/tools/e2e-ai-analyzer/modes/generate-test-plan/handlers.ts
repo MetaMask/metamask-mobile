@@ -11,10 +11,8 @@ import {
   TestAreaRisk,
   TestingStatus,
   BuildChangeInfo,
-  ExplorationCharter,
   ExplorationTheme,
   ExploratoryFocusArea,
-  CherryPickSummary,
 } from '../../types';
 import { smokeTags, flaskTags } from '../../../../tags';
 import { TeamSignOff } from '../../utils/github-client';
@@ -52,7 +50,9 @@ const allTags = { ...smokeTags, ...flaskTags };
 
 export const FEATURE_AREAS_CONFIG = Object.values(allTags).map((config) => ({
   tag: config.tag.replace(':', ''),
-  displayName: FEATURE_AREA_DISPLAY_NAMES[config.tag.replace(':', '')] || config.tag.replace(':', ''),
+  displayName:
+    FEATURE_AREA_DISPLAY_NAMES[config.tag.replace(':', '')] ||
+    config.tag.replace(':', ''),
   description: config.description,
 }));
 
@@ -94,7 +94,8 @@ const TESTING_RESOURCES: TestingResource[] = [
   {
     name: 'MetaMask Test dApp',
     url: 'https://metamask.github.io/test-dapp/',
-    description: 'General testing: signatures, transactions, permissions, chain switching',
+    description:
+      'General testing: signatures, transactions, permissions, chain switching',
     category: 'dapp',
   },
   {
@@ -142,11 +143,19 @@ const FEATURE_AREA_RESOURCES: Record<string, string[]> = {
   SmokeConfirmations: ['MetaMask Test dApp', 'MMI Test dApp'],
   SmokeTrade: ['MetaMask Test dApp'],
   SmokeAccounts: ['Snap Simple Keyring', 'MetaMask Test dApp'],
-  SmokeWalletPlatform: ['Deeplink Generator', 'MetaMask SDK React Demo', 'MetaMask Test dApp'],
+  SmokeWalletPlatform: [
+    'Deeplink Generator',
+    'MetaMask SDK React Demo',
+    'MetaMask Test dApp',
+  ],
   SmokeNetworkAbstractions: ['MetaMask Test dApp'],
   SmokeNetworkExpansion: ['MetaMask Test dApp'],
   SmokeMultiChainAPI: ['MetaMask Test dApp'],
-  FlaskBuildTests: ['Snap Simple Keyring', 'Snap Account Abstraction Keyring', 'Snaps Directory'],
+  FlaskBuildTests: [
+    'Snap Simple Keyring',
+    'Snap Account Abstraction Keyring',
+    'Snaps Directory',
+  ],
   SmokeIdentity: ['MetaMask Test dApp'],
   SmokeRamps: ['Deeplink Generator'],
   SmokeCard: ['Deeplink Generator'],
@@ -157,7 +166,9 @@ const FEATURE_AREA_RESOURCES: Record<string, string[]> = {
 /**
  * Get testing resources for a feature area
  */
-export function getResourcesForFeatureArea(featureArea: string): TestingResource[] {
+export function getResourcesForFeatureArea(
+  featureArea: string,
+): TestingResource[] {
   const resourceNames = FEATURE_AREA_RESOURCES[featureArea] || [];
   return TESTING_RESOURCES.filter((r) => resourceNames.includes(r.name));
 }
@@ -404,24 +415,25 @@ export async function processAnalysis(
     }
 
     // Transform snake_case to camelCase
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const featureAreas: FeatureAreaTestPlan[] = parsed.feature_areas.map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (area: any) => ({
         featureArea: area.feature_area,
         displayName: getFeatureAreaDisplayName(area.feature_area),
         riskLevel: area.risk_level,
         riskJustification: area.risk_justification || '',
         impactedComponents: area.impacted_components || [],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        exploratoryScenarios: (area.exploratory_scenarios || []).map((s: any) => ({
-          id: s.id,
-          title: s.title,
-          description: s.description,
-          preconditions: s.preconditions || [],
-          explorationGuidance: s.exploration_guidance || [],
-          riskIndicators: s.risk_indicators || [],
-          relatedChanges: s.related_changes || [],
-        })),
+        exploratoryScenarios: (area.exploratory_scenarios || []).map(
+          (s: any) => ({
+            id: s.id,
+            title: s.title,
+            description: s.description,
+            preconditions: s.preconditions || [],
+            explorationGuidance: s.exploration_guidance || [],
+            riskIndicators: s.risk_indicators || [],
+            relatedChanges: s.related_changes || [],
+          }),
+        ),
         platformNotes: {
           ios: area.platform_notes?.ios || [],
           android: area.platform_notes?.android || [],
@@ -445,7 +457,6 @@ export async function processAnalysis(
           : createDefaultBuildChangeInfo(),
         exploratoryPriority: area.exploratory_priority || 5,
         explorationCharters: (area.exploration_charters || []).map(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (charter: any) => ({
             id: charter.id,
             mission: charter.mission,
@@ -456,11 +467,18 @@ export async function processAnalysis(
         ),
       }),
     );
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     // Calculate testing status counts from feature areas
-    const areasTestedCount = featureAreas.filter((a) => a.testingStatus.tested).length;
-    const areasNotTestedCount = featureAreas.filter((a) => !a.testingStatus.tested).length;
-    const newInThisBuildCount = featureAreas.filter((a) => a.buildChangeInfo.isNewInBuild).length;
+    const areasTestedCount = featureAreas.filter(
+      (a) => a.testingStatus.tested,
+    ).length;
+    const areasNotTestedCount = featureAreas.filter(
+      (a) => !a.testingStatus.tested,
+    ).length;
+    const newInThisBuildCount = featureAreas.filter(
+      (a) => a.buildChangeInfo.isNewInBuild,
+    ).length;
 
     const summary: TestPlanSummary = {
       totalChangedFiles: parsed.summary.total_changed_files || 0,
@@ -469,7 +487,8 @@ export async function processAnalysis(
       highRiskAreas: parsed.summary.high_risk_areas || 0,
       mediumRiskAreas: parsed.summary.medium_risk_areas || 0,
       lowRiskAreas: parsed.summary.low_risk_areas || 0,
-      estimatedTestingHours: parsed.summary.estimated_testing_hours || 'unknown',
+      estimatedTestingHours:
+        parsed.summary.estimated_testing_hours || 'unknown',
       releaseVersion: parsed.summary.release_version || 'unknown',
       buildNumber: parsed.summary.build_number,
       previousBuildNumber: parsed.summary.previous_build_number,
@@ -490,26 +509,27 @@ export async function processAnalysis(
       : DEFAULT_EXPLORATION_THEMES;
 
     // Parse or derive exploratory focus areas
-    const exploratoryFocusAreas: ExploratoryFocusArea[] = parsed.exploratory_focus_areas
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        parsed.exploratory_focus_areas.map((focus: any) => ({
-          featureArea: focus.feature_area,
-          displayName: getFeatureAreaDisplayName(focus.feature_area),
-          exploratoryPriority: focus.exploratory_priority,
-          reason: focus.reason,
-          suggestedTimeBox: focus.suggested_time_box || '30 minutes',
-        }))
-      : // Derive from top 5 feature areas by exploratory priority
-        featureAreas
-          .sort((a, b) => b.exploratoryPriority - a.exploratoryPriority)
-          .slice(0, 5)
-          .map((area) => ({
-            featureArea: area.featureArea,
-            displayName: area.displayName,
-            exploratoryPriority: area.exploratoryPriority,
-            reason: area.riskJustification,
-            suggestedTimeBox: '30 minutes',
-          }));
+    const exploratoryFocusAreas: ExploratoryFocusArea[] =
+      parsed.exploratory_focus_areas
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          parsed.exploratory_focus_areas.map((focus: any) => ({
+            featureArea: focus.feature_area,
+            displayName: getFeatureAreaDisplayName(focus.feature_area),
+            exploratoryPriority: focus.exploratory_priority,
+            reason: focus.reason,
+            suggestedTimeBox: focus.suggested_time_box || '30 minutes',
+          }))
+        : // Derive from top 5 feature areas by exploratory priority
+          featureAreas
+            .sort((a, b) => b.exploratoryPriority - a.exploratoryPriority)
+            .slice(0, 5)
+            .map((area) => ({
+              featureArea: area.featureArea,
+              displayName: area.displayName,
+              exploratoryPriority: area.exploratoryPriority,
+              reason: area.riskJustification,
+              suggestedTimeBox: '30 minutes',
+            }));
 
     return {
       summary,
@@ -545,8 +565,14 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
 
   // Delta mode: focused output for build comparison
   if (isDeltaMode) {
-    const currentLabel = analysis.summary.buildNumber || analysis.summary.toCommit?.substring(0, 7) || 'current';
-    const previousLabel = analysis.summary.previousBuildNumber || analysis.summary.fromCommit?.substring(0, 7) || 'previous';
+    const currentLabel =
+      analysis.summary.buildNumber ||
+      analysis.summary.toCommit?.substring(0, 7) ||
+      'current';
+    const previousLabel =
+      analysis.summary.previousBuildNumber ||
+      analysis.summary.fromCommit?.substring(0, 7) ||
+      'previous';
 
     lines.push(`# 🍒 Build Delta (${previousLabel} → ${currentLabel})`);
     lines.push(`Release ${version} | Generated: ${generatedDate}`);
@@ -563,9 +589,10 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
 
       for (const area of areasWithNewChanges) {
         const testedStatus = area.testingStatus.tested ? '✅' : '⏳';
-        const testers = area.testingStatus.testedBy.length > 0
-          ? area.testingStatus.testedBy.join(', ')
-          : 'Not assigned';
+        const testers =
+          area.testingStatus.testedBy.length > 0
+            ? area.testingStatus.testedBy.join(', ')
+            : 'Not assigned';
 
         lines.push(`### ${area.displayName} ${testedStatus}`);
         lines.push(`**Tested by:** ${testers}`);
@@ -574,7 +601,7 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
 
         // Show cherry-picks for this area
         const areaCherryPicks = analysis.cherryPicks.filter(
-          cp => cp.featureArea === area.featureArea
+          (cp) => cp.featureArea === area.featureArea,
         );
         for (const cp of areaCherryPicks) {
           lines.push(`- ${cp.prNumber || cp.commit}: ${cp.message}`);
@@ -602,13 +629,13 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
   }
 
   // Full test plan mode (no cherry-picks)
-  const title = version && version !== 'unknown'
-    ? `Mobile Release ${version} Testing Plan`
-    : `Mobile Release Testing Plan`;
+  const title =
+    version && version !== 'unknown'
+      ? `Mobile Release ${version} Testing Plan`
+      : `Mobile Release Testing Plan`;
   lines.push(title);
   lines.push(`Generated: ${generatedDate}`);
   lines.push('');
-
 
   // Feature areas (no header, just list areas)
   analysis.featureAreas.forEach((area) => {
@@ -622,17 +649,20 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
     // Use displayName for the header, fallback to featureArea
     const displayName = area.displayName || area.featureArea;
     const exploratoryIndicator = area.exploratoryPriority >= 7 ? ' 🔍' : '';
-    lines.push(`### ${area.priority}. ${displayName} ${riskBadge}${exploratoryIndicator}`);
+    lines.push(
+      `### ${area.priority}. ${displayName} ${riskBadge}${exploratoryIndicator}`,
+    );
     lines.push('');
 
     // Testing status with progress
     const prs = area.testingStatus.prs || [];
     const total = prs.length;
-    const validated = prs.filter(pr =>
-      pr.validatedAndroid === 'Passed' ||
-      pr.validatedAndroid === 'Skipped' ||
-      pr.validatedIOS === 'Passed' ||
-      pr.validatedIOS === 'Skipped'
+    const validated = prs.filter(
+      (pr) =>
+        pr.validatedAndroid === 'Passed' ||
+        pr.validatedAndroid === 'Skipped' ||
+        pr.validatedIOS === 'Passed' ||
+        pr.validatedIOS === 'Skipped',
     ).length;
     const progressText = total > 0 ? ` (${validated}/${total} PRs)` : '';
 
@@ -640,20 +670,25 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
       const testers = area.testingStatus.testedBy.join(', ') || 'Unknown';
       lines.push(`**Tested by:** ${testers}${progressText} ✅`);
     } else {
-      const testers = area.testingStatus.testedBy.length > 0
-        ? area.testingStatus.testedBy.join(', ')
-        : 'Pending';
+      const testers =
+        area.testingStatus.testedBy.length > 0
+          ? area.testingStatus.testedBy.join(', ')
+          : 'Pending';
       lines.push(`**Tested by:** ${testers}${progressText} ⏳`);
     }
 
     // Build change info
     if (area.buildChangeInfo.isNewInBuild) {
-      const buildNum = area.buildChangeInfo.buildNumber ? ` Build ${area.buildChangeInfo.buildNumber}` : '';
-      const changeType = area.buildChangeInfo.changeType ? ` (${area.buildChangeInfo.changeType})` : '';
-      const prs = area.buildChangeInfo.relatedPRs?.length
+      const buildNum = area.buildChangeInfo.buildNumber
+        ? ` Build ${area.buildChangeInfo.buildNumber}`
+        : '';
+      const changeType = area.buildChangeInfo.changeType
+        ? ` (${area.buildChangeInfo.changeType})`
+        : '';
+      const relatedPRsText = area.buildChangeInfo.relatedPRs?.length
         ? ` - ${area.buildChangeInfo.relatedPRs.join(', ')}`
         : '';
-      lines.push(`**New in${buildNum}:** Yes${changeType}${prs}`);
+      lines.push(`**New in${buildNum}:** Yes${changeType}${relatedPRsText}`);
     }
     lines.push('');
 
@@ -677,29 +712,46 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
  */
 export function outputAnalysis(analysis: GenerateTestPlanAnalysis): void {
   const isDeltaMode = analysis.cherryPicks.length > 0;
-  const jsonOutputFile = isDeltaMode ? 'release-delta.json' : 'release-test-plan.json';
-  const mdOutputFile = isDeltaMode ? 'release-delta.md' : 'release-test-plan.md';
+  const jsonOutputFile = isDeltaMode
+    ? 'release-delta.json'
+    : 'release-test-plan.json';
+  const mdOutputFile = isDeltaMode
+    ? 'release-delta.md'
+    : 'release-test-plan.md';
 
   if (isDeltaMode) {
     // Delta mode: focused console output
-    const currentLabel = analysis.summary.buildNumber || analysis.summary.toCommit?.substring(0, 7) || 'current';
-    const previousLabel = analysis.summary.previousBuildNumber || analysis.summary.fromCommit?.substring(0, 7) || 'previous';
+    const currentLabel =
+      analysis.summary.buildNumber ||
+      analysis.summary.toCommit?.substring(0, 7) ||
+      'current';
+    const previousLabel =
+      analysis.summary.previousBuildNumber ||
+      analysis.summary.fromCommit?.substring(0, 7) ||
+      'previous';
 
     console.log(`\n🍒 Build Delta (${previousLabel} → ${currentLabel})`);
     console.log('===================================');
     console.log(`   Release: ${analysis.summary.releaseVersion}`);
     console.log(`   Cherry-picks: ${analysis.cherryPicks.length}`);
 
-    const areasWithNewChanges = analysis.featureAreas.filter(a => a.buildChangeInfo.isNewInBuild);
-    const unchangedAreas = analysis.featureAreas.filter(a => !a.buildChangeInfo.isNewInBuild);
+    const areasWithNewChanges = analysis.featureAreas.filter(
+      (a) => a.buildChangeInfo.isNewInBuild,
+    );
+    const unchangedAreas = analysis.featureAreas.filter(
+      (a) => !a.buildChangeInfo.isNewInBuild,
+    );
 
     if (areasWithNewChanges.length > 0) {
-      console.log(`\n🔄 ${areasWithNewChanges.length} area(s) need re-testing:`);
+      console.log(
+        `\n🔄 ${areasWithNewChanges.length} area(s) need re-testing:`,
+      );
       areasWithNewChanges.forEach((area) => {
         const testedStatus = area.testingStatus.tested ? '✅' : '⏳';
-        const testers = area.testingStatus.testedBy.length > 0
-          ? area.testingStatus.testedBy.join(', ')
-          : 'Not assigned';
+        const testers =
+          area.testingStatus.testedBy.length > 0
+            ? area.testingStatus.testedBy.join(', ')
+            : 'Not assigned';
         console.log(`   - ${area.displayName} ${testedStatus} (${testers})`);
       });
     } else {
@@ -722,15 +774,21 @@ export function outputAnalysis(analysis: GenerateTestPlanAnalysis): void {
     console.log(`📊 Testing Progress:`);
     console.log(`   Areas tested: ${analysis.summary.areasTestedCount}`);
     console.log(`   Areas not tested: ${analysis.summary.areasNotTestedCount}`);
-    console.log(`   New in this build: ${analysis.summary.newInThisBuildCount}`);
+    console.log(
+      `   New in this build: ${analysis.summary.newInThisBuildCount}`,
+    );
     console.log(`💭 Reasoning: ${analysis.reasoning}`);
 
     // Exploratory Focus Summary
     if (analysis.exploratoryFocusAreas.length > 0) {
       console.log('\n🔍 Top Exploratory Testing Focus:');
       analysis.exploratoryFocusAreas.forEach((focus, index) => {
-        const bar = '█'.repeat(focus.exploratoryPriority) + '░'.repeat(10 - focus.exploratoryPriority);
-        console.log(`   ${index + 1}. ${focus.displayName} [${bar}] ${focus.exploratoryPriority}/10`);
+        const bar =
+          '█'.repeat(focus.exploratoryPriority) +
+          '░'.repeat(10 - focus.exploratoryPriority);
+        console.log(
+          `   ${index + 1}. ${focus.displayName} [${bar}] ${focus.exploratoryPriority}/10`,
+        );
       });
     }
 
@@ -824,17 +882,23 @@ export function generateDeltaMarkdown(
       const areaCherryPicks = cherryPicksByArea.get(areaTag) || [];
 
       // Check sign-off status (try to match by display name or tag)
-      const isSignedOff = signOffMap.get(displayName.toLowerCase()) ||
-                          signOffMap.get(areaTag.toLowerCase()) ||
-                          false;
+      const isSignedOff =
+        signOffMap.get(displayName.toLowerCase()) ||
+        signOffMap.get(areaTag.toLowerCase()) ||
+        false;
       const statusEmoji = isSignedOff ? '✅' : '⏳';
 
       lines.push(`${statusEmoji} *${displayName}*`);
 
       // Find team that owns this area from sign-offs
       const matchingTeam = teamSignOffs.find(
-        t => t.team.toLowerCase().includes(displayName.toLowerCase().split(' ')[0]) ||
-             displayName.toLowerCase().includes(t.team.toLowerCase().split(' ')[0])
+        (t) =>
+          t.team
+            .toLowerCase()
+            .includes(displayName.toLowerCase().split(' ')[0]) ||
+          displayName
+            .toLowerCase()
+            .includes(t.team.toLowerCase().split(' ')[0]),
       );
       if (matchingTeam) {
         lines.push(`Team: ${matchingTeam.team}`);
@@ -843,7 +907,9 @@ export function generateDeltaMarkdown(
       lines.push('');
       lines.push('Cherry-picks:');
       for (const cp of areaCherryPicks) {
-        const prRef = cp.prNumber ? `#${cp.prNumber}` : cp.commit.substring(0, 7);
+        const prRef = cp.prNumber
+          ? `#${cp.prNumber}`
+          : cp.commit.substring(0, 7);
         lines.push(`• ${prRef}: ${cp.message}`);
       }
       lines.push('');
@@ -856,11 +922,11 @@ export function generateDeltaMarkdown(
   }
 
   // Only show teams that need attention
-  const needsAttention = teamSignOffs.filter(t => !t.signedOff);
+  const needsAttention = teamSignOffs.filter((t) => !t.signedOff);
 
   if (needsAttention.length > 0) {
     lines.push(`*Teams needing sign-off (${needsAttention.length}):*`);
-    needsAttention.forEach(t => lines.push(`⏳ ${t.team}`));
+    needsAttention.forEach((t) => lines.push(`⏳ ${t.team}`));
   } else {
     lines.push(`✅ All teams have signed off`);
   }
