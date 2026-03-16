@@ -116,7 +116,7 @@ const PredictionsSection = forwardRef<
   // itemCount/isEmpty values before data arrives.
   const willRender = isPredictEnabled && !isLoading && !isEmpty;
 
-  useHomeViewedEvent({
+  const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.PREDICT,
@@ -160,7 +160,7 @@ const PredictionsSection = forwardRef<
 
   if (hasError) {
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader
             title={title}
@@ -183,7 +183,7 @@ const PredictionsSection = forwardRef<
   // Render positions if user has any
   if (hasPositions || isLoadingPositions) {
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader
             title={title}
@@ -230,7 +230,7 @@ const PredictionsSection = forwardRef<
 
   // Render trending markets if no positions
   return (
-    <View ref={sectionViewRef}>
+    <View ref={sectionViewRef} onLayout={onLayout}>
       <Box gap={3}>
         <SectionHeader
           title={title}

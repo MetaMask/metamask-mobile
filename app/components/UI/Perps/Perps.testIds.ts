@@ -357,6 +357,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-market-hours-bottom-sheet-tooltip',
   STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
+  TITLE_SECTION_WRAPPER: 'perps-market-details-title-section-wrapper',
 };
 
 // ========================================
@@ -370,6 +371,8 @@ export const PerpsMarketHeaderSelectorsIDs = {
   ASSET_NAME: 'perps-market-header-asset-name',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
+  PRICE_TITLE_SECTION: 'perps-market-header-price-title-section',
+  PRICE_CHANGE_TITLE_SECTION: 'perps-market-header-price-change-title-section',
   MORE_BUTTON: 'perps-market-header-more-button',
 };
 
