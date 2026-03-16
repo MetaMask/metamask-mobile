@@ -38,6 +38,7 @@ import {
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
+import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../../../UI/Card/util/mapBaanxApiUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -249,6 +250,15 @@ class AppInformation extends PureComponent {
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: ${process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Baanx API URL: ${getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT) ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_CARD_BAANX_API_CLIENT_KEY: ${process.env.MM_CARD_BAANX_API_CLIENT_KEY ? '(set)' : '(empty)'}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
