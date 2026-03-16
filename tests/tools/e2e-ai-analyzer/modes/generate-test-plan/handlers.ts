@@ -16,6 +16,23 @@ import {
 } from '../../types';
 import { smokeTags, flaskTags } from '../../../../tags';
 import { TeamSignOff } from '../../utils/github-client';
+import { CherryPickInfo } from '../../utils/git-utils';
+
+/**
+ * Extracts feature area from commit message
+ * e.g., "fix(card): some fix" -> "card"
+ * e.g., "feat(perps): add feature" -> "perps"
+ */
+function extractFeatureAreaFromMessage(message: string): string | null {
+  // Match conventional commit format: type(scope): description
+  const match = message.match(
+    /^(?:fix|feat|chore|refactor|docs|style|test|perf)\(([^)]+)\)/i,
+  );
+  if (match) {
+    return match[1].toLowerCase();
+  }
+  return null;
+}
 
 /**
  * Human-friendly feature area names mapping
