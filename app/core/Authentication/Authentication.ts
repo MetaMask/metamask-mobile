@@ -400,20 +400,14 @@ class AuthenticationService {
 
   resetPassword = async () => {
     try {
+      await SecureKeychain.resetGenericPassword();
+
       await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
       await StorageWrapper.removeItem(PASSCODE_DISABLED);
       await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
-      await SecureKeychain.resetGenericPassword();
-      try {
-        this.updateOsAuthEnabled(false);
-        if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
-          ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
-        }
-      } catch (reduxError) {
-        Logger.error(
-          reduxError as Error,
-          'Failed to sync Redux security state after password reset.',
-        );
+      this.updateOsAuthEnabled(false);
+      if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
+        ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
       }
     } catch (error) {
       throw new AuthenticationError(

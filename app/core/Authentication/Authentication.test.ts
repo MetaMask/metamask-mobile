@@ -1481,6 +1481,15 @@ describe('Authentication', () => {
   });
 
   describe('resetPassword', () => {
+    beforeEach(() => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: false },
+        }),
+      } as unknown as ReduxStore);
+    });
+
     it('calls SecureKeychain.resetGenericPassword', async () => {
       const resetGenericPasswordSpy = jest.spyOn(
         SecureKeychain,
