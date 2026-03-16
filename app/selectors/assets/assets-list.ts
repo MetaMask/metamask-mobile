@@ -38,6 +38,20 @@ import { selectAllTokens } from '../tokensController';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
+import {
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getTokensControllerAllTokens,
+  getTokensControllerAllIgnoredTokens,
+  getAccountTrackerControllerAccountsByChainId,
+  getTokenBalancesControllerTokenBalances,
+  getMultiChainBalancesControllerBalances,
+  getMultiChainAssetsControllerAccountsAssets,
+  getMultiChainAssetsControllerAllIgnoredAssets,
+  getMultiChainAssetsControllerAssetsMetadata,
+} from './assets-migration';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -87,58 +101,35 @@ const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
 });
 
 const getStateForAssetSelector = (state: RootState) => {
-  const {
-    AccountTreeController,
-    AccountsController,
-    TokensController,
-    TokenBalancesController,
-    TokenRatesController,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    MultichainAssetsController,
-    MultichainBalancesController,
-    MultichainAssetsRatesController,
-    ///: END:ONLY_INCLUDE_IF
-    CurrencyRateController,
-    NetworkController,
-    AccountTrackerController,
-  } = state.engine.backgroundState;
-
-  let multichainState = {
-    accountsAssets: {},
-    assetsMetadata: {},
-    allIgnoredAssets: {},
-    balances: {},
-    conversionRates: {},
-  };
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainState = {
-    ...MultichainAssetsController,
-    ...MultichainBalancesController,
-    ...MultichainAssetsRatesController,
-  };
-  ///: END:ONLY_INCLUDE_IF
+  const { AccountTreeController, AccountsController, NetworkController } =
+    state.engine.backgroundState;
 
   return {
     ...AccountTreeController,
     ...AccountsController,
-    ...TokensController,
-    ...TokenBalancesController,
-    ...TokenRatesController,
-    ...multichainState,
-    ...CurrencyRateController,
+    allTokens: getTokensControllerAllTokens(state),
+    allIgnoredTokens: getTokensControllerAllIgnoredTokens(state),
+    tokenBalances: getTokenBalancesControllerTokenBalances(state),
+    marketData: getTokenRatesControllerMarketData(state),
+    assetsMetadata: getMultiChainAssetsControllerAssetsMetadata(state),
+    accountsAssets: getMultiChainAssetsControllerAccountsAssets(state),
+    allIgnoredAssets: getMultiChainAssetsControllerAllIgnoredAssets(state),
+    balances: getMultiChainBalancesControllerBalances(state),
+    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
+    currencyRates: getCurrencyRateControllerCurrencyRates(state),
+    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
     ...NetworkController,
-    ...(AccountTrackerController as {
-      accountsByChainId: Record<
+    accountsByChainId: getAccountTrackerControllerAccountsByChainId(
+      state,
+    ) as Record<
+      Hex,
+      Record<
         Hex,
-        Record<
-          Hex,
-          {
-            balance: Hex | null;
-          }
-        >
-      >;
-    }),
+        {
+          balance: Hex | null;
+        }
+      >
+    >,
   };
 };
 
