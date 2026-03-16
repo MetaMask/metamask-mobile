@@ -5,13 +5,19 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { useABTest } from '../../../../../hooks/useABTest';
+import { CARD_BUTTON_BADGE_AB_KEY } from './abTestConfig';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+});
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn().mockReturnValue({}),
-    })),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -49,6 +55,11 @@ describe('CardButton Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBuild.mockReturnValue({});
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
     mockUseABTest.mockReturnValue({
       variant: { showBadge: true },
       variantName: 'withBadge',
@@ -119,7 +130,7 @@ describe('CardButton Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  describe('A/B test: cardAbtestAttentionBadge', () => {
+  describe('A/B test: cardCARD338AbtestAttentionBadge', () => {
     it('control variant: does not show badge even when button has not been viewed', () => {
       mockUseABTest.mockReturnValue({
         variant: { showBadge: false },
@@ -178,6 +189,46 @@ describe('CardButton Component', () => {
       expect(
         queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
       ).toBeNull();
+    });
+
+    describe('analytics: CARD_BUTTON_VIEWED event', () => {
+      it('includes active_ab_tests when withBadge variant is active', () => {
+        mockUseABTest.mockReturnValue({
+          variant: { showBadge: true },
+          variantName: 'withBadge',
+          isActive: true,
+        });
+
+        renderWithProvider(() => (
+          <CardButton
+            onPress={mockOnPress}
+            touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        ));
+
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          active_ab_tests: [
+            { key: CARD_BUTTON_BADGE_AB_KEY, value: 'withBadge' },
+          ],
+        });
+      });
+
+      it('omits active_ab_tests when control variant is inactive', () => {
+        mockUseABTest.mockReturnValue({
+          variant: { showBadge: false },
+          variantName: 'control',
+          isActive: false,
+        });
+
+        renderWithProvider(() => (
+          <CardButton
+            onPress={mockOnPress}
+            touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        ));
+
+        expect(mockAddProperties).toHaveBeenCalledWith({});
+      });
     });
   });
 });

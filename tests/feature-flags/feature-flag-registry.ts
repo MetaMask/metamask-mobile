@@ -3439,8 +3439,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: [],
     status: FeatureFlagStatus.Active,
   },
-  cardAbtestAttentionBadge: {
-    name: 'cardAbtestAttentionBadge',
+  cardCARD338AbtestAttentionBadge: {
+    name: 'cardCARD338AbtestAttentionBadge',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: [],

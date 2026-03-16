@@ -1,4 +1,4 @@
-export const CARD_BUTTON_BADGE_AB_KEY = 'cardAbtestAttentionBadge';
+export const CARD_BUTTON_BADGE_AB_KEY = 'cardCARD338AbtestAttentionBadge';
 
 export enum CardButtonBadgeVariant {
   Control = 'control',

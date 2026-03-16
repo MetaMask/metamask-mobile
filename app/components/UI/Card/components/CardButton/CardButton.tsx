@@ -39,16 +39,24 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
   const hasViewedCardButton = useSelector(selectHasViewedCardButton);
-  const { variant } = useABTest(
+  const { variant, variantName, isActive } = useABTest(
     CARD_BUTTON_BADGE_AB_KEY,
     CARD_BUTTON_BADGE_VARIANTS,
   );
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED)
+        .addProperties({
+          ...(isActive && {
+            active_ab_tests: [
+              { key: CARD_BUTTON_BADGE_AB_KEY, value: variantName },
+            ],
+          }),
+        })
+        .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, isActive, variantName]);
 
   const onPressHandler = () => {
     if (!hasViewedCardButton) {
