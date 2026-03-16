@@ -1,7 +1,14 @@
 import { BigNumber } from 'bignumber.js';
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../reducers';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { getNetworkImageSource } from '../../../../util/networks';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../Views/confirmations/constants/predict';
+import {
+  POLYGON_USDCE,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
+} from '../../../Views/confirmations/constants/predict';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
@@ -19,6 +26,13 @@ export function usePredictBalanceTokenFilter(
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const usdceToken = useSelector((state: RootState) =>
+    selectSingleTokenByAddressAndChainId(
+      state,
+      POLYGON_USDCE.address,
+      PREDICT_BALANCE_CHAIN_ID,
+    ),
+  );
 
   return useCallback(
     (tokens: AssetType[]): AssetType[] => {
@@ -40,8 +54,11 @@ export function usePredictBalanceTokenFilter(
         symbol: 'USDC.e',
         balance: balanceStr,
         balanceInSelectedCurrency: balanceFormatted,
-        image: '',
-        logo: '',
+        image: usdceToken?.image ?? '',
+        logo: usdceToken?.image ?? '',
+        networkBadgeSource: getNetworkImageSource({
+          chainId: PREDICT_BALANCE_CHAIN_ID,
+        }),
         decimals: 6,
         isETH: false,
         isNative: false,
@@ -64,6 +81,7 @@ export function usePredictBalanceTokenFilter(
       isPredictBalanceSelected,
       predictBalance,
       formatFiat,
+      usdceToken,
     ],
   );
 }
