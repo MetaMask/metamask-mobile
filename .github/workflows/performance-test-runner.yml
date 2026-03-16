@@ -224,7 +224,23 @@ jobs:
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$BUILD_VARIANT"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
-
+      
+      - name: Start Mock Server (onboarding)
+        if: inputs.build_type == 'onboarding'
+        run: |
+          echo "Starting standalone mockttp server for seedless onboarding..."
+          npx ts-node tests/performance/standalone-mock-server.ts --port 8000 --provider google --scenario new &
+          MOCK_PID=$!
+          echo "MOCK_SERVER_PID=$MOCK_PID" >> "$GITHUB_ENV"
+          for i in $(seq 1 15); do
+            if curl -s http://localhost:8000/health-check > /dev/null 2>&1; then
+              echo "✅ Mock server ready (attempt $i)"
+              break
+            fi
+            echo "Waiting for mock server... (attempt $i)"
+            sleep 1
+          done
+      
       - name: Run Tests
         env:
           BROWSERSTACK_LOCAL: 'true'
@@ -249,7 +265,13 @@ jobs:
           fi
 
           echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
-
+      
+      - name: Stop Mock Server
+        if: always() && inputs.build_type == 'onboarding' && env.MOCK_SERVER_PID != ''
+        run: |
+          echo "Stopping mock server (PID: $MOCK_SERVER_PID)..."
+          kill $MOCK_SERVER_PID 2>/dev/null || true
+      
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()

@@ -172,10 +172,12 @@ if (enableApiCallLogs || isTest) {
     // Priority order:
     // 1. localhost (works on iOS, works on Android with adb reverse)
     // 2. 10.0.2.2 (Android emulator host - direct access without adb reverse!)
+    // 3. bs-local.com (BrowserStack Local tunnel - cloud devices reach runner via tunnel)
     const hosts = ['localhost'];
     if (Platform.OS === 'android') {
       hosts.push('10.0.2.2');
     }
+    hosts.push('bs-local.com');
 
     let MOCKTTP_URL = '';
     let isMockServerAvailable = false;
