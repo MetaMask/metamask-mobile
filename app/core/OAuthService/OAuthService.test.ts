@@ -4,6 +4,7 @@ import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { TraceName, TraceOperation } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
 
 const MOCK_JWT_TOKEN =
@@ -49,6 +50,17 @@ jest.mock('@metamask/react-native-acm', () => ({
 
 jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
+jest.mock('../../util/trace', () => ({
+  ...jest.requireActual('../../util/trace'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  trace: (...args: any[]) => mockTrace(...args),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  endTrace: (...args: any[]) => mockEndTrace(...args),
 }));
 
 jest.mock('../../util/analytics/analytics', () => ({
@@ -267,6 +279,92 @@ describe('OAuth login service', () => {
       expect(mockAuthenticate).toHaveBeenCalledTimes(0);
     });
   }
+
+  it('does not trace OnboardingOAuthProviderLoginError when login throws UserCancelled', async () => {
+    // Arrange
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError(
+        'User cancelled the login process',
+        OAuthErrorType.UserCancelled,
+      );
+    });
+
+    // Act
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      OAuthErrorType.UserCancelled,
+    );
+
+    // Assert
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+  });
+
+  it('does not trace OnboardingOAuthProviderLoginError when login throws UserDismissed', async () => {
+    // Arrange
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError(
+        'User dismissed the login process',
+        OAuthErrorType.UserDismissed,
+      );
+    });
+
+    // Act
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      OAuthErrorType.UserDismissed,
+    );
+
+    // Assert
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+  });
+
+  it('traces OnboardingOAuthProviderLoginError when login throws a non-user-action error', async () => {
+    // Arrange
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login error', OAuthErrorType.LoginError);
+    });
+
+    // Act
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      OAuthErrorType.LoginError,
+    );
+
+    // Assert
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage: 'Login error - Login error' },
+      }),
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+  });
 
   describe('acmSignOut on Android Google login', () => {
     const originalPlatform = Platform.OS;

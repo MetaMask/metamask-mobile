@@ -169,11 +169,6 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
-// Mock Skeleton component to prevent animation
-jest.mock('../../../../../component-library/components/Skeleton', () => ({
-  Skeleton: () => null,
-}));
-
 jest.mock('react-native-fade-in-image', () => {
   const ReactModule = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

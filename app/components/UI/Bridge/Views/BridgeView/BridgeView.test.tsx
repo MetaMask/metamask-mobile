@@ -259,11 +259,6 @@ jest.mock('../../hooks/useLatestBalance', () => ({
   }),
 }));
 
-// Mock Skeleton component to prevent animation
-jest.mock('../../../../../component-library/components/Skeleton', () => ({
-  Skeleton: () => null,
-}));
-
 jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
