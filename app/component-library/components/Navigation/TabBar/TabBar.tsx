@@ -33,7 +33,7 @@ import { useAccountMenuEnabled } from '../../../../selectors/featureFlagControll
 const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
   [TabBarIconKey.Activity]: IconName.ClockFilled,
-  [TabBarIconKey.Trending]: IconName.SearchFilled,
+  [TabBarIconKey.Trending]: IconName.Search,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
 };
 

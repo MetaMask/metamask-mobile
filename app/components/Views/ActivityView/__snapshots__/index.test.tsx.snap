@@ -330,7 +330,10 @@ exports[`ActivityView matches snapshot 1`] = `
                     <View
                       style={
                         {
-                          "flex": 1,
+                          "bottom": "off",
+                          "left": "off",
+                          "right": "off",
+                          "top": "additive",
                         }
                       }
                     >
@@ -350,9 +353,8 @@ exports[`ActivityView matches snapshot 1`] = `
                               "flexGrow": 1,
                               "flexShrink": 1,
                             },
-                            {
-                              "backgroundColor": "#ffffff",
-                            },
+                            false,
+                            undefined,
                           ]
                         }
                         testID="activity-view-safe-area"
