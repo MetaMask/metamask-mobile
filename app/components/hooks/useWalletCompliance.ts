@@ -1,35 +1,61 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
 import Engine from '../../core/Engine';
-import { selectIsWalletBlocked } from '../../selectors/complianceController';
+import {
+  selectIsWalletBlocked,
+  selectAreAnyWalletsBlocked,
+} from '../../selectors/complianceController';
 import { selectComplianceEnabled } from '../../selectors/featureFlagController/compliance';
+import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
+
+type AddressInput = string | string[];
+
+function normalizeAddresses(input: AddressInput): string[] {
+  return Array.isArray(input) ? input : [input];
+}
 
 /**
- * Hook that provides compliance state and actions for a wallet address.
+ * Hook that provides compliance state and actions for one or more wallet addresses.
  *
  * Reads from the cached blocklist (synchronous) and exposes an imperative
  * `checkCompliance` function for on-demand API checks.
  *
- * @param address - The wallet address to check.
+ * When given an array of addresses (e.g. from a multichain account group),
+ * `isBlocked` returns `true` if ANY address in the array is blocked.
+ *
+ * @param address - A single wallet address or array of addresses to check.
  * @returns Object with `isBlocked` boolean and `checkCompliance` async function.
  *
  * @example
  * ```tsx
- * const { isBlocked, checkCompliance } = useWalletCompliance(recipientAddress);
+ * // Single address
+ * const { isBlocked } = useWalletCompliance(recipientAddress);
  *
- * if (isBlocked) {
- *   // Show blocked wallet UI
- * }
+ * // Multiple addresses (multichain account group)
+ * const { isBlocked } = useWalletCompliance(['0xEVM...', 'bc1q...', 'So1...']);
  * ```
  */
-export function useWalletCompliance(address: string) {
-  const isBlocked = useSelector(selectIsWalletBlocked(address));
+export function useWalletCompliance(address: AddressInput) {
+  const addresses = normalizeAddresses(address);
+  const isSingle = addresses.length === 1;
 
-  const checkCompliance = useCallback(
-    async () =>
-      Engine.context.ComplianceController.checkWalletCompliance(address),
-    [address],
+  const singleBlocked = useSelector(selectIsWalletBlocked(addresses[0] ?? ''));
+  const batchBlocked = useSelector(
+    selectAreAnyWalletsBlocked(isSingle ? [] : addresses),
   );
+
+  const isBlocked = isSingle ? singleBlocked : batchBlocked;
+
+  const checkCompliance = useCallback(async () => {
+    if (isSingle) {
+      return Engine.context.ComplianceController.checkWalletCompliance(
+        addresses[0],
+      );
+    }
+    return Engine.context.ComplianceController.checkWalletsCompliance(
+      addresses,
+    );
+  }, [addresses, isSingle]);
 
   return useMemo(
     () => ({ isBlocked, checkCompliance }),
@@ -44,7 +70,7 @@ export function useWalletCompliance(address: string) {
  * When compliance is disabled via feature flag, `isBlocked` always returns
  * `false` regardless of the cached blocklist.
  *
- * @param address - The wallet address to check.
+ * @param address - A single wallet address or array of addresses to check.
  * @returns Object with `isComplianceEnabled`, `isBlocked`, and `checkCompliance`.
  *
  * @example
@@ -56,7 +82,7 @@ export function useWalletCompliance(address: string) {
  * }
  * ```
  */
-export function useComplianceGate(address: string) {
+export function useComplianceGate(address: AddressInput) {
   const isComplianceEnabled = useSelector(selectComplianceEnabled);
   const { isBlocked: rawIsBlocked, checkCompliance } =
     useWalletCompliance(address);
@@ -66,5 +92,36 @@ export function useComplianceGate(address: string) {
   return useMemo(
     () => ({ isComplianceEnabled, isBlocked, checkCompliance }),
     [isComplianceEnabled, isBlocked, checkCompliance],
+  );
+}
+
+/**
+ * Zero-config hook that checks compliance for all addresses in the
+ * currently selected account group. In multichain wallets, one group
+ * can contain EVM, Solana, Bitcoin, and other chain-specific addresses.
+ *
+ * Returns `isBlocked: true` if ANY address in the group is blocked.
+ *
+ * @returns Object with `isComplianceEnabled`, `isBlocked`, and `checkCompliance`.
+ *
+ * @example
+ * ```tsx
+ * const { isBlocked } = useAccountGroupCompliance();
+ *
+ * if (isBlocked) {
+ *   // Current account group contains a sanctioned address
+ * }
+ * ```
+ */
+export function useAccountGroupCompliance() {
+  const addresses = useSelector(
+    selectSelectedAccountGroupWithInternalAccountsAddresses,
+  );
+  const filteredAddresses = useMemo(
+    () => addresses.filter((addr): addr is string => addr != null),
+    [addresses],
+  );
+  return useComplianceGate(
+    filteredAddresses.length > 0 ? filteredAddresses : [],
   );
 }

@@ -1,12 +1,15 @@
 import {
   selectBlockedWallets,
   selectIsWalletBlocked,
+  selectAreAnyWalletsBlocked,
   selectWalletComplianceStatusMap,
   selectComplianceLastCheckedAt,
 } from './complianceController';
 
 const BLOCKED_ADDRESS = '0xBLOCKED';
+const BLOCKED_ADDRESS_2 = '0xBLOCKED2';
 const SAFE_ADDRESS = '0xSAFE';
+const SAFE_ADDRESS_2 = '0xSAFE2';
 
 function buildState(complianceState?: Record<string, unknown>) {
   return {
@@ -100,6 +103,83 @@ describe('complianceController selectors', () => {
     it('returns false when controller state is undefined', () => {
       const state = buildState(undefined);
       expect(selectIsWalletBlocked(BLOCKED_ADDRESS)(state)).toBe(false);
+    });
+  });
+
+  describe('selectAreAnyWalletsBlocked', () => {
+    it('returns true when one of the addresses is blocked', () => {
+      const state = buildState({
+        blockedWallets: {
+          addresses: [BLOCKED_ADDRESS],
+          sources: { ofac: 1, remote: 0 },
+          lastUpdated: '2025-01-01T00:00:00Z',
+          fetchedAt: '2025-01-01T00:00:00Z',
+        },
+        walletComplianceStatusMap: {},
+        blockedWalletsLastFetched: 1000,
+        lastCheckedAt: null,
+      });
+
+      expect(
+        selectAreAnyWalletsBlocked([SAFE_ADDRESS, BLOCKED_ADDRESS])(state),
+      ).toBe(true);
+    });
+
+    it('returns false when none of the addresses is blocked', () => {
+      const state = buildState({
+        blockedWallets: {
+          addresses: [BLOCKED_ADDRESS],
+          sources: { ofac: 1, remote: 0 },
+          lastUpdated: '2025-01-01T00:00:00Z',
+          fetchedAt: '2025-01-01T00:00:00Z',
+        },
+        walletComplianceStatusMap: {},
+        blockedWalletsLastFetched: 1000,
+        lastCheckedAt: null,
+      });
+
+      expect(
+        selectAreAnyWalletsBlocked([SAFE_ADDRESS, SAFE_ADDRESS_2])(state),
+      ).toBe(false);
+    });
+
+    it('returns true when multiple addresses are blocked', () => {
+      const state = buildState({
+        blockedWallets: {
+          addresses: [BLOCKED_ADDRESS, BLOCKED_ADDRESS_2],
+          sources: { ofac: 2, remote: 0 },
+          lastUpdated: '2025-01-01T00:00:00Z',
+          fetchedAt: '2025-01-01T00:00:00Z',
+        },
+        walletComplianceStatusMap: {},
+        blockedWalletsLastFetched: 1000,
+        lastCheckedAt: null,
+      });
+
+      expect(
+        selectAreAnyWalletsBlocked([BLOCKED_ADDRESS, BLOCKED_ADDRESS_2])(state),
+      ).toBe(true);
+    });
+
+    it('returns false for empty addresses array', () => {
+      const state = buildState({
+        blockedWallets: {
+          addresses: [BLOCKED_ADDRESS],
+          sources: { ofac: 1, remote: 0 },
+          lastUpdated: '2025-01-01T00:00:00Z',
+          fetchedAt: '2025-01-01T00:00:00Z',
+        },
+        walletComplianceStatusMap: {},
+        blockedWalletsLastFetched: 1000,
+        lastCheckedAt: null,
+      });
+
+      expect(selectAreAnyWalletsBlocked([])(state)).toBe(false);
+    });
+
+    it('returns false when controller state is undefined', () => {
+      const state = buildState(undefined);
+      expect(selectAreAnyWalletsBlocked([BLOCKED_ADDRESS])(state)).toBe(false);
     });
   });
 

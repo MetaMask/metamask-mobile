@@ -28,6 +28,20 @@ export const selectIsWalletBlocked = (address: string) =>
   );
 
 /**
+ * Create a selector that returns whether ANY of the given addresses is blocked.
+ * Useful for multichain account groups where one group has addresses across
+ * multiple chains (EVM, Solana, Bitcoin, etc.).
+ *
+ * @param addresses - The wallet addresses to check.
+ * @returns A selector returning `true` if any address is blocked.
+ */
+export const selectAreAnyWalletsBlocked = (addresses: string[]) =>
+  createSelector(selectComplianceControllerState, (state) => {
+    if (!state || addresses.length === 0) return false;
+    return addresses.some((addr) => coreSelectIsWalletBlocked(addr)(state));
+  });
+
+/**
  * Select the per-address compliance status map.
  */
 export const selectWalletComplianceStatusMap = createSelector(
