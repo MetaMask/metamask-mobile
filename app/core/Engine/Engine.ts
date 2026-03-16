@@ -183,7 +183,11 @@ import { cardControllerInit } from './controllers/card-controller';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import {
   getAccountTrackerControllerAccountsByChainId,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getTokenBalancesControllerTokenBalances,
   getTokenRatesControllerMarketData,
+  getTokensControllerAllTokens,
 } from '../../selectors/assets/assets-migration';
 
 // TODO: Replace "any" with type
@@ -784,10 +788,10 @@ export class Engine {
     ticker: string;
   } => {
     const {
-      CurrencyRateController,
+      // CurrencyRateController,
       AccountsController,
-      TokenBalancesController,
-      TokensController,
+      // TokenBalancesController,
+      // TokensController,
       NetworkController,
     } = this.context;
 
@@ -811,8 +815,8 @@ export class Engine {
     const selectedInternalAccountFormattedAddress = toFormattedAddress(
       selectedInternalAccount.address,
     );
-    const { currentCurrency } = CurrencyRateController.state;
     const state = store.getState();
+    const currentCurrency = getCurrencyRateControllerCurrentCurrency(state);
     const { settings: { showFiatOnTestnets } = {} } = state;
 
     const accountsByChainId =
@@ -854,8 +858,8 @@ export class Engine {
       }
 
       const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-        0;
+        getCurrencyRateControllerCurrencyRates(state)?.[ticker]
+          ?.conversionRate ?? 0;
 
       if (conversionRate === 0) {
         return;
@@ -919,14 +923,13 @@ export class Engine {
       }
 
       const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
+        getTokensControllerAllTokens(state)?.[chainIdHex]?.[
           selectedInternalAccount.address
         ] || [];
       const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
-        const { tokenBalances: allTokenBalances } =
-          TokenBalancesController.state;
+        const allTokenBalances = getTokenBalancesControllerTokenBalances(state);
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
             chainId
