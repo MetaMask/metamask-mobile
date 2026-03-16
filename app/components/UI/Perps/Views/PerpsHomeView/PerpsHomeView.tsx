@@ -210,6 +210,8 @@ const PerpsHomeView = () => {
         PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
+      [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
