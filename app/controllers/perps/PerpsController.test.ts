@@ -5157,7 +5157,7 @@ describe('PerpsController', () => {
       await jest.advanceTimersByTimeAsync(500);
 
       const userCache = preloadController.state.cachedUserDataByProvider;
-      const cacheKey = Object.keys(userCache)[0] as string;
+      const cacheKey = Object.keys(userCache)[0];
       expect(cacheKey).toBeDefined();
       const entry = userCache[cacheKey];
       expect(entry.positions).toEqual(mockPositions);
@@ -5233,7 +5233,7 @@ describe('PerpsController', () => {
       await jest.advanceTimersByTimeAsync(500);
 
       const freshCache = preloadController.state.cachedUserDataByProvider;
-      const freshKey = Object.keys(freshCache)[0] as string;
+      const freshKey = Object.keys(freshCache)[0];
       expect(freshKey).toBeDefined();
       expect(freshCache[freshKey].address).toBe(mockEvmAccount.address);
       expect(freshCache[freshKey].timestamp).toBeGreaterThan(0);
