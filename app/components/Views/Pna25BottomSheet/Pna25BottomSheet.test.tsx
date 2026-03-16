@@ -7,6 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Engine from '../../../core/Engine';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -50,6 +51,12 @@ jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
   Linking: {
     openURL: jest.fn(),
+  },
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
   },
 }));
 
@@ -205,5 +212,37 @@ describe('Pna25BottomSheet', () => {
     fireEvent.press(openSettingsButton);
 
     expect(mockDispatch).toHaveBeenCalled();
+  });
+
+  it('skips initial delay when confirm button is pressed', () => {
+    const { getByText } = renderComponent();
+    const confirmButton = getByText(
+      strings('privacy_policy.pna25_confirm_button'),
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'ProfileMetricsController:skipInitialDelay',
+    );
+  });
+
+  it('does not skip initial delay on view', () => {
+    renderComponent();
+
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
+  });
+
+  it('does not skip initial delay when open settings button is pressed', () => {
+    const { getByText } = renderComponent();
+    const openSettingsButton = getByText(
+      strings('privacy_policy.pna25_open_settings_button'),
+    );
+
+    fireEvent.press(openSettingsButton);
+
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+      'ProfileMetricsController:skipInitialDelay',
+    );
   });
 });

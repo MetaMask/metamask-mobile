@@ -24,6 +24,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { storePna25Acknowledged } from '../../../actions/legalNotices';
+import Engine from '../../../core/Engine';
 
 export enum Pna25BottomSheetAction {
   VIEWED = 'viewed',
@@ -44,6 +45,18 @@ const Pna25BottomSheet = () => {
     (action: Pna25BottomSheetAction) => {
       if (action !== Pna25BottomSheetAction.VIEWED) {
         dispatch(storePna25Acknowledged());
+      }
+
+      const shouldSkipDelay = [
+        Pna25BottomSheetAction.ACCEPT_AND_CLOSE,
+        Pna25BottomSheetAction.CLOSED,
+        Pna25BottomSheetAction.LEAVE,
+      ].includes(action);
+
+      if (shouldSkipDelay) {
+        Engine.controllerMessenger.call(
+          'ProfileMetricsController:skipInitialDelay',
+        );
       }
 
       // Don't emit events for the default close action to avoid double tracking
