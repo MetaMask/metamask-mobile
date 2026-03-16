@@ -1,8 +1,5 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
-  logger: {
-    level: 'trace',  // TODO: revert after debugging predict-open-position e2e
-  },
   artifacts: {
     rootDir: "./tests/artifacts",
     plugins: {
@@ -18,6 +15,10 @@ module.exports = {
         enabled: true,  // Enable video recording
         keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' videos
       },
+      viewHierarchy: {
+        enabled: true,
+        keepOnlyFailedTestsArtifacts: true
+      }
     },
   },
   testRunner: {
