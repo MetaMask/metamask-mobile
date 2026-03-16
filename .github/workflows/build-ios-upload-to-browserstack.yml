@@ -254,8 +254,7 @@ jobs:
           fi
           
           # Set environment variables for without-SRP build
-          # IS_TEST + METAMASK_ENVIRONMENT=e2e enable Metro module mocks (OAuth handlers,
-          # SeedlessOnboardingController) and shim.js fetch proxy to mockttp server.
+          # E2E_MOCK_OAUTH enables mock OAuth for seedless onboarding performance tests
           ENV_VARS='[
             {
               "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
@@ -263,13 +262,8 @@ jobs:
               "is_expand": true
             },
             {
-              "mapped_to": "IS_TEST",
+              "mapped_to": "E2E_MOCK_OAUTH",
               "value": "true",
-              "is_expand": true
-            },
-            {
-              "mapped_to": "METAMASK_ENVIRONMENT",
-              "value": "e2e",
               "is_expand": true
             }
           ]'
