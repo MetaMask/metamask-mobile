@@ -51,7 +51,7 @@ jest.mock('../../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: () => ({
