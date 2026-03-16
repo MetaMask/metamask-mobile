@@ -236,31 +236,29 @@ jobs:
         run: |
           VERSION="${{ steps.check-release.outputs.version }}"
 
+          # Save generated files to temp before switching branches
+          cp test-plans/test-plan-${VERSION}.json /tmp/
+          cp test-plans/test-plan-${VERSION}.html /tmp/
+
+          # Clean up to avoid conflicts when switching branches
+          rm -rf test-plans
+
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Fetch gh-pages branch or create it
-          git fetch origin gh-pages:gh-pages 2>/dev/null || git checkout --orphan gh-pages
+          git fetch origin gh-pages:gh-pages 2>/dev/null || echo "gh-pages doesn't exist yet"
 
-          # Switch to gh-pages
-          git checkout gh-pages
+          # Switch to gh-pages (create orphan if it doesn't exist)
+          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
 
-          # Create test-plans directory if not exists
+          # Create test-plans directory
           mkdir -p test-plans
 
-          # Copy new files (checkout from the working tree)
-          git checkout - -- test-plans/test-plan-${VERSION}.json test-plans/test-plan-${VERSION}.html 2>/dev/null || true
-
-          # If files don't exist from checkout, copy from current directory
-          if [ ! -f "test-plans/test-plan-${VERSION}.json" ]; then
-            git stash
-            git checkout -
-            cp test-plans/test-plan-${VERSION}.json test-plans/test-plan-${VERSION}.html /tmp/
-            git checkout gh-pages
-            mkdir -p test-plans
-            cp /tmp/test-plan-${VERSION}.json /tmp/test-plan-${VERSION}.html test-plans/
-          fi
+          # Copy files from temp (overwrites if exists - handles re-runs)
+          cp /tmp/test-plan-${VERSION}.json test-plans/
+          cp /tmp/test-plan-${VERSION}.html test-plans/
 
           # Add and commit
           git add test-plans/
