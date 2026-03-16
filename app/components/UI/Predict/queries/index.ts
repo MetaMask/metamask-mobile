@@ -48,6 +48,7 @@ export const predictQueries = {
   prices: {
     keys: predictPricesKeys,
     options: predictPricesOptions,
+  },
   priceHistory: {
     keys: predictPriceHistoryKeys,
     options: predictPriceHistoryOptions,
