@@ -10,6 +10,7 @@ import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
@@ -21,6 +22,9 @@ const RewardsNavigator: React.FC = () => {
 
   // This is used to fetch season status data when the component mounts
   useSeasonStatus({ onlyForExplicitFetch: false });
+
+  // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
+  useGeoRewardsMetadata({});
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
@@ -58,7 +62,7 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REFERRAL_REWARDS_VIEW}
             component={ReferralRewardsView}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_SETTINGS_VIEW}
