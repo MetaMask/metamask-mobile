@@ -4180,6 +4180,35 @@ describe('PredictController', () => {
   });
 
   describe('payWithAnyTokenConfirmation', () => {
+    it('throws error when there is no active order', async () => {
+      await withController(async ({ controller }) => {
+        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
+          'Active order is required for pay-with-any-token confirmation',
+        );
+
+        expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('throws error when an active order batch is already in progress', async () => {
+      await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+          batchId: 'batch-in-progress',
+        });
+
+        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
+          'Pay-with-any-token confirmation is already in progress',
+        );
+
+        expect(controller.state.activeOrder?.batchId).toBe('batch-in-progress');
+        expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
     it('uses predict deposit transaction when setup transactions are present', async () => {
       const setupTransaction = {
         params: {
@@ -4206,6 +4235,11 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
         const result = await controller.payWithAnyTokenConfirmation();
 
         expect(result).toEqual({
@@ -4247,6 +4281,11 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
         const result = await controller.payWithAnyTokenConfirmation();
 
         expect(result).toEqual({

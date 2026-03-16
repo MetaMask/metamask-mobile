@@ -2248,6 +2248,19 @@ export class PredictController extends BaseController<
     const provider = this.provider;
 
     try {
+      const activeOrder = this.state.activeOrder;
+      if (!activeOrder) {
+        throw new Error(
+          'Active order is required for pay-with-any-token confirmation',
+        );
+      }
+
+      if (activeOrder.batchId) {
+        throw new Error(
+          'Pay-with-any-token confirmation is already in progress',
+        );
+      }
+
       const signer = this.getSigner();
 
       this.update((state) => {
