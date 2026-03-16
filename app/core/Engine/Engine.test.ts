@@ -1221,10 +1221,11 @@ describe('Engine', () => {
       Engine.init(TEST_ANALYTICS_ID, {});
       const controllersWithState = Object.entries(Engine.context)
         .filter(
-          ([_, controller]) =>
+          ([controllerName, controller]) =>
             'state' in controller &&
             Boolean(controller.state) &&
-            !isEmpty(controller.state),
+            (!isEmpty(controller.state) ||
+              controllerName === 'ComplianceController'),
         )
         .map(([controllerName]) => controllerName);
 
