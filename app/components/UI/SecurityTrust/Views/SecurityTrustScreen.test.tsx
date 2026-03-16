@@ -61,6 +61,15 @@ jest.mock('../../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
 }));
 
+jest.mock('../../../hooks/useBlockExplorer', () => ({
+  __esModule: true,
+  default: () => ({
+    getBlockExplorerTokenUrl: (address: string) =>
+      `https://etherscan.io/address/${address}`,
+    getBlockExplorerName: () => 'Etherscan',
+  }),
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({
     top: 0,

@@ -37,6 +37,7 @@ import {
   getResultTypeConfig,
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
+import useBlockExplorer from '../../../hooks/useBlockExplorer';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -57,6 +58,7 @@ const SecurityTrustScreen: React.FC = () => {
 
   const params = route.params as TokenDetailsRouteParams;
   const securityData = params?.securityData ?? null;
+  const explorer = useBlockExplorer(params?.chainId);
 
   const fees = securityData?.fees ?? null;
   const features = securityData?.features ?? [];
@@ -551,31 +553,42 @@ const SecurityTrustScreen: React.FC = () => {
                   </Text>
                 </ButtonBase>
               )}
-              {params?.address && !params.isNative && (
-                <ButtonBase
-                  onPress={() =>
-                    openLink(`https://etherscan.io/address/${params.address}`)
-                  }
-                  size={ButtonBaseSize.Md}
-                  twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
-                  }
-                  startIconName={IconName.Global}
-                  startIconProps={{
-                    color: IconColor.IconDefault,
-                    size: IconSize.Sm,
-                  }}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextDefault}
-                    fontWeight={FontWeight.Medium}
-                    twClassName="text-center"
-                  >
-                    {strings('security_trust.etherscan')}
-                  </Text>
-                </ButtonBase>
-              )}
+              {params?.address &&
+                !params.isNative &&
+                (() => {
+                  const blockExplorerUrl = explorer.getBlockExplorerTokenUrl(
+                    params.address,
+                    params.chainId,
+                  );
+                  const blockExplorerName = explorer.getBlockExplorerName(
+                    params.chainId,
+                  );
+
+                  return blockExplorerUrl ? (
+                    <ButtonBase
+                      onPress={() => openLink(blockExplorerUrl)}
+                      size={ButtonBaseSize.Md}
+                      twClassName={(pressed) =>
+                        `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                      }
+                      startIconName={IconName.Global}
+                      startIconProps={{
+                        color: IconColor.IconDefault,
+                        size: IconSize.Sm,
+                      }}
+                    >
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextDefault}
+                        fontWeight={FontWeight.Medium}
+                        twClassName="text-center"
+                      >
+                        {blockExplorerName ||
+                          strings('security_trust.etherscan')}
+                      </Text>
+                    </ButtonBase>
+                  ) : null;
+                })()}
             </Box>
           </>
         )}
