@@ -119,6 +119,10 @@
       "message": "資産をバーンアドレスに送金しようとしています。続行すると、資産が失われます。",
       "title": "バーンアドレスに資産を送ろうとしています"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "この取引でガススポンサーシップはご利用いただけません。アカウントに%{minBalance} %{nativeTokenSymbol}以上の残高が必要です。",
       "title": "ガススポンサーシップは利用できません"
@@ -689,7 +693,11 @@
     "invisible_character_error": "ENS名に表示されない文字が検出されました。詐欺防止のため、ENS名を確認してください。",
     "could_not_resolve_name": "名前の解決ができませんでした",
     "invalid_address": "無効なアドレス",
-    "contractAddressError": "トークンのコントラクトアドレスにトークンを送金しようとしています。これにより、当該トークンが失われる可能性があります。"
+    "contractAddressError": "トークンのコントラクトアドレスにトークンを送金しようとしています。これにより、当該トークンが失われる可能性があります。",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "理解しています",
+    "cancel": "キャンセル"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -2154,6 +2162,7 @@
     "sell_position": "ポジションを売却",
     "cash_out": "キャッシュアウト",
     "cash_out_info": "資金は利用可能残高に追加されます",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "{{size}}株を{{price}}で売却中",
     "cashout_info": "{{outcome}}を{{initialPrice}}で{{amount}}",
     "cashout_info_multiple": "{{outcomeGroupTitle}} • {{outcome}}を{{initialPrice}}で{{amount}}",
@@ -2338,7 +2347,9 @@
       "exchange_fee_description": "取引所または市場に支払われる手数料",
       "total_incl_fees": "手数料込",
       "close": "閉じる",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "予想に接続できません",
@@ -5921,6 +5932,7 @@
   "earn": {
     "claimable_bonus_tooltip": "mUSDを保有することで獲得した年換算ボーナスです。ボーナスはLineaで毎日請求できます。",
     "earn_a_percentage_bonus": "{{percentage}}%のボーナスを獲得",
+    "percentage_bonus": "{{percentage}}%のボーナス",
     "claimable_bonus": "獲得できるボーナス",
     "claim_bonus": "ボーナスを請求する",
     "claim_bonus_subtitle": "ボーナスは{{networkName}}上で支払われます。",
@@ -6930,7 +6942,7 @@
       "upgrade_title": "メタルにアップグレード",
       "continue_button": "続行",
       "virtual_card": {
-        "name": "オレンジバーチャルカード",
+        "name": "Virtual Card",
         "price": "無料",
         "feature_1": "Apple PayとGoogle Payで使えるバーチャルカード",
         "feature_2": "仮想通貨でお支払い (USDC、USDT、WETHなど)",
@@ -6939,10 +6951,13 @@
       "metal_card": {
         "name": "メタルカード",
         "price": "年間199ドル",
-        "feature_1": "Apple PayとGoogle Payで使える刻印入りメタルカードとバーチャルカード",
-        "feature_2": "毎年、支出額が10,000ドルに達した時点で3%、その後10,000ドル支出するたびに1%のキャッシュバック",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "海外トランザクション手数料なし"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "ご注文内容の確認",
@@ -7090,7 +7105,8 @@
         "ssn_label": "社会保障番号",
         "ssn_description": "カード発行者により求められています。信用調査は行われません。",
         "invalid_ssn": "無効な社会保障番号です",
-        "invalid_date_of_birth": "生年月日が無効です。18歳以上である必要があります。"
+        "invalid_date_of_birth": "生年月日が無効です。18歳以上である必要があります。",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "住所を追加",
@@ -7174,6 +7190,7 @@
       "enable_assets_button_label": "アセットを有効にする",
       "spending_limit_warning": "使用上限に近づいています。拒否されないように更新してください。",
       "logout": "ログアウト",
+      "contact_support": "サポートへのお問い合わせ",
       "logout_confirmation_title": "カードからログアウトしますか？",
       "logout_confirmation_message": "MetaMaskカードアカウントからログアウトしてよろしいですか？",
       "logout_confirmation_cancel": "キャンセル",
@@ -7727,6 +7744,18 @@
     },
     "active_boosts_title": "有効なブースト",
     "season_1": "シーズン1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "mUSDを購入",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "ロックされているリワード",
       "points_needed": "{{points}}ポイント",
@@ -8006,6 +8035,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "トークン",
       "perpetuals": "パーペチュアル",
       "predictions": "予測",
