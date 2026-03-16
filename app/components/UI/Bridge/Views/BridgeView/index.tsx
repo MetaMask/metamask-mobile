@@ -329,6 +329,16 @@ const BridgeView = () => {
     }
   };
 
+  const handleSourcePresetAmountSelect = useCallback(
+    (value: string) => {
+      // Quick-pick presets replace the full amount rather than editing at the
+      // current cursor position, so clear the cursor state before updating.
+      resetSourceAmountCursorPosition();
+      dispatch(setSourceAmount(value || undefined));
+    },
+    [dispatch, resetSourceAmountCursorPosition],
+  );
+
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
@@ -497,9 +507,10 @@ const BridgeView = () => {
           ) : (
             <GaslessQuickPickOptions
               token={sourceToken}
+              tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}
               isQuoteSponsored={isQuoteSponsored}
-              onChange={handleKeypadChange}
+              onAmountSelect={handleSourcePresetAmountSelect}
             />
           )}
         </SwapsKeypad>
