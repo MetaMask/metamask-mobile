@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
+const mockGoToBuy = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
 const mockFeedbackBottomSheet = jest.fn();
@@ -43,6 +44,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
+      addListener: jest.fn(() => jest.fn()),
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -64,6 +66,17 @@ jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
   useSwapBridgeNavigation: (options: unknown) =>
     mockUseSwapBridgeNavigation(options),
+}));
+
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
+}));
+
+jest.mock('../../../Ramp/utils/parseRampIntent', () => ({
+  __esModule: true,
+  default: ({ chainId, address }: { chainId: string; address: string }) => ({
+    assetId: `eip155:${chainId}/erc20:${address}`,
+  }),
 }));
 
 jest.mock(
@@ -289,7 +302,7 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
   });
 
-  it('renders report content and handles tweet/trade actions', () => {
+  it('renders report content and handles tweet/swap/buy actions', () => {
     mockUseMarketInsights.mockReturnValue({
       report: {
         asset: 'eth',
@@ -368,7 +381,7 @@ describe('MarketInsightsView', () => {
       'https://x.com/user/status/100',
     );
 
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.TRADE_BUTTON));
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON));
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -382,6 +395,9 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.BUY_BUTTON));
+    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
     expect(
@@ -415,7 +431,16 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
-          interaction_type: 'trade',
+          interaction_type: 'swap',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+          interaction_type: 'buy',
         }),
       }),
     );
@@ -493,7 +518,6 @@ describe('MarketInsightsView', () => {
     ).toBeOnTheScreen();
     expect(mockTrendSourcesBottomSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        trendTitle: 'On-chain demand',
         articles: [],
         tweets: [
           expect.objectContaining({
@@ -503,6 +527,51 @@ describe('MarketInsightsView', () => {
         ],
       }),
     );
+  });
+
+  it('closes trend sources bottom sheet when a source is pressed', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH extends gains',
+        summary: 'Momentum improves on macro risk-on signals',
+        trends: [
+          {
+            title: 'ETF inflows',
+            description: 'Spot ETF inflows remain elevated',
+            articles: [
+              {
+                title: 'ETF demand remains high',
+                source: 'coindesk.com',
+                date: '2026-02-17T08:00:00.000Z',
+                url: 'https://www.coindesk.com/article',
+              },
+            ],
+            tweets: [],
+          },
+        ],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MarketInsightsView />,
+    );
+
+    fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
+    expect(
+      getByTestId('market-insights-trend-sources-bottom-sheet'),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('market-insights-trend-source-link-button'));
+
+    expect(
+      queryByTestId('market-insights-trend-sources-bottom-sheet'),
+    ).toBeNull();
   });
 
   it('tracks viewed event again when caip19Id changes on mounted view', () => {
