@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import CardButton from './CardButton';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -192,6 +192,51 @@ describe('CardButton Component', () => {
     });
 
     describe('analytics: CARD_BUTTON_VIEWED event', () => {
+      it('fires exactly once on mount', () => {
+        renderWithProvider(() => (
+          <CardButton
+            onPress={mockOnPress}
+            touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        ));
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      });
+
+      it('fires only once even when isActive/variantName change (async flag load)', async () => {
+        mockUseABTest
+          .mockReturnValueOnce({
+            variant: { showBadge: false },
+            variantName: 'control',
+            isActive: false,
+          })
+          .mockReturnValue({
+            variant: { showBadge: true },
+            variantName: 'withBadge',
+            isActive: true,
+          });
+
+        const ForceRerenderWrapper = () => {
+          const [, setTick] = React.useState(0);
+          React.useEffect(() => {
+            const id = setTimeout(() => setTick((t) => t + 1), 0);
+            return () => clearTimeout(id);
+          }, []);
+          return (
+            <CardButton
+              onPress={mockOnPress}
+              touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+            />
+          );
+        };
+
+        renderWithProvider(ForceRerenderWrapper);
+
+        await waitFor(() => {
+          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        });
+      });
+
       it('includes active_ab_tests when withBadge variant is active', () => {
         mockUseABTest.mockReturnValue({
           variant: { showBadge: true },

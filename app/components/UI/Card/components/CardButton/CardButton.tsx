@@ -10,7 +10,7 @@ import {
   BadgeWrapperPositionAnchorShape,
 } from '@metamask/design-system-react-native';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -44,7 +44,12 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
     CARD_BUTTON_BADGE_VARIANTS,
   );
 
+  const hasTrackedViewedEvent = useRef(false);
+
   useEffect(() => {
+    if (hasTrackedViewedEvent.current) return;
+    hasTrackedViewedEvent.current = true;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED)
         .addProperties({
