@@ -17,27 +17,22 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectSelectedCountry,
   selectUserCardLocation,
-  setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
-  Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { useCardSDK } from '../../sdk';
 import SelectField from './SelectField';
 
 const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
@@ -46,47 +41,17 @@ const SetPhoneNumber = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
-  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { data: registrationSettings } = useRegistrationSettings();
-  const { user } = useCardSDK();
+  const { signUpRegions, userCountry } = useRegions();
   const userCardLocation = useSelector(selectUserCardLocation);
-
-  const regions: Region[] = useMemo(() => {
-    if (!registrationSettings?.countries) {
-      return [];
-    }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .filter((country) => country.canSignUp)
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        name: country.name,
-        emoji: countryCodeToFlag(country.iso3166alpha2),
-        areaCode: country.callingCode,
-      }));
-  }, [registrationSettings]);
-
-  const selectedCountry = useMemo(
-    () =>
-      initialSelectedCountry ||
-      regions.find((region) => region.key === user?.countryOfResidence),
-    [initialSelectedCountry, regions, user?.countryOfResidence],
-  );
-
-  useEffect(() => {
-    if (!initialSelectedCountry && selectedCountry) {
-      dispatch(setSelectedCountry(selectedCountry));
-    }
-  }, [selectedCountry, dispatch, initialSelectedCountry]);
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [isUsPhoneNumberError, setIsUsPhoneNumberError] = useState(false);
   const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
-    useState<string>(selectedCountry?.areaCode || '');
+    useState<string>(userCountry?.areaCode || '');
   const [selectedCountryEmoji, setSelectedCountryEmoji] = useState<string>(
-    selectedCountry?.emoji || '',
+    userCountry?.emoji || '',
   );
 
   const isUsUser = userCardLocation === 'us';
@@ -94,18 +59,18 @@ const SetPhoneNumber = () => {
   // For US users, only show US in the region selector
   const availableRegions = useMemo(() => {
     if (isUsUser) {
-      return regions.filter((region) => region.key === 'US');
+      return signUpRegions.filter((region) => region.key === 'US');
     }
-    return regions;
-  }, [regions, isUsUser]);
+    return signUpRegions;
+  }, [signUpRegions, isUsUser]);
 
-  // Sync local state when selectedCountry changes (e.g., after regions load)
+  // Sync local state when userCountry changes (e.g., after regions load)
   useEffect(() => {
-    if (selectedCountry) {
-      setSelectedCountryAreaCode(selectedCountry.areaCode || '');
-      setSelectedCountryEmoji(selectedCountry.emoji || '');
+    if (userCountry) {
+      setSelectedCountryAreaCode(userCountry.areaCode || '');
+      setSelectedCountryEmoji(userCountry.emoji || '');
     }
-  }, [selectedCountry]);
+  }, [userCountry]);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const {
@@ -189,9 +154,15 @@ const SetPhoneNumber = () => {
       ...createRegionSelectorModalNavigationDetails({
         regions: availableRegions,
         renderAreaCode: true,
+        selectedRegionKey: userCountry?.key ?? null,
       }),
     );
-  }, [navigation, availableRegions, resetPhoneVerificationSend]);
+  }, [
+    navigation,
+    availableRegions,
+    userCountry?.key,
+    resetPhoneVerificationSend,
+  ]);
 
   const handlePhoneNumberChange = (text: string) => {
     resetPhoneVerificationSend();

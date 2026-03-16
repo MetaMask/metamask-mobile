@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmEmail from './ConfirmEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import useRegions from '../../hooks/useRegions';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -342,6 +343,11 @@ jest.mock('../../hooks/useEmailVerificationSend', () => ({
   default: () => mockUseEmailVerificationSend(),
 }));
 
+jest.mock('../../hooks/useRegions', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 // Mock SDK
 jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(() => ({
@@ -410,6 +416,10 @@ describe('ConfirmEmail Component', () => {
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
       password: 'testPassword123',
+    });
+
+    (useRegions as jest.Mock).mockReturnValue({
+      userCountry: { key: 'US', name: 'United States', emoji: '🇺🇸' },
     });
 
     // Set up useAnalytics mock

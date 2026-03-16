@@ -16,7 +16,6 @@ import { CardError } from '../../types';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectSelectedCountry,
   setContactVerificationId,
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
@@ -26,6 +25,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import useRegions from '../../hooks/useRegions';
 
 const CODE_LENGTH = 6;
 
@@ -34,7 +34,7 @@ const ConfirmEmail = () => {
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const { userCountry: selectedCountry } = useRegions();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<

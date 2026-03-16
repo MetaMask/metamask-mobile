@@ -5,7 +5,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { CardError, CardErrorType } from '../../types';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import SetPhoneNumber from './SetPhoneNumber';
 
 // Mock whenEngineReady to prevent async polling after test teardown
@@ -28,7 +28,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 // Mock hooks
 jest.mock('../../hooks/usePhoneVerificationSend');
-jest.mock('../../hooks/useRegistrationSettings');
+jest.mock('../../hooks/useRegions');
 jest.mock('../../../../hooks/useDebouncedValue');
 jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
@@ -70,15 +70,9 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
-// Default card state
+// Default card state (no selectedCountry - useRegions provides userCountry)
 const defaultCardState = {
   onboarding: {
-    selectedCountry: {
-      key: 'US',
-      name: 'United States',
-      emoji: '🇺🇸',
-      areaCode: '1',
-    },
     contactVerificationId: 'test-verification-id',
   },
   userCardLocation: null,
@@ -119,12 +113,6 @@ const createInternationalUserStore = (overrides = {}) =>
   createTestStore({
     userCardLocation: 'international',
     onboarding: {
-      selectedCountry: {
-        key: 'GB',
-        name: 'United Kingdom',
-        emoji: '🇬🇧',
-        areaCode: '44',
-      },
       contactVerificationId: 'test-verification-id',
     },
     ...overrides,
@@ -153,29 +141,35 @@ describe('SetPhoneNumber Component', () => {
       reset: jest.fn(),
     });
 
-    (useRegistrationSettings as jest.Mock).mockReturnValue({
-      data: {
-        countries: [
-          {
-            iso3166alpha2: 'US',
-            name: 'United States',
-            callingCode: '1',
-            canSignUp: true,
-          },
-          {
-            iso3166alpha2: 'CA',
-            name: 'Canada',
-            callingCode: '1',
-            canSignUp: true,
-          },
-          {
-            iso3166alpha2: 'GB',
-            name: 'United Kingdom',
-            callingCode: '44',
-            canSignUp: true,
-          },
-        ],
+    const defaultSignUpRegions = [
+      {
+        key: 'US',
+        name: 'United States',
+        emoji: '🇺🇸',
+        areaCode: '1',
+        canSignUp: true,
       },
+      {
+        key: 'CA',
+        name: 'Canada',
+        emoji: '🇨🇦',
+        areaCode: '1',
+        canSignUp: true,
+      },
+      {
+        key: 'GB',
+        name: 'United Kingdom',
+        emoji: '🇬🇧',
+        areaCode: '44',
+        canSignUp: true,
+      },
+    ];
+    const defaultUserCountry = defaultSignUpRegions[0];
+
+    (useRegions as jest.Mock).mockReturnValue({
+      signUpRegions: defaultSignUpRegions,
+      userCountry: defaultUserCountry,
+      isLoading: false,
     });
 
     (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
@@ -607,12 +601,6 @@ describe('SetPhoneNumber Component', () => {
     it('handles missing contact verification ID', () => {
       const storeWithoutVerificationId = createTestStore({
         onboarding: {
-          selectedCountry: {
-            key: 'US',
-            name: 'United States',
-            emoji: '🇺🇸',
-            areaCode: '1',
-          },
           contactVerificationId: null,
         },
       });
@@ -628,8 +616,10 @@ describe('SetPhoneNumber Component', () => {
     });
 
     it('handles missing registration settings', () => {
-      (useRegistrationSettings as jest.Mock).mockReturnValue({
-        data: null,
+      (useRegions as jest.Mock).mockReturnValue({
+        signUpRegions: [],
+        userCountry: null,
+        isLoading: false,
       });
 
       const { getByTestId } = render(
@@ -646,20 +636,28 @@ describe('SetPhoneNumber Component', () => {
     });
 
     it('handles missing selected country area code', () => {
-      const storeWithNoAreaCode = createTestStore({
-        onboarding: {
-          selectedCountry: {
+      (useRegions as jest.Mock).mockReturnValue({
+        signUpRegions: [
+          {
             key: 'XX',
             name: 'Unknown Country',
             emoji: '🏳️',
-            // areaCode is undefined
+            areaCode: undefined,
+            canSignUp: true,
           },
-          contactVerificationId: 'test-verification-id',
+        ],
+        userCountry: {
+          key: 'XX',
+          name: 'Unknown Country',
+          emoji: '🏳️',
+          areaCode: undefined,
+          canSignUp: true,
         },
+        isLoading: false,
       });
 
       const { getByTestId } = render(
-        <Provider store={storeWithNoAreaCode}>
+        <Provider store={store}>
           <SetPhoneNumber />
         </Provider>,
       );

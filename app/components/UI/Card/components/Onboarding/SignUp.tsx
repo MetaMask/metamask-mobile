@@ -22,12 +22,10 @@ import OnboardingStep from './OnboardingStep';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import {
   selectCardGeoLocation,
-  selectSelectedCountry,
   setContactVerificationId,
-  setSelectedCountry,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,11 +37,11 @@ import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
-  Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import SelectField from './SelectField';
+import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import type { Region } from '../../types';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -55,12 +53,13 @@ const SignUp = () => {
   const [isPasswordError, setIsPasswordError] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const geoLocation = useSelector(selectCardGeoLocation);
   const {
-    data: registrationSettings,
+    signUpRegions,
+    getRegionByCode,
     isLoading: isLoadingRegistrationSettings,
-  } = useRegistrationSettings();
+  } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
@@ -84,36 +83,18 @@ const SignUp = () => {
   const debouncedEmail = useDebouncedValue(email, 1000);
   const debouncedPassword = useDebouncedValue(password, 1000);
 
-  const regions: Region[] = useMemo(() => {
-    if (!registrationSettings?.countries) {
-      return [];
-    }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .filter((country) => country.canSignUp)
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        name: country.name,
-        emoji: countryCodeToFlag(country.iso3166alpha2),
-        areaCode: country.callingCode,
-      }));
-  }, [registrationSettings]);
-
   useEffect(() => {
-    if (selectedCountry || !regions.length || geoLocation === 'UNKNOWN') {
+    if (!signUpRegions.length || geoLocation === 'UNKNOWN') {
       return;
     }
 
-    const matchedRegion = regions.find((region) => region.key === geoLocation);
+    const matchedRegion = getRegionByCode(geoLocation);
+
     if (matchedRegion) {
-      dispatch(setSelectedCountry(matchedRegion));
-      dispatch(
-        setUserCardLocation(
-          matchedRegion.key === 'US' ? 'us' : 'international',
-        ),
-      );
+      setSelectedCountry(matchedRegion);
+      dispatch(setUserCardLocation(mapCountryToLocation(matchedRegion.key)));
     }
-  }, [regions, geoLocation, selectedCountry, dispatch]);
+  }, [signUpRegions.length, geoLocation, dispatch, getRegionByCode]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -212,35 +193,35 @@ const SignUp = () => {
   }, [
     email,
     password,
-    selectedCountry,
     trackEvent,
     createEventBuilder,
     sendEmailVerification,
     dispatch,
     navigation,
+    selectedCountry,
   ]);
 
   const handleCountrySelect = useCallback(() => {
     if (isLoadingRegistrationSettings) return;
     resetEmailVerificationSend();
     setOnValueChange((region) => {
-      dispatch(setSelectedCountry(region));
-      dispatch(
-        setUserCardLocation(region.key === 'US' ? 'us' : 'international'),
-      );
+      setSelectedCountry(region);
+      dispatch(setUserCardLocation(mapCountryToLocation(region.key)));
     });
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        regions,
+        regions: signUpRegions,
+        selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
   }, [
-    dispatch,
     navigation,
-    regions,
+    signUpRegions,
+    selectedCountry?.key,
     resetEmailVerificationSend,
     isLoadingRegistrationSettings,
+    dispatch,
   ]);
 
   useEffect(() => () => clearOnValueChange(), []);
