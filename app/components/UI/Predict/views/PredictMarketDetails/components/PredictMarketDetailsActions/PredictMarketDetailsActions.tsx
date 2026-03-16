@@ -141,6 +141,7 @@ const PredictMarketDetailsActions = memo(
                 twClassName="w-full mt-4 gap-3"
               >
                 <Button
+                  testID={PredictMarketDetailsSelectorsIDs.OUTCOME_YES_BUTTON}
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
                   style={getActionButtonStyle('flex-1 bg-success-muted')}
@@ -159,6 +160,7 @@ const PredictMarketDetailsActions = memo(
                   })}
                 </Button>
                 <Button
+                  testID={PredictMarketDetailsSelectorsIDs.OUTCOME_NO_BUTTON}
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
                   style={getActionButtonStyle('flex-1 bg-error-muted')}
