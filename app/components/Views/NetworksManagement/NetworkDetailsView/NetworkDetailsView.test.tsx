@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
+import { IconColor } from '../../../../component-library/components/Icons/Icon';
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import NetworkDetailsView from './NetworkDetailsView';
 
@@ -746,6 +747,18 @@ describe('NetworkDetailsView', () => {
       expect(
         getByText(strings('app_settings.network_delete')),
       ).toBeOnTheScreen();
+    });
+
+    it('renders header trash icon using default icon color', () => {
+      mockFormHook.mockReturnValue(editForm());
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      const trashIcon = getByTestId(
+        NetworkDetailsViewSelectorsIDs.CONTAINER,
+      ).findAllByProps({ name: 'Trash' })[0];
+
+      expect(trashIcon.props.color).toBe(IconColor.Default);
     });
 
     it('calls operations.removeNetwork on confirm delete', () => {
