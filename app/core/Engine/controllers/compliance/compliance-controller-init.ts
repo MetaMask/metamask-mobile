@@ -53,7 +53,10 @@ export const complianceControllerInit: ControllerInitFunction<
         Logger.log('ComplianceController initialized');
       })
       .catch((error: unknown) =>
-        Logger.log('ComplianceController init failed: ', error),
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'ComplianceController init failed — sanctions blocklist may be empty',
+        ),
       );
   } else {
     Logger.log('ComplianceController disabled via feature flag');
