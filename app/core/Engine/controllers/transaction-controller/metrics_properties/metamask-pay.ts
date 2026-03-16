@@ -153,9 +153,8 @@ function addTimeToComplete(
     return;
   }
 
-  properties.mm_pay_time_to_complete_s = Math.round(
-    (Date.now() - submittedTime) / 1000,
-  );
+  properties.mm_pay_time_to_complete_s =
+    Math.round(Date.now() - submittedTime) / 1000;
 }
 
 function addFallbackProperties(
