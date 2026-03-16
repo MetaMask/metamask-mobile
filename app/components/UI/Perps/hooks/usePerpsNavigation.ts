@@ -11,6 +11,7 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -139,12 +140,14 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const { depositWithOrder } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      depositWithOrder()
+      ensureArbitrumNetworkExists()
+        .then(() => depositWithOrder())
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -177,6 +180,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     },
     [
       navigation,
+      ensureArbitrumNetworkExists,
       depositWithOrder,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
