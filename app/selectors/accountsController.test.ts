@@ -72,11 +72,17 @@ const MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED =
       },
       {} as Record<string, InternalAccount>,
     );
+    const accountIdByAddress: Record<string, string> = {};
+    Object.values(accountsForInternalAccounts).forEach((account) => {
+      accountIdByAddress[account.address] = account.id;
+    });
+
     return {
       internalAccounts: {
         accounts: accountsForInternalAccounts,
         selectedAccount: Object.values(accountsForInternalAccounts)[0].id,
       },
+      accountIdByAddress,
     };
   };
 
@@ -109,6 +115,9 @@ describe('Accounts Controller Selectors', () => {
             [internalAccount1.id]: internalAccount1,
           },
           selectedAccount: 'non-existent-id',
+        },
+        accountIdByAddress: {
+          [internalAccount1.address]: internalAccount1.id,
         },
       };
       const errorMessage =

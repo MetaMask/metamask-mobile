@@ -9,7 +9,7 @@ jest.mock(
 );
 
 // Mock the Skeleton component
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const mockReact = jest.requireActual('react');
   const RN = jest.requireActual('react-native');
 

@@ -1208,13 +1208,18 @@ export class Engine {
     }
   }
 
-  // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
+  /**
+   * Method to set the selected account in the accounts-controller.
+   *
+   * @deprecated The accounts-controller should not be used anymore. Use the
+   * account-tree-controller instead.
+   * @param address - Account address
+   */
   setSelectedAccount(address: string) {
-    const { AccountsController, PreferencesController } = this.context;
+    const { AccountsController } = this.context;
     const account = AccountsController.getAccountByAddress(address);
     if (account) {
       AccountsController.setSelectedAccount(account.id);
-      PreferencesController.setSelectedAddress(address);
     } else {
       throw new Error(`No account found for address: ${address}`);
     }
@@ -1226,13 +1231,12 @@ export class Engine {
    * in sync until the migration is complete.
    */
   setAccountLabel(address: string, label: string) {
-    const { AccountsController, PreferencesController } = this.context;
+    const { AccountsController } = this.context;
     const accountToBeNamed = AccountsController.getAccountByAddress(address);
     if (accountToBeNamed === undefined) {
       throw new Error(`No account found for address: ${address}`);
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
-    PreferencesController.setAccountLabel(address, label);
   }
 
   /**
