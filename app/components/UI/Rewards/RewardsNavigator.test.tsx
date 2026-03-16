@@ -70,22 +70,25 @@ jest.mock('./Views/RewardsSettingsView', () => {
 });
 
 // Mock Skeleton component
-jest.mock('../../../component-library/components/Skeleton/Skeleton', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return function MockSkeleton({
-    width,
-    height,
-  }: {
-    width: string;
-    height: string;
-  }) {
-    return ReactActual.createElement(View, {
-      testID: 'skeleton-loader',
-      style: { width, height },
-    });
-  };
-});
+jest.mock(
+  '../../../component-library/components-temp/Skeleton/Skeleton',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return function MockSkeleton({
+      width,
+      height,
+    }: {
+      width: string;
+      height: string;
+    }) {
+      return React.createElement(View, {
+        testID: 'skeleton-loader',
+        style: { width, height },
+      });
+    };
+  },
+);
 
 // Mock ErrorBoundary
 jest.mock('../../Views/ErrorBoundary', () => ({

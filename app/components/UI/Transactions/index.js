@@ -470,7 +470,6 @@ class Transactions extends PureComponent {
   };
 
   getParamsToSend = (transactionObject) => {
-    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
     if (
       transactionObject &&
       transactionObject.gasPrice !== undefined &&
