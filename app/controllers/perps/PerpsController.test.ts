@@ -762,7 +762,7 @@ describe('PerpsController', () => {
       ).toHaveBeenCalled();
     });
 
-    it('handles errors in startEligibilityMonitoring gracefully', () => {
+    it('logs error when RemoteFeatureFlagController throws during startEligibilityMonitoring', () => {
       // Arrange
       const testInfrastructure = createMockInfrastructure();
       const testMockCall = jest.fn().mockImplementation((action: string) => {
