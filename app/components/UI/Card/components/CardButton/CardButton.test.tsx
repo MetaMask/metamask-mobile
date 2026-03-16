@@ -4,6 +4,7 @@ import CardButton from './CardButton';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { useABTest } from '../../../../../hooks/useABTest';
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -13,6 +14,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     })),
   }),
 }));
+
+jest.mock('../../../../../hooks/useABTest');
+
+const mockUseABTest = useABTest as jest.MockedFunction<typeof useABTest>;
 
 interface PartialCardState {
   hasViewedCardButton?: boolean;
@@ -44,6 +49,11 @@ describe('CardButton Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockReturnValue({
+      variant: { showBadge: true },
+      variantName: 'withBadge',
+      isActive: true,
+    });
   });
 
   it('renders with badge (not yet viewed) and matches snapshot', () => {
@@ -107,5 +117,67 @@ describe('CardButton Component', () => {
 
     expect(queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeNull();
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('A/B test: cardAbtestAttentionBadge', () => {
+    it('control variant: does not show badge even when button has not been viewed', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { showBadge: false },
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { queryByTestId } = renderWithProvider(() => (
+        <CardButton
+          onPress={mockOnPress}
+          touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+        />
+      ));
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
+      ).toBeNull();
+    });
+
+    it('withBadge variant: shows badge when button has not been viewed', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { showBadge: true },
+        variantName: 'withBadge',
+        isActive: true,
+      });
+
+      const { getByTestId } = renderWithProvider(() => (
+        <CardButton
+          onPress={mockOnPress}
+          touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+        />
+      ));
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('withBadge variant: hides badge after button has been viewed', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { showBadge: true },
+        variantName: 'withBadge',
+        isActive: true,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        () => (
+          <CardButton
+            onPress={mockOnPress}
+            touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        ),
+        { hasViewedCardButton: true },
+      );
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
+      ).toBeNull();
+    });
   });
 });

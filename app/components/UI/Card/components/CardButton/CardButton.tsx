@@ -19,6 +19,11 @@ import {
   setHasViewedCardButton,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  CARD_BUTTON_BADGE_AB_KEY,
+  CARD_BUTTON_BADGE_VARIANTS,
+} from './abTestConfig';
 
 interface CardButtonProps {
   onPress: () => void;
@@ -34,6 +39,10 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
   const hasViewedCardButton = useSelector(selectHasViewedCardButton);
+  const { variant } = useABTest(
+    CARD_BUTTON_BADGE_AB_KEY,
+    CARD_BUTTON_BADGE_VARIANTS,
+  );
 
   useEffect(() => {
     trackEvent(
@@ -53,7 +62,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
       position={BadgeWrapperPosition.TopRight}
       positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
       badge={
-        !hasViewedCardButton ? (
+        !hasViewedCardButton && variant.showBadge ? (
           <BadgeStatus
             testID={WalletViewSelectorsIDs.CARD_BUTTON_BADGE}
             status={BadgeStatusStatus.Attention}
