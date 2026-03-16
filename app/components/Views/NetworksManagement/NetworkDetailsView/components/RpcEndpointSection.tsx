@@ -73,6 +73,7 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
     onRpcUrlAdd,
     onRpcNameAdd,
     onRpcUrlFocused,
+    onRpcUrlBlur,
     jumpToChainId,
     focus: { isRpcUrlFieldFocused },
   } = formHook;
@@ -105,6 +106,7 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
             editable
             onChangeText={onRpcUrlAdd}
             onFocus={onRpcUrlFocused}
+            onBlur={onRpcUrlBlur}
             placeholder={strings('app_settings.network_rpc_placeholder')}
             placeholderTextColor={placeholderTextColor}
             onSubmitEditing={jumpToChainId}
@@ -290,6 +292,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     onRpcUrlChangeWithName,
     onRpcUrlDelete,
     onRpcUrlFocused,
+    onRpcUrlBlur,
     jumpToChainId,
     modals: { showMultiRpcAddModal, rpcModalShowForm: showForm },
     setRpcModalShowForm: setShowForm,
@@ -402,6 +405,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                   editable
                   onChangeText={onRpcUrlAdd}
                   onFocus={onRpcUrlFocused}
+                  onBlur={onRpcUrlBlur}
                   placeholder={strings('app_settings.network_rpc_placeholder')}
                   placeholderTextColor={placeholderTextColor}
                   onSubmitEditing={jumpToChainId}
