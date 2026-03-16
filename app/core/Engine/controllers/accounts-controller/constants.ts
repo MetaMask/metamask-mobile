@@ -6,4 +6,5 @@ export const defaultAccountsControllerState: AccountsControllerState = {
     accounts: {},
     selectedAccount: '',
   },
+  accountIdByAddress: {},
 };
