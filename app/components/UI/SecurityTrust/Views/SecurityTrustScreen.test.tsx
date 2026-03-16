@@ -121,12 +121,12 @@ describe('SecurityTrustScreen', () => {
 
   it('renders without crashing', () => {
     const { getByText } = render(<SecurityTrustScreen />);
-    expect(getByText(strings('security_trust.known'))).toBeTruthy();
+    expect(getByText(strings('security_trust.verified'))).toBeTruthy();
   });
 
   it('displays token security result label', () => {
     const { getByText } = render(<SecurityTrustScreen />);
-    expect(getByText(strings('security_trust.known'))).toBeTruthy();
+    expect(getByText(strings('security_trust.verified'))).toBeTruthy();
   });
 
   it('displays token distribution section', () => {

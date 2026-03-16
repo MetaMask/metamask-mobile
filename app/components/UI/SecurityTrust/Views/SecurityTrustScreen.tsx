@@ -274,10 +274,7 @@ const SecurityTrustScreen: React.FC = () => {
               twClassName="flex-1"
             >
               <Box twClassName="w-3 h-3 rounded-full bg-[#6B7FFF]" />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
+              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
                 {strings('security_trust.top_10_holders')}
               </Text>
             </Box>
@@ -313,10 +310,7 @@ const SecurityTrustScreen: React.FC = () => {
                     : 'bg-[rgba(133,139,154,0.77)]'
                 }`}
               />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
+              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
                 {strings('security_trust.other')}
               </Text>
             </Box>

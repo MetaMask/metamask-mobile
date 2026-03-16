@@ -21,7 +21,7 @@ describe('securityUtils', () => {
     it('returns config for Verified result type', () => {
       const config = getResultTypeConfig('Verified');
 
-      expect(config.label).toBe(strings('security_trust.known'));
+      expect(config.label).toBe(strings('security_trust.verified'));
       expect(config.textColor).toBe(TextColor.SuccessDefault);
       expect(config.subtitle).toBe(strings('security_trust.subtitle_known'));
       expect(config.icon).toBe(IconName.SecurityTick);

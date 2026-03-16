@@ -25,7 +25,7 @@ export const getResultTypeConfig = (
   switch (resultType) {
     case 'Verified':
       return {
-        label: strings('security_trust.known'),
+        label: strings('security_trust.verified'),
         textColor: TextColor.SuccessDefault,
         subtitle: strings('security_trust.subtitle_known'),
         icon: IconName.SecurityTick,
@@ -85,7 +85,7 @@ const POSITIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
     label: 'Listed on exchange',
     type: 'Benign',
   },
-  VERIFIED_CONTRACT: { label: 'Verified contract', type: 'Info' },
+  VERIFIED_CONTRACT: { label: 'Published contract', type: 'Info' },
   HIGH_TRADE_VOLUME: { label: 'High trading volume', type: 'Info' },
 };
 

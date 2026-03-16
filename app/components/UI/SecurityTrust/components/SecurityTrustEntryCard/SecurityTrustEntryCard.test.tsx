@@ -95,7 +95,7 @@ describe('SecurityTrustEntryCard', () => {
     );
 
     expect(getByText(strings('security_trust.title'))).toBeTruthy();
-    expect(getByText(strings('security_trust.known'))).toBeTruthy();
+    expect(getByText(strings('security_trust.verified'))).toBeTruthy();
   });
 
   it('displays arrow icon when details are available', () => {
@@ -108,7 +108,7 @@ describe('SecurityTrustEntryCard', () => {
     );
 
     expect(getByText(strings('security_trust.title'))).toBeTruthy();
-    expect(getByText(strings('security_trust.known'))).toBeTruthy();
+    expect(getByText(strings('security_trust.verified'))).toBeTruthy();
   });
 
   it('navigates to security trust screen when pressed with details', () => {
