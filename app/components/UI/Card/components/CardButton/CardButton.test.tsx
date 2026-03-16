@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import CardButton from './CardButton';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -22,28 +22,39 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../hooks/useABTest');
+jest.mock('../../../../../util/Logger', () => ({ log: jest.fn() }));
 
 const mockUseABTest = useABTest as jest.MockedFunction<typeof useABTest>;
 
-interface PartialCardState {
-  hasViewedCardButton?: boolean;
+interface RenderOptions {
+  cardState?: { hasViewedCardButton?: boolean };
+  /** Set to 0 to simulate flags not yet loaded. Defaults to 1 (resolved). */
+  cacheTimestamp?: number;
 }
 
 function renderWithProvider(
   component: React.ComponentType,
-  stateOverride: PartialCardState = {},
+  { cardState = {}, cacheTimestamp = 1 }: RenderOptions = {},
 ) {
   return renderScreen(
     component,
     { name: 'CardButton' },
     {
       state: {
-        engine: { backgroundState },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              cacheTimestamp,
+            },
+          },
+        },
         card: {
           cardholderAccounts: [],
           hasViewedCardButton: false,
           isLoaded: false,
-          ...stateOverride,
+          ...cardState,
         },
       },
     },
@@ -105,7 +116,7 @@ describe('CardButton Component', () => {
           touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
         />
       ),
-      { hasViewedCardButton: true },
+      { cardState: { hasViewedCardButton: true } },
     );
 
     const button = getByTestId(WalletViewSelectorsIDs.CARD_BUTTON);
@@ -123,7 +134,7 @@ describe('CardButton Component', () => {
           touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
         />
       ),
-      { hasViewedCardButton: true },
+      { cardState: { hasViewedCardButton: true } },
     );
 
     expect(queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeNull();
@@ -183,7 +194,7 @@ describe('CardButton Component', () => {
             touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
           />
         ),
-        { hasViewedCardButton: true },
+        { cardState: { hasViewedCardButton: true } },
       );
 
       expect(
@@ -203,38 +214,18 @@ describe('CardButton Component', () => {
         expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       });
 
-      it('fires only once even when isActive/variantName change (async flag load)', async () => {
-        mockUseABTest
-          .mockReturnValueOnce({
-            variant: { showBadge: false },
-            variantName: 'control',
-            isActive: false,
-          })
-          .mockReturnValue({
-            variant: { showBadge: true },
-            variantName: 'withBadge',
-            isActive: true,
-          });
-
-        const ForceRerenderWrapper = () => {
-          const [, setTick] = React.useState(0);
-          React.useEffect(() => {
-            const id = setTimeout(() => setTick((t) => t + 1), 0);
-            return () => clearTimeout(id);
-          }, []);
-          return (
+      it('does not fire event when flags are not yet resolved (cacheTimestamp = 0)', () => {
+        renderWithProvider(
+          () => (
             <CardButton
               onPress={mockOnPress}
               touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
             />
-          );
-        };
+          ),
+          { cacheTimestamp: 0 },
+        );
 
-        renderWithProvider(ForceRerenderWrapper);
-
-        await waitFor(() => {
-          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-        });
+        expect(mockTrackEvent).not.toHaveBeenCalled();
       });
 
       it('includes active_ab_tests when withBadge variant is active', () => {

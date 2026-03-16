@@ -19,11 +19,13 @@ import {
   setHasViewedCardButton,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   CARD_BUTTON_BADGE_AB_KEY,
   CARD_BUTTON_BADGE_VARIANTS,
 } from './abTestConfig';
+import Logger from '../../../../../util/Logger';
 
 interface CardButtonProps {
   onPress: () => void;
@@ -39,6 +41,11 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
   const hasViewedCardButton = useSelector(selectHasViewedCardButton);
+  const flagsResolved = useSelector(
+    (state: RootState) =>
+      (state.engine.backgroundState.RemoteFeatureFlagController
+        ?.cacheTimestamp ?? 0) > 0,
+  );
   const { variant, variantName, isActive } = useABTest(
     CARD_BUTTON_BADGE_AB_KEY,
     CARD_BUTTON_BADGE_VARIANTS,
@@ -47,8 +54,11 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const hasTrackedViewedEvent = useRef(false);
 
   useEffect(() => {
-    if (hasTrackedViewedEvent.current) return;
+    if (hasTrackedViewedEvent.current || !flagsResolved) return;
     hasTrackedViewedEvent.current = true;
+    Logger.log({
+      active_ab_tests: [{ key: CARD_BUTTON_BADGE_AB_KEY, value: variantName }],
+    });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED)
@@ -61,7 +71,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder, isActive, variantName]);
+  }, [trackEvent, createEventBuilder, isActive, variantName, flagsResolved]);
 
   const onPressHandler = () => {
     if (!hasViewedCardButton) {
