@@ -610,6 +610,7 @@ async function main() {
             version,
             options.prevBuildNumber,
             options.buildNumber || latestBuild,
+            baseDir,
           );
 
           // Format for Slack
