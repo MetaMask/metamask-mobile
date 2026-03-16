@@ -41,6 +41,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_ACCOUNT_ACTIVITY_WS_PORT,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -52,6 +53,8 @@ import type { Fixture } from './types';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
+import WebSocketRegistry from '../../websocket/registry';
+import { accountActivityWebSocketConfig } from '../../websocket/account-activity-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -573,6 +576,14 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    // Step 4.5: Start WebSocket mock servers
+    const wsAllocation = await PortManager.getInstance().allocatePort(
+      ResourceType.ACCOUNT_ACTIVITY_WS,
+    );
+    accountActivityWebSocketConfig.port = wsAllocation.port;
+    WebSocketRegistry.register(accountActivityWebSocketConfig);
+    await WebSocketRegistry.startAll();
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -603,6 +614,10 @@ export async function withFixtures(
       // to the actual allocated ports
       const isAndroid = device.getPlatform() === 'android';
 
+      const websocketPort = PortManager.getInstance().getPort(
+        ResourceType.ACCOUNT_ACTIVITY_WS,
+      );
+
       await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
@@ -616,6 +631,9 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
+          websocketServerPort: isAndroid
+            ? `${FALLBACK_ACCOUNT_ACTIVITY_WS_PORT}`
+            : `${websocketPort}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
@@ -707,6 +725,14 @@ export async function withFixtures(
         logger.error('Error during live request validation:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
       }
+    }
+
+    // Clean up WebSocket servers
+    try {
+      await WebSocketRegistry.stopAll();
+    } catch (cleanupError) {
+      logger.error('Error during WebSocket cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
     }
 
     // Clean up the mock server

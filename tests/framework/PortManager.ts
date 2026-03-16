@@ -7,6 +7,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
+  FALLBACK_ACCOUNT_ACTIVITY_WS_PORT,
 } from './Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
@@ -21,6 +22,7 @@ export enum ResourceType {
   DAPP_SERVER = 'dapp-server',
   GANACHE = 'ganache',
   ANVIL = 'anvil',
+  ACCOUNT_ACTIVITY_WS = 'account-activity-ws',
 }
 
 export interface AllocatedPort {
@@ -52,6 +54,8 @@ function getFallbackPortForResource(resourceType: ResourceType): number {
       return DEFAULT_ANVIL_PORT;
     case ResourceType.DAPP_SERVER:
       return FALLBACK_DAPP_SERVER_PORT;
+    case ResourceType.ACCOUNT_ACTIVITY_WS:
+      return FALLBACK_ACCOUNT_ACTIVITY_WS_PORT;
     default:
       throw new Error(`Unknown resource type: ${resourceType}`);
   }

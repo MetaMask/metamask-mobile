@@ -305,6 +305,33 @@ if (enableApiCallLogs || isTest) {
           '[XHR Patch] XMLHttpRequest not available, skipping patch',
         );
       }
+
+      // Patch WebSocket to redirect all wss:// connections to the local mock server.
+      // Same approach as fetch/XHR above: intercept at the constructor level.
+      const wsPort = raw?.websocketServerPort;
+      if (wsPort && global.WebSocket) {
+        const OriginalWebSocket = global.WebSocket;
+        const localWsUrl = `ws://localhost:${wsPort}`;
+
+        global.WebSocket = function (url, protocols) {
+          const targetUrl =
+            typeof url === 'string' && url.startsWith('wss://')
+              ? localWsUrl
+              : url;
+          return protocols !== undefined
+            ? new OriginalWebSocket(targetUrl, protocols)
+            : new OriginalWebSocket(targetUrl);
+        };
+
+        Object.setPrototypeOf(global.WebSocket, OriginalWebSocket);
+        Object.assign(global.WebSocket, OriginalWebSocket);
+        global.WebSocket.prototype = OriginalWebSocket.prototype;
+
+        // eslint-disable-next-line no-console
+        console.log(
+          `[WS Patch] All wss:// connections redirected to ${localWsUrl}`,
+        );
+      }
     }
   })();
 }

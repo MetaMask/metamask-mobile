@@ -7,6 +7,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
+  FALLBACK_ACCOUNT_ACTIVITY_WS_PORT,
 } from './Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
@@ -468,6 +469,7 @@ describe('PortManager', () => {
         ResourceType.DAPP_SERVER,
         ResourceType.GANACHE,
         ResourceType.ANVIL,
+        ResourceType.ACCOUNT_ACTIVITY_WS,
       ];
 
       const allocatedPorts: Map<ResourceType, number> = new Map();
@@ -695,6 +697,7 @@ describe('PortManager', () => {
           [ResourceType.GANACHE, FALLBACK_GANACHE_PORT],
           [ResourceType.ANVIL, DEFAULT_ANVIL_PORT],
           [ResourceType.DAPP_SERVER, FALLBACK_DAPP_SERVER_PORT],
+          [ResourceType.ACCOUNT_ACTIVITY_WS, FALLBACK_ACCOUNT_ACTIVITY_WS_PORT],
         ]);
 
         for (const [resourceType, expectedPort] of expectedPorts.entries()) {
