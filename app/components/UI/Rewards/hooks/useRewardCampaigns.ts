@@ -17,6 +17,7 @@ import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/feature
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import Logger from '../../../../util/Logger';
 
 interface CategorizedCampaigns {
   active: CampaignDto[];
@@ -131,6 +132,13 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   );
 
   useInvalidateByRewardEvents(invalidateEvents, fetchCampaigns);
+
+  Logger.log('useRewardCampaigns', {
+    campaigns,
+    categorizedCampaigns,
+    isLoading,
+    hasError,
+  });
 
   return {
     campaigns: campaigns ?? [],

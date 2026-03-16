@@ -176,3 +176,16 @@ export const selectCampaignParticipantCount =
       ? (state.rewards.campaignParticipantStatuses[campaignId]
           ?.participantCount ?? null)
       : null;
+
+// Campaign leaderboard selectors
+export const selectCampaignLeaderboardById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignLeaderboards[campaignId] ?? null)
+      : null;
+
+export const selectCampaignLeaderboardLoadingById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignLeaderboardsLoading[campaignId] ?? false)
+      : false;

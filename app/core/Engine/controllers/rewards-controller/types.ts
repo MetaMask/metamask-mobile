@@ -244,6 +244,25 @@ export type CampaignDetails = OndoHoldingDetails;
  */
 export type CampaignStatus = 'upcoming' | 'active' | 'complete';
 
+/**
+ * A single entry in the campaign leaderboard
+ */
+export interface LeaderboardEntryDto {
+  referralCode: string | null;
+  baseScore: string;
+  referralBonus: string;
+  totalScore: string;
+  scoreAchievedAt: string | null;
+}
+
+/**
+ * Response DTO for the campaign leaderboard endpoint
+ */
+export interface CampaignLeaderboardDto {
+  campaignId: string;
+  top20: LeaderboardEntryDto[];
+}
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -1612,6 +1631,17 @@ export interface RewardsControllerGetCampaignParticipantStatusAction {
 }
 
 /**
+ * Action for getting the campaign leaderboard
+ */
+export interface RewardsControllerGetCampaignLeaderboardAction {
+  type: 'RewardsController:getCampaignLeaderboard';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignLeaderboardDto>;
+}
+
+/**
  * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
  */
 export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
@@ -1715,6 +1745,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetCampaignsAction
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
+  | RewardsControllerGetCampaignLeaderboardAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction

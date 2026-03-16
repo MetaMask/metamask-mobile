@@ -27,6 +27,7 @@ import type {
   ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  CampaignLeaderboardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -214,6 +215,11 @@ export interface RewardsDataServiceGetCampaignParticipantStatusAction {
   handler: RewardsDataService['getCampaignParticipantStatus'];
 }
 
+export interface RewardsDataServiceGetCampaignLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getCampaignLeaderboard`;
+  handler: RewardsDataService['getCampaignLeaderboard'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -265,7 +271,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetCampaignParticipantStatusAction;
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetCampaignLeaderboardAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -411,6 +418,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getCampaignParticipantStatus`,
       this.getCampaignParticipantStatus.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaignLeaderboard`,
+      this.getCampaignLeaderboard.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1354,5 +1365,28 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get the leaderboard for a campaign.
+   * @param campaignId - The campaign ID to fetch leaderboard for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The campaign leaderboard with top 20 entries.
+   */
+  async getCampaignLeaderboard(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/campaigns/${campaignId}/leaderboard`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaign leaderboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignLeaderboardDto;
   }
 }

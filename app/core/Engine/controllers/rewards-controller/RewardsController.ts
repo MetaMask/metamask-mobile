@@ -23,6 +23,7 @@ import {
   type RewardDto,
   type CampaignDto,
   type CampaignParticipantStatusDto,
+  type CampaignLeaderboardDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -597,6 +598,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getCampaignParticipantStatus',
       this.getCampaignParticipantStatus.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getCampaignLeaderboard',
+      this.getCampaignLeaderboard.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -3505,6 +3510,28 @@ export class RewardsController extends BaseController<
       },
     });
     return result;
+  }
+
+  /**
+   * Get the campaign leaderboard (no caching — live data).
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The leaderboard with top 20 entries.
+   */
+  async getCampaignLeaderboard(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    return this.#withAuthRetry(async () => {
+      Logger.log(
+        'RewardsController: Fetching campaign leaderboard via API call',
+      );
+      return (await this.messenger.call(
+        'RewardsDataService:getCampaignLeaderboard',
+        campaignId,
+        subscriptionId,
+      )) as CampaignLeaderboardDto;
+    }, subscriptionId);
   }
 
   /**

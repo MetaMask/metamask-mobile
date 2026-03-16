@@ -56,6 +56,7 @@ import {
   RewardsDataServiceGetCampaignsAction,
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
+  RewardsDataServiceGetCampaignLeaderboardAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -98,7 +99,8 @@ type AllowedActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetCampaignParticipantStatusAction;
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetCampaignLeaderboardAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -159,6 +161,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getCampaigns',
       'RewardsDataService:optInToCampaign',
       'RewardsDataService:getCampaignParticipantStatus',
+      'RewardsDataService:getCampaignLeaderboard',
       'RewardsDataService:getRewardsEnvUrl',
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',

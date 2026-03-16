@@ -18,6 +18,7 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
+import CampaignLeaderboard from '../components/Campaigns/CampaignLeaderboard';
 
 const SWAP_DEEPLINK = 'https://link.metamask.io/swap';
 
@@ -75,6 +76,7 @@ const CampaignDetailsView: React.FC = () => {
               <CampaignHowItWorks howItWorks={campaign.details.howItWorks} />
             </Box>
           )}
+          <CampaignLeaderboard campaignId={campaign.id} />
         </ScrollView>
 
         <Box twClassName="px-4 pb-4 pt-2">

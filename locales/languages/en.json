@@ -7792,7 +7792,9 @@
       "opt_in_error": "Failed to opt in. Please try again.",
       "join_campaign": "Join the campaign",
       "swap": "Swap",
-      "how_it_works": "How it works"
+      "how_it_works": "How it works",
+      "leaderboard": "Leaderboard",
+      "leaderboard_pending": "Pending"
     },
     "campaigns_preview": {
       "title": "Campaigns",

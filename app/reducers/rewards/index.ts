@@ -10,6 +10,7 @@ import {
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  CampaignLeaderboardDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -123,6 +124,11 @@ export interface RewardsState {
 
   // Campaign participant status (keyed by campaignId)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
+
+  // Campaign leaderboards (keyed by campaignId)
+  campaignLeaderboards: Record<string, CampaignLeaderboardDto>;
+  campaignLeaderboardsLoading: Record<string, boolean>;
+  campaignLeaderboardsError: Record<string, boolean>;
 }
 
 export const initialState: RewardsState = {
@@ -192,6 +198,11 @@ export const initialState: RewardsState = {
 
   // Campaign participant statuses initial state
   campaignParticipantStatuses: {},
+
+  // Campaign leaderboards initial state
+  campaignLeaderboards: {},
+  campaignLeaderboardsLoading: {},
+  campaignLeaderboardsError: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -470,6 +481,32 @@ const rewardsSlice = createSlice({
         action.payload.status;
     },
 
+    setCampaignLeaderboard: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        leaderboard: CampaignLeaderboardDto;
+      }>,
+    ) => {
+      state.campaignLeaderboards[action.payload.campaignId] =
+        action.payload.leaderboard;
+      state.campaignLeaderboardsError[action.payload.campaignId] = false;
+    },
+    setCampaignLeaderboardLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      state.campaignLeaderboardsLoading[action.payload.campaignId] =
+        action.payload.loading;
+    },
+    setCampaignLeaderboardError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      state.campaignLeaderboardsError[action.payload.campaignId] =
+        action.payload.error;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -627,6 +664,9 @@ export const {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  setCampaignLeaderboard,
+  setCampaignLeaderboardLoading,
+  setCampaignLeaderboardError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
