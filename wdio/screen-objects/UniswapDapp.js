@@ -73,9 +73,9 @@ class UniswapDapp {
   }
 
   get uniswapIcon() {
-    return AppwrightSelectors.getElementByID(
+    return AppwrightSelectors.getElementByXpath(
       this._device,
-      'account-icon',
+      '//android.app.AlertDialog',
     );
   }
 

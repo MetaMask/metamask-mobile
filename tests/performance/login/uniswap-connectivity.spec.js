@@ -82,7 +82,7 @@ test.describe(`${PerformanceLogin}`, () => {
       connectTimer.start();
       await switchToMobileBrowser(device);
 
-      await AppwrightHelpers.withWebAction(
+      await AppwrightHelpers.withNativeAction(
         device,
         async () => {
           await UniswapDapp.isUniswapDisplayed();
