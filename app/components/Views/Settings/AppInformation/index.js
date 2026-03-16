@@ -258,7 +258,7 @@ class AppInformation extends PureComponent {
                   {`Baanx API URL: ${getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT) ?? '—'}`}
                 </Text>
                 <Text style={styles.branchInfo}>
-                  {`MM_CARD_BAANX_API_CLIENT_KEY: ${process.env.MM_CARD_BAANX_API_CLIENT_KEY ? '(set)' : '(empty)'}`}
+                  {`MM_CARD_BAANX_API_CLIENT_KEY: ${process.env.MM_CARD_BAANX_API_CLIENT_KEY ?? '-'}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
