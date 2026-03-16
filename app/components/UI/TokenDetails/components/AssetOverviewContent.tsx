@@ -762,7 +762,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   variant={DSTextVariant.BodyMd}
                   color={DSTextColor.TextDefault}
                 >
-                  {strings('security_trust.malicious_token_description')}
+                  {strings('security_trust.malicious_token_description', {
+                    symbol: token.symbol,
+                  })}
                 </DSText>
               </Box>
             </Box>

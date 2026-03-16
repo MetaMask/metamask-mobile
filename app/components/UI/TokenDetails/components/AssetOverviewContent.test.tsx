@@ -754,7 +754,11 @@ describe('AssetOverviewContent', () => {
         getByText(strings('security_trust.malicious_token_title')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('security_trust.malicious_token_description')),
+        getByText(
+          strings('security_trust.malicious_token_description', {
+            symbol: 'ETH',
+          }),
+        ),
       ).toBeOnTheScreen();
     });
 
