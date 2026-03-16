@@ -72,7 +72,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { addCurrencySymbol } from '../../../../../util/number';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -631,7 +631,7 @@ export const TokenListItemV2 = React.memo(
                   asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
                   hideFiatForTestnet
                     ? CLTextVariant.BodySM
-                    : CLTextVariant.BodyMDBold
+                    : CLTextVariant.BodyMDMedium
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
@@ -662,11 +662,9 @@ export const TokenListItemV2 = React.memo(
                       twClassName="uppercase"
                     >
                       {tokenPriceInFiat && !hideFiatForScamWarning
-                        ? addCurrencySymbol(
+                        ? formatPriceWithSubscriptNotation(
                             tokenPriceInFiat,
                             currentCurrency,
-                            true,
-                            true,
                           )
                         : '-'}
                       {' \u2022 '}
