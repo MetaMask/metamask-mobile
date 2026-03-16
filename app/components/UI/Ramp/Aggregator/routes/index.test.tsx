@@ -15,11 +15,23 @@ jest.mock('@react-navigation/stack', () => {
         screenOptions,
       }: {
         children: React.ReactNode;
-        screenOptions?: { headerShown?: boolean };
+        screenOptions?: {
+          headerShown?: boolean;
+          presentation?: string;
+          cardStyle?: { backgroundColor?: string };
+        };
       }) => (
         <View testID="stack-navigator">
           {screenOptions?.headerShown === false && (
             <Text>headerShown: false</Text>
+          )}
+          {screenOptions?.presentation === 'modal' && (
+            <Text testID="presentation-modal">presentation: modal</Text>
+          )}
+          {screenOptions?.cardStyle?.backgroundColor && (
+            <Text testID="card-style">
+              cardStyle: {screenOptions.cardStyle.backgroundColor}
+            </Text>
           )}
           {children}
         </View>
