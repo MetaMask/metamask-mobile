@@ -400,7 +400,21 @@ class AuthenticationService {
 
   resetPassword = async () => {
     try {
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await StorageWrapper.removeItem(PASSCODE_DISABLED);
+      await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
       await SecureKeychain.resetGenericPassword();
+      try {
+        this.updateOsAuthEnabled(false);
+        if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
+          ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+        }
+      } catch (reduxError) {
+        Logger.error(
+          reduxError as Error,
+          'Failed to sync Redux security state after password reset.',
+        );
+      }
     } catch (error) {
       throw new AuthenticationError(
         `${AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE} ${
@@ -823,6 +837,7 @@ class AuthenticationService {
     } catch (error) {
       // Error while submitting password.
 
+      let shouldResetOnLock = false;
       // check for specific error
       if (
         error instanceof Error &&
@@ -830,7 +845,7 @@ class AuthenticationService {
           UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
         )
       ) {
-        const alertPromise = new Promise((resolve) => {
+        shouldResetOnLock = await new Promise<boolean>((resolve) => {
           // Alert user biometric changed
           Alert.alert(
             strings('login.biometric_changed'),
@@ -839,27 +854,24 @@ class AuthenticationService {
               {
                 text: strings('login.biometric_changed_alert_confirm'),
                 onPress: async () => {
-                  // resolve on success or error
-                  try {
-                    // reset biometric
-                    await this.resetPassword();
-                    resolve(void 0);
-                  } catch (error) {
-                    resolve(error);
-                  }
+                  resolve(true);
                 },
               },
             ],
+            {
+              // Prevent dismissing without confirmation, which can otherwise deadlock unlock flow.
+              cancelable: false,
+            },
           );
         });
-
-        // await the alert promise to resolve
-        await alertPromise;
       }
 
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
       try {
-        await this.lockApp({ reset: false, navigateToLogin: false });
+        await this.lockApp({
+          reset: shouldResetOnLock,
+          navigateToLogin: false,
+        });
       } catch (lockError) {
         // Log but don't replace the original error
         Logger.error(

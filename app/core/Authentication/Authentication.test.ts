@@ -1492,6 +1492,29 @@ describe('Authentication', () => {
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
     });
 
+    it('clears auth storage flags and syncs Redux security state', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: true },
+        }),
+      } as unknown as ReduxStore);
+
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+
+      await Authentication.resetPassword();
+
+      expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
+      expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
+      expect(removeItemSpy).toHaveBeenCalledWith(
+        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setOsAuthEnabled(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(false),
+      );
+    });
+
     it('throws AuthenticationError when SecureKeychain fails', async () => {
       const error = new Error('Reset failed');
       jest
@@ -4926,6 +4949,111 @@ describe('Authentication', () => {
           fallbackToPassword: false,
         });
       });
+
+      describe('when biometric authentication fails due to changed biometrics', () => {
+        const userNotAuthenticatedError = new Error('User not authenticated');
+
+        beforeEach(() => {
+          const Engine = jest.requireMock('../Engine');
+          // Mock submitPassword to throw the user not authenticated error.
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce(userNotAuthenticatedError);
+        });
+
+        it('shows biometric changed alert when error contains USER_NOT_AUTHENTICATED', async () => {
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              void buttons?.[0]?.onPress?.();
+            });
+          const resetPasswordSpy = jest
+            .spyOn(Authentication, 'resetPassword')
+            .mockResolvedValueOnce();
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(alertSpy).toHaveBeenCalledWith(
+            strings('login.biometric_changed'),
+            strings('login.biometric_changed_alert_desc'),
+            [
+              {
+                text: strings('login.biometric_changed_alert_confirm'),
+                onPress: expect.any(Function),
+              },
+            ],
+            {
+              cancelable: false,
+            },
+          );
+
+          alertSpy.mockRestore();
+          resetPasswordSpy.mockRestore();
+        });
+
+        it('calls lockApp with reset enabled when alert confirm button is pressed', async () => {
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              void buttons?.[0]?.onPress?.();
+            });
+          const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(lockAppSpy).toHaveBeenCalledWith({
+            reset: true,
+            navigateToLogin: false,
+          });
+
+          alertSpy.mockRestore();
+          lockAppSpy.mockRestore();
+        });
+
+        it('does not show alert when error does not contain USER_NOT_AUTHENTICATED', async () => {
+          const Engine = jest.requireMock('../Engine');
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockReset();
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce(new Error('Some other error'));
+
+          const alertSpy = jest.spyOn(Alert, 'alert');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('Some other error');
+
+          expect(alertSpy).not.toHaveBeenCalled();
+
+          alertSpy.mockRestore();
+        });
+
+        it('does not show alert when error is not an Error instance', async () => {
+          const Engine = jest.requireMock('../Engine');
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockReset();
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce('User not authenticated string');
+
+          const alertSpy = jest.spyOn(Alert, 'alert');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toBe('User not authenticated string');
+
+          expect(alertSpy).not.toHaveBeenCalled();
+
+          alertSpy.mockRestore();
+        });
+      });
     });
   });
 
@@ -5156,117 +5284,6 @@ describe('Authentication', () => {
 
         expect(mockSupportedAuthenticationTypesAsync).toHaveBeenCalledTimes(1);
         expect(mockGetEnrolledLevelAsync).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    describe('when biometric authentication fails due to changed biometrics', () => {
-      const userNotAuthenticatedError = new Error('User not authenticated');
-      const passwordToUse = 'password';
-
-      beforeEach(() => {
-        const Engine = jest.requireMock('../Engine');
-        // Mock submitPassword to throw the user not authenticated error
-        (
-          Engine.context.KeyringController.submitPassword as jest.Mock
-        ).mockRejectedValueOnce(userNotAuthenticatedError);
-      });
-
-      it('shows biometric changed alert when error contains USER_NOT_AUTHENTICATED', async () => {
-        const alertSpy = jest.spyOn(Alert, 'alert');
-
-        // Call unlockWallet and expect it to throw
-        await expect(
-          Authentication.unlockWallet({ password: passwordToUse }),
-        ).rejects.toThrow('User not authenticated');
-
-        // Verify Alert.alert was called with correct strings
-        expect(alertSpy).toHaveBeenCalledWith(
-          strings('login.biometric_changed'),
-          strings('login.biometric_changed_alert_desc'),
-          [
-            {
-              text: strings('login.biometric_changed_alert_confirm'),
-              onPress: expect.any(Function),
-            },
-          ],
-        );
-
-        alertSpy.mockRestore();
-      });
-
-      it('calls resetPassword when alert confirm button is pressed', async () => {
-        const alertSpy = jest.spyOn(Alert, 'alert');
-        const resetPasswordSpy = jest
-          .spyOn(Authentication, 'resetPassword')
-          .mockResolvedValueOnce();
-
-        // Call unlockWallet and expect it to throw
-        await expect(
-          Authentication.unlockWallet({ password: passwordToUse }),
-        ).rejects.toThrow('User not authenticated');
-
-        // Get the onPress callback from the Alert.alert call
-        const alertCall = alertSpy.mock.calls[0];
-        const alertButtons = alertCall[2] as {
-          text: string;
-          onPress: () => void;
-        }[];
-        const confirmButton = alertButtons[0];
-
-        // Simulate pressing the confirm button
-        confirmButton.onPress();
-
-        // Verify resetPassword was called
-        expect(resetPasswordSpy).toHaveBeenCalled();
-
-        alertSpy.mockRestore();
-        resetPasswordSpy.mockRestore();
-      });
-
-      it('does not show alert when error does not contain USER_NOT_AUTHENTICATED', async () => {
-        const Engine = jest.requireMock('../Engine');
-        // Reset the mock and set a different error
-        (
-          Engine.context.KeyringController.submitPassword as jest.Mock
-        ).mockReset();
-        (
-          Engine.context.KeyringController.submitPassword as jest.Mock
-        ).mockRejectedValueOnce(new Error('Some other error'));
-
-        const alertSpy = jest.spyOn(Alert, 'alert');
-
-        // Call unlockWallet and expect it to throw
-        await expect(
-          Authentication.unlockWallet({ password: passwordToUse }),
-        ).rejects.toThrow('Some other error');
-
-        // Verify Alert.alert was NOT called
-        expect(alertSpy).not.toHaveBeenCalled();
-
-        alertSpy.mockRestore();
-      });
-
-      it('does not show alert when error is not an Error instance', async () => {
-        const Engine = jest.requireMock('../Engine');
-        // Reset the mock and throw a non-Error value
-        (
-          Engine.context.KeyringController.submitPassword as jest.Mock
-        ).mockReset();
-        (
-          Engine.context.KeyringController.submitPassword as jest.Mock
-        ).mockRejectedValueOnce('User not authenticated string');
-
-        const alertSpy = jest.spyOn(Alert, 'alert');
-
-        // Call unlockWallet and expect it to throw
-        await expect(
-          Authentication.unlockWallet({ password: passwordToUse }),
-        ).rejects.toBe('User not authenticated string');
-
-        // Verify Alert.alert was NOT called (because error is not an Error instance)
-        expect(alertSpy).not.toHaveBeenCalled();
-
-        alertSpy.mockRestore();
       });
     });
   });
