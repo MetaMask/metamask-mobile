@@ -18,10 +18,6 @@ export interface UnifiedGestureOptions {
   timeout?: number;
   /** Human-readable description for logging and error messages */
   description?: string;
-  /** Swipe speed — Detox only; Appium ignores this */
-  speed?: 'fast' | 'slow';
-  /** Swipe percentage (0–1) — Detox only; Appium ignores this */
-  percentage?: number;
 }
 
 /**
@@ -188,8 +184,6 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.swipe(asDetoxElement(elem), direction, {
       timeout: opts?.timeout,
       elemDescription: opts?.description,
-      speed: opts?.speed,
-      percentage: opts?.percentage,
     });
   }
 

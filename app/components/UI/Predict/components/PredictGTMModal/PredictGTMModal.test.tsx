@@ -8,12 +8,27 @@ import { PREDICT_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+const mockTheme = {
+  colors: {
+    background: {
+      default: '#ffffff',
+      alternative: '#f2f4f6',
+    },
+    text: {
+      default: '#24272a',
+    },
+    shadow: {
+      default: '#000000',
+    },
+    accent02: {
+      light: '#EAC2FF',
+    },
+  },
+};
+
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => mockTheme,
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,

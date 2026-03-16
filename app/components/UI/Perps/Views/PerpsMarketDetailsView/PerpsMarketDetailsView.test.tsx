@@ -8,7 +8,6 @@ import {
   PerpsOrderViewSelectorsIDs,
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
-import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking } from 'react-native';
 
 // Mock Linking
@@ -96,29 +95,12 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
-const mockNavigateToConfirmation = jest.fn();
-const mockDepositWithConfirmation = jest.fn(() => Promise.resolve());
 const mockUsePerpsLiveOrders = jest.fn();
 const mockUsePerpsLivePrices = jest.fn();
 
 // Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: mockUsePerpsLiveAccount,
-}));
-
-jest.mock('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance', () => ({
-  useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(() => null),
-}));
-
-const mockUseDefaultPayWithTokenWhenNoPerpsBalance =
-  useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
-    typeof useDefaultPayWithTokenWhenNoPerpsBalance
-  >;
-
-jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
-  useConfirmNavigation: () => ({
-    navigateToConfirmation: mockNavigateToConfirmation,
-  }),
 }));
 
 // Mock usePerpsMarketFills to avoid Redux selector issues
@@ -443,7 +425,7 @@ jest.mock('../../hooks', () => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
     getAccountState: jest.fn(),
-    depositWithConfirmation: mockDepositWithConfirmation,
+    depositWithConfirmation: jest.fn(() => Promise.resolve()),
     withdrawWithConfirmation: jest.fn(),
   })),
   usePerpsNetworkManagement: jest.fn(() => ({
@@ -699,8 +681,6 @@ describe('PerpsMarketDetailsView', () => {
       isInitialLoading: false,
     });
 
-    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
-
     mockUseHasExistingPosition.mockReturnValue({
       hasPosition: false,
       isLoading: false,
@@ -904,13 +884,7 @@ describe('PerpsMarketDetailsView', () => {
 
   describe('Button rendering scenarios', () => {
     it('shows long/short buttons when user balance is zero so user can trade', () => {
-      // Override with zero balance; return a default pay token so Add funds CTA is not shown
-      // (when user has allowlist token they can pay with, we show Long/Short)
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
-        address: '0xUSDC' as const,
-        chainId: '0xa4b1' as const,
-        description: 'USDC',
-      });
+      // Override with zero balance
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
@@ -954,137 +928,6 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeNull();
-    });
-
-    it('shows add funds CTA when user balance is below threshold and no allowlist token', () => {
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
-      mockUsePerpsAccount.mockReturnValue({
-        account: {
-          availableBalance: '0.00',
-          marginUsed: '0.00',
-          unrealizedPnl: '0.00',
-          returnOnEquity: '0.00',
-          totalBalance: '0.00',
-        },
-        isInitialLoading: false,
-      });
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalBalance: '0',
-        },
-        isInitialLoading: false,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        { state: initialState },
-      );
-
-      expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
-      ).toBeTruthy();
-      expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      ).toBeNull();
-      expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
-      ).toBeNull();
-    });
-
-    it('calls navigateToConfirmation and depositWithConfirmation when add funds is pressed', async () => {
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
-      mockUsePerpsAccount.mockReturnValue({
-        account: {
-          availableBalance: '0.00',
-          marginUsed: '0.00',
-          unrealizedPnl: '0.00',
-          returnOnEquity: '0.00',
-          totalBalance: '0.00',
-        },
-        isInitialLoading: false,
-      });
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalBalance: '0',
-        },
-        isInitialLoading: false,
-      });
-      mockNavigateToConfirmation.mockClear();
-      mockDepositWithConfirmation.mockClear();
-      mockDepositWithConfirmation.mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        { state: initialState },
-      );
-
-      const addFundsButton = getByTestId(
-        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(addFundsButton);
-      });
-
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        stack: 'Perps',
-      });
-      expect(mockDepositWithConfirmation).toHaveBeenCalled();
-    });
-
-    it('handles depositWithConfirmation rejection without throwing', async () => {
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
-      mockUsePerpsAccount.mockReturnValue({
-        account: {
-          availableBalance: '0.00',
-          marginUsed: '0.00',
-          unrealizedPnl: '0.00',
-          returnOnEquity: '0.00',
-          totalBalance: '0.00',
-        },
-        isInitialLoading: false,
-      });
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalBalance: '0',
-        },
-        isInitialLoading: false,
-      });
-      mockDepositWithConfirmation.mockRejectedValueOnce(
-        new Error('Deposit failed'),
-      );
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        { state: initialState },
-      );
-
-      const addFundsButton = getByTestId(
-        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(addFundsButton);
-      });
-      await waitFor(() => {
-        expect(mockDepositWithConfirmation).toHaveBeenCalled();
-      });
     });
 
     it('renders modify/close buttons when user has balance and existing position', () => {
@@ -1423,7 +1266,6 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
-        source: 'trade_action',
       });
     });
 
@@ -1459,7 +1301,6 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
-        source: 'trade_action',
       });
     });
 
@@ -3172,7 +3013,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getByText, getAllByText } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3183,7 +3024,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Should show the route market's leverage badge
       expect(getByText('25x')).toBeOnTheScreen();
-      expect(getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
+      expect(getByText('ETH-USD')).toBeOnTheScreen();
     });
 
     it('enriches market data from usePerpsMarkets when route has minimal data', async () => {
@@ -3213,7 +3054,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       }));
 
-      const { getByText, getByTestId, getAllByText } = renderWithProvider(
+      const { getByText, getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3224,7 +3065,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Verify the header renders with correct market symbol
       expect(getByTestId('perps-market-header')).toBeOnTheScreen();
-      expect(getAllByText('BTC-USD').length).toBeGreaterThanOrEqual(1);
+      expect(getByText('BTC-USD')).toBeOnTheScreen();
 
       // Should show the enriched market's leverage badge from usePerpsMarkets
       await waitFor(() => {
@@ -3248,7 +3089,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getAllByText, queryByText } = renderWithProvider(
+      const { getByText, queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3258,7 +3099,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Should show the asset name but no leverage badge (since no maxLeverage available)
-      expect(getAllByText('UNKNOWN-USD').length).toBeGreaterThanOrEqual(1);
+      expect(getByText('UNKNOWN-USD')).toBeOnTheScreen();
       // No leverage badge should be shown
       expect(queryByText('40x')).toBeNull();
       expect(queryByText('25x')).toBeNull();

@@ -9,6 +9,7 @@ import {
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
   SmartTransactionsController,
@@ -66,6 +67,7 @@ export const TransactionControllerInit: ControllerInitFunction<
     request;
 
   const {
+    approvalController,
     gasFeeController,
     keyringController,
     networkController,
@@ -111,6 +113,7 @@ export const TransactionControllerInit: ControllerInitFunction<
               getState,
               transactionController,
               smartTransactionsController,
+              approvalController,
               initMessenger,
               signedTransactionInHex,
             }),
@@ -120,6 +123,7 @@ export const TransactionControllerInit: ControllerInitFunction<
               smartTransactionsController,
               initMessenger,
               getState,
+              approvalController,
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
@@ -192,6 +196,7 @@ async function publishHook({
   getState,
   transactionController,
   smartTransactionsController,
+  approvalController,
   initMessenger,
   signedTransactionInHex,
 }: {
@@ -199,6 +204,7 @@ async function publishHook({
   getState: () => RootState;
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
+  approvalController: ApprovalController;
   initMessenger: TransactionControllerInitMessenger;
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash?: string }> {
@@ -247,6 +253,7 @@ async function publishHook({
       transactionController,
       smartTransactionsController,
       shouldUseSmartTransaction,
+      approvalController,
       controllerMessenger:
         initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
       featureFlags,
@@ -280,12 +287,14 @@ function publishBatchSmartTransactionHook({
   smartTransactionsController,
   initMessenger,
   getState,
+  approvalController,
   transactions,
 }: {
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
   initMessenger: TransactionControllerInitMessenger;
   getState: () => RootState;
+  approvalController: ApprovalController;
   transactions: PublishBatchHookTransaction[];
 }): Promise<PublishBatchHookResult> {
   // Get transactionMeta based on the last transaction ID
@@ -316,6 +325,7 @@ function publishBatchSmartTransactionHook({
     controllerMessenger:
       initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
     shouldUseSmartTransaction,
+    approvalController,
     featureFlags,
     transactionMeta,
   });
@@ -340,6 +350,7 @@ function getControllers(
   >,
 ) {
   return {
+    approvalController: request.getController('ApprovalController'),
     gasFeeController: request.getController('GasFeeController'),
     keyringController: request.getController('KeyringController'),
     networkController: request.getController('NetworkController'),

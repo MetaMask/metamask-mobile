@@ -297,7 +297,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.ORDER_BOOK,
       [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     },
   });
 
@@ -399,7 +398,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     navigateToOrder({
       direction: 'long',
       asset: symbol || '',
-      source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
     });
   }, [
     isEligible,
@@ -438,7 +436,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     navigateToOrder({
       direction: 'short',
       asset: symbol || '',
-      source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
     });
   }, [
     isEligible,

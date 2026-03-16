@@ -4,6 +4,7 @@ import ApprovalTagUrl, { APPROVAL_TAG_URL_ORIGIN_PILL } from './ApprovalTagUrl';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
+const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const DOMAIN_MOCK = 'metamask.github.io';
 
 const mockInitialState = {
@@ -11,6 +12,9 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      PreferencesController: {
+        selectedAddress: ADDRESS_MOCK,
+      },
     },
   },
 };

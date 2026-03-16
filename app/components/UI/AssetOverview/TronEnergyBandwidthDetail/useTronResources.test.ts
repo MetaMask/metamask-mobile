@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux';
 
 import { useTronResources } from './useTronResources';
 import {
-  selectTronSpecialAssetsBySelectedAccountGroup,
-  TronSpecialAssetsMap,
+  selectTronResourcesBySelectedAccountGroup,
+  TronResourcesMap,
 } from '../../../../selectors/assets/assets-list';
 
 jest.mock('react-redux', () => ({
@@ -15,13 +15,13 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../selectors/assets/assets-list', () => ({
   __esModule: true,
   ...jest.requireActual('../../../../selectors/assets/assets-list'),
-  selectTronSpecialAssetsBySelectedAccountGroup: jest.fn(),
+  selectTronResourcesBySelectedAccountGroup: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockSelectTronSpecialAssetsBySelectedAccountGroup =
-  selectTronSpecialAssetsBySelectedAccountGroup as jest.MockedFunction<
-    typeof selectTronSpecialAssetsBySelectedAccountGroup
+const mockSelectTronResourcesBySelectedAccountGroup =
+  selectTronResourcesBySelectedAccountGroup as jest.MockedFunction<
+    typeof selectTronResourcesBySelectedAccountGroup
   >;
 
 interface MockTronAsset {
@@ -29,7 +29,7 @@ interface MockTronAsset {
   balance?: string | number;
 }
 
-const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
+const createEmptyResourcesMap = (): TronResourcesMap => ({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -37,9 +37,6 @@ const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
-  trxReadyForWithdrawal: undefined,
-  trxStakingRewards: undefined,
-  trxInLockPeriod: undefined,
 });
 
 const createTronAsset = (
@@ -55,13 +52,13 @@ describe('useTronResources', () => {
     jest.clearAllMocks();
 
     mockUseSelector.mockImplementation((selector: any) => selector());
-    mockSelectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue(
-      createEmptySpecialAssetsMap(),
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      createEmptyResourcesMap(),
     );
   });
 
   it('builds energy and bandwidth resources from base max capacity', () => {
-    const tronSpecialAssetsMap: TronSpecialAssetsMap = {
+    const tronResourcesMap: TronResourcesMap = {
       energy: createTronAsset('energy', '500') as any,
       bandwidth: createTronAsset('bandwidth', '300') as any,
       maxEnergy: createTronAsset('max-energy', '1000') as any,
@@ -69,13 +66,10 @@ describe('useTronResources', () => {
       stakedTrxForEnergy: createTronAsset('strx-energy', '500') as any,
       stakedTrxForBandwidth: createTronAsset('strx-bandwidth', 0) as any,
       totalStakedTrx: 500,
-      trxReadyForWithdrawal: undefined,
-      trxStakingRewards: undefined,
-      trxInLockPeriod: undefined,
     };
 
-    mockSelectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue(
-      tronSpecialAssetsMap,
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());
@@ -90,8 +84,8 @@ describe('useTronResources', () => {
   });
 
   it('returns zeroed resources when no Tron resources exist', () => {
-    mockSelectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue(
-      createEmptySpecialAssetsMap(),
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      createEmptyResourcesMap(),
     );
 
     const { result } = renderHook(() => useTronResources());
@@ -112,14 +106,14 @@ describe('useTronResources', () => {
   });
 
   it('parses balances with comma separators', () => {
-    const tronSpecialAssetsMap: TronSpecialAssetsMap = {
-      ...createEmptySpecialAssetsMap(),
+    const tronResourcesMap: TronResourcesMap = {
+      ...createEmptyResourcesMap(),
       energy: createTronAsset('energy', '1,000') as any,
       maxEnergy: createTronAsset('max-energy', '2,000') as any,
     };
 
-    mockSelectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue(
-      tronSpecialAssetsMap,
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());
@@ -130,14 +124,14 @@ describe('useTronResources', () => {
   });
 
   it('caps percentage at one hundred when current exceeds max', () => {
-    const tronSpecialAssetsMap: TronSpecialAssetsMap = {
-      ...createEmptySpecialAssetsMap(),
+    const tronResourcesMap: TronResourcesMap = {
+      ...createEmptyResourcesMap(),
       energy: createTronAsset('energy', 200) as any,
       maxEnergy: createTronAsset('max-energy', 100) as any,
     };
 
-    mockSelectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue(
-      tronSpecialAssetsMap,
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());
@@ -147,14 +141,14 @@ describe('useTronResources', () => {
   });
 
   it('sets percentage to zero when balances cannot be parsed', () => {
-    const tronSpecialAssetsMap: TronSpecialAssetsMap = {
-      ...createEmptySpecialAssetsMap(),
+    const tronResourcesMap: TronResourcesMap = {
+      ...createEmptyResourcesMap(),
       energy: createTronAsset('energy', 'invalid') as any,
       maxEnergy: createTronAsset('max-energy', '1000') as any,
     };
 
-    mockSelectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue(
-      tronSpecialAssetsMap,
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());

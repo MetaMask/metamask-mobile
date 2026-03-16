@@ -17,8 +17,7 @@ import { useSelector } from 'react-redux';
 import {
   TextColor,
   TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+} from '../../../component-library/components/Texts/Text/Text.types';
 import { ReactTestInstance } from 'react-test-renderer';
 
 jest.mock('../../../core/Engine/Engine', () => ({
@@ -145,7 +144,7 @@ describe('OnboardingSuccessComponent', () => {
       />,
     );
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
-    fireEvent.press(button);
+    button.props.onPress();
 
     expect(mockDiscoverAccounts).toHaveBeenCalled();
   });
@@ -214,9 +213,8 @@ describe('OnboardingSuccessComponent', () => {
     );
     const footerText = footerButton.children[0] as ReactTestInstance;
 
-    expect(footerText.props.color).toBe(TextColor.InfoDefault);
-    expect(footerText.props.variant).toBe(TextVariant.BodyMd);
-    expect(footerText.props.fontWeight).toBe(FontWeight.Medium);
+    expect(footerText.props.color).toBe(TextColor.Info);
+    expect(footerText.props.variant).toBe(TextVariant.BodyMDMedium);
   });
 
   it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
@@ -323,14 +321,6 @@ describe('OnboardingSuccess', () => {
   });
 
   describe('route params handling', () => {
-    it('uses default successFlow when route is undefined', () => {
-      const { getByText } = renderWithProvider(<OnboardingSuccess />);
-
-      expect(
-        getByText(strings('onboarding_success.wallet_ready')),
-      ).toBeOnTheScreen();
-    });
-
     it('uses default successFlow when route params are undefined', () => {
       const routeWithNoParams = {
         params: undefined,

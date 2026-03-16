@@ -53,11 +53,6 @@ export const selectTransactionPayIsPostQuoteByTransactionId = createSelector(
   (transactionData) => transactionData?.isPostQuote ?? false,
 );
 
-export const selectTransactionPayFiatPaymentByTransactionId = createSelector(
-  selectTransactionDataByTransactionId,
-  (transactionData) => transactionData?.fiatPayment,
-);
-
 export const selectTransactionPayTransactionData = createSelector(
   selectTransactionPayControllerState,
   (state) => state.transactionData,

@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     pageContainer: {
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.alternative,
       height: '100%',
       justifyContent: 'space-between',
     },

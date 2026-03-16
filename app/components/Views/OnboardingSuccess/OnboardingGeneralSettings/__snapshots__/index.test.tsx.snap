@@ -12,20 +12,15 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
   }
   style={
     {
-      "flexBasis": "0%",
-      "flexGrow": 1,
-      "flexShrink": 1,
+      "flex": 1,
     }
   }
 >
   <RCTScrollView
     style={
       {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "paddingLeft": 16,
-        "paddingRight": 16,
+        "flex": 1,
+        "paddingHorizontal": 16,
         "paddingTop": 16,
       }
     }

@@ -11,7 +11,6 @@ import OrderDetailsView from '../../page-objects/Ramps/OrderDetailsView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { getRegionLocationCode } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import {
   setupDepositOnRampMocks,
@@ -83,10 +82,7 @@ const expectedEventNames = [
   expectedEvents.RampsButtonClicked,
   expectedEvents.RampsTokenSelected,
 ];
-
-// Disabling as the test is currently hanging in CI
-// https://github.com/MetaMask/metamask-mobile/actions/runs/23006374721
-describe.skip(SmokeRamps('Onramp Unified Buy'), () => {
+describe(SmokeRamps('Onramp Unified Buy'), () => {
   beforeEach(async () => {
     await device.clearKeychain();
   });
@@ -95,7 +91,7 @@ describe.skip(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
@@ -168,7 +164,7 @@ describe.skip(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
@@ -296,9 +292,9 @@ describe.skip(SmokeRamps('Onramp Unified Buy'), () => {
     );
     const rampsButtonClickedRegion = rampsButtonClicked?.properties
       ?.region as string;
-    // The GeolocationController stores the ISO 3166-2 location code
-    // returned by the geolocation API (e.g. 'US-CA'), not the ramp region id.
-    const expectedRegionId = getRegionLocationCode(selectedRegion);
+    // The region property is a plain string (e.g. "us-ca") matching the
+    // geolocation endpoint response, not a JSON-serialized object.
+    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfTextMatches(

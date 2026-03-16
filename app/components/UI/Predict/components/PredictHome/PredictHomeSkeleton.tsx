@@ -2,10 +2,6 @@ import React from 'react';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import {
-  PREDICT_HOME_SKELETON,
-  PREDICT_HOME_SKELETON_TEST_IDS,
-} from './PredictHomeSkeleton.testIds';
 
 const SKELETON_COUNT = 4;
 
@@ -14,7 +10,7 @@ interface PredictHomeSkeletonProps {
 }
 
 const PredictHomeSkeleton: React.FC<PredictHomeSkeletonProps> = ({
-  testID = PREDICT_HOME_SKELETON,
+  testID = 'predict-home-skeleton',
 }) => {
   const tw = useTailwind();
 
@@ -25,7 +21,7 @@ const PredictHomeSkeleton: React.FC<PredictHomeSkeletonProps> = ({
           key={`skeleton-${index}`}
           flexDirection={BoxFlexDirection.Row}
           twClassName="items-start py-2 gap-4 w-full"
-          testID={`${testID}${PREDICT_HOME_SKELETON_TEST_IDS.ITEM}${index}`}
+          testID={`${testID}-item-${index}`}
         >
           <Box twClassName="pt-1">
             <Skeleton width={40} height={40} style={tw.style('rounded-full')} />

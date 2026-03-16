@@ -1,129 +1,39 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import { Assertions, Utilities } from '../../framework';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
 
 class TabBarComponent {
-  get tabBarExploreButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.EXPLORE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.EXPLORE, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.EXPLORE,
-          ),
-      },
-    });
+  get tabBarExploreButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
   }
 
-  get tabBarWalletButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.WALLET),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.WALLET,
-          ),
-      },
-    });
+  get tabBarWalletButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
-  get tabBarActionButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.TRADE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.ACTIONS, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.ACTIONS,
-          ),
-      },
-    });
+  get tabBarActionButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
-  get tabBarTradeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.TRADE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.TRADE, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.TRADE,
-          ),
-      },
-    });
+  get tabBarTradeButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
-  get tabBarSettingButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.SETTING),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.SETTING, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.SETTING,
-          ),
-      },
-    });
+  get tabBarSettingButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
-  get tabBarActivityButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.ACTIVITY, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.ACTIVITY,
-          ),
-      },
-    });
+  get tabBarActivityButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
   }
 
-  get tabBarRewardsButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.REWARDS),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.REWARDS, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.REWARDS,
-          ),
-      },
-    });
+  get tabBarRewardsButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
   async tapHome(): Promise<void> {
@@ -134,7 +44,7 @@ class TabBarComponent {
   async tapWallet(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarWalletButton, {
+        await Gestures.waitAndTap(this.tabBarWalletButton, {
           timeout: 2000,
         });
         await Assertions.expectElementToBeVisible(WalletView.container, {
@@ -151,14 +61,14 @@ class TabBarComponent {
   }
 
   async tapActions(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.tabBarActionButton, {
-      description: 'Tab Bar - Trade Button',
+    await Gestures.waitAndTap(this.tabBarActionButton, {
+      elemDescription: 'Tab Bar - Trade Button',
     });
   }
 
   async tapTrade(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.tabBarTradeButton, {
-      description: 'Tab Bar - Trade Button',
+    await Gestures.waitAndTap(this.tabBarTradeButton, {
+      elemDescription: 'Tab Bar - Trade Button',
     });
   }
 
@@ -166,7 +76,7 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         // Navigate to Wallet first (where the hamburger menu lives)
-        await UnifiedGestures.waitAndTap(this.tabBarWalletButton);
+        await Gestures.waitAndTap(this.tabBarWalletButton);
         await Assertions.expectElementToBeVisible(WalletView.container);
         await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
         await Assertions.expectElementToBeVisible(SettingsView.title);
@@ -180,7 +90,7 @@ class TabBarComponent {
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarExploreButton, {
+        await Gestures.waitAndTap(this.tabBarExploreButton, {
           timeout: 2000,
         });
         await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
@@ -200,7 +110,7 @@ class TabBarComponent {
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarActivityButton, {
+        await Gestures.waitAndTap(this.tabBarActivityButton, {
           timeout: 2000,
         });
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
@@ -220,7 +130,7 @@ class TabBarComponent {
   async tapRewards(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarRewardsButton, {
+        await Gestures.waitAndTap(this.tabBarRewardsButton, {
           timeout: 2000,
         });
       },

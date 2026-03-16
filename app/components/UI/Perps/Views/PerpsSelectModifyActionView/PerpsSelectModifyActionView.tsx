@@ -91,7 +91,6 @@ const PerpsSelectModifyActionView: React.FC<
               asset: position.symbol,
               existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
-              source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
             });
           }
           break;
@@ -117,7 +116,6 @@ const PerpsSelectModifyActionView: React.FC<
               asset: position.symbol,
               amount: positionSize.toString(),
               leverage: positionLeverage,
-              source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
             });
           }
           break;

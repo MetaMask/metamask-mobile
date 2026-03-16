@@ -47,31 +47,22 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
 
   const content = title ? (
     <Box alignItems={BoxAlignItems.Center}>
-      {typeof title === 'string' ? (
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          {...titleProps}
-        >
-          {title}
-        </Text>
-      ) : (
-        title
-      )}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Bold}
+        {...titleProps}
+      >
+        {title}
+      </Text>
       {subtitle && (
-        <Box twClassName="-mt-0.5">
-          {typeof subtitle === 'string' ? (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              {...subtitleProps}
-            >
-              {subtitle}
-            </Text>
-          ) : (
-            subtitle
-          )}
-        </Box>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          {...subtitleProps}
+          twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
+        >
+          {subtitle}
+        </Text>
       )}
     </Box>
   ) : null;

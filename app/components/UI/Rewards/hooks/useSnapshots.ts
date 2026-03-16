@@ -131,17 +131,11 @@ export const useSnapshots = (): UseSnapshotsReturn => {
     }, [fetchSnapshots]),
   );
 
-  const invalidateEvents = useMemo(
-    () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:balanceUpdated',
-      ] as const,
-    [],
-  );
-
   // Listen for reward events to trigger refetch
-  useInvalidateByRewardEvents(invalidateEvents, fetchSnapshots);
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:balanceUpdated'],
+    fetchSnapshots,
+  );
 
   return {
     snapshots,

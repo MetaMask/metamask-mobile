@@ -109,6 +109,7 @@ const Checkout = () => {
     callbackKey,
   } = params ?? {};
 
+  const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
   const callbackKeyRef = useRef(callbackKey);
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
@@ -126,7 +127,7 @@ const Checkout = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: providerName ?? '' },
+        { title: providerName ?? headerTitle },
         theme,
         () => {
           trackEvent(
@@ -145,6 +146,7 @@ const Checkout = () => {
     navigation,
     theme,
     providerName,
+    headerTitle,
     createEventBuilder,
     trackEvent,
     rampRoutingDecision,
@@ -312,7 +314,9 @@ const Checkout = () => {
         />
       }
       style={styles.headerWithoutPadding}
-    />
+    >
+      {headerTitle}
+    </BottomSheetHeader>
   );
 
   if (error) {

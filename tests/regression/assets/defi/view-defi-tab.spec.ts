@@ -6,8 +6,6 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { WalletViewSelectorsText } from '../../../../app/components/Views/Wallet/WalletView.testIds';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import {
   defiPositionsError,
@@ -15,7 +13,6 @@ import {
   defiPositionsWithNoData,
 } from '../../../api-mocking/mock-responses/defi-api-mocks';
 import NetworkManager from '../../../page-objects/wallet/NetworkManager';
-import DefiView from '../../../page-objects/wallet/DefiView';
 
 describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
@@ -24,10 +21,6 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-
           const { urlEndpoint, response } = defiPositionsWithNoData;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
@@ -41,8 +34,17 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await loginToApp();
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await Assertions.expectElementToNotBeVisible(
-          WalletView.defiPositionsNew,
+        await Assertions.expectElementToBeVisible(WalletView.defiTab);
+
+        await WalletView.tapOnDeFiTab();
+
+        await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
+        await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
+        await Assertions.expectTextDisplayed(
+          WalletViewSelectorsText.DEFI_EMPTY_STATE_DESCRIPTION,
+        );
+        await Assertions.expectTextDisplayed(
+          WalletViewSelectorsText.DEFI_EMPTY_STATE_EXPLORE_BUTTON,
         );
       },
     );
@@ -54,10 +56,6 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-
           const { urlEndpoint, response } = defiPositionsError;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
@@ -71,8 +69,8 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await loginToApp();
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await Assertions.expectElementToBeVisible(WalletView.defiPositionsNew);
-        // IT should show retry
+        await Assertions.expectElementToBeVisible(WalletView.defiTab);
+
         await WalletView.tapOnDeFiTab();
 
         await Assertions.expectElementToNotBeVisible(
@@ -97,10 +95,6 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-
           const { urlEndpoint, response } = defiPositionsWithData;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
@@ -118,11 +112,11 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await loginToApp();
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await Assertions.expectElementToBeVisible(WalletView.defiPositionsNew);
+        await Assertions.expectElementToBeVisible(WalletView.defiTab);
 
-        await WalletView.scrollAndTapDefiSection();
+        await WalletView.tapOnDeFiTab();
 
-        await DefiView.tapNetworkFilter();
+        await WalletView.tapOnDeFiNetworksFilter();
         await NetworkManager.tapNetwork('eip155:1');
         await NetworkManager.closeNetworkManager();
 

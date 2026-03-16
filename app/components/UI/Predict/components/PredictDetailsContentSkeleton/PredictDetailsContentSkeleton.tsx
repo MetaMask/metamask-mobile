@@ -2,10 +2,6 @@ import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import {
-  PREDICT_DETAILS_CONTENT_SKELETON,
-  PREDICT_DETAILS_CONTENT_SKELETON_TEST_IDS,
-} from './PredictDetailsContentSkeleton.testIds';
 
 interface PredictDetailsContentSkeletonProps {
   testID?: string;
@@ -13,7 +9,7 @@ interface PredictDetailsContentSkeletonProps {
 
 const PredictDetailsContentSkeleton: React.FC<
   PredictDetailsContentSkeletonProps
-> = ({ testID = PREDICT_DETAILS_CONTENT_SKELETON }) => {
+> = ({ testID = 'predict-details-content-skeleton' }) => {
   const tw = useTailwind();
 
   return (
@@ -23,13 +19,13 @@ const PredictDetailsContentSkeleton: React.FC<
           width="40%"
           height={16}
           style={tw.style('rounded-md')}
-          testID={`${testID}${PREDICT_DETAILS_CONTENT_SKELETON_TEST_IDS.LINE_1}`}
+          testID={`${testID}-line-1`}
         />
         <Skeleton
           width="100%"
           height={120}
           style={tw.style('rounded-xl')}
-          testID={`${testID}${PREDICT_DETAILS_CONTENT_SKELETON_TEST_IDS.BLOCK_1}`}
+          testID={`${testID}-block-1`}
         />
       </Box>
 
@@ -38,13 +34,13 @@ const PredictDetailsContentSkeleton: React.FC<
           width="30%"
           height={16}
           style={tw.style('rounded-md')}
-          testID={`${testID}${PREDICT_DETAILS_CONTENT_SKELETON_TEST_IDS.LINE_2}`}
+          testID={`${testID}-line-2`}
         />
         <Skeleton
           width="100%"
           height={80}
           style={tw.style('rounded-xl')}
-          testID={`${testID}${PREDICT_DETAILS_CONTENT_SKELETON_TEST_IDS.BLOCK_2}`}
+          testID={`${testID}-block-2`}
         />
       </Box>
     </Box>

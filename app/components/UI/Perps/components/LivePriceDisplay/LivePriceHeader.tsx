@@ -105,14 +105,14 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        color={TextColor.Default}
         testID={testIDPrice}
       >
         {formattedPrice}
       </Text>
       <Text
-        variant={TextVariant.BodySM}
+        variant={TextVariant.BodyMD}
         color={changeColor}
         testID={testIDChange}
       >

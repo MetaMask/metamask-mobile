@@ -4,7 +4,6 @@ import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
-import WalletActionModal from './WalletActionModal';
 import { expect as appwrightExpect } from 'appwright';
 
 class TabBarModal {
@@ -103,8 +102,9 @@ class TabBarModal {
       await driver.pause(3000);
       await Gestures.longPress(actionButton, 500);
     } else {
-      await AppwrightGestures.tap(await this.actionButton);
-      await WalletActionModal.checkModalVisibility();
+      const actionButton = await this.actionButton;
+      await appwrightExpect(actionButton).toBeVisible();
+      await AppwrightGestures.tap(actionButton); // Use static tap method with retry logic
     }
   }
 

@@ -20,11 +20,7 @@ import {
 } from '@metamask/transaction-controller';
 import { AssetType, TokenStandard } from '../../../types/token';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
-import {
-  useTransactionPayFiatPayment,
-  useTransactionPayRequiredTokens,
-} from '../../../hooks/pay/useTransactionPayData';
-import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
+import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -54,7 +50,6 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
-jest.mock('../../../hooks/pay/useFiatPaymentHighlightedActions');
 jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
@@ -226,9 +221,6 @@ describe('PayWithModal', () => {
       canSelectWithdrawToken: false,
     });
 
-    jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
-    jest.mocked(useFiatPaymentHighlightedActions).mockReturnValue([]);
-
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
     useWithdrawTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
@@ -398,41 +390,6 @@ describe('PayWithModal', () => {
 
       expect(mockAddTokens).toHaveBeenCalled();
       expect(setPayTokenMock).toHaveBeenCalled();
-    });
-  });
-
-  describe('fiat payment', () => {
-    it('passes fiatPayment to getAvailableTokens', () => {
-      const fiatPaymentMock = { selectedPaymentMethodId: 'pm-card' };
-      jest
-        .mocked(useTransactionPayFiatPayment)
-        .mockReturnValue(fiatPaymentMock);
-
-      render();
-
-      expect(getAvailableTokensMock).toHaveBeenCalledWith(
-        expect.objectContaining({ fiatPayment: fiatPaymentMock }),
-      );
-    });
-
-    it('prepends fiat highlighted actions to token list', () => {
-      const fiatAction = {
-        position: 'outside_of_asset_list' as const,
-        icon: 'card-icon',
-        paymentType: 'debit-credit-card',
-        name: 'Credit Card',
-        name_description: '5-10 min',
-        action: jest.fn(),
-        isSelected: false,
-      };
-
-      jest
-        .mocked(useFiatPaymentHighlightedActions)
-        .mockReturnValue([fiatAction]);
-
-      const { getByText } = render();
-
-      expect(getByText('Credit Card')).toBeDefined();
     });
   });
 });

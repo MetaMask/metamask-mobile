@@ -9,17 +9,12 @@ import {
   otherControllersMock,
 } from '../../../__mocks__/controllers/other-controllers-mock';
 import { strings } from '../../../../../../../locales/i18n';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 function render({
   onPress,
-  onError,
   singlePosition,
-}: {
-  onPress?: () => void;
-  onError?: (error?: Error) => void;
-  singlePosition?: boolean;
-} = {}) {
+}: { onPress?: () => void; singlePosition?: boolean } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
@@ -36,12 +31,9 @@ function render({
     };
   }
 
-  return renderWithProvider(
-    <PredictClaimFooter onPress={onPress ?? noop} onError={onError ?? noop} />,
-    {
-      state,
-    },
-  );
+  return renderWithProvider(<PredictClaimFooter onPress={onPress ?? noop} />, {
+    state,
+  });
 }
 
 describe('PredictClaimFooter', () => {
@@ -75,10 +67,9 @@ describe('PredictClaimFooter', () => {
     expect(onPressMock).toHaveBeenCalled();
   });
 
-  it('calls onError when there are no won positions', async () => {
-    // Arrange - state with transaction from address that has no claimable positions
-    const onErrorMock = jest.fn();
-    const state = merge(
+  it('uses fallback address when selectedAddress is undefined', () => {
+    // Arrange - state with no selected account address
+    const stateWithNoAddress = merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
@@ -86,12 +77,10 @@ describe('PredictClaimFooter', () => {
       {
         engine: {
           backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  txParams: { from: '0xunknown' },
-                },
-              ],
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+              },
             },
           },
         },
@@ -99,18 +88,13 @@ describe('PredictClaimFooter', () => {
     );
 
     // Act
-    const { queryByTestId } = renderWithProvider(
-      <PredictClaimFooter onPress={noop} onError={onErrorMock} />,
-      { state },
+    const { getByTestId } = renderWithProvider(
+      <PredictClaimFooter onPress={noop} />,
+      { state: stateWithNoAddress },
     );
 
-    // Assert - component returns null and calls onError
-    expect(queryByTestId('predict-claim-footer')).toBeNull();
-    await waitFor(() => {
-      expect(onErrorMock).toHaveBeenCalledWith(
-        new Error('Tried to claim but no positions were won'),
-      );
-    });
+    // Assert - component renders without crashing
+    expect(getByTestId('predict-claim-footer')).toBeDefined();
   });
 
   it('renders extra info for single win', () => {

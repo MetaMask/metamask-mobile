@@ -35,12 +35,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      icon: {
+        default: '#000000',
+      },
+    },
+  })),
+}));
 
 jest.mock('lodash', () => ({
   isEmpty: jest.fn((value: unknown) => {

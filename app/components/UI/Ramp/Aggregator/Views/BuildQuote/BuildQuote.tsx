@@ -995,7 +995,6 @@ const BuildQuote = () => {
                 amountNumber > 0 && (!amountIsValid || amountIsOverGas)
               }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
-              tokenSymbol={isSell ? selectedAsset?.symbol : undefined}
               onPress={onAmountInputPress}
               loading={
                 isFetchingRegions ||

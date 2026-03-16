@@ -30,7 +30,9 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
+  selectChainId,
   selectNetworkConfigurations,
+  selectProviderConfig,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
@@ -127,6 +129,10 @@ class TransactionDetails extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
+     * Chain ID string
+     */
+    chainId: PropTypes.string,
+    /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
     transactionObject: PropTypes.object,
@@ -175,11 +181,12 @@ class TransactionDetails extends PureComponent {
 
   /**
    * Returns the appropriate block explorer URL for a given chain
+   * @param {string} chainId - The chain ID to get the block explorer for
    * @param {string} txChainId - The transaction chain ID
    * @param {Object} networkConfigurations - The network configurations object
    * @returns {string} The block explorer URL
    */
-  getBlockExplorerForChain = (txChainId, networkConfigurations) => {
+  getBlockExplorerForChain = (chainId, txChainId, networkConfigurations) => {
     // First check for network configuration block explorer
     let blockExplorer =
       networkConfigurations?.[txChainId]?.blockExplorerUrls[
@@ -208,8 +215,8 @@ class TransactionDetails extends PureComponent {
     }
 
     // Check for non-EVM chain block explorer
-    if (isNonEvmChainId(txChainId)) {
-      blockExplorer = findBlockExplorerForNonEvmChainId(txChainId);
+    if (isNonEvmChainId(chainId)) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
 
     return blockExplorer;
@@ -275,10 +282,12 @@ class TransactionDetails extends PureComponent {
   componentDidMount = () => {
     const {
       transactionObject: { chainId: txChainId },
+      chainId,
       networkConfigurations,
     } = this.props;
 
     const blockExplorer = this.getBlockExplorerForChain(
+      chainId,
       txChainId,
       networkConfigurations,
     );
@@ -536,6 +545,8 @@ class TransactionDetails extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
+  chainId: selectChainId(state),
+  providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),

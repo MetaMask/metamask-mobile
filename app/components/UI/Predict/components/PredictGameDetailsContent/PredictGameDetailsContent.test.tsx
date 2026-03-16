@@ -1,5 +1,4 @@
 import React from 'react';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
@@ -165,7 +164,7 @@ const mockBaseGame = {
     id: 'team-home',
     name: 'Team A',
     abbreviation: 'TA',
-    color: TEST_HEX_COLORS.PURE_RED,
+    color: '#FF0000',
     alias: 'Team A',
     logo: 'https://example.com/logo-a.png',
   },
@@ -173,7 +172,7 @@ const mockBaseGame = {
     id: 'team-away',
     name: 'Team B',
     abbreviation: 'TB',
-    color: TEST_HEX_COLORS.PURE_BLUE,
+    color: '#0000FF',
     alias: 'Team B',
     logo: 'https://example.com/logo-b.png',
   },

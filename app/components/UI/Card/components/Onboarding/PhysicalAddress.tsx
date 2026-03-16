@@ -6,18 +6,14 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  Label,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import TextField from '../../../../../component-library/components/Form/TextField';
+import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -372,46 +368,41 @@ const PhysicalAddress = () => {
   const handleAddressLine1Change = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setAddressLine1(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleAddressLine2Change = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setAddressLine2(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleCityChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setCity(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleStateChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setState(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleZipCodeChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
-      resetConsent();
       setZipCode(text);
     },
-    [resetRegisterAddress, resetConsent],
+    [resetRegisterAddress],
   );
 
   const handleElectronicConsentToggle = useCallback(() => {

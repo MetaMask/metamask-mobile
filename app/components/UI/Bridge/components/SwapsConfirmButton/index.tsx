@@ -6,50 +6,44 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectBridgeFeatureFlags,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
+  setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
+import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import Engine from '../../../../../core/Engine';
-import { calcTokenValue } from '../../../../../util/transactions';
-import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import { BridgeQuoteResponse } from '../../types';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PriceImpactModalType } from '../PriceImpactModal/constants';
-import { useNavigation } from '@react-navigation/native';
-import AppConstants from '../../../../../core/AppConstants';
+import Engine from '../../../../../core/Engine';
+import { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
+import { calcTokenValue } from '../../../../../util/transactions';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
-  location: MetaMetricsSwapsEventSource;
 }
 
-export const SwapsConfirmButton = ({
-  latestSourceBalance,
-  testID,
-  location,
-}: Props) => {
+export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const handleConfirm = useBridgeConfirm({
-    latestSourceBalance,
-    location,
-  });
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
+  const location = route.params?.location;
 
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const { submitBridgeTx } = useSubmitBridgeTx();
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -153,33 +147,27 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
-    const priceImpact = !activeQuote?.quote.priceData?.priceImpact
-      ? // Default to zero to bypass swap friction.
-        // This callback is always called when active quote exists,
-        // thus this check is not expected to be used, but we introduce
-        // it regardless as a defensive mechanism.
-        0
-      : Number.parseFloat(activeQuote.quote.priceData.priceImpact);
+    try {
+      if (activeQuote && walletAddress) {
+        dispatch(setIsSubmittingTx(true));
 
-    if (
-      Number.isFinite(priceImpact) &&
-      priceImpact >=
-        // @ts-expect-error TODO: remove comment after changes to core are published.
-        (bridgeFeatureFlags?.priceImpactThreshold?.error ??
-          AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
-    ) {
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
-        params: {
-          type: PriceImpactModalType.Execution,
-          token: sourceToken,
+        const quoteResponse: BridgeQuoteResponse = {
+          ...activeQuote,
+          aggregator: activeQuote.quote.bridgeId,
+          walletAddress,
+        };
+
+        await submitBridgeTx({
+          quoteResponse,
           location,
-        },
-      });
-      return;
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting bridge tx', error);
+    } finally {
+      dispatch(setIsSubmittingTx(false));
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
-
-    await handleConfirm();
   };
 
   const handleGetNewQuote = () => {

@@ -1,6 +1,5 @@
 import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import { State as BleState } from 'react-native-ble-plx';
-import { Linking, Platform } from 'react-native';
 import { Observable, Subscription } from 'rxjs';
 import Eth from '@ledgerhq/hw-app-eth';
 import {
@@ -9,13 +8,6 @@ import {
   DeviceEventPayload,
   ErrorCode,
 } from '@metamask/hw-wallet-sdk';
-import {
-  PERMISSIONS,
-  RESULTS,
-  requestMultiple,
-  request,
-} from 'react-native-permissions';
-import { getSystemVersion } from 'react-native-device-info';
 import {
   DiscoveredDevice,
   HardwareWalletAdapter,
@@ -26,7 +18,6 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
 } from '../../Ledger/Ledger';
-import { DISCONNECT_ERROR_NAMES } from '../../Ledger/ledgerErrors';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
@@ -284,37 +275,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     }
   }
 
-  async ensurePermissions(): Promise<boolean> {
-    if (Platform.OS !== 'android') {
-      return true;
-    }
-
-    const version = Number(getSystemVersion()) || 0;
-
-    if (version >= 12) {
-      const result = await requestMultiple([
-        PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-        PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-      ]);
-      const allGranted =
-        result[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT] === RESULTS.GRANTED &&
-        result[PERMISSIONS.ANDROID.BLUETOOTH_SCAN] === RESULTS.GRANTED;
-
-      if (!allGranted) {
-        await Linking.openSettings();
-        return false;
-      }
-    } else {
-      const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-      if (result !== RESULTS.GRANTED) {
-        await Linking.openSettings();
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   async isTransportAvailable(): Promise<boolean> {
     // Wait for initial BLE state if not yet received
     if (!this.#hasReceivedInitialBleState) {
@@ -563,20 +523,12 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
   async #closeTransport(): Promise<void> {
     const transport = this.#transport;
-    const deviceId = this.#deviceId;
     if (transport) {
       this.#transport = null;
       try {
-        if (deviceId) {
-          // TransportBLE.close() queues a delayed disconnect (5s timeout).
-          // Force an immediate BLE disconnection so in-flight signing is
-          // aborted without delay.
-          await TransportBLE.disconnectDevice(deviceId);
-        } else {
-          await transport.close();
-        }
+        await transport.close();
       } catch {
-        // Ignore close errors — device may already be disconnected
+        // Ignore close errors
       }
     }
   }
@@ -669,8 +621,9 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    */
   #isTransientBleError(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
-    const transientBleErrorNames: readonly string[] = [
-      ...DISCONNECT_ERROR_NAMES,
+    const transientBleErrorNames = [
+      'DisconnectedDevice',
+      'DisconnectedDeviceDuringOperation',
       'PairingFailed',
       'PeerRemovedPairing',
       'BleError',

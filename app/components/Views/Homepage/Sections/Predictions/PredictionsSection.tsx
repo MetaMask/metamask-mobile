@@ -8,11 +8,11 @@ import { ScrollView, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
+import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
+import FadingScrollContainer from '../../components/FadingScrollContainer';
 import Routes from '../../../../../constants/navigation/Routes';
-import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
@@ -37,6 +37,18 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 
 const MAX_MARKETS_DISPLAYED = 5;
+
+// Card dimensions for snap offsets
+const CARD_WIDTH = 240;
+const GAP = 12;
+const PADDING = 16; // px-4
+
+// Calculate snap offsets: first card at 0, then padding + card + (gap + card) * n
+// ViewMoreCard is excluded — its snap position would exceed max scroll on typical screens,
+// causing the scroll view to snap back and never reach it.
+const SNAP_OFFSETS = Array.from({ length: MAX_MARKETS_DISPLAYED }, (_, i) =>
+  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
+);
 
 // Skeleton keys for loading state
 const SKELETON_KEYS = Array.from(
@@ -75,25 +87,38 @@ const PredictionsSection = forwardRef<
     positions,
     isLoading: isLoadingPositions,
     error: positionsError,
-    refetch: refetchPositions,
+    refresh: refreshPositions,
   } = usePredictPositionsForHomepage();
 
   const {
     markets,
     isLoading: isLoadingMarkets,
     error: marketsError,
-    refetch: refetchMarkets,
+    refresh: refreshMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
-  const { totalClaimableValue, isLoading: isLoadingClaimable } =
-    usePredictPositionsForHomepage({ claimable: true });
+  const {
+    positions: claimablePositions,
+    isLoading: isLoadingClaimable,
+    refresh: refreshClaimable,
+  } = usePredictPositionsForHomepage(undefined, true);
 
   const handleClaim = useCallback(async () => {
     await claim();
-  }, [claim]);
+    await refreshClaimable();
+  }, [claim, refreshClaimable]);
+
+  const totalClaimable = claimablePositions.reduce(
+    (sum, p) => sum + (p.currentValue ?? 0),
+    0,
+  );
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
+
+  // Use ref so refresh always reads the latest value without stale closures
+  const hasPositionsRef = useRef(hasPositions);
+  hasPositionsRef.current = hasPositions;
 
   const isLoading = isLoadingPositions || isLoadingMarkets;
 
@@ -116,7 +141,7 @@ const PredictionsSection = forwardRef<
   // itemCount/isEmpty values before data arrives.
   const willRender = isPredictEnabled && !isLoading && !isEmpty;
 
-  const { onLayout } = useHomeViewedEvent({
+  useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.PREDICT,
@@ -127,9 +152,18 @@ const PredictionsSection = forwardRef<
     itemCount,
   });
 
+  // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
-    await Promise.all([refetchPositions(), refetchMarkets()]);
-  }, [refetchPositions, refetchMarkets]);
+    if (hasPositionsRef.current) {
+      await Promise.all([
+        refreshPositions(),
+        refreshMarkets(),
+        refreshClaimable(),
+      ]);
+    } else {
+      await Promise.all([refreshMarkets(), refreshClaimable()]);
+    }
+  }, [refreshPositions, refreshMarkets, refreshClaimable]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -160,15 +194,9 @@ const PredictionsSection = forwardRef<
 
   if (hasError) {
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionHeader
-            title={title}
-            onPress={handleViewAllPredictions}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-              'predictions',
-            )}
-          />
+          <SectionTitle title={title} onPress={handleViewAllPredictions} />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
               section: title.toLowerCase(),
@@ -183,15 +211,9 @@ const PredictionsSection = forwardRef<
   // Render positions if user has any
   if (hasPositions || isLoadingPositions) {
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionHeader
-            title={title}
-            onPress={handleViewAllPredictions}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-              'predictions',
-            )}
-          />
+          <SectionTitle title={title} onPress={handleViewAllPredictions} />
           <Box>
             {isLoadingPositions ? (
               <>
@@ -209,10 +231,10 @@ const PredictionsSection = forwardRef<
             )}
             {!isLoadingPositions &&
               !isLoadingClaimable &&
-              totalClaimableValue > 0 && (
+              totalClaimable > 0 && (
                 <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
                   <PredictClaimButton
-                    amount={totalClaimableValue}
+                    amount={totalClaimable}
                     onPress={handleClaim}
                   />
                 </Box>
@@ -230,32 +252,38 @@ const PredictionsSection = forwardRef<
 
   // Render trending markets if no positions
   return (
-    <View ref={sectionViewRef} onLayout={onLayout}>
+    <View ref={sectionViewRef}>
       <Box gap={3}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAllPredictions}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-        >
-          {isLoadingMarkets ? (
-            SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
-          ) : (
-            <>
-              {markets.map((market) => (
-                <PredictMarketCard key={market.id} market={market} />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAllPredictions}
-                twClassName="w-[180px] flex-1"
-              />
-            </>
+        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <FadingScrollContainer>
+          {(scrollProps) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              snapToOffsets={SNAP_OFFSETS}
+              decelerationRate="fast"
+              {...scrollProps}
+            >
+              {isLoadingMarkets ? (
+                SKELETON_KEYS.map((key) => (
+                  <PredictMarketCardSkeleton key={key} />
+                ))
+              ) : (
+                <>
+                  {markets.map((market) => (
+                    <PredictMarketCard key={market.id} market={market} />
+                  ))}
+                  <ViewMoreCard
+                    onPress={handleViewAllPredictions}
+                    twClassName="w-[180px] h-[180px]"
+                    textVariant={TextVariant.BodyLg}
+                  />
+                </>
+              )}
+            </ScrollView>
           )}
-        </ScrollView>
+        </FadingScrollContainer>
       </Box>
     </View>
   );

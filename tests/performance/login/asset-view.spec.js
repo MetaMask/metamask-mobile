@@ -67,7 +67,8 @@ test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
         device,
       );
 
-      await WalletMainScreen.tapOnTokensSection();
+      await WalletMainScreen.tapNetworkNavBar();
+      await NetworksScreen.selectNetwork('Ethereum');
 
       await WalletMainScreen.tapOnToken('USDC');
       await assetViewScreen.measure(async () => {

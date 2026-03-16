@@ -26,11 +26,9 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import {
-  selectIsMusdConversionFlowEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -61,6 +59,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
+import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
@@ -104,11 +103,10 @@ const createStyles = (colors: Colors) =>
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
-  setShowScamWarningModal: (chainId: string | null) => void;
+  setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
-  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -119,7 +117,6 @@ export const TokenListItem = React.memo(
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
-    shouldShowTokenListItemCta,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -148,14 +145,11 @@ export const TokenListItem = React.memo(
       selectMusdQuickConvertEnabledFlag,
     );
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
+
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
 
     const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
@@ -301,22 +295,6 @@ export const TokenListItem = React.memo(
         };
       }
 
-      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
-      if (
-        isMusdConversionFlowEnabled &&
-        isMusdGeoEligible &&
-        asset &&
-        isMusdToken(asset.address)
-      ) {
-        return {
-          text: strings('earn.musd_conversion.percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-          color: TextColor.Success,
-          onPress: undefined,
-        };
-      }
-
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -359,9 +337,6 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
-      asset,
-      isMusdConversionFlowEnabled,
-      isMusdGeoEligible,
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,

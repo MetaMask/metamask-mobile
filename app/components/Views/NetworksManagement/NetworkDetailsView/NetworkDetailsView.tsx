@@ -204,7 +204,7 @@ const NetworkDetailsView = () => {
               <Icon
                 name={IconName.Trash}
                 size={IconSize.Md}
-                color={IconColor.Default}
+                color={IconColor.Error}
               />
             </Pressable>
           ) : undefined

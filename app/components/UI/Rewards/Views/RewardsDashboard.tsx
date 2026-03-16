@@ -23,7 +23,6 @@ import {
   selectHideCurrentAccountNotOptedInBannerArray,
   selectSeasonId,
   selectSeasonEndDate,
-  selectOptinAllowedForGeo,
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -37,12 +36,8 @@ import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import RewardsOverview from '../components/Tabs/RewardsOverview';
 import RewardsSnapshots from '../components/Tabs/RewardsSnapshots';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
-import MusdCalculatorTab from '../components/Tabs/MusdCalculatorTab/MusdCalculatorTab';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
-import {
-  TabsListRef,
-  TabViewProps,
-} from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
@@ -63,7 +58,6 @@ const RewardsDashboard: React.FC = () => {
   );
   const seasonId = useSelector(selectSeasonId);
   const seasonEndDate = useSelector(selectSeasonEndDate);
-  const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
   const isSnapshotsEnabled = useSelector(selectSnapshotsRewardsEnabledFlag);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
@@ -337,12 +331,13 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
         <HeaderRoot
           title={strings('rewards.main_title')}
+          includesTopInset
           endButtonIconProps={[
             {
               iconName: IconName.Setting,
@@ -364,30 +359,7 @@ const RewardsDashboard: React.FC = () => {
           ]}
         />
         <Box twClassName="flex-1 gap-4">
-          {showPreviousSeasonSummary && optinAllowedForGeo ? (
-            <TabsList
-              ref={tabsListRef}
-              initialActiveIndex={0}
-              testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
-              tabsBarProps={{ twClassName: 'px-4' }}
-              tabsListContentTwClassName="px-0"
-            >
-              <Box
-                key="musd"
-                {...({ tabLabel: 'mUSD' } as TabViewProps)}
-                twClassName="flex-1"
-              >
-                <MusdCalculatorTab />
-              </Box>
-              <Box
-                key="previous-season"
-                {...({ tabLabel: strings('rewards.season_1') } as TabViewProps)}
-                twClassName="flex-1"
-              >
-                <PreviousSeasonSummary />
-              </Box>
-            </TabsList>
-          ) : showPreviousSeasonSummary ? (
+          {showPreviousSeasonSummary ? (
             <PreviousSeasonSummary />
           ) : (
             <>

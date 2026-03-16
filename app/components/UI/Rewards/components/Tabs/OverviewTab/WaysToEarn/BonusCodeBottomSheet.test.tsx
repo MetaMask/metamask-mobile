@@ -120,12 +120,9 @@ jest.mock('../../../../hooks/useRewardsToast', () => ({
   }),
 }));
 
-jest.mock('../../../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../../../../../util/theme', () => ({
+  useTheme: () => ({ colors: { icon: { default: '#000000' } } }),
+}));
 
 const mockUseValidateBonusCode = useValidateBonusCode as jest.MockedFunction<
   typeof useValidateBonusCode

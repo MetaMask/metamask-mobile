@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import { Label } from '@metamask/design-system-react-native';
+import Label from '../../../../../component-library/components/Form/Label';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

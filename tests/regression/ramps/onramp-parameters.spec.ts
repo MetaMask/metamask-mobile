@@ -30,7 +30,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
   await withFixtures(
     {
       fixture: new FixtureBuilder()
-        .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
+        .withNetworkController(CustomNetworks.Tenderly.Mainnet)
         .withRampsSelectedRegion(selectedRegion)
         .withMetaMetricsOptIn()
         .build(),

@@ -48,7 +48,6 @@ import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
 import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
-import type { Fixture } from './types';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
@@ -293,7 +292,9 @@ async function handleDappCleanup(
  * @param state - The fixture state to update
  * @returns The updated fixture state
  */
-function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
+function updateRpcUrlsWithAllocatedPorts(
+  state: FixtureBuilder['fixture'],
+): FixtureBuilder {
   const portManager = PortManager.getInstance();
 
   const actualAnvilPort = portManager.getPort(ResourceType.ANVIL);
@@ -304,7 +305,7 @@ function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
       ?.networkConfigurationsByChainId;
   if (networkConfigs) {
     for (const chainId of Object.keys(networkConfigs)) {
-      const config = networkConfigs[chainId as `0x${string}`];
+      const config = networkConfigs[chainId];
       if (config.rpcEndpoints) {
         for (const endpoint of config.rpcEndpoints) {
           if (endpoint.url) {
@@ -333,7 +334,9 @@ function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
  * Updates dapp URLs in PermissionController with actual allocated ports by index.
  * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
  */
-function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
+function updateDappUrlsWithAllocatedPorts(
+  state: FixtureBuilder['fixture'],
+): FixtureBuilder {
   const portManager = PortManager.getInstance();
   const permissionController =
     state.state?.engine?.backgroundState?.PermissionController;
@@ -374,7 +377,9 @@ function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
  * Replaces all occurrences of localhost:8000 with the actual mock server port.
  * This affects browser tabs and RPC endpoints that proxy through mock server.
  */
-function updateMockServerUrlsInFixture(state: Fixture): Fixture {
+function updateMockServerUrlsInFixture(
+  state: FixtureBuilder['fixture'],
+): FixtureBuilder {
   const portManager = PortManager.getInstance();
   const actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
 
@@ -400,13 +405,11 @@ function updateMockServerUrlsInFixture(state: Fixture): Fixture {
  */
 export const loadFixture = async (
   fixtureServer: FixtureServer,
-  { fixture }: { fixture: FixtureBuilder | Fixture },
+  { fixture }: { fixture: FixtureBuilder },
 ) => {
-  // Normalize FixtureBuilder → Fixture; fall back to onboarding fixture if nothing provided.
-  let state: Fixture =
-    fixture instanceof FixtureBuilder
-      ? fixture.build()
-      : (fixture ?? new FixtureBuilder({ onboarding: true }).build());
+  // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
+  // the app will be loaded without any fixtures and will start and go through the onboarding process.
+  let state = fixture || new FixtureBuilder({ onboarding: true }).build();
 
   // Update RPC URLs with actual allocated ports from PortManager
   state = updateRpcUrlsWithAllocatedPorts(state);
@@ -574,7 +577,7 @@ export async function withFixtures(
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
     // Resolve fixture after local nodes are started so dynamic ports are known
-    let resolvedFixture: FixtureBuilder | Fixture;
+    let resolvedFixture: FixtureBuilder;
     if (typeof fixtureOption === 'function') {
       resolvedFixture = await fixtureOption({ localNodes });
     } else {

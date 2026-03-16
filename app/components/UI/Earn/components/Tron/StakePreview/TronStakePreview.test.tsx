@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux';
 
 import TronStakePreview from './TronStakePreview';
 import {
-  selectTronSpecialAssetsBySelectedAccountGroup,
-  TronSpecialAssetsMap,
+  selectTronResourcesBySelectedAccountGroup,
+  TronResourcesMap,
 } from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
@@ -46,9 +46,7 @@ jest.mock('../../../hooks/useTronStakeApy', () => ({
 
 const mockUseSelector = useSelector as jest.Mock;
 
-const createMockSpecialAssetsMap = (
-  totalStakedTrx: number,
-): TronSpecialAssetsMap => ({
+const createMockResourcesMap = (totalStakedTrx: number): TronResourcesMap => ({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -56,9 +54,6 @@ const createMockSpecialAssetsMap = (
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx,
-  trxReadyForWithdrawal: undefined,
-  trxStakingRewards: undefined,
-  trxInLockPeriod: undefined,
 });
 
 describe('TronStakePreview', () => {
@@ -73,10 +68,10 @@ describe('TronStakePreview', () => {
     });
 
     // Default: 10 + 5 = 15 TRX staked
-    const mockResourcesMap = createMockSpecialAssetsMap(15);
+    const mockResourcesMap = createMockResourcesMap(15);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
+      if (selector === selectTronResourcesBySelectedAccountGroup) {
         return mockResourcesMap;
       }
       return undefined;
@@ -96,10 +91,10 @@ describe('TronStakePreview', () => {
   });
 
   it('calculates annual reward from floating-point balances without precision errors', () => {
-    const mockResourcesMap = createMockSpecialAssetsMap(130.96926);
+    const mockResourcesMap = createMockResourcesMap(130.96926);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
+      if (selector === selectTronResourcesBySelectedAccountGroup) {
         return mockResourcesMap;
       }
       return undefined;
@@ -179,8 +174,8 @@ describe('TronStakePreview', () => {
 
   it('returns empty reward when total staked balance is zero in stake mode', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
-        return createMockSpecialAssetsMap(0);
+      if (selector === selectTronResourcesBySelectedAccountGroup) {
+        return createMockResourcesMap(0);
       }
       return undefined;
     });

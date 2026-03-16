@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsFlipPosition } from './usePerpsFlipPosition';
 import { type Position } from '@metamask/perps-controller';
-import Logger from '../../../../util/Logger';
 
 const mockFlipPosition = jest.fn();
 const mockShowToast = jest.fn();
+const mockCaptureException = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
@@ -35,11 +35,9 @@ jest.mock('./usePerpsToasts', () => ({
   }),
 }));
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-  },
+jest.mock('@sentry/react-native', () => ({
+  captureException: (error: Error, context: unknown) =>
+    mockCaptureException(error, context),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -199,7 +197,7 @@ describe('usePerpsFlipPosition', () => {
     expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
   });
 
-  it('handles exceptions and logs via Logger.error', async () => {
+  it('handles exceptions and captures to Sentry', async () => {
     const testError = new Error('Network error');
     mockFlipPosition.mockRejectedValue(testError);
     const mockOnError = jest.fn();
@@ -212,23 +210,17 @@ describe('usePerpsFlipPosition', () => {
       await result.current.handleFlipPosition(mockLongPosition);
     });
 
-    expect(Logger.error).toHaveBeenCalledWith(
+    expect(mockCaptureException).toHaveBeenCalledWith(
       testError,
       expect.objectContaining({
         tags: expect.objectContaining({
-          feature: 'perps',
           component: 'usePerpsFlipPosition',
           action: 'flip_position',
-          operation: 'position_management',
         }),
-        context: expect.objectContaining({
-          name: 'usePerpsFlipPosition',
-          data: expect.objectContaining({
+        extra: expect.objectContaining({
+          positionContext: expect.objectContaining({
             symbol: 'ETH',
             size: '2.5',
-            currentDirection: 'long',
-            targetDirection: 'short',
-            positionSize: 2.5,
           }),
         }),
       }),
@@ -248,18 +240,9 @@ describe('usePerpsFlipPosition', () => {
       await result.current.handleFlipPosition(mockLongPosition);
     });
 
-    const [loggedError, loggerContext] = (Logger.error as jest.Mock).mock
-      .calls[0];
-    expect(loggedError).toBeInstanceOf(Error);
-    expect((loggedError as Error).message).toBe('String error');
-    expect(loggerContext).toEqual(
-      expect.objectContaining({
-        context: expect.objectContaining({
-          data: expect.objectContaining({
-            rawError: 'String error',
-          }),
-        }),
-      }),
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.anything(),
     );
     expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
   });
