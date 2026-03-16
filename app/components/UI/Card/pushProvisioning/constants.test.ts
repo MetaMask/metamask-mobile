@@ -56,23 +56,23 @@ describe('Push Provisioning Constants', () => {
       expect(isAccountEligibleForProvisioning('not-a-date')).toBe(false);
     });
 
-    it('returns false for accounts created before Jan 2026', () => {
-      expect(isAccountEligibleForProvisioning('2025-12-31T23:59:59.999Z')).toBe(
+    it('returns false for accounts created before November 10, 2025', () => {
+      expect(isAccountEligibleForProvisioning('2025-11-09T23:59:59.999Z')).toBe(
         false,
       );
-      expect(isAccountEligibleForProvisioning('2025-06-15T12:00:00.000Z')).toBe(
+      expect(isAccountEligibleForProvisioning('2025-09-15T12:00:00.000Z')).toBe(
         false,
       );
-      expect(isAccountEligibleForProvisioning('2024-01-01T00:00:00.000Z')).toBe(
+      expect(isAccountEligibleForProvisioning('2025-08-01T00:00:00.000Z')).toBe(
         false,
       );
     });
 
-    it('returns true for accounts created on or after Jan 2026', () => {
-      expect(isAccountEligibleForProvisioning('2026-01-01T00:00:00.000Z')).toBe(
+    it('returns true for accounts created on or after November 10, 2025', () => {
+      expect(isAccountEligibleForProvisioning('2025-12-01T00:00:00.000Z')).toBe(
         true,
       );
-      expect(isAccountEligibleForProvisioning('2026-01-15T10:30:00.000Z')).toBe(
+      expect(isAccountEligibleForProvisioning('2025-11-11T10:30:00.000Z')).toBe(
         true,
       );
       expect(isAccountEligibleForProvisioning('2026-06-01T00:00:00.000Z')).toBe(
@@ -81,7 +81,7 @@ describe('Push Provisioning Constants', () => {
     });
 
     it('uses the PROVISIONING_ELIGIBLE_AFTER constant as cutoff', () => {
-      expect(PROVISIONING_ELIGIBLE_AFTER).toBe('2026-01-01T00:00:00.000Z');
+      expect(PROVISIONING_ELIGIBLE_AFTER).toBe('2025-11-10T00:00:00.000Z');
     });
   });
 });
