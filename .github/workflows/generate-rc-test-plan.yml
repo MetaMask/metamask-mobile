@@ -251,7 +251,14 @@ jobs:
           git fetch origin gh-pages:gh-pages 2>/dev/null || echo "gh-pages doesn't exist yet"
 
           # Switch to gh-pages (create orphan if it doesn't exist)
-          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
+          if git checkout gh-pages 2>/dev/null; then
+            echo "Switched to existing gh-pages branch"
+          else
+            # Create orphan branch and clear the index to avoid committing entire repo
+            git checkout --orphan gh-pages
+            git rm -rf . 2>/dev/null || true
+            git clean -fd 2>/dev/null || true
+          fi
 
           # Create test-plans directory
           mkdir -p test-plans
