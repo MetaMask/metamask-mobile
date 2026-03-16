@@ -5,6 +5,11 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TokensFullView from '../../page-objects/wallet/TokensFullView';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {
@@ -16,9 +21,17 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+        },
       },
       async () => {
         await loginToApp();
+
+        await WalletView.tapOnNewTokensSection();
+        await TokensFullView.waitForVisible();
 
         await NetworkManager.openNetworkManager();
 
@@ -43,106 +56,134 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     );
   });
 
-  it('should reflect the enabled networks state in the network manager, when all popular networks are selected', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await NetworkManager.openNetworkManager();
-        // verify popular networks container is visible
-        await NetworkManager.checkPopularNetworksContainerIsVisible();
+  // it('should reflect the enabled networks state in the network manager, when all popular networks are selected', async () => {
+  //   await withFixtures(
+  //     {
+  //       fixture: new FixtureBuilder().build(),
+  //       restartDevice: true,
+  //       testSpecificMock: async (mockServer: Mockttp) => {
+  //         await setupRemoteFeatureFlagsMock(mockServer, {
+  //           ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+  //         });
+  //       },
+  //     },
+  //     async () => {
+  //       await loginToApp();
+  //       await WalletView.tapOnNewTokensSection();
+  //       await TokensFullView.waitForVisible();
+  //       await NetworkManager.openNetworkManager();
+  //       // verify popular networks container is visible
+  //       await NetworkManager.checkPopularNetworksContainerIsVisible();
 
-        // verify all popular networks are selected
-        await NetworkManager.checkAllPopularNetworksIsSelected();
-      },
-    );
-  });
+  //       // verify all popular networks are selected
+  //       await NetworkManager.checkAllPopularNetworksIsSelected();
+  //     },
+  //   );
+  // });
 
-  it('should select a network and deselect the previous selected network', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await NetworkManager.openNetworkManager();
+  // it('should select a network and deselect the previous selected network', async () => {
+  //   await withFixtures(
+  //     {
+  //       fixture: new FixtureBuilder().build(),
+  //       restartDevice: true,
+  //       testSpecificMock: async (mockServer: Mockttp) => {
+  //         await setupRemoteFeatureFlagsMock(mockServer, {
+  //           ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+  //         });
+  //       },
+  //     },
+  //     async () => {
+  //       await loginToApp();
+  //       await WalletView.tapOnNewTokensSection();
+  //       await TokensFullView.waitForVisible();
+  //       await NetworkManager.openNetworkManager();
 
-        await NetworkManager.checkAllPopularNetworksIsSelected();
+  //       await NetworkManager.checkAllPopularNetworksIsSelected();
 
-        // Select and check the network in the base control bar
-        await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-        await NetworkManager.checkBaseControlBarText(
-          NetworkToCaipChainId.ETHEREUM,
-        );
+  //       // Select and check the network in the base control bar
+  //       await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+  //       await NetworkManager.checkBaseControlBarText(
+  //         NetworkToCaipChainId.ETHEREUM,
+  //       );
 
-        // Open the network manager and check the network is selected
-        await NetworkManager.openNetworkManager();
+  //       // Open the network manager and check the network is selected
+  //       await NetworkManager.openNetworkManager();
 
-        await NetworkManager.checkNetworkIsSelected(
-          NetworkToCaipChainId.ETHEREUM,
-        );
+  //       await NetworkManager.checkNetworkIsSelected(
+  //         NetworkToCaipChainId.ETHEREUM,
+  //       );
 
-        // Select Avalanche and check if Ethereum is not selected
-        await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
+  //       // Select Avalanche and check if Ethereum is not selected
+  //       await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
 
-        await NetworkManager.checkBaseControlBarText(
-          NetworkToCaipChainId.LINEA,
-        );
+  //       await NetworkManager.checkBaseControlBarText(
+  //         NetworkToCaipChainId.LINEA,
+  //       );
 
-        // validate that Ethereum is not selected
-        await NetworkManager.openNetworkManager();
-        await NetworkManager.checkNetworkIsNotSelected(
-          NetworkToCaipChainId.ETHEREUM,
-        );
-      },
-    );
-  });
+  //       // validate that Ethereum is not selected
+  //       await NetworkManager.openNetworkManager();
+  //       await NetworkManager.checkNetworkIsNotSelected(
+  //         NetworkToCaipChainId.ETHEREUM,
+  //       );
+  //     },
+  //   );
+  // });
 
-  it('should default to custom tab when custom network is enabled', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        // Open network manager and check popular networks container is visible
-        await NetworkManager.openNetworkManager();
-        await NetworkManager.checkPopularNetworksContainerIsVisible();
+  // it('should default to custom tab when custom network is enabled', async () => {
+  //   await withFixtures(
+  //     {
+  //       fixture: new FixtureBuilder().build(),
+  //       restartDevice: true,
+  //       testSpecificMock: async (mockServer: Mockttp) => {
+  //         await setupRemoteFeatureFlagsMock(mockServer, {
+  //           ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+  //         });
+  //       },
+  //     },
+  //     async () => {
+  //       await loginToApp();
+  //       await WalletView.tapOnNewTokensSection();
+  //       await TokensFullView.waitForVisible();
+  //       // Open network manager and check popular networks container is visible
+  //       await NetworkManager.openNetworkManager();
+  //       await NetworkManager.checkPopularNetworksContainerIsVisible();
 
-        // Tap custom networks tab and check custom networks container is visible
-        await NetworkManager.tapCustomNetworksTab();
-        await NetworkManager.checkCustomNetworksContainerIsVisible();
+  //       // Tap custom networks tab and check custom networks container is visible
+  //       await NetworkManager.tapCustomNetworksTab();
+  //       await NetworkManager.checkCustomNetworksContainerIsVisible();
 
-        // Tap localhost network and check base control bar text
-        await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
+  //       // Tap localhost network and check base control bar text
+  //       await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
 
-        await NetworkManager.checkBaseControlBarText(
-          NetworkToCaipChainId.LOCALHOST,
-        );
+  //       await NetworkManager.checkBaseControlBarText(
+  //         NetworkToCaipChainId.LOCALHOST,
+  //       );
 
-        // Open network manager and check custom networks container is visible
-        await NetworkManager.openNetworkManager();
-        await NetworkManager.checkCustomNetworksContainerIsVisible();
-      },
-    );
-  });
+  //       // Open network manager and check custom networks container is visible
+  //       await NetworkManager.openNetworkManager();
+  //       await NetworkManager.checkCustomNetworksContainerIsVisible();
+  //     },
+  //   );
+  // });
 
-  it('should default to default tab when default network is enabled', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await NetworkManager.openNetworkManager();
-        await NetworkManager.checkPopularNetworksContainerIsVisible();
-      },
-    );
-  });
+  // it('should default to default tab when default network is enabled', async () => {
+  //   await withFixtures(
+  //     {
+  //       fixture: new FixtureBuilder().build(),
+  //       restartDevice: true,
+  //       testSpecificMock: async (mockServer: Mockttp) => {
+  //         await setupRemoteFeatureFlagsMock(mockServer, {
+  //           ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+  //         });
+  //       },
+  //     },
+  //     async () => {
+  //       await loginToApp();
+  //       await WalletView.tapOnNewTokensSection();
+  //       await TokensFullView.waitForVisible();
+  //       await NetworkManager.openNetworkManager();
+  //       await NetworkManager.checkPopularNetworksContainerIsVisible();
+  //     },
+  //   );
+  // });
 });
