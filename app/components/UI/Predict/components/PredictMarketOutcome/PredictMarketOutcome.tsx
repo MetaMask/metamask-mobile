@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -167,8 +168,8 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                     size={IconSize.Md}
                     color={
                       outcomeToken.price === 1
-                        ? TextColor.SuccessDefault
-                        : TextColor.TextMuted
+                        ? IconColor.SuccessDefault
+                        : IconColor.IconMuted
                     }
                   />
                 )}

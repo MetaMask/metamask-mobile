@@ -98,6 +98,7 @@ export function usePredictPlaceOrder(
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
+        // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
         iconName: IconName.Check,
         labelOptions: [
           { label: strings('predict.order.cashed_out'), isBold: true },
@@ -136,6 +137,7 @@ export function usePredictPlaceOrder(
 
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
+      // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
       iconName: IconName.Check,
       labelOptions: [
         { label: strings('predict.order.prediction_placed'), isBold: true },
@@ -179,6 +181,7 @@ export function usePredictPlaceOrder(
         if (isDepositPending) {
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
+            // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
             iconName: IconName.Loading,
             labelOptions: [
               {

@@ -51,6 +51,7 @@ const showPendingToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
+    // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
     iconName: IconName.Loading,
     hasNoTimeout: false,
     startAccessory: (
@@ -90,6 +91,7 @@ const showSuccessToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
+    // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
     iconName: IconName.Confirmation,
     iconColor,
     hasNoTimeout: false,
@@ -119,6 +121,7 @@ const showErrorToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
+    // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
     iconName: IconName.Error,
     iconColor,
     backgroundColor,

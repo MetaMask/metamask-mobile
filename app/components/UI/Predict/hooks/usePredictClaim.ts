@@ -43,6 +43,7 @@ export const usePredictClaim = () => {
             isBold: true,
           },
         ],
+        // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
         iconName: IconName.Info,
         iconColor: theme.colors.primary.default,
         hasNoTimeout: false,
@@ -86,6 +87,7 @@ export const usePredictClaim = () => {
             isBold: false,
           },
         ],
+        // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
         iconName: IconName.Error,
         iconColor: theme.colors.error.default,
         backgroundColor: theme.colors.accent04.normal,

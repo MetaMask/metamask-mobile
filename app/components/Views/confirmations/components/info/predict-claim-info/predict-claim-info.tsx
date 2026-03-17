@@ -46,6 +46,7 @@ function BackButton() {
   return (
     <ButtonIcon
       size={ButtonIconSizes.Lg}
+      // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
       iconName={IconName.Close}
       onPress={() => onReject()}
       style={styles.backButton}

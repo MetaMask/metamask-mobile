@@ -37,6 +37,7 @@ export const usePredictWithdraw = () => {
       // Show error toast to user
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
+        // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
         iconName: IconName.Danger,
         labelOptions: [
           {

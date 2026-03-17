@@ -5,13 +5,13 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../../../util/theme';
 import { PredictMarketStatus, PredictOutcomeToken } from '../../../../types';
 
 export interface PredictMarketDetailsStatusProps {
@@ -27,10 +27,7 @@ const PredictMarketDetailsStatus = memo(
     multipleOpenOutcomesPartiallyResolved,
     resolutionStatus,
     marketStatus,
-  }: PredictMarketDetailsStatusProps) => {
-    const { colors } = useTheme();
-
-    return (
+  }: PredictMarketDetailsStatusProps) => (
       <Box twClassName="gap-2">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
           {winningOutcomeToken && !multipleOpenOutcomesPartiallyResolved && (
@@ -44,7 +41,7 @@ const PredictMarketDetailsStatus = memo(
                   <Icon
                     name={IconName.CheckBold}
                     size={IconSize.Md}
-                    color={colors.text.alternative}
+                    color={IconColor.IconAlternative}
                   />
                   <Text
                     variant={TextVariant.BodyMd}
@@ -61,7 +58,7 @@ const PredictMarketDetailsStatus = memo(
                   <Icon
                     name={IconName.CheckBold}
                     size={IconSize.Md}
-                    color={colors.text.alternative}
+                    color={IconColor.IconAlternative}
                   />
                   <Text
                     variant={TextVariant.BodyMd}
@@ -86,7 +83,7 @@ const PredictMarketDetailsStatus = memo(
                 <Icon
                   name={IconName.Clock}
                   size={IconSize.Md}
-                  color={colors.text.default}
+                  color={IconColor.IconDefault}
                 />
                 <Text
                   variant={TextVariant.BodyMd}
@@ -101,8 +98,7 @@ const PredictMarketDetailsStatus = memo(
             )}
         </Box>
       </Box>
-    );
-  },
+    ),
 );
 
 PredictMarketDetailsStatus.displayName = 'PredictMarketDetailsStatus';
