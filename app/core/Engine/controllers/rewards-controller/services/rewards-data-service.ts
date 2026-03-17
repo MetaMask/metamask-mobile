@@ -1,41 +1,38 @@
-import type { Messenger } from '@metamask/messenger';
-import { getVersion } from 'react-native-device-info';
-import type {
-  LoginResponseDto,
-  EstimatePointsDto,
-  EstimatedPointsDto,
-  GetPerpsDiscountDto,
-  PerpsDiscountData,
-  SubscriptionSeasonReferralDetailsDto,
-  PaginatedPointsEventsDto,
-  GetPointsEventsDto,
-  MobileLoginDto,
-  SubscriptionDto,
-  OptInStatusInputDto,
-  OptInStatusDto,
-  OptOutDto,
-  PointsBoostEnvelopeDto,
-  RewardDto,
-  ClaimRewardDto,
-  GetPointsEventsLastUpdatedDto,
-  MobileOptinDto,
-  DiscoverSeasonsDto,
-  SeasonMetadataDto,
-  SeasonStateDto,
-  LineaTokenRewardDto,
-  ApplyReferralDto,
+import type {Messenger} from '@metamask/messenger';
+import {getVersion} from 'react-native-device-info';
+import {
   ApplyBonusCodeDto,
-  SubscriptionBenefitsDto,
-  SnapshotDto,
+  ApplyReferralDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  ClaimRewardDto,
+  DiscoverSeasonsDto,
+  EstimatedPointsDto,
+  EstimatePointsDto,
+  GetPerpsDiscountDto,
+  GetPointsEventsDto,
+  GetPointsEventsLastUpdatedDto,
+  LineaTokenRewardDto,
+  LoginResponseDto,
+  MobileLoginDto,
+  MobileOptinDto,
+  OptInStatusDto,
+  OptInStatusInputDto,
+  OptOutDto,
+  PaginatedPointsEventsDto,
+  PerpsDiscountData,
+  PointsBoostEnvelopeDto,
+  RewardDto,
+  SeasonMetadataDto,
+  SeasonStateDto,
+  SnapshotDto,
+  SubscriptionBenefitDto,
+  SubscriptionDto,
+  SubscriptionSeasonReferralDetailsDto,
 } from '../types';
-import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
+import {getSubscriptionToken} from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
-import {
-  canChangeRewardsEnvUrl,
-  getDefaultRewardsApiBaseUrlForMetaMaskEnv,
-} from '../utils/rewards-api-url';
+import {canChangeRewardsEnvUrl, getDefaultRewardsApiBaseUrlForMetaMaskEnv,} from '../utils/rewards-api-url';
 
 /**
  * Custom error for invalid timestamps
@@ -111,6 +108,7 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
+
 export interface RewardsDataServiceMobileOptinAction {
   type: `${typeof SERVICE_NAME}:mobileOptin`;
   handler: RewardsDataService['mobileOptin'];
@@ -1410,25 +1408,26 @@ export class RewardsDataService {
    */
   async getBenefits(
     subscriptionId: string,
-    // TODO add pagination
-  ): Promise<SubscriptionBenefitsDto> {
-    return {
-      benefits: [
-        {
-          id: 3023,
-          longTitle: 'Get highlighted in the weekly "From The Bodega" features',
-          shortDescription: 'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
-          longDescription: 'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
-          thumbnail: 'https://pbs.twimg.com/media/GNKKmIzXsAAk5Xn?format=jpg&name=medium',
-          validFrom: '2024-05-08T00:00:00+00:00',
-          validTo: '2048-05-23T00:00:00+00:00',
-          url: 'https://app.themiracle.io/redirect?url=https%3A%2F%2Fdiscord.com%2Finvite%2Fbayc&trackingBenefitId=3023&trackingBenefitType=23&trackingSource=metamaskmobilewallet&trackingWallet=0x504dAC87BF574C0c70D95b30576d6af2376A6da5&',
-          actionDate: '2048-05-23T00:00:00+00:00',
-          chain: 'ethereum',
-        }
-      ],
-      page: ''
-    };
+    page: number,
+    pageSize: number,
+  ): Promise<SubscriptionBenefitDto[]> {
+    return [
+      {
+        id: 3023,
+        longTitle: 'Get highlighted in the weekly "From The Bodega" features',
+        shortDescription:
+          'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
+        longDescription:
+          'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
+        thumbnail:
+          'https://pbs.twimg.com/media/GNKKmIzXsAAk5Xn?format=jpg&name=medium',
+        validFrom: '2024-05-08T00:00:00+00:00',
+        validTo: '2048-05-23T00:00:00+00:00',
+        url: 'https://app.themiracle.io/redirect?url=https%3A%2F%2Fdiscord.com%2Finvite%2Fbayc&trackingBenefitId=3023&trackingBenefitType=23&trackingSource=metamaskmobilewallet&trackingWallet=0x504dAC87BF574C0c70D95b30576d6af2376A6da5&',
+        actionDate: '2048-05-23T00:00:00+00:00',
+        chain: 'ethereum',
+      },
+    ];
     // const response = await this.makeRequest(
     //   `/benefits`,
     //   {

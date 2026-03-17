@@ -1,48 +1,48 @@
 import { BaseController, StateMetadata } from '@metamask/base-controller';
 import { maxBy } from 'lodash';
 import {
-  type RewardsControllerState,
-  type RewardsAccountState,
-  type LoginResponseDto,
-  type PerpsDiscountData,
-  type EstimatePointsDto,
-  type EstimatedPointsDto,
-  type SeasonDtoState,
-  type SeasonStatusState,
-  type SeasonTierState,
-  type SeasonTierDto,
-  type SubscriptionSeasonReferralDetailState,
-  type GeoRewardsMetadata,
-  type SubscriptionDto,
-  type PaginatedPointsEventsDto,
-  type GetPointsEventsDto,
-  type OptInStatusInputDto,
-  type OptInStatusDto,
-  type PointsBoostDto,
-  type PointsEventDto,
-  type RewardDto,
-  type SnapshotDto,
+  BASE32_REGEX,
   type CampaignDto,
   type CampaignParticipantStatusDto,
-  type PointsEstimateHistoryEntry,
   ClaimRewardDto,
-  PointsEventsDtoState,
-  GetPointsEventsLastUpdatedDto,
-  SeasonStatusDto,
   type DiscoverSeasonsDto,
+  type EstimatedPointsDto,
+  type EstimatePointsDto,
+  type GeoRewardsMetadata,
+  type GetPointsEventsDto,
+  GetPointsEventsLastUpdatedDto,
+  type LineaTokenRewardDto,
+  type LoginResponseDto,
+  type OffDeviceSubscriptionAccountsState,
+  type OptInStatusDto,
+  type OptInStatusInputDto,
+  type PaginatedPointsEventsDto,
+  type PerpsDiscountData,
+  type PointsBoostDto,
+  type PointsEstimateHistoryEntry,
+  type PointsEventDto,
+  PointsEventsDtoState,
+  type RewardDto,
+  type RewardsAccountState,
+  type RewardsControllerState,
+  type SeasonDtoState,
   type SeasonMetadataDto,
   type SeasonStateDto,
-  type LineaTokenRewardDto,
+  SeasonStatusDto,
+  type SeasonStatusState,
+  type SeasonTierDto,
+  type SeasonTierState,
+  type SnapshotDto,
   SubscriptionBenefitsState,
-  type OffDeviceSubscriptionAccountsState,
-  BASE32_REGEX,
+  type SubscriptionDto,
+  type SubscriptionSeasonReferralDetailState,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
-  storeSubscriptionToken,
+  getSubscriptionToken,
   removeSubscriptionToken,
   resetAllSubscriptionTokens,
-  getSubscriptionToken,
+  storeSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -55,17 +55,17 @@ import {
 } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
 import {
-  isNonEvmAddress,
   isBtcAccount,
+  isNonEvmAddress,
   isTronAccount,
 } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
 import { signTronRewardsMessage } from './utils/tron-snap';
 import {
+  AccountAlreadyRegisteredError,
   AuthorizationFailedError,
   InvalidTimestampError,
-  AccountAlreadyRegisteredError,
   SeasonNotFoundError,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
@@ -3672,35 +3672,46 @@ export class RewardsController extends BaseController<
   /**
    * Get benefits details with caching
    * @param subscriptionId - The subscription ID for authentication
+   * @param page - The page number for pagination
    * @returns Promise<SubscriptionBenefitsState> - The benefits data
    */
   async getBenefits(
     subscriptionId: string,
-  ): Promise<SubscriptionBenefitsState | null> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return null;
-    }
+    page: number,
+  ): Promise<SubscriptionBenefitsState> {
+    // TODO: Define page size for pagination, where is the best to put that config as it would impact caching if it's dynamic
+    const pageSize = 20;
     const result = await wrapWithCache<SubscriptionBenefitsState>({
-      key: subscriptionId,
+      key: `${subscriptionId}-${page}`,
       ttl: REFERRAL_DETAILS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
         const cached = this.state.subscriptionBenefits[key] || undefined;
         if (!cached) return;
-        return { payload: cached, lastFetched: cached.lastFetched };
+        return {
+          payload: cached,
+          lastFetched: cached.lastFetched,
+        };
       },
       fetchFresh: async () => {
         try {
           Logger.log(
             'RewardsController: Fetching fresh benefits details data via API call for',
-            { subscriptionId },
+            { subscriptionId, page },
           );
-          const benefitsDto = await this.#withAuthRetry(
-            () => this.messenger.call('RewardsDataService:getBenefits', subscriptionId),
+          const benefits = await this.#withAuthRetry(
+            () =>
+              this.messenger.call(
+                'RewardsDataService:getBenefits',
+                subscriptionId,
+                page,
+                pageSize,
+              ),
             subscriptionId,
           );
           return {
-            benefits: benefitsDto.benefits,
+            benefits,
+            page,
+            hasNextPage: benefits.length === pageSize,
             lastFetched: Date.now(),
           };
         } catch (error) {

@@ -1,9 +1,6 @@
-import {
-  ControllerGetStateAction,
-  ControllerStateChangeEvent,
-} from '@metamask/base-controller';
-import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import {ControllerGetStateAction, ControllerStateChangeEvent,} from '@metamask/base-controller';
+import {CaipAccountId, CaipAssetType, type Json} from '@metamask/utils';
+import {InternalAccount} from '@metamask/keyring-internal-api';
 
 /**
  * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
@@ -840,14 +837,10 @@ export type SubscriptionBenefitDto = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionBenefitsDto = {
-  benefits: SubscriptionBenefitDto[]
-  page: string;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionBenefitsState = {
-  benefits: SubscriptionBenefitDto[]
+  benefits: SubscriptionBenefitDto[];
+  page: number;
+  hasNextPage: boolean;
   lastFetched: number;
 };
 
@@ -1784,7 +1777,10 @@ export interface RewardsControllerApplyBonusCodeAction {
  */
 export interface RewardsControllerGetBenefitsAction {
   type: 'RewardsController:getBenefits';
-  handler: (subscriptionId: string) => Promise<SubscriptionBenefitsState | null>;
+  handler: (
+    subscriptionId: string,
+    page: number
+  ) => Promise<SubscriptionBenefitsState>;
 }
 
 /**

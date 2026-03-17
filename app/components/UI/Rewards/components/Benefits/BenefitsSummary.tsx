@@ -10,23 +10,24 @@ import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';
 import {
-  selectBenefits,
   selectBenefitsLoading,
   selectFirstBenefit,
 } from '../../../../../reducers/benefits/selectors.ts';
 import { useBenefits } from '../../hooks/useBenefits.ts';
-import { Image } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import NavigationService from '../../../../../core/NavigationService';
+import Routes from '../../../../../constants/navigation/Routes.ts';
 
 const BenefitsSummary = () => {
   const tw = useTailwind();
   const firstBenefit = useSelector(selectFirstBenefit);
   const isLoading = useSelector(selectBenefitsLoading);
-  const { fetchBenefits } = useBenefits();
+  const { initBenefits } = useBenefits();
 
   useEffect(() => {
-    fetchBenefits();
-  }, [fetchBenefits]);
+    initBenefits();
+  }, [initBenefits]);
 
   if (!firstBenefit) {
     return null;
@@ -44,7 +45,15 @@ const BenefitsSummary = () => {
       >
         {strings('rewards.benefits.title')}
       </Text>
-
+      <TouchableOpacity
+        onPress={() =>
+          NavigationService.navigation.navigate(Routes.BENEFIT_LIST_VIEW)
+        }
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        activeOpacity={0.7}
+      >
+        <Text>view all</Text>
+      </TouchableOpacity>
       <Box
         twClassName={`bg-section rounded-lg p-4 flex-col gap-3`}
         testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
@@ -53,7 +62,12 @@ const BenefitsSummary = () => {
           <Skeleton height={'100%'} width="100%" />
         ) : (
           <Box twClassName="flex-row items-start gap-4">
-            {/* Text on the left */}
+            <Image
+              source={{ uri: firstBenefit.thumbnail }}
+              style={tw.style('w-[106px] h-[106px] rounded-lg')}
+              resizeMode="cover"
+              testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}
+            />
             <Box twClassName="flex-1">
               <Text variant={TextVariant.HeadingSm} twClassName="text-default">
                 {firstBenefit.longTitle}
@@ -62,14 +76,7 @@ const BenefitsSummary = () => {
                 {firstBenefit.shortDescription}
               </Text>
             </Box>
-            <Box>
-              <Image
-                source={{ uri: firstBenefit.thumbnail }}
-                style={tw.style('w-[106px] h-[106px]')}
-                resizeMode="contain"
-                testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}
-              />
-            </Box>
+            <Box></Box>
           </Box>
         )}
       </Box>
