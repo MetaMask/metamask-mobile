@@ -297,7 +297,7 @@ const RewardsHome = () => (
   <Stack.Navigator
     screenOptions={{
       ...clearStackNavigatorOptions,
-      presentation: 'modal',
+      presentation: 'transparentModal',
       cardStyle: { backgroundColor: importedColors.white },
     }}
   >
@@ -317,7 +317,11 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
       component={RewardOptInAccountGroupModal}
-      options={{ headerShown: false }}
+      options={{
+        headerShown: false,
+        presentation: 'transparentModal',
+        ...clearStackNavigatorOptions,
+      }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
@@ -1056,7 +1060,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name="Send"
         component={Send}
-        options={{ gestureEnabled: false }}
+        options={{
+          gestureEnabled: false,
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
       />
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
       <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
@@ -1116,7 +1123,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name="StakeModals"
         component={StakeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
+        }}
       />
       {isPerpsEnabled && (
         <>
