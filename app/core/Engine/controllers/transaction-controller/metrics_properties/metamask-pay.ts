@@ -3,7 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionMetricsBuilder } from '../types';
-import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
+import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';

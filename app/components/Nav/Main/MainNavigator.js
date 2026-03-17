@@ -27,10 +27,12 @@ import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import AssetDetails from '../../Views/AssetDetails';
+import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
+import CashTokensFullView from '../../Views/CashTokensFullView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -179,7 +181,7 @@ const WalletModalFlow = () => (
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
-      options={{ headerShown: true, animationEnabled: false }}
+      options={{ headerShown: false, animationEnabled: false }}
     />
   </Stack.Navigator>
 );
@@ -200,6 +202,10 @@ const AssetStackFlow = (props) => (
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
+    />
+    <Stack.Screen
+      name={Routes.SECURITY_TRUST}
+      component={SecurityTrustScreen}
     />
     <Stack.Screen
       name={Routes.TRANSACTION_DETAILS}
@@ -993,6 +999,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.WALLET.DEFI_FULL_VIEW}
         component={DeFiFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
+        component={CashTokensFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen name="AddAsset" component={AddAsset} />

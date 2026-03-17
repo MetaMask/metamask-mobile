@@ -9,8 +9,10 @@ import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailabl
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
-import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
@@ -26,8 +28,8 @@ import SoftAssert from '../../framework/SoftAssert';
 const setupGeoBlockedBase = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
-    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
@@ -136,29 +138,11 @@ describe(
         },
         async ({ mockServer }) => {
           await loginToApp();
-          await device.disableSynchronization();
-          await WalletView.tapOnPredictionsTab();
-          await Assertions.expectElementToBeVisible(
-            WalletView.PredictionsTabContainer,
-            { description: 'Predictions tab container is visible' },
+          await WalletView.scrollAndTapPredictionsPosition(
+            'Spurs vs. Pelicans',
           );
-          await WalletView.tapOnPredictionsPosition('Spurs vs. Pelicans');
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.container,
-            {
-              description: 'Predict details screen is visible',
-            },
-          );
-          await PredictDetailsPage.tapPositionsTab();
-
           await PredictDetailsPage.tapCashOutButton();
-          await Assertions.expectElementToNotBeVisible(
-            PredictCashOutPage.container,
-            {
-              description:
-                'Sell Preview should not open; Unavailable modal should be shown instead due to geo restriction',
-            },
-          );
+
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
 

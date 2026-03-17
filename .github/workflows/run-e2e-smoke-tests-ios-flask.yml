@@ -141,6 +141,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
       metamask_environment: 'e2e'
+      artifact_name_prefix: ''
     secrets: inherit
 
   report-ios-smoke-tests:
@@ -163,7 +164,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-ios-*'
+          pattern: 'test-e2e-flask-ios-smoke-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3

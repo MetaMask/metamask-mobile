@@ -227,6 +227,28 @@ describe('RemoteImage', () => {
     });
   });
 
+  describe('onLoad callback', () => {
+    it('calls onLoad prop when image loads successfully', async () => {
+      const mockOnLoad = jest.fn();
+
+      const { UNSAFE_getByType } = render(
+        <RemoteImage
+          source={{ uri: 'https://example.com/image.png' }}
+          onLoad={mockOnLoad}
+        />,
+      );
+
+      await act(async () => {
+        const image = UNSAFE_getByType(Image);
+        image.props.onLoad({ source: { width: 100, height: 100 } });
+      });
+
+      await waitFor(() => {
+        expect(mockOnLoad).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
   describe('Error Handling', () => {
     it('renders Identicon when image fails to load and address is provided', async () => {
       const { UNSAFE_getByType, findByTestId } = render(

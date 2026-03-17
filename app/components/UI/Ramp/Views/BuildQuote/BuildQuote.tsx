@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Animated, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -38,6 +38,7 @@ import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
@@ -64,6 +65,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -104,6 +106,7 @@ function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
+  const cursorOpacity = useBlinkingCursor();
 
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
@@ -185,6 +188,17 @@ function BuildQuote() {
     useTransakRouting();
 
   const currency = userRegion?.country?.currency || 'USD';
+  const { currencyPrefix, currencySuffix } = useMemo(() => {
+    const formatted = formatCurrency(1, currency, {
+      currencyDisplay: 'narrowSymbol',
+    });
+    // Match: prefix (non-digit chars), digits/separators, suffix (non-digit chars)
+    const match = formatted.match(/^([^\d]*?)[\d.,]+\s*([^\d\s].*)?$/);
+    return {
+      currencyPrefix: match?.[1] ?? '',
+      currencySuffix: match?.[2]?.trim() ?? '',
+    };
+  }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
   const hasTrackedScreenViewRef = useRef(false);
@@ -648,12 +662,12 @@ function BuildQuote() {
             : undefined
         }
         onBack={handleBackPress}
-        backButtonProps={{ testID: 'build-quote-back-button' }}
+        backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
         endButtonIconProps={[
           {
             iconName: IconName.Setting,
             onPress: handleSettingsPress,
-            testID: 'build-quote-settings-button',
+            testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
           },
         ]}
         includesTopInset
@@ -663,22 +677,39 @@ function BuildQuote() {
           <ScreenLayout.Content style={styles.content}>
             <View style={styles.centerGroup}>
               <View style={styles.amountContainer}>
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.HeadingLG}
-                  color={
-                    nativeFlowError || hasNoQuotes || quoteFetchError
-                      ? TextColor.Error
-                      : undefined
-                  }
-                  style={styles.mainAmount}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {formatCurrency(amountAsNumber, currency, {
-                    currencyDisplay: 'narrowSymbol',
-                  })}
-                </Text>
+                <View style={styles.amountRow}>
+                  <Text
+                    testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                    variant={TextVariant.HeadingLG}
+                    color={
+                      nativeFlowError || hasNoQuotes || quoteFetchError
+                        ? TextColor.Error
+                        : undefined
+                    }
+                    style={styles.mainAmount}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {currencyPrefix}
+                    {amount}
+                  </Text>
+                  <Animated.View
+                    style={[styles.cursor, { opacity: cursorOpacity }]}
+                  />
+                  {currencySuffix ? (
+                    <Text
+                      variant={TextVariant.HeadingLG}
+                      color={
+                        nativeFlowError || hasNoQuotes || quoteFetchError
+                          ? TextColor.Error
+                          : undefined
+                      }
+                      style={styles.mainAmount}
+                    >
+                      {currencySuffix}
+                    </Text>
+                  ) : null}
+                </View>
                 <PaymentMethodPill
                   label={
                     selectedPaymentMethod?.name ||

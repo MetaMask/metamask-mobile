@@ -90,6 +90,34 @@ describe('useSendActions', () => {
     });
   });
 
+  it('normalizes trailing dot values before submitting evm transaction', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0x1',
+        address: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        decimals: 2,
+        isNative: true,
+      },
+      chainId: '0x1',
+      from: ACCOUNT_ADDRESS_MOCK_1,
+      value: '0.',
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const submitSpy = jest
+      .spyOn(SendUtils, 'submitEvmTransaction')
+      .mockImplementation(jest.fn());
+
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+    result.current.handleSubmitPress();
+
+    expect(submitSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '0' }),
+    );
+  });
+
   it('calls navigation.goBack when handleBackPress is invoked', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
@@ -248,6 +276,45 @@ describe('useSendActions', () => {
 
       await waitFor(() => {
         expect(mockAlert).toHaveBeenCalledWith('Transaction error');
+      });
+    });
+
+    it('normalizes trailing dot values before submitting non-evm transaction', async () => {
+      mockUseSendContext.mockReturnValue({
+        asset: SOLANA_ASSET,
+        chainId: SOLANA_ASSET.chainId,
+        from: ACCOUNT_ADDRESS_MOCK_2,
+        to: ACCOUNT_ADDRESS_MOCK_2,
+        value: '0.',
+        fromAccount: {
+          id: 'solana-account-id',
+          address: ACCOUNT_ADDRESS_MOCK_2,
+          metadata: {
+            snap: {
+              id: 'npm:@metamask/solana-wallet-snap',
+            },
+          },
+        },
+      } as unknown as ReturnType<typeof useSendContext>);
+
+      const submitSpy = jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockResolvedValue({
+          transactionId: 'tx123',
+          status: 'submitted',
+        });
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+      await waitFor(() => {
+        expect(submitSpy).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ amount: '0' }),
+        );
       });
     });
 
