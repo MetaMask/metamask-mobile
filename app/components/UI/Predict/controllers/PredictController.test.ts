@@ -3919,35 +3919,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('clears error when clearError is true', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 0,
-          state: ActiveOrderState.PREVIEW,
-          error: 'some error',
-        });
-
-        controller.setOrderAmount(50, true);
-
-        expect(controller.state.activeOrder?.error).toBeUndefined();
-      });
-    });
-
-    it('preserves error when clearError is false', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 0,
-          state: ActiveOrderState.PREVIEW,
-          error: 'some error',
-        });
-
-        controller.setOrderAmount(50, false);
-
-        expect(controller.state.activeOrder?.error).toBe('some error');
-      });
-    });
-
-    it('preserves error when clearError is not provided', () => {
+    it('preserves error when setting amount', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
           amount: 0,
@@ -3966,6 +3938,116 @@ describe('PredictController', () => {
         expect(controller.state.activeOrder).toBeNull();
 
         expect(() => controller.setOrderAmount(50)).not.toThrow();
+      });
+    });
+  });
+
+  describe('clearOrderError', () => {
+    it('clears error from activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+
+        controller.clearOrderError();
+
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('does nothing when activeOrder has no error', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.clearOrderError();
+
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.clearOrderError()).not.toThrow();
+      });
+    });
+
+    it('preserves other activeOrder properties', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+
+        controller.clearOrderError();
+
+        expect(controller.state.activeOrder?.amount).toBe(50);
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+      });
+    });
+  });
+
+  describe('setOrderInputFocused', () => {
+    it('sets isInputFocused on activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          isInputFocused: false,
+        });
+
+        controller.setOrderInputFocused(true);
+
+        expect(controller.state.activeOrder?.isInputFocused).toBe(true);
+      });
+    });
+
+    it('sets isInputFocused to false', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          isInputFocused: true,
+        });
+
+        controller.setOrderInputFocused(false);
+
+        expect(controller.state.activeOrder?.isInputFocused).toBe(false);
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.setOrderInputFocused(true)).not.toThrow();
+      });
+    });
+
+    it('preserves other activeOrder properties', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+
+        controller.setOrderInputFocused(true);
+
+        expect(controller.state.activeOrder?.amount).toBe(50);
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeOrder?.error).toBe('some error');
       });
     });
   });

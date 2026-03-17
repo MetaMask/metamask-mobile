@@ -1943,13 +1943,18 @@ export class PredictController extends BaseController<
     });
   }
 
-  public setOrderAmount(amount: number, clearError = false): void {
+  public setOrderAmount(amount: number): void {
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.amount = amount;
-        if (clearError) {
-          delete state.activeOrder.error;
-        }
+      }
+    });
+  }
+
+  public clearOrderError(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        delete state.activeOrder.error;
       }
     });
   }
@@ -2051,9 +2056,7 @@ export class PredictController extends BaseController<
       return;
     }
 
-    this.update((state) => {
-      delete state.activeOrder?.error;
-    });
+    this.clearOrderError();
 
     if (activeOrder.state === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
       if (!isBalanceToken) {
@@ -2097,6 +2100,14 @@ export class PredictController extends BaseController<
   public clearActiveOrder(): void {
     this.update((state) => {
       state.activeOrder = null;
+    });
+  }
+
+  public setOrderInputFocused(isInputFocused: boolean): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.isInputFocused = isInputFocused;
+      }
     });
   }
 

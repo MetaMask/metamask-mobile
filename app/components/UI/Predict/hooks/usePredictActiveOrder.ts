@@ -1,19 +1,10 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { PredictControllerState } from '../controllers/PredictController';
 import { selectPredictActiveOrder } from '../selectors/predictController';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import { PredictMarket, PredictOutcomeToken } from '../types';
 import { PredictEntryPoint } from '../types/navigation';
-
-type PredictActiveOrder = PredictControllerState['activeOrder'];
-type PredictActiveOrderValue = NonNullable<PredictActiveOrder>;
-type PredictActiveOrderPatch =
-  | {
-      [K in keyof PredictActiveOrderValue]?: PredictActiveOrderValue[K] | null;
-    }
-  | null;
 
 export interface InitializeActiveOrderParams {
   market: PredictMarket;
@@ -25,68 +16,6 @@ export const usePredictActiveOrder = () => {
   const { PredictController } = Engine.context;
 
   const activeOrder = useSelector(selectPredictActiveOrder);
-
-  const activeOrderRef = useRef(activeOrder);
-  activeOrderRef.current = activeOrder;
-
-  const updateActiveOrder = useCallback(
-    (order: PredictActiveOrderPatch) => {
-      if (order === null) {
-        PredictController.clearActiveOrder();
-        PredictController.setSelectedPaymentToken(null);
-        return;
-      }
-
-      const nextOrder: Partial<PredictActiveOrderValue> = {
-        ...(activeOrderRef.current ?? {}),
-      };
-
-      if ('amount' in order) {
-        if (order.amount === null) {
-          delete nextOrder.amount;
-        } else {
-          nextOrder.amount = order.amount;
-        }
-      }
-
-      if ('batchId' in order) {
-        if (order.batchId === null) {
-          delete nextOrder.batchId;
-        } else {
-          nextOrder.batchId = order.batchId;
-        }
-      }
-
-      if ('isInputFocused' in order) {
-        if (order.isInputFocused === null) {
-          delete nextOrder.isInputFocused;
-        } else {
-          nextOrder.isInputFocused = order.isInputFocused;
-        }
-      }
-
-      if ('state' in order) {
-        if (order.state === null) {
-          delete nextOrder.state;
-        } else {
-          nextOrder.state = order.state;
-        }
-      }
-
-      if ('error' in order) {
-        if (order.error === null) {
-          delete nextOrder.error;
-        } else {
-          nextOrder.error = order.error;
-        }
-      }
-
-      PredictController.setActiveOrder(
-        nextOrder.state ? (nextOrder as PredictActiveOrderValue) : null,
-      );
-    },
-    [PredictController],
-  );
 
   const initializeActiveOrder = useCallback(
     (params: InitializeActiveOrderParams) => {
@@ -105,10 +34,30 @@ export const usePredictActiveOrder = () => {
     PredictController.clearActiveOrder();
   }, [PredictController]);
 
+  const setOrderAmount = useCallback(
+    (amount: number) => {
+      PredictController.setOrderAmount(amount);
+    },
+    [PredictController],
+  );
+
+  const clearOrderError = useCallback(() => {
+    PredictController.clearOrderError();
+  }, [PredictController]);
+
+  const setOrderInputFocused = useCallback(
+    (isInputFocused: boolean) => {
+      PredictController.setOrderInputFocused(isInputFocused);
+    },
+    [PredictController],
+  );
+
   return {
     activeOrder,
-    updateActiveOrder,
     clearActiveOrder,
+    clearOrderError,
     initializeActiveOrder,
+    setOrderAmount,
+    setOrderInputFocused,
   };
 };
