@@ -573,7 +573,9 @@ function createLastPriceLine() {
     })
     .catch(function (e) {
       sendToReactNative('DEBUG', {
-        message: '[createLastPriceLine] createShape failed: ' + (e && e.message ? e.message : String(e)),
+        message:
+          '[createLastPriceLine] createShape failed: ' +
+          (e && e.message ? e.message : String(e)),
       });
     });
 }
@@ -958,7 +960,6 @@ function initChart() {
           'paneProperties.vertGridProperties.color': 'transparent',
           'paneProperties.horzGridProperties.color': 'transparent',
           'scalesProperties.textColor': theme.textColor,
-          // TODO: revert to 'transparent' after verifying candle count against designs
           'scalesProperties.lineColor': '#444444',
           'scalesProperties.fontSize': 11,
           'scalesProperties.showStudyLastValue': false, // Hides volume label
@@ -972,7 +973,7 @@ function initChart() {
           'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
-          'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+          'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor
         },
         getSeriesColorOverrides(theme.successColor),
       ),
@@ -996,46 +997,92 @@ function initChart() {
       applySeriesColors();
       createLastPriceLine();
 
+      // Prevent series selection (blue dots) by clearing any selection immediately
+      try {
+        window.chartWidget
+          .activeChart()
+          .selection()
+          .onChanged()
+          .subscribe(null, function () {
+            window.chartWidget.activeChart().selection().clear();
+          });
+      } catch (e) {}
+
       sendToReactNative('CHART_READY', {});
 
       // Set up crosshair move listener for OHLC overlay
+      // TradingView activates crosshair on long-press internally.
+      // We forward all crosshair data and dismiss on short tap.
       try {
+        window.ohlcvBarVisible = false;
+        window.ohlcvBarShownAt = 0;
+        window.ohlcvDismissUntil = 0;
+
         window.chartWidget
           .activeChart()
           .crossHairMoved()
           .subscribe(null, function (params) {
             if (
-              params &&
-              params.price !== undefined &&
-              params.time !== undefined
+              !params ||
+              params.price === undefined ||
+              params.time === undefined
             ) {
-              // Find the bar closest to the crosshair time
-              var targetTime = params.time * 1000;
-              var closestBar = null;
-              var minDiff = Infinity;
-              for (var i = 0; i < window.ohlcvData.length; i++) {
-                var diff = Math.abs(window.ohlcvData[i].time - targetTime);
-                if (diff < minDiff) {
-                  minDiff = diff;
-                  closestBar = window.ohlcvData[i];
-                }
+              return;
+            }
+
+            if (Date.now() < window.ohlcvDismissUntil) return;
+
+            if (!window.ohlcvBarVisible) {
+              window.ohlcvBarShownAt = Date.now();
+            }
+            window.ohlcvBarVisible = true;
+
+            var targetTime = params.time * 1000;
+            var closestBar = null;
+            var minDiff = Infinity;
+            for (var i = 0; i < window.ohlcvData.length; i++) {
+              var diff = Math.abs(window.ohlcvData[i].time - targetTime);
+              if (diff < minDiff) {
+                minDiff = diff;
+                closestBar = window.ohlcvData[i];
               }
-              if (closestBar) {
-                sendToReactNative('CROSSHAIR_MOVE', {
-                  data: {
-                    time: closestBar.time,
-                    open: closestBar.open,
-                    high: closestBar.high,
-                    low: closestBar.low,
-                    close: closestBar.close,
-                    volume: closestBar.volume,
-                  },
-                });
-              }
-            } else {
-              sendToReactNative('CROSSHAIR_MOVE', { data: null });
+            }
+            if (closestBar) {
+              sendToReactNative('CROSSHAIR_MOVE', {
+                data: {
+                  time: closestBar.time,
+                  open: closestBar.open,
+                  high: closestBar.high,
+                  low: closestBar.low,
+                  close: closestBar.close,
+                  volume: closestBar.volume,
+                },
+              });
             }
           });
+
+        var mouseDownTime = 0;
+
+        window.chartWidget.subscribe('mouse_down', function () {
+          mouseDownTime = Date.now();
+          window.ohlcvDismissUntil = 0;
+        });
+
+        window.chartWidget.subscribe('mouse_up', function () {
+          if (!window.ohlcvBarVisible) return;
+          var pressDuration = Date.now() - mouseDownTime;
+          if (pressDuration < 400) {
+            // Short tap — only dismiss if bar has been visible long enough
+            // to avoid synthetic click events on long-press release
+            if (Date.now() - window.ohlcvBarShownAt < 500) return;
+            window.ohlcvBarVisible = false;
+            window.ohlcvBarShownAt = 0;
+            window.ohlcvDismissUntil = Date.now() + 800;
+            setTimeout(function () {
+              sendToReactNative('CROSSHAIR_MOVE', { data: null });
+            }, 50);
+          }
+        });
       } catch (e) {
         // Crosshair subscription not critical
       }

@@ -55,10 +55,16 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'legend_widget',
   'display_market_status',
   'scales_context_menu',
+  'property_pages',
+  'show_chart_property_page',
+  'chart_property_page_background',
+  'main_series_scale_menu',
+  'popup_hints',
   'pane_context_menu',
   'create_volume_indicator_by_default',
-  'main_series_scale_menu',
   'go_to_date',
+  'show_zoom_and_move_buttons_on_touch',
+  'shift_visible_range_on_new_bar',
 ];
 
 /**

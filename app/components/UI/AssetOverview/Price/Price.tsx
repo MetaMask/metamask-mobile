@@ -25,6 +25,7 @@ import { Hex } from '@metamask/utils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import {
   ChartType,
+  type CrosshairData,
   type IndicatorType,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector, {
@@ -32,6 +33,7 @@ import TimeRangeSelector, {
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
+import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar';
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -64,7 +66,15 @@ const Price = ({
 
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const [chartType, setChartType] = useState<ChartType>(ChartType.Line);
+  const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
+    null,
+  );
   const indicators: IndicatorType[] = [];
+
+  const handleCrosshairMove = useCallback(
+    (data: CrosshairData | null) => setCrosshairData(data),
+    [],
+  );
 
   const toggleChartType = useCallback(() => {
     setChartType((prev) =>
@@ -195,6 +205,9 @@ const Price = ({
           ) : null}
         </Text>
       </View>
+      {crosshairData && (
+        <OHLCVBar data={crosshairData} currency={currentCurrency} />
+      )}
       {/* TODO: Line chart color should match percentage color (green when positive, red when negative) */}
       <View style={styles.chartContainer}>
         <AdvancedChart
@@ -205,6 +218,7 @@ const Price = ({
           indicators={indicators}
           isLoading={chartLoading}
           onRequestMoreHistory={fetchMoreHistory}
+          onCrosshairMove={handleCrosshairMove}
         />
       </View>
       <View style={styles.timeRangeContainer}>
