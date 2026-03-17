@@ -7,6 +7,17 @@
 import { execSync } from 'node:child_process';
 
 /**
+ * Validates a commit SHA to prevent command injection.
+ * Only allows hex characters (0-9, a-f) which are valid for git SHAs.
+ */
+function validateCommitSha(sha: string): string {
+  if (!/^[0-9a-f]+$/i.test(sha)) {
+    throw new Error(`Invalid commit SHA: ${sha}`);
+  }
+  return sha;
+}
+
+/**
  * Gets the list of changed files between a base branch and HEAD
  * Uses three-dot syntax (...) to compare against merge base
  */
@@ -303,7 +314,8 @@ export function getCommitDiff(
   linesLimit = 500,
 ): string {
   try {
-    const diff = execSync(`git show ${commitSha} --format="" --patch`, {
+    const safeSha = validateCommitSha(commitSha);
+    const diff = execSync(`git show ${safeSha} --format="" --patch`, {
       encoding: 'utf-8',
       cwd: baseDir,
       maxBuffer: 10 * 1024 * 1024,
@@ -356,10 +368,12 @@ export function getCherryPicksBetweenBuilds(
   }
 
   try {
+    const safePrev = validateCommitSha(prevCommit);
+    const safeCurrent = validateCommitSha(currentCommit);
     // Get commits between the two build commits (excluding the prev build commit)
     // Use null byte delimiter (%x00) to avoid issues with pipe characters in commit messages
     const log = execSync(
-      `git log ${prevCommit}..${currentCommit} --format="%H%x00%s%x00%an%x00%ad" --date=short`,
+      `git log ${safePrev}..${safeCurrent} --format="%H%x00%s%x00%an%x00%ad" --date=short`,
       {
         encoding: 'utf-8',
         cwd: baseDir,
@@ -406,10 +420,12 @@ export function getCherryPicksBetweenCommits(
   baseDir: string,
 ): CherryPickInfo[] {
   try {
+    const safeFrom = validateCommitSha(fromCommit);
+    const safeTo = validateCommitSha(toCommit);
     // Get commits between the two commit SHAs
     // Use null byte delimiter (%x00) to avoid issues with pipe characters in commit messages
     const log = execSync(
-      `git log ${fromCommit}..${toCommit} --format="%H%x00%s%x00%an%x00%ad" --date=short`,
+      `git log ${safeFrom}..${safeTo} --format="%H%x00%s%x00%an%x00%ad" --date=short`,
       {
         encoding: 'utf-8',
         cwd: baseDir,
