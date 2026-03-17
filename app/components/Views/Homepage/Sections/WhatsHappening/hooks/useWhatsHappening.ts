@@ -26,8 +26,9 @@ const mapTrendsToItems = (
     date: trend.articles[0]?.date ?? overview.generatedAt,
     category: trend.category,
     impact: trend.impact,
-    // The controller type declares string[] but the API returns rich objects;
-    // the controller types will be updated separately.
+    // The installed @metamask/ai-controllers package declares relatedAssets as
+    // string[], but the live API (and updated core source) returns rich objects.
+    // Remove this cast once the package is published and updated here.
     relatedAssets: trend.relatedAssets as unknown as RelatedAsset[],
     articles: trend.articles,
   }));
