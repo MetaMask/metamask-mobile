@@ -659,6 +659,7 @@
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
+    "ws": "^8.19.0",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
   },
@@ -714,6 +715,8 @@
       "@storybook/builder-webpack5>@swc/core": false,
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,
+      "ws>bufferutil": false,
+      "ws>utf-8-validate": false,
       "detox>ws>bufferutil": false,
       "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
       "detox>ws>utf-8-validate": false,

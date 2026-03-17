@@ -96,7 +96,10 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
-      bootArgs: '-skin 1080x2340 -memory 12288 -cores 8 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 8192 -no-snapshot-save -no-snapshot-load -cache-size 2048 -accel on -wipe-data -read-only',
+      // -read-only removed and -writable-system added: the transparent proxy needs
+      // `adb root && adb remount` to install the CA cert into /system/etc/security/cacerts/.
+      // -wipe-data already guarantees a clean state on every boot.
+      bootArgs: '-skin 1080x2340 -memory 12288 -cores 8 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 8192 -no-snapshot-save -no-snapshot-load -cache-size 2048 -accel on -wipe-data -writable-system',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },
@@ -106,7 +109,9 @@ module.exports = {
         avdName: 'emulator',
       },
       // optimized for Bitrise CI runners
-      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
+      // -read-only removed and -writable-system added: the transparent proxy needs
+      // `adb root && adb remount` to install the CA cert into /system/etc/security/cacerts/.
+      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -writable-system',
       forceAdbInstall: true,
     }
   },
