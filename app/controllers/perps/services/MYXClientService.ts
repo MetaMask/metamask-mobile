@@ -742,7 +742,7 @@ export class MYXClientService {
     chainId: number,
     address: string,
     poolId: string,
-  ): Promise<{ code: number; data?: Record<string, unknown> }> {
+  ): Promise<{ code: number; data?: unknown }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting account info', {
         poolId,
@@ -752,7 +752,7 @@ export class MYXClientService {
         address,
         poolId,
       );
-      return result as { code: number; data?: Record<string, unknown> };
+      return result as { code: number; data?: unknown };
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
@@ -1074,6 +1074,41 @@ export class MYXClientService {
         this.#getErrorContext('createDecreaseOrder', {
           poolId: params.poolId,
         }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Cancel an open order.
+   *
+   * @param orderId - The order ID to cancel.
+   * @param chainId - Numeric chain ID (cast to SDK ChainId enum at runtime).
+   * @returns SDK response with code and message.
+   */
+  async cancelOrder(
+    orderId: string,
+    chainId: number,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Cancelling order', {
+        orderId,
+      });
+
+      // SDK expects ChainId enum — numeric values match at runtime
+      const result = await this.#myxClient.order.cancelOrder(
+        orderId,
+        chainId as never,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.cancelOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('cancelOrder', { orderId }),
       );
       throw wrappedError;
     }

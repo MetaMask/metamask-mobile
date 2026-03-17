@@ -318,7 +318,7 @@ describe('myxAdapter', () => {
         poolId: '0xpool1',
         orderId: 42,
         txTime: 1700000000,
-        txHash: 0xabc as unknown as number,
+        txHash: '0xabc',
         orderType: MYXOrderTypeEnum.Market,
         operation: MYXOperationEnum.Increase,
         triggerType: 0 as MYXHistoryOrderItem['triggerType'],
@@ -449,24 +449,56 @@ describe('myxAdapter', () => {
   // ============================================================================
 
   describe('adaptAccountStateFromMYX', () => {
-    it('computes balances from account info and wallet balance', () => {
-      const accountInfo = {
-        totalCollateral: '1000',
-        unrealizedPnl: '50',
-      };
-      const walletBalance = '500';
+    // Testnet uses USDC with 6 decimals, so 100 USDC = '100000000'
+    const toUsdc = (usd: number) => String(usd * 1e6);
 
-      const result = adaptAccountStateFromMYX(accountInfo, walletBalance);
+    it('parses 7-element tuple and computes balances correctly', () => {
+      // Tuple: [freeAmount, walletBalance, reservedAmount, orderHoldInUSD,
+      //         totalCollateral, lockedRealizedPnl, unrealizedPnl]
+      const accountTuple = [
+        toUsdc(100), // freeAmount
+        toUsdc(400), // walletBalance
+        toUsdc(200), // reservedAmount
+        '0', // orderHoldInUSD
+        toUsdc(300), // totalCollateral
+        '0', // lockedRealizedPnl
+        toUsdc(50), // unrealizedPnl
+      ];
 
-      expect(Number(result.marginUsed)).toBe(1000);
-      expect(Number(result.unrealizedPnl)).toBe(50);
+      const result = adaptAccountStateFromMYX(accountTuple, 'testnet');
+
+      // availableBalance = freeAmount + walletBalance = 100 + 400
       expect(Number(result.availableBalance)).toBe(500);
-      // totalBalance = balance + marginUsed + unrealizedPnl = 500 + 1000 + 50
-      expect(Number(result.totalBalance)).toBe(1550);
+      // marginUsed = reservedAmount = 200
+      expect(Number(result.marginUsed)).toBe(200);
+      // unrealizedPnl = 50
+      expect(Number(result.unrealizedPnl)).toBe(50);
+      // totalBalance = freeAmount + walletBalance + reservedAmount + unrealizedPnl
+      // = 100 + 400 + 200 + 50 = 750
+      expect(Number(result.totalBalance)).toBe(750);
+    });
+
+    it('handles keyed object fallback', () => {
+      const accountObj = {
+        freeAmount: toUsdc(100),
+        walletBalance: toUsdc(400),
+        reservedAmount: toUsdc(200),
+        orderHoldInUSD: '0',
+        totalCollateral: toUsdc(300),
+        lockedRealizedPnl: '0',
+        unrealizedPnl: toUsdc(50),
+      };
+
+      const result = adaptAccountStateFromMYX(accountObj, 'testnet');
+
+      expect(Number(result.availableBalance)).toBe(500);
+      expect(Number(result.marginUsed)).toBe(200);
+      expect(Number(result.unrealizedPnl)).toBe(50);
+      expect(Number(result.totalBalance)).toBe(750);
     });
 
     it('returns zeros when accountInfo is undefined', () => {
-      const result = adaptAccountStateFromMYX(undefined);
+      const result = adaptAccountStateFromMYX(undefined, 'testnet');
 
       expect(Number(result.marginUsed)).toBe(0);
       expect(Number(result.unrealizedPnl)).toBe(0);
@@ -474,8 +506,8 @@ describe('myxAdapter', () => {
       expect(Number(result.availableBalance)).toBe(0);
     });
 
-    it('returns zeros when walletBalance is undefined', () => {
-      const result = adaptAccountStateFromMYX(undefined, undefined);
+    it('returns zeros when accountInfo is null', () => {
+      const result = adaptAccountStateFromMYX(null, 'testnet');
 
       expect(Number(result.availableBalance)).toBe(0);
     });
@@ -494,7 +526,7 @@ describe('myxAdapter', () => {
         poolId: '0xpool1',
         orderId: 99,
         txTime: 1700000000,
-        txHash: 0xdef as unknown as number,
+        txHash: '0xdef',
         orderType: MYXOrderTypeEnum.Market,
         operation: MYXOperationEnum.Increase,
         triggerType: 0 as MYXHistoryOrderItem['triggerType'],

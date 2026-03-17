@@ -18,6 +18,7 @@ import {
   fromMYXPrice,
   fromMYXApiSize,
   fromMYXApiCollateral,
+  fromMYXCollateral,
   MYX_MAX_LEVERAGE,
   MYX_MINIMUM_ORDER_SIZE_USD,
 } from '../constants/myxConfig';
@@ -43,7 +44,7 @@ import {
   MYXExecTypeEnum,
   MYXTradeFlowTypeEnum,
 } from '../types/myx-types';
-import type {
+import type { MYXNetwork ,
   MYXPoolSymbol,
   MYXTicker,
   MYXPositionType,
@@ -442,29 +443,92 @@ export function adaptOrderFromMYX(
 // ============================================================================
 
 /**
+ * Parse MYX getAccountInfo tuple response.
+ *
+ * getAccountInfo returns a 7-element array (tuple) from the on-chain Account contract.
+ * Indices: [0] freeAmount, [1] walletBalance, [2] reservedAmount,
+ * [3] orderHoldInUSD, [4] totalCollateral, [5] lockedRealizedPnl, [6] unrealizedPnl
+ *
+ * @param data - Raw response data (array or object)
+ * @returns Parsed account fields as strings
+ */
+function parseAccountTuple(data: unknown): {
+  freeAmount: string;
+  walletBalance: string;
+  reservedAmount: string;
+  orderHoldInUSD: string;
+  totalCollateral: string;
+  lockedRealizedPnl: string;
+  unrealizedPnl: string;
+} {
+  const zero = {
+    freeAmount: '0',
+    walletBalance: '0',
+    reservedAmount: '0',
+    orderHoldInUSD: '0',
+    totalCollateral: '0',
+    lockedRealizedPnl: '0',
+    unrealizedPnl: '0',
+  };
+
+  const str = (val: unknown): string => String(val ?? '0');
+
+  if (Array.isArray(data)) {
+    return {
+      freeAmount: str(data[0]),
+      walletBalance: str(data[1]),
+      reservedAmount: str(data[2]),
+      orderHoldInUSD: str(data[3]),
+      totalCollateral: str(data[4]),
+      lockedRealizedPnl: str(data[5]),
+      unrealizedPnl: str(data[6]),
+    };
+  }
+
+  if (data && typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    return {
+      freeAmount: str(obj.freeAmount),
+      walletBalance: str(obj.walletBalance),
+      reservedAmount: str(obj.reservedAmount),
+      orderHoldInUSD: str(obj.orderHoldInUSD),
+      totalCollateral: str(obj.totalCollateral),
+      lockedRealizedPnl: str(obj.lockedRealizedPnl),
+      unrealizedPnl: str(obj.unrealizedPnl),
+    };
+  }
+
+  return zero;
+}
+
+/**
  * Adapt MYX account info response to MetaMask AccountState.
  *
- * @param accountInfo - Raw account info from MYX SDK
- * @param walletBalance - Wallet USDT balance (from getWalletQuoteTokenBalance)
+ * Balance formula (validated via PoC showAccount.ts):
+ * availableBalance = freeAmount + walletBalance
+ * totalBalance = freeAmount + walletBalance + reservedAmount + unrealizedPnl
+ * marginUsed = reservedAmount
+ *
+ * Tuple values are in token-native decimals (USDT=18, USDC=6).
+ *
+ * @param accountInfo - Raw account info from MYX SDK (7-element tuple or keyed object)
+ * @param network - 'mainnet' or 'testnet' (for collateral decimal scaling)
  * @returns MetaMask AccountState
  */
 export function adaptAccountStateFromMYX(
-  accountInfo: Record<string, unknown> | undefined,
-  walletBalance?: string,
+  accountInfo: unknown,
+  network: MYXNetwork = 'mainnet',
 ): AccountState {
-  // accountInfo structure varies; extract what we can
-  // TODO: Verify SDK semantics — if totalCollateral already includes unrealizedPnl,
-  // the totalBalance formula below double-counts. Needs SDK documentation check.
-  const marginUsed = accountInfo
-    ? fromMYXApiCollateral(String(accountInfo.totalCollateral ?? '0'))
-    : 0;
-  const unrealizedPnl = accountInfo
-    ? fromMYXApiCollateral(String(accountInfo.unrealizedPnl ?? '0'))
-    : 0;
-  const balance = walletBalance ? fromMYXApiCollateral(walletBalance) : 0;
+  const acct = parseAccountTuple(accountInfo);
 
-  const totalBalance = balance + marginUsed + unrealizedPnl;
-  const availableBalance = balance;
+  const freeAmount = fromMYXCollateral(acct.freeAmount, network);
+  const walletBal = fromMYXCollateral(acct.walletBalance, network);
+  const reservedAmount = fromMYXCollateral(acct.reservedAmount, network);
+  const unrealizedPnl = fromMYXCollateral(acct.unrealizedPnl, network);
+
+  const availableBalance = freeAmount + walletBal;
+  const totalBalance = freeAmount + walletBal + reservedAmount + unrealizedPnl;
+  const marginUsed = reservedAmount;
 
   return {
     availableBalance: availableBalance.toString(),

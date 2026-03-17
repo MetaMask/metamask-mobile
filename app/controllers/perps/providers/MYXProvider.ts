@@ -21,6 +21,7 @@ import {
   MYX_PROTOCOL_FEE_RATE,
   MYX_DEFAULT_SLIPPAGE_BPS,
   MYX_EXECUTION_FEE_TOKEN,
+  MYX_PRICE_POLLING_INTERVAL_MS,
   toMYXSize,
   toMYXCollateral,
   toMYXContractPrice,
@@ -747,11 +748,48 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
-  async cancelOrder(_params: CancelOrderParams): Promise<CancelOrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
+    try {
+      await this.#ensureAuthenticated();
+      const chainId = this.#clientService.getChainId();
+
+      this.#deps.debugLogger.log('[MYXProvider.cancelOrder] START', {
+        orderId: params.orderId,
+        symbol: params.symbol,
+      });
+
+      const result = await this.#clientService.cancelOrder(
+        params.orderId,
+        chainId,
+      );
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX cancel failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      return {
+        success: true,
+        orderId: params.orderId,
+        providerId: 'myx',
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.cancelOrder');
+      this.#deps.debugLogger.log('[MYXProvider.cancelOrder] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('cancelOrder', { orderId: params.orderId }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async cancelOrders(
@@ -765,11 +803,164 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
-  async closePosition(_params: ClosePositionParams): Promise<OrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async closePosition(params: ClosePositionParams): Promise<OrderResult> {
+    try {
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] START', {
+        symbol: params.symbol,
+        size: params.size,
+        orderType: params.orderType,
+      });
+
+      await this.#ensureAuthenticated();
+      const walletService = this.#getWalletService();
+      const address = walletService.getUserAddress();
+      const chainId = this.#clientService.getChainId();
+      const network = this.#clientService.getNetwork();
+
+      // Resolve symbol → poolId
+      let poolId: string | undefined;
+      for (const [pid, sym] of this.#poolSymbolMap) {
+        if (sym === params.symbol) {
+          poolId = pid;
+          break;
+        }
+      }
+      if (!poolId) {
+        return {
+          success: false,
+          error: `No MYX pool found for symbol "${params.symbol}"`,
+        };
+      }
+
+      // Find the position to close — use raw SDK data for positionId + direction
+      const posResult = await this.#clientService.listPositions(address);
+      const rawPositions = (posResult.data ?? []).filter(
+        (pos) => pos.size && pos.size !== '0' && pos.poolId === poolId,
+      );
+
+      if (rawPositions.length === 0) {
+        return {
+          success: false,
+          error: `No open position found for ${params.symbol}`,
+        };
+      }
+
+      const rawPos = rawPositions[0];
+
+      // Determine close size — use params.size if partial, otherwise full position size
+      const closeSize = params.size
+        ? parseFloat(params.size)
+        : parseFloat(rawPos.size);
+
+      if (!closeSize || isNaN(closeSize)) {
+        return {
+          success: false,
+          error: 'Invalid close size',
+        };
+      }
+
+      // Determine close price
+      let closePrice: number;
+      if (params.price) {
+        closePrice = parseFloat(params.price);
+      } else if (params.currentPrice) {
+        // Apply slippage: closing LONG sells (accept lower), closing SHORT buys (accept higher)
+        const slippage = rawPos.direction === 0 ? 0.95 : 1.05;
+        closePrice = params.currentPrice * slippage;
+      } else {
+        // Fetch market price
+        const tickers = await this.#clientService.getTickers([poolId]);
+        const tickerPrice = parseFloat(tickers[0]?.price ?? '0');
+        if (!tickerPrice || isNaN(tickerPrice)) {
+          return {
+            success: false,
+            error: 'Could not fetch current market price for close',
+          };
+        }
+        const slippage = rawPos.direction === 0 ? 0.95 : 1.05;
+        closePrice = tickerPrice * slippage;
+      }
+
+      // SDK expects 30-decimal price and 18-decimal size
+      const sdkOrderType = params.orderType === 'limit' ? 1 : 0;
+
+      // Access userLeverage from raw position — SDK type doesn't declare it but API returns it
+      const userLeverage =
+        (rawPos as unknown as { userLeverage?: number }).userLeverage ?? 1;
+
+      const sdkParams: PlaceOrderParams = {
+        chainId,
+        address: address as `0x${string}`,
+        poolId,
+        positionId: rawPos.positionId,
+        orderType: sdkOrderType,
+        triggerType: 0,
+        direction: rawPos.direction,
+        collateralAmount: '0',
+        size: toMYXSize(closeSize),
+        price: toMYXContractPrice(closePrice),
+        timeInForce: 0,
+        postOnly: false,
+        slippagePct: String(params.maxSlippageBps ?? MYX_DEFAULT_SLIPPAGE_BPS),
+        executionFeeToken: MYX_EXECUTION_FEE_TOKEN[network],
+        leverage: userLeverage,
+        tpSize: '0',
+        tpPrice: '0',
+        slSize: '0',
+        slPrice: '0',
+      };
+
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] SDK params', {
+        symbol: params.symbol,
+        poolId,
+        positionId: rawPos.positionId,
+        direction: rawPos.direction === 0 ? 'LONG' : 'SHORT',
+        closeSize,
+        closePrice,
+        leverage: userLeverage,
+      });
+
+      const result = await this.#clientService.createDecreaseOrder(sdkParams);
+
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] SDK result', {
+        code: result.code,
+        message: result.message,
+      });
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX close failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      const data = result.data as
+        | { transactionHash?: string; orderId?: string }
+        | undefined;
+
+      return {
+        success: true,
+        orderId: data?.transactionHash ?? data?.orderId,
+        providerId: 'myx',
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.closePosition',
+      );
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('closePosition', { symbol: params.symbol }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async closePositions(
@@ -842,36 +1033,30 @@ export class MYXProvider implements PerpsProvider {
       const address = this.#getWalletService().getUserAddress();
       const chainId = this.#clientService.getChainId();
 
-      // Fetch wallet balance
-      let walletBalance: string | undefined;
-      try {
-        const balanceResult =
-          await this.#clientService.getWalletQuoteTokenBalance(
-            chainId,
-            address,
-          );
-        walletBalance = String(balanceResult.data ?? '0');
-      } catch {
-        // Non-fatal: wallet balance is supplementary
-        walletBalance = '0';
-      }
-
-      // Try to get account info from first pool
-      let accountInfo: Record<string, unknown> | undefined;
-      if (this.#poolsCache.length > 0) {
+      // Get account info — try pools until one returns valid data.
+      // Account balances (freeAmount, walletBalance) are global across pools,
+      // but the on-chain call fails with 0x for pools the user hasn't interacted with.
+      let accountData: unknown;
+      for (const pool of this.#poolsCache) {
         try {
           const infoResult = await this.#clientService.getAccountInfo(
             chainId,
             address,
-            this.#poolsCache[0].poolId,
+            pool.poolId,
           );
-          accountInfo = infoResult.data;
+          if (infoResult.data !== undefined) {
+            accountData = infoResult.data;
+            break;
+          }
         } catch {
-          // Non-fatal: we'll return what we have
+          // Try next pool
         }
       }
 
-      return adaptAccountStateFromMYX(accountInfo, walletBalance);
+      return adaptAccountStateFromMYX(
+        accountData,
+        this.#clientService.getNetwork(),
+      );
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
@@ -1128,20 +1313,35 @@ export class MYXProvider implements PerpsProvider {
   }
 
   subscribeToAccount(params: SubscribeAccountParams): () => void {
-    // Stage 1: Empty account state - immediately call back
-    setTimeout(
-      () =>
-        params.callback({
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-        }),
-      0,
-    );
+    // MYX SDK has no WebSocket account streaming — use REST polling.
+    let cancelled = false;
+    let pollTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const fetchAndNotify = async (): Promise<void> => {
+      if (cancelled) {return;}
+      try {
+        const account = await this.getAccountState();
+        if (!cancelled) {
+          params.callback(account);
+        }
+      } catch {
+        // Non-fatal: keep polling
+      }
+      if (!cancelled) {
+        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
+      }
+    };
+
+    // Fetch immediately
+    fetchAndNotify().catch(() => {
+      // Error handled inside
+    });
+
     return () => {
-      /* noop */
+      cancelled = true;
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
+      }
     };
   }
 
