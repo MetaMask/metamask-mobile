@@ -129,12 +129,25 @@ scripts/perps/agentic/reload-metro.sh                           # trigger hot-re
 **yarn shortcuts** (human-friendly aliases):
 
 ```bash
-yarn a:start      # start/attach Metro
-yarn a:stop       # stop Metro
-yarn a:status     # current route
-yarn a:reload     # hot-reload all connected apps
-yarn a:navigate   # navigate to a screen (pass route + optional params)
+yarn a:start            # start/attach Metro (no app launch)
+yarn a:stop             # stop Metro
+yarn a:status           # current route + account snapshot
+yarn a:reload           # hot-reload all connected apps
+yarn a:navigate         # navigate to a screen
+yarn a:ios              # boot sim → Metro → launch app → wallet setup → CDP ready
+yarn a:android          # boot device → Metro → launch app → wallet setup → CDP ready
+yarn a:setup:ios        # clean build: yarn setup → build → install → Metro → wallet
+yarn a:setup:android    # clean build: same for Android
 ```
+
+**Fast relaunch** (skip wallet import, ~10-15s faster — `yarn` aliases coming soon):
+
+```bash
+scripts/perps/agentic/preflight.sh --platform ios      # boot sim → Metro → launch → CDP ready
+scripts/perps/agentic/preflight.sh --platform android   # boot device → Metro → launch → CDP ready
+```
+
+> **Which command?** First time → `yarn a:setup:ios`. Daily restart → `preflight.sh --platform ios` (no wallet). Wallet corrupted → `yarn a:ios`.
 
 **Metro log**: `.agent/metro.log` — grep for errors after changes.
 
