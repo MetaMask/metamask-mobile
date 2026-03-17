@@ -7,8 +7,7 @@ import { Theme } from '../../../../../../util/theme/models';
 // Internal dependencies.
 import { BadgeNetworkStyleSheetVars } from './BadgeNetwork.types';
 
-const BADGE_SIZE = 16;
-const BORDER_WIDTH = 1;
+const BORDER_WIDTH = 2;
 
 /**
  * Style sheet function for BadgeNetwork component.
@@ -26,14 +25,7 @@ const styleSheet = (params: {
   const { style } = vars;
 
   return StyleSheet.create({
-    base: {
-      width: BADGE_SIZE,
-      height: BADGE_SIZE,
-      aspectRatio: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      opacity: 1,
-    },
+    base: {},
     networkIcon: Object.assign(
       {
         borderWidth: BORDER_WIDTH,

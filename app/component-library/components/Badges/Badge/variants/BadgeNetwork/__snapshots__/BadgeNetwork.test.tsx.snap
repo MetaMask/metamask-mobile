@@ -2,16 +2,7 @@
 
 exports[`BadgeNetwork should render BadgeNetwork 1`] = `
 <View
-  style={
-    {
-      "alignItems": "center",
-      "aspectRatio": 1,
-      "height": 16,
-      "justifyContent": "center",
-      "opacity": 1,
-      "width": 16,
-    }
-  }
+  style={{}}
   testID="badgenetwork"
 >
   <View
