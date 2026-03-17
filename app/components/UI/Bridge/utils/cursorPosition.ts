@@ -1,4 +1,4 @@
-import { clamp } from './clamp';
+import clamp from 'lodash/clamp';
 
 const isDecimalSeparatorMatch = (rawChar: string, formattedChar: string) =>
   rawChar === '.' && /\D/u.test(formattedChar);

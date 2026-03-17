@@ -47,7 +47,7 @@ export const useSourceAmountCursor = ({
   // display string, so keypad edits can be applied deterministically.
   const [sourceAmountCursorPosition, setSourceAmountCursorPosition] = useState<
     number | undefined
-  >(undefined);
+  >();
 
   const rawSourceAmount = sourceAmount || '0';
   const formattedSourceAmount =

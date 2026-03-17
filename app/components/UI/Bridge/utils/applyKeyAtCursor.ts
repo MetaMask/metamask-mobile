@@ -1,5 +1,5 @@
+import clamp from 'lodash/clamp';
 import { Keys } from '../../../Base/Keypad';
-import { clamp } from './clamp';
 
 const isDigitKey = (input: Keys) => /^(\d)$/u.test(input);
 
