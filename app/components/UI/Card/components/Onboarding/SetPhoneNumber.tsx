@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -18,6 +24,7 @@ import OnboardingStep from './OnboardingStep';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import useRegions from '../../hooks/useRegions';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   resetOnboardingState,
   selectContactVerificationId,
@@ -42,16 +49,16 @@ const SetPhoneNumber = () => {
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { signUpRegions, userCountry } = useRegions();
+  const { signUpRegions, userCountry, getRegionByCode } = useRegions();
   const userCardLocation = useSelector(selectUserCardLocation);
-
+  const { countryKey } = useParams<{ countryKey?: string }>();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [isUsPhoneNumberError, setIsUsPhoneNumberError] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(
-    userCountry ?? null,
+    () => getRegionByCode(countryKey) ?? userCountry ?? null,
   );
-
+  const hasAutoSelected = useRef(selectedCountry !== null);
   const isUsUser = userCardLocation === 'us';
 
   // For US users, only show US in the region selector
@@ -62,9 +69,12 @@ const SetPhoneNumber = () => {
     return signUpRegions;
   }, [signUpRegions, isUsUser]);
 
-  // Sync local state when userCountry changes (e.g., after regions load)
+  // Sync local state once when userCountry first becomes available (e.g., after
+  // registration settings load for a user whose countryKey nav param was absent).
   useEffect(() => {
+    if (hasAutoSelected.current) return;
     if (userCountry) {
+      hasAutoSelected.current = true;
       setSelectedCountry(userCountry);
     }
   }, [userCountry]);
@@ -144,6 +154,7 @@ const SetPhoneNumber = () => {
     setIsUsPhoneNumberError(false);
 
     setOnValueChange((region) => {
+      hasAutoSelected.current = true;
       setSelectedCountry(region);
     });
 

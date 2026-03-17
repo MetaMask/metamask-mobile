@@ -416,10 +416,14 @@ describe('ConfirmEmail Component', () => {
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
       password: 'testPassword123',
+      countryKey: 'US',
     });
 
     (useRegions as jest.Mock).mockReturnValue({
-      userCountry: { key: 'US', name: 'United States', emoji: '🇺🇸' },
+      getRegionByCode: (code: string) =>
+        code === 'US'
+          ? { key: 'US', name: 'United States', emoji: '🇺🇸' }
+          : null,
     });
 
     // Set up useAnalytics mock
@@ -633,6 +637,7 @@ describe('ConfirmEmail Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+          { countryKey: 'US' },
         );
       });
     });
@@ -679,6 +684,7 @@ describe('ConfirmEmail Component', () => {
       // Navigation should be called after verification
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
       );
     }, 10000);
 
@@ -745,6 +751,10 @@ describe('ConfirmEmail Component', () => {
 
       // Navigation should be called again on duplicate input
       expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
+      );
     }, 20000);
   });
 
@@ -752,6 +762,8 @@ describe('ConfirmEmail Component', () => {
     it('should display email from params in description', () => {
       mockUseParams.mockReturnValue({
         email: 'user@test.com',
+        password: 'testPassword123',
+        countryKey: 'US',
       });
 
       const store = createTestStore();
@@ -1213,6 +1225,7 @@ describe('ConfirmEmail Component', () => {
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
       );
     });
   });

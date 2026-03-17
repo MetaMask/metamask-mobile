@@ -34,17 +34,20 @@ const ConfirmEmail = () => {
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
-  const { userCountry: selectedCountry } = useRegions();
+  const { getRegionByCode } = useRegions();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
 
-  const { email, password } = useParams<{
+  const { email, password, countryKey } = useParams<{
     email: string;
     password: string;
+    countryKey: string;
   }>();
+
+  const selectedCountry = getRegionByCode(countryKey);
 
   const {
     sendEmailVerification,
@@ -139,7 +142,9 @@ const ConfirmEmail = () => {
 
       if (onboardingId) {
         dispatch(setOnboardingId(onboardingId));
-        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
+          countryKey,
+        });
       } else if (hasAccount) {
         const navigateToAuthentication = () => {
           navigation.reset({
@@ -183,6 +188,7 @@ const ConfirmEmail = () => {
   }, [
     confirmCode,
     contactVerificationId,
+    countryKey,
     dispatch,
     email,
     navigation,

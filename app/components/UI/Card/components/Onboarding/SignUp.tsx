@@ -199,6 +199,7 @@ const SignUp = () => {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
           email,
           password,
+          countryKey: selectedCountry.key,
         });
       } else {
         // If no contactVerificationId, assume user is registered or email not valid
