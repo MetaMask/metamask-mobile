@@ -145,4 +145,207 @@ describe('MainNavigator', () => {
       'FeatureFlagOverride',
     );
   });
+
+  describe('Screen Registration', () => {
+    const getScreenProps = (
+      container: ReturnType<typeof renderWithProvider>,
+    ) => {
+      interface ScreenChild {
+        name: string;
+        component: { name: string };
+      }
+      return container.root.children
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'type' in child &&
+            'props' in child &&
+            child.type?.toString() === 'Screen',
+        )
+        .map((child) => ({
+          name: child.props.name,
+          component: child.props.component,
+        })) as ScreenChild[];
+    };
+
+    it('includes Home screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const homeScreen = screenProps?.find((screen) => screen?.name === 'Home');
+
+      expect(homeScreen).toBeDefined();
+    });
+
+    it('includes TokensFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const tokensScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.WALLET.TOKENS_FULL_VIEW,
+      );
+
+      expect(tokensScreen).toBeDefined();
+    });
+
+    it('includes DeFiFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const defiScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.WALLET.DEFI_FULL_VIEW,
+      );
+
+      expect(defiScreen).toBeDefined();
+    });
+
+    it('includes CashTokensFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const cashTokensScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+
+      expect(cashTokensScreen).toBeDefined();
+    });
+
+    it('includes Bridge routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const bridgeScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.BRIDGE.ROOT,
+      );
+
+      expect(bridgeScreen).toBeDefined();
+    });
+
+    it('includes Earn routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const earnScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.EARN.ROOT,
+      );
+
+      expect(earnScreen).toBeDefined();
+    });
+
+    it('includes Card routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const cardScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.CARD.ROOT,
+      );
+
+      expect(cardScreen).toBeDefined();
+    });
+
+    it('includes Ramp BUY route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const rampBuyScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.RAMP.BUY,
+      );
+
+      expect(rampBuyScreen).toBeDefined();
+    });
+
+    it('includes Ramp SELL route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const rampSellScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.RAMP.SELL,
+      );
+
+      expect(rampSellScreen).toBeDefined();
+    });
+
+    it('includes Deposit route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const depositScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.DEPOSIT.ID,
+      );
+
+      expect(depositScreen).toBeDefined();
+    });
+
+    it('includes Settings view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const settingsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.SETTINGS_VIEW,
+      );
+
+      expect(settingsScreen).toBeDefined();
+    });
+
+    it('includes QRTabSwitcher route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const qrScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.QR_TAB_SWITCHER,
+      );
+
+      expect(qrScreen).toBeDefined();
+    });
+
+    it('includes Notifications view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const notificationsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.NOTIFICATIONS.VIEW,
+      );
+
+      expect(notificationsScreen).toBeDefined();
+    });
+
+    it('includes Explore Search route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const exploreScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.EXPLORE_SEARCH,
+      );
+
+      expect(exploreScreen).toBeDefined();
+    });
+  });
 });

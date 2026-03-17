@@ -313,4 +313,202 @@ describe('DaimoPayModal', () => {
       );
     });
   });
+
+  describe('payment completion', () => {
+    it('handles paymentCompleted event in demo mode and navigates to success', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              source: 'daimo-pay',
+              type: 'paymentCompleted',
+              payload: {
+                txHash: '0x123abc',
+                chainId: 1,
+              },
+            }),
+          },
+        });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('handles paymentBounced event and shows error', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              source: 'daimo-pay',
+              type: 'paymentBounced',
+              payload: {
+                errorMessage: 'Payment failed',
+              },
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeTruthy();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('handles paymentBounced event with error field', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              source: 'daimo-pay',
+              type: 'paymentBounced',
+              payload: {
+                error: 'Transaction reverted',
+              },
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeTruthy();
+      });
+    });
+
+    it('handles paymentBounced event with reason field', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              source: 'daimo-pay',
+              type: 'paymentBounced',
+              payload: {
+                reason: 'Insufficient funds',
+              },
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('webview lifecycle', () => {
+    it('initializes background bridge on load end', async () => {
+      const BackgroundBridge = require('../../../../../core/BackgroundBridge/BackgroundBridge');
+
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onLoadEnd();
+      });
+
+      await waitFor(() => {
+        expect(BackgroundBridge).toHaveBeenCalled();
+      });
+    });
+
+    it('handles http error', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onHttpError();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('message filtering', () => {
+    it('ignores messages from invalid origins', async () => {
+      (DaimoPayService.isValidMessageOrigin as jest.Mock).mockReturnValueOnce(
+        false,
+      );
+
+      const BackgroundBridge = require('../../../../../core/BackgroundBridge/BackgroundBridge');
+      const mockOnMessage = jest.fn();
+      BackgroundBridge.mockImplementationOnce(() => ({
+        sendNotificationEip1193: jest.fn(),
+        onDisconnect: jest.fn(),
+        onMessage: mockOnMessage,
+        url: 'https://pay.daimo.com',
+      }));
+
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              name: 'metamask-provider',
+              origin: 'https://malicious-site.com',
+            }),
+          },
+        });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('ignores non-object messages', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify(null),
+          },
+        });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('ignores string-only messages', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify('just a string'),
+          },
+        });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
 });
