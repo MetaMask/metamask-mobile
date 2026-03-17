@@ -81,8 +81,8 @@ test.describe(`${PerformanceLogin}`, () => {
       //    - edit account selection to pick a different account
       //    - tap Connect (timer starts here)
       await AppwrightHelpers.withNativeAction(device, async () => {
-        metamaskTimer.stop();
         await unlockIfLockScreenVisible(device);
+        metamaskTimer.stop();
         await DappConnectionModal.tapEditAccountsButton();
         await DappConnectionModal.tapUpdateAccountsButton();
 
