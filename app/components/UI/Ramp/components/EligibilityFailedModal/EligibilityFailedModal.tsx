@@ -1,9 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -56,13 +57,13 @@ function EligibilityFailedModal() {
           testID: ELIGIBILITY_FAILED_MODAL_TEST_IDS.CLOSE_BUTTON,
         }}
       >
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.description',
           )}

@@ -1,9 +1,10 @@
 import React, { useCallback, useRef } from 'react';
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -45,13 +46,13 @@ function RampUnsupportedModal() {
           testID: RAMP_UNSUPPORTED_MODAL_TEST_IDS.CLOSE_BUTTON,
         }}
       >
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <Box twClassName="px-6 pb-6">
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings(
             'fiat_on_ramp_aggregator.unsupported_region_modal.description',
           )}
