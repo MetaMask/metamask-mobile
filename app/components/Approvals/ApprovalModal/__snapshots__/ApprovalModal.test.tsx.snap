@@ -1,7 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ApprovalModal renders 1`] = `
-<div>
-  test
-</div>
+<View
+  testID="modal-mock"
+>
+  <div>
+    test
+  </div>
+</View>
 `;

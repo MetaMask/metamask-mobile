@@ -13,11 +13,6 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../Views/confirmations/hooks/useApprovalFlow');
 jest.mock('../../UI/AnimatedSpinner', () => 'AnimatedSpinner');
-jest.mock('react-native-modal', () => {
-  const React = require('react');
-  return ({ children, isVisible }: { children: React.ReactNode; isVisible: boolean }) =>
-    isVisible ? <>{children}</> : null;
-});
 
 const APPROVAL_FLOW_MOCK: ApprovalFlowState = {
   id: 'testId1',
