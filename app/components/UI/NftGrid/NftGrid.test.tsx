@@ -360,14 +360,13 @@ describe('NftGrid', () => {
       if (selector === isNftFetchingProgressSelector) {
         return isNftFetching;
       }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return selectedGroupAccounts;
+      }
       // For the custom selector function that calls multichainCollectiblesByEnabledNetworksSelector
       if (typeof selector === 'function') {
         // This handles the inline function in NftGrid that calls multichainCollectiblesByEnabledNetworksSelector
         return collectibles;
-      }
-      // Handle selectSelectedAccountGroupInternalAccounts
-      if (selector.toString().includes('selectSelectedAccountGroupInternalAccounts')) {
-        return selectedGroupAccounts;
       }
       return undefined;
     });
