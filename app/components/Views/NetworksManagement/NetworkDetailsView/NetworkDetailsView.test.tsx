@@ -145,6 +145,7 @@ const createMockFormHook = (overrides: Record<string, unknown> = {}) => ({
   onSymbolFocused: jest.fn(),
   onSymbolBlur: jest.fn(),
   onRpcUrlFocused: jest.fn(),
+  onRpcUrlBlur: jest.fn(),
   onChainIdFocused: jest.fn(),
   onChainIdBlur: jest.fn(),
   jumpToRpcURL: jest.fn(),
@@ -689,6 +690,19 @@ describe('NetworkDetailsView', () => {
         'blur',
       );
       expect(val.validateName).toHaveBeenCalled();
+    });
+
+    it('triggers RPC focus cleanup on RPC URL blur', () => {
+      const formReturn = createMockFormHook();
+      mockFormHook.mockReturnValue(formReturn);
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      fireEvent(
+        getByTestId(NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT),
+        'blur',
+      );
+      expect(formReturn.onRpcUrlBlur).toHaveBeenCalled();
     });
 
     it('triggers handleValidateSymbol on symbol field blur', () => {
