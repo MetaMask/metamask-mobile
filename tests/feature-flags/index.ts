@@ -10,9 +10,3 @@ export {
   getRegistryEntry,
 } from './feature-flag-registry';
 export type { FeatureFlagRegistryEntry } from './feature-flag-registry';
-export {
-  compareProductionFlagsToRegistry,
-  fetchProductionFlags,
-} from './sync-production-flags';
-export type { SyncResult } from './sync-production-flags';
-export { updateRegistryFile } from './sync-production-flags';

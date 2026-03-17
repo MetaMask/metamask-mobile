@@ -442,7 +442,7 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
     }
 
     const pdNeedle = 'productionDefault:';
-    const pdIndex = content.indexOf(pdNeedle, entryMatch.index);
+    const pdIndex = content.indexOf(pdNeedle, entryOpenBrace + 1);
     if (pdIndex === -1 || pdIndex >= entryEnd) {
       continue;
     }
@@ -502,7 +502,7 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
 
     // 1. Replace inProd: false with inProd: true within this entry
     const inProdNeedle = 'inProd:';
-    const inProdIdx = content.indexOf(inProdNeedle, entryMatch.index);
+    const inProdIdx = content.indexOf(inProdNeedle, entryOpenBrace + 1);
     if (inProdIdx !== -1 && inProdIdx < entryEnd) {
       let tokenStart = inProdIdx + inProdNeedle.length;
       while (tokenStart < entryEnd && /\s/u.test(content[tokenStart])) {
@@ -514,15 +514,16 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
     }
 
     // 2. Update productionDefault (re-find entryEnd after possible content change)
-    const entryEnd2 = findBalancedEnd(
-      content,
-      content.indexOf('{', entryMatch.index + name.length),
+    const entryOpenBrace2 = content.indexOf(
+      '{',
+      entryMatch.index + name.length,
     );
+    const entryEnd2 = findBalancedEnd(content, entryOpenBrace2);
     if (entryEnd2 === -1) {
       continue;
     }
     const pdNeedle = 'productionDefault:';
-    const pdIndex = content.indexOf(pdNeedle, entryMatch.index);
+    const pdIndex = content.indexOf(pdNeedle, entryOpenBrace2 + 1);
     if (pdIndex === -1 || pdIndex >= entryEnd2) {
       continue;
     }
