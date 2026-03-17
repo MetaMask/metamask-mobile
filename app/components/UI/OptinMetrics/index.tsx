@@ -351,7 +351,7 @@ const OptinMetrics = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <ScrollView
-        style={tw.style('flex-1 bg-default')}
+        style={rootStyle}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}

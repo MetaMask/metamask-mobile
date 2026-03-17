@@ -230,6 +230,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
+                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -1100,6 +1101,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
+                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -2082,6 +2084,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
+                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
