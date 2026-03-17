@@ -31,10 +31,6 @@ jest.mock('react-native-reanimated', () => {
     cancelAnimation: jest.fn(),
     interpolateColor: jest.fn(() => 'transparent'),
     runOnJS: jest.fn((fn) => fn),
-    configureReanimatedLogger: jest.fn(),
-    ReanimatedLogLevel: {
-      warn: 1,
-    },
   };
 });
 

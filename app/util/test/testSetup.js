@@ -603,6 +603,14 @@ const Reanimated = require('react-native-reanimated');
 Reanimated.setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 
+// Patch configureReanimatedLogger so tests that import it don't crash.
+if (typeof Reanimated.configureReanimatedLogger !== 'function') {
+  Reanimated.configureReanimatedLogger = jest.fn();
+}
+if (!Reanimated.ReanimatedLogLevel) {
+  Reanimated.ReanimatedLogLevel = { warn: 1, error: 2 };
+}
+
 // Patch Reanimated's makeMutable so that shared values' toJSON() won't blow up
 // on circular references (the default implementation does JSON.stringify(value)
 // which throws "Converting circular structure to JSON" or causes RangeError).

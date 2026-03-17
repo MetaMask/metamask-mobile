@@ -11,20 +11,12 @@ import { TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 
-// Mock react-native-reanimated before importing components
+// Local reanimated mock needed: Reanimated.default.call override is required
+// for RewardsAnimations component rendering.
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  Reanimated.default.call = () => {
-    // Mock implementation
-  };
-  return {
-    ...Reanimated,
-    configureReanimatedLogger: jest.fn(),
-    ReanimatedLogLevel: {
-      warn: 1,
-      error: 2,
-    },
-  };
+  Reanimated.default.call = () => {};
+  return Reanimated;
 });
 
 // Mock react-native-gesture-handler
