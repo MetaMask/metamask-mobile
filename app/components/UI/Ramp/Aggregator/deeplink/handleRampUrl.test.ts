@@ -233,7 +233,7 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('resolves assetId, sets selected token, and navigates to BuildQuote when V2 enabled with rampIntent.assetId', () => {
+    it('navigates to BuildQuote when V2 enabled and ramp intent has assetId', () => {
       mockGetRampRoutingDecision.mockReturnValue(null);
       mockResolveRampControllerAssetId.mockReturnValue(
         'eip155:1/erc20:0x123456',
