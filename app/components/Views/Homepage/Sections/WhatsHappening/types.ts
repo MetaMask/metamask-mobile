@@ -1,3 +1,5 @@
+import type { Article, RelatedAsset } from '@metamask/ai-controllers';
+
 /**
  * Represents a single "What's Happening" trending item.
  */
@@ -6,13 +8,14 @@ export interface WhatsHappeningItem {
   title: string;
   description: string;
   date: string;
-  category:
+  category?:
     | 'geopolitical'
     | 'macro'
     | 'regulatory'
     | 'technical'
     | 'social'
     | 'other';
-  impact: 'positive' | 'negative' | 'neutral';
-  relatedAssets: string[];
+  impact?: 'positive' | 'negative' | 'neutral';
+  relatedAssets: RelatedAsset[];
+  articles: Article[];
 }

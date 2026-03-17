@@ -27,6 +27,7 @@ const mapTrendsToItems = (
     category: trend.category,
     impact: trend.impact,
     relatedAssets: trend.relatedAssets,
+    articles: trend.articles,
   }));
 
 // TODO: Remove once the AiDigestController API returns real data
