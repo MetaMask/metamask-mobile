@@ -27,11 +27,8 @@ import {
 } from './utils/github-client';
 import {
   analyzeWithSingleCall,
-  formatForSlack,
   analyzeDeltaWithLLM,
-  formatDeltaForSlack,
   createCombinedTestPlan,
-  formatCombinedForSlack,
 } from './modes/generate-test-plan/fast-analyzer';
 import {
   fetchFeatureFlags,
@@ -532,20 +529,30 @@ async function main() {
             deltaResult,
           );
 
-          // Format for Slack
-          const slackOutput = formatCombinedForSlack(combinedResult);
-          console.log('\n' + slackOutput);
+          // Print summary
+          console.log(`\n✅ Test plan generated:`);
+          console.log(
+            `   Risk score: ${combinedResult.summary.releaseRiskScore}`,
+          );
+          console.log(
+            `   High risk scenarios: ${combinedResult.summary.highRiskScenarios}`,
+          );
+          console.log(
+            `   Medium risk scenarios: ${combinedResult.summary.mediumRiskScenarios}`,
+          );
+          if (combinedResult.summary.cherryPickCount) {
+            console.log(
+              `   Cherry-picks: ${combinedResult.summary.cherryPickCount}`,
+            );
+          }
 
-          // Write to files
+          // Write JSON file
           const fs = await import('fs');
-          fs.writeFileSync('release-test-plan.md', slackOutput);
           fs.writeFileSync(
             'release-test-plan.json',
             JSON.stringify(combinedResult, null, 2),
           );
-          console.log(
-            '\n💾 Saved to release-test-plan.md and release-test-plan.json',
-          );
+          console.log('\n💾 Saved to release-test-plan.json');
           return;
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
@@ -618,20 +625,22 @@ async function main() {
             baseDir,
           );
 
-          // Format for Slack
-          const deltaMarkdown = formatDeltaForSlack(deltaResult);
+          // Print summary
+          console.log(`\n✅ Delta analysis complete:`);
+          console.log(
+            `   Cherry-picks analyzed: ${deltaResult.cherryPicks.length}`,
+          );
+          console.log(
+            `   Scenarios generated: ${deltaResult.scenarios.length}`,
+          );
 
-          // Output delta
-          console.log('\n' + deltaMarkdown);
-
-          // Write to files
+          // Write JSON file
           const fs = await import('fs');
-          fs.writeFileSync('release-delta.md', deltaMarkdown);
           fs.writeFileSync(
             'release-delta.json',
             JSON.stringify(deltaResult, null, 2),
           );
-          console.log('\n💾 Saved to release-delta.md and release-delta.json');
+          console.log('\n💾 Saved to release-delta.json');
           return;
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
@@ -675,20 +684,21 @@ async function main() {
           options.excludedFeatures || [],
         );
 
-        // Output Slack-formatted result
-        const slackOutput = formatForSlack(result);
-        console.log('\n' + slackOutput);
+        // Print summary
+        console.log(`\n✅ Test plan generated:`);
+        console.log(`   Risk score: ${result.summary.releaseRiskScore}`);
+        console.log(`   High risk scenarios: ${result.summary.highRiskCount}`);
+        console.log(
+          `   Medium risk scenarios: ${result.summary.mediumRiskCount}`,
+        );
 
-        // Write to files
+        // Write JSON file
         const fs = await import('fs');
-        fs.writeFileSync('release-test-plan.md', slackOutput);
         fs.writeFileSync(
           'release-test-plan.json',
           JSON.stringify(result, null, 2),
         );
-        console.log(
-          '\n💾 Saved to release-test-plan.md and release-test-plan.json',
-        );
+        console.log('\n💾 Saved to release-test-plan.json');
         return;
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));

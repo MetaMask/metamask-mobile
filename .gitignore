@@ -184,8 +184,6 @@ tests/coverage-systems/
 runway-artifacts/
 
 # E2E AI Analyzer output files
-release-test-plan.md
 release-test-plan.json
-release-delta.md
 release-delta.json
 release-signoffs.json
