@@ -11,7 +11,7 @@ import DaimoPayService from '../../services/DaimoPayService';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-const mockGetParent = jest.fn(() => ({
+const mockGetParent = jest.fn<{ dispatch: jest.Mock } | null, []>(() => ({
   dispatch: mockDispatch,
 }));
 jest.mock('@react-navigation/native', () => ({
