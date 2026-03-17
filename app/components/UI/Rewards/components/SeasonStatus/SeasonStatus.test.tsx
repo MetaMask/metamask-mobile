@@ -69,21 +69,12 @@ jest.mock('../../hooks/useSeasonStatus', () => ({
 }));
 
 // Mock useTheme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: {
-        alternative: '#f5f5f5',
-        default: '#ffffff',
-        section: '#f9f9f9',
-      },
-      text: {
-        primary: '#000000',
-        alternative: '#666666',
-      },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Mock Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -173,7 +164,7 @@ jest.mock('../../../../../images/rewards/metamask-rewards-points.svg', () => {
 });
 
 // Mock Skeleton component
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

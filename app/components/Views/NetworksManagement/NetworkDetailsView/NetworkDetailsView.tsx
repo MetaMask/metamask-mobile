@@ -7,7 +7,10 @@ import React, {
 } from 'react';
 import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardAwareScrollView,
+  KeyboardProvider,
+} from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -24,7 +27,10 @@ import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
-import { getNetworkImageSource } from '../../../../util/networks';
+import {
+  canDeleteNetwork,
+  getNetworkImageSource,
+} from '../../../../util/networks';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectIsRpcFailoverEnabled } from '../../../../selectors/featureFlagController/walletFramework';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -102,6 +108,7 @@ const NetworkDetailsView = () => {
 
   const isActionDisabled =
     !formHook.enableAction ||
+    formHook.form.editable === false ||
     validation.disabledByChainId(formHook.form) ||
     validation.disabledBySymbol(formHook.form);
 
@@ -177,7 +184,7 @@ const NetworkDetailsView = () => {
 
   const placeholderTextColor = colors.text.muted;
 
-  return (
+  const content = (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
       edges={['top', 'bottom']}
@@ -186,7 +193,8 @@ const NetworkDetailsView = () => {
       <HeaderCompactStandard
         onBack={handleBack}
         endAccessory={
-          !formHook.form.addMode ? (
+          !formHook.form.addMode &&
+          canDeleteNetwork(formHook.form.chainId ?? '') ? (
             <Pressable
               onPress={handleDelete}
               style={({ pressed }) =>
@@ -199,7 +207,7 @@ const NetworkDetailsView = () => {
               <Icon
                 name={IconName.Trash}
                 size={IconSize.Md}
-                color={IconColor.Error}
+                color={IconColor.Default}
               />
             </Pressable>
           ) : undefined
@@ -229,10 +237,9 @@ const NetworkDetailsView = () => {
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
-        enableOnAndroid
-        enableAutomaticScroll
-        extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
         keyboardShouldPersistTaps="handled"
+        bottomOffset={Platform.OS === 'android' ? 120 : 20}
+        disableScrollOnKeyboardHide
       >
         <Box twClassName="flex-1 gap-4 pt-4 mb-6">
           {/* Network Name */}
@@ -351,6 +358,8 @@ const NetworkDetailsView = () => {
       )}
     </SafeAreaView>
   );
+
+  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default NetworkDetailsView;

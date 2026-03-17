@@ -5,6 +5,7 @@ import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
 import NotificationManager from '../../../../../core/NotificationManager';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { getNotificationDetails } from '../utils';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 
@@ -26,7 +27,7 @@ function useHandleNewOrder() {
               orderId: order.id,
               cryptocurrency: order.cryptocurrency,
               cryptoAmount: order.cryptoAmount,
-              state: order.state,
+              status: order.state as unknown as RampsOrderStatus,
             });
           } else {
             const notificationDetails = getNotificationDetails(order);

@@ -45,9 +45,9 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -68,7 +68,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -99,7 +99,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
@@ -163,11 +163,11 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "flex": 1,
           "flexWrap": "wrap",
           "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
           "textAlign": "center",
@@ -191,7 +191,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "alignItems": "center",
           "alignSelf": "center",
           "backgroundColor": "#ffffff",
-          "borderColor": "#b7bbc8",
+          "borderColor": "#949596",
           "borderRadius": 99,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -235,7 +235,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "flexShrink": 1,
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
@@ -252,7 +252,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -284,7 +284,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -301,7 +301,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -323,7 +323,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,

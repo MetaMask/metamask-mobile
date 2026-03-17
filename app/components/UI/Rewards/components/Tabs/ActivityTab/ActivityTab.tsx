@@ -23,7 +23,7 @@ import {
   selectSeasonStatusLoading,
   selectSeasonActivityTypes,
 } from '../../../../../../reducers/rewards/selectors';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/metamask-rewards-activity-empty.svg';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { setActiveTab } from '../../../../../../actions/rewards';

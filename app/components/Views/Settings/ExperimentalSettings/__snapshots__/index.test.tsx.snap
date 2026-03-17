@@ -99,7 +99,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 24,
                   "width": 24,
                 },
@@ -140,7 +140,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -175,9 +175,9 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -189,7 +189,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -211,7 +211,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -228,7 +228,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -250,9 +250,9 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -271,7 +271,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -288,7 +288,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,

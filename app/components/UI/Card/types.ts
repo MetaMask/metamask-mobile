@@ -94,7 +94,7 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'solana' | 'base';
+export type CardNetwork = 'linea' | 'solana' | 'base' | 'monad';
 
 export interface CardNetworkInfo {
   caipChainId: CaipChainId;
@@ -460,6 +460,25 @@ export interface CardDetailsTokenRequest {
  * Response from generating card details token
  */
 export interface CardDetailsTokenResponse {
+  token: string;
+  imageUrl: string;
+}
+
+/**
+ * Request body for generating card PIN token
+ * Used to customize the visual appearance of the PIN image
+ */
+export interface CardPinTokenRequest {
+  customCss?: {
+    backgroundColor?: string;
+    textColor?: string;
+  };
+}
+
+/**
+ * Response from generating card PIN token
+ */
+export interface CardPinTokenResponse {
   token: string;
   imageUrl: string;
 }

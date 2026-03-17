@@ -7,7 +7,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#3c4d9d0f",
+      "backgroundColor": "#b4b4b528",
       "borderRadius": 100,
       "flexDirection": "row",
       "padding": 8,
@@ -23,7 +23,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#121314"
+      color="#131416"
       fill="currentColor"
       height={16}
       name="Card"
@@ -40,7 +40,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -60,7 +60,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#121314"
+      color="#131416"
       fill="currentColor"
       height={16}
       name="ArrowDown"
@@ -83,7 +83,7 @@ exports[`PaymentMethodPill when isLoading is true matches snapshot when loading 
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderRadius": 100,
         "flexDirection": "row",
         "padding": 8,

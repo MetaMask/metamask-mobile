@@ -19,7 +19,7 @@ export const useOnboardingHeader = (title: string) => {
   const renderBackButton = useCallback(
     () => (
       <ButtonIcon
-        size={ButtonIconSizes.Lg}
+        size={ButtonIconSizes.Md}
         iconName={IconName.ArrowLeft}
         accessibilityRole="button"
         accessibilityLabel="back"

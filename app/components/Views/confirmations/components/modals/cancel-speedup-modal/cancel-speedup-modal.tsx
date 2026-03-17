@@ -1,0 +1,217 @@
+import React, { useCallback, useRef } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
+import Modal from 'react-native-modal';
+import type {
+  FeeMarketEIP1559Values,
+  GasPriceValue,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { Box } from '../../../../../../components/UI/Box/Box';
+import {
+  AlignItems,
+  FlexDirection,
+} from '../../../../../../components/UI/Box/box.types';
+import { useCancelSpeedupGas } from '../../../hooks/gas/useCancelSpeedupGas';
+import { GasSpeed } from '../../gas/gas-speed';
+import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
+import InfoSection from '../../UI/info-row/info-section';
+import InfoRow from '../../UI/info-row/info-row';
+import styleSheet from './cancel-speedup-modal.styles';
+import { useStyles } from '../../../../../hooks/useStyles';
+
+const NetworkFeeRow = ({
+  fiat,
+  native,
+  symbol,
+  chainId,
+}: {
+  fiat: string | null;
+  native: string;
+  symbol: string;
+  chainId: Hex;
+}) => {
+  const tw = useTailwind();
+  return (
+    <InfoRow label={strings('transactions.network_fee')}>
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={3}
+        style={tw.style('flex-wrap')}
+      >
+        {fiat ? (
+          <Text variant={TextVariant.BodyMD}>{fiat}</Text>
+        ) : (
+          <Text variant={TextVariant.BodyMD}>{native}</Text>
+        )}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={3}
+        >
+          <NetworkAssetLogo
+            chainId={chainId}
+            ticker={symbol}
+            big={false}
+            biggest={false}
+            style={tw.style('rounded-full w-5 h-5')}
+            testID="cancel-speedup-network-fee-logo"
+          />
+          <Text variant={TextVariant.BodyMD}>{symbol}</Text>
+        </Box>
+      </Box>
+    </InfoRow>
+  );
+};
+
+const SpeedRow = ({ transactionId }: { transactionId?: string }) => (
+  <InfoRow label={strings('transactions.gas_modal.speed')}>
+    <GasSpeed transactionId={transactionId} />
+  </InfoRow>
+);
+
+const Description = ({ text }: { text: string }) => {
+  const tw = useTailwind();
+  return (
+    <Text
+      variant={TextVariant.BodySM}
+      color={TextColor.Alternative}
+      style={tw.style('mt-2 pb-3')}
+    >
+      {text}
+    </Text>
+  );
+};
+
+export interface CancelSpeedupModalProps {
+  isVisible: boolean;
+  isCancel: boolean;
+  tx: TransactionMeta | null;
+  onConfirm: (
+    params: GasPriceValue | FeeMarketEIP1559Values | undefined,
+  ) => void;
+  onClose: () => void;
+  confirmDisabled?: boolean;
+}
+
+const modalStyle = StyleSheet.create({
+  bottom: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+});
+
+export function CancelSpeedupModal({
+  isVisible,
+  isCancel,
+  tx,
+  onConfirm,
+  onClose,
+  confirmDisabled = false,
+}: CancelSpeedupModalProps) {
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
+
+  const {
+    paramsForController,
+    networkFeeNative,
+    networkFeeFiat,
+    nativeTokenSymbol,
+  } = useCancelSpeedupGas({ tx, isCancel });
+
+  const close = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      onClose();
+    });
+  }, [onClose]);
+
+  const handleConfirm = useCallback(() => {
+    if (confirmDisabled) return;
+    onConfirm(paramsForController);
+  }, [onConfirm, paramsForController, confirmDisabled]);
+
+  const title = isCancel
+    ? strings('transaction.cancel_speedup_cancel_title')
+    : strings('transaction.cancel_speedup_speedup_title');
+  const description = isCancel
+    ? strings('transaction.cancel_speedup_cancel_message')
+    : strings('transaction.cancel_speedup_speedup_message');
+
+  const chainId = (tx?.chainId ?? '') as Hex;
+
+  const buttons = [
+    {
+      variant: ButtonVariants.Primary,
+      label: strings('transaction.confirm'),
+      size: ButtonSize.Lg,
+      onPress: handleConfirm,
+      isDisabled: confirmDisabled,
+    },
+  ];
+
+  return (
+    <Modal
+      isVisible={isVisible}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={modalStyle.bottom}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      useNativeDriver
+      onBackdropPress={onClose}
+      onBackButtonPress={onClose}
+      onSwipeComplete={onClose}
+      swipeDirection="down"
+      propagateSwipe
+    >
+      <BottomSheet
+        ref={bottomSheetRef}
+        shouldNavigateBack={false}
+        style={styles.bottomSheetDialogSheet}
+      >
+        <HeaderCompactStandard title={title} onClose={close} />
+        <Box style={tw.style('px-3')}>
+          <ScrollView>
+            <Box gap={4}>
+              <InfoSection>
+                <NetworkFeeRow
+                  fiat={networkFeeFiat}
+                  native={networkFeeNative}
+                  symbol={nativeTokenSymbol}
+                  chainId={chainId}
+                />
+                <SpeedRow transactionId={tx?.id} />
+              </InfoSection>
+              <Description text={description} />
+            </Box>
+          </ScrollView>
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Vertical}
+            buttonPropsArray={buttons}
+            style={tw.style('px-0')}
+          />
+        </Box>
+      </BottomSheet>
+    </Modal>
+  );
+}

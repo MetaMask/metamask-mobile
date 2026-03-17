@@ -382,6 +382,26 @@ export default class Assertions {
     }
   }
 
+  /**
+   * Checks if the array has a minimum length
+   * @param array - The array to check
+   * @param minLength - The minimum length of the array
+   * @returns void
+   */
+  static async checkIfArrayHasMinLength(
+    array: unknown[],
+    minLength: number,
+  ): Promise<void> {
+    if (!Array.isArray(array)) {
+      throw new Error('The provided value is not an array');
+    }
+    if (array.length < minLength) {
+      throw new Error(
+        `Array length assertion failed.\nExpected at least: ${minLength}\nActual length: ${array.length}`,
+      );
+    }
+  }
+
   static async checkIfValueIsDefined(value: unknown): Promise<void> {
     // 0 evaluates to false, so we need to handle it separately
     if (typeof value === 'number') {

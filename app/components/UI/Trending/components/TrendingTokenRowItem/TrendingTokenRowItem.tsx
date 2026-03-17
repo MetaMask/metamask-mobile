@@ -40,12 +40,9 @@ import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format'
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
-import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
-import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
-import { BridgeToken } from '../../../Bridge/types';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
@@ -166,6 +163,7 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isFromTrending: true,
     source: TokenDetailsSource.Trending,
     rwaData: token.rwaData,
+    securityData: token.securityData,
   };
 };
 
@@ -181,7 +179,6 @@ const TrendingTokenRowItem = ({
     selectNetworkConfigurationsByCaipChainId,
   );
   const { addPopularNetwork } = useAddPopularNetwork();
-  const { isStockToken } = useRWAToken();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Memoize derived values
@@ -310,12 +307,6 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token as unknown as BridgeToken) && (
-          <StockBadge
-            style={styles.stockBadgeWrapper}
-            token={token as unknown as BridgeToken}
-          />
-        )}
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>

@@ -441,7 +441,9 @@ export interface RootStackParamList extends ParamListBase {
   WalletConnectSessionsView: undefined;
   NftFullView: undefined;
   TokensFullView: undefined;
+  CashTokensFullView: undefined;
   TrendingTokensFullView: undefined;
+  RWATokensFullView: undefined;
 
   // Vault recovery routes
   RestoreWallet: undefined;
@@ -462,7 +464,6 @@ export interface RootStackParamList extends ParamListBase {
   TransactionDetailsBlockExplorer:
     | TransactionDetailsBlockExplorerParams
     | undefined;
-  QuoteExpiredModal: undefined;
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;

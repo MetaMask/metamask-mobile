@@ -11,6 +11,7 @@ export const useAnalytics = jest.fn(() => ({
     build: jest.fn().mockReturnValue({}),
   })),
   enable: jest.fn().mockResolvedValue(undefined),
+  identify: jest.fn().mockResolvedValue(undefined),
   addTraitsToUser: jest.fn().mockResolvedValue(undefined),
   createDataDeletionTask: jest.fn().mockResolvedValue({}),
   checkDataDeleteStatus: jest.fn().mockResolvedValue({}),

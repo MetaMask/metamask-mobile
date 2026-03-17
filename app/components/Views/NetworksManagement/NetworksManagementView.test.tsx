@@ -7,6 +7,21 @@ import Routes from '../../../constants/navigation/Routes';
 import { NetworksManagementViewSelectorsIDs } from './NetworksManagementView.testIds';
 import NetworksManagementView from './NetworksManagementView';
 import { SECTION_KEYS } from './NetworksManagementView.constants';
+import {
+  formatRpcUrlForDisplay,
+  MAX_RPC_DISPLAY_LENGTH,
+} from './NetworksManagementView.utils';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
+
+jest.mock('../../../util/hideKeyFromUrl', () => ({
+  __esModule: true,
+  default: jest.fn((url: string) => url),
+}));
+jest.mock('../../../util/hideProtocolFromUrl', () => ({
+  __esModule: true,
+  default: jest.fn((url: string) => url),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -23,7 +38,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock whenEngineReady to prevent Jest environment teardown errors
-jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn(() => Promise.resolve()),
   isEngineReady: jest.fn(() => false),
   getEngine: jest.fn(() => ({})),
@@ -45,6 +60,25 @@ jest.mock('../../hooks/useMetrics', () => ({
       build: jest.fn(),
     })),
     addTraitsToUser: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {},
+    enabledNetworksForCurrentNamespace: {},
+    enabledNetworksForAllNamespaces: {},
+    networkEnablementController: {},
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    popularEvmNetworks: [],
+    popularMultichainNetworks: [],
+    popularNetworks: [],
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    tryEnableEvmNetwork: jest.fn(),
   }),
 }));
 
@@ -242,5 +276,102 @@ describe('NetworksManagementView', () => {
       getByText(strings('app_settings.networks_additional')),
     ).toBeOnTheScreen();
     expect(getByText('Avalanche')).toBeOnTheScreen();
+  });
+});
+
+describe('formatRpcUrlForDisplay', () => {
+  beforeEach(() => {
+    (hideKeyFromUrl as jest.Mock).mockImplementation((url: string) => url);
+    (hideProtocolFromUrl as jest.Mock).mockImplementation((url: string) => url);
+  });
+
+  it('strips http prefix when withoutProtocol still starts with http', () => {
+    (hideKeyFromUrl as jest.Mock).mockReturnValue('https://rpc.example.com/');
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue(
+      'https://rpc.example.com/',
+    );
+
+    const result = formatRpcUrlForDisplay('https://rpc.example.com/v1/key');
+
+    expect(result).toBe('rpc.example.com/');
+  });
+
+  it('strips https prefix when withoutProtocol still starts with https', () => {
+    (hideKeyFromUrl as jest.Mock).mockReturnValue('https://mainnet.infura.io/');
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue(
+      'https://mainnet.infura.io/',
+    );
+
+    const result = formatRpcUrlForDisplay('https://mainnet.infura.io/v1/abc');
+
+    expect(result).toBe('mainnet.infura.io/');
+  });
+
+  it('returns withoutProtocol when it does not start with http', () => {
+    (hideKeyFromUrl as jest.Mock).mockReturnValue('https://polygon-rpc.com');
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue('polygon-rpc.com');
+
+    const result = formatRpcUrlForDisplay('https://polygon-rpc.com');
+
+    expect(result).toBe('polygon-rpc.com');
+  });
+
+  it('falls back to original url when withoutProtocol is undefined', () => {
+    (hideKeyFromUrl as jest.Mock).mockReturnValue(undefined);
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue(undefined);
+
+    const url = 'https://fallback.example.com';
+    const result = formatRpcUrlForDisplay(url);
+
+    expect(result).toBe(url);
+  });
+
+  it('uses original url when withoutProtocol is null (falsy fallback)', () => {
+    (hideKeyFromUrl as jest.Mock).mockReturnValue('https://x.com');
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue(null);
+
+    const url = 'https://x.com';
+    const result = formatRpcUrlForDisplay(url);
+
+    expect(result).toBe(url);
+  });
+
+  it('truncates result longer than MAX_RPC_DISPLAY_LENGTH with ellipsis', () => {
+    const longHost = 'a'.repeat(40);
+    (hideKeyFromUrl as jest.Mock).mockReturnValue(`https://${longHost}`);
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue(longHost);
+
+    const result = formatRpcUrlForDisplay(`https://${longHost}`);
+
+    expect(result).toHaveLength(MAX_RPC_DISPLAY_LENGTH);
+    expect(result).toBe(`${longHost.slice(0, MAX_RPC_DISPLAY_LENGTH - 1)}…`);
+  });
+
+  it('returns result as-is when length equals MAX_RPC_DISPLAY_LENGTH', () => {
+    const exact = 'a'.repeat(MAX_RPC_DISPLAY_LENGTH);
+    (hideKeyFromUrl as jest.Mock).mockReturnValue(exact);
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue(exact);
+
+    const result = formatRpcUrlForDisplay('https://example.com');
+
+    expect(result).toBe(exact);
+  });
+
+  it('returns result as-is when length is less than MAX_RPC_DISPLAY_LENGTH', () => {
+    (hideKeyFromUrl as jest.Mock).mockReturnValue('https://short.io');
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue('short.io');
+
+    const result = formatRpcUrlForDisplay('https://short.io');
+
+    expect(result).toBe('short.io');
+  });
+
+  it('returns empty string when withoutProtocol is empty and no fallback needed', () => {
+    (hideKeyFromUrl as jest.Mock).mockReturnValue('');
+    (hideProtocolFromUrl as jest.Mock).mockReturnValue('');
+
+    const result = formatRpcUrlForDisplay('https://example.com');
+
+    expect(result).toBe('');
   });
 });

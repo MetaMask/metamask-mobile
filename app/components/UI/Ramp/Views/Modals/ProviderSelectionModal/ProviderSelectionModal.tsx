@@ -2,10 +2,11 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
+import { useSelector } from 'react-redux';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
   useParams,
@@ -15,8 +16,13 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
+import { selectRampsOrders } from '../../../../../../selectors/rampsController';
+import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -33,6 +39,7 @@ export const createProviderSelectionModalNavigationDetails =
 const DEFAULT_QUOTE_AMOUNT = 100;
 
 function ProviderSelectionModal() {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
@@ -45,10 +52,27 @@ function ProviderSelectionModal() {
 
   const {
     providers,
+    selectedProvider,
     setSelectedProvider,
     selectedPaymentMethod,
     selectedToken,
   } = useRampsController();
+
+  const legacyOrdersProviders = useSelector(getOrdersProviders);
+  const controllerOrders = useSelector(selectRampsOrders);
+
+  const ordersProviders = useMemo(() => {
+    const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
+      (o) => o.providerId,
+    );
+    return Array.from(new Set([...legacyOrdersProviders, ...v2ProviderIds]));
+  }, [legacyOrdersProviders, controllerOrders]);
+
+  const hasPaymentModalInStack = useNavigationState((state) =>
+    state.routes.some(
+      (route) => route.name === Routes.RAMP.MODALS.PAYMENT_SELECTION,
+    ),
+  );
 
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress =
@@ -70,7 +94,7 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes && walletAddress && assetId
+      !skipQuotes && amount > 0 && walletAddress && assetId
         ? {
             amount,
             walletAddress,
@@ -98,27 +122,58 @@ function ProviderSelectionModal() {
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
 
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (!hasPendingAction && skipQuotes) {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION,
+        });
+      }
+    },
+    [navigation, skipQuotes],
+  );
+
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleProviderSelect = useCallback(
     (provider: Provider) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_PROVIDER_SELECTED)
+          .addProperties({
+            provider: provider.name,
+            previous_provider: selectedProvider?.name,
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
       setSelectedProvider(provider);
       navigation.goBack();
     },
-    [setSelectedProvider, navigation],
+    [
+      setSelectedProvider,
+      navigation,
+      selectedProvider?.name,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
-          showQuotes={!skipQuotes}
+          showQuotes={!skipQuotes && amount > 0}
+          showBackButton={hasPaymentModalInStack}
+          ordersProviders={ordersProviders.filter(
+            (id): id is string => id != null,
+          )}
           onBack={handleBack}
           onProviderSelect={handleProviderSelect}
         />

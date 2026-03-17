@@ -9,6 +9,20 @@ import { NavbarOverrides } from '../../../Views/confirmations/components/UI/navb
 import useTooltipModal from '../../../hooks/useTooltipModal';
 import { MUSD_CONVERSION_APY } from '../constants/musd';
 import AppConstants from '../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -29,6 +43,13 @@ describe('useMusdConversionNavbar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
+
     mockUseTooltipModal.mockReturnValue({
       openTooltipModal: mockOpenTooltipModal,
     });
@@ -184,5 +205,39 @@ describe('useMusdConversionNavbar', () => {
     expect(openUrlSpy).toHaveBeenCalledWith(
       AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
     );
+  });
+
+  it('tracks MUSD_BONUS_TERMS_OF_USE_PRESSED event when "Terms apply" is pressed in tooltip content', () => {
+    let capturedOverrides: NavbarOverrides | undefined;
+    mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
+      capturedOverrides = overrides;
+    });
+
+    renderHook(() => useMusdConversionNavbar());
+
+    const HeaderRight = capturedOverrides?.headerRight as React.FC;
+    const { getByTestId } = render(<HeaderRight />);
+
+    fireEvent.press(getByTestId('button-icon'));
+
+    const tooltipBody = mockOpenTooltipModal.mock
+      .calls[0][1] as React.ReactElement;
+    const { getByText } = render(tooltipBody);
+
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    mockAddProperties.mockClear();
+    mockBuild.mockClear();
+
+    fireEvent.press(getByText('earn.musd_conversion.education.terms_apply'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CUSTOM_AMOUNT_NAVBAR,
+      url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
   });
 });

@@ -44,7 +44,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#b7bbc866",
+          "backgroundColor": "#b4b4b566",
           "height": 1,
         }
       }

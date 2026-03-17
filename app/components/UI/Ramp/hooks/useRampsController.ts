@@ -16,6 +16,7 @@ import {
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
 import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
+import { useRampsOrders, type UseRampsOrdersResult } from './useRampsOrders';
 
 /**
  * Result returned by the useRampsController hook.
@@ -56,7 +57,16 @@ export interface UseRampsControllerResult {
 
   // Quotes
   getQuotes: UseRampsQuotesResult['getQuotes'];
-  getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
+  getBuyWidgetData: UseRampsQuotesResult['getBuyWidgetData'];
+
+  // Orders
+  orders: UseRampsOrdersResult['orders'];
+  getOrderById: UseRampsOrdersResult['getOrderById'];
+  addOrder: UseRampsOrdersResult['addOrder'];
+  addPrecreatedOrder: UseRampsOrdersResult['addPrecreatedOrder'];
+  removeOrder: UseRampsOrdersResult['removeOrder'];
+  refreshOrder: UseRampsOrdersResult['refreshOrder'];
+  getOrderFromCallback: UseRampsOrdersResult['getOrderFromCallback'];
 }
 
 /**
@@ -100,7 +110,7 @@ export interface UseRampsControllerResult {
  *
  *   // Quotes
  *   getQuotes,
- *   getWidgetUrl,
+ *   getBuyWidgetData,
  *
  * } = useRampsController();
  * ```
@@ -138,14 +148,22 @@ export function useRampsController(): UseRampsControllerResult {
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
-  const { getQuotes, getWidgetUrl } = useRampsQuotes();
+  const { getQuotes, getBuyWidgetData } = useRampsQuotes();
+
+  const {
+    orders,
+    getOrderById,
+    addOrder,
+    addPrecreatedOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
+  } = useRampsOrders();
 
   return {
-    // User region
     userRegion,
     setUserRegion,
 
-    // Selected provider
     selectedProvider,
     setSelectedProvider,
 
@@ -153,28 +171,32 @@ export function useRampsController(): UseRampsControllerResult {
     providersLoading,
     providersError,
 
-    // Tokens
     tokens,
     selectedToken,
     setSelectedToken,
     tokensLoading,
     tokensError,
 
-    // Countries
     countries,
     countriesLoading,
     countriesError,
 
-    // Payment methods
     paymentMethods,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
 
-    // Quotes
     getQuotes,
-    getWidgetUrl,
+    getBuyWidgetData,
+
+    orders,
+    getOrderById,
+    addOrder,
+    addPrecreatedOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
   };
 }
 

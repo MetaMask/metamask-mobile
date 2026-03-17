@@ -1,7 +1,6 @@
 import { useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import {
   CardExternalWalletDetail,
   CardTokenAllowance,
@@ -11,13 +10,8 @@ import {
 import Logger from '../../../../util/Logger';
 import { isZero } from '../../../../util/lodash';
 import { ARBITRARY_ALLOWANCE } from '../constants';
-import { useWrapWithCache } from './useWrapWithCache';
+import { cardQueries } from '../queries';
 
-/**
- * Determines the allowance state based on the allowance value
- * @param allowanceFloat - Parsed allowance value
- * @returns AllowanceState enum value
- */
 const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
   if (allowanceFloat === 0) {
     return AllowanceState.NotEnabled;
@@ -28,11 +22,6 @@ const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
   return AllowanceState.Enabled;
 };
 
-/**
- * Maps a CardExternalWalletDetail to CardTokenAllowance format
- * @param cardExternalWalletDetail - External wallet detail from API
- * @returns Mapped CardTokenAllowance or null if invalid
- */
 const mapCardExternalWalletDetailToCardTokenAllowance = (
   cardExternalWalletsDetail: (CardExternalWalletDetail | undefined)[],
 ): (CardTokenAllowance | null)[] =>
@@ -60,120 +49,116 @@ const mapCardExternalWalletDetailToCardTokenAllowance = (
       allowance: allowanceFloat.toString(),
       availableBalance: availableBalance.toString(),
       delegationContract: cardExternalWalletDetail.delegationContractAddress,
-      stagingTokenAddress: cardExternalWalletDetail.stagingTokenAddress ?? null, // Pass through staging token address
-      priority: cardExternalWalletDetail.priority, // Preserve priority from API
+      stagingTokenAddress: cardExternalWalletDetail.stagingTokenAddress ?? null,
+      priority: cardExternalWalletDetail.priority,
       isStaked: false,
     } as CardTokenAllowance;
   });
 
 /**
- * Hook to fetch external wallet details from the Card API (authenticated mode)
- *
- * This hook fetches all external wallet details for the authenticated user,
- * including balances, allowances, and token information.
+ * Hook to fetch external wallet details from the Card API (authenticated mode).
  *
  * @param delegationSettings - Delegation settings containing network configurations
- * @returns Object containing:
- * - walletDetails: Array of CardExternalWalletDetail objects
- * - mappedWalletDetails: Array of CardTokenAllowance objects (mapped format)
- * - priorityWalletDetail: The wallet detail with highest priority (first with balance)
- * - isLoading: Loading state
- * - error: Error object if any
- * - fetch: Function to manually trigger fetch
+ * @returns Object containing wallet details data, loading state, error, and fetch function
  */
 const useGetCardExternalWalletDetails = (
   delegationSettings: DelegationSettingsResponse | null,
 ) => {
   const { sdk } = useCardSDK();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const queryClient = useQueryClient();
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
-  // Use a ref to always access the latest delegation settings value
-  // This avoids stale closure issues when fetchCardExternalWalletDetails is called
-  // after fetchDelegationSettings completes but before the next render
-  const delegationSettingsRef = useRef(delegationSettings);
-  delegationSettingsRef.current = delegationSettings;
-
-  const fetchCardExternalWalletDetails = useCallback(async () => {
-    // Read from ref to get the latest value (avoids stale closure)
-    const currentDelegationSettings = delegationSettingsRef.current;
-    if (!sdk || !isAuthenticated || !currentDelegationSettings) {
-      return null;
-    }
-
-    try {
-      const cardExternalWalletDetails = await sdk.getCardExternalWalletDetails(
-        currentDelegationSettings.networks,
-      );
-
-      if (!cardExternalWalletDetails?.length) {
-        return {
-          walletDetails: [],
-          mappedWalletDetails: [],
-          priorityWalletDetail: null,
-        };
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
+    queryFn: async () => {
+      const currentDelegationSettings =
+        delegationSettings ??
+        queryClient.getQueryData<DelegationSettingsResponse | null>(
+          cardQueries.dashboard.keys.delegationSettings(),
+        );
+      if (!currentDelegationSettings) {
+        return null;
       }
 
-      let cardExternalWalletDetailsWithPriority = cardExternalWalletDetails[0];
+      const currentSdk = sdkRef.current;
+      if (!currentSdk) throw new Error('SDK not initialized');
 
-      // Find the first wallet detail with a non-zero balance if there are multiple
-      // If there's only one WalletExternalDetail, use the first one
-      if (cardExternalWalletDetails.length > 1) {
-        const detailWithBalance = cardExternalWalletDetails.find((detail) => {
-          if (
-            isNaN(parseFloat(detail.balance)) ||
-            isZero(detail.balance) ||
-            detail.balance === '0.0'
-          ) {
-            return false;
-          }
-          return true;
-        });
+      try {
+        const cardExternalWalletDetails =
+          await currentSdk.getCardExternalWalletDetails(
+            currentDelegationSettings.networks,
+          );
 
-        if (detailWithBalance) {
-          cardExternalWalletDetailsWithPriority = detailWithBalance;
+        if (!cardExternalWalletDetails?.length) {
+          return {
+            walletDetails: [] as CardExternalWalletDetail[],
+            mappedWalletDetails: [] as CardTokenAllowance[],
+            priorityWalletDetail: undefined as CardTokenAllowance | undefined,
+          };
         }
+
+        let cardExternalWalletDetailsWithPriority =
+          cardExternalWalletDetails[0];
+
+        if (cardExternalWalletDetails.length > 1) {
+          const detailWithBalance = cardExternalWalletDetails.find((detail) => {
+            if (
+              isNaN(parseFloat(detail.balance)) ||
+              isZero(detail.balance) ||
+              detail.balance === '0.0'
+            ) {
+              return false;
+            }
+            return true;
+          });
+
+          if (detailWithBalance) {
+            cardExternalWalletDetailsWithPriority = detailWithBalance;
+          }
+        }
+
+        const mappedWalletDetails =
+          mapCardExternalWalletDetailToCardTokenAllowance(
+            cardExternalWalletDetails,
+          ).filter(Boolean) as CardTokenAllowance[];
+
+        const priorityWalletDetail = mappedWalletDetails.find(
+          (mpw) =>
+            mpw.address?.toLowerCase() ===
+            cardExternalWalletDetailsWithPriority.tokenDetails.address?.toLowerCase(),
+        );
+
+        return {
+          walletDetails: cardExternalWalletDetails,
+          mappedWalletDetails,
+          priorityWalletDetail,
+        };
+      } catch (err) {
+        const normalizedError =
+          err instanceof Error ? err : new Error(String(err));
+        Logger.error(
+          normalizedError,
+          'useGetCardExternalWalletDetails: Failed to fetch external wallet details',
+        );
+        throw normalizedError;
       }
-
-      const mappedWalletDetails =
-        mapCardExternalWalletDetailToCardTokenAllowance(
-          cardExternalWalletDetails,
-        ).filter(Boolean) as CardTokenAllowance[];
-
-      // Get priority wallet detail
-      const priorityWalletDetail = mappedWalletDetails.find(
-        (mpw) =>
-          mpw.address?.toLowerCase() ===
-          cardExternalWalletDetailsWithPriority.tokenDetails.address?.toLowerCase(),
-      );
-
-      return {
-        walletDetails: cardExternalWalletDetails,
-        mappedWalletDetails,
-        priorityWalletDetail,
-      };
-    } catch (err) {
-      const normalizedError =
-        err instanceof Error ? err : new Error(String(err));
-      Logger.error(
-        normalizedError,
-        'useGetCardExternalWalletDetails: Failed to fetch external wallet details',
-      );
-      throw normalizedError;
-    }
-    // Note: delegationSettings is accessed via ref, not closure, so it's not in dependencies
-  }, [sdk, isAuthenticated]);
-
-  // Note: Auto-fetch is disabled to prevent duplicate API calls.
-  // CardHome orchestrates all data fetching via fetchAllData() to ensure
-  // a single source of truth for when data is loaded.
-  return useWrapWithCache(
-    'card-external-wallet-details',
-    fetchCardExternalWalletDetails,
-    {
-      cacheDuration: 60 * 1000, // 60 seconds cache (matches authenticated mode in useGetPriorityCardToken)
-      fetchOnMount: false,
     },
-  );
+    enabled: false,
+    staleTime: 60_000,
+  });
+
+  const fetchData = useCallback(async () => {
+    const result = await refetch();
+    return result.data ?? null;
+  }, [refetch]);
+
+  return {
+    data: data ?? null,
+    isLoading,
+    error: error as Error | null,
+    fetchData,
+  };
 };
 
 export default useGetCardExternalWalletDetails;
