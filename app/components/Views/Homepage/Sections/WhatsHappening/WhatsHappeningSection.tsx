@@ -4,10 +4,9 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, TextVariant } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
-import FadingScrollContainer from '../../components/FadingScrollContainer';
 import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
@@ -86,7 +85,7 @@ const WhatsHappeningSection = forwardRef<
     if (hasError) {
       return (
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAll} />
+          <SectionHeader title={title} onPress={handleViewAll} />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
               section: title.toLowerCase(),
@@ -103,41 +102,32 @@ const WhatsHappeningSection = forwardRef<
 
     return (
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAll} />
-        <FadingScrollContainer>
-          {(scrollProps) => (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              snapToOffsets={SNAP_OFFSETS}
-              decelerationRate="fast"
-              testID="homepage-whats-happening-carousel"
-              {...scrollProps}
-            >
-              {isLoading ? (
-                SKELETON_KEYS.map((key) => (
-                  <WhatsHappeningCardSkeleton key={key} />
-                ))
-              ) : (
-                <>
-                  {items.map((item, index) => (
-                    <WhatsHappeningCard
-                      key={item.id}
-                      item={item}
-                      onPress={() => handleCardPress(index)}
-                    />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewAll}
-                    twClassName="w-[180px] h-[200px]"
-                    textVariant={TextVariant.BodyLg}
-                  />
-                </>
-              )}
-            </ScrollView>
+        <SectionHeader title={title} onPress={handleViewAll} />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3')}
+          snapToOffsets={SNAP_OFFSETS}
+          decelerationRate="fast"
+          testID="homepage-whats-happening-carousel"
+        >
+          {isLoading ? (
+            SKELETON_KEYS.map((key) => (
+              <WhatsHappeningCardSkeleton key={key} />
+            ))
+          ) : (
+            <>
+              {items.map((item) => (
+                <WhatsHappeningCard key={item.id} item={item} />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewAll}
+                twClassName="w-[180px] h-[200px]"
+                textVariant={TextVariant.BodyLg}
+              />
+            </>
           )}
-        </FadingScrollContainer>
+        </ScrollView>
       </Box>
     );
   },
