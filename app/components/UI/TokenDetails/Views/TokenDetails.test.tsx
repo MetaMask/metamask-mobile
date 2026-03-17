@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -24,6 +24,15 @@ jest.mock('../hooks/useTokenDetailsABTest', () => ({
   useTokenDetailsABTest: () => mockUseTokenDetailsABTest(),
 }));
 
+jest.mock('../../NetworkAssetLogo', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../../AssetOverview/Balance/Balance', () => ({
+  NetworkBadgeSource: jest.fn(() => null),
+}));
+
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -33,17 +42,7 @@ jest.mock('react-redux', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockRouteParams = jest.fn().mockReturnValue({
-  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-  chainId: '0x1',
-  symbol: 'DAI',
-  decimals: 18,
-  name: 'Dai Stablecoin',
-  image: 'https://example.com/dai.png',
-  isETH: false,
-  isNative: false,
-  balance: '10.5',
-});
+const mockRouteParams = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -104,9 +103,94 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
-jest.mock('../components/TokenDetailsInlineHeader', () => ({
-  TokenDetailsInlineHeader: () => null,
-}));
+const mockSetTitleSectionHeight = jest.fn();
+const mockOnScroll = jest.fn();
+jest.mock(
+  '../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated',
+  () => ({
+    __esModule: true,
+    default: () => ({
+      scrollY: { value: 0 },
+      onScroll: mockOnScroll,
+      setTitleSectionHeight: mockSetTitleSectionHeight,
+      titleSectionHeightSv: { value: 0 },
+    }),
+  }),
+);
+
+jest.mock(
+  '../../../../component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: {
+        title?: string;
+        subtitle?: string;
+        onBack?: () => void;
+        endButtonIconProps?: unknown[];
+      }) =>
+        ReactActual.createElement(
+          View,
+          { testID: 'header-standard-animated' },
+          props.title != null &&
+            ReactActual.createElement(
+              Text,
+              {
+                testID: 'header-title',
+              },
+              props.title,
+            ),
+          props.subtitle != null &&
+            ReactActual.createElement(
+              Text,
+              {
+                testID: 'header-subtitle',
+              },
+              props.subtitle,
+            ),
+          props.onBack != null &&
+            ReactActual.createElement(Pressable, {
+              testID: 'header-back-button',
+              onPress: () => props.onBack?.(),
+            }),
+          props.endButtonIconProps != null &&
+            props.endButtonIconProps.length > 0 &&
+            ReactActual.createElement(View, { testID: 'header-more-button' }),
+        ),
+    };
+  },
+);
+
+jest.mock('../../../../component-library/components-temp/TitleSubpage', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: { title?: string; bottomLabel?: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'title-subpage' },
+        props.title != null &&
+          ReactActual.createElement(
+            Text,
+            {
+              testID: 'title-subpage-title',
+            },
+            props.title,
+          ),
+        props.bottomLabel != null &&
+          ReactActual.createElement(
+            Text,
+            {
+              testID: 'title-subpage-bottom-label',
+            },
+            props.bottomLabel,
+          ),
+      ),
+  };
+});
 
 jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
@@ -133,17 +217,43 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   default: () => null,
 }));
 
-jest.mock('../../Transactions', () => ({
-  __esModule: true,
-  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
-}));
+jest.mock('../../Transactions', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      header,
+      embeddedInScrollView,
+    }: {
+      header?: React.ReactNode;
+      embeddedInScrollView?: boolean;
+    }) => {
+      if (embeddedInScrollView) {
+        return ReactActual.createElement(View, {
+          testID: 'transactions-embedded',
+        });
+      }
+      return header ?? null;
+    },
+  };
+});
 
 jest.mock(
   '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: { embeddedInScrollView?: boolean }) =>
+        props.embeddedInScrollView
+          ? ReactActual.createElement(View, {
+              testID: 'multichain-transactions-embedded',
+            })
+          : null,
+    };
+  },
 );
 
 jest.mock('../../../../selectors/networkController', () => ({
@@ -191,9 +301,22 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+const defaultRouteParams = {
+  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  chainId: '0x1',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+  image: 'https://example.com/dai.png',
+  isETH: false,
+  isNative: false,
+  balance: '10.5',
+};
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams.mockReturnValue(defaultRouteParams);
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
@@ -365,6 +488,119 @@ describe('TokenDetails', () => {
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Header and scroll structure', () => {
+    it('wraps content in SafeAreaView', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('token-details-safe-area')).toBeOnTheScreen();
+    });
+
+    it('renders HeaderStandardAnimated with token name as title and symbol as subtitle', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('header-title')).toHaveTextContent('Dai Stablecoin');
+      expect(getByTestId('header-subtitle')).toHaveTextContent('DAI');
+    });
+
+    it('wires HeaderStandardAnimated onBack to navigation.goBack', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      fireEvent.press(getByTestId('header-back-button'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders TitleSubpage with token name and symbol', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('title-subpage-title')).toHaveTextContent(
+        'Dai Stablecoin',
+      );
+      expect(getByTestId('title-subpage-bottom-label')).toHaveTextContent(
+        'DAI',
+      );
+    });
+
+    it('renders embedded transactions list when not loading', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('transactions-embedded')).toBeOnTheScreen();
+    });
+
+    it('does not show More button in header when useNewLayout is true', () => {
+      mockUseTokenDetailsABTest.mockReturnValue({
+        useNewLayout: true,
+        variantName: 'treatment',
+        isTestActive: true,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId('header-more-button')).toBeNull();
+    });
+
+    it('shows More button in header when useNewLayout is false and options available', () => {
+      mockUseTokenDetailsABTest.mockReturnValue({
+        useNewLayout: false,
+        variantName: 'control',
+        isTestActive: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('header-more-button')).toBeOnTheScreen();
+    });
+
+    it('renders MultichainTransactionsView with embeddedInScrollView when isNonEvmAsset is true', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('multichain-transactions-embedded')).toBeOnTheScreen();
+    });
+
+    it('calls setTitleSectionHeight when title section Box fires onLayout', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      fireEvent(getByTestId('token-details-title-section'), 'layout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(120);
+    });
+
+    it('uses symbol as header title when token name is empty', () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        name: '',
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('header-title')).toHaveTextContent('DAI');
+      expect(getByTestId('header-subtitle')).toHaveTextContent('DAI');
+      expect(getByTestId('title-subpage-title')).toHaveTextContent('DAI');
+      expect(getByTestId('title-subpage-bottom-label')).toHaveTextContent(
+        'DAI',
+      );
+    });
+
+    it('renders native token avatar branch when token is native', () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        isETH: true,
+        isNative: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('token-details-title-section')).toBeOnTheScreen();
     });
   });
 });

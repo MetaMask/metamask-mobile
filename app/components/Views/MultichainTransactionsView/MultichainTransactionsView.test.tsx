@@ -168,4 +168,17 @@ describe('MultichainTransactionsView', () => {
 
     expect(queryByText('transactions.view_full_history_on')).toBeNull();
   });
+
+  it('renders with embeddedInScrollView without crashing', () => {
+    const { queryAllByTestId } = customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        embeddedInScrollView
+      />,
+    );
+
+    const transactionItems = queryAllByTestId('transaction-item');
+    expect(transactionItems.length).toBe(2);
+  });
 });

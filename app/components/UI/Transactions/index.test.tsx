@@ -1,9 +1,11 @@
 import React from 'react';
+import { View } from 'react-native';
 import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { render, cleanup } from '@testing-library/react-native';
+import { render, cleanup, act } from '@testing-library/react-native';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -88,6 +90,13 @@ jest.mock('./RetryModal', () => ({
   __esModule: true,
   default: () => null,
 }));
+
+jest.mock(
+  '../../Views/confirmations/components/modals/cancel-speedup-modal',
+  () => ({
+    CancelSpeedupModal: () => null,
+  }),
+);
 
 // Mock PriceChartProvider and Context
 jest.mock('../AssetOverview/PriceChart/PriceChart.context', () => ({
@@ -1779,6 +1788,111 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     // Test update incoming transactions
     expect(mockUpdateIncomingTransactions).toBeDefined();
     expect(typeof mockUpdateIncomingTransactions).toBe('function');
+  });
+
+  it('returns offset 0 when embeddedInScrollView is true', () => {
+    instance.props = {
+      ...defaultTestProps,
+      embeddedInScrollView: true,
+      headerHeight: 280,
+    };
+
+    const layout0 = instance.getItemLayout(null, 0);
+    const layout2 = instance.getItemLayout(null, 2);
+
+    expect(layout0.offset).toBe(0);
+    expect(layout0.index).toBe(0);
+    expect(layout2.offset).toBe(layout0.length * 2);
+    expect(layout2.index).toBe(2);
+  });
+
+  it('returns headerHeight as offset when embeddedInScrollView is false', () => {
+    instance.props = {
+      ...defaultTestProps,
+      embeddedInScrollView: false,
+      headerHeight: 280,
+    };
+
+    const layout = instance.getItemLayout(null, 0);
+
+    expect(layout.offset).toBe(280);
+    expect(layout.index).toBe(0);
+  });
+
+  it('renders list when embeddedInScrollView is true', () => {
+    instance.context = {
+      colors: {
+        background: { default: '#fff' },
+        text: { muted: '#999' },
+        primary: { default: '#037dd6' },
+        icon: { default: '#24272a' },
+      },
+      typography: {},
+    };
+    instance.flatList = React.createRef();
+    instance.state = { refreshing: false };
+    instance.props = {
+      ...defaultTestProps,
+      submittedTransactions: [],
+      confirmedTransactions: [],
+      transactions: [],
+      isSigningQRObject: false,
+      embeddedInScrollView: true,
+      header: <React.Fragment />,
+    };
+    instance.getItemLayout = jest.fn();
+    instance.keyExtractor = jest.fn();
+    instance.renderItem = jest.fn();
+    instance.renderFooter = jest.fn();
+    instance.renderEmpty = jest.fn();
+    instance.onRefresh = jest.fn();
+    instance.onScroll = jest.fn();
+
+    const result = instance.renderList();
+    expect(result).toBeDefined();
+  });
+
+  it('renders with embeddedInScrollView false and shows list with header and refresh', async () => {
+    const { findByTestId } = render(
+      <Provider store={store}>
+        <UnconnectedTransactions
+          {...defaultTestProps}
+          transactions={[]}
+          loading={false}
+          embeddedInScrollView={false}
+          header={<View testID="transactions-list-header" />}
+          headerHeight={100}
+        />
+      </Provider>,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(150);
+    });
+
+    const container = await findByTestId(ActivitiesViewSelectorsIDs.CONTAINER);
+    expect(container).toBeOnTheScreen();
+  });
+
+  it('renders with embeddedInScrollView true so embedded branch is exercised', async () => {
+    const { findByTestId } = render(
+      <Provider store={store}>
+        <UnconnectedTransactions
+          {...defaultTestProps}
+          transactions={[]}
+          loading={false}
+          embeddedInScrollView
+          headerHeight={100}
+        />
+      </Provider>,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(150);
+    });
+
+    const container = await findByTestId(ActivitiesViewSelectorsIDs.CONTAINER);
+    expect(container).toBeOnTheScreen();
   });
 
   it('should test component method patterns for coverage', () => {
