@@ -177,7 +177,9 @@ export function usePerpsOrderValidation(
           protocolValidation.error === PERPS_ERROR_CODES.ORDER_SIZE_MIN
         ) {
           // Provide minimum amount for the error message
-          errorContext.amount = minimumOrderSize.toString();
+          errorContext.amount = (
+            protocolValidation.minimumRequired ?? minimumOrderSize
+          ).toString();
         } else if (
           protocolValidation.error === PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN
         ) {

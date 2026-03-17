@@ -964,7 +964,7 @@ export class MarketDataService {
     provider: PerpsProvider;
     params: OrderParams;
     context: ServiceContext;
-  }): Promise<{ isValid: boolean; error?: string }> {
+  }): Promise<{ isValid: boolean; error?: string; minimumRequired?: number }> {
     const { provider, params } = options;
 
     try {

@@ -20,6 +20,7 @@ import {
   fromMYXApiCollateral,
   fromMYXCollateral,
   MYX_MAX_LEVERAGE,
+  MYX_MIN_ORDER_SIZE_BUFFER,
   MYX_MINIMUM_ORDER_SIZE_USD,
 } from '../constants/myxConfig';
 import type {
@@ -44,7 +45,8 @@ import {
   MYXExecTypeEnum,
   MYXTradeFlowTypeEnum,
 } from '../types/myx-types';
-import type { MYXNetwork ,
+import type {
+  MYXNetwork,
   MYXPoolSymbol,
   MYXTicker,
   MYXPositionType,
@@ -89,9 +91,13 @@ function formatChange(
  * Transform MYX Pool/Market info to MetaMask Perps API MarketInfo format
  *
  * @param pool - Pool symbol data from MYX SDK (PoolSymbolAllResponse)
+ * @param poolMinOrderSizeUsd - Per-pool minimum order size in USD (from getPoolLevelConfig)
  * @returns MetaMask Perps API market info object
  */
-export function adaptMarketFromMYX(pool: MYXPoolSymbol): MarketInfo {
+export function adaptMarketFromMYX(
+  pool: MYXPoolSymbol,
+  poolMinOrderSizeUsd?: number,
+): MarketInfo {
   // Extract base symbol from pool data
   const symbol = pool.baseSymbol || extractSymbolFromPoolId(pool.poolId);
 
@@ -103,7 +109,10 @@ export function adaptMarketFromMYX(pool: MYXPoolSymbol): MarketInfo {
     szDecimals,
     maxLeverage: MYX_MAX_LEVERAGE,
     marginTableId: 0, // MYX doesn't use margin tables like HyperLiquid
-    minimumOrderSize: MYX_MINIMUM_ORDER_SIZE_USD,
+    minimumOrderSize: Math.round(
+      Math.max(poolMinOrderSizeUsd ?? 0, MYX_MINIMUM_ORDER_SIZE_USD) *
+        MYX_MIN_ORDER_SIZE_BUFFER,
+    ),
     providerId: 'myx',
   };
 }
@@ -303,11 +312,13 @@ function getTokenName(symbol: string): string {
  *
  * @param pos - MYX position from SDK
  * @param poolSymbolMap - Map of poolId to symbol
+ * @param markPrice - Optional current mark price for PnL/liq calculation
  * @returns MetaMask Position object
  */
 export function adaptPositionFromMYX(
   pos: MYXPositionType,
   poolSymbolMap: Map<string, string>,
+  markPrice?: number,
 ): Position {
   const symbol = poolSymbolMap.get(pos.poolId) ?? pos.poolId;
   const sizeNum = fromMYXApiSize(pos.size);
@@ -321,24 +332,41 @@ export function adaptPositionFromMYX(
   // Position value = size * entry price
   const positionValue = Math.abs(sizeNum * entryPriceNum);
 
-  // Leverage = position value / collateral (approximate)
-  const leverage = collateralNum > 0 ? positionValue / collateralNum : 1;
+  // Leverage: prefer SDK runtime field, fall back to calculation
+  const runtimePos = pos as unknown as { userLeverage?: number };
+  const leverage =
+    runtimePos.userLeverage ??
+    (collateralNum > 0 ? Math.round(positionValue / collateralNum) : 1);
+
+  // PnL: calculate from mark price if available
+  const pnl = markPrice ? (markPrice - entryPriceNum) * signedSize : 0;
+
+  // Liquidation price (isolated margin approximation)
+  let liquidationPrice: string | null = null;
+  if (leverage > 0 && entryPriceNum > 0) {
+    const liqPrice = isLong
+      ? entryPriceNum * (1 - 1 / leverage)
+      : entryPriceNum * (1 + 1 / leverage);
+    liquidationPrice = liqPrice.toString();
+  }
+
+  const roe = collateralNum > 0 ? (pnl / collateralNum) * 100 : 0;
 
   return {
     symbol,
     size: signedSize.toString(),
     entryPrice: entryPriceNum.toString(),
     positionValue: positionValue.toString(),
-    unrealizedPnl: '0', // Requires mark price - will be enriched by WS or separate call
+    unrealizedPnl: pnl.toString(),
     marginUsed: collateralNum.toString(),
     leverage: {
       type: 'isolated',
-      value: Math.round(leverage),
+      value: leverage,
       rawUsd: collateralNum.toString(),
     },
-    liquidationPrice: null, // Requires separate calculation
+    liquidationPrice,
     maxLeverage: MYX_MAX_LEVERAGE,
-    returnOnEquity: '0',
+    returnOnEquity: roe.toString(),
     cumulativeFunding: {
       allTime: '0',
       sinceOpen: '0',
@@ -403,6 +431,11 @@ export function adaptOrderFromMYX(
       break;
     default:
       status = 'open';
+  }
+
+  // Override: fully filled orders may have stale API status
+  if (remainingSize === 0 && filledSizeNum > 0) {
+    status = 'filled';
   }
 
   // Detect trigger orders
@@ -571,6 +604,11 @@ export function adaptOrderFillFromMYX(
     orderType = 'liquidation';
   }
 
+  // Map direction to UI-expected format: "Open Long", "Close Short", etc.
+  const isIncrease = order.operation === MYXOperationEnum.Increase;
+  const isLong = order.direction === MYXDirectionEnum.Long;
+  const directionLabel = `${isIncrease ? 'Open' : 'Close'} ${isLong ? 'Long' : 'Short'}`;
+
   return {
     orderId: String(order.orderId),
     symbol,
@@ -578,7 +616,7 @@ export function adaptOrderFillFromMYX(
     size: sizeNum.toString(),
     price: priceNum.toString(),
     pnl: pnlNum.toString(),
-    direction: side,
+    direction: directionLabel,
     fee: feeNum.toString(),
     feeToken: 'USDT',
     timestamp: order.txTime,

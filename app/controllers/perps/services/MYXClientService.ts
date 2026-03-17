@@ -1152,6 +1152,24 @@ export class MYXClientService {
   }
 
   /**
+   * Get pool level config (includes minOrderSizeInUsd).
+   *
+   * @param poolId - Pool identifier.
+   * @returns Pool level config with minOrderSizeInUsd.
+   */
+  async getPoolLevelConfig(
+    poolId: string,
+  ): Promise<{ minOrderSizeInUsd: number }> {
+    const config = await this.#myxClient.markets.getPoolLevelConfig(
+      poolId,
+      this.#chainId,
+    );
+    return {
+      minOrderSizeInUsd: config?.levelConfig?.minOrderSizeInUsd ?? 0,
+    };
+  }
+
+  /**
    * Get user trading fee rate.
    *
    * @param assetClass - Asset class (0 = standard).

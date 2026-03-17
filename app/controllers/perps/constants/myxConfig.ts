@@ -5,7 +5,7 @@
  * Based on MYX SDK patterns.
  */
 
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import type {
@@ -118,6 +118,38 @@ export const MYX_COLLATERAL_TOKEN_TESTNET =
  */
 export const MYX_COLLATERAL_TOKEN_MAINNET =
   '0x55d398326f99059fF775485246999027B3197955' as const;
+
+// ============================================================================
+// Contract Addresses
+// ============================================================================
+
+/**
+ * MYX Account contract addresses — receives collateral deposits (global "Free Margin").
+ * Source: docs/perps/myx/myx-contract-addresses-v2.txt
+ */
+export const MYX_ACCOUNT_CONTRACTS: Record<
+  MYXNetwork,
+  { chainId: CaipChainId; contractAddress: Hex }
+> = {
+  mainnet: {
+    chainId: MYX_MAINNET_CAIP_CHAIN_ID,
+    contractAddress: '0xa32D0550F127fCFF0FA13D21523c5d4a2b86595D' as Hex,
+  },
+  testnet: {
+    chainId: MYX_TESTNET_CAIP_CHAIN_ID,
+    contractAddress: '0xB219526B2DC7Aa25Eb78A8Bd5e0AeaC9880f26Ca' as Hex,
+  },
+};
+
+/**
+ * CAIP asset IDs for MYX collateral tokens
+ */
+export const MYX_COLLATERAL_ASSET_IDS: Record<MYXNetwork, CaipAssetId> = {
+  mainnet:
+    `${MYX_MAINNET_CAIP_CHAIN_ID}/erc20:${MYX_COLLATERAL_TOKEN_MAINNET}/default` as CaipAssetId,
+  testnet:
+    `${MYX_TESTNET_CAIP_CHAIN_ID}/erc20:${MYX_COLLATERAL_TOKEN_TESTNET}/default` as CaipAssetId,
+};
 
 /**
  * Collateral token configuration by network
@@ -339,9 +371,16 @@ export const MYX_DEFAULT_SLIPPAGE_BPS = 100;
 export const MYX_MAX_LEVERAGE = 100;
 
 /**
- * Minimum order size in USD
+ * Minimum order size in USD (static fallback — prefer per-pool config from SDK)
  */
-export const MYX_MINIMUM_ORDER_SIZE_USD = 10;
+export const MYX_MINIMUM_ORDER_SIZE_USD = 100;
+
+/**
+ * Safety buffer multiplier applied to minimum order size.
+ * Prevents edge-case rejections where on-chain validation uses
+ * slightly different rounding than the client estimate.
+ */
+export const MYX_MIN_ORDER_SIZE_BUFFER = 1.1;
 
 /**
  * MYX fee rates (placeholder — will be replaced with per-market rates)

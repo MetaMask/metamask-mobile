@@ -222,6 +222,31 @@ export class MYXWalletService {
               `No network client for chain ${hexChainId}. Add the BNB network first.`,
             );
           }
+
+          // If SDK didn't provide gas price, fetch it from the node.
+          // TransactionController with requireApproval:false skips the
+          // approval flow that normally estimates gas pricing.
+          let gasPriceFields: Record<string, string> = {};
+          if (txParams.gasPrice) {
+            gasPriceFields = { gasPrice: txParams.gasPrice };
+          } else if (txParams.maxFeePerGas) {
+            gasPriceFields = {
+              maxFeePerGas: txParams.maxFeePerGas,
+              ...(txParams.maxPriorityFeePerGas
+                ? { maxPriorityFeePerGas: txParams.maxPriorityFeePerGas }
+                : {}),
+            };
+          } else {
+            // Fetch gas price via the same transport abstraction
+            const gasPrice = await transport.request({
+              method: 'eth_gasPrice',
+              params: [],
+            });
+            if (gasPrice) {
+              gasPriceFields = { gasPrice: gasPrice as string };
+            }
+          }
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = await this.#messenger.call(
             'TransactionController:addTransaction',
@@ -231,19 +256,13 @@ export class MYXWalletService {
               data: txParams.data as Hex,
               value: (txParams.value ?? '0x0') as Hex,
               gas: txParams.gas ?? txParams.gasLimit,
-              ...(txParams.gasPrice ? { gasPrice: txParams.gasPrice } : {}),
-              ...(txParams.maxFeePerGas
-                ? { maxFeePerGas: txParams.maxFeePerGas }
-                : {}),
-              ...(txParams.maxPriorityFeePerGas
-                ? { maxPriorityFeePerGas: txParams.maxPriorityFeePerGas }
-                : {}),
+              ...gasPriceFields,
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any,
             {
               networkClientId,
               origin: 'metamask-perps-myx',
-              skipInitialGasEstimate: true,
+              requireApproval: false,
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any,
           );
