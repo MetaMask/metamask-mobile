@@ -5,8 +5,8 @@ import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
-import CampaignDetailsView from './Views/CampaignDetailsView';
 import CampaignsView from './Views/CampaignsView';
+import PreviousSeasonView from './Views/PreviousSeasonView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
@@ -81,8 +81,8 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGN_DETAILS}
-            component={CampaignDetailsView}
+            name={Routes.PREVIOUS_SEASON_VIEW}
+            component={PreviousSeasonView}
             options={{ headerShown: false }}
           />
         </>

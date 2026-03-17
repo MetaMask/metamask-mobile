@@ -121,7 +121,7 @@ describe('RewardsReferralView', () => {
     it('renders the header with the referral title', () => {
       const { getByText } = render(<RewardsReferralView />);
 
-      expect(getByText('Referral Program')).toBeOnTheScreen();
+      expect(getByText('Referrals')).toBeOnTheScreen();
     });
 
     it('renders the ReferralDetails component', () => {

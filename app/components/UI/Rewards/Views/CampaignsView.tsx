@@ -41,7 +41,7 @@ const CampaignsView: React.FC = () => {
       return (
         <Box twClassName="gap-6">
           <Box twClassName="gap-3">
-            <Skeleton style={tw.style('h-6 w-20 rounded bg-muted')} />
+            <Skeleton style={tw.style('h-6 w-24 rounded bg-muted')} />
             <Skeleton style={tw.style('h-50 rounded-xl bg-muted')} />
           </Box>
           <Box twClassName="gap-3">
@@ -91,6 +91,7 @@ const CampaignsView: React.FC = () => {
           title={strings('rewards.campaigns_view.previous_title')}
           campaigns={previous}
           testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIOUS_SECTION}
+          displayPreviousSeason
         />
       </Box>
     );

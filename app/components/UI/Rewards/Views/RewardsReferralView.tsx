@@ -8,7 +8,6 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 
 export const REWARDS_REFERRAL_SAFE_AREA_TEST_ID = 'rewards-referral-safe-area';
 

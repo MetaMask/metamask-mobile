@@ -31,7 +31,26 @@ jest.mock('./CampaignTile', () => {
   };
 });
 
+jest.mock('../PreviousSeason/PreviousSeasonTile', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => ReactActual.createElement(Text, null, 'PreviousSeasonTile'),
+  };
+});
+
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
 describe('CampaignsGroup', () => {
+  beforeEach(() => {
+    mockUseSelector.mockReturnValue(null);
+  });
+
   it('renders title and campaign tiles', () => {
     const campaigns = [
       createTestCampaign({ id: '1', name: 'Campaign One' }),
@@ -54,5 +73,39 @@ describe('CampaignsGroup', () => {
 
     expect(queryByText('Active Campaigns')).toBeNull();
     expect(queryByText('Test Campaign')).toBeNull();
+  });
+
+  it('renders PreviousSeasonTile when displayPreviousSeason is true and seasonName exists', () => {
+    mockUseSelector.mockReturnValue('Season 1');
+
+    const { getByText } = render(
+      <CampaignsGroup title="Previous" campaigns={[]} displayPreviousSeason />,
+    );
+
+    expect(getByText('Previous')).toBeOnTheScreen();
+    expect(getByText('PreviousSeasonTile')).toBeOnTheScreen();
+  });
+
+  it('returns null when displayPreviousSeason is true but seasonName is empty', () => {
+    mockUseSelector.mockReturnValue(null);
+
+    const { queryByText } = render(
+      <CampaignsGroup title="Previous" campaigns={[]} displayPreviousSeason />,
+    );
+
+    expect(queryByText('Previous')).toBeNull();
+    expect(queryByText('PreviousSeasonTile')).toBeNull();
+  });
+
+  it('does not render PreviousSeasonTile when displayPreviousSeason is false', () => {
+    mockUseSelector.mockReturnValue('Season 1');
+
+    const campaigns = [createTestCampaign({ id: '1', name: 'Campaign One' })];
+
+    const { queryByText } = render(
+      <CampaignsGroup title="Active" campaigns={campaigns} />,
+    );
+
+    expect(queryByText('PreviousSeasonTile')).toBeNull();
   });
 });

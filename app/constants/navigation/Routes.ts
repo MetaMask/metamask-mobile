@@ -100,6 +100,7 @@ const Routes = {
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   CAMPAIGNS_VIEW: 'CampaignsView',
+  PREVIOUS_SEASON_VIEW: 'PreviousSeasonView',
   CAMPAIGN_DETAILS: 'CampaignDetails',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',

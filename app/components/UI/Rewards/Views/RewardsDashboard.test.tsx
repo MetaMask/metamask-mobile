@@ -882,7 +882,7 @@ describe('RewardsDashboard', () => {
 
   describe('optinAllowedForGeo-based content', () => {
     it('shows mUSD calculator tab when previous season and geo allowed', () => {
-      // Arrange - season ended + geo allowed
+      // Arrange - season ended + geo allowed + campaigns disabled
       const pastDateObj = new Date(pastDate);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
@@ -898,6 +898,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
 
@@ -910,7 +911,7 @@ describe('RewardsDashboard', () => {
     });
 
     it('hides mUSD calculator when previous season but geo not allowed', () => {
-      // Arrange - season ended + geo NOT allowed
+      // Arrange - season ended + geo NOT allowed + campaigns disabled
       const pastDateObj = new Date(pastDate);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
@@ -926,6 +927,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
 
