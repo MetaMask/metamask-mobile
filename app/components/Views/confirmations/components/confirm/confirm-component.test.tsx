@@ -17,7 +17,7 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
-import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../../hooks/useConfirmActions');
 
@@ -526,7 +526,7 @@ describe('Confirm', () => {
         {
           ...predictDepositAndOrderState.engine.backgroundState
             .TransactionController.transactions[0],
-          type: PREDICT_DEPOSIT_AND_ORDER_TYPE,
+          type: TransactionType.predictDepositAndOrder,
         },
       ];
 

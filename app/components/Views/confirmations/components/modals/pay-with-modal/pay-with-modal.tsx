@@ -38,7 +38,6 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
-import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../constants/predict';
 
 interface PayWithModalParams {
   isPredictContext?: boolean;
@@ -153,7 +152,9 @@ export function PayWithModal() {
         }
 
         if (
-          hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
+          hasTransactionType(transactionMeta, [
+            TransactionType.predictDepositAndOrder,
+          ])
         ) {
           onPredictPaymentTokenChange(token);
           return;
