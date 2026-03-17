@@ -29,7 +29,11 @@ import {
   REWARDS_GTM_MODAL_SHOWN,
 } from '../../constants/storage';
 import { analytics } from '../../util/analytics/analytics';
-import { setDataCollectionForMarketing } from '../../actions/security';
+import {
+  setDataCollectionForMarketing,
+  setOsAuthEnabled,
+} from '../../actions/security';
+import { setLockTime } from '../../actions/settings';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
@@ -118,6 +122,8 @@ interface AgenticBridge {
       metametrics?: boolean;
       skipGtmModals?: boolean;
       skipPerpsTutorial?: boolean;
+      autoLockNever?: boolean;
+      deviceAuthEnabled?: boolean;
     };
   }) => Promise<{
     ok: boolean;
@@ -444,19 +450,29 @@ const AgenticService = {
             Engine.context.PerpsController?.markTutorialCompleted();
           }
 
-          // 7. Configure MetaMetrics if specified
+          // 7. Set auto-lock to "Never" (-1) for agentic workflows
+          if (settings.autoLockNever === true) {
+            ReduxService.store.dispatch(setLockTime(-1));
+          }
+
+          // 8. Enable device authentication (biometrics/passcode bypass)
+          if (settings.deviceAuthEnabled === true) {
+            ReduxService.store.dispatch(setOsAuthEnabled(true));
+          }
+
+          // 9. Configure MetaMetrics if specified
           if (settings.metametrics === false) {
             await analytics.optOut();
           } else if (settings.metametrics === true) {
             await analytics.optIn();
           }
 
-          // 8. Navigate to wallet (same as Authentication.unlockWallet)
+          // 10. Navigate to wallet (same as Authentication.unlockWallet)
           NavigationService.navigation?.reset({
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           });
 
-          // 9. Collect all ETH accounts for the summary
+          // 11. Collect all ETH accounts for the summary
           const ethAccs = (
             Object.values(
               AccountsController.state.internalAccounts.accounts,
