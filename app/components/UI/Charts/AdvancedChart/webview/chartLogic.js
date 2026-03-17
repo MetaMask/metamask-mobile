@@ -161,6 +161,7 @@ function handleSetOHLCVData(payload) {
         window.isChartReady = false;
         window.activeStudies = {};
         window.volumeStudyId = null;
+        window.lastPriceShapeId = null;
         window.positionShapeIds = [];
         window.realtimeCallbacks = {};
         window.pendingGetBarsCallback = null;
@@ -169,6 +170,7 @@ function handleSetOHLCVData(payload) {
     } else {
       try {
         window.chartWidget.activeChart().resetData();
+        createLastPriceLine();
       } catch (e) {
         // resetData can fail if chart is in a transitional state
       }
@@ -215,6 +217,8 @@ function handleRealtimeUpdate(payload) {
   for (var i = 0; i < guids.length; i++) {
     window.realtimeCallbacks[guids[i]](tick);
   }
+
+  createLastPriceLine();
 }
 
 // ============================================
@@ -520,6 +524,63 @@ function handleSetPositionLines(payload) {
 }
 
 // ============================================
+// Single last-close price label via horizontal_line shape
+// ============================================
+window.lastPriceShapeId = null;
+
+function createLastPriceLine() {
+  if (!window.chartWidget || !window.isChartReady) return;
+  if (window.ohlcvData.length === 0) return;
+
+  removeLastPriceLine();
+
+  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+  var chart = window.chartWidget.activeChart();
+  var color = window.CONFIG.theme.successColor;
+
+  chart
+    .createShape(
+      { price: lastBar.close },
+      {
+        shape: 'horizontal_line',
+        overrides: {
+          linecolor: color,
+          linestyle: 2,
+          linewidth: 1,
+          showLabel: false,
+          showPrice: true,
+          fontsize: 11,
+          horzLabelsAlign: 'right',
+        },
+        disableSelection: true,
+        disableSave: true,
+        disableUndo: true,
+        showInObjectsTree: false,
+        zOrder: 'bottom',
+      },
+    )
+    .then(function (id) {
+      window.lastPriceShapeId = id;
+    })
+    .catch(function (e) {
+      sendToReactNative('DEBUG', {
+        message:
+          '[createLastPriceLine] createShape failed: ' +
+          (e && e.message ? e.message : String(e)),
+      });
+    });
+}
+
+function removeLastPriceLine() {
+  if (window.lastPriceShapeId) {
+    try {
+      window.chartWidget.activeChart().removeEntity(window.lastPriceShapeId);
+    } catch (e) {}
+    window.lastPriceShapeId = null;
+  }
+}
+
+// ============================================
 // Volume Helpers
 // ============================================
 window.volumeStudyId = null;
@@ -740,7 +801,7 @@ var customDatafeed = {
           '1M',
         ],
         volume_precision: 0,
-        data_status: 'streaming',
+        data_status: 'endofday',
       });
     }, 0);
   },
@@ -893,9 +954,9 @@ function initChart() {
           // TODO: revert to 'transparent' after verifying candle count against designs
           'scalesProperties.lineColor': '#444444',
           'scalesProperties.fontSize': 11,
-          'scalesProperties.showStudyLastValue': true,
-          'scalesProperties.showSeriesLastValue': true,
-          'scalesProperties.showSymbolLabels': true,
+          'scalesProperties.showStudyLastValue': false, // Hides volume label
+          'scalesProperties.showSeriesLastValue': false, // Hides open/close labels
+          'scalesProperties.showSymbolLabels': false, // Hides "ASSET" text
           'scalesProperties.showRightScale': true,
           'scalesProperties.showLeftScale': false,
           'paneProperties.bottomMargin': 5,
@@ -926,6 +987,7 @@ function initChart() {
       } catch (e) {}
 
       applySeriesColors();
+      createLastPriceLine();
 
       sendToReactNative('CHART_READY', {});
 
