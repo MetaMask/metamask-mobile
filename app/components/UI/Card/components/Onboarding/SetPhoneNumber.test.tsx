@@ -34,6 +34,21 @@ jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
+// Capture setOnValueChange callbacks and navigation args so tests can simulate
+// a user picking a country from the region selector modal.
+let capturedOnValueChange: ((region: unknown) => void) | null = null;
+const mockCreateRegionSelectorModalNavigationDetails = jest.fn(
+  (params: unknown) => ['RegionSelectorModal', { params }] as const,
+);
+jest.mock('./RegionSelectorModal', () => ({
+  setOnValueChange: jest.fn((cb) => {
+    capturedOnValueChange = cb;
+  }),
+  clearOnValueChange: jest.fn(),
+  createRegionSelectorModalNavigationDetails: (params: unknown) =>
+    mockCreateRegionSelectorModalNavigationDetails(params),
+}));
+
 import { useCardSDK } from '../../sdk';
 
 // Mock OnboardingStep
@@ -344,6 +359,44 @@ describe('SetPhoneNumber Component', () => {
       fireEvent.press(countrySelect);
 
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('highlights the most recently selected country when reopening the modal, not the original profile country', () => {
+      // userCountry from the profile is US (+1)
+      // The user opens the modal and picks GB (+44) instead
+      // Reopening the modal must highlight GB, not US
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+
+      // First open: selectedRegionKey should be userCountry.key ('US')
+      fireEvent.press(countrySelect);
+      const firstCallParams =
+        mockCreateRegionSelectorModalNavigationDetails.mock.calls[0][0];
+      expect(firstCallParams).toMatchObject({ selectedRegionKey: 'US' });
+
+      // Simulate user picking GB from the modal
+      act(() => {
+        capturedOnValueChange?.({
+          key: 'GB',
+          name: 'United Kingdom',
+          emoji: '🇬🇧',
+          areaCode: '44',
+          canSignUp: true,
+        });
+      });
+
+      // Second open: selectedRegionKey must now be 'GB', not 'US'
+      fireEvent.press(countrySelect);
+      const secondCallParams =
+        mockCreateRegionSelectorModalNavigationDetails.mock.calls[1][0];
+      expect(secondCallParams).toMatchObject({ selectedRegionKey: 'GB' });
     });
   });
 

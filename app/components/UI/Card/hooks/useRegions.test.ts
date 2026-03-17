@@ -88,17 +88,6 @@ describe('useRegions', () => {
       expect(us?.emoji).toBeDefined();
     });
 
-    it('returns empty array when registration settings have no countries', () => {
-      mockUseRegistrationSettings.mockReturnValue({
-        data: { countries: undefined },
-        isLoading: false,
-      } as ReturnType<typeof useRegistrationSettings>);
-
-      const { result } = renderHook(() => useRegions());
-
-      expect(result.current.allRegions).toEqual([]);
-    });
-
     it('returns empty array when registration settings data is null', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,

@@ -24,7 +24,7 @@ import {
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
-import { CardError } from '../../types';
+import { CardError, Region } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
@@ -48,10 +48,8 @@ const SetPhoneNumber = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [isUsPhoneNumberError, setIsUsPhoneNumberError] = useState(false);
-  const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
-    useState<string>(userCountry?.areaCode || '');
-  const [selectedCountryEmoji, setSelectedCountryEmoji] = useState<string>(
-    userCountry?.emoji || '',
+  const [selectedCountry, setSelectedCountry] = useState<Region | null>(
+    userCountry ?? null,
   );
 
   const isUsUser = userCardLocation === 'us';
@@ -67,8 +65,7 @@ const SetPhoneNumber = () => {
   // Sync local state when userCountry changes (e.g., after regions load)
   useEffect(() => {
     if (userCountry) {
-      setSelectedCountryAreaCode(userCountry.areaCode || '');
-      setSelectedCountryEmoji(userCountry.emoji || '');
+      setSelectedCountry(userCountry);
     }
   }, [userCountry]);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
@@ -92,7 +89,8 @@ const SetPhoneNumber = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleContinue = async () => {
-    if (!phoneNumber || !selectedCountryAreaCode || !contactVerificationId) {
+    const areaCode = selectedCountry?.areaCode;
+    if (!phoneNumber || !areaCode || !contactVerificationId) {
       return;
     }
 
@@ -113,19 +111,19 @@ const SetPhoneNumber = () => {
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
             action: CardActions.SET_PHONE_NUMBER_BUTTON,
-            phone_number_country_code: selectedCountryAreaCode,
+            phone_number_country_code: areaCode,
           })
           .build(),
       );
       const { success } = await sendPhoneVerification({
-        phoneCountryCode: selectedCountryAreaCode,
+        phoneCountryCode: areaCode,
         phoneNumber,
         contactVerificationId,
       });
 
       if (success) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
-          phoneCountryCode: selectedCountryAreaCode,
+          phoneCountryCode: areaCode,
           phoneNumber,
         });
       }
@@ -146,21 +144,20 @@ const SetPhoneNumber = () => {
     setIsUsPhoneNumberError(false);
 
     setOnValueChange((region) => {
-      setSelectedCountryAreaCode(region.areaCode || '');
-      setSelectedCountryEmoji(region.emoji || '');
+      setSelectedCountry(region);
     });
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
         regions: availableRegions,
         renderAreaCode: true,
-        selectedRegionKey: userCountry?.key ?? null,
+        selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
   }, [
     navigation,
     availableRegions,
-    userCountry?.key,
+    selectedCountry?.key,
     resetPhoneVerificationSend,
   ]);
 
@@ -199,7 +196,7 @@ const SetPhoneNumber = () => {
 
     return (
       !phoneNumber ||
-      !selectedCountryAreaCode ||
+      !selectedCountry?.areaCode ||
       !contactVerificationId ||
       !isCurrentPhoneNumberValid ||
       !isUsPhoneValid ||
@@ -208,7 +205,7 @@ const SetPhoneNumber = () => {
     );
   }, [
     phoneNumber,
-    selectedCountryAreaCode,
+    selectedCountry?.areaCode,
     contactVerificationId,
     phoneVerificationIsLoading,
     phoneVerificationIsError,
@@ -226,7 +223,7 @@ const SetPhoneNumber = () => {
       <Box twClassName="flex flex-row items-center justify-center gap-2">
         <Box twClassName="w-26">
           <SelectField
-            value={`${selectedCountryEmoji} +${selectedCountryAreaCode}`}
+            value={`${selectedCountry?.emoji ?? ''} +${selectedCountry?.areaCode ?? ''}`}
             onPress={handleCountrySelect}
             hideIcon
             testID="set-phone-number-country-area-code-select"

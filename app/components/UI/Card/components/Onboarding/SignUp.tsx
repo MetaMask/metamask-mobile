@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -54,6 +60,7 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
+  const hasAutoSelectedCountry = useRef(false);
   const geoLocation = useSelector(selectCardGeoLocation);
   const {
     signUpRegions,
@@ -88,9 +95,19 @@ const SignUp = () => {
       return;
     }
 
+    // Run at most once: prevents a background re-fetch of registrationSettings
+    // (which produces a new getRegionByCode reference) from overwriting the
+    // user's manual country selection.
+    if (hasAutoSelectedCountry.current) {
+      return;
+    }
+
     const matchedRegion = getRegionByCode(geoLocation);
 
-    if (matchedRegion) {
+    // Only pre-select countries that are eligible for sign-up.
+    // getRegionByCode searches allRegions, which includes canSignUp: false entries.
+    if (matchedRegion?.canSignUp) {
+      hasAutoSelectedCountry.current = true;
       setSelectedCountry(matchedRegion);
       dispatch(setUserCardLocation(mapCountryToLocation(matchedRegion.key)));
     }

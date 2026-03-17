@@ -431,6 +431,66 @@ describe('SignUp Component', () => {
         'international',
       );
     });
+
+    it('does not pre-select country when geoLocation matches a canSignUp: false country', () => {
+      // GB exists in allRegions but has canSignUp: false — must not be pre-selected
+      const storeWithGB = createTestStore({ geoLocation: 'GB' });
+
+      const { queryByText, getByTestId } = render(
+        <Provider store={storeWithGB}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(queryByText('United Kingdom')).toBeNull();
+      // Continue button must remain disabled — no eligible country was selected
+      expect(getByTestId('signup-continue-button').props.disabled).toBe(true);
+      expect(storeWithGB.getState().card.userCardLocation).toBe(
+        'international',
+      );
+    });
+
+    it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {
+      // Simulates a background re-fetch of registrationSettings that produces a
+      // new getRegionByCode reference without changing the actual data.
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+      const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+
+      const firstGetRegionByCode = jest.fn(mockGetRegionByCode);
+      mockUseRegions.mockReturnValue({
+        signUpRegions: mockSignUpRegions,
+        getRegionByCode: firstGetRegionByCode,
+        isLoading: false,
+      });
+
+      const { getByText, rerender } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // US was auto-selected on first render
+      expect(getByText('United States')).toBeOnTheScreen();
+      expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
+
+      // Simulate background refetch: new function identity, same data
+      const secondGetRegionByCode = jest.fn(mockGetRegionByCode);
+      mockUseRegions.mockReturnValue({
+        signUpRegions: mockSignUpRegions,
+        getRegionByCode: secondGetRegionByCode,
+        isLoading: false,
+      });
+
+      rerender(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // hasAutoSelectedCountry ref must have blocked the second run
+      expect(secondGetRegionByCode).not.toHaveBeenCalled();
+      expect(getByText('United States')).toBeOnTheScreen();
+    });
   });
 
   describe('Form Validation', () => {
