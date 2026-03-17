@@ -102,7 +102,11 @@ import {
   TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Theme,
+  ThemeProvider,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 
 interface OnboardingState {
   warningModalVisible: boolean;
@@ -849,22 +853,24 @@ const Onboarding = () => {
           >
             {strings('onboarding.start_exploring_now')}
           </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            isInverse
-            onPress={() => handleCtaActions('existing')}
-            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={tw.style({
-              backgroundColor: importedColors.applePayBlack,
-              borderColor: 'transparent',
-            })}
+          <ThemeProvider
+            theme={
+              themeContext.themeAppearance === 'dark' ? Theme.Light : Theme.Dark
+            }
           >
-            {SEEDLESS_ONBOARDING_ENABLED
-              ? strings('onboarding.import_using_srp_social_login')
-              : strings('onboarding.import_using_srp')}
-          </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              isInverse
+              onPress={() => handleCtaActions('existing')}
+              testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {SEEDLESS_ONBOARDING_ENABLED
+                ? strings('onboarding.import_using_srp_social_login')
+                : strings('onboarding.import_using_srp')}
+            </Button>
+          </ThemeProvider>
         </OnboardingAnimation>
       </Box>
     ),
@@ -872,7 +878,7 @@ const Onboarding = () => {
       state.startOnboardingAnimation,
       setStartFoxAnimation,
       handleCtaActions,
-      tw,
+      themeContext.themeAppearance,
     ],
   );
 
