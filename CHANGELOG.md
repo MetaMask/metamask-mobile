@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add network logo for Tempo mainnet (#26904)
-- Adds the "refundTo" param for postQuote transactions, so refunds from Relay will be refunded back to Predict balance (#27065)
+- Added the "refundTo" param for postQuote transactions, so refunds from Relay will be refunded back to Predict balance (#27065)
 - Added MYX Finance as a second perpetuals provider with provider+network switching UI and validated market data (#26553)
 - Added redesigned Speed up and Cancel transaction modal (#26209)
 - Added max convert bottom sheet for mUSD Quick Convert (#26638)
@@ -69,6 +69,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed network details screen showing a delete (trash) icon for networks that cannot be removed (e.g. Ethereum mainnet, Linea, Goerli, testnets) (#26983)
 - Fixed token hiding not working on the redesigned homepage (#26649)
 - Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after token selection (#25952)
+
+## [7.68.3]
+
+### Fixed
+
+- Fixed seedless onboarding vault decryption crash by handling both vault formats in encryptorAdapter (#27393)
+- Fixed OTA environment variable configuration to use new build flag (#26668)
 
 ## [7.68.2]
 
@@ -10925,6 +10932,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...HEAD
 [7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
+[7.68.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.68.3
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.69.0
 [7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.1...v7.68.2
 [7.68.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.68.1
