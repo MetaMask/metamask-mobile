@@ -70,9 +70,13 @@ const PriceChart = ({
 
   const chartColor =
     priceDiff > 0
-      ? theme.colors.primary.default
+      ? theme.themeAppearance === 'dark'
+        ? theme.brandColors.blue300
+        : theme.colors.primary.default
       : priceDiff < 0
-        ? theme.colors.primary.default
+        ? theme.themeAppearance === 'dark'
+          ? theme.brandColors.blue300
+          : theme.colors.primary.default
         : theme.colors.text.alternative;
 
   const apx = (size = 0) => {

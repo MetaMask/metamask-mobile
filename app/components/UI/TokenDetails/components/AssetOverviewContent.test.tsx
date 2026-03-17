@@ -15,6 +15,8 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
@@ -90,6 +92,14 @@ jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
 
+jest.mock(
+  '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard',
+  () => ({
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -159,6 +169,36 @@ const defaultProps: AssetOverviewContentProps = {
   onReceive: jest.fn(),
   goToSwaps: jest.fn(),
 };
+
+const createMockSecurityData = (
+  resultType: TokenSecurityData['resultType'],
+): TokenSecurityData => ({
+  resultType,
+  maliciousScore: '0',
+  fees: {
+    transfer: 0,
+    transferFeeMaxAmount: null,
+    buy: 0,
+    sell: 0,
+  },
+  features: [],
+  financialStats: {
+    supply: 1000000,
+    topHolders: [],
+    holdersCount: 100,
+    tradeVolume24h: null,
+    lockedLiquidityPct: null,
+    markets: [],
+  },
+  metadata: {
+    externalLinks: {
+      homepage: null,
+      twitterPage: null,
+      telegramChannelId: null,
+    },
+  },
+  created: '2023-01-01T00:00:00Z',
+});
 
 const defaultMarketInsightsResult = {
   report: {
@@ -478,6 +518,261 @@ describe('AssetOverviewContent', () => {
 
       expect(
         queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
+      ).toBeNull();
+    });
+  });
+
+  describe('Security Badge', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'test-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+    });
+
+    it('renders verified badge when securityData resultType is Verified', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Verified')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-verified');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('does not render badge when securityData resultType is Benign', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Benign')}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+      expect(queryByTestId('security-badge-warning')).toBeNull();
+      expect(queryByTestId('security-badge-malicious')).toBeNull();
+    });
+
+    it('renders warning badge when securityData resultType is Warning', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Warning')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-warning');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('renders warning badge when securityData resultType is Spam', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Spam')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-warning');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('renders malicious badge when securityData resultType is Malicious', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Malicious')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-malicious');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('navigates to security badge bottom sheet when verified badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Verified')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-verified'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Verified',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('navigates to security badge bottom sheet when warning badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Warning')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-warning'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Warning',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('navigates to security badge bottom sheet when spam badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Spam')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-warning'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Spam',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('navigates to security badge bottom sheet when malicious badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Malicious')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-malicious'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Malicious',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('does not navigate when benign badge is pressed', () => {
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Benign')}
+        />,
+        { state: createState(true) },
+      );
+
+      // Benign should not render any badge, so there's nothing to press
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not render badge when securityData is null', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} securityData={null} />,
+        { state: createState(true) },
+      );
+
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+      expect(queryByTestId('security-badge-warning')).toBeNull();
+      expect(queryByTestId('security-badge-malicious')).toBeNull();
+    });
+
+    it('does not render badge when securityData is undefined', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} securityData={undefined} />,
+        { state: createState(true) },
+      );
+
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+      expect(queryByTestId('security-badge-warning')).toBeNull();
+      expect(queryByTestId('security-badge-malicious')).toBeNull();
+    });
+
+    it('renders malicious warning banner when resultType is Malicious', () => {
+      const { getByText } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Malicious')}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getByText(strings('security_trust.malicious_token_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('security_trust.malicious_token_description', {
+            symbol: 'ETH',
+          }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render malicious warning banner when resultType is not Malicious', () => {
+      const { queryByText } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Verified')}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(
+        queryByText(strings('security_trust.malicious_token_title')),
       ).toBeNull();
     });
   });
