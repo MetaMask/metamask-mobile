@@ -2,9 +2,9 @@ import { act, renderHook } from '@testing-library/react-native';
 import { Keys } from '../../../Base/Keypad';
 import {
   type SourceAmountSelectionChangeEvent,
-  useSourceAmountCursor,
   type UseSourceAmountCursorParams,
-} from './useSourceAmountCursor';
+} from './useSourceAmountCursor.types';
+import { useSourceAmountCursor } from './useSourceAmountCursor';
 
 const createSelectionEvent = (
   start: number,

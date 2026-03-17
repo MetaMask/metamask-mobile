@@ -1,41 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { type KeypadChangeData } from '../../../Base/Keypad';
 import { formatAmountWithLocaleSeparators } from '../utils/formatAmountWithLocaleSeparators';
 import { applyKeyAtCursor } from '../utils/applyKeyAtCursor';
 import {
   mapFormattedCursorToRaw,
   mapRawCursorToFormatted,
 } from '../utils/cursorPosition';
-
-export interface SourceAmountSelectionChangeEvent {
-  nativeEvent: {
-    selection: {
-      start: number;
-      end: number;
-    };
-  };
-}
-
-export interface UseSourceAmountCursorParams {
-  sourceAmount?: string;
-  sourceTokenDecimals?: number;
-  maxInputLength: number;
-  onSourceAmountChange: (value: string | undefined) => void;
-}
-
-export interface UseSourceAmountCursorResult {
-  sourceSelection:
-    | {
-        start: number;
-        end: number;
-      }
-    | undefined;
-  handleSourceSelectionChange: (
-    event: SourceAmountSelectionChangeEvent,
-  ) => void;
-  handleKeypadChange: ({ pressedKey, value }: KeypadChangeData) => void;
-  resetSourceAmountCursorPosition: () => void;
-}
+import {
+  type SourceAmountSelectionChangeEvent,
+  type UseSourceAmountCursorParams,
+  type UseSourceAmountCursorResult,
+} from './useSourceAmountCursor.types';
 
 export const useSourceAmountCursor = ({
   sourceAmount,
