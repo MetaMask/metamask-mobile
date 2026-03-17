@@ -1,3 +1,4 @@
+import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
@@ -164,7 +165,7 @@ export class TradingService {
     if (params.trackingData?.tradeAction) {
       properties[PERPS_EVENT_PROPERTY.ACTION] = params.trackingData.tradeAction;
     }
-    // Pay with any token: trade_with_token (boolean); when true, include mm_pay_token_selected and mm_pay_network_selected
+    // Pay with any token: trade_with_token (boolean); when true, include mm_pay_token_selected and mm_pay_network_selected; when false (Perps balance), include mm_pay_token_selected: "Perps Balance"
     properties[PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN] =
       params.trackingData?.tradeWithToken === true;
     if (params.trackingData?.tradeWithToken === true) {
@@ -176,6 +177,9 @@ export class TradingService {
         properties[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
           params.trackingData.mmPayNetworkSelected;
       }
+    } else if (params.trackingData !== undefined) {
+      properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+        PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
     }
 
     // Add success-specific properties
@@ -360,7 +364,23 @@ export class TradingService {
       | { success: boolean; error?: string; orderId?: string }
       | undefined;
 
+    const paymentToken =
+      params.trackingData?.tradeWithToken === true
+        ? (params.trackingData.mmPayTokenSelected ?? 'unknown_token')
+        : 'perps_balance';
+
     try {
+      addBreadcrumb({
+        category: 'perps',
+        message: 'Order execution started',
+        level: 'info',
+        data: {
+          payment_token: paymentToken,
+          market: params.symbol,
+          orderType: params.orderType,
+        },
+      });
+
       // Start trace for the entire operation
       this.#deps.tracer.trace({
         name: PerpsTraceNames.PlaceOrder,
@@ -372,10 +392,12 @@ export class TradingService {
           market: params.symbol,
           leverage: String(params.leverage ?? 1),
           isTestnet: String(context.tracingContext.isTestnet),
+          payment_token: paymentToken,
         },
         data: {
           isBuy: params.isBuy,
           orderPrice: params.price ?? '',
+          payment_token: paymentToken,
         },
       });
 

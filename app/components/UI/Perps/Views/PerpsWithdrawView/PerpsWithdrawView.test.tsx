@@ -1,18 +1,40 @@
 import { useNavigation } from '@react-navigation/native';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
+import Logger from '../../../../../util/Logger';
 import PerpsWithdrawView from './PerpsWithdrawView';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 
 // Mock component-library Button to avoid IconSize import issues during tests
 jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   __esModule: true,
-  default: 'Button',
+  default: ({
+    label,
+    onPress,
+    testID,
+  }: {
+    label?: string;
+    onPress?: () => void;
+    testID?: string;
+  }) => {
+    const ReactModule = jest.requireActual('react');
+    const RNModule = jest.requireActual('react-native');
+    return ReactModule.createElement(
+      RNModule.TouchableOpacity,
+      { onPress, testID },
+      ReactModule.createElement(RNModule.Text, null, label),
+    );
+  },
   ButtonSize: { Lg: 'Lg', Md: 'Md' },
   ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
   ButtonWidthTypes: { Full: 'Full', Auto: 'Auto' },
@@ -199,6 +221,13 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 // Mock Toast
 jest.mock('../../../../../component-library/components/Toast', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -333,6 +362,58 @@ describe('PerpsWithdrawView', () => {
         jest.requireMock('../../hooks').useWithdrawValidation;
 
       expect(mockUseWithdrawValidation).toBeDefined();
+    });
+
+    it('logs withdraw execution errors with perps context', async () => {
+      const mockHooks = jest.requireMock('../../hooks');
+      mockHooks.useWithdrawValidation.mockReturnValue({
+        hasAmount: true,
+        isBelowMinimum: false,
+        hasInsufficientBalance: false,
+        getMinimumAmount: jest.fn(() => '10.00'),
+      });
+
+      Engine.context.PerpsController.withdraw = jest
+        .fn()
+        .mockRejectedValue(new Error('withdraw failed'));
+
+      renderWithProviders(<PerpsWithdrawView />);
+
+      fireEvent.press(screen.getByText('10%'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'withdraw failed',
+          }),
+          expect.objectContaining({
+            tags: expect.objectContaining({
+              feature: expect.any(String),
+              component: 'PerpsWithdrawView',
+              action: 'financial_withdrawal',
+            }),
+            context: {
+              name: 'PerpsWithdrawView',
+              data: expect.objectContaining({
+                amount: '100.000000',
+                destination: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+                chainId: '0xa4b1',
+                isTestnet: false,
+              }),
+            },
+          }),
+        );
+      });
     });
   });
 });

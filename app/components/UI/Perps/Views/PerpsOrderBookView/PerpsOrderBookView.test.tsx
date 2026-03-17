@@ -655,6 +655,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
+        source: 'order_book_long_button',
       });
       expect(mockTrack).toHaveBeenCalled();
     });
@@ -673,6 +674,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
+        source: 'order_book_short_button',
       });
       expect(mockTrack).toHaveBeenCalled();
     });

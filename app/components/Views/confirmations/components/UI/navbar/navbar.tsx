@@ -52,7 +52,7 @@ export function getNavbar({
       marginRight: Device.isAndroid() ? 60 : undefined,
     },
     headerStyle: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },

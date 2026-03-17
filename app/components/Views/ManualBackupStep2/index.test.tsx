@@ -9,7 +9,10 @@ import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUp
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager, Platform } from 'react-native';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import { ReactTestInstance } from 'react-test-renderer';
 
 const mockStore = configureMockStore();
@@ -415,6 +418,7 @@ describe('ManualBackupStep2', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
+        accountType: AccountType.Metamask,
       });
     });
 
