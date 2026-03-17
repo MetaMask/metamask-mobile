@@ -525,9 +525,9 @@ async function main() {
               options.initialCommit,
               currentCommit,
               version,
+              baseDir,
               options.initialBuildNumber,
               latestBuild,
-              baseDir,
             );
           } else {
             console.log(`\n✅ No cherry-picks since initial build`);
@@ -631,9 +631,9 @@ async function main() {
             options.fromCommit,
             options.toCommit,
             version,
+            baseDir,
             options.prevBuildNumber,
             options.buildNumber || latestBuild,
-            baseDir,
           );
 
           // Print summary

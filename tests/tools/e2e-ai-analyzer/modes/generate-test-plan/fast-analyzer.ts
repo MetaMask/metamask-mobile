@@ -702,9 +702,9 @@ export async function analyzeDeltaWithLLM(
   fromCommit: string,
   toCommit: string,
   version: string,
+  baseDir: string,
   fromBuild?: number,
   toBuild?: number,
-  baseDir: string = process.cwd(),
 ): Promise<DeltaAnalysisResult> {
   // Get teams that haven't signed off
   const unsignedTeams = teamSignOffs
