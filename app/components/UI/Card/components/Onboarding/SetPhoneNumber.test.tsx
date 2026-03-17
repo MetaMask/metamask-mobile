@@ -425,11 +425,12 @@ describe('SetPhoneNumber Component', () => {
         </Provider>,
       );
 
+      // SelectField renders the value as text content inside a TouchableOpacity.
+      // Area code for GB is +44.
       const countrySelect = getByTestId(
         'set-phone-number-country-area-code-select',
       );
-      // Area code for GB is +44
-      expect(countrySelect.props.value).toContain('44');
+      expect(countrySelect).toHaveTextContent(/\+44/);
     });
 
     it('falls back to userCountry when countryKey nav param is absent', () => {
@@ -443,11 +444,12 @@ describe('SetPhoneNumber Component', () => {
       const countrySelect = getByTestId(
         'set-phone-number-country-area-code-select',
       );
-      expect(countrySelect.props.value).toContain('1');
+      expect(countrySelect).toHaveTextContent(/\+1/);
     });
 
     it('does not overwrite pre-selected country when userCountry reference changes', () => {
-      // countryKey resolves to GB; subsequent userCountry reference change must not reset it
+      // countryKey resolves to GB; a subsequent re-fetch that creates a new userCountry
+      // object reference must not reset the selection back to US.
       jest
         .requireMock('../../../../../util/navigation/navUtils')
         .useParams.mockReturnValue({ countryKey: 'GB' });
@@ -458,8 +460,8 @@ describe('SetPhoneNumber Component', () => {
         </Provider>,
       );
 
-      // Simulate registrationSettings refetch: new userCountry object, same data
-      const defaultSignUpRegions = [
+      // Simulate registrationSettings refetch: new userCountry object reference, same data
+      const regions = [
         {
           key: 'US',
           name: 'United States',
@@ -483,10 +485,10 @@ describe('SetPhoneNumber Component', () => {
         },
       ];
       (useRegions as jest.Mock).mockReturnValue({
-        signUpRegions: defaultSignUpRegions,
-        userCountry: { ...defaultSignUpRegions[0] }, // new US object reference
+        signUpRegions: regions,
+        userCountry: { ...regions[0] }, // new US object reference
         getRegionByCode: (code: string) =>
-          defaultSignUpRegions.find((r) => r.key === code) ?? null,
+          regions.find((r) => r.key === code) ?? null,
         isLoading: false,
       });
 
@@ -496,47 +498,29 @@ describe('SetPhoneNumber Component', () => {
         </Provider>,
       );
 
-      // GB must still be selected, not overwritten by the new userCountry (US)
+      // GB must still be selected — the sync effect must not have fired
       const countrySelect = getByTestId(
         'set-phone-number-country-area-code-select',
       );
-      expect(countrySelect.props.value).toContain('44');
+      expect(countrySelect).toHaveTextContent(/\+44/);
     });
 
     it('does not overwrite manual selection when userCountry reference changes', () => {
-      // Start with no countryKey; userCountry = US. User manually picks GB.
-      // Then a re-fetch produces a new userCountry reference — must not reset to US.
-      const defaultSignUpRegions = [
-        {
-          key: 'US',
-          name: 'United States',
-          emoji: '🇺🇸',
-          areaCode: '1',
-          canSignUp: true,
-        },
-        {
-          key: 'CA',
-          name: 'Canada',
-          emoji: '🇨🇦',
-          areaCode: '1',
-          canSignUp: true,
-        },
-        {
-          key: 'GB',
-          name: 'United Kingdom',
-          emoji: '🇬🇧',
-          areaCode: '44',
-          canSignUp: true,
-        },
-      ];
-
+      // Start with no countryKey; userCountry = US. User manually picks GB via the
+      // region selector. A subsequent re-fetch produces a new userCountry reference
+      // (US) — it must not reset the selection back to US.
       const { getByTestId, rerender } = render(
         <Provider store={store}>
           <SetPhoneNumber />
         </Provider>,
       );
 
-      // User manually selects GB via the region selector modal
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+
+      // Open the modal to register the onValueChange callback, then pick GB
+      fireEvent.press(countrySelect);
       act(() => {
         capturedOnValueChange?.({
           key: 'GB',
@@ -548,11 +532,34 @@ describe('SetPhoneNumber Component', () => {
       });
 
       // Simulate re-fetch: new userCountry reference (US), same data
+      const regions = [
+        {
+          key: 'US',
+          name: 'United States',
+          emoji: '🇺🇸',
+          areaCode: '1',
+          canSignUp: true,
+        },
+        {
+          key: 'CA',
+          name: 'Canada',
+          emoji: '🇨🇦',
+          areaCode: '1',
+          canSignUp: true,
+        },
+        {
+          key: 'GB',
+          name: 'United Kingdom',
+          emoji: '🇬🇧',
+          areaCode: '44',
+          canSignUp: true,
+        },
+      ];
       (useRegions as jest.Mock).mockReturnValue({
-        signUpRegions: defaultSignUpRegions,
-        userCountry: { ...defaultSignUpRegions[0] },
+        signUpRegions: regions,
+        userCountry: { ...regions[0] },
         getRegionByCode: (code: string) =>
-          defaultSignUpRegions.find((r) => r.key === code) ?? null,
+          regions.find((r) => r.key === code) ?? null,
         isLoading: false,
       });
 
@@ -563,10 +570,7 @@ describe('SetPhoneNumber Component', () => {
       );
 
       // GB must still be selected
-      const countrySelect = getByTestId(
-        'set-phone-number-country-area-code-select',
-      );
-      expect(countrySelect.props.value).toContain('44');
+      expect(countrySelect).toHaveTextContent(/\+44/);
     });
   });
 
