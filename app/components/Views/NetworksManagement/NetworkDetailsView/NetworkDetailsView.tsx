@@ -7,7 +7,10 @@ import React, {
 } from 'react';
 import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardAwareScrollView,
+  KeyboardProvider,
+} from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -181,7 +184,7 @@ const NetworkDetailsView = () => {
 
   const placeholderTextColor = colors.text.muted;
 
-  return (
+  const content = (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
       edges={['top', 'bottom']}
@@ -234,10 +237,9 @@ const NetworkDetailsView = () => {
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
-        enableOnAndroid
-        enableAutomaticScroll
-        extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
         keyboardShouldPersistTaps="handled"
+        bottomOffset={Platform.OS === 'android' ? 120 : 20}
+        disableScrollOnKeyboardHide
       >
         <Box twClassName="flex-1 gap-4 pt-4 mb-6">
           {/* Network Name */}
@@ -356,6 +358,8 @@ const NetworkDetailsView = () => {
       )}
     </SafeAreaView>
   );
+
+  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default NetworkDetailsView;
