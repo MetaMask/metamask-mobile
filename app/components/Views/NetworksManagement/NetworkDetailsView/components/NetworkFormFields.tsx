@@ -131,7 +131,8 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
   } = formHook;
 
   const { warningName } = validation;
-  const isRequiredNameWarning = warningName === strings('app_settings.required');
+  const isRequiredNameWarning =
+    warningName === strings('app_settings.required');
 
   const handleNameBlur = useCallback(() => {
     onValidateName();
@@ -164,10 +165,16 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
             </Text>
           ) : (
             <>
-              <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-warning-default"
+              >
                 {strings('wallet.incorrect_network_name_warning')}
               </Text>
-              <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-warning-default"
+              >
                 {strings('wallet.suggested_name')}{' '}
                 <Text
                   variant={TextVariant.BodySm}
