@@ -19,10 +19,13 @@
  * 
  * Example output:
  *   {
- *     "component_view": { "tests_count": 94 },
- *     "unit":           { "tests_count": 41957 },
- *     "e2e":            { "tests_count": 420, "main_tests_count": 276, "confirmations_tests_count": 62, "flask_tests_count": 144 },
- *     "performance":    { "tests_count": 21, "login_tests_count": 11, "onboarding_tests_count": 4, "mm_connect_tests_count": 6 }
+ *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
+ *     "component_view":{ "total_tests_run": 94,    "total_tests_skipped": 0 },
+ *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
+ *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
+ *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
+ *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
+ *                        "login_tests_defined": 11, "onboarding_tests_defined": 4, "mm_connect_tests_defined": 6 }
  *   }
  */
 
@@ -170,6 +173,39 @@ async function downloadArtifact(artifactName) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Counts skip calls in a source string.
+ * Matches it.skip(, test.skip(, describe.skip( — anchored to avoid false
+ * positives like result.current.skip().
+ *
+ * @param {string} source
+ * @returns {number}
+ */
+function countSkips(source) {
+  return (source.match(/\b(?:it|test|describe)\.skip\s*\(/g) ?? []).length;
+}
+
+/**
+ * Recursively collects file paths under `dir` that satisfy `predicate(filename)`.
+ *
+ * @param {string} dir
+ * @param {(name: string) => boolean} predicate
+ * @returns {Promise<string[]>}
+ */
+async function walkFiles(dir, predicate) {
+  const results = [];
+  const entries = await readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...(await walkFiles(fullPath, predicate)));
+    } else if (entry.isFile() && predicate(entry.name)) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
+
+/**
  * Extracts a feature folder name from a Jest test file path.
  *
  * Priority:
@@ -235,12 +271,12 @@ async function collectShardCounts(artifactPattern, label, minFolderCount = 0) {
   }
 
   console.log(`[${label}] total: ${total}`);
-  const result = { tests_count: total };
+  const result = { total_tests_run: total };
   for (const [folder, count] of Object.entries(folderCounts)) {
     if (minFolderCount > 0 && count < minFolderCount) {
-      result.other_tests_count = (result.other_tests_count ?? 0) + count;
+      result.other_tests_run = (result.other_tests_run ?? 0) + count;
     } else {
-      result[`${folder}_tests_count`] = count;
+      result[`${folder}_tests_run`] = count;
     }
   }
   return result;
@@ -248,14 +284,32 @@ async function collectShardCounts(artifactPattern, label, minFolderCount = 0) {
 
 async function collectComponentViewTestCount() {
   console.log('[component-view] collecting per-suite counts from shard artifacts...');
-  return collectShardCounts(/^coverage-cv-\d+$/, 'component-view');
+  const result = await collectShardCounts(/^coverage-cv-\d+$/, 'component-view');
+  if (Object.keys(result).length === 0) return result;
+
+  const isViewTestFile = (name) => /\.view(?:\..+)?\.test\.[jt]sx?$/.test(name);
+  const files = await walkFiles('app', isViewTestFile);
+  let skips = 0;
+  for (const f of files) skips += countSkips(await readFile(f, 'utf8'));
+  result.total_tests_skipped = skips;
+  return result;
 }
 
 async function collectUnitTestCount() {
   console.log('[unit] collecting per-suite counts from shard artifacts...');
   // minFolderCount=200: buckets individual component-level folders into `other`,
   // keeping only meaningful team-level categories (bridge, perps, confirmations, etc.)
-  return collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
+  const result = await collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
+  if (Object.keys(result).length === 0) return result;
+
+  // Unit test files: *.test.{ts,tsx,js} excluding *.view[.*].test.*
+  const isUnitTestFile = (name) =>
+    /\.test\.[jt]sx?$/.test(name) && !/\.view(?:\..+)?\.test\.[jt]sx?$/.test(name);
+  const files = await walkFiles('app', isUnitTestFile);
+  let skips = 0;
+  for (const f of files) skips += countSkips(await readFile(f, 'utf8'));
+  result.total_tests_skipped = skips;
+  return result;
 }
 
 /**
@@ -351,20 +405,29 @@ async function collectE2ECounts() {
   // Canonical unique counts (Android as source of truth — same tests run on iOS)
   // A missing key means that channel did not run; present-but-zero means it ran and found nothing.
   if (androidMain > 0 || iosMain > 0) {
-    result.main_tests_count = androidMain; // unique count
-    result.main_android_tests_count = androidMain; // platform health signal
-    result.main_ios_tests_count = iosMain; // drops to 0 if iOS infrastructure is broken
+    result.main_tests_run = androidMain; // unique count
+    result.main_android_tests_run = androidMain; // platform health signal
+    result.main_ios_tests_run = iosMain; // drops to 0 if iOS infrastructure is broken
   }
   if (androidFlask > 0 || iosFlask > 0) {
-    result.flask_tests_count = androidFlask; // unique count
-    result.flask_android_tests_count = androidFlask;
-    result.flask_ios_tests_count = iosFlask;
+    result.flask_tests_run = androidFlask; // unique count
+    result.flask_android_tests_run = androidFlask;
+    result.flask_ios_tests_run = iosFlask;
   }
-  result.tests_count = androidMain + androidFlask;
+  result.total_tests_run = androidMain + androidFlask;
 
   for (const [tag, count] of Object.entries(suiteCounts)) {
-    result[`${tag}_tests_count`] = count;
+    result[`${tag}_tests_run`] = count;
   }
+
+  // Static scan for skip counts — independent of which platform/channel ran
+  const isSpecTs = (name) => /\.spec\.[jt]sx?$/.test(name);
+  let skips = 0;
+  for (const dir of ['tests/regression', 'tests/smoke']) {
+    const files = await walkFiles(dir, isSpecTs);
+    for (const f of files) skips += countSkips(await readFile(f, 'utf8'));
+  }
+  result.total_tests_skipped = skips;
 
   return result;
 }
@@ -380,6 +443,7 @@ async function collectPerformanceTestCounts() {
   console.log('[performance] scanning tests/performance/ for scenarios...');
 
   const categoryCounts = {};
+  let totalSkips = 0;
 
   async function scanDir(dir, category) {
     const entries = await readdir(dir, { withFileTypes: true });
@@ -397,6 +461,7 @@ async function collectPerformanceTestCounts() {
           const key = category.replace(/-/g, '_');
           categoryCounts[key] = (categoryCounts[key] ?? 0) + count;
         }
+        totalSkips += countSkips(source);
       }
     }
   }
@@ -405,12 +470,12 @@ async function collectPerformanceTestCounts() {
 
   const total = Object.values(categoryCounts).reduce((s, n) => s + n, 0);
 
-  const result = { tests_count: total };
+  const result = { total_tests_defined: total, total_tests_skipped: totalSkips };
   for (const [cat, count] of Object.entries(categoryCounts)) {
-    result[`${cat}_tests_count`] = count;
+    result[`${cat}_tests_defined`] = count;
     console.log(`[performance] ${cat}: ${count}`);
   }
-  console.log(`[performance] total: ${total}`);
+  console.log(`[performance] total: ${total}, skips: ${totalSkips}`);
   return result;
 }
 
