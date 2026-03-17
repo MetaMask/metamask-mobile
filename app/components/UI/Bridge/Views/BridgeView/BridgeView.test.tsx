@@ -1030,14 +1030,17 @@ describe('BridgeView', () => {
       expect(queryByTestId('edit-slippage-button')).toBeNull();
     });
 
-    it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
+    it('does not navigate to QuoteExpiredModal when quote expires without refresh', async () => {
+      // useRenderQuoteExpireModal was removed; the expired-quote modal no longer
+      // exists. Instead, the cached quote stays visible and "Get new quote"
+      // appears in the footer.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
-          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
+          needsNewQuote: true,
         }));
 
       renderScreen(
@@ -1049,9 +1052,12 @@ describe('BridgeView', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+          },
+        );
       });
     });
 
@@ -1076,7 +1082,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
@@ -1103,7 +1109,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
@@ -1139,13 +1145,15 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
     });
 
-    it('navigates to QuoteExpiredModal when quote expires and leaves quote content hidden', async () => {
+    it('shows cached quote content when quote expires', async () => {
+      // When quotes expire the cached quote (still in Redux) is shown in the
+      // QuoteDetailsCard. The slippage button must remain visible.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1153,23 +1161,33 @@ describe('BridgeView', () => {
           isExpired: true,
           willRefresh: false,
           isLoading: false,
-          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
+          needsNewQuote: true,
+          // activeQuote remains the cached quote — not cleared on expiry
         }));
+
+      // createBridgeTestState provides source/dest tokens so QuoteDetailsCard
+      // passes its early-return guard and renders the slippage button.
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: { sourceAmount: '1.0' },
+      });
 
       const { queryByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
+        { state: testState },
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+          },
+        );
       });
-      expect(queryByTestId('edit-slippage-button')).toBeNull();
+      expect(queryByTestId('edit-slippage-button')).not.toBeNull();
     });
   });
 
