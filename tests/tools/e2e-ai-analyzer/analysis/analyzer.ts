@@ -250,7 +250,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
               return analysis as ModeAnalysisResult<M>;
             }
 
-            console.log('⚠️ Failed to parse finalize_tag_selection');
+            console.log(`⚠️ Failed to parse ${modeConfig.finalizeToolName}`);
             printTokenReport();
             return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
