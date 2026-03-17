@@ -236,6 +236,9 @@ class AppInformation extends PureComponent {
             {this.state.showEnvironmentInfo && (
               <>
                 <Text style={styles.branchInfo}>
+                  TEST GITHUB ACTIONS WITH RUNWAY BUCKET INTEGRATION
+                </Text>
+                <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                 </Text>
                 <Text style={styles.branchInfo}>
