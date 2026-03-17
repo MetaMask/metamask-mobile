@@ -131,6 +131,7 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
   } = formHook;
 
   const { warningName } = validation;
+  const isRequiredNameWarning = warningName === strings('app_settings.required');
 
   const handleNameBlur = useCallback(() => {
     onValidateName();
@@ -146,7 +147,7 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
         value={nickname}
         isDisabled={isAnyModalVisible || editable === false}
         onChangeText={onNicknameChange}
-        placeholder={strings('app_settings.network_name_placeholder')}
+        placeholder={strings('app_settings.network_name_label')}
         placeholderTextColor={placeholderTextColor}
         onBlur={handleNameBlur}
         onFocus={onNameFocused}
@@ -157,19 +158,27 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
       />
       {warningName ? (
         <Box>
-          <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
-            {strings('wallet.incorrect_network_name_warning')}
-          </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
-            {strings('wallet.suggested_name')}{' '}
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-info-default"
-              onPress={() => autoFillNameField(warningName)}
-            >
+          {isRequiredNameWarning ? (
+            <Text variant={TextVariant.BodySm} twClassName="text-error-default">
               {warningName}
             </Text>
-          </Text>
+          ) : (
+            <>
+              <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
+                {strings('wallet.incorrect_network_name_warning')}
+              </Text>
+              <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
+                {strings('wallet.suggested_name')}{' '}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-info-default"
+                  onPress={() => autoFillNameField(warningName)}
+                >
+                  {warningName}
+                </Text>
+              </Text>
+            </>
+          )}
         </Box>
       ) : null}
     </Box>
