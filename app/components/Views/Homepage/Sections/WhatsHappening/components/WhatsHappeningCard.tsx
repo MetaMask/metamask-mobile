@@ -6,7 +6,10 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  BoxFlexDirection,
+  BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
 
 interface WhatsHappeningCardProps {
@@ -19,7 +22,6 @@ const formatDate = (dateString: string): string | null => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return null;
     return date.toLocaleDateString('en-US', {
-      weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -42,8 +44,24 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
       <Box
         twClassName="w-[280px] rounded-2xl bg-background-muted overflow-hidden"
         padding={4}
-        gap={2}
+        gap={3}
       >
+        {/* Category badge */}
+        <Box twClassName="self-start">
+          <Box twClassName="rounded-full bg-background-default px-2 py-0.5">
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
+            >
+              {strings(
+                `homepage.sections.whats_happening_categories.${item.category}`,
+              )}
+            </Text>
+          </Box>
+        </Box>
+
+        {/* Title */}
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -53,6 +71,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           {item.title}
         </Text>
 
+        {/* Description */}
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
@@ -61,17 +80,40 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           {item.description}
         </Text>
 
-        {formattedDate && (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {formattedDate}
-          </Text>
-        )}
+        {/* Footer: asset pills + date */}
+        <Box gap={2}>
+          {item.relatedAssets.length > 0 && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="flex-wrap gap-1"
+            >
+              {item.relatedAssets.map((asset) => (
+                <Box
+                  key={asset.sourceAssetId}
+                  twClassName="rounded-full bg-background-default px-2 py-0.5"
+                >
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {asset.symbol}
+                  </Text>
+                </Box>
+              ))}
+            </Box>
+          )}
 
-        {item.relatedAssets.length > 0 && (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {item.relatedAssets.join(', ')}
-          </Text>
-        )}
+          {formattedDate && (
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
+              {formattedDate}
+            </Text>
+          )}
+        </Box>
       </Box>
     </TouchableOpacity>
   );

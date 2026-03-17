@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import type { MarketOverview } from '@metamask/ai-controllers';
 import Engine from '../../../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../../../selectors/featureFlagController/whatsHappening';
-import type { WhatsHappeningItem } from '../types';
+import type { RelatedAsset, WhatsHappeningItem } from '../types';
 
 /**
  * Result interface for useWhatsHappening hook
@@ -26,7 +26,10 @@ const mapTrendsToItems = (
     date: trend.articles[0]?.date ?? overview.generatedAt,
     category: trend.category,
     impact: trend.impact,
-    relatedAssets: trend.relatedAssets,
+    // The controller type declares string[] but the API returns rich objects;
+    // the controller types will be updated separately.
+    relatedAssets: trend.relatedAssets as unknown as RelatedAsset[],
+    articles: trend.articles,
   }));
 
 /**
