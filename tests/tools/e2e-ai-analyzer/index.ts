@@ -280,12 +280,20 @@ async function main() {
 
   // Handle --show-ff (show feature flag status and exit)
   if (options.showFFStatus) {
-    const ffSummary = fetchFeatureFlags();
-    console.log('\n' + formatFeatureFlagSummary(ffSummary));
-    console.log('\nDisabled flags:');
-    ffSummary.disabledFlags.forEach((flag) => {
-      console.log(`  • ${flag}`);
-    });
+    try {
+      const ffSummary = fetchFeatureFlags();
+      console.log('\n' + formatFeatureFlagSummary(ffSummary));
+      console.log('\nDisabled flags:');
+      ffSummary.disabledFlags.forEach((flag) => {
+        console.log(`  • ${flag}`);
+      });
+    } catch (error) {
+      console.error(
+        '❌ Failed to fetch feature flags:',
+        error instanceof Error ? error.message : error,
+      );
+      process.exit(1);
+    }
     process.exit(0);
   }
 

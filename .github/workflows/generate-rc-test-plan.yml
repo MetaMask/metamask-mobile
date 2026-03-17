@@ -100,7 +100,9 @@ jobs:
         id: generate
         run: |
           VERSION="${{ steps.check-release.outputs.version }}"
-          BUILD="${{ steps.extract-build.outputs.build_number }}"
+          RAW_BUILD="${{ steps.extract-build.outputs.build_number }}"
+          # Sanitize BUILD to only allow digits
+          BUILD=$(echo "$RAW_BUILD" | tr -cd '0-9')
 
           echo "Generating test plan for version: $VERSION, build: $BUILD"
 

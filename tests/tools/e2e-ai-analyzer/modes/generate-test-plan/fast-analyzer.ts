@@ -572,14 +572,17 @@ function getCherryPickDiffs(
 ): string {
   const diffs: string[] = [];
   let totalLines = 0;
+  let processedCount = 0;
 
   for (const cp of cherryPicks) {
     if (totalLines >= maxTotalLines) {
-      diffs.push(
-        `\n... [${cherryPicks.length - diffs.length} more cherry-picks truncated]`,
-      );
+      const remaining = cherryPicks.length - processedCount;
+      if (remaining > 0) {
+        diffs.push(`\n... [${remaining} more cherry-picks truncated]`);
+      }
       break;
     }
+    processedCount++;
 
     try {
       const diff = getCommitDiff(cp.commit, baseDir, maxLinesPerCommit);
