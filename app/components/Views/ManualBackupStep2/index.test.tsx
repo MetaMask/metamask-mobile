@@ -99,6 +99,27 @@ describe('ManualBackupStep2', () => {
     'cinnamon',
   ];
 
+  const defaultRouteParams = {
+    words: mockWords,
+    backupFlow: false,
+    settingsBackup: false,
+    steps: ['one', 'two', 'three'],
+  };
+
+  const createMockNavigationProps = (
+    overrides: Record<string, jest.Mock> = {},
+  ) => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    setOptions: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    isFocused: jest.fn(),
+    reset: jest.fn(),
+    dispatch: jest.fn(),
+    ...overrides,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     global.Math = mockMath;
@@ -114,49 +135,32 @@ describe('ManualBackupStep2', () => {
     });
 
     const mockRoute = jest.fn().mockReturnValue({
-      params: {
-        words: mockWords,
-        backupFlow: false,
-        settingsBackup: false,
-        steps: ['one', 'two', 'three'],
-      },
+      params: { ...defaultRouteParams },
     });
 
     const setupTest = () => {
       const mockNavigate = jest.fn();
       const mockNavigationDispatch = jest.fn();
-
       const mockGoBack = jest.fn();
       const mockSetOptions = jest.fn();
       const mockDispatch = jest.fn();
 
       store.dispatch = mockDispatch;
 
-      const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
+      const navProps = createMockNavigationProps({
         navigate: mockNavigate,
         goBack: mockGoBack,
         setOptions: mockSetOptions,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        isFocused: jest.fn(),
-        reset: jest.fn(),
         dispatch: mockNavigationDispatch,
       });
 
+      const mockNavigation = (useNavigation as jest.Mock).mockReturnValue(
+        navProps,
+      );
+
       const wrapper = renderWithProvider(
         <Provider store={store}>
-          <ManualBackupStep2
-            route={mockRoute()}
-            navigation={{
-              navigate: mockNavigate,
-              goBack: mockGoBack,
-              setOptions: mockSetOptions,
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-              isFocused: jest.fn(),
-              dispatch: mockNavigationDispatch,
-            }}
-          />
+          <ManualBackupStep2 route={mockRoute()} navigation={navProps} />
         </Provider>,
       );
 
@@ -383,15 +387,7 @@ describe('ManualBackupStep2', () => {
     });
 
     it('navigates to OptinMetrics when analytics is disabled during onboarding', async () => {
-      // configure onboarding scenario
-      mockRoute.mockReturnValue({
-        params: {
-          words: mockWords,
-          backupFlow: false,
-          settingsBackup: false,
-          steps: ['one', 'two', 'three'],
-        },
-      });
+      mockRoute.mockReturnValue({ params: { ...defaultRouteParams } });
       mockMetricsIsEnabled.mockReturnValue(false);
 
       // setup test
@@ -413,15 +409,7 @@ describe('ManualBackupStep2', () => {
     });
 
     it('navigates to onboarding success flow when analytics is enabled', async () => {
-      // configure onboarding scenario
-      mockRoute.mockReturnValue({
-        params: {
-          words: mockWords,
-          backupFlow: false,
-          settingsBackup: false,
-          steps: ['one', 'two', 'three'],
-        },
-      });
+      mockRoute.mockReturnValue({ params: { ...defaultRouteParams } });
       mockMetricsIsEnabled.mockReturnValue(true);
 
       // setup test
@@ -458,12 +446,7 @@ describe('ManualBackupStep2', () => {
 
     it('navigates to onboarding success with reminder backup flow', async () => {
       mockRoute.mockReturnValue({
-        params: {
-          words: mockWords,
-          backupFlow: true,
-          settingsBackup: false,
-          steps: ['one', 'two', 'three'],
-        },
+        params: { ...defaultRouteParams, backupFlow: true },
       });
       mockMetricsIsEnabled.mockReturnValue(true);
 
@@ -501,12 +484,7 @@ describe('ManualBackupStep2', () => {
 
     it('navigates to onboarding success with settings backup flow', async () => {
       mockRoute.mockReturnValue({
-        params: {
-          words: mockWords,
-          backupFlow: false,
-          settingsBackup: true,
-          steps: ['one', 'two', 'three'],
-        },
+        params: { ...defaultRouteParams, settingsBackup: true },
       });
       mockMetricsIsEnabled.mockReturnValue(true);
 
@@ -606,11 +584,8 @@ describe('ManualBackupStep2', () => {
   });
 
   describe('with empty mockWords', () => {
-    const mockRoute = {
-      params: {
-        words: [],
-        steps: ['one', 'two', 'three'],
-      },
+    const emptyRoute = {
+      params: { ...defaultRouteParams, words: [] },
     };
 
     const setupTest = () => {
@@ -621,29 +596,19 @@ describe('ManualBackupStep2', () => {
 
       store.dispatch = mockDispatch;
 
-      const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
+      const navProps = createMockNavigationProps({
         navigate: mockNavigate,
         goBack: mockGoBack,
         setOptions: mockSetOptions,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        isFocused: jest.fn(),
-        reset: jest.fn(),
       });
+
+      const mockNavigation = (useNavigation as jest.Mock).mockReturnValue(
+        navProps,
+      );
 
       const wrapper = renderWithProvider(
         <Provider store={store}>
-          <ManualBackupStep2
-            route={mockRoute}
-            navigation={{
-              navigate: mockNavigate,
-              goBack: mockGoBack,
-              setOptions: mockSetOptions,
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-              isFocused: jest.fn(),
-            }}
-          />
+          <ManualBackupStep2 route={emptyRoute} navigation={navProps} />
         </Provider>,
       );
 
@@ -680,54 +645,22 @@ describe('ManualBackupStep2', () => {
   });
 
   describe('headerLeft back button', () => {
-    const mockRoute = jest.fn().mockReturnValue({
-      params: {
-        words: [
-          'abstract',
-          'accident',
-          'acoustic',
-          'announce',
-          'artefact',
-          'attitude',
-          'bachelor',
-          'broccoli',
-          'business',
-          'category',
-          'champion',
-          'cinnamon',
-        ],
-        backupFlow: false,
-        settingsBackup: false,
-        steps: ['one', 'two', 'three'],
-      },
-    });
-
     it('triggers goBack when headerLeft back button is pressed', () => {
       const mockGoBack = jest.fn();
       const mockSetOptions = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({
-        navigate: jest.fn(),
+
+      const navProps = createMockNavigationProps({
         goBack: mockGoBack,
         setOptions: mockSetOptions,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        isFocused: jest.fn(),
-        reset: jest.fn(),
-        dispatch: jest.fn(),
       });
+
+      (useNavigation as jest.Mock).mockReturnValue(navProps);
+
       renderWithProvider(
         <Provider store={store}>
           <ManualBackupStep2
-            route={mockRoute()}
-            navigation={{
-              navigate: jest.fn(),
-              goBack: mockGoBack,
-              setOptions: mockSetOptions,
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-              isFocused: jest.fn(),
-              dispatch: jest.fn(),
-            }}
+            route={{ params: { ...defaultRouteParams } }}
+            navigation={navProps}
           />
         </Provider>,
       );
@@ -751,56 +684,22 @@ describe('ManualBackupStep2', () => {
       global.Math = mockMath;
     });
 
-    const mockWords = [
-      'abstract',
-      'accident',
-      'acoustic',
-      'announce',
-      'artefact',
-      'attitude',
-      'bachelor',
-      'broccoli',
-      'business',
-      'category',
-      'champion',
-      'cinnamon',
-    ];
-
     const setupErrorSheet = () => {
       const mockNavigate = jest.fn();
       const mockSetOptions = jest.fn();
 
-      (useNavigation as jest.Mock).mockReturnValue({
+      const navProps = createMockNavigationProps({
         navigate: mockNavigate,
-        goBack: jest.fn(),
         setOptions: mockSetOptions,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        isFocused: jest.fn(),
-        reset: jest.fn(),
-        dispatch: jest.fn(),
       });
+
+      (useNavigation as jest.Mock).mockReturnValue(navProps);
 
       const wrapper = renderWithProvider(
         <Provider store={store}>
           <ManualBackupStep2
-            route={{
-              params: {
-                words: mockWords,
-                backupFlow: false,
-                settingsBackup: false,
-                steps: ['one', 'two', 'three'],
-              },
-            }}
-            navigation={{
-              navigate: mockNavigate,
-              goBack: jest.fn(),
-              setOptions: mockSetOptions,
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-              isFocused: jest.fn(),
-              dispatch: jest.fn(),
-            }}
+            route={{ params: { ...defaultRouteParams } }}
+            navigation={navProps}
           />
         </Provider>,
       );
@@ -887,57 +786,24 @@ describe('ManualBackupStep2', () => {
       mockMetricsIsEnabled.mockReturnValue(true);
     });
 
-    const mockWords = [
-      'abstract',
-      'accident',
-      'acoustic',
-      'announce',
-      'artefact',
-      'attitude',
-      'bachelor',
-      'broccoli',
-      'business',
-      'category',
-      'champion',
-      'cinnamon',
-    ];
-
     it('dispatches navigation reset when success sheet onClose is called', () => {
       const mockNavigate = jest.fn();
       const mockNavigationDispatch = jest.fn();
       const mockSetOptions = jest.fn();
 
-      (useNavigation as jest.Mock).mockReturnValue({
+      const navProps = createMockNavigationProps({
         navigate: mockNavigate,
-        goBack: jest.fn(),
         setOptions: mockSetOptions,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        isFocused: jest.fn(),
-        reset: jest.fn(),
         dispatch: mockNavigationDispatch,
       });
+
+      (useNavigation as jest.Mock).mockReturnValue(navProps);
 
       const wrapper = renderWithProvider(
         <Provider store={store}>
           <ManualBackupStep2
-            route={{
-              params: {
-                words: mockWords,
-                backupFlow: false,
-                settingsBackup: false,
-                steps: ['one', 'two', 'three'],
-              },
-            }}
-            navigation={{
-              navigate: mockNavigate,
-              goBack: jest.fn(),
-              setOptions: mockSetOptions,
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-              isFocused: jest.fn(),
-              dispatch: mockNavigationDispatch,
-            }}
+            route={{ params: { ...defaultRouteParams } }}
+            navigation={navProps}
           />
         </Provider>,
       );

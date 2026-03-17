@@ -20,10 +20,12 @@ const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
   }),
 }));
 
+// Mock whenEngineReady to prevent Engine access after Jest teardown
 jest.mock('../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock analytics module
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn(() => false),
@@ -37,6 +39,7 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
+// Mock useAnalytics hook which is used by withAnalyticsAwareness HOC
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
