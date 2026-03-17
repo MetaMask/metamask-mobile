@@ -470,9 +470,12 @@ class PerpsConnectionManagerClass {
   }
 
   /**
-   * Perform the actual disconnection after grace period expires
+   * Perform the actual disconnection after grace period expires.
+   * @param options.force - Bypass refCount guard (used by ensureConnected).
    */
-  private async performActualDisconnection(): Promise<void> {
+  private async performActualDisconnection(
+    options: { force?: boolean } = {},
+  ): Promise<void> {
     DevLogger.log(
       `PerpsConnectionManager: Grace period expired, performing disconnection (refCount: ${this.connectionRefCount})`,
     );
@@ -481,8 +484,8 @@ class PerpsConnectionManagerClass {
     this.gracePeriodTimer = null;
     this.isInGracePeriod = false;
 
-    // Only disconnect if we still have no references
-    if (this.connectionRefCount <= 0) {
+    // Only disconnect if we still have no references (unless forced)
+    if (options.force || this.connectionRefCount <= 0) {
       if (this.isConnected || this.isInitialized) {
         // Track that we're disconnecting
         this.isDisconnecting = true;
@@ -1078,9 +1081,11 @@ class PerpsConnectionManagerClass {
     // Cancel grace period if still pending — we're taking over
     this.cancelGracePeriod();
 
-    // Force clean state so connect() runs the full init → ping → preload path
+    // Force clean state so connect() runs the full init → ping → preload path.
+    // Uses force: true to bypass the refCount guard — ensureConnected must
+    // always tear down, regardless of how many components hold references.
     if (this.isConnected || this.isInitialized) {
-      await this.performActualDisconnection();
+      await this.performActualDisconnection({ force: true });
     }
 
     // Full reconnect: init → ping → preload
