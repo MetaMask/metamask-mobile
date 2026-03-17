@@ -156,4 +156,20 @@ describe('useMerklBonusClaim', () => {
     expect(result.current.isClaiming).toBe(true);
     expect(result.current.claimRewards).toBe(mockClaimRewards);
   });
+
+  it('returns claimableReward null when raw value is "< 0.01" (below threshold)', () => {
+    mockUseMerklRewards.mockReturnValue({ claimableReward: '< 0.01' });
+
+    const { result } = renderHook(() => useMerklBonusClaim(eligibleAsset));
+
+    expect(result.current.claimableReward).toBeNull();
+  });
+
+  it('returns claimableReward null when raw value is below 0.01', () => {
+    mockUseMerklRewards.mockReturnValue({ claimableReward: '0.005' });
+
+    const { result } = renderHook(() => useMerklBonusClaim(eligibleAsset));
+
+    expect(result.current.claimableReward).toBeNull();
+  });
 });
