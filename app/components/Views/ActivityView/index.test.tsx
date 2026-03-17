@@ -27,6 +27,7 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 
 // Track which tabs are rendered - populated by mock
 let renderedTabs: string[] = [];
+let mockShouldIgnoreGoToTabIndexCallback = false;
 
 // Helper to get rendered tabs for assertions
 const getRenderedTabs = () => renderedTabs;
@@ -66,7 +67,9 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
 
       ReactActual.useImperativeHandle(ref, () => ({
         goToTabIndex: (index: number) => {
-          props.onChangeTab?.({ i: index });
+          if (!mockShouldIgnoreGoToTabIndexCallback) {
+            props.onChangeTab?.({ i: index });
+          }
         },
       }));
 
@@ -100,6 +103,7 @@ const Stack = createStackNavigator();
 
 const mockNavigation = {
   navigate: jest.fn(),
+  setParams: jest.fn(),
   setOptions: jest.fn(),
   goBack: jest.fn(),
   canGoBack: jest.fn(() => true),
@@ -263,6 +267,7 @@ describe('ActivityView', () => {
     mockIsEvmSelected = true;
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
+    mockShouldIgnoreGoToTabIndexCallback = false;
     clearRenderedTabs();
   });
 
@@ -475,6 +480,7 @@ describe('ActivityView', () => {
       const { getByTestId } = renderComponent(mockInitialState);
 
       expect(getByTestId('tab-perps')).toBeTruthy();
+      expect(getByTestId('perps-transactions-view')).toBeTruthy();
       expect(getRenderedTabs()).toContain('perps');
     });
 
@@ -494,6 +500,20 @@ describe('ActivityView', () => {
       renderComponent(mockInitialState);
 
       expect(getRenderedTabs()).not.toContain('perps');
+    });
+
+    it('renders Perps transactions when redirected even if tab callback is skipped', () => {
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = true;
+      mockShouldIgnoreGoToTabIndexCallback = true;
+      mockRoute.params = {
+        redirectToPerpsTransactions: true,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('perps-transactions-view')).toBeTruthy();
     });
   });
 

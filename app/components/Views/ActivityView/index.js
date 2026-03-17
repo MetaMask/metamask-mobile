@@ -143,14 +143,17 @@ const ActivityView = () => {
     useCallback(() => {
       if (params.redirectToOrders) {
         const orderTabNumber = 1;
+        setActiveTabIndex(orderTabNumber);
         navigation.setParams({ redirectToOrders: false });
         tabViewRef.current?.goToTabIndex(orderTabNumber);
       } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
+        setActiveTabIndex(perpsTabIndex);
         navigation.setParams({ redirectToPerpsTransactions: false });
         tabViewRef.current?.goToTabIndex(perpsTabIndex);
       }
     }, [
       navigation,
+      setActiveTabIndex,
       params.redirectToOrders,
       isPerpsEnabled,
       params.redirectToPerpsTransactions,
@@ -249,13 +252,11 @@ const ActivityView = () => {
                 tabLabel={strings('perps.transactions.title')}
                 style={styles.tabWrapper}
               >
-                {isPerpsTabActive ? (
-                  <PerpsConnectionProvider>
-                    <PerpsStreamProvider>
-                      <PerpsTransactionsView />
-                    </PerpsStreamProvider>
-                  </PerpsConnectionProvider>
-                ) : null}
+                <PerpsConnectionProvider>
+                  <PerpsStreamProvider>
+                    <PerpsTransactionsView isVisible={isPerpsTabActive} />
+                  </PerpsStreamProvider>
+                </PerpsConnectionProvider>
               </View>
             )}
 

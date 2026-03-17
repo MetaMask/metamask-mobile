@@ -198,6 +198,48 @@ describe('TabsList', () => {
     expect(getByText('Tab 2 Content')).toBeOnTheScreen();
   });
 
+  it('goToTabIndex loads target tab even when InteractionManager callback is delayed', async () => {
+    // Arrange
+    const originalJestWorkerId = process.env.JEST_WORKER_ID;
+    delete process.env.JEST_WORKER_ID;
+
+    (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+      () => ({ cancel: jest.fn() }),
+    );
+
+    const ref = React.createRef<TabsListRef>();
+    const tabs = ['Tab 1', 'Tab 2'];
+
+    try {
+      const { getByText } = render(
+        <TabsList ref={ref}>
+          {tabs.map((label, index) => (
+            <View
+              key={`tab${index}`}
+              {...({ tabLabel: label } as TabViewProps)}
+            >
+              <Text>{label} Content</Text>
+            </View>
+          ))}
+        </TabsList>,
+      );
+
+      // Act
+      await act(async () => {
+        ref.current?.goToTabIndex(1);
+      });
+
+      // Assert
+      expect(getByText('Tab 2 Content')).toBeOnTheScreen();
+    } finally {
+      if (originalJestWorkerId === undefined) {
+        delete process.env.JEST_WORKER_ID;
+      } else {
+        process.env.JEST_WORKER_ID = originalJestWorkerId;
+      }
+    }
+  });
+
   it('exposes getCurrentIndex method via ref', () => {
     // Arrange
     const ref = React.createRef<TabsListRef>();

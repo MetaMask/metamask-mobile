@@ -29,11 +29,16 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 const mockNavigate = jest.fn();
+const mockRefetchTransactions = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => callback(), [callback]);
+  },
 }));
 
 jest.mock('../../hooks', () => ({
@@ -130,6 +135,7 @@ describe('PerpsTransactionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockRefetchTransactions.mockClear();
 
     // Set up analytics mock
     const { useAnalytics } = jest.requireMock(
@@ -160,7 +166,7 @@ describe('PerpsTransactionsView', () => {
       transactions: mockTransactions,
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: mockRefetchTransactions,
     });
 
     mockUsePerpsEventTracking.mockReturnValue({
@@ -189,6 +195,30 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
       });
     });
+  });
+
+  it('refreshes transaction history when screen becomes focused', async () => {
+    renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    await waitFor(() => {
+      expect(mockRefetchTransactions).toHaveBeenCalled();
+    });
+  });
+
+  it('skips initial fetch and focus refresh when tab is not visible', async () => {
+    renderWithProvider(<PerpsTransactionsView isVisible={false} />, {
+      state: mockInitialState,
+    });
+
+    await waitFor(() => {
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
+        skipInitialFetch: true,
+      });
+    });
+
+    expect(mockRefetchTransactions).not.toHaveBeenCalled();
   });
 
   it('should not load transactions when not connected', () => {
@@ -292,6 +322,34 @@ describe('PerpsTransactionsView', () => {
         ),
       ).toBeTruthy();
     });
+  });
+
+  it('shows loading skeleton instead of blank list when disconnected with no data', () => {
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
+    });
+
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchTransactions,
+    });
+
+    const component = renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      component.getByTestId('perps-transactions-loading-skeleton'),
+    ).toBeOnTheScreen();
   });
 
   it('should handle API errors gracefully', async () => {

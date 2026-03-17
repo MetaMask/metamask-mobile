@@ -199,11 +199,19 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ref,
       () => ({
         goToTabIndex: (tabIndex: number) => {
+          if (
+            tabIndex >= 0 &&
+            tabIndex < tabs.length &&
+            !tabs[tabIndex]?.isDisabled &&
+            !loadedTabs.has(tabIndex)
+          ) {
+            setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+          }
           handleTabPress(tabIndex);
         },
         getCurrentIndex: () => activeIndex,
       }),
-      [activeIndex, handleTabPress],
+      [activeIndex, handleTabPress, loadedTabs, tabs],
     );
 
     const tabBarPropsComputed = useMemo(
