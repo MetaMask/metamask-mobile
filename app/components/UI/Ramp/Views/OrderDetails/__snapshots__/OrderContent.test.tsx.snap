@@ -1266,7 +1266,7 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
       }
       testID="ramps-order-details-token-amount"
     >
-      ...
+      0
        
       ETH
     </Text>
