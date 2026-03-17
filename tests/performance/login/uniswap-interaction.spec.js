@@ -90,16 +90,12 @@ test.describe(`${PerformanceLogin}`, () => {
       });
       connectTimer.start();
       await switchToMobileBrowser(device);
-      await AppwrightHelpers.withNativeAction(
-        device,
-        async () => {
-          if (AppwrightSelectors.isAndroid(device)) {
-            // with the current framework we are limited with autoaccept alerts and on ios it clicks it before we can make the assertion
-            await UniswapDapp.isUniswapDisplayed();
-          }
-        },
-        UNISWAP_URL,
-      );
+      await AppwrightHelpers.withNativeAction(device, async () => {
+        if (AppwrightSelectors.isAndroid(device)) {
+          // with the current framework we are limited with autoaccept alerts and on ios it clicks it before we can make the assertion
+          await UniswapDapp.isUniswapDisplayed();
+        }
+      });
       connectTimer.stop();
 
       performanceTracker.addTimers(metamaskTimer, connectTimer);
