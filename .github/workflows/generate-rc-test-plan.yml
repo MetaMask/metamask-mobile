@@ -133,6 +133,9 @@ jobs:
           const fs = require('fs');
           const plan = JSON.parse(fs.readFileSync('test-plans/test-plan-${VERSION}.json', 'utf8'));
 
+          // Escape HTML to prevent XSS from LLM-generated content
+          const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+
           const html = \`<!DOCTYPE html>
           <html lang=\"en\">
           <head>
@@ -180,11 +183,11 @@ jobs:
             \${plan.executiveSummary ? \\\`
             <div class=\"executive\">
               <h2>📊 Executive Summary</h2>
-              <p><strong>\${plan.executiveSummary.releaseFocus}</strong></p>
+              <p><strong>\${esc(plan.executiveSummary.releaseFocus)}</strong></p>
               <p><strong>Key Changes:</strong></p>
-              <ul>\${plan.executiveSummary.keyChanges.map(c => '<li>' + c + '</li>').join('')}</ul>
-              <p><strong>Risk Level:</strong> \${plan.executiveSummary.overallRisk.toUpperCase()}</p>
-              <p><strong>Recommendation:</strong> \${plan.executiveSummary.recommendation}</p>
+              <ul>\${plan.executiveSummary.keyChanges.map(c => '<li>' + esc(c) + '</li>').join('')}</ul>
+              <p><strong>Risk Level:</strong> \${esc(plan.executiveSummary.overallRisk).toUpperCase()}</p>
+              <p><strong>Recommendation:</strong> \${esc(plan.executiveSummary.recommendation)}</p>
             </div>
             \\\` : ''}
 
@@ -201,28 +204,28 @@ jobs:
 
             \${plan.signOffs?.needsAttention?.length ? \\\`
             <h2>👥 Teams Needing Sign-off</h2>
-            <div class=\"teams\">\${plan.signOffs.needsAttention.map(t => '<span class=\"team\">⏳ ' + t + '</span>').join('')}</div>
+            <div class=\"teams\">\${plan.signOffs.needsAttention.map(t => '<span class=\"team\">⏳ ' + esc(t) + '</span>').join('')}</div>
             \\\` : ''}
 
             <h2>🔴 High Risk Areas</h2>
             \${(plan.scenarios || []).filter(s => s.riskLevel === 'high').map((s, i) => \\\`
             <div class=\"scenario risk-high\">
-              <h3>\${i + 1}. \${s.area} <span class=\"badge badge-high\">HIGH</span></h3>
-              <p><strong>Why:</strong> \${s.whyThisMatters}</p>
-              \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + p + '</li>').join('') + '</ul></div>' : ''}
-              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${s.testSteps.map(step => '<li>' + step + '</li>').join('')}</ol></div>
-              \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + o + '</li>').join('') + '</ul></div>' : ''}
+              <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-high\">HIGH</span></h3>
+              <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
+              \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul></div>' : ''}
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${s.testSteps.map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+              \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + esc(o) + '</li>').join('') + '</ul></div>' : ''}
             </div>
             \\\`).join('')}
 
             <h2>🟡 Medium Risk Areas</h2>
             \${(plan.scenarios || []).filter(s => s.riskLevel === 'medium').map((s, i) => \\\`
             <div class=\"scenario risk-medium\">
-              <h3>\${i + 1}. \${s.area} <span class=\"badge badge-medium\">MEDIUM</span></h3>
-              <p><strong>Why:</strong> \${s.whyThisMatters}</p>
-              \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + p + '</li>').join('') + '</ul></div>' : ''}
-              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${s.testSteps.map(step => '<li>' + step + '</li>').join('')}</ol></div>
-              \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + o + '</li>').join('') + '</ul></div>' : ''}
+              <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-medium\">MEDIUM</span></h3>
+              <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
+              \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul></div>' : ''}
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${s.testSteps.map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+              \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + esc(o) + '</li>').join('') + '</ul></div>' : ''}
             </div>
             \\\`).join('')}
 

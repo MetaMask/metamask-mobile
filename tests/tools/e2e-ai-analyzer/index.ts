@@ -134,10 +134,12 @@ function parseArgs(args: string[]): ParsedArgs {
       case '-ef': {
         // Comma-separated list of features to exclude
         const featuresArg = args[++i];
-        options.excludedFeatures = featuresArg
-          .split(',')
-          .map((f) => f.trim())
-          .filter((f) => f.length > 0);
+        if (featuresArg) {
+          options.excludedFeatures = featuresArg
+            .split(',')
+            .map((f) => f.trim())
+            .filter((f) => f.length > 0);
+        }
         break;
       }
       case '--auto-ff':
