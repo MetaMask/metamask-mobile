@@ -136,18 +136,6 @@ export default function ActionView({
   );
 }
 
-ActionView.defaultProps = {
-  cancelText: '',
-  confirmButtonMode: 'normal',
-  confirmText: '',
-  confirmTestID: '',
-  confirmed: false,
-  cancelTestID: '',
-  showCancelButton: true,
-  showConfirmButton: true,
-  contentContainerStyle: undefined,
-};
-
 ActionView.propTypes = {
   /**
    * TestID for the cancel button

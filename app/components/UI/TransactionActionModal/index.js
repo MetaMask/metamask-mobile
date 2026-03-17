@@ -9,17 +9,17 @@ import TransactionActionContent from './TransactionActionContent';
  */
 export default function TransactionActionModal({
   isVisible,
-  confirmDisabled,
+  confirmDisabled = false,
   onCancelPress,
   onConfirmPress,
-  confirmText,
-  cancelText,
+  confirmText = strings('action_view.confirm'),
+  cancelText = strings('action_view.cancel'),
   feeText,
   titleText,
   gasTitleText,
   descriptionText,
-  cancelButtonMode,
-  confirmButtonMode,
+  cancelButtonMode = 'neutral',
+  confirmButtonMode = 'warning',
 }) {
   return (
     <ActionModal
@@ -44,15 +44,6 @@ export default function TransactionActionModal({
   );
 }
 
-TransactionActionModal.defaultProps = {
-  cancelButtonMode: 'neutral',
-  confirmButtonMode: 'warning',
-  cancelText: strings('action_view.cancel'),
-  confirmText: strings('action_view.confirm'),
-  confirmDisabled: false,
-  displayCancelButton: true,
-  displayConfirmButton: true,
-};
 
 TransactionActionModal.propTypes = {
   isVisible: PropTypes.bool,

@@ -80,19 +80,6 @@ export default function ActionModal({
   );
 }
 
-ActionModal.defaultProps = {
-  cancelButtonMode: 'neutral',
-  cancelButtonDisabled: false,
-  confirmButtonMode: 'warning',
-  confirmTestID: '',
-  cancelTestID: '',
-  cancelText: strings('action_view.cancel'),
-  confirmText: strings('action_view.confirm'),
-  confirmDisabled: false,
-  displayCancelButton: true,
-  displayConfirmButton: true,
-};
-
 ActionModal.propTypes = {
   cancelButtonDisabled: PropTypes.bool,
   /**
