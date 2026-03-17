@@ -17,6 +17,7 @@ jobs:
       contains(github.event.comment.body, 'RC Builds Ready for Testing') &&
       github.event.comment.user.login == 'github-actions[bot]'
     runs-on: ubuntu-latest
+    environment: release-ci
     timeout-minutes: 15
     permissions:
       contents: write
@@ -141,7 +142,7 @@ jobs:
           <head>
             <meta charset=\"UTF-8\">
             <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-            <title>RC \${plan.version || '${VERSION}'} Test Plan</title>
+            <title>RC \${esc(plan.version) || '${VERSION}'} Test Plan</title>
             <style>
               * { box-sizing: border-box; }
               body {
@@ -177,7 +178,7 @@ jobs:
             </style>
           </head>
           <body>
-            <h1>🧪 RC \${plan.version || '${VERSION}'} Test Plan</h1>
+            <h1>🧪 RC \${esc(plan.version) || '${VERSION}'} Test Plan</h1>
             <p>Build: \${plan.buildNumber || '${BUILD}'} | Generated: \${new Date(plan.generatedAt).toLocaleString()}</p>
 
             \${plan.executiveSummary ? \\\`

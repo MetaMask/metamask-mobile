@@ -593,7 +593,7 @@ function getCherryPickDiffs(
         const summary = relevantLines.slice(0, maxLinesPerCommit).join('\n');
         const label = cp.prNumber || cp.commit.substring(0, 7);
         diffs.push(`### ${label}: ${cp.message}\n${summary}`);
-        totalLines += relevantLines.length;
+        totalLines += summary.split('\n').length;
       }
     } catch {
       // Skip commits we can't get diffs for

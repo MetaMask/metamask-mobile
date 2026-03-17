@@ -208,7 +208,10 @@ export function getLatestBuildFromPRComments(
     for (let i = comments.length - 1; i >= 0; i--) {
       const comment = comments[i];
       // Check if it's from github-actions bot and has build info
-      if (comment.body?.includes('RC Builds Ready for Testing')) {
+      if (
+        comment.author?.login === 'github-actions[bot]' &&
+        comment.body?.includes('RC Builds Ready for Testing')
+      ) {
         const match = comment.body.match(buildPattern);
         if (match) {
           const buildNum = parseInt(match[1] || match[2], 10);
