@@ -195,6 +195,10 @@ export interface CombinedTestPlanResult {
   prTitle: string;
   generatedAt: string;
   modelUsed: string;
+  /** Release version (e.g., "7.65.0") */
+  version?: string;
+  /** Build number */
+  buildNumber?: number;
   /** Executive summary for stakeholders */
   executiveSummary?: ExecutiveSummary;
   summary: {
@@ -829,6 +833,8 @@ export function createCombinedTestPlan(
     prTitle: initialResult.prTitle,
     generatedAt: new Date().toISOString(),
     modelUsed: initialResult.model,
+    version: initialResult.version,
+    buildNumber: initialResult.buildNumber,
     executiveSummary: initialResult.executiveSummary,
     summary: {
       totalFilesChanged: initialResult.summary.totalFiles,

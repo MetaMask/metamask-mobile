@@ -135,7 +135,7 @@ jobs:
           const plan = JSON.parse(fs.readFileSync('test-plans/test-plan-${VERSION}.json', 'utf8'));
 
           // Escape HTML to prevent XSS from LLM-generated content
-          const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+          const esc = (s) => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
 
           const html = \`<!DOCTYPE html>
           <html lang=\"en\">
