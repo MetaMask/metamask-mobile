@@ -16,6 +16,7 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class AccountListBottomSheet {
   /** Account list container - wdio uses getElementByText('Accounts') for Appium */
@@ -311,7 +312,7 @@ class AccountListBottomSheet {
     await encapsulatedAction({
       appium: async () => {
         const account = await PlaywrightMatchers.getElementByText(name);
-        await account.waitForDisplayed({ timeout: 10000 });
+        await PlaywrightGestures.scrollIntoView(account);
         await account.click();
       },
     });
@@ -327,11 +328,15 @@ class AccountListBottomSheet {
 
         // Step 1: Wait up to 5s for either "Syncing" or "Discovering" to appear
         const syncingDetected = await Promise.race([
-          syncingElement.waitForDisplayed({ timeout: 5000 }).then(() => true),
+          syncingElement
+            .waitForDisplayed({ timeout: 5000 })
+            .then(() => true)
+            .catch(() => false),
           discoveringElement
             .waitForDisplayed({ timeout: 5000 })
-            .then(() => true),
-        ]).catch(() => false);
+            .then(() => true)
+            .catch(() => false),
+        ]);
 
         if (!syncingDetected) return;
 
