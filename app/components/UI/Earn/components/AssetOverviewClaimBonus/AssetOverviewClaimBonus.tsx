@@ -59,6 +59,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
       createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
         .addProperties({
           location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+          location: EVENT_LOCATIONS.ASSET_OVERVIEW_CLAIMABLE_BONUS_TOOLTIP,
           url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
         })
         .build(),
