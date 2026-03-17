@@ -11,7 +11,7 @@ There are 2000+ legacy Text instances across the codebase. This automation plays
 ## Cursor Automation Configuration
 
 **Trigger:** Schedule — run once per day (or on demand via webhook)
-**Tools required:** GitHub (read repo, create branches), Slack (send DM to george.marshall), Memory (track progress across runs)
+**Tools required:** GitHub (read repo, create branches, open PRs), Slack (configured recipient), Memory (track progress across runs)
 **Prompt:** See "Agent Instructions" section below
 
 ---
@@ -34,18 +34,20 @@ If no memory exists yet, treat everything as fresh.
 
 **Pick one code owner** from the table below. Choose one that has remaining deprecated Text usages and has not been fully migrated.
 
-| Path pattern                                                    | Owner                     |
-| --------------------------------------------------------------- | ------------------------- |
-| `app/components/UI/Ramp/`, `**/Ramp/**`                         | @MetaMask/ramp            |
-| `app/components/Views/confirmations/`                           | @MetaMask/confirmations   |
-| `app/components/UI/Bridge/`, `app/components/UI/Swaps`          | @MetaMask/swaps-engineers |
-| `app/components/UI/Earn/`, `**/Earn/**`                         | @MetaMask/metamask-earn   |
-| `app/components/UI/Perps/`, `**/Perps/**`                       | @MetaMask/perps           |
-| `app/components/UI/Predict/`, `**/Predict/**`                   | @MetaMask/predict         |
-| `app/components/UI/Card/`                                       | @MetaMask/card            |
-| `app/components/UI/Assets/`, `app/components/UI/TokenDetails/`  | @MetaMask/metamask-assets |
-| `app/components/Views/Login/`, `app/components/Views/Settings/` | @MetaMask/mobile-core-ux  |
-| `app/components/Views/Onboarding/`                              | @MetaMask/web3auth        |
+| Path pattern                                                                                           | Owner                     |
+| ------------------------------------------------------------------------------------------------------ | ------------------------- |
+| `app/components/UI/Ramp/components/`, `app/components/UI/Ramp/hooks/`, `app/components/UI/Ramp/Views/` | @MetaMask/ramp            |
+| `app/components/Views/confirmations/`                                                                  | @MetaMask/confirmations   |
+| `app/components/UI/Bridge/`, `app/components/UI/Swaps`                                                 | @MetaMask/swaps-engineers |
+| `app/components/UI/Earn/`, `**/Earn/**`                                                                | @MetaMask/metamask-earn   |
+| `app/components/UI/Perps/`, `**/Perps/**`                                                              | @MetaMask/perps           |
+| `app/components/UI/Predict/`, `**/Predict/**`                                                          | @MetaMask/predict         |
+| `app/components/UI/Card/`                                                                              | @MetaMask/card            |
+| `app/components/UI/Assets/`, `app/components/UI/TokenDetails/`                                         | @MetaMask/metamask-assets |
+| `app/components/Views/Login/`, `app/components/Views/Settings/`                                        | @MetaMask/mobile-core-ux  |
+| `app/components/Views/Onboarding/`                                                                     | @MetaMask/web3auth        |
+
+**Note for @MetaMask/ramp:** Only target the new combined flow folders — `Ramp/components/`, `Ramp/hooks/`, and `Ramp/Views/`. **Do not touch** `Ramp/Aggregator/` or `Ramp/Deposit/` — these are legacy experiences that will not be refactored and are excluded from DS adoption work.
 
 **Find deprecated Text imports** within that owner's paths. Search for files containing any of:
 
@@ -392,45 +394,24 @@ Before opening the PR, confirm:
 
 ---
 
-### Step 5 — Send Slack DM with PR Creation Link
+### Step 5 — Open PR and Notify Slack
 
-> **Why not open the PR directly?** Cursor lacks permission to open PRs against the MetaMask org. Instead, send a pre-filled GitHub compare link to the human so they can open it in one click.
+**Open the PR** using the Open Pull Request tool with the title and body below.
 
-**Send a Slack DM to `george.marshall`** using the Slack tool. The message must include:
-
-1. **PR creation link** — the GitHub compare URL with the branch pre-filled:
-
-   ```
-   https://github.com/MetaMask/metamask-mobile/compare/main...refactor/6887_migrate-text-<owner-slug>?expand=1
-   ```
-
-2. **Suggested PR title:**
-
-   ```
-   refactor: migrate Text to design system in <owner> components
-   ```
-
-3. **Suggested PR body** — send the fully filled-out markdown as raw text in the Slack message so it can be selected and pasted directly into the GitHub PR description field. Do not summarise or shorten it — send the complete body.
-
-**Send this exact message** (replace all `<placeholders>` with real values for the run):
+**Then send a Slack message** using the Slack tool with a short summary:
 
 ```
-Hey! Today's Text migration batch is ready to PR.
+Text migration PR open for @MetaMask/<owner>:
 
 *Branch:* `refactor/6887_migrate-text-<owner-slug>`
-*Owner:* @MetaMask/<owner>
 *Files migrated:*
   • path/to/File1.tsx
   • path/to/File2.tsx
 
-*👉 Open PR:* https://github.com/MetaMask/metamask-mobile/compare/main...refactor/6887_migrate-text-<owner-slug>?expand=1
-
-*Suggested title:* `refactor: migrate Text to design system in <owner> components`
-
-*PR description — copy and paste this into GitHub:*
+*PR:* <link to opened PR>
 ```
 
-Immediately follow that block with the raw PR body as a Slack code snippet (triple backtick, no language tag) so it renders as preformatted, selectable text:
+**PR body to use when opening the PR:**
 
 ```
 ## **Description**
@@ -447,10 +428,6 @@ imports with `Text`, `TextButton` from `@metamask/design-system-react-native`.
 
 **Why:** Part of https://github.com/MetaMask/metamask-mobile/issues/6887 — eliminating
 deprecated internal Text wrappers in favour of the shared design system component.
-
-> [!NOTE]
-> This PR was produced by the `migrate-text-component` automation. Cursor lacks permission
-> to open PRs directly, so it was opened manually.
 
 ## **Changelog**
 
@@ -665,6 +642,7 @@ import {
 ## Constraints
 
 - Do **not** remove the deprecated Text components themselves until **all** usages across the entire codebase are migrated.
+- For `@MetaMask/ramp`: only search within `Ramp/components/`, `Ramp/hooks/`, and `Ramp/Views/`. Files under `Ramp/Aggregator/` and `Ramp/Deposit/` are legacy, will not be refactored, and must be skipped entirely.
 - Do **not** migrate more than 5 files per run.
 - Do **not** mix files from different code owners in a single PR.
 - Do **not** refactor surrounding code, rename variables, or make unrelated improvements.
