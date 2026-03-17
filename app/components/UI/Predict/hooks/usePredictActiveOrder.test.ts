@@ -7,11 +7,11 @@ import { ActiveOrderState, Recurrence } from '../types';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      setActiveOrder: jest.fn(),
       clearActiveOrder: jest.fn(),
-      setSelectedPaymentToken: jest.fn(),
-      trackPredictOrderEvent: jest.fn(),
+      clearOrderError: jest.fn(),
       initializeOrder: jest.fn(),
+      setOrderAmount: jest.fn(),
+      setOrderInputFocused: jest.fn(),
     },
   },
 }));
@@ -30,174 +30,6 @@ describe('usePredictActiveOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(undefined);
-  });
-
-  describe('updateActiveOrder', () => {
-    it('sets full order when state property is present', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ state: ActiveOrderState.PREVIEW });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith({ state: ActiveOrderState.PREVIEW });
-    });
-
-    it('clears activeOrder when called with null', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder(null);
-      });
-
-      expect(
-        Engine.context.PredictController.clearActiveOrder,
-      ).toHaveBeenCalled();
-    });
-
-    it('calls clearActiveOrder and setSelectedPaymentToken(null) when null', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder(null);
-      });
-
-      expect(
-        Engine.context.PredictController.clearActiveOrder,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.PredictController.setSelectedPaymentToken,
-      ).toHaveBeenCalledWith(null);
-    });
-
-    it('deletes amount property when amount is null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        amount: '100',
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ amount: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('amount');
-    });
-
-    it('deletes batchId property when batchId is null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        batchId: 'batch-123',
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ batchId: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('batchId');
-    });
-
-    it('deletes isInputFocused when null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ isInputFocused: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('isInputFocused');
-    });
-
-    it('deletes state when null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ state: null });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith(null);
-    });
-
-    it('deletes error when null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        error: 'some error',
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ error: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('error');
-    });
-
-    it('merges patch with existing activeOrder state', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({
-          state: ActiveOrderState.PLACING_ORDER,
-        });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith({
-        state: ActiveOrderState.PLACING_ORDER,
-        isInputFocused: true,
-      });
-    });
-
-    it('passes null to setActiveOrder when state is removed from nextOrder', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ state: null });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith(null);
-    });
   });
 
   describe('initializeActiveOrder', () => {
@@ -285,6 +117,48 @@ describe('usePredictActiveOrder', () => {
       expect(
         Engine.context.PredictController.clearActiveOrder,
       ).toHaveBeenCalled();
+    });
+  });
+
+  describe('setOrderAmount', () => {
+    it('delegates to PredictController.setOrderAmount', () => {
+      const { result } = renderHook(() => usePredictActiveOrder());
+
+      act(() => {
+        result.current.setOrderAmount(50);
+      });
+
+      expect(
+        Engine.context.PredictController.setOrderAmount,
+      ).toHaveBeenCalledWith(50);
+    });
+  });
+
+  describe('clearOrderError', () => {
+    it('delegates to PredictController.clearOrderError', () => {
+      const { result } = renderHook(() => usePredictActiveOrder());
+
+      act(() => {
+        result.current.clearOrderError();
+      });
+
+      expect(
+        Engine.context.PredictController.clearOrderError,
+      ).toHaveBeenCalled();
+    });
+  });
+
+  describe('setOrderInputFocused', () => {
+    it('delegates to PredictController.setOrderInputFocused', () => {
+      const { result } = renderHook(() => usePredictActiveOrder());
+
+      act(() => {
+        result.current.setOrderInputFocused(true);
+      });
+
+      expect(
+        Engine.context.PredictController.setOrderInputFocused,
+      ).toHaveBeenCalledWith(true);
     });
   });
 

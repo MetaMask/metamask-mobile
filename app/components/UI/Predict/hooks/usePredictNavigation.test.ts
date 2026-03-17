@@ -21,7 +21,6 @@ jest.mock('./usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     initializeActiveOrder: mockInitializeActiveOrder,
     activeOrder: null,
-    updateActiveOrder: jest.fn(),
     clearActiveOrder: jest.fn(),
   }),
 }));

@@ -8,12 +8,11 @@ import {
 } from 'react';
 
 import { PredictNavigationParamList } from '../../../types/navigation';
-import Engine from '../../../../../../core/Engine';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 
 export const usePredictBuyInputState = () => {
-  const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
-  const { PredictController } = Engine.context;
+  const { activeOrder, setOrderAmount, clearOrderError, setOrderInputFocused } =
+    usePredictActiveOrder();
 
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
@@ -72,11 +71,11 @@ export const usePredictBuyInputState = () => {
     }
 
     shouldSyncCurrentValueRef.current = false;
-    PredictController.setOrderAmount(
-      currentValue,
-      shouldClearAmountErrorRef.current,
-    );
-  }, [currentValue, PredictController]);
+    setOrderAmount(currentValue);
+    if (shouldClearAmountErrorRef.current) {
+      clearOrderError();
+    }
+  }, [currentValue, setOrderAmount, clearOrderError]);
 
   useEffect(() => {
     if (!shouldSyncInputFocusRef.current) {
@@ -84,10 +83,8 @@ export const usePredictBuyInputState = () => {
     }
 
     shouldSyncInputFocusRef.current = false;
-    updateActiveOrder({
-      isInputFocused,
-    });
-  }, [isInputFocused, updateActiveOrder]);
+    setOrderInputFocused(isInputFocused);
+  }, [isInputFocused, setOrderInputFocused]);
 
   return {
     currentValue,

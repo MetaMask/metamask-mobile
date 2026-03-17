@@ -12,7 +12,6 @@ const mockDispatch = jest.fn();
 const mockOnApprovalReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
-const mockUpdateActiveOrder = jest.fn();
 const mockClearActiveOrder = jest.fn();
 const mockNavigateToBuyPreview = jest.fn();
 const mockResetSelectedPaymentToken = jest.fn();
@@ -62,7 +61,6 @@ jest.mock(
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     activeOrder: mockActiveOrder,
-    updateActiveOrder: mockUpdateActiveOrder,
     clearActiveOrder: mockClearActiveOrder,
   }),
 }));
