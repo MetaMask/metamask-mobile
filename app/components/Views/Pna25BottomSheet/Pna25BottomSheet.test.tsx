@@ -60,6 +60,32 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const { forwardRef, useImperativeHandle } =
+      jest.requireActual<typeof import('react')>('react');
+    const { View } =
+      jest.requireActual<typeof import('react-native')>('react-native');
+
+    const MockBottomSheet = forwardRef<
+      { onCloseBottomSheet: () => void },
+      { children: React.ReactNode; onClose?: () => void }
+    >(({ children, onClose }, ref) => {
+      useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: () => onClose?.(),
+      }));
+      return <View>{children}</View>;
+    });
+    MockBottomSheet.displayName = 'MockBottomSheet';
+
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
+
 const Stack = createStackNavigator();
 
 const renderComponent = (state = {}) =>
@@ -244,5 +270,21 @@ describe('Pna25BottomSheet', () => {
     expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
       'ProfileMetricsController:skipInitialDelay',
     );
+  });
+
+  it('calls skipInitialDelay exactly once when confirm button triggers both accept and close actions', () => {
+    const { getByText } = renderComponent();
+    const confirmButton = getByText(
+      strings('privacy_policy.pna25_confirm_button'),
+    );
+
+    fireEvent.press(confirmButton);
+
+    const skipDelayCalls = jest
+      .mocked(Engine.controllerMessenger.call)
+      .mock.calls.filter(
+        ([action]) => action === 'ProfileMetricsController:skipInitialDelay',
+      );
+    expect(skipDelayCalls).toHaveLength(1);
   });
 });

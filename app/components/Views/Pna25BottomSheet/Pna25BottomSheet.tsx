@@ -39,6 +39,7 @@ const Pna25BottomSheet = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const hasSkippedDelay = useRef(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleAction = useCallback(
@@ -53,7 +54,8 @@ const Pna25BottomSheet = () => {
         Pna25BottomSheetAction.LEAVE,
       ].includes(action);
 
-      if (shouldSkipDelay) {
+      if (shouldSkipDelay && !hasSkippedDelay.current) {
+        hasSkippedDelay.current = true;
         Engine.controllerMessenger.call(
           'ProfileMetricsController:skipInitialDelay',
         );
