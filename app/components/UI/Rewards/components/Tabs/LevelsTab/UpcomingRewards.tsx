@@ -31,7 +31,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from '../../RewardItem/RewardItem';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import RewardsImageModal from '../../RewardsImageModal';
 import fallbackTierImage from '../../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 
