@@ -185,6 +185,18 @@ function countSkips(source) {
 }
 
 /**
+ * Counts all individual test definitions in a source string — both active and
+ * skipped. Matches it(, it.skip(, test(, test.skip(.
+ * Excludes describe() which is a grouper, not an individual test.
+ *
+ * @param {string} source
+ * @returns {number}
+ */
+function countDefinedTests(source) {
+  return (source.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length;
+}
+
+/**
  * Recursively collects file paths under `dir` that satisfy `predicate(filename)`.
  *
  * @param {string} dir
@@ -289,8 +301,13 @@ async function collectComponentViewTestCount() {
 
   const isViewTestFile = (name) => /\.view(?:\..+)?\.test\.[jt]sx?$/.test(name);
   const files = await walkFiles('app', isViewTestFile);
-  let skips = 0;
-  for (const f of files) skips += countSkips(await readFile(f, 'utf8'));
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
   result.total_tests_skipped = skips;
   return result;
 }
@@ -306,8 +323,13 @@ async function collectUnitTestCount() {
   const isUnitTestFile = (name) =>
     /\.test\.[jt]sx?$/.test(name) && !/\.view(?:\..+)?\.test\.[jt]sx?$/.test(name);
   const files = await walkFiles('app', isUnitTestFile);
-  let skips = 0;
-  for (const f of files) skips += countSkips(await readFile(f, 'utf8'));
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
   result.total_tests_skipped = skips;
   return result;
 }
@@ -420,13 +442,18 @@ async function collectE2ECounts() {
     result[`${tag}_tests_run`] = count;
   }
 
-  // Static scan for skip counts — independent of which platform/channel ran
+  // Static scan — independent of which platform/channel ran
   const isSpecTs = (name) => /\.spec\.[jt]sx?$/.test(name);
-  let skips = 0;
+  let defined = 0, skips = 0;
   for (const dir of ['tests/regression', 'tests/smoke']) {
     const files = await walkFiles(dir, isSpecTs);
-    for (const f of files) skips += countSkips(await readFile(f, 'utf8'));
+    for (const f of files) {
+      const source = await readFile(f, 'utf8');
+      defined += countDefinedTests(source);
+      skips += countSkips(source);
+    }
   }
+  result.total_tests_defined = defined;
   result.total_tests_skipped = skips;
 
   return result;
@@ -454,8 +481,8 @@ async function collectPerformanceTestCounts() {
         await scanDir(fullPath, category ?? entry.name);
       } else if (entry.isFile() && entry.name.endsWith('.spec.js')) {
         const source = await readFile(fullPath, 'utf8');
-        // Count test() calls, excluding test.skip()
-        const matches = source.match(/^\s*test\s*\(/gm) ?? [];
+        // Count all test() calls — including test.skip() — for total_tests_defined
+        const matches = source.match(/^\s*test(?:\.skip)?\s*\(/gm) ?? [];
         const count = matches.length;
         if (count > 0 && category) {
           const key = category.replace(/-/g, '_');
