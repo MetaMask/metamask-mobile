@@ -93,8 +93,8 @@ const RpcUrlInput = forwardRef<TextInput, RpcUrlInputProps>((props, ref) => {
     <>
       <TextInput
         ref={ref}
-        underlineColorAndroid="transparent"
         {...inputProps}
+        underlineColorAndroid="transparent"
         onChangeText={handleRpcUrlChange}
       />
       {warningRpcUrl && (
