@@ -93,7 +93,6 @@ import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
-  usePerpsNetworkManagement,
   usePositionManagement,
   usePerpsTrading,
 } from '../../hooks';
@@ -411,7 +410,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const { navigateToConfirmation } = useConfirmNavigation();
   const availableBalance = Number.parseFloat(
     account?.availableBalance?.toString() ?? '0',
@@ -437,7 +435,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
     try {
-      await ensureArbitrumNetworkExists();
       navigateToConfirmation({ stack: Routes.PERPS.ROOT });
       await depositWithConfirmation();
     } catch (err) {
@@ -445,13 +442,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
       });
     }
-  }, [
-    isEligible,
-    track,
-    ensureArbitrumNetworkExists,
-    navigateToConfirmation,
-    depositWithConfirmation,
-  ]);
+  }, [isEligible, track, navigateToConfirmation, depositWithConfirmation]);
 
   // Keep current position ref in sync for callbacks stored in route params
   // This must be after useHasExistingPosition since it depends on existingPosition

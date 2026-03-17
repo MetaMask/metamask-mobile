@@ -3,7 +3,6 @@ import { waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
-import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import Routes from '../../../../constants/navigation/Routes';
@@ -14,16 +13,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockDepositWithOrder = jest.fn();
-const mockEnsureArbitrumNetworkExists = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(),
-}));
-
-jest.mock('./usePerpsNetworkManagement', () => ({
-  usePerpsNetworkManagement: jest.fn(),
 }));
 
 jest.mock('./usePerpsToasts', () => ({
@@ -50,25 +44,15 @@ describe('usePerpsNavigation', () => {
   >;
   const mockUsePerpsEventTracking =
     usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
-  const mockUsePerpsNetworkManagement =
-    usePerpsNetworkManagement as jest.MockedFunction<
-      typeof usePerpsNetworkManagement
-    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
-    mockEnsureArbitrumNetworkExists.mockResolvedValue(undefined);
     mockDepositWithOrder.mockResolvedValue({ result: Promise.resolve('') });
     mockUsePerpsTrading.mockReturnValue({
       depositWithOrder: mockDepositWithOrder,
     } as Partial<ReturnType<typeof usePerpsTrading>> as ReturnType<
       typeof usePerpsTrading
-    >);
-    mockUsePerpsNetworkManagement.mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
-    } as Partial<ReturnType<typeof usePerpsNetworkManagement>> as ReturnType<
-      typeof usePerpsNetworkManagement
     >);
     mockUsePerpsToasts.mockReturnValue({
       showToast: mockShowToast,
@@ -233,7 +217,6 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToOrder(params);
 
       await waitFor(() => {
-        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
         expect(mockDepositWithOrder).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -256,7 +239,6 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToOrder(params);
 
       await waitFor(() => {
-        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
         expect(mockDepositWithOrder).toHaveBeenCalled();
       });
 
@@ -265,9 +247,9 @@ describe('usePerpsNavigation', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
-    it('does not navigate when ensureArbitrumNetworkExists rejects', async () => {
-      const networkError = new Error('Failed to add network');
-      mockEnsureArbitrumNetworkExists.mockRejectedValue(networkError);
+    it('does not navigate when depositWithOrder rejects', async () => {
+      const depositError = new Error('Deposit failed');
+      mockDepositWithOrder.mockRejectedValue(depositError);
 
       const { result } = renderHook(() => usePerpsNavigation());
       const params = { direction: 'long' as const, asset: 'BTC' };
@@ -275,11 +257,10 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToOrder(params);
 
       await waitFor(() => {
-        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
         expect(mockShowToast).toHaveBeenCalledWith({});
       });
 
-      expect(mockDepositWithOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

@@ -97,7 +97,6 @@ const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
-const mockEnsureArbitrumNetworkExists = jest.fn(() => Promise.resolve());
 const mockDepositWithConfirmation = jest.fn(() => Promise.resolve());
 const mockUsePerpsLiveOrders = jest.fn();
 const mockUsePerpsLivePrices = jest.fn();
@@ -446,9 +445,6 @@ jest.mock('../../hooks', () => ({
     getAccountState: jest.fn(),
     depositWithConfirmation: mockDepositWithConfirmation,
     withdrawWithConfirmation: jest.fn(),
-  })),
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
   })),
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
@@ -1020,8 +1016,6 @@ describe('PerpsMarketDetailsView', () => {
         },
         isInitialLoading: false,
       });
-      mockEnsureArbitrumNetworkExists.mockClear();
-      mockEnsureArbitrumNetworkExists.mockResolvedValue(undefined);
       mockNavigateToConfirmation.mockClear();
       mockDepositWithConfirmation.mockClear();
       mockDepositWithConfirmation.mockResolvedValue(undefined);
@@ -1041,12 +1035,11 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       await waitFor(() => {
-        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          stack: 'Perps',
+        });
+        expect(mockDepositWithConfirmation).toHaveBeenCalled();
       });
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        stack: 'Perps',
-      });
-      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
@@ -1071,8 +1064,6 @@ describe('PerpsMarketDetailsView', () => {
         },
         isInitialLoading: false,
       });
-      mockEnsureArbitrumNetworkExists.mockClear();
-      mockEnsureArbitrumNetworkExists.mockResolvedValue(undefined);
       mockDepositWithConfirmation.mockRejectedValueOnce(
         new Error('Deposit failed'),
       );
@@ -1091,7 +1082,6 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(addFundsButton);
       });
       await waitFor(() => {
-        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
       });
     });
