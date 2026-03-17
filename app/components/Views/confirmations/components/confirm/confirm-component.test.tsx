@@ -45,8 +45,9 @@ jest.mock('../../hooks/ui/useFullScreenConfirmation');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
-jest.mock('../../../../UI/Predict/views/PredictPayWithAnyTokenInfo', () => ({
-  PredictPayWithAnyTokenInfo: () => null,
+jest.mock('../../../../UI/Predict/views/PredictBuyWithAnyToken', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 const mockSetOptions = jest.fn();

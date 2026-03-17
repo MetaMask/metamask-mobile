@@ -136,12 +136,12 @@ describe('usePredictBuyInputState', () => {
       expect(result.current.isInputFocused).toBe(true);
     });
 
-    it('returns false when activeOrder is null', () => {
+    it('returns true when activeOrder is null and not confirming', () => {
       mockActiveOrder = null;
 
       const { result } = renderHook(() => usePredictBuyInputState());
 
-      expect(result.current.isInputFocused).toBe(false);
+      expect(result.current.isInputFocused).toBe(true);
     });
 
     it('updates isInputFocused immediately and syncs to activeOrder', () => {
