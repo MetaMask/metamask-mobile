@@ -175,6 +175,28 @@ describe('OAuthRehydration', () => {
     mockIsDeletingInProgress.mockReturnValue(false);
   });
 
+  describe('Snapshots', () => {
+    it('renders matching snapshot for default OAuth rehydration', () => {
+      const { toJSON } = renderWithProvider(<OAuthRehydration />);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders matching snapshot for outdated seedless password', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+
+      const { toJSON } = renderWithProvider(<OAuthRehydration />);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('Successful login flow', () => {
     it('navigates to home after successful password login', async () => {
       mockUnlockWallet.mockImplementationOnce(async () => {
