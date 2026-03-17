@@ -181,7 +181,7 @@ function handleSetOHLCVData(payload) {
         window.chartWidget.activeChart().resetData();
         // Re-apply axis line overrides after resetData (resetData can reset to defaults)
         // Use setTimeout to ensure overrides apply after resetData completes
-        setTimeout(function() {
+        setTimeout(function () {
           if (window.chartWidget && window.isChartReady) {
             window.chartWidget.applyOverrides({
               'scalesProperties.lineColor': '#444444',
@@ -405,7 +405,7 @@ function handleSetChartType(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
 
   var type = payload.type;
-  
+
   try {
     var ac = window.chartWidget.activeChart();
     ac.setChartType(type);
@@ -625,7 +625,7 @@ function createVolumeStudy() {
         {},
         {
           'volume ma.visible': false,
-          'volume.color.0': theme.errorColor,   // Down/bearish bars (red)
+          'volume.color.0': theme.errorColor, // Down/bearish bars (red)
           'volume.color.1': theme.successColor, // Up/bullish bars (green)
           'volume.transparency': 0, // No transparency - same shade as candles
         },
@@ -986,6 +986,9 @@ function initChart() {
           'scalesProperties.showRightScale': true,
           'scalesProperties.showLeftScale': false,
           'paneProperties.bottomMargin': 5,
+          // Hide crosshair labels (price/time labels that appear on long press)
+          'scalesProperties.showPriceScaleCrosshairLabel': false,
+
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
           'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,

@@ -977,6 +977,9 @@ function initChart() {
           'scalesProperties.showRightScale': true,
           'scalesProperties.showLeftScale': false,
           'paneProperties.bottomMargin': 5,
+          // Hide crosshair labels (price/time labels that appear on long press)
+          'scalesProperties.showPriceScaleCrosshairLabel': false,
+
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
           'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
