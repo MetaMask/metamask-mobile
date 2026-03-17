@@ -38,20 +38,40 @@ class WalletView {
     return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
+  /** Wallet ScrollView as element (for gestures like swipe). */
+  get walletScrollView(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+  }
+
   /**
    * Progressive scroll for homepage sections:
    * try tap -> small scroll down -> retry, until the section is tappable.
+   * @param options.scrollAmount - Pixels to scroll per step.
+   * @param options.overshootSwipe - After scroll, perform a small swipe to move the section away
+   * from the tab bar (e.g. direction 'up' = one more scroll down = section moves higher on screen).
    */
   private async scrollAndTapSection(
     target: DetoxElement,
     description: string,
     direction: 'up' | 'down' = 'down',
+    options: {
+      scrollAmount?: number;
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
   ): Promise<void> {
+    const { scrollAmount = 200, overshootSwipe } = options;
     await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
       direction,
-      scrollAmount: 200,
+      scrollAmount,
       elemDescription: `Scroll to ${description}`,
     });
+    if (overshootSwipe) {
+      await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
+        percentage: overshootSwipe.percentage ?? 0.15,
+        speed: 'slow',
+        elemDescription: `Overshoot swipe for ${description}`,
+      });
+    }
     await Gestures.waitAndTap(target, {
       elemDescription: description,
     });
@@ -685,6 +705,10 @@ class WalletView {
     );
   }
 
+  /**
+   * Scrolls to the Predictions section and taps it. After scroll, does a small overshoot swipe
+   * so the section sits higher on screen and the tap does not hit the main menu "+" button.
+   */
   async scrollAndTapPredictionsSection(
     direction: 'up' | 'down' = 'down',
   ): Promise<void> {
@@ -692,6 +716,12 @@ class WalletView {
       this.predictionsSectionHeader,
       'Predictions section',
       direction,
+      {
+        overshootSwipe: {
+          direction: 'up',
+          percentage: 0.15,
+        },
+      },
     );
   }
 
