@@ -98,11 +98,6 @@ jest.mock('../../../../../core/Engine', () => {
       unsubscribe: jest.fn(),
     },
     context: {
-      SwapsController: {
-        fetchAggregatorMetadataWithCache: jest.fn(),
-        fetchTopAssetsWithCache: jest.fn(),
-        fetchTokenWithCache: jest.fn(),
-      },
       KeyringController: {
         state: {
           keyrings: [

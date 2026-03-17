@@ -164,7 +164,6 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
-import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { storageServiceInit } from './controllers/storage-service/storage-service-init';
@@ -332,7 +331,6 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
-        SwapsController: swapsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -444,7 +442,6 @@ export class Engine {
     const bridgeController = controllersByName.BridgeController;
     const nftController = controllersByName.NftController;
     const nftDetectionController = controllersByName.NftDetectionController;
-    const swapsController = controllersByName.SwapsController;
     const networkController = controllersByName.NetworkController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -524,7 +521,6 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: controllersByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
-      SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -1331,7 +1327,6 @@ export default {
       SelectedNetworkController,
       SignatureController,
       SmartTransactionsController,
-      SwapsController,
       TokenBalancesController,
       TokenListController,
       TokenRatesController,
@@ -1400,7 +1395,6 @@ export default {
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
-      SwapsController: SwapsController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
