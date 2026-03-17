@@ -5,6 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import NftGrid from './NftGrid';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
+import { RootState } from '../../../reducers';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import {
@@ -12,6 +13,7 @@ import {
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
@@ -344,20 +346,28 @@ describe('NftGrid', () => {
     isHomepageRedesignEnabled = false,
     collectibles = {},
     isNftFetching = false,
+    selectedGroupAccounts = [],
   }: {
     isHomepageRedesignEnabled?: boolean;
     collectibles?: Record<string, Nft[]>;
     isNftFetching?: boolean;
+    selectedGroupAccounts?: Array<{ address: string }>;
   }) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectHomepageRedesignV1Enabled) {
         return isHomepageRedesignEnabled;
       }
-      if (selector === multichainCollectiblesByEnabledNetworksSelector) {
-        return collectibles;
-      }
       if (selector === isNftFetchingProgressSelector) {
         return isNftFetching;
+      }
+      // For the custom selector function that calls multichainCollectiblesByEnabledNetworksSelector
+      if (typeof selector === 'function') {
+        // This handles the inline function in NftGrid that calls multichainCollectiblesByEnabledNetworksSelector
+        return collectibles;
+      }
+      // Handle selectSelectedAccountGroupInternalAccounts
+      if (selector.toString().includes('selectSelectedAccountGroupInternalAccounts')) {
+        return selectedGroupAccounts;
       }
       return undefined;
     });
