@@ -76,10 +76,9 @@ describe('usePredictPrices', () => {
 
   describe('initial state', () => {
     it('returns undefined data and not fetching when no queries provided', () => {
-      const { result } = renderHook(
-        () => usePredictPrices({ queries: [] }),
-        { wrapper },
-      );
+      const { result } = renderHook(() => usePredictPrices({ queries: [] }), {
+        wrapper,
+      });
 
       expect(result.current.data).toBeUndefined();
       expect(result.current.isFetching).toBe(false);
@@ -88,17 +87,18 @@ describe('usePredictPrices', () => {
     });
 
     it('returns undefined data when disabled', () => {
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-          enabled: false,
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            enabled: false,
+          }),
         { wrapper },
       );
 
@@ -110,16 +110,17 @@ describe('usePredictPrices', () => {
 
   describe('single token fetching', () => {
     it('fetches prices for a single token', async () => {
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -147,16 +148,17 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -173,21 +175,22 @@ describe('usePredictPrices', () => {
 
   describe('multiple tokens fetching', () => {
     it('fetches prices for multiple tokens with different sides', async () => {
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-            {
-              marketId: 'market-2',
-              outcomeId: 'outcome-2',
-              outcomeTokenId: 'token-2',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+              {
+                marketId: 'market-2',
+                outcomeId: 'outcome-2',
+                outcomeTokenId: 'token-2',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -215,16 +218,17 @@ describe('usePredictPrices', () => {
 
   describe('refetch functionality', () => {
     it('refetches data when refetch is called', async () => {
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -247,16 +251,17 @@ describe('usePredictPrices', () => {
 
   describe('configuration options', () => {
     it('fetches prices when queries are provided', async () => {
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -278,17 +283,18 @@ describe('usePredictPrices', () => {
     it('polls at specified interval', async () => {
       jest.useFakeTimers();
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-          pollingInterval: 5000,
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            pollingInterval: 5000,
+          }),
         { wrapper },
       );
 
@@ -322,17 +328,18 @@ describe('usePredictPrices', () => {
     it('stops polling when unmounted', async () => {
       jest.useFakeTimers();
 
-      const { unmount, result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-          pollingInterval: 5000,
-        }),
+      const { unmount, result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            pollingInterval: 5000,
+          }),
         { wrapper },
       );
 
@@ -356,16 +363,17 @@ describe('usePredictPrices', () => {
     it('does not poll when pollingInterval is not provided', async () => {
       jest.useFakeTimers();
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -478,16 +486,17 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce('String error');
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -504,16 +513,17 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -538,10 +548,11 @@ describe('usePredictPrices', () => {
 
   describe('edge cases', () => {
     it('handles empty queries array', async () => {
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [],
+          }),
         { wrapper },
       );
 
@@ -616,16 +627,17 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockResolvedValueOnce({ providerId: '', results: [] });
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
@@ -646,17 +658,18 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-          pollingInterval: 5000,
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            pollingInterval: 5000,
+          }),
         { wrapper },
       );
 
@@ -693,16 +706,17 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
-        usePredictPrices({
-          queries: [
-            {
-              marketId: 'market-1',
-              outcomeId: 'outcome-1',
-              outcomeTokenId: 'token-1',
-            },
-          ],
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+          }),
         { wrapper },
       );
 
