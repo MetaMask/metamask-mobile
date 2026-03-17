@@ -1138,6 +1138,121 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('centralized 403 detection in makeRequest', () => {
+    it('throws AuthorizationFailedError for any endpoint returning 403', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getActivePointsBoosts('season-1', 'sub-1'),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+    });
+
+    it('throws AuthorizationFailedError with status in message', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getActivePointsBoosts('season-1', 'sub-1'),
+      ).rejects.toThrow('Authorization failed: 403');
+    });
+
+    it('does not throw AuthorizationFailedError for non-403 errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getReferralDetails('season-1', 'sub-1'),
+      ).rejects.toThrow('Get referral details failed: 401');
+    });
+
+    it('throws AuthorizationFailedError for 403 on different endpoints', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+      } as unknown as Response;
+
+      mockFetch.mockResolvedValue(mockResponse);
+      await expect(
+        service.getUnlockedRewards('season-1', 'sub-1'),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      mockFetch.mockResolvedValue(mockResponse);
+      await expect(
+        service.getSnapshots('season-1', 'sub-1'),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      mockFetch.mockResolvedValue(mockResponse);
+      await expect(service.optOut('sub-1')).rejects.toBeInstanceOf(
+        AuthorizationFailedError,
+      );
+    });
+
+    it('does not throw AuthorizationFailedError for 403 on unauthenticated endpoints', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({ message: 'Forbidden' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.estimatePoints({
+          activityType: 'SWAP',
+          account: 'eip155:1:0x123',
+          activityContext: {
+            swapContext: {
+              srcAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '1000000000000000000',
+              },
+              destAsset: {
+                id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                amount: '4500000000',
+              },
+              feeAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '5000000000000000',
+              },
+            },
+          },
+        }),
+      ).rejects.toThrow('Points estimation failed: 403');
+      await expect(
+        service.estimatePoints({
+          activityType: 'SWAP',
+          account: 'eip155:1:0x123',
+          activityContext: {
+            swapContext: {
+              srcAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '1000000000000000000',
+              },
+              destAsset: {
+                id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                amount: '4500000000',
+              },
+              feeAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '5000000000000000',
+              },
+            },
+          },
+        }),
+      ).rejects.not.toBeInstanceOf(AuthorizationFailedError);
+    });
+  });
+
   const mockSeasonStateResponse: SeasonStateDto = {
     balance: 1000,
     currentTierId: 'tier-gold',
@@ -1224,10 +1339,10 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get season state failed: 404');
     });
 
-    it('throws AuthorizationFailedError when rewards authorization fails', async () => {
+    it('throws AuthorizationFailedError when server returns 403', async () => {
       const mockResponse = {
         ok: false,
-        status: 401,
+        status: 403,
         json: jest.fn().mockResolvedValue({
           message: 'Rewards authorization failed',
         }),
@@ -1244,25 +1359,7 @@ describe('RewardsDataService', () => {
       expect(caughtError).toBeInstanceOf(AuthorizationFailedError);
       const authError = caughtError as AuthorizationFailedError;
       expect(authError.name).toBe('AuthorizationFailedError');
-      expect(authError.message).toBe(
-        'Rewards authorization failed. Please login and try again.',
-      );
-    });
-
-    it('detects authorization failure when message contains the phrase', async () => {
-      const mockResponse = {
-        ok: false,
-        status: 403,
-        json: jest.fn().mockResolvedValue({
-          message:
-            'Some other error: Rewards authorization failed due to expiry',
-        }),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(
-        service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
-      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+      expect(authError.message).toBe('Authorization failed: 403');
     });
 
     it('throws SeasonNotFoundError when season is not found', async () => {

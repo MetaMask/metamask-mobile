@@ -1,0 +1,9 @@
+{
+  "setup-worktree": [
+    "cp $ROOT_WORKTREE_PATH/.js.env .js.env",
+    "cp $ROOT_WORKTREE_PATH/.ios.env .ios.env",
+    "cp $ROOT_WORKTREE_PATH/.android.env .android.env",
+    "cp $ROOT_WORKTREE_PATH/.e2e.env .e2e.env",
+    "cp -r $ROOT_WORKTREE_PATH/.cursor/plans .cursor/plans"
+  ]
+}

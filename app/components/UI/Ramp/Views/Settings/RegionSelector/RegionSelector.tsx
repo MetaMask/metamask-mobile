@@ -93,7 +93,7 @@ interface HeaderBackButtonProps {
 function HeaderBackButton({ onPress, testID }: HeaderBackButtonProps) {
   return (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
       onPress={onPress}
       style={navigationOptionsStyles.headerLeft}
@@ -706,7 +706,7 @@ RegionSelector.navigationOptions = ({
 }) => ({
   headerLeft: () => (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
       onPress={() => navigation.goBack()}
       style={navigationOptionsStyles.headerLeft}

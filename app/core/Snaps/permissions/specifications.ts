@@ -12,6 +12,7 @@ import {
   GetSnap,
   GetSnapState,
   HandleSnapRequest,
+  SnapInterfaceControllerSetInterfaceDisplayedAction,
   UpdateInterface,
   UpdateSnapState,
 } from '@metamask/snaps-controllers';
@@ -59,7 +60,8 @@ export type SnapPermissionSpecificationsActions =
   | UpdateSnapState
   | UpdateInterface
   | KeyringControllerGetStateAction
-  | HasPermission;
+  | HasPermission
+  | SnapInterfaceControllerSetInterfaceDisplayedAction;
 
 export type SnapPermissionSpecificationsEvents = KeyringControllerUnlockEvent;
 
@@ -157,6 +159,10 @@ export const getSnapPermissionSpecifications = (
     updateInterface: messenger.call.bind(
       messenger,
       'SnapInterfaceController:updateInterface',
+    ),
+    setInterfaceDisplayed: messenger.call.bind(
+      messenger,
+      'SnapInterfaceController:setInterfaceDisplayed',
     ),
     requestUserApproval: (opts: AddApprovalOptions) =>
       messenger.call('ApprovalController:addRequest', opts, true),

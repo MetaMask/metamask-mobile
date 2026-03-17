@@ -161,7 +161,7 @@ exports[`V2KycProcessing matches snapshot in loading state 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": "bold",
@@ -179,7 +179,7 @@ exports[`V2KycProcessing matches snapshot in loading state 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -213,7 +213,7 @@ exports[`V2KycProcessing matches snapshot in loading state 1`] = `
           name="powered-by-transak-logo"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "height": 24,
             }
           }

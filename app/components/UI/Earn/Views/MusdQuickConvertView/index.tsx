@@ -258,12 +258,12 @@ const MusdQuickConvertView = () => {
         <View style={styles.headerTextContainer}>
           <Text variant={TextVariant.HeadingLG}>
             {strings('earn.musd_conversion.quick_convert.title', {
-              apy: MUSD_CONVERSION_APY,
+              percentage: MUSD_CONVERSION_APY,
             })}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('earn.musd_conversion.quick_convert.subtitle', {
-              apy: MUSD_CONVERSION_APY,
+              percentage: MUSD_CONVERSION_APY,
             })}{' '}
             <Text
               variant={TextVariant.BodySM}

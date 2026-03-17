@@ -53,7 +53,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -87,7 +87,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -149,7 +149,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -183,7 +183,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -245,7 +245,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -279,7 +279,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -341,7 +341,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -375,7 +375,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",

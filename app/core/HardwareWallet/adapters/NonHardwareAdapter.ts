@@ -78,8 +78,4 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
   getTransportDisabledErrorCode(): ErrorCode | null {
     return null;
   }
-
-  getConnectionTips(): string[] {
-    return [];
-  }
 }

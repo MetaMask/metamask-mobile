@@ -34,9 +34,9 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
           "marginHorizontal": "auto",
@@ -52,7 +52,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -90,7 +90,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -107,7 +107,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -129,7 +129,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#131416",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",

@@ -231,10 +231,7 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Navigate to MarketListView with search enabled and 'all' category
-    // When user closes search, they should see all markets (not a specific category)
     perpsNavigation.navigateToMarketList({
-      defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
       source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,

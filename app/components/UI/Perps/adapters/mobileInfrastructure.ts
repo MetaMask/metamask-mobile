@@ -216,14 +216,6 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Platform Services ===
     streamManager: createStreamManagerAdapter(),
 
-    // === Rewards ===
-    rewards: {
-      getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
-        Engine.context.RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        ),
-    },
-
     // === Feature Flags ===
     featureFlags: {
       validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined {
@@ -236,6 +228,17 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
+
+    // === Rewards (DI — no RewardsController in Core yet) ===
+    rewards: {
+      getPerpsDiscountForAccount(
+        caipAccountId: `${string}:${string}:${string}`,
+      ) {
+        return Engine.context.RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+        );
+      },
+    },
   };
 }
 

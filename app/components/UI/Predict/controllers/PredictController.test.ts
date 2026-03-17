@@ -498,7 +498,6 @@ describe('PredictController', () => {
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-1',
-          liveSportsLeagues: [],
         });
       });
     });
@@ -522,7 +521,6 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-2',
-          liveSportsLeagues: [],
         });
       });
     });
@@ -580,7 +578,6 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: '123',
-          liveSportsLeagues: [],
         });
       });
     });
@@ -1403,10 +1400,10 @@ describe('PredictController', () => {
           expect(result[1].id).toBe('highlight-2');
           expect(result[2].id).toBe('regular-1');
           expect(result[3].id).toBe('regular-2');
-          expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith(
-            ['highlight-1', 'highlight-2'],
-            [],
-          );
+          expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith([
+            'highlight-1',
+            'highlight-2',
+          ]);
         },
         {
           mocks: {
@@ -4201,12 +4198,6 @@ describe('PredictController', () => {
               signTypedMessage: expect.any(Function),
               signPersonalMessage: expect.any(Function),
             }),
-            feeCollection: expect.objectContaining({
-              enabled: true,
-              collector: expect.any(String),
-              metamaskFee: expect.any(Number),
-              providerFee: expect.any(Number),
-            }),
           }),
         );
       });
@@ -5869,6 +5860,36 @@ describe('PredictController', () => {
           status: 'succeeded',
         });
         expect(analytics.trackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    it('includes orderType in analytics properties when provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+          orderType: 'FAK',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              order_type: 'FAK',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits orderType from analytics properties when not provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('order_type');
       });
     });
 

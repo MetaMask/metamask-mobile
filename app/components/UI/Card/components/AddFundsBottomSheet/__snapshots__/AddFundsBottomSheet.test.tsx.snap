@@ -335,7 +335,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -385,7 +385,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -422,7 +422,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -470,7 +470,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -504,7 +504,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                   }
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -648,7 +648,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -663,7 +663,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -761,7 +761,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -776,7 +776,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -1143,7 +1143,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1193,7 +1193,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1230,7 +1230,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1278,7 +1278,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1312,7 +1312,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                   }
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -1735,7 +1735,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1785,7 +1785,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1822,7 +1822,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1870,7 +1870,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1904,7 +1904,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                   }
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -2048,7 +2048,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2063,7 +2063,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -2435,7 +2435,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2485,7 +2485,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2522,7 +2522,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2570,7 +2570,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2604,7 +2604,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                   }
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -2753,7 +2753,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2768,7 +2768,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,

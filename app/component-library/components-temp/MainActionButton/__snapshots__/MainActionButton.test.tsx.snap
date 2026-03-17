@@ -47,7 +47,7 @@ exports[`MainActionButton should render correctly 1`] = `
       [
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderRadius": 12,
           "justifyContent": "center",
           "opacity": 1,
@@ -69,7 +69,7 @@ exports[`MainActionButton should render correctly 1`] = `
       }
     >
       <SvgMock
-        color="#686e7d"
+        color="#66676a"
         fill="currentColor"
         height={24}
         name="Add"
@@ -87,7 +87,7 @@ exports[`MainActionButton should render correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "flexShrink": 0,
             "fontFamily": "Geist-Medium",
             "fontSize": 14,

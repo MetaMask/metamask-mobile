@@ -8,11 +8,11 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       backgroundColor: theme.colors.background.default,
-      borderRadius: 8,
+      borderRadius: 12,
       paddingTop: 12,
       paddingBottom: 8,
       paddingHorizontal: 8,
-      marginBottom: 8,
+      marginBottom: 12,
     },
   });
 };

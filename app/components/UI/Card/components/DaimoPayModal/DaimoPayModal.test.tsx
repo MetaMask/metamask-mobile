@@ -5,7 +5,7 @@ import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
-import { clearCacheData } from '../../../../../core/redux/slices/card';
+import { cardQueries } from '../../queries';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -30,6 +30,11 @@ jest.mock('@react-navigation/native', () => ({
   CommonActions: {
     reset: jest.fn((config) => ({ type: 'RESET', ...config })),
   },
+}));
+
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -114,10 +119,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-    color: jest.fn(() => '#000'),
-  }),
+  useTailwind: () => {
+    const { mockTheme } = jest.requireActual('../../../../../util/theme');
+    return {
+      style: jest.fn(() => ({})),
+      color: jest.fn(() => mockTheme.colors.text.default),
+    };
+  },
 }));
 
 jest.mock('../../../../../core/EntryScriptWeb3', () => ({
@@ -161,10 +169,6 @@ jest.mock('../../../../../selectors/snaps/permissionController', () => ({
 
 jest.mock('../../../../../core/redux/slices/card', () => ({
   selectIsDaimoDemo: jest.fn(),
-  clearCacheData: jest.fn((key: string) => ({
-    type: 'card/clearCacheData',
-    payload: key,
-  })),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -271,6 +275,16 @@ describe('DaimoPayModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
+
     mockOnMessage = null;
     mockOnError = null;
     mockOnShouldStartLoadWithRequest = null;
@@ -507,9 +521,9 @@ describe('DaimoPayModal', () => {
         }
       });
 
-      expect(mockReduxDispatch).toHaveBeenCalledWith(
-        clearCacheData('card-details'),
-      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: cardQueries.dashboard.keys.cardDetails(),
+      });
     });
 
     it('does not navigate on paymentCompleted in production mode - lets polling handle navigation', async () => {

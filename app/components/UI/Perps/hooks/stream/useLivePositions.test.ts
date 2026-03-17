@@ -7,17 +7,16 @@ import {
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 
 // Mock Engine for lazy isInitialLoading check
-const mockEngineState = {
-  cachedPositions: null as Position[] | null,
-  cachedUserDataTimestamp: 0,
-};
+let mockCachedUserData: {
+  positions: Position[];
+  orders: unknown[];
+  accountState: unknown;
+} | null = null;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
-      get state() {
-        return mockEngineState;
-      },
+      getCachedUserDataForActiveProvider: () => mockCachedUserData,
     },
   },
 }));
@@ -66,6 +65,7 @@ describe('usePerpsLivePositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockCachedUserData = null;
   });
 
   afterEach(() => {
@@ -643,8 +643,11 @@ describe('usePerpsLivePositions', () => {
         { ...mockPosition, symbol: 'ETH-PERP', size: '10.0' },
       ];
 
-      mockEngineState.cachedPositions = cachedPositions;
-      mockEngineState.cachedUserDataTimestamp = Date.now();
+      mockCachedUserData = {
+        positions: cachedPositions,
+        orders: [],
+        accountState: null,
+      };
 
       mockPositionsSubscribe.mockReturnValue(jest.fn());
       mockPricesSubscribe.mockReturnValue(jest.fn());
@@ -655,23 +658,20 @@ describe('usePerpsLivePositions', () => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    it('returns empty positions for stale cache (older than 60s)', () => {
-      mockEngineState.cachedPositions = [mockPosition];
-      mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
+    it('returns empty positions for stale cache (helper returns null)', () => {
+      mockCachedUserData = null;
 
       mockPositionsSubscribe.mockReturnValue(jest.fn());
       mockPricesSubscribe.mockReturnValue(jest.fn());
 
       const { result } = renderHook(() => usePerpsLivePositions());
 
-      // getPreloadedData enforces 60s TTL — stale cache is not used
       expect(result.current.positions).toEqual([]);
       expect(result.current.isInitialLoading).toBe(true);
     });
 
     it('returns empty positions when no cache exists', () => {
-      mockEngineState.cachedPositions = null;
-      mockEngineState.cachedUserDataTimestamp = 0;
+      mockCachedUserData = null;
 
       mockPositionsSubscribe.mockReturnValue(jest.fn());
       mockPricesSubscribe.mockReturnValue(jest.fn());
@@ -683,8 +683,7 @@ describe('usePerpsLivePositions', () => {
     });
 
     it('handles empty cached positions array (valid cache, no positions)', () => {
-      mockEngineState.cachedPositions = [];
-      mockEngineState.cachedUserDataTimestamp = Date.now();
+      mockCachedUserData = { positions: [], orders: [], accountState: null };
 
       mockPositionsSubscribe.mockReturnValue(jest.fn());
       mockPricesSubscribe.mockReturnValue(jest.fn());

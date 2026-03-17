@@ -1,10 +1,23 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { GaslessQuickPickOptions } from './index';
 import { Keys } from '../../../../Base/Keypad';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'ethers';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        trackUnifiedSwapBridgeEvent: jest.fn(),
+      },
+    },
+  },
+}));
 
 // Mock useLatestBalance to control tokenBalance in tests
 jest.mock('../../hooks/useLatestBalance', () => ({
@@ -14,6 +27,10 @@ jest.mock('../../hooks/useLatestBalance', () => ({
 // Mock useShouldRenderMaxOption
 jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
   useShouldRenderMaxOption: jest.fn(() => true),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -26,6 +43,14 @@ const mockUseShouldRenderMaxOption =
   useShouldRenderMaxOption as jest.MockedFunction<
     typeof useShouldRenderMaxOption
   >;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
+const actualUseAnalytics: typeof useAnalytics = jest.requireActual(
+  '../../../../hooks/useAnalytics/useAnalytics',
+).useAnalytics;
+const renderWithRedux = (component: React.ReactElement) =>
+  renderWithProvider(component, undefined, false);
 
 describe('GaslessQuickPickOptions', () => {
   const mockOnChange = jest.fn();
@@ -48,6 +73,10 @@ describe('GaslessQuickPickOptions', () => {
     mockUseShouldRenderMaxOption.mockReturnValue(true);
     mockUseLatestBalance.mockReset();
     mockUseLatestBalance.mockReturnValue(mockTokenBalance);
+    mockUseAnalytics.mockImplementation(() => ({
+      ...actualUseAnalytics(),
+      trackEvent: jest.fn(),
+    }));
   });
 
   afterEach(() => {
@@ -56,7 +85,7 @@ describe('GaslessQuickPickOptions', () => {
 
   describe('rendering', () => {
     it('renders QuickPickButtons when tokenBalance is provided', () => {
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -73,7 +102,7 @@ describe('GaslessQuickPickOptions', () => {
     it('renders QuickPickButtons even when tokenBalance is not provided', () => {
       mockUseLatestBalance.mockReturnValue(undefined);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={undefined}
@@ -90,7 +119,7 @@ describe('GaslessQuickPickOptions', () => {
     it('renders Max button when useShouldRenderMaxOption returns true', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText, queryByText } = render(
+      const { getByText, queryByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -110,7 +139,7 @@ describe('GaslessQuickPickOptions', () => {
     it('renders 90% button when useShouldRenderMaxOption returns false', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { getByText, queryByText } = render(
+      const { getByText, queryByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -130,7 +159,7 @@ describe('GaslessQuickPickOptions', () => {
     it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -152,7 +181,7 @@ describe('GaslessQuickPickOptions', () => {
     it('calls onMaxPress when Max button is clicked', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -178,7 +207,7 @@ describe('GaslessQuickPickOptions', () => {
       };
       mockUseLatestBalance.mockReturnValue(zeroBalance);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -199,7 +228,7 @@ describe('GaslessQuickPickOptions', () => {
       };
       mockUseLatestBalance.mockReturnValue(nonZeroBalance);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -218,7 +247,7 @@ describe('GaslessQuickPickOptions', () => {
     it('shows Max button when useShouldRenderMaxOption returns true', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText, queryByText } = render(
+      const { getByText, queryByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -238,7 +267,7 @@ describe('GaslessQuickPickOptions', () => {
     it('shows 90% button when useShouldRenderMaxOption returns false', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { getByText, queryByText } = render(
+      const { getByText, queryByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -258,7 +287,7 @@ describe('GaslessQuickPickOptions', () => {
     it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -283,7 +312,7 @@ describe('GaslessQuickPickOptions', () => {
       mockUseLatestBalance.mockReturnValue(zeroBalance);
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -305,7 +334,7 @@ describe('GaslessQuickPickOptions', () => {
     it('quick pick buttons calculate correct percentages with Max button', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -363,7 +392,7 @@ describe('GaslessQuickPickOptions', () => {
     it('quick pick buttons calculate correct percentages with 90% button', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -390,7 +419,7 @@ describe('GaslessQuickPickOptions', () => {
     it('does not call onChange when tokenBalance has no displayBalance', () => {
       mockUseLatestBalance.mockReturnValue(undefined);
 
-      const { getByText } = render(
+      const { getByText } = renderWithRedux(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}

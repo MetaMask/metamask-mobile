@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { usePerpsBalanceTokenFilter } from './usePerpsBalanceTokenFilter';
@@ -10,8 +10,12 @@ import {
   isHighlightedItemOutsideAssetList,
 } from '../../../Views/confirmations/types/token';
 import { usePerpsTrading } from './usePerpsTrading';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsPaymentToken } from './usePerpsPaymentToken';
+import Routes from '../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import { selectPerpsAccountState } from '../selectors/perpsController';
+import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -22,8 +26,12 @@ jest.mock(
 );
 jest.mock('./useIsPerpsBalanceSelected');
 jest.mock('./usePerpsTrading');
-jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
-  useConfirmNavigation: jest.fn(),
+jest.mock('../../../Views/confirmations/hooks/useApprovalRequest', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
 }));
 jest.mock('./usePerpsPaymentToken');
 jest.mock('./usePerpsNetworkManagement', () => ({
@@ -58,17 +66,21 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
   typeof usePerpsTrading
 >;
-const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
-  typeof useConfirmNavigation
->;
 const mockUsePerpsPaymentToken = usePerpsPaymentToken as jest.MockedFunction<
   typeof usePerpsPaymentToken
+>;
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+const mockUseApprovalRequest = useApprovalRequest as jest.MockedFunction<
+  typeof useApprovalRequest
 >;
 
 describe('usePerpsBalanceTokenFilter', () => {
   const chainId = '0xa4b1';
   const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
-  const mockNavigateToConfirmation = jest.fn();
+  const mockNavigate = jest.fn();
+  const mockOnReject = jest.fn();
   const mockOnPerpsPaymentTokenChange = jest.fn();
 
   beforeEach(() => {
@@ -77,10 +89,10 @@ describe('usePerpsBalanceTokenFilter', () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
-        if (selector.name === 'selectPerpsAccountState') {
+        if (selector === selectPerpsAccountState) {
           return { availableBalance: '1500.00' };
         }
-        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets') {
+        if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) {
           return [];
         }
         return undefined;
@@ -89,9 +101,12 @@ describe('usePerpsBalanceTokenFilter', () => {
     mockUsePerpsTrading.mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     } as unknown as ReturnType<typeof usePerpsTrading>);
-    mockUseConfirmNavigation.mockReturnValue({
-      navigateToConfirmation: mockNavigateToConfirmation,
-    } as unknown as ReturnType<typeof useConfirmNavigation>);
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+    } as unknown as ReturnType<typeof useNavigation>);
+    mockUseApprovalRequest.mockReturnValue({
+      onReject: mockOnReject,
+    } as unknown as ReturnType<typeof useApprovalRequest>);
     mockUsePerpsPaymentToken.mockReturnValue({
       onPaymentTokenChange: mockOnPerpsPaymentTokenChange,
     } as unknown as ReturnType<typeof usePerpsPaymentToken>);
@@ -200,9 +215,8 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('uses zero balance when perps account is null', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
-          if (selector.name === 'selectPerpsAccountState') return null;
-          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-            return [];
+          if (selector === selectPerpsAccountState) return null;
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
       );
@@ -222,10 +236,9 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('clears isSelected on other tokens when perps balance is selected', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
-          if (selector.name === 'selectPerpsAccountState')
+          if (selector === selectPerpsAccountState)
             return { availableBalance: '1500.00' };
-          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-            return [];
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
       );
@@ -255,10 +268,9 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('keeps token isSelected when perps balance is not selected', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
-          if (selector.name === 'selectPerpsAccountState')
+          if (selector === selectPerpsAccountState)
             return { availableBalance: '1500.00' };
-          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-            return [];
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
       );
@@ -280,14 +292,15 @@ describe('usePerpsBalanceTokenFilter', () => {
 
     it('filters to only allowlisted tokens when allowlist is set', () => {
       const allowlistKey = `${chainId}.0xusdc`.toLowerCase();
-      let callIndex = 0;
-      mockUseSelector.mockImplementation(() => {
-        callIndex += 1;
-        // Hook calls selectPerpsAccountState first, then selectPerpsPayWithAnyTokenAllowlistAssets
-        if (callIndex === 1) return { availableBalance: '100.00' };
-        if (callIndex === 2) return [allowlistKey];
-        return [];
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectPerpsAccountState)
+            return { availableBalance: '100.00' };
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets)
+            return [allowlistKey];
+          return [];
+        },
+      );
       const inputTokens: AssetType[] = [
         {
           address: '0xusdc',
@@ -314,7 +327,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       expect((output[1] as AssetType).symbol).toBe('USDC');
     });
 
-    it('calls navigateToConfirmation and depositWithConfirmation when Add funds is pressed', async () => {
+    it('calls onReject, depositWithConfirmation and navigation.navigate when Add funds is pressed', async () => {
       mockUseSelector.mockReturnValue({
         availableBalance: '500.00',
       });
@@ -336,12 +349,17 @@ describe('usePerpsBalanceTokenFilter', () => {
       expect(isHighlightedItemOutsideAssetList(highlightedAction)).toBe(true);
       if (isHighlightedItemOutsideAssetList(highlightedAction)) {
         highlightedAction.actions?.[0]?.onPress();
-        // handlePerpsDepositPress is async (ensureArbitrumNetworkExists().then(...))
-        await Promise.resolve();
-        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-          stack: expect.any(String),
-        });
-        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+        await waitFor(
+          () => {
+            expect(mockOnReject).toHaveBeenCalledTimes(1);
+            expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(
+              Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+              { showPerpsHeader: true },
+            );
+          },
+          { timeout: 2000 },
+        );
       }
     });
 

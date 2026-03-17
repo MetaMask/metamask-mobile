@@ -14,6 +14,8 @@ export const DEFAULT_FEE_COLLECTION_FLAG = {
   metamaskFee: 0.02, // 2%
   providerFee: 0.02, // 2%
   waiveList: [],
+  executors: [],
+  permit2Enabled: false,
 } satisfies PredictFeeCollection;
 
 export const DEFAULT_LIVE_SPORTS_FLAG: PredictLiveSportsFlag = {

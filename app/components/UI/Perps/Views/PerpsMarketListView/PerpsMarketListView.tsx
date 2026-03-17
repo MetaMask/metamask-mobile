@@ -7,12 +7,12 @@ import React, {
 } from 'react';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { IconName as DSIconName } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -44,7 +44,6 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -52,23 +51,18 @@ const PerpsMarketListView = ({
   variant: propVariant,
   title: propTitle,
   showBalanceActions: propShowBalanceActions,
-  defaultSearchVisible: propDefaultSearchVisible,
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
-  // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
 
-  // Merge route params with props (route params take precedence)
   const variant = route.params?.variant ?? propVariant ?? 'full';
   const title = route.params?.title ?? propTitle;
   const showBalanceActions =
     route.params?.showBalanceActions ?? propShowBalanceActions ?? true;
-  const defaultSearchVisible =
-    route.params?.defaultSearchVisible ?? propDefaultSearchVisible ?? false;
   const showWatchlistOnly =
     route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
   const defaultMarketTypeFilter =
@@ -77,10 +71,6 @@ const PerpsMarketListView = ({
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
 
-  // Store the market type filter before entering search, so we can restore it when exiting
-  const preSearchFilterRef = useRef<MarketTypeFilter>(defaultMarketTypeFilter);
-
-  // Use the combined market list view hook for all business logic
   const {
     markets: filteredMarkets,
     searchState,
@@ -91,21 +81,13 @@ const PerpsMarketListView = ({
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
-    defaultSearchVisible,
     enablePolling: false,
     showWatchlistOnly,
     defaultMarketTypeFilter,
-    showZeroVolume: __DEV__, // Only show $0.00 volume markets in development
+    showZeroVolume: __DEV__,
   });
 
-  // Destructure search state for easier access
-  const {
-    searchQuery,
-    setSearchQuery,
-    isSearchVisible,
-    toggleSearchVisibility,
-    clearSearch,
-  } = searchState;
+  const { searchQuery, setSearchQuery } = searchState;
 
   // Destructure sort state for easier access
   const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
@@ -179,34 +161,7 @@ const PerpsMarketListView = ({
     }
   }, [filteredMarkets.length, fadeAnimation]);
 
-  // Use navigation hook for back button
   const handleBackPressed = perpsNavigation.navigateBack;
-
-  const handleSearchToggle = useCallback(() => {
-    // Toggle search visibility
-    toggleSearchVisibility();
-
-    if (isSearchVisible) {
-      // When disabling search, clear the query and restore the filter to what it was before search
-      clearSearch();
-      setMarketTypeFilter(preSearchFilterRef.current);
-    } else {
-      // When enabling search, store the current filter so we can restore it when exiting
-      preSearchFilterRef.current = marketTypeFilter;
-      // Track the event
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.SEARCH_CLICKED,
-      });
-    }
-  }, [
-    isSearchVisible,
-    toggleSearchVisibility,
-    clearSearch,
-    track,
-    setMarketTypeFilter,
-    marketTypeFilter,
-  ]);
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
@@ -309,8 +264,8 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty search results - show when search is visible and no markets match
-    if (isSearchVisible && filteredMarkets.length === 0) {
+    // Empty search results - show when user has typed and no markets match
+    if (searchQuery.trim() && filteredMarkets.length === 0) {
       return (
         <View style={styles.emptyStateContainer}>
           <Icon
@@ -349,7 +304,7 @@ const PerpsMarketListView = ({
           onMarketPress={handleMarketPress}
           sortBy={sortBy}
           showBadge={false}
-          filterKey={`${marketTypeFilter}-${isSearchVisible ? 'search' : 'list'}`}
+          filterKey={marketTypeFilter}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -358,43 +313,35 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      {isSearchVisible ? (
-        <PerpsMarketListHeader
-          title={title}
-          isSearchVisible
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          onSearchClear={() => setSearchQuery('')}
-          onBack={handleBackPressed}
-          onSearchToggle={handleSearchToggle}
-          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-        />
-      ) : (
-        <HeaderCompactStandard
-          title={title || strings('perps.home.markets')}
-          onBack={handleBackPressed}
-          backButtonProps={{
-            testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: DSIconName.Search,
-              onPress: handleSearchToggle,
-              testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-            },
-          ]}
-          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-        />
-      )}
+      <HeaderCompactStandard
+        title={title || strings('perps.home.markets')}
+        onBack={handleBackPressed}
+        backButtonProps={{
+          testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+        }}
+        testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+      />
 
-      {/* Balance Actions Component - Only show in full variant when search not visible */}
-      {!isSearchVisible && showBalanceActions && variant === 'full' && (
+      {showBalanceActions && variant === 'full' && (
         <PerpsMarketBalanceActions />
       )}
 
-      {/* Filter Bar - Show when not loading and no error */}
-      {!isSearchVisible && !isLoadingMarkets && !error && (
+      {!isLoadingMarkets && !error && (
+        <View style={styles.searchBarRow}>
+          <TextFieldSearch
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onPressClearButton={() => setSearchQuery('')}
+            placeholder={strings('perps.search_by_token_symbol')}
+            testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
+            clearButtonProps={{
+              testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
+            }}
+          />
+        </View>
+      )}
+
+      {!isLoadingMarkets && !error && (
         <PerpsMarketFiltersBar
           selectedOptionId={selectedOptionId}
           onSortPress={() => setIsSortFieldSheetVisible(true)}

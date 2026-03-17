@@ -48,6 +48,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -146,13 +147,14 @@ const TokenDetails: React.FC<{
     onSend,
     onReceive,
     goToSwaps,
-    handleBuyPress,
-    handleSellPress,
+    hasEligibleSwapTokens,
     networkModal,
   } = useTokenActions({
     token,
     networkName,
   });
+
+  const { isBuyable } = useTokenBuyability(token);
 
   const {
     transactions,
@@ -175,6 +177,9 @@ const TokenDetails: React.FC<{
     },
   });
   const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
+
+  const showSwapButton = hasEligibleSwapTokens;
+  const showBuyButton = isBuyable || !hasEligibleSwapTokens;
 
   const rampNetworks = useSelector(getRampNetworks);
 
@@ -273,7 +278,6 @@ const TokenDetails: React.FC<{
       {networkModal}
       {useNewLayout &&
         !txLoading &&
-        displaySwapsButton &&
         isTokenTradingOpen(token as BridgeToken) && (
           <BottomSheetFooter
             style={{
@@ -281,20 +285,23 @@ const TokenDetails: React.FC<{
               paddingBottom: insets.bottom + 6,
             }}
             buttonPropsArray={[
-              {
-                variant: ButtonVariants.Primary,
-                label: strings('asset_overview.buy_button'),
-                size: ButtonSize.Lg,
-                onPress: handleBuyPress,
-              },
-              // Only show Sell button if user has balance of this token
-              ...(balance && parseFloat(String(balance)) > 0
+              ...(showSwapButton
                 ? [
                     {
                       variant: ButtonVariants.Primary,
-                      label: strings('asset_overview.sell_button'),
+                      label: strings('asset_overview.swap'),
                       size: ButtonSize.Lg,
-                      onPress: handleSellPress,
+                      onPress: () => goToSwaps(),
+                    },
+                  ]
+                : []),
+              ...(showBuyButton
+                ? [
+                    {
+                      variant: ButtonVariants.Primary,
+                      label: strings('asset_overview.buy_button'),
+                      size: ButtonSize.Lg,
+                      onPress: onBuy,
                     },
                   ]
                 : []),

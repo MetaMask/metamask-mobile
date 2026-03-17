@@ -15,8 +15,8 @@ export function HeroRowSkeleton() {
   return (
     <View style={styles.wrapper}>
       <Skeleton
-        width={64}
-        height={64}
+        width={48}
+        height={48}
         style={styles.skeletonBorderRadiusLarge}
       />
       <Skeleton

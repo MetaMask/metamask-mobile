@@ -128,7 +128,7 @@ describe('Ramps OrderDetails Component', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders OrderDetails component', () => {

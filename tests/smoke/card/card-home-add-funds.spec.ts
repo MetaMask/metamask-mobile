@@ -62,9 +62,17 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
       await CardHomeView.tapAddFundsButton();
       await Assertions.expectElementToBeVisible(
         CardHomeView.addFundsBottomSheetDepositOption,
+        {
+          elemDescription:
+            'Add Funds Bottom Sheet Deposit Option in Card Home View',
+        },
       );
       await Assertions.expectElementToBeVisible(
         CardHomeView.addFundsBottomSheetSwapOption,
+        {
+          elemDescription:
+            'Add Funds Bottom Sheet Swap Option in Card Home View',
+        },
       );
     });
   });
@@ -74,7 +82,6 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
       CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',
       CARD_ADD_FUNDS_CLICKED: 'Card Add Funds Clicked',
-      CARD_ADVANCED_MANAGEMENT_CLICKED: 'Card Advanced Management Clicked',
     };
 
     const softAssert = new SoftAssert();
@@ -89,35 +96,23 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
     const cardAddFundsClicked = eventsToCheck.filter(
       (event) => event.event === expectedEvents.CARD_ADD_FUNDS_CLICKED,
     );
-    const cardAdvancedManagementClicked = eventsToCheck.filter(
-      (event) =>
-        event.event === expectedEvents.CARD_ADVANCED_MANAGEMENT_CLICKED,
-    );
 
     const checkCardButtonViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardButtonViewed);
+      await Assertions.checkIfArrayHasLength(cardButtonViewed, 1);
     }, 'Check Card Button Viewed event');
 
     const checkCardHomeClicked = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardHomeClicked);
+      await Assertions.checkIfArrayHasLength(cardHomeClicked, 1);
     }, 'Check Card Home Clicked event');
 
     const checkCardAddFundsClicked = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardAddFundsClicked);
+      await Assertions.checkIfArrayHasLength(cardAddFundsClicked, 1);
     }, 'Check Card Add Funds Clicked event');
-
-    const checkCardAdvancedManagementClicked = softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(cardAdvancedManagementClicked);
-      },
-      'Check Card Advanced Management Clicked event',
-    );
 
     await Promise.all([
       checkCardButtonViewed,
       checkCardHomeClicked,
       checkCardAddFundsClicked,
-      checkCardAdvancedManagementClicked,
     ]);
     softAssert.throwIfErrors();
   });

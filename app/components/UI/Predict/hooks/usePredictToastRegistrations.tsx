@@ -161,6 +161,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         queryClient.invalidateQueries({
           queryKey: predictQueries.activity.keys.all(),
         });
+
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.unrealizedPnL.keys.all(),
+        });
       }
 
       if (type === 'deposit') {

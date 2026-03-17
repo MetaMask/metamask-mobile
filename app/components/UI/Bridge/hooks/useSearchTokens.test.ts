@@ -9,6 +9,14 @@ import {
 
 global.fetch = jest.fn();
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+    },
+  },
+}));
+
 describe('useSearchTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,7 +63,11 @@ describe('useSearchTokens', () => {
         expect.stringContaining('/getTokens/search'),
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            // Initial fetch may not have a bearer token
+            Authorization: 'Bearer ',
+          },
           body: expect.stringContaining('test query'),
         }),
       );

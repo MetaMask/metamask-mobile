@@ -4,7 +4,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
 <View
   style={
     {
-      "borderTopColor": "#858b9a33",
+      "borderTopColor": "#ffffff14",
       "borderTopWidth": 1,
       "marginTop": 8,
       "paddingTop": 16,
@@ -23,7 +23,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -37,7 +37,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -67,7 +67,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       }
     >
       <SvgMock
-        color="#121314"
+        color="#131416"
         fill="currentColor"
         height={20}
         name="UserCircle"
@@ -83,7 +83,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -99,7 +99,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       onChange={[Function]}
       onResponderTerminationRequest={[Function]}
       onStartShouldSetResponder={[Function]}
-      onTintColor="#b7bbc866"
+      onTintColor="#b4b4b566"
       style={
         [
           {
@@ -107,14 +107,14 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
             "width": 51,
           },
           {
-            "backgroundColor": "#b7bbc866",
+            "backgroundColor": "#b4b4b566",
             "borderRadius": 16,
           },
         ]
       }
       testID="toggle-accountSyncing"
       thumbTintColor="#ffffff"
-      tintColor="#b7bbc866"
+      tintColor="#b4b4b566"
       value={false}
     />
   </View>
@@ -137,7 +137,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       }
     >
       <SvgMock
-        color="#121314"
+        color="#131416"
         fill="currentColor"
         height={20}
         name="Book"
@@ -153,7 +153,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -169,7 +169,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       onChange={[Function]}
       onResponderTerminationRequest={[Function]}
       onStartShouldSetResponder={[Function]}
-      onTintColor="#b7bbc866"
+      onTintColor="#b4b4b566"
       style={
         [
           {
@@ -177,14 +177,14 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
             "width": 51,
           },
           {
-            "backgroundColor": "#b7bbc866",
+            "backgroundColor": "#b4b4b566",
             "borderRadius": 16,
           },
         ]
       }
       testID="toggle-contactSyncing"
       thumbTintColor="#ffffff"
-      tintColor="#b7bbc866"
+      tintColor="#b4b4b566"
       value={false}
     />
   </View>

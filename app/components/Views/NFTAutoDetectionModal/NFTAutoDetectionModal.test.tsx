@@ -9,7 +9,7 @@ import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -44,20 +44,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics');
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 
-(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getAnalyticsId: jest.fn(),
-});
-
 const Stack = createStackNavigator();
 
 const renderComponent = (state: DeepPartial<RootState> = {}) =>
@@ -70,6 +56,14 @@ const renderComponent = (state: DeepPartial<RootState> = {}) =>
     { state },
   );
 describe('NFT Auto detection modal', () => {
+  beforeEach(() => {
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        addTraitsToUser: mockAddTraitsToUser,
+      }),
+    );
+  });
   afterEach(() => {
     jest.clearAllMocks();
   });

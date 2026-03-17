@@ -1,0 +1,315 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TruncatedError Basic rendering renders an empty error string 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "gap": 6,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="tail"
+    numberOfLines={1}
+    onTextLayout={[Function]}
+    style={
+      {
+        "0": {
+          "flexShrink": 1,
+        },
+        "1": {
+          "opacity": 0,
+        },
+        "color": "#ca3542",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 14,
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  />
+  <TouchableOpacity
+    accessibilityLabel="View error details"
+    accessibilityRole="button"
+    hitSlop={
+      {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8,
+      }
+    }
+    onPress={[Function]}
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "gap": 6,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="tail"
+    numberOfLines={1}
+    onTextLayout={[Function]}
+    style={
+      {
+        "0": {
+          "flexShrink": 1,
+        },
+        "1": {
+          "opacity": 0,
+        },
+        "color": "#ca3542",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 14,
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    This is a test error message
+  </Text>
+  <TouchableOpacity
+    accessibilityLabel="View error details"
+    accessibilityRole="button"
+    hitSlop={
+      {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8,
+      }
+    }
+    onPress={[Function]}
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "gap": 6,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="tail"
+    numberOfLines={3}
+    onTextLayout={[Function]}
+    style={
+      {
+        "0": {
+          "flexShrink": 1,
+        },
+        "1": {
+          "opacity": 0,
+        },
+        "color": "#ca3542",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 14,
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    This is a test error message
+  </Text>
+  <TouchableOpacity
+    accessibilityLabel="View error details"
+    accessibilityRole="button"
+    hitSlop={
+      {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8,
+      }
+    }
+    onPress={[Function]}
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`TruncatedError Info icon visibility displays the error text after measurement confirms it fits 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "gap": 6,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="tail"
+    numberOfLines={1}
+    onTextLayout={[Function]}
+    style={
+      {
+        "0": {
+          "flexShrink": 1,
+        },
+        "1": false,
+        "color": "#ca3542",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 14,
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Short error message
+  </Text>
+  <TouchableOpacity
+    accessibilityLabel="View error details"
+    accessibilityRole="button"
+    hitSlop={
+      {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8,
+      }
+    }
+    onPress={[Function]}
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`TruncatedError Truncation behavior shows fallback text when error is truncated 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "gap": 6,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="tail"
+    numberOfLines={1}
+    onTextLayout={[Function]}
+    style={
+      {
+        "0": {
+          "flexShrink": 1,
+        },
+        "1": false,
+        "color": "#ca3542",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 14,
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    We've encountered an error
+  </Text>
+  <TouchableOpacity
+    accessibilityLabel="View error details"
+    accessibilityRole="button"
+    hitSlop={
+      {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8,
+      }
+    }
+    onPress={[Function]}
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+</View>
+`;

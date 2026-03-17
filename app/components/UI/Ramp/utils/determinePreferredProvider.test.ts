@@ -1,6 +1,14 @@
-import { determinePreferredProvider } from './determinePreferredProvider';
+import {
+  determinePreferredProvider,
+  completedOrdersFromFiatOrders,
+  completedOrdersFromRampsOrders,
+} from './determinePreferredProvider';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import type { Provider } from '@metamask/ramps-controller';
+import {
+  type Provider,
+  type RampsOrder,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -52,189 +60,144 @@ const mockTransakProvider: Provider = {
   },
 };
 
+const makeFiatOrder = (
+  overrides: Partial<FiatOrder> & { provider: string },
+): FiatOrder => ({
+  id: 'order-1',
+  createdAt: 1000,
+  amount: '100',
+  currency: 'USD',
+  cryptocurrency: 'ETH',
+  state: FIAT_ORDER_STATES.COMPLETED,
+  account: '0x123',
+  network: '1',
+  orderType: 'BUY',
+  excludeFromPurchases: false,
+  data: {} as Order,
+  ...overrides,
+});
+
+const makeRampsOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder =>
+  ({
+    providerOrderId: 'v2-order-1',
+    status: RampsOrderStatus.Completed,
+    createdAt: 1000,
+    provider: { id: 'provider-1', name: 'Provider One' },
+    orderType: 'BUY',
+    walletAddress: '0x123',
+    fiatAmount: 100,
+    cryptoAmount: 0.05,
+    ...overrides,
+  }) as RampsOrder;
+
+describe('completedOrdersFromFiatOrders', () => {
+  it('extracts provider ID from aggregator orders', () => {
+    const orders = [
+      makeFiatOrder({
+        provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+        data: { provider: { id: 'provider-1' } } as Order,
+      }),
+    ];
+
+    const result = completedOrdersFromFiatOrders(orders);
+
+    expect(result).toEqual([{ providerId: 'provider-1', completedAt: 1000 }]);
+  });
+
+  it('maps DEPOSIT orders to TRANSAK', () => {
+    const orders = [makeFiatOrder({ provider: FIAT_ORDER_PROVIDERS.DEPOSIT })];
+
+    const result = completedOrdersFromFiatOrders(orders);
+
+    expect(result).toEqual([{ providerId: 'TRANSAK', completedAt: 1000 }]);
+  });
+
+  it('maps TRANSAK orders to TRANSAK', () => {
+    const orders = [makeFiatOrder({ provider: FIAT_ORDER_PROVIDERS.TRANSAK })];
+
+    const result = completedOrdersFromFiatOrders(orders);
+
+    expect(result).toEqual([{ providerId: 'TRANSAK', completedAt: 1000 }]);
+  });
+
+  it('uses provider string directly for other order types', () => {
+    const orders = [makeFiatOrder({ provider: FIAT_ORDER_PROVIDERS.MOONPAY })];
+
+    const result = completedOrdersFromFiatOrders(orders);
+
+    expect(result).toEqual([{ providerId: 'MOONPAY', completedAt: 1000 }]);
+  });
+
+  it('skips non-completed orders', () => {
+    const orders = [
+      makeFiatOrder({
+        provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+        state: FIAT_ORDER_STATES.PENDING,
+        data: { provider: { id: 'provider-1' } } as Order,
+      }),
+    ];
+
+    const result = completedOrdersFromFiatOrders(orders);
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('completedOrdersFromRampsOrders', () => {
+  it('extracts provider ID from completed controller orders', () => {
+    const orders = [makeRampsOrder()];
+
+    const result = completedOrdersFromRampsOrders(orders);
+
+    expect(result).toEqual([{ providerId: 'provider-1', completedAt: 1000 }]);
+  });
+
+  it('skips non-completed controller orders', () => {
+    const orders = [makeRampsOrder({ status: RampsOrderStatus.Pending })];
+
+    const result = completedOrdersFromRampsOrders(orders);
+
+    expect(result).toEqual([]);
+  });
+
+  it('skips orders with no provider', () => {
+    const orders = [makeRampsOrder({ provider: undefined })];
+
+    const result = completedOrdersFromRampsOrders(orders);
+
+    expect(result).toEqual([]);
+  });
+});
+
 describe('determinePreferredProvider', () => {
   describe('when no providers are available', () => {
     it('returns null', () => {
       const result = determinePreferredProvider([], []);
+
       expect(result).toBeNull();
     });
   });
 
   describe('when user has completed orders', () => {
-    it('returns provider from most recent completed aggregator order', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {
-            provider: { id: 'provider-1' },
-          } as Order,
-        },
-        {
-          id: 'order-2',
-          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-          createdAt: 2000,
-          amount: '200',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {
-            provider: { id: 'provider-2' },
-          } as Order,
-        },
+    it('returns provider from most recent completed order', () => {
+      const completedOrders = [
+        { providerId: 'provider-1', completedAt: 1000 },
+        { providerId: 'provider-2', completedAt: 2000 },
       ];
-
       const providers = [mockProvider1, mockProvider2, mockTransakProvider];
 
-      const result = determinePreferredProvider(orders, providers);
+      const result = determinePreferredProvider(completedOrders, providers);
 
       expect(result).toEqual(mockProvider2);
     });
 
-    it('returns Transak provider for DEPOSIT orders', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {} as Order,
-        },
+    it('falls back to Transak if provider from order is not in available providers', () => {
+      const completedOrders = [
+        { providerId: 'non-existent-provider', completedAt: 1000 },
       ];
-
       const providers = [mockProvider1, mockProvider2, mockTransakProvider];
 
-      const result = determinePreferredProvider(orders, providers);
-
-      expect(result).toEqual(mockTransakProvider);
-    });
-
-    it('returns Transak provider for TRANSAK orders', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.TRANSAK,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {} as Order,
-        },
-      ];
-
-      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
-
-      const result = determinePreferredProvider(orders, providers);
-
-      expect(result).toEqual(mockTransakProvider);
-    });
-
-    it('returns provider from other order types', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.MOONPAY,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {} as Order,
-        },
-      ];
-
-      const moonpayProvider: Provider = {
-        ...mockProvider1,
-        id: 'MOONPAY',
-        name: 'MoonPay',
-      };
-
-      const providers = [mockProvider1, moonpayProvider, mockTransakProvider];
-
-      const result = determinePreferredProvider(orders, providers);
-
-      expect(result).toEqual(moonpayProvider);
-    });
-
-    it('ignores non-completed orders', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.PENDING,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {
-            provider: { id: 'provider-1' },
-          } as Order,
-        },
-      ];
-
-      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
-
-      const result = determinePreferredProvider(orders, providers);
-
-      expect(result).toEqual(mockTransakProvider);
-    });
-
-    it('returns Transak if provider from order is not in available providers', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {
-            provider: { id: 'non-existent-provider' },
-          } as Order,
-        },
-      ];
-
-      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
-
-      const result = determinePreferredProvider(orders, providers);
+      const result = determinePreferredProvider(completedOrders, providers);
 
       expect(result).toEqual(mockTransakProvider);
     });
@@ -260,87 +223,100 @@ describe('determinePreferredProvider', () => {
 
   describe('provider matching', () => {
     it('matches provider by id case-insensitively', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {
-            provider: { id: 'PROVIDER-1' },
-          } as Order,
-        },
-      ];
-
+      const completedOrders = [{ providerId: 'PROVIDER-1', completedAt: 1000 }];
       const providers = [mockProvider1, mockProvider2];
 
-      const result = determinePreferredProvider(orders, providers);
+      const result = determinePreferredProvider(completedOrders, providers);
 
       expect(result).toEqual(mockProvider1);
     });
 
     it('matches provider by name case-insensitively', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {
-            provider: { id: 'provider one' },
-          } as Order,
-        },
+      const completedOrders = [
+        { providerId: 'provider one', completedAt: 1000 },
       ];
-
       const providers = [mockProvider1, mockProvider2];
 
-      const result = determinePreferredProvider(orders, providers);
+      const result = determinePreferredProvider(completedOrders, providers);
 
       expect(result).toEqual(mockProvider1);
     });
 
     it('matches Transak by id containing "transak"', () => {
-      const orders: FiatOrder[] = [
-        {
-          id: 'order-1',
-          provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
-          createdAt: 1000,
-          amount: '100',
-          currency: 'USD',
-          cryptocurrency: 'ETH',
-          state: FIAT_ORDER_STATES.COMPLETED,
-          account: '0x123',
-          network: '1',
-          orderType: 'BUY',
-          excludeFromPurchases: false,
-          data: {} as Order,
-        },
-      ];
-
+      const completedOrders = [{ providerId: 'TRANSAK', completedAt: 1000 }];
       const transakVariant: Provider = {
         ...mockTransakProvider,
         id: 'transak-provider-v2',
       };
-
       const providers = [mockProvider1, transakVariant];
 
-      const result = determinePreferredProvider(orders, providers);
+      const result = determinePreferredProvider(completedOrders, providers);
 
       expect(result).toEqual(transakVariant);
+    });
+  });
+
+  describe('end-to-end with converters', () => {
+    it('works with legacy FiatOrders through converter', () => {
+      const orders = [
+        makeFiatOrder({
+          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+          createdAt: 2000,
+          data: { provider: { id: 'provider-2' } } as Order,
+        }),
+      ];
+      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
+
+      const result = determinePreferredProvider(
+        completedOrdersFromFiatOrders(orders),
+        providers,
+      );
+
+      expect(result).toEqual(mockProvider2);
+    });
+
+    it('works with controller RampsOrders through converter', () => {
+      const orders = [
+        makeRampsOrder({
+          createdAt: 2000,
+          provider: { id: 'provider-2', name: 'Provider Two' } as Provider,
+        }),
+      ];
+      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
+
+      const result = determinePreferredProvider(
+        completedOrdersFromRampsOrders(orders),
+        providers,
+      );
+
+      expect(result).toEqual(mockProvider2);
+    });
+
+    it('picks most recent across both legacy and controller orders', () => {
+      const legacyOrders = [
+        makeFiatOrder({
+          provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+          createdAt: 1000,
+          data: { provider: { id: 'provider-1' } } as Order,
+        }),
+      ];
+      const controllerOrders = [
+        makeRampsOrder({
+          createdAt: 2000,
+          provider: { id: 'provider-2', name: 'Provider Two' } as Provider,
+        }),
+      ];
+      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
+
+      const result = determinePreferredProvider(
+        [
+          ...completedOrdersFromFiatOrders(legacyOrders),
+          ...completedOrdersFromRampsOrders(controllerOrders),
+        ],
+        providers,
+      );
+
+      expect(result).toEqual(mockProvider2);
     });
   });
 });

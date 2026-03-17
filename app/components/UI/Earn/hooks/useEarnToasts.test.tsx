@@ -200,7 +200,7 @@ describe('useEarnToasts', () => {
 
       expect(successToast.labelOptions).toBeDefined();
       expect(Array.isArray(successToast.labelOptions)).toBe(true);
-      expect(successToast.labelOptions).toHaveLength(1);
+      expect(successToast.labelOptions).toHaveLength(3);
     });
 
     it('includes labelOptions in failed toast', () => {

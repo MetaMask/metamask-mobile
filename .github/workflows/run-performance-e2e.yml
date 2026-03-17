@@ -15,6 +15,14 @@ on:
         description: 'Optional description for this test run'
         required: false
         type: string
+      sentry_target:
+        description: 'Sentry target for performance events (test or real)'
+        required: false
+        type: choice
+        options:
+          - test
+          - real
+        default: test
 
       browserstack_app_url_android_onboarding:
         description: 'BrowserStack Android Onboarding App URL (bs://...)'
@@ -38,6 +46,11 @@ on:
         description: 'Optional description for this test run'
         required: false
         type: string
+      sentry_target:
+        description: 'Sentry target for performance events (test or real)'
+        required: false
+        type: string
+        default: test
 
       browserstack_app_url_android_onboarding:
         description: 'BrowserStack Android Onboarding App URL (bs://...)'
@@ -210,11 +223,18 @@ jobs:
   run-android-onboarding-tests:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions, set-build-names, determine-branch-name]
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        set-build-names,
+        determine-branch-name,
+      ]
     if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: android
       build_type: onboarding
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -225,11 +245,18 @@ jobs:
   run-ios-onboarding-tests:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names, determine-branch-name]
+    needs:
+      [
+        read-device-matrix,
+        trigger-ios-dual-versions,
+        set-build-names,
+        determine-branch-name,
+      ]
     if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -267,6 +294,7 @@ jobs:
     with:
       platform: android
       build_type: imported-wallet
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -289,6 +317,7 @@ jobs:
     with:
       platform: ios
       build_type: imported-wallet
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -311,6 +340,7 @@ jobs:
     with:
       platform: android
       build_type: mm-connect
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}

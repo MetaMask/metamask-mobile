@@ -1,0 +1,20 @@
+diff --git a/dist/utils/metrics/types.d.cts b/dist/utils/metrics/types.d.cts
+index b8f94476d4447cb5895a0f39e7beb1eb5e3b4e16..90cbc588e9ebbc84a761bbeaf3770572aad4d6f8 100644
+--- a/dist/utils/metrics/types.d.cts
++++ b/dist/utils/metrics/types.d.cts
+@@ -153,6 +153,7 @@ type RequiredEventContextFromClientBase = {
+ export type RequiredEventContextFromClient = {
+     [K in keyof RequiredEventContextFromClientBase]: RequiredEventContextFromClientBase[K] & {
+         location?: MetaMetricsSwapsEventSource;
++        ab_tests?: Record<string, string>;
+     };
+ };
+ /**
+@@ -198,6 +199,7 @@ export type EventPropertiesFromControllerState = {
+ export type CrossChainSwapsEventProperties<T extends UnifiedSwapBridgeEventName> = {
+     action_type: MetricsActionType;
+     location: MetaMetricsSwapsEventSource;
++    ab_tests?: Record<string, string>;
+ } | Pick<EventPropertiesFromControllerState, T>[T] | Pick<RequiredEventContextFromClient, T>[T];
+ export {};
+ //# sourceMappingURL=types.d.cts.map

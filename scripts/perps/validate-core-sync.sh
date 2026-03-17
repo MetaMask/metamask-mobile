@@ -30,7 +30,7 @@ PERPS_SRC="app/controllers/perps"
 PERPS_DEST="packages/perps-controller/src"
 WORKSPACE="@metamask/perps-controller"
 
-STEP_COUNT=7
+STEP_COUNT=9
 STEP_RESULTS=()
 STEP_TIMES=()
 STEP_LABELS=()
@@ -166,7 +166,7 @@ if [[ -z "$CORE_PATH" ]]; then
 fi
 
 if $SKIP_BUILD; then
-  STEP_COUNT=6
+  STEP_COUNT=8
 fi
 
 # ─── Step functions ─────────────────────────────────────────────────────────────
@@ -210,6 +210,52 @@ step_preflight() {
   echo "OK: Required tools available (rsync, yarn, jq)"
 
   return $errors
+}
+
+compute_source_checksum() {
+  local dir="$1"
+  find "$dir" -name '*.ts' -not -name '*.test.*' -print0 \
+    | sort -z \
+    | xargs -0 shasum -a 256 \
+    | shasum -a 256 \
+    | cut -d' ' -f1
+}
+
+step_conflict_check() {
+  local sync_state="$CORE_PATH/packages/perps-controller/.sync-state.json"
+  if [[ ! -f "$sync_state" ]]; then
+    echo "OK: No previous sync state — first sync"
+    return 0
+  fi
+
+  # Check git-level changes since last sync
+  local last_core_commit
+  last_core_commit=$(jq -r '.lastSyncedCoreCommit // empty' "$sync_state")
+  if [[ -n "$last_core_commit" ]]; then
+    local core_changes
+    core_changes=$(cd "$CORE_PATH" && git diff --name-only "$last_core_commit"..HEAD -- packages/perps-controller/src/ 2>/dev/null | wc -l | tr -d ' ')
+    if (( core_changes > 0 )); then
+      echo "WARN: Core has $core_changes committed file(s) changed in perps-controller/src/ since last sync ($last_core_commit)"
+      echo "WARN: Review these changes before syncing to avoid overwriting Core-only edits"
+    else
+      echo "OK: No committed Core changes since last sync"
+    fi
+  fi
+
+  # Check source fingerprint for uncommitted edits
+  local stored_checksum
+  stored_checksum=$(jq -r '.sourceChecksum // empty' "$sync_state")
+  if [[ -n "$stored_checksum" ]]; then
+    local current_checksum
+    current_checksum=$(compute_source_checksum "$CORE_PATH/$PERPS_DEST")
+    if [[ "$current_checksum" != "$stored_checksum" ]]; then
+      echo "WARN: Core source checksum mismatch — files were edited since last sync"
+      echo "WARN: stored:  $stored_checksum"
+      echo "WARN: current: $current_checksum"
+    else
+      echo "OK: Core source checksum matches last sync"
+    fi
+  fi
 }
 
 step_copy() {
@@ -336,6 +382,27 @@ step_lint() {
   cd "$MOBILE_ROOT"
 }
 
+step_write_sync_state() {
+  local mobile_commit mobile_branch core_commit core_branch checksum
+  mobile_commit=$(cd "$MOBILE_ROOT" && git rev-parse HEAD)
+  mobile_branch=$(cd "$MOBILE_ROOT" && git branch --show-current)
+  core_commit=$(cd "$CORE_PATH" && git rev-parse HEAD)
+  core_branch=$(cd "$CORE_PATH" && git branch --show-current)
+  checksum=$(compute_source_checksum "$CORE_PATH/$PERPS_DEST")
+
+  cat > "$CORE_PATH/packages/perps-controller/.sync-state.json" <<EOF
+{
+  "lastSyncedMobileCommit": "$mobile_commit",
+  "lastSyncedMobileBranch": "$mobile_branch",
+  "lastSyncedCoreCommit": "$core_commit",
+  "lastSyncedCoreBranch": "$core_branch",
+  "lastSyncedDate": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "sourceChecksum": "$checksum"
+}
+EOF
+  echo "Sync state written (checksum: ${checksum:0:12}…)"
+}
+
 # ─── Main ───────────────────────────────────────────────────────────────────────
 
 main() {
@@ -351,6 +418,9 @@ main() {
 
   step=$((step + 1))
   run_step $step "Pre-flight checks" step_preflight
+
+  step=$((step + 1))
+  run_step $step "Conflict check" step_conflict_check
 
   step=$((step + 1))
   run_step $step "Copy source files" step_copy
@@ -371,6 +441,9 @@ main() {
 
   step=$((step + 1))
   run_step $step "Lint" step_lint
+
+  step=$((step + 1))
+  run_step $step "Write sync state" step_write_sync_state
 
   # ─── Summary ────────────────────────────────────────────────────────────────
 

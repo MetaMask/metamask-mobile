@@ -3,6 +3,7 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { analytics } from '../../../../util/analytics/analytics';
 import type { PerpsAnalyticsEvent } from '@metamask/perps-controller';
 import { createMobileInfrastructure } from './mobileInfrastructure';
+import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
@@ -55,7 +56,7 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
-      getPerpsDiscountForAccount: jest.fn(),
+      getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
     },
   },
 }));
@@ -157,6 +158,22 @@ describe('createMobileInfrastructure', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith({
         name: 'fallback-event',
       });
+    });
+  });
+
+  describe('rewards', () => {
+    it('delegates getPerpsDiscountForAccount to RewardsController', async () => {
+      const infra = createMobileInfrastructure();
+      const caipAccountId =
+        'eip155:42161:0x1234' as `${string}:${string}:${string}`;
+
+      const result =
+        await infra.rewards.getPerpsDiscountForAccount(caipAccountId);
+
+      expect(
+        Engine.context.RewardsController.getPerpsDiscountForAccount,
+      ).toHaveBeenCalledWith(caipAccountId);
+      expect(result).toBe(5);
     });
   });
 });

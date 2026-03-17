@@ -311,25 +311,6 @@ function verifyConfig(options = {}) {
     console.log(`   ❌ No code fencing defined in builds.yml`);
   }
 
-  // Verify remote feature flags
-  console.log('\n🚩 Checking remote feature flags...');
-  if (config.remote_feature_flags) {
-    const flags = Object.keys(config.remote_feature_flags);
-    if (verbose) {
-      Object.entries(config.remote_feature_flags).forEach(([flag, value]) => {
-        console.log(`   ✅ ${flag}: ${value}`);
-      });
-    } else {
-      console.log(`   ✅ ${flags.length} remote feature flags configured`);
-    }
-  } else {
-    warnings.push({
-      key: 'remote_feature_flags',
-      reason: 'Not defined in builds.yml',
-    });
-    console.log(`   ⚠️  No remote feature flags defined`);
-  }
-
   // REVERSE CHECK: Find Bitrise env vars NOT in builds.yml
   console.log('\n🔄 Checking for Bitrise env vars NOT in builds.yml...');
 

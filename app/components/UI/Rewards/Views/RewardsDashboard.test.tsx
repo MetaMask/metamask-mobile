@@ -115,15 +115,27 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
-// Mock useSafeAreaInsets
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  })),
-}));
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    useSafeAreaInsets: jest.fn(() => ({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })),
+    SafeAreaView: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(View, { ...props, testID }, children),
+  };
+});
 
 // Mock useMetrics hook
 const mockTrackEvent = jest.fn();
@@ -183,11 +195,6 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-}));
-
-// Mock getNavigationOptionsTitle
-jest.mock('../../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({ title: 'Rewards' })),
 }));
 
 // Mock ErrorBoundary
@@ -466,86 +473,6 @@ jest.mock('../../../../component-library/components-temp/Tabs', () => {
 
   return {
     TabsList: MockTabsList,
-  };
-});
-
-// Mock TabBar
-jest.mock('../../../../component-library/components-temp/TabBar', () => ({
-  __esModule: true,
-  default: function MockTabBar({
-    tabs,
-    activeTab,
-    goToPage,
-    style,
-    tabStyle,
-    underlineStyle,
-  }: {
-    tabs: { key: string; label: string; index: number }[];
-    activeTab: number;
-    goToPage: (index: number) => void;
-    style: Record<string, unknown>;
-    tabStyle: Record<string, unknown>;
-    underlineStyle: Record<string, unknown>;
-  }) {
-    const ReactActual = jest.requireActual('react');
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    return ReactActual.createElement(
-      View,
-      { testID: 'tab-bar', style },
-      tabs?.map((tab, index) =>
-        ReactActual.createElement(
-          TouchableOpacity,
-          {
-            key: tab.key,
-            testID: `tab-${index}`,
-            onPress: () => goToPage(index),
-            style: tabStyle,
-          },
-          ReactActual.createElement(
-            Text,
-            {
-              style: {
-                fontWeight: activeTab === index ? 'bold' : 'normal',
-              },
-            },
-            tab.label,
-          ),
-        ),
-      ),
-      ReactActual.createElement(View, { style: underlineStyle }),
-    );
-  },
-}));
-
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
-
-  return {
-    ...jest.requireActual('@metamask/design-system-react-native'),
-    ButtonIcon: ({
-      iconName,
-      disabled,
-      testID,
-      onPress,
-    }: {
-      iconName: string;
-      size: string;
-      disabled: boolean;
-      testID: string;
-      onPress: () => void;
-    }) =>
-      ReactActual.createElement(
-        TouchableOpacity,
-        {
-          testID,
-          disabled,
-          onPress,
-        },
-        ReactActual.createElement(Text, null, `Icon: ${iconName}`),
-      ),
   };
 });
 
@@ -928,27 +855,57 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('navigation', () => {
-    it('should set navigation options on mount', async () => {
-      // Act
-      render(<RewardsDashboard />);
+  describe('header and SafeAreaView', () => {
+    it('renders SafeAreaView wrapper', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
 
-      // Assert
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW),
+      ).toBeOnTheScreen();
     });
 
+    it('renders HeaderRoot with title Rewards', () => {
+      const { getByText } = render(<RewardsDashboard />);
+
+      expect(getByText('Rewards')).toBeOnTheScreen();
+    });
+
+    it('renders settings button in header', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders referral button in header', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('navigation', () => {
     it('should navigate to referral view when referral button is pressed', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const referralButton = getByTestId(
         REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
       );
       fireEvent.press(referralButton);
 
-      // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    });
+
+    it('navigates to Rewards settings when settings button is pressed', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+      const settingsButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
+      );
+      fireEvent.press(settingsButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
     });
   });
 
@@ -1300,49 +1257,49 @@ describe('RewardsDashboard', () => {
     });
 
     it('should disable referral button when user is not opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const referralButton = getByTestId(
         REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
       );
-
-      // Assert
-      expect(referralButton.props.disabled).toBe(true);
+      const isDisabled =
+        referralButton.props.disabled === true ||
+        referralButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(true);
     });
 
     it('should disable settings button when user is not opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
-
-      // Assert
-      expect(settingsButton.props.disabled).toBe(true);
+      const isDisabled =
+        settingsButton.props.disabled === true ||
+        settingsButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(true);
     });
   });
 
   describe('button states when opted in', () => {
     it('should enable referral button when user is opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const referralButton = getByTestId(
         REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
       );
-
-      // Assert
-      expect(referralButton.props.disabled).toBe(false);
+      const isDisabled =
+        referralButton.props.disabled === true ||
+        referralButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(false);
     });
 
     it('should enable settings button when user is opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
-
-      // Assert
-      expect(settingsButton.props.disabled).toBe(false);
+      const isDisabled =
+        settingsButton.props.disabled === true ||
+        settingsButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(false);
     });
   });
 

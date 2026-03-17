@@ -270,7 +270,7 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('+10.0%');
+      expect(pnlText).toHaveTextContent('+10.00%');
     });
   });
 
@@ -627,7 +627,7 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('-10.0%');
+      expect(pnlText).toHaveTextContent('-10.00%');
     });
   });
 });

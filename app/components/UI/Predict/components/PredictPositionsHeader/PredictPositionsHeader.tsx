@@ -8,9 +8,14 @@ import {
   ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -41,6 +46,7 @@ import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -89,16 +95,32 @@ const PredictPositionsHeader = forwardRef<
     selectPredictWonPositions({ address: selectedAddress }),
   );
 
+  const { data: activePositions } = usePredictPositions({ claimable: false });
+  const hasPositions = (activePositions?.length ?? 0) > 0;
+
   const {
-    unrealizedPnL,
+    data: pnlData,
     isLoading: isUnrealizedPnLLoading,
-    loadUnrealizedPnL,
     error: pnlError,
   } = useUnrealizedPnL();
 
+  // Only show P&L when the user has active (non-claimable) positions
+  const unrealizedPnL = hasPositions ? (pnlData ?? null) : null;
+
+  // Invalidate unrealized P&L query when screen comes into focus
+  const pnlQueryKey = useMemo(
+    () => predictQueries.unrealizedPnL.keys.byAddress(selectedAddress),
+    [selectedAddress],
+  );
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: pnlQueryKey });
+    }, [queryClient, pnlQueryKey]),
+  );
+
   // Notify parent of errors while keeping state isolated
   useEffect(() => {
-    const combinedError = balanceError?.message ?? pnlError ?? null;
+    const combinedError = balanceError?.message ?? pnlError?.message ?? null;
     onError?.(combinedError);
   }, [balanceError, pnlError, onError]);
 
@@ -122,7 +144,7 @@ const PredictPositionsHeader = forwardRef<
   useImperativeHandle(ref, () => ({
     refresh: async () => {
       await Promise.all([
-        loadUnrealizedPnL({ isRefresh: true }),
+        queryClient.invalidateQueries({ queryKey: pnlQueryKey }),
         queryClient.invalidateQueries({
           queryKey: predictQueries.balance.keys.all(),
         }),

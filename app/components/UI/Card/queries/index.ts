@@ -4,7 +4,15 @@ import {
   cashbackWalletOptions,
   cashbackWithdrawEstimationOptions,
 } from './cashback';
+import { dashboardKeys } from './dashboard';
+
 export const cardQueries = {
+  keys: {
+    all: () => ['card'] as const,
+  },
+  dashboard: {
+    keys: dashboardKeys,
+  },
   pin: {
     keys: pinKeys,
     tokenMutationFn: pinTokenMutationFn,
