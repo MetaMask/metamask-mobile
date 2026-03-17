@@ -204,7 +204,7 @@
     "@metamask/account-tree-controller": "^5.0.0",
     "@metamask/accounts-controller": "^37.0.0",
     "@metamask/address-book-controller": "^7.0.1",
-    "@metamask/ai-controllers": "^0.2.0",
+    "@metamask/ai-controllers": "^0.3.0",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^8.0.0",
@@ -274,7 +274,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^3.1.0",
     "@metamask/profile-sync-controller": "^28.0.0",
-    "@metamask/ramps-controller": "^10.2.0",
+    "@metamask/ramps-controller": "^12.0.0",
     "@metamask/react-native-acm": "1.2.0",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
@@ -570,6 +570,7 @@
     "@types/serve-handler": "^6.1.4",
     "@types/url-parse": "^1.4.8",
     "@types/valid-url": "^1.0.4",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
     "@walletconnect/types": "^2.23.0",
@@ -655,6 +656,7 @@
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
+    "ws": "^8.19.0",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
   },
@@ -753,7 +755,9 @@
       "appium-chromium-driver>appium-chromedriver>@appium/support>sharp": false,
       "@metamask/transaction-controller>babel-runtime>core-js": false,
       "webdriverio>@wdio/utils>edgedriver": false,
-      "webdriverio>@wdio/utils>geckodriver": false
+      "webdriverio>@wdio/utils>geckodriver": false,
+      "ws>bufferutil": false,
+      "ws>utf-8-validate": false
     }
   },
   "packageManager": "yarn@4.10.3",

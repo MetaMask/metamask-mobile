@@ -7622,15 +7622,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/ai-controllers@npm:0.2.0"
+"@metamask/ai-controllers@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/ai-controllers@npm:0.3.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/02a8088036e2e7e70ac94a6a7617df28738500696e37a67f4f71adaa277969afb91a6fd7d6b001f5d2c015d6ea3b97d67e300eb5ed8bf1e739103b7f85c81688
+  checksum: 10/a1a4655243a5de34378aad291a34a1b5bf441b186b9e541083bc870ee65bb3244c31e45d84ec3a24bcf8f36452408f3518445939bd450304feaacfcadffb51f5
   languageName: node
   linkType: hard
 
@@ -9346,14 +9346,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^10.2.0":
-  version: 10.2.0
-  resolution: "@metamask/ramps-controller@npm:10.2.0"
+"@metamask/ramps-controller@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "@metamask/ramps-controller@npm:12.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/4c9e10f3948a4e0f44f3a98fd2a7a220585e74793ad4cc899b27be6ea3c428c76fb95b0987697a0dd62a98221868ce2bfb3e40495cef00f4909e5dd88dec152e
+  checksum: 10/fb22bbab95045b7c5d80d3fb24bd41b831e0516733cdf1a0159514cbd8b0aededd599818adecfbc86802299095a223251733c271a8d0b6db2d88b25c971da1ed
   languageName: node
   linkType: hard
 
@@ -35354,7 +35354,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^5.0.0"
     "@metamask/accounts-controller": "npm:^37.0.0"
     "@metamask/address-book-controller": "npm:^7.0.1"
-    "@metamask/ai-controllers": "npm:^0.2.0"
+    "@metamask/ai-controllers": "npm:^0.3.0"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
@@ -35434,7 +35434,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^3.1.0"
     "@metamask/profile-sync-controller": "npm:^28.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^10.2.0"
+    "@metamask/ramps-controller": "npm:^12.0.0"
     "@metamask/react-native-acm": "npm:1.2.0"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -35553,6 +35553,7 @@ __metadata:
     "@types/serve-handler": "npm:^6.1.4"
     "@types/url-parse": "npm:^1.4.8"
     "@types/valid-url": "npm:^1.0.4"
+    "@types/ws": "npm:^8.18.1"
     "@typescript-eslint/eslint-plugin": "npm:^7.10.0"
     "@typescript-eslint/parser": "npm:^7.10.0"
     "@veriff/react-native-sdk": "npm:^11.2.0"
@@ -35792,6 +35793,7 @@ __metadata:
     webextension-polyfill: "npm:^0.12.0"
     webpack: "npm:^5.88.2"
     webpack-cli: "npm:^5.1.4"
+    ws: "npm:^8.19.0"
     xhr2: "npm:^0.2.1"
     xml2js: "npm:^0.5.0"
   dependenciesMeta:
@@ -47325,7 +47327,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:*, ws@npm:^8.0.0, ws@npm:^8.12.1, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.18.2, ws@npm:^8.18.3, ws@npm:^8.5.0, ws@npm:^8.8.0":
+"ws@npm:*, ws@npm:^8.0.0, ws@npm:^8.12.1, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.18.2, ws@npm:^8.18.3, ws@npm:^8.19.0, ws@npm:^8.5.0, ws@npm:^8.8.0":
   version: 8.19.0
   resolution: "ws@npm:8.19.0"
   peerDependencies:
