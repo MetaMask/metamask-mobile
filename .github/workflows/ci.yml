@@ -340,11 +340,16 @@ jobs:
           path: ./unit-test-stats.json
           if-no-files-found: error
       - name: Generate CV test HTML coverage report
-        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html
+        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-coverage-summary
+          path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash

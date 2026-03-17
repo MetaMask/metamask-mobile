@@ -307,6 +307,24 @@ async function collectComponentViewTestCount() {
   }
   result.total_tests_defined = defined;
   result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('cv-test-coverage-summary');
+    const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
+    const { lines, statements, branches, functions } = summary.total;
+    result.line_coverage = Math.round(lines.pct);
+    result.statement_coverage = Math.round(statements.pct);
+    result.branch_coverage = Math.round(branches.pct);
+    result.function_coverage = Math.round(functions.pct);
+    console.log(
+      `[component-view] coverage — line: ${result.line_coverage}%, stmt: ${result.statement_coverage}%, branch: ${result.branch_coverage}%, fn: ${result.function_coverage}%`,
+    );
+  } catch (err) {
+    console.warn(`[component-view] coverage summary not available, skipping: ${err.message}`);
+  }
+
   return result;
 }
 
