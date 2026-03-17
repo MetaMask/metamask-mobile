@@ -1,6 +1,7 @@
 import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, TextVariant } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
@@ -9,6 +10,7 @@ import ViewMoreCard from '../../components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 
@@ -41,6 +43,7 @@ const WhatsHappeningSection = forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
+    const navigation = useNavigation();
     const isEnabled = useSelector(selectWhatsHappeningEnabled);
     const title = strings('homepage.sections.whats_happening');
 
@@ -49,9 +52,26 @@ const WhatsHappeningSection = forwardRef<
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
+    const navigateToDetail = useCallback(
+      (initialIndex: number) => {
+        navigation.navigate(
+          Routes.WHATS_HAPPENING_DETAIL as never,
+          { items, initialIndex } as never,
+        );
+      },
+      [navigation, items],
+    );
+
     const handleViewAll = useCallback(() => {
-      // TODO: navigate to expanded "What's Happening" view
-    }, []);
+      navigateToDetail(0);
+    }, [navigateToDetail]);
+
+    const handleCardPress = useCallback(
+      (index: number) => {
+        navigateToDetail(index);
+      },
+      [navigateToDetail],
+    );
 
     if (!isEnabled) {
       return null;
@@ -89,13 +109,15 @@ const WhatsHappeningSection = forwardRef<
           testID="homepage-whats-happening-carousel"
         >
           {isLoading ? (
-            SKELETON_KEYS.map((key) => (
-              <WhatsHappeningCardSkeleton key={key} />
-            ))
+            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
           ) : (
             <>
-              {items.map((item) => (
-                <WhatsHappeningCard key={item.id} item={item} />
+              {items.map((item, index) => (
+                <WhatsHappeningCard
+                  key={item.id}
+                  item={item}
+                  onPress={() => handleCardPress(index)}
+                />
               ))}
               <ViewMoreCard
                 onPress={handleViewAll}
