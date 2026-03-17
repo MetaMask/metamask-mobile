@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
@@ -217,6 +217,10 @@ const WIDGET_PROVIDER_QUOTE = {
   inputCurrency: 'USD',
   outputAmount: '0.05',
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+  quote: {
+    buyWidget: { browser: 'IN_APP_OS_BROWSER' as const },
+    buyURL: 'https://widget.example.com/checkout',
+  },
 };
 
 const WIDGET_PROVIDER = {
@@ -334,17 +338,19 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(mockLinkingOpenURL).toHaveBeenCalledWith(
-        'https://widget.example.com/checkout',
-      );
-      expect(mockNavigationReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.RAMP.BUILD_QUOTE,
-            params: {},
-          },
-        ],
+      await waitFor(() => {
+        expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+          'https://widget.example.com/checkout',
+        );
+        expect(mockNavigationReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.RAMP.BUILD_QUOTE,
+              params: {},
+            },
+          ],
+        });
       });
     });
 
@@ -375,22 +381,20 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(mockAddOrder).toHaveBeenCalled();
-      expect(mockNavigationReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-            params: {
-              orderId: 'ord-123',
-              showCloseButton: true,
+      await waitFor(() => {
+        expect(mockAddOrder).toHaveBeenCalled();
+        expect(mockNavigationReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: {
+                orderId: 'ord-123',
+                showCloseButton: true,
+              },
             },
-          },
-        ],
+          ],
+        });
       });
     });
   });
