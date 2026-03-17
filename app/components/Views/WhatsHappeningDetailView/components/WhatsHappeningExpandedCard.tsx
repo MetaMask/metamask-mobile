@@ -126,14 +126,14 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               >
                 {item.relatedAssets.map((asset) => (
                   <Box
-                    key={asset}
+                    key={asset.sourceAssetId}
                     twClassName="bg-muted rounded-full px-3 py-1"
                   >
                     <Text
                       variant={TextVariant.BodySm}
                       color={TextColor.TextDefault}
                     >
-                      {asset}
+                      {asset.symbol}
                     </Text>
                   </Box>
                 ))}

@@ -112,13 +112,15 @@ const WhatsHappeningSection = forwardRef<
           testID="homepage-whats-happening-carousel"
         >
           {isLoading ? (
-            SKELETON_KEYS.map((key) => (
-              <WhatsHappeningCardSkeleton key={key} />
-            ))
+            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
           ) : (
             <>
-              {items.map((item) => (
-                <WhatsHappeningCard key={item.id} item={item} />
+              {items.map((item, index) => (
+                <WhatsHappeningCard
+                  key={item.id}
+                  item={item}
+                  onPress={() => handleCardPress(index)}
+                />
               ))}
               <ViewMoreCard
                 onPress={handleViewAll}
