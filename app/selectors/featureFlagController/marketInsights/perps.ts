@@ -5,14 +5,12 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 
-export const selectMarketInsightsEnabled = createSelector(
+export const selectMarketInsightsPerpsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
-      remoteFeatureFlags?.aiSocialMarketAnalysisEnabled as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.aiSocialMarketInsightsPerpsEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
-
-export { selectMarketInsightsPerpsEnabled } from './perps';
