@@ -202,9 +202,20 @@ jobs:
               </div>
             </div>
 
-            \${plan.signOffs?.needsAttention?.length ? \\\`
+            \${(plan.signOffs?.needsAttention?.length || plan.teamsNeedingSignOff?.length) ? \\\`
             <h2>👥 Teams Needing Sign-off</h2>
-            <div class=\"teams\">\${plan.signOffs.needsAttention.map(t => '<span class=\"team\">⏳ ' + esc(t) + '</span>').join('')}</div>
+            <div class=\"teams\">\${(plan.signOffs?.needsAttention || plan.teamsNeedingSignOff || []).map(t => '<span class=\"team\">⏳ ' + esc(t) + '</span>').join('')}</div>
+            \\\` : ''}
+
+            \${plan.testScenarios?.cherryPickScenarios?.length ? \\\`
+            <h2>🍒 Cherry-Pick Scenarios</h2>
+            \${plan.testScenarios.cherryPickScenarios.map((s, i) => \\\\\\\`
+            <div class=\"scenario risk-high\">
+              <h3>\\\\\\\${i + 1}. \\\\\\\${esc(s.area)} <span class=\"badge badge-high\">CHERRY-PICK</span></h3>
+              <p><strong>Why:</strong> \\\\\\\${esc(s.whyThisMatters)}</p>
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\\\\\\\${s.testSteps.map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+            </div>
+            \\\\\\\`).join('')}
             \\\` : ''}
 
             <h2>🔴 High Risk Areas</h2>

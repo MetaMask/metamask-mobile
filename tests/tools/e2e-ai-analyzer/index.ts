@@ -502,6 +502,7 @@ async function main() {
             prInfo,
             latestBuild,
             options.excludedFeatures || [],
+            version,
           );
 
           // Step 2: Generate delta analysis (if there are cherry-picks)
@@ -684,6 +685,7 @@ async function main() {
           prInfo,
           buildNumber,
           options.excludedFeatures || [],
+          options.releaseVersion,
         );
 
         // Print summary

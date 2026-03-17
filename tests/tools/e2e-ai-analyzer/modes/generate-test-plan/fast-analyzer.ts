@@ -378,12 +378,14 @@ function computeRiskScore(
  * @param prInfo - PR information including files, sign-offs, etc.
  * @param buildNumber - Optional build number for the RC
  * @param excludedFeatures - Features behind feature flags to exclude from analysis
+ * @param releaseVersion - Optional version override (otherwise extracted from PR title)
  */
 export async function analyzeWithSingleCall(
   provider: ILLMProvider,
   prInfo: PullRequestInfo,
   buildNumber?: number,
   excludedFeatures: string[] = [],
+  releaseVersion?: string,
 ): Promise<TestPlanResult> {
   console.log(`🤖 Analyzing with ${provider.displayName}...`);
 
@@ -448,7 +450,7 @@ export async function analyzeWithSingleCall(
   return {
     prNumber: prInfo.number,
     prTitle: prInfo.title,
-    version: extractVersion(prInfo.title),
+    version: releaseVersion || extractVersion(prInfo.title),
     buildNumber,
     generatedAt: new Date().toISOString(),
     model: response.model,
