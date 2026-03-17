@@ -11,7 +11,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
-type LastWithdrawToken = {
+type MetaMaskPayToken = {
   address: Hex;
   chainId: Hex;
 };
@@ -85,7 +85,7 @@ export const selectSortedTransactions = createDeepEqualSelector(
 export const selectLastWithdrawTokenByType = createSelector(
   selectNonReplacedTransactions,
   (_state: RootState, transactionType?: string) => transactionType,
-  (transactions, transactionType): LastWithdrawToken | undefined => {
+  (transactions, transactionType): MetaMaskPayToken | undefined => {
     if (!transactionType) {
       return undefined;
     }
