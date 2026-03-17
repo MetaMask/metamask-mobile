@@ -535,5 +535,288 @@ describe('App', () => {
     it('has multi SRP routes defined', () => {
       expect(Routes.MULTI_SRP.IMPORT).toBeDefined();
     });
+
+    it('has options sheet route defined', () => {
+      expect(Routes.OPTIONS_SHEET).toBeDefined();
+    });
+
+    it('has fox loader route defined', () => {
+      expect(Routes.FOX_LOADER).toBeDefined();
+    });
+
+    it('has webview routes defined', () => {
+      expect(Routes.WEBVIEW.SIMPLE).toBeDefined();
+      expect(Routes.WEBVIEW.MAIN).toBeDefined();
+    });
+  });
+
+  describe('App version handling', () => {
+    it('should handle version storage operations', async () => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      render(<App />, { wrapper: Providers });
+
+      await waitFor(() => {
+        expect(StorageWrapper.getItem).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('AppFlow navigation structure', () => {
+    it('has import private key view route defined', () => {
+      expect(Routes.QR_TAB_SWITCHER).toBeDefined();
+    });
+
+    it('has max browser tabs modal route defined', () => {
+      expect(Routes.MODAL.MAX_BROWSER_TABS_MODAL).toBeDefined();
+    });
+
+    it('has settings reveal private credential route defined', () => {
+      expect(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL).toBeDefined();
+    });
+
+    it('has multichain account cell actions route defined', () => {
+      expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS).toBeDefined();
+    });
+  });
+
+  describe('Onboarding navigation', () => {
+    it('has onboarding success flow route defined', () => {
+      expect(Routes.ONBOARDING.SUCCESS_FLOW).toBeDefined();
+    });
+
+    it('has onboarding success route defined', () => {
+      expect(Routes.ONBOARDING.SUCCESS).toBeDefined();
+    });
+
+    it('has onboarding default settings route defined', () => {
+      expect(Routes.ONBOARDING.DEFAULT_SETTINGS).toBeDefined();
+    });
+
+    it('has onboarding general settings route defined', () => {
+      expect(Routes.ONBOARDING.GENERAL_SETTINGS).toBeDefined();
+    });
+
+    it('has onboarding assets settings route defined', () => {
+      expect(Routes.ONBOARDING.ASSETS_SETTINGS).toBeDefined();
+    });
+
+    it('has onboarding security settings route defined', () => {
+      expect(Routes.ONBOARDING.SECURITY_SETTINGS).toBeDefined();
+    });
+
+    it('has onboarding import from secret recovery phrase route defined', () => {
+      expect(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+      ).toBeDefined();
+    });
+
+    it('has social login routes defined', () => {
+      expect(Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER).toBeDefined();
+      expect(
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+      ).toBeDefined();
+    });
+
+    it('has wallet creation error route defined', () => {
+      expect(Routes.ONBOARDING.WALLET_CREATION_ERROR).toBeDefined();
+    });
+  });
+
+  describe('Detected tokens flow', () => {
+    it('has detected tokens routes defined', () => {
+      expect(Routes.SHEET.BASIC_FUNCTIONALITY).toBeDefined();
+      expect(Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC).toBeDefined();
+    });
+  });
+
+  describe('Multichain account details actions', () => {
+    it('has multichain account details action routes defined', () => {
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL,
+      ).toBeDefined();
+    });
+  });
+
+  describe('Root modal flow screens', () => {
+    it('has seedphrase modal route defined', () => {
+      expect(Routes.SHEET.SEEDPHRASE_MODAL).toBeDefined();
+    });
+
+    it('has skip account security modal route defined', () => {
+      expect(Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL).toBeDefined();
+    });
+
+    it('has success error sheet route defined', () => {
+      expect(Routes.SHEET.SUCCESS_ERROR_SHEET).toBeDefined();
+    });
+
+    it('has add account route defined', () => {
+      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
+    });
+
+    it('has experience enhancer route defined', () => {
+      expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
+    });
+
+    it('has data collection route defined', () => {
+      expect(Routes.SHEET.DATA_COLLECTION).toBeDefined();
+    });
+
+    it('has account connect route defined', () => {
+      expect(Routes.SHEET.ACCOUNT_CONNECT).toBeDefined();
+    });
+
+    it('has account permissions route defined', () => {
+      expect(Routes.SHEET.ACCOUNT_PERMISSIONS).toBeDefined();
+    });
+
+    it('has revoke all account permissions route defined', () => {
+      expect(Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS).toBeDefined();
+    });
+
+    it('has connection details route defined', () => {
+      expect(Routes.SHEET.CONNECTION_DETAILS).toBeDefined();
+    });
+
+    it('has permitted networks info sheet route defined', () => {
+      expect(Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET).toBeDefined();
+    });
+
+    it('has token sort route defined', () => {
+      expect(Routes.SHEET.TOKEN_SORT).toBeDefined();
+    });
+
+    it('has network manager route defined', () => {
+      expect(Routes.SHEET.NETWORK_MANAGER).toBeDefined();
+    });
+
+    it('has ambiguous address route defined', () => {
+      expect(Routes.SHEET.AMBIGUOUS_ADDRESS).toBeDefined();
+    });
+
+    it('has turn off remember me route defined', () => {
+      expect(Routes.MODAL.TURN_OFF_REMEMBER_ME).toBeDefined();
+    });
+
+    it('has srp reveal quiz route defined', () => {
+      expect(Routes.MODAL.SRP_REVEAL_QUIZ).toBeDefined();
+    });
+
+    it('has account actions route defined', () => {
+      expect(Routes.SHEET.ACCOUNT_ACTIONS).toBeDefined();
+    });
+
+    it('has fiat on testnets friction route defined', () => {
+      expect(Routes.SHEET.FIAT_ON_TESTNETS_FRICTION).toBeDefined();
+    });
+
+    it('has show ipfs route defined', () => {
+      expect(Routes.SHEET.SHOW_IPFS).toBeDefined();
+    });
+
+    it('has show nft display media route defined', () => {
+      expect(Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA).toBeDefined();
+    });
+
+    it('has nft auto detection modal route defined', () => {
+      expect(Routes.MODAL.NFT_AUTO_DETECTION_MODAL).toBeDefined();
+    });
+
+    it('has whats new route defined', () => {
+      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
+    });
+
+    it('has multi rpc migration modal route defined', () => {
+      expect(Routes.MODAL.MULTI_RPC_MIGRATION_MODAL).toBeDefined();
+    });
+
+    it('has show token id route defined', () => {
+      expect(Routes.SHEET.SHOW_TOKEN_ID).toBeDefined();
+    });
+
+    it('has origin spam modal route defined', () => {
+      expect(Routes.SHEET.ORIGIN_SPAM_MODAL).toBeDefined();
+    });
+
+    it('has change in simulation modal route defined', () => {
+      expect(Routes.SHEET.CHANGE_IN_SIMULATION_MODAL).toBeDefined();
+    });
+
+    it('has tooltip modal route defined', () => {
+      expect(Routes.SHEET.TOOLTIP_MODAL).toBeDefined();
+    });
+
+    it('has deep link modal route defined', () => {
+      expect(Routes.MODAL.DEEP_LINK_MODAL).toBeDefined();
+    });
+
+    it('has multichain accounts intro route defined', () => {
+      expect(Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO).toBeDefined();
+    });
+
+    it('has multichain accounts learn more route defined', () => {
+      expect(Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE).toBeDefined();
+    });
+
+    it('has pna25 notice bottom sheet route defined', () => {
+      expect(Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET).toBeDefined();
+    });
+
+    it('has sdk return to dapp notification route defined', () => {
+      expect(Routes.SDK.RETURN_TO_DAPP_NOTIFICATION).toBeDefined();
+    });
+
+    it('has card notification route defined', () => {
+      expect(Routes.CARD.NOTIFICATION).toBeDefined();
+    });
+
+    it('has multichain transaction details route defined', () => {
+      expect(Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS).toBeDefined();
+    });
+
+    it('has transaction details route defined', () => {
+      expect(Routes.SHEET.TRANSACTION_DETAILS).toBeDefined();
+    });
+
+    it('has import wallet tip route defined', () => {
+      expect(Routes.SHEET.IMPORT_WALLET_TIP).toBeDefined();
+    });
+
+    it('has select srp route defined', () => {
+      expect(Routes.SHEET.SELECT_SRP).toBeDefined();
+    });
   });
 });

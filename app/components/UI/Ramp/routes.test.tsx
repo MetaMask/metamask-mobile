@@ -1,6 +1,86 @@
+import React from 'react';
+import { render, cleanup } from '@testing-library/react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
 import Routes from '../../../constants/navigation/Routes';
+import TokenListRoutes from './routes';
+import { backgroundState } from '../../../util/test/initial-root-state';
+
+const mockStopListening = jest.fn();
+const mockStartListening = jest.fn();
+
+jest.mock('../../../core/LockManagerService', () => ({
+  __esModule: true,
+  default: {
+    stopListening: mockStopListening,
+    startListening: mockStartListening,
+  },
+}));
+
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: jest.fn().mockReturnValue({
+    Navigator: ({
+      children,
+      initialRouteName,
+    }: {
+      children: React.ReactNode;
+      initialRouteName: string;
+    }) => (
+      <div data-testid="navigator" data-initial-route={initialRouteName}>
+        {children}
+      </div>
+    ),
+    Screen: ({
+      name,
+      component,
+    }: {
+      name: string;
+      component: React.ComponentType;
+    }) => (
+      <div data-testid={`screen-${name}`} data-component={component?.name} />
+    ),
+  }),
+}));
+
+jest.mock('./Views/TokenSelection', () => () => null);
+jest.mock('./Views/BuildQuote', () => () => null);
+jest.mock('./Views/Checkout', () => () => null);
+jest.mock('./Views/NativeFlow/EnterEmail', () => () => null);
+jest.mock('./Views/NativeFlow/OtpCode', () => () => null);
+jest.mock('./Views/NativeFlow/BasicInfo', () => () => null);
+jest.mock('./Views/NativeFlow/EnterAddress', () => () => null);
+jest.mock('./Views/NativeFlow/VerifyIdentity', () => () => null);
+jest.mock('./Views/NativeFlow/BankDetails', () => () => null);
+jest.mock('./Views/NativeFlow/OrderProcessing', () => () => null);
+jest.mock('./Views/NativeFlow/KycProcessing', () => () => null);
+jest.mock('./Views/NativeFlow/AdditionalVerification', () => () => null);
+jest.mock('./Views/Modals/UnsupportedTokenModal', () => () => null);
+jest.mock('./Views/Modals/SettingsModal', () => () => null);
+jest.mock('./Views/Modals/PaymentSelectionModal', () => () => null);
+jest.mock('./Views/Modals/TokenNotAvailableModal', () => () => null);
+jest.mock('./Views/Modals/ProviderSelectionModal', () => () => null);
+jest.mock('./Views/Modals/ErrorDetailsModal', () => () => null);
+jest.mock(
+  './Views/Modals/ProcessingInfoModal/ProcessingInfoModal',
+  () => () => null,
+);
+jest.mock('./Deposit/Views/Modals/SsnInfoModal', () => () => null);
+jest.mock('./Views/OrderDetails', () => () => null);
+
+const mockStore = configureMockStore();
+const initialState = {
+  engine: {
+    backgroundState,
+  },
+};
 
 describe('TokenListRoutes configuration', () => {
+  afterEach(() => {
+    cleanup();
+    jest.clearAllMocks();
+  });
+
   describe('route configuration', () => {
     it('contains TOKEN_SELECTION route', () => {
       expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
@@ -43,6 +123,48 @@ describe('TokenListRoutes configuration', () => {
 
     it('contains MODALS.ID route', () => {
       expect(Routes.RAMP.MODALS.ID).toBeDefined();
+    });
+  });
+
+  describe('TokenListRoutes component', () => {
+    const renderComponent = () => {
+      const store = mockStore(initialState);
+      return render(
+        <Provider store={store}>
+          <NavigationContainer>
+            <TokenListRoutes />
+          </NavigationContainer>
+        </Provider>,
+      );
+    };
+
+    it('renders without crashing', () => {
+      const { toJSON } = renderComponent();
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('calls LockManagerService.stopListening on mount', () => {
+      renderComponent();
+      expect(mockStopListening).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls LockManagerService.startListening on unmount', () => {
+      const { unmount } = renderComponent();
+      expect(mockStopListening).toHaveBeenCalledTimes(1);
+
+      unmount();
+      expect(mockStartListening).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables auto-lock during the ramp flow', () => {
+      const { unmount } = renderComponent();
+
+      expect(mockStopListening).toHaveBeenCalled();
+      expect(mockStartListening).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockStartListening).toHaveBeenCalled();
     });
   });
 });

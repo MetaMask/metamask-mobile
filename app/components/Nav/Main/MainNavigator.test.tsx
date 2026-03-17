@@ -12,6 +12,30 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
+const mockSelectPerpsEnabledFlag = jest.fn();
+const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectMarketInsightsEnabled = jest.fn();
+
+jest.mock('../../UI/Perps', () => ({
+  PerpsScreenStack: () => 'PerpsScreenStack',
+  PerpsModalStack: () => 'PerpsModalStack',
+  PerpsTutorialCarousel: () => 'PerpsTutorialCarousel',
+  selectPerpsEnabledFlag: (state: unknown) => mockSelectPerpsEnabledFlag(state),
+}));
+
+jest.mock('../../UI/Predict', () => ({
+  PredictScreenStack: () => 'PredictScreenStack',
+  PredictModalStack: () => 'PredictModalStack',
+  selectPredictEnabledFlag: (state: unknown) =>
+    mockSelectPredictEnabledFlag(state),
+}));
+
+jest.mock('../../UI/MarketInsights', () => ({
+  MarketInsightsView: () => 'MarketInsightsView',
+  selectMarketInsightsEnabled: (state: unknown) =>
+    mockSelectMarketInsightsEnabled(state),
+}));
+
 describe('MainNavigator', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
@@ -346,6 +370,187 @@ describe('MainNavigator', () => {
       );
 
       expect(exploreScreen).toBeDefined();
+    });
+  });
+
+  describe('Conditional Screen Rendering', () => {
+    const getScreenProps = (
+      container: ReturnType<typeof renderWithProvider>,
+    ) => {
+      interface ScreenChild {
+        name: string;
+        component: { name: string };
+      }
+      return container.root.children
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'type' in child &&
+            'props' in child &&
+            child.type?.toString() === 'Screen',
+        )
+        .map((child) => ({
+          name: child.props.name,
+          component: child.props.component,
+        })) as ScreenChild[];
+    };
+
+    beforeEach(() => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(false);
+      mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+    });
+
+    it('includes Perps routes when perps feature flag is enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const perpsRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.ROOT,
+      );
+
+      expect(perpsRootScreen).toBeDefined();
+    });
+
+    it('excludes Perps routes when perps feature flag is disabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const perpsRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.ROOT,
+      );
+
+      expect(perpsRootScreen).toBeUndefined();
+    });
+
+    it('includes Perps tutorial route when perps is enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const perpsTutorialScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.TUTORIAL,
+      );
+
+      expect(perpsTutorialScreen).toBeDefined();
+    });
+
+    it('includes Perps transaction routes when perps is enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const positionScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.POSITION_TRANSACTION,
+      );
+      const orderScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.ORDER_TRANSACTION,
+      );
+      const fundingScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.FUNDING_TRANSACTION,
+      );
+
+      expect(positionScreen).toBeDefined();
+      expect(orderScreen).toBeDefined();
+      expect(fundingScreen).toBeDefined();
+    });
+
+    it('includes Predict routes when predict feature flag is enabled', () => {
+      mockSelectPredictEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const predictRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PREDICT.ROOT,
+      );
+
+      expect(predictRootScreen).toBeDefined();
+    });
+
+    it('excludes Predict routes when predict feature flag is disabled', () => {
+      mockSelectPredictEnabledFlag.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const predictRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PREDICT.ROOT,
+      );
+
+      expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes Market Insights view when feature flag is enabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const marketInsightsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+      );
+
+      expect(marketInsightsScreen).toBeDefined();
+    });
+
+    it('excludes Market Insights view when feature flag is disabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const marketInsightsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+      );
+
+      expect(marketInsightsScreen).toBeUndefined();
+    });
+
+    it('includes multiple conditional routes when all flags are enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockSelectPredictEnabledFlag.mockReturnValue(true);
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+
+      expect(
+        screenProps?.find((screen) => screen?.name === Routes.PERPS.ROOT),
+      ).toBeDefined();
+      expect(
+        screenProps?.find((screen) => screen?.name === Routes.PREDICT.ROOT),
+      ).toBeDefined();
+      expect(
+        screenProps?.find(
+          (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+        ),
+      ).toBeDefined();
     });
   });
 });
