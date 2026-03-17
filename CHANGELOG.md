@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.68.3]
+
+### Fixed
+
+- Fixed seedless onboarding vault decryption crash by handling both vault formats in encryptorAdapter (#27393)
+- Fixed OTA environment variable configuration to use new build flag (#26668)
+
 ## [7.69.0]
 
 ### Added
@@ -10917,7 +10924,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.3...HEAD
+[7.68.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.68.3
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.69.0
 [7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.1...v7.68.2
 [7.68.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.68.1
