@@ -64,6 +64,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed token hiding not working on the redesigned homepage (#26649)
 - Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after token selection (#25952)
 
+## [7.68.3]
+
+### Fixed
+
+- Fixed seedless onboarding vault decryption crash by handling both vault formats in encryptorAdapter (#27393)
+- Fixed OTA environment variable configuration to use new build flag (#26668)
+
 ## [7.68.2]
 
 ### Fixed
@@ -10918,6 +10925,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...HEAD
+[7.68.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.68.3
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.69.0
 [7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.1...v7.68.2
 [7.68.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.68.1
