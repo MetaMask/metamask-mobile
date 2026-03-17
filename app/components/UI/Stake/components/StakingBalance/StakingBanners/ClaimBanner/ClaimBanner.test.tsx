@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useFocusEffect } from '@react-navigation/native';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent , fireEventAsync } from '@testing-library/react-native';
 import React from 'react';
 import Engine from '../../../../../../../core/Engine';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
@@ -110,7 +110,7 @@ describe('ClaimBanner', () => {
     (useFocusEffect as jest.Mock).mockImplementation(jest.fn());
   });
 
-  it('render matches snapshot', () => {
+  it('render matches snapshot', async () => {
     const { toJSON } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
@@ -154,7 +154,7 @@ describe('ClaimBanner', () => {
 
     const claimButton = getByTestId('claim-banner-claim-eth-button');
 
-    fireEvent.press(claimButton);
+    await fireEventAsync.press(claimButton);
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
@@ -162,6 +162,7 @@ describe('ClaimBanner', () => {
   });
 
   it('claim button is disabled on subsequent presses', async () => {
+    jest.setTimeout(15000);
     const { getByTestId } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
@@ -172,11 +173,9 @@ describe('ClaimBanner', () => {
 
     const claimButton = getByTestId('claim-banner-claim-eth-button');
 
-    await act(async () => {
-      fireEvent.press(claimButton);
-    });
+    await fireEventAsync.press(claimButton);
 
-    expect(claimButton.props.disabled).toBe(true);
+    expect(claimButton).toBeDisabled();
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();

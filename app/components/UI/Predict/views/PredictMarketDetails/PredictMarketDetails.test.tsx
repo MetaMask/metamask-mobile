@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, RefreshControl } from 'react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -1417,17 +1417,14 @@ describe('PredictMarketDetails', () => {
     it('attaches a themed RefreshControl to the scroll view', () => {
       setupPredictMarketDetailsTest();
 
-      const scrollView = screen.getByTestId(
-        'predict-market-details-scrollable-tab-view',
-      );
-      const refreshControlProps = scrollView.props.refreshControl.props;
+      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
 
-      expect(scrollView.props.refreshControl).toBeDefined();
-      expect(refreshControlProps.tintColor).toBeTruthy();
-      expect(refreshControlProps.colors).toEqual([
-        refreshControlProps.tintColor,
+      expect(refreshControl).toBeTruthy();
+      expect(refreshControl.props.tintColor).toBeTruthy();
+      expect(refreshControl.props.colors).toEqual([
+        refreshControl.props.tintColor,
       ]);
-      expect(refreshControlProps.refreshing).toBe(false);
+      expect(refreshControl.props.refreshing).toBe(false);
     });
 
     it('triggers market, price history, and active positions refresh', async () => {
@@ -1445,12 +1442,10 @@ describe('PredictMarketDetails', () => {
         },
       );
 
-      const scrollView = screen.getByTestId(
-        'predict-market-details-scrollable-tab-view',
-      );
+      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
 
       await act(async () => {
-        await scrollView.props.refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       await waitFor(() => {

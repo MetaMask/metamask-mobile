@@ -1,6 +1,6 @@
 import { GasFeeToken, TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { act } from '@testing-library/react';
+import { act } from '@testing-library/react-native';
 
 import { useAutomaticGasFeeTokenSelect } from './useAutomaticGasFeeTokenSelect';
 import { useIsGaslessSupported } from './gas/useIsGaslessSupported';

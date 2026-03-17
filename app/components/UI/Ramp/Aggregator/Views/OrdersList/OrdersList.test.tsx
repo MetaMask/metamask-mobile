@@ -10,7 +10,7 @@ import renderWithProvider, {
 } from '../../../../../../util/test/renderWithProvider';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen , act } from '@testing-library/react-native';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -238,59 +238,97 @@ jest.mock('../../../hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
 }));
 
+// Normalize non-deterministic Reanimated animation values in snapshots.
+// Animated rotation/scale values vary between runs because Reanimated's mock
+// produces time-dependent shared values.
+function normalizeAnimatedProps(node: unknown): unknown {
+  if (node === null || node === undefined || typeof node !== 'object') return node;
+  if (Array.isArray(node)) return node.map(normalizeAnimatedProps);
+  const obj = node as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === 'jestAnimatedStyle') {
+      result[key] = { value: {} };
+    } else if (key === 'children' && Array.isArray(value)) {
+      result[key] = value.map(normalizeAnimatedProps);
+    } else if (key === 'props' && typeof value === 'object' && value !== null) {
+      result[key] = normalizeAnimatedProps(value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 describe('OrdersList', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockGoToDeposit.mockClear();
   });
 
-  it('renders correctly', () => {
+  it('renders correctly', async () => {
     render(<OrdersList />);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders buy only correctly when pressing buy filter', () => {
+  it('renders buy only correctly when pressing buy filter', async () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    });
+    expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders sell only correctly when pressing sell filter', () => {
+  it('renders sell only correctly when pressing sell filter', async () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
+    });
+    expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders empty sell message', () => {
+  it('renders empty sell message', async () => {
     render(
       <OrdersList />,
       [testOrders[0]], // a buy order,
     );
-    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
+    });
+    expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders empty buy message', () => {
+  it('renders empty buy message', async () => {
     render(
       <OrdersList />,
       [testOrders[1]], // a sell order,
     );
-    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    });
+    expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('resets filter to all after other filter was set', () => {
+  it('resets filter to all after other filter was set', async () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(screen.toJSON()).toMatchSnapshot();
-    fireEvent.press(screen.getByRole('button', { name: 'All' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
+    });
+    expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'All' }));
+    });
+    expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('navigates when pressing item', () => {
+  it('navigates when pressing item', async () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    fireEvent.press(screen.getByRole('button', { name: /Sold ETH/ }));
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: /Sold ETH/ }));
+    });
     expect(mockNavigate).toHaveBeenCalled();
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
       [
@@ -304,30 +342,40 @@ describe('OrdersList', () => {
     `);
   });
 
-  it('navigates to ramps order details when pressing RAMPS_V2 order item', () => {
+  it('navigates to ramps order details when pressing RAMPS_V2 order item', async () => {
     render(<OrdersList />, [testOrders[4]]);
 
-    fireEvent.press(screen.getByRole('button', { name: /Purchased ETH/ }));
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: /Purchased ETH/ }));
+    });
     expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
       orderId: 'test-ramps-v2-order-1',
     });
   });
 
-  it('navigates to deposit order details when pressing deposit order item', () => {
+  it('navigates to deposit order details when pressing deposit order item', async () => {
     render(<OrdersList />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    fireEvent.press(screen.getByRole('button', { name: /Purchased USDC/ }));
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: /Purchased USDC/ }));
+    });
     expect(mockNavigate).toHaveBeenCalledWith('DepositOrderDetails', {
       orderId: 'test-deposit-order-1',
     });
   });
 
-  it('navigates to deposit flow when pressing created deposit order item', () => {
+  it('navigates to deposit flow when pressing created deposit order item', async () => {
     render(<OrdersList />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
+    });
 
     expect(mockGoToDeposit).toHaveBeenCalledWith();
   });

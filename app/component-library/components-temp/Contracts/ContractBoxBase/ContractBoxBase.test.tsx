@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import ContractBoxBase from './ContractBoxBase';
 import TEST_ADDRESS from '../../../../constants/address';
 import {
@@ -10,6 +10,7 @@ import {
 } from '../ContractBox/ContractBox.constants';
 import { CONTRACT_BOX_NO_PET_NAME_TEST_ID } from './ContractBoxBase.constants';
 import { ContractBoxBaseProps } from './ContractBoxBase.types';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 describe('Component ContractBoxBase', () => {
   let props: ContractBoxBaseProps;
@@ -24,7 +25,15 @@ describe('Component ContractBoxBase', () => {
     };
   });
 
-  const renderComponent = () => render(<ContractBoxBase {...props} />);
+  const renderComponent = () => renderWithProvider(<ContractBoxBase {...props} />, {
+    state: {
+      engine: {
+        backgroundState: {
+          PreferencesController: { isIpfsGatewayEnabled: true },
+        },
+      },
+    },
+  });
 
   it('should render correctly', () => {
     const { toJSON } = renderComponent();

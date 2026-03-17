@@ -144,7 +144,7 @@ describe('OnboardingSuccessComponent', () => {
       />,
     );
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
-    button.props.onPress();
+    fireEvent.press(button);
 
     expect(mockDiscoverAccounts).toHaveBeenCalled();
   });

@@ -976,7 +976,7 @@ describe('BuildQuote View', () => {
 
     const submitBtn = getByRoleButton('Get quotes');
     expect(submitBtn).toBeTruthy();
-    expect(submitBtn.props.disabled).toBe(true);
+    expect(submitBtn).toBeDisabled();
 
     const initialAmount = '0';
     const validAmount = VALID_AMOUNT.toString();
@@ -985,7 +985,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
     fireEvent.press(getByRoleButton(validAmount));
     fireEvent.press(getByRoleButton('Done'));
-    expect(submitBtn.props.disabled).toBe(false);
+    expect(submitBtn).toBeEnabled();
 
     fireEvent.press(submitBtn);
 
@@ -1023,7 +1023,7 @@ describe('BuildQuote View', () => {
 
     const submitBtn = getByRoleButton('Get quotes');
     expect(submitBtn).toBeTruthy();
-    expect(submitBtn.props.disabled).toBe(true);
+    expect(submitBtn).toBeDisabled();
 
     const initialAmount = '0';
     const validAmount = VALID_AMOUNT.toString();
@@ -1031,7 +1031,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
     fireEvent.press(getByRoleButton(validAmount));
     fireEvent.press(getByRoleButton('Done'));
-    expect(submitBtn.props.disabled).toBe(false);
+    expect(submitBtn).toBeEnabled();
 
     fireEvent.press(submitBtn);
 

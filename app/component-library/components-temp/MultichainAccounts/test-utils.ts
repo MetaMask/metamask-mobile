@@ -144,12 +144,7 @@ export const createMockState = (
 ): RootState => {
   const walletMap = wallets.reduce(
     (acc, wallet) => {
-      const prefixedKey = `${wallet.type}:${wallet.id}`;
-
-      // Store with both prefixed key (for selectors) and plain key (for AccountListFooter)
-      acc[prefixedKey] = wallet;
       acc[wallet.id] = wallet;
-
       return acc;
     },
     {} as Record<string, AccountWalletObject>,

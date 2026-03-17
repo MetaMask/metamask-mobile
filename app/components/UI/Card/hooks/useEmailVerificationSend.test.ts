@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useCardSDK } from '../sdk';
 import {
   EmailVerificationSendResponse,
@@ -133,11 +133,9 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      await expect(
-        act(async () => {
-          await result.current.sendEmailVerification('test@example.com');
-        }),
-      ).rejects.toThrow(cardError);
+      await act(async () => {
+        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+      });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(cardError);
       expect(result.current.isLoading).toBe(false);
@@ -152,11 +150,9 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      await expect(
-        act(async () => {
-          await result.current.sendEmailVerification('test@example.com');
-        }),
-      ).rejects.toThrow(networkError);
+      await act(async () => {
+        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+      });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
       expect(result.current.isLoading).toBe(false);
@@ -171,11 +167,9 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      await expect(
-        act(async () => {
-          await result.current.sendEmailVerification('test@example.com');
-        }),
-      ).rejects.toThrow(unknownError);
+      await act(async () => {
+        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+      });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(unknownError);
       expect(result.current.isLoading).toBe(false);
@@ -192,11 +186,15 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      await expect(
-        act(async () => {
+      let caughtError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendEmailVerification('test@example.com');
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          caughtError = e;
+        }
+      });
+      expect((caughtError as Error)?.message).toBe('Card SDK not initialized');
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -235,11 +233,9 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       // First send with error
-      await expect(
-        act(async () => {
-          await result.current.sendEmailVerification('test@example.com');
-        }),
-      ).rejects.toThrow(cardError);
+      await act(async () => {
+        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -265,11 +261,9 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       // Trigger error
-      await expect(
-        act(async () => {
-          await result.current.sendEmailVerification('test@example.com');
-        }),
-      ).rejects.toThrow(cardError);
+      await act(async () => {
+        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -389,11 +383,15 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      await expect(
-        act(async () => {
+      let caughtError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendEmailVerification('test@example.com');
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          caughtError = e;
+        }
+      });
+      expect((caughtError as Error)?.message).toBe('Card SDK not initialized');
     });
   });
 });

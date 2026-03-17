@@ -261,7 +261,7 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('sends analytics events when an order is loaded', () => {
+  it('sends analytics events when an order is loaded', async () => {
     render(OrderDetails);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
       [
@@ -318,7 +318,9 @@ describe('OrderDetails', () => {
       }),
     ).toBeTruthy();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
+    });
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockGoToAggregator).toHaveBeenCalledWith();
@@ -338,7 +340,9 @@ describe('OrderDetails', () => {
       }),
     ).toBeTruthy();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
+    });
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockGoToSell).toHaveBeenCalledWith();
@@ -505,7 +509,7 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('tracks external link clicks', () => {
+  it('tracks external link clicks', async () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
@@ -526,7 +530,9 @@ describe('OrderDetails', () => {
 
     render(OrderDetails, [testOrder as FiatOrder]);
 
-    fireEvent.press(screen.getByText('Contact support'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Contact support'));
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_EXTERNAL_LINK_CLICKED',
       {
@@ -536,7 +542,9 @@ describe('OrderDetails', () => {
       },
     );
 
-    fireEvent.press(screen.getByText('View order status on Test Provider'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('View order status on Test Provider'));
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_EXTERNAL_LINK_CLICKED',
       {

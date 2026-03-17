@@ -1,6 +1,6 @@
 import React from 'react';
 import ProtectYourWalletModal from './index';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor , fireEventAsync } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
@@ -145,9 +145,7 @@ describe('ProtectYourWalletModal', () => {
     );
     expect(learnMoreButton).toBeOnTheScreen();
 
-    await act(async () => {
-      fireEvent.press(learnMoreButton);
-    });
+    await fireEventAsync.press(learnMoreButton);
 
     await waitFor(() => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
@@ -174,9 +172,7 @@ describe('ProtectYourWalletModal', () => {
     );
     expect(cancelButton).toBeOnTheScreen();
 
-    await act(async () => {
-      fireEvent.press(cancelButton);
-    });
+    await fireEventAsync.press(cancelButton);
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -204,9 +200,7 @@ describe('ProtectYourWalletModal', () => {
     );
     expect(cancelButton).toBeOnTheScreen();
 
-    await act(async () => {
-      fireEvent.press(cancelButton);
-    });
+    await fireEventAsync.press(cancelButton);
 
     await waitFor(() => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('SetPasswordFlow', {

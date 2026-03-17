@@ -171,13 +171,15 @@ describe('AssetOverviewContent', () => {
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
     });
 
-    it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
+    it('shows geo block modal and tracks event when Long is pressed and user is not eligible', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(false) },
       );
 
-      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      });
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -191,13 +193,15 @@ describe('AssetOverviewContent', () => {
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
     });
 
-    it('shows geo block modal and tracks event when Short is pressed and user is not eligible', () => {
+    it('shows geo block modal and tracks event when Short is pressed and user is not eligible', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(false) },
       );
 
-      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      });
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -211,38 +215,44 @@ describe('AssetOverviewContent', () => {
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
     });
 
-    it('calls handlePerpsAction with long when Long is pressed and user is eligible', () => {
+    it('calls handlePerpsAction with long when Long is pressed and user is eligible', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      });
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('long');
       expect(mockTrack).not.toHaveBeenCalled();
     });
 
-    it('calls handlePerpsAction with short when Short is pressed and user is eligible', () => {
+    it('calls handlePerpsAction with short when Short is pressed and user is eligible', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      });
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('short');
       expect(mockTrack).not.toHaveBeenCalled();
     });
 
-    it('closes geo block modal when closeEligibilityModal is called', () => {
+    it('closes geo block modal when closeEligibilityModal is called', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(false) },
       );
 
       // Open the geo block modal by pressing Long when not eligible
-      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      });
 
       // Verify the tooltip was rendered with the expected props
       expect(mockPerpsBottomSheetTooltipInner).toHaveBeenCalledWith(
@@ -250,8 +260,8 @@ describe('AssetOverviewContent', () => {
           onClose: expect.any(Function),
           contentKey: 'geo_block',
         }),
-        expect.anything(),
-      );
+      undefined,
+    );
 
       // Extract onClose from the last render call and invoke it
       const lastCallProps = mockPerpsBottomSheetTooltipInner.mock.calls[
@@ -267,13 +277,15 @@ describe('AssetOverviewContent', () => {
       expect(mockPerpsBottomSheetTooltipInner).not.toHaveBeenCalled();
     });
 
-    it('renders market insights entry card and navigates to market insights view on press', () => {
+    it('renders market insights entry card and navigates to market insights view on press', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId('market-insights-entry-card'));
+      await act(async () => {
+        fireEvent.press(getByTestId('market-insights-entry-card'));
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MARKET_INSIGHTS.VIEW,

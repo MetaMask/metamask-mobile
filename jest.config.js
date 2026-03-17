@@ -38,6 +38,12 @@ const config = {
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: [],
+  snapshotFormat: {
+    // Prevent pretty-format from recursing infinitely into deeply nested
+    // objects (e.g. Reanimated shared values with circular refs, React fiber
+    // nodes). The default is Infinity which causes RangeError: Invalid string length.
+    maxDepth: 15,
+  },
   // Disable coverage collection for Reassure runs to avoid OOM
   collectCoverage: !isReassureRun && process.env.NODE_ENV !== 'production',
   collectCoverageFrom: !isReassureRun

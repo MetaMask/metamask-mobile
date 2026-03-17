@@ -94,7 +94,7 @@ const arrangeMockOptInHooks = () => {
 
 describe('OptIn', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should render with the expected fields', () => {

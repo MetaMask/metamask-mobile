@@ -150,7 +150,7 @@ describe('MultichainAccountActions', () => {
     const accountDetailsButton = getByTestId(
       MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
     );
-    accountDetailsButton.props.onPress();
+    fireEvent.press(accountDetailsButton);
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -165,7 +165,7 @@ describe('MultichainAccountActions', () => {
     const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
 
     const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
-    addressesButton.props.onPress();
+    fireEvent.press(addressesButton);
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -190,7 +190,7 @@ describe('MultichainAccountActions', () => {
     const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
 
     const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
-    addressesButton.props.onPress();
+    fireEvent.press(addressesButton);
 
     // Get the onLoad callback from the navigation call
     const navigationCallArgs = mockNavigate.mock.calls[0];
@@ -212,7 +212,7 @@ describe('MultichainAccountActions', () => {
     const renameAccountButton = getByTestId(
       MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
     );
-    renameAccountButton.props.onPress();
+    fireEvent.press(renameAccountButton);
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(

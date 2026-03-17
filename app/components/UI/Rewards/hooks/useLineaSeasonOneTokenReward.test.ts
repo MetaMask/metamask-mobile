@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useLineaSeasonOneTokenReward } from './useLineaSeasonOneTokenReward';
 import Engine from '../../../../core/Engine';
@@ -64,19 +64,19 @@ describe('useLineaSeasonOneTokenReward', () => {
       mockUseSelector.mockReturnValue(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(mockLineaTokenReward);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
+      });
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonOneLineaRewardTokens',
         mockSubscriptionId,
       );
-      expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(false);
     });
   });
 
@@ -119,37 +119,37 @@ describe('useLineaSeasonOneTokenReward', () => {
       mockUseSelector.mockReturnValue(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(mockLineaTokenReward);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
+      });
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonOneLineaRewardTokens',
         mockSubscriptionId,
       );
-      expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(false);
     });
 
     it('handles null response from controller', async () => {
       mockUseSelector.mockReturnValue(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(null);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonOneLineaRewardTokens',
         mockSubscriptionId,
       );
       expect(result.current.lineaTokenReward).toBe(null);
-      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(false);
     });
 
@@ -189,19 +189,19 @@ describe('useLineaSeasonOneTokenReward', () => {
       const mockError = new Error('Network error');
       mockEngineCall.mockRejectedValue(mockError);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.error).toBe(true);
+      });
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.lineaTokenReward).toBe(null);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonOneLineaRewardTokens',
         mockSubscriptionId,
       );
-      expect(result.current.error).toBe(true);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.lineaTokenReward).toBe(null);
       expect(console.error).toHaveBeenCalledWith(
         'Error fetching Linea token reward',
       );
@@ -212,14 +212,14 @@ describe('useLineaSeasonOneTokenReward', () => {
       const mockError = new Error('Network error');
       mockEngineCall.mockRejectedValue(mockError);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.error).toBe(true);
+      });
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(true);
     });
   });
 
@@ -233,13 +233,13 @@ describe('useLineaSeasonOneTokenReward', () => {
           amount: '2000',
         });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.lineaTokenReward?.amount).toBe('1000');
+      await waitFor(() => {
+        expect(result.current.lineaTokenReward?.amount).toBe('1000');
+      });
 
       // Call refetch
       await act(async () => {
@@ -256,13 +256,13 @@ describe('useLineaSeasonOneTokenReward', () => {
         .mockResolvedValueOnce(mockLineaTokenReward)
         .mockRejectedValueOnce(new Error('Refetch error'));
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.error).toBe(false);
+      await waitFor(() => {
+        expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
+      });
 
       // Call refetch with error
       await act(async () => {
@@ -296,7 +296,7 @@ describe('useLineaSeasonOneTokenReward', () => {
         .mockReturnValueOnce(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(mockLineaTokenReward);
 
-      const { result, rerender, waitForNextUpdate } = renderHook(() =>
+      const { result, rerender } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
@@ -310,27 +310,27 @@ describe('useLineaSeasonOneTokenReward', () => {
       // Rerender with valid subscriptionId
       rerender();
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
+      });
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonOneLineaRewardTokens',
         mockSubscriptionId,
       );
-      expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
     });
 
     it('resets state when subscriptionId changes from valid to null', async () => {
       mockUseSelector.mockReturnValue(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(mockLineaTokenReward);
 
-      const { result, waitForNextUpdate, rerender } = renderHook(() =>
+      const { result, rerender } = renderHook(() =>
         useLineaSeasonOneTokenReward(),
       );
 
       // Initial render with valid subscriptionId
-      await waitForNextUpdate();
-
-      expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
+      await waitFor(() => {
+        expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
+      });
 
       // Change subscriptionId to null and rerender
       mockUseSelector.mockReturnValue(null);

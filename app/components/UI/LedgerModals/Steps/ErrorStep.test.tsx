@@ -3,6 +3,7 @@ import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { AppThemeKey } from '../../../../util/theme/models';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ErrorStep from './ErrorStep';
 
 const mockStore = configureMockStore();
@@ -17,13 +18,15 @@ function createWrapper({
 } = {}) {
   return render(
     <Provider store={store}>
-      <ErrorStep
-        onReject={onRejectMock}
-        onRetry={onRetryMock}
-        title={title}
-        subTitle={subTitle}
-        showViewSettings={showViewSettings}
-      />
+      <ThemeContext.Provider value={mockTheme}>
+        <ErrorStep
+          onReject={onRejectMock}
+          onRetry={onRetryMock}
+          title={title}
+          subTitle={subTitle}
+          showViewSettings={showViewSettings}
+        />
+      </ThemeContext.Provider>
     </Provider>,
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SelectHardwareWallet from './index';
 import { strings } from '../../../../../locales/i18n';
@@ -91,7 +91,7 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await ledgerButton.props.onPress();
+      await fireEvent.press(ledgerButton);
 
       expect(mockGetConnectedDevicesCount).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -116,7 +116,7 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await ledgerButton.props.onPress();
+      await fireEvent.press(ledgerButton);
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.LEDGER,
@@ -139,7 +139,7 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await ledgerButton.props.onPress();
+      await fireEvent.press(ledgerButton);
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.LEDGER,
@@ -158,7 +158,7 @@ describe('SelectHardwareWallet', () => {
       });
       const qrButton = getByTestId('qr-hardware-button');
 
-      await qrButton.props.onPress();
+      await fireEvent.press(qrButton);
 
       expect(mockGetConnectedDevicesCount).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -183,7 +183,7 @@ describe('SelectHardwareWallet', () => {
       });
       const qrButton = getByTestId('qr-hardware-button');
 
-      await qrButton.props.onPress();
+      await fireEvent.press(qrButton);
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.QR,
@@ -207,7 +207,7 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await ledgerButton.props.onPress();
+      await fireEvent.press(ledgerButton);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
@@ -225,7 +225,7 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await ledgerButton.props.onPress();
+      await fireEvent.press(ledgerButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
     });
@@ -239,7 +239,7 @@ describe('SelectHardwareWallet', () => {
       });
       const qrButton = getByTestId('qr-hardware-button');
 
-      await qrButton.props.onPress();
+      await fireEvent.press(qrButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE);
     });
@@ -254,7 +254,7 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await ledgerButton.props.onPress();
+      await fireEvent.press(ledgerButton);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         '[SelectHardware] Failed to track analytics:',
@@ -274,7 +274,7 @@ describe('SelectHardwareWallet', () => {
       });
       const qrButton = getByTestId('qr-hardware-button');
 
-      await qrButton.props.onPress();
+      await fireEvent.press(qrButton);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         '[SelectHardware] Failed to track analytics:',
@@ -293,7 +293,7 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await ledgerButton.props.onPress();
+      await fireEvent.press(ledgerButton);
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
@@ -307,7 +307,7 @@ describe('SelectHardwareWallet', () => {
       });
       const qrButton = getByTestId('qr-hardware-button');
 
-      await qrButton.props.onPress();
+      await fireEvent.press(qrButton);
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });

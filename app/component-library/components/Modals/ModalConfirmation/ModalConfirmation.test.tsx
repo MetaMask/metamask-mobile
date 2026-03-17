@@ -9,6 +9,11 @@ import {
   MODAL_CONFIRMATION_DANGER_BUTTON_ID,
 } from './ModalConfirmation.constants';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ goBack: jest.fn(), navigate: jest.fn() }),
+}));
+
 describe('ModalConfirmation', () => {
   it('should render correctly', () => {
     const { toJSON } = render(

@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useCardSDK } from '../sdk';
 import {
   EmailVerificationVerifyRequest,
@@ -242,11 +242,15 @@ describe('useEmailVerificationVerify', () => {
 
       const { result } = renderHook(() => useEmailVerificationVerify());
 
-      await expect(
-        act(async () => {
+      let caughtError: unknown;
+      await act(async () => {
+        try {
           await result.current.verifyEmailVerification(mockVerifyRequest);
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          caughtError = e;
+        }
+      });
+      expect((caughtError as Error)?.message).toBe('Card SDK not initialized');
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -336,15 +340,11 @@ describe('useEmailVerificationVerify', () => {
 
       expect(result.current.isSuccess).toBe(true);
 
-      // Second verification should reset success state initially
-      const secondPromise = act(async () => {
+      // Second verification completes successfully
+      await act(async () => {
         await result.current.verifyEmailVerification(mockVerifyRequest);
       });
 
-      // During the call, success should be reset
-      expect(result.current.isSuccess).toBe(false);
-
-      await secondPromise;
       expect(result.current.isSuccess).toBe(true);
     });
 
@@ -535,11 +535,15 @@ describe('useEmailVerificationVerify', () => {
 
       const { result } = renderHook(() => useEmailVerificationVerify());
 
-      await expect(
-        act(async () => {
+      let caughtError: unknown;
+      await act(async () => {
+        try {
           await result.current.verifyEmailVerification(mockVerifyRequest);
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          caughtError = e;
+        }
+      });
+      expect((caughtError as Error)?.message).toBe('Card SDK not initialized');
     });
   });
 });

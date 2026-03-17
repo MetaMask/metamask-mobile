@@ -621,7 +621,7 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton).toHaveProp('disabled', true);
+      expect(linkButton).toBeDisabled();
     });
 
     it('should enable link button when there are opted out accounts', () => {
@@ -636,7 +636,7 @@ describe('RewardSettingsAccountGroup', () => {
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
       // When enabled, disabled should be false or undefined
-      expect(linkButton.props.disabled).toBeFalsy();
+      expect(linkButton).toBeEnabled();
     });
 
     it('should disable link button when bulk link is running', () => {
@@ -653,7 +653,7 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton.props.disabled).toBe(true);
+      expect(linkButton).toBeDisabled();
     });
 
     it('should disable link button when bulk link is running even with opted out accounts', () => {
@@ -670,7 +670,7 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton.props.disabled).toBe(true);
+      expect(linkButton).toBeDisabled();
     });
   });
 
@@ -1056,7 +1056,7 @@ describe('RewardSettingsAccountGroup', () => {
       const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      expect(addressesButton).toHaveProp('disabled', true);
+      expect(addressesButton).toBeDisabled();
     });
 
     it('should show ActivityIndicator instead of link button when loading', () => {

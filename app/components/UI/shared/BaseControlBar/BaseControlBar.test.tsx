@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent , act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { Text } from 'react-native';
@@ -320,25 +320,29 @@ describe('BaseControlBar', () => {
   });
 
   describe('Button interactions', () => {
-    it('calls custom filter handler when provided', () => {
+    it('calls custom filter handler when provided', async () => {
       const customFilterHandler = jest.fn();
       const { getByTestId } = renderComponent({
         onFilterPress: customFilterHandler,
       });
       const filterButton = getByTestId('test-network-filter');
 
-      fireEvent.press(filterButton);
+      await act(async () => {
+        fireEvent.press(filterButton);
+      });
 
       expect(customFilterHandler).toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('calls default sort handler when no custom handler provided', () => {
+    it('calls default sort handler when no custom handler provided', async () => {
       const { UNSAFE_getAllByType } = renderComponent();
       const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
       const sortButton = buttonIcons[0]; // First ButtonIcon should be sort button
 
-      fireEvent.press(sortButton);
+      await act(async () => {
+        fireEvent.press(sortButton);
+      });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'TokensBottomSheet',
@@ -346,7 +350,7 @@ describe('BaseControlBar', () => {
       );
     });
 
-    it('calls custom sort handler when provided', () => {
+    it('calls custom sort handler when provided', async () => {
       const customSortHandler = jest.fn();
       const { UNSAFE_getAllByType } = renderComponent({
         onSortPress: customSortHandler,
@@ -354,7 +358,9 @@ describe('BaseControlBar', () => {
       const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
       const sortButton = buttonIcons[0];
 
-      fireEvent.press(sortButton);
+      await act(async () => {
+        fireEvent.press(sortButton);
+      });
 
       expect(customSortHandler).toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
@@ -362,11 +368,13 @@ describe('BaseControlBar', () => {
   });
 
   describe('Filter button behavior', () => {
-    it('navigates to NetworkManager when filter button is pressed', () => {
+    it('navigates to NetworkManager when filter button is pressed', async () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
-      fireEvent.press(filterButton);
+      await act(async () => {
+        fireEvent.press(filterButton);
+      });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'NetworkManager',
@@ -387,7 +395,7 @@ describe('BaseControlBar', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.disabled).toBe(false);
+      expect(filterButton).toBeEnabled();
     });
 
     it('applies disabled styles when disabled', () => {
@@ -407,7 +415,8 @@ describe('BaseControlBar', () => {
       const filterButton = getByTestId('test-network-filter');
 
       expect(filterButton.props.style).toBeDefined();
-      expect(filterButton.props.style.opacity).toBeUndefined();
+      // When not disabled, opacity should be 1 (or undefined)
+      expect(filterButton.props.style.opacity ?? 1).toBe(1);
     });
 
     it('respects custom isDisabled param when provided', () => {
@@ -416,7 +425,7 @@ describe('BaseControlBar', () => {
       });
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton).toBeDisabled();
     });
   });
 

@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { uuid4 } from '@sentry/core';
 import useCardProviderAuthentication from './useCardProviderAuthentication';
 import { useCardSDK } from '../sdk';
@@ -233,7 +233,7 @@ describe('useCardProviderAuthentication', () => {
       });
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useCardProviderAuthentication(),
       );
 
@@ -241,17 +241,17 @@ describe('useCardProviderAuthentication', () => {
         result.current.login(loginParams);
       });
 
-      await waitForNextUpdate();
-
-      expect(result.current.loading).toBe(true);
+      await waitFor(() => {
+        expect(result.current.loading).toBe(true);
+      });
 
       act(() => {
         resolveLogin?.({ token: 'test-token', url: 'test-url' });
       });
 
-      await waitForNextUpdate();
-
-      expect(result.current.loading).toBe(false);
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
     });
   });
 

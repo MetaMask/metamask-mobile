@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -132,13 +132,13 @@ describe('SDKSessionsManager', () => {
         'app_settings.manage_sdk_connections_title',
         mockNavigation,
         false,
-        expect.any(Object),
+        expect.anything(),
       );
     });
   });
 
   describe('User Actions', () => {
-    it('handles disconnect all button press', () => {
+    it('handles disconnect all button press', async () => {
       (useSelector as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1', name: 'Connection 1' },
@@ -153,7 +153,7 @@ describe('SDKSessionsManager', () => {
       );
 
       const disconnectAllButton = getByText('sdk.disconnect_all');
-      fireEvent.press(disconnectAllButton);
+      await fireEventAsync.press(disconnectAllButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SDK_DISCONNECT,
@@ -180,8 +180,8 @@ describe('SDKSessionsManager', () => {
           trigger: 123,
           connection: { id: 'conn1', name: 'Connection 1' },
         }),
-        expect.any(Object),
-      );
+      undefined,
+    );
     });
   });
 
@@ -209,8 +209,8 @@ describe('SDKSessionsManager', () => {
         expect.objectContaining({
           trigger: undefined,
         }),
-        expect.any(Object),
-      );
+      undefined,
+    );
     });
 
     it('handles multiple connections correctly', () => {

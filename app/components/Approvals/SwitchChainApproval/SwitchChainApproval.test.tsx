@@ -1,6 +1,6 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import SwitchChainApproval from './SwitchChainApproval';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
@@ -9,18 +9,13 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-
-jest.mock('../../../selectors/networkController', () => ({
-  ...jest.requireActual('../../../selectors/networkController'),
-  selectEvmNetworkConfigurationsByChainId: () => ({
-    '0x1': {
-      name: 'Ethereum Mainnet',
-    },
-  }),
-}));
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../actions/onboardNetwork');
+jest.mock('../../../actions/onboardNetwork', () => ({
+  networkSwitched: jest.fn(() => ({ type: 'NETWORK_SWITCHED' })),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -30,10 +25,17 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: () => jest.fn(),
-  useSelector: jest.fn((selector) => selector()),
+const initialState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+    },
+  },
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ goBack: jest.fn(), navigate: jest.fn() }),
 }));
 
 const mockApprovalRequest = (approvalRequest?: unknown) => {
@@ -42,6 +44,8 @@ const mockApprovalRequest = (approvalRequest?: unknown) => {
   ).mockReturnValue({
     approvalRequest,
     onConfirm: jest.fn(),
+    onReject: jest.fn(),
+    pageMeta: { url: URL_MOCK },
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
@@ -80,7 +84,7 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const { toJSON } = render(<SwitchChainApproval />);
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -88,7 +92,7 @@ describe('SwitchChainApproval', () => {
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const { toJSON } = render(<SwitchChainApproval />);
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -97,7 +101,7 @@ describe('SwitchChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const { toJSON } = render(<SwitchChainApproval />);
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -107,9 +111,9 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    render(<SwitchChainApproval />);
-    const switchCustomNetwork = screen.UNSAFE_getByType(SwitchCustomNetwork);
-    switchCustomNetwork.props.onConfirm();
+    const { UNSAFE_getByType } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    const switchCustomNetwork = UNSAFE_getByType(SwitchCustomNetwork);
+    fireEvent(switchCustomNetwork, 'confirm');
 
     expect(networkSwitched).toHaveBeenCalledTimes(1);
     expect(networkSwitched).toHaveBeenCalledWith({

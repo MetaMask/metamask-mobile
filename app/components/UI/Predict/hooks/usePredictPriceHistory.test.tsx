@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -71,7 +71,7 @@ describe('usePredictPriceHistory', () => {
 
   describe('single market fetching', () => {
     it('fetches price history for a single market', async () => {
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
         }),
@@ -79,8 +79,9 @@ describe('usePredictPriceHistory', () => {
 
       expect(result.current.isFetching).toBe(true);
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
       expect(
         Engine.context.PredictController.getPriceHistory,
       ).toHaveBeenCalledWith({
@@ -89,7 +90,6 @@ describe('usePredictPriceHistory', () => {
         fidelity: undefined,
       });
       expect(result.current.priceHistories).toEqual([mockPriceHistory]);
-      expect(result.current.isFetching).toBe(false);
       expect(result.current.errors).toEqual([null]);
     });
 
@@ -99,15 +99,15 @@ describe('usePredictPriceHistory', () => {
         Engine.context.PredictController.getPriceHistory as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
         }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.priceHistories).toEqual([[]]);
+      await waitFor(() => {
+        expect(result.current.priceHistories).toEqual([[]]);
+      });
       expect(result.current.errors).toEqual(['Failed to fetch']);
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalledWith(
@@ -144,22 +144,22 @@ describe('usePredictPriceHistory', () => {
         }
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1', 'market-2', 'market-3'],
         }),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.priceHistories).toEqual([
+          mockHistory1,
+          mockHistory2,
+          mockHistory3,
+        ]);
+      });
       expect(
         Engine.context.PredictController.getPriceHistory,
       ).toHaveBeenCalledTimes(3);
-      expect(result.current.priceHistories).toEqual([
-        mockHistory1,
-        mockHistory2,
-        mockHistory3,
-      ]);
       expect(result.current.errors).toEqual([null, null, null]);
       expect(result.current.isFetching).toBe(false);
     });
@@ -185,19 +185,19 @@ describe('usePredictPriceHistory', () => {
         }
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1', 'market-2', 'market-3'],
         }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.priceHistories).toEqual([
+      await waitFor(() => {
+        expect(result.current.priceHistories).toEqual([
         mockHistory1,
         [],
         mockPriceHistory,
-      ]);
+        ]);
+      });
       expect(result.current.errors).toEqual([
         null,
         'Failed to fetch market-2',
@@ -209,17 +209,15 @@ describe('usePredictPriceHistory', () => {
 
   describe('refetch functionality', () => {
     it('refetches data when refetch is called', async () => {
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
         }),
       );
 
-      await waitForNextUpdate();
-
-      expect(
-        Engine.context.PredictController.getPriceHistory,
-      ).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
 
       await act(async () => {
         await result.current.refetch();
@@ -234,15 +232,16 @@ describe('usePredictPriceHistory', () => {
 
   describe('configuration options', () => {
     it('uses custom interval when provided', async () => {
-      const { waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
           interval: PredictPriceHistoryInterval.ONE_WEEK,
         }),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
       expect(
         Engine.context.PredictController.getPriceHistory,
       ).toHaveBeenCalledWith({
@@ -253,15 +252,16 @@ describe('usePredictPriceHistory', () => {
     });
 
     it('uses custom fidelity when provided', async () => {
-      const { waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
           fidelity: 30,
         }),
       );
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
       expect(
         Engine.context.PredictController.getPriceHistory,
       ).toHaveBeenCalledWith({
@@ -274,7 +274,7 @@ describe('usePredictPriceHistory', () => {
 
   describe('reactivity', () => {
     it('refetches when marketIds change', async () => {
-      const { result, rerender, waitForNextUpdate } = renderHook(
+      const { result, rerender } = renderHook(
         ({ marketIds }) =>
           usePredictPriceHistory({
             marketIds,
@@ -284,25 +284,25 @@ describe('usePredictPriceHistory', () => {
         },
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.priceHistories).toEqual([mockPriceHistory]);
+      await waitFor(() => {
+        expect(result.current.priceHistories).toEqual([mockPriceHistory]);
+      });
 
       rerender({ marketIds: ['market-2'] });
 
-      await waitForNextUpdate();
-
-      expect(
+      await waitFor(() => {
+        expect(
         Engine.context.PredictController.getPriceHistory,
-      ).toHaveBeenLastCalledWith({
+        ).toHaveBeenLastCalledWith({
         marketId: 'market-2',
         interval: PredictPriceHistoryInterval.ONE_DAY,
         fidelity: undefined,
+        });
       });
     });
 
     it('refetches when interval changes', async () => {
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ interval }) =>
           usePredictPriceHistory({
             marketIds: ['market-1'],
@@ -313,18 +313,16 @@ describe('usePredictPriceHistory', () => {
         },
       );
 
-      await waitForNextUpdate();
-
       rerender({ interval: PredictPriceHistoryInterval.ONE_WEEK });
 
-      await waitForNextUpdate();
-
-      expect(
+      await waitFor(() => {
+        expect(
         Engine.context.PredictController.getPriceHistory,
-      ).toHaveBeenLastCalledWith({
+        ).toHaveBeenLastCalledWith({
         marketId: 'market-1',
         interval: PredictPriceHistoryInterval.ONE_WEEK,
         fidelity: undefined,
+        });
       });
     });
 
@@ -352,7 +350,7 @@ describe('usePredictPriceHistory', () => {
     });
 
     it('fetches when enabled changes from false to true', async () => {
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ enabled }) =>
           usePredictPriceHistory({
             marketIds: ['market-1'],
@@ -369,11 +367,11 @@ describe('usePredictPriceHistory', () => {
 
       rerender({ enabled: true });
 
-      await waitForNextUpdate();
-
-      expect(
+      await waitFor(() => {
+        expect(
         Engine.context.PredictController.getPriceHistory,
-      ).toHaveBeenCalled();
+        ).toHaveBeenCalled();
+      });
     });
   });
 
@@ -385,18 +383,19 @@ describe('usePredictPriceHistory', () => {
       // Set Engine.context to null
       (Engine as unknown as { context: null }).context = null;
 
-      const { result, waitFor } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
         }),
       );
 
       // Wait for the error to be handled
-      await waitFor(() => result.current.isFetching === false);
+      await waitFor(() => {
+        expect(result.current.errors).toEqual(['Engine not initialized']);
+      });
 
       // Should have handled the error gracefully
       expect(result.current.priceHistories).toEqual([[]]);
-      expect(result.current.errors).toEqual(['Engine not initialized']);
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalled();
 
@@ -411,15 +410,15 @@ describe('usePredictPriceHistory', () => {
         Engine.context.PredictController.getPriceHistory as jest.Mock
       ).mockRejectedValueOnce('String error');
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
         }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.priceHistories).toEqual([[]]);
+      await waitFor(() => {
+        expect(result.current.priceHistories).toEqual([[]]);
+      });
       expect(result.current.errors).toEqual(['Failed to fetch price history']);
       expect(DevLogger.log).toHaveBeenCalled();
     });
@@ -473,15 +472,16 @@ describe('usePredictPriceHistory', () => {
 
     intervals.forEach((interval) => {
       it(`handles ${interval} interval correctly`, async () => {
-        const { result, waitForNextUpdate } = renderHook(() =>
+        const { result } = renderHook(() =>
           usePredictPriceHistory({
             marketIds: ['market-1'],
             interval,
           }),
         );
 
-        await waitForNextUpdate();
-
+        await waitFor(() => {
+          expect(result.current.isFetching).toBe(false);
+        });
         expect(
           Engine.context.PredictController.getPriceHistory,
         ).toHaveBeenCalledWith({

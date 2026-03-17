@@ -37,15 +37,17 @@ describe('CollectibleContractInformation', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
-        <CollectibleContractInformation
-          collectibleContract={{
-            name: 'name',
-            symbol: 'symbol',
-            description: 'description',
-            address: '0x123',
-            totalSupply: 1,
-          }}
-        />
+        <ThemeContext.Provider value={mockTheme}>
+          <CollectibleContractInformation
+            collectibleContract={{
+              name: 'name',
+              symbol: 'symbol',
+              description: 'description',
+              address: '0x123',
+              totalSupply: 1,
+            }}
+          />
+        </ThemeContext.Provider>
       </Provider>,
     );
     expect(toJSON()).toMatchSnapshot();

@@ -288,7 +288,7 @@ describe('DeFiPositionsControlBar', () => {
     );
 
     const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(true);
+    expect(filterButton).toBeDisabled();
   });
 
   it('should be disabled when not on popular network', () => {
@@ -307,7 +307,7 @@ describe('DeFiPositionsControlBar', () => {
     );
 
     const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(true);
+    expect(filterButton).toBeDisabled();
   });
 
   it('should render sort button with filter icon', () => {

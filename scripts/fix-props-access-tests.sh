@@ -11,40 +11,46 @@ set -euo pipefail
 
 FIXED_FILES=()
 
+# EL matches any expression before .props, including:
+#   variable         → button.props.onPress()
+#   array[0]         → cells[0].props.onPress()
+#   fn()             → getByText('x').props.onPress()
+#   chained.access   → screen.getByText('x').props.onPress()
+# We use a perl-style approach: match everything up to .props. greedily
+# For sed, we capture "everything that isn't whitespace or semicolon" before .props
+EL='([^ ;,]+)'
+
 fix_file() {
   local file="$1"
   local changed=false
 
   # Check if file has any patterns we care about
-  if ! grep -qE '\.props\.(disabled|onPress|onLongPress|onChangeText|onSubmitEditing|onPressIn|onPressOut|onError|onLoad|onLoadEnd|onRefresh|onMessage|onConfirm|onSubmit|onSelectNetwork|onContentSizeChange|onValueChange|secureTextEntry|placeholder|editable|accessibilityState)\b' "$file" 2>/dev/null; then
+  if ! grep -qE '\.props\.' "$file" 2>/dev/null; then
     return
   fi
 
   # =======================================================
   # DISABLED PROP PATTERNS
+  # Handle both .props. and ?.props. (optional chaining)
   # =======================================================
 
-  # .props.disabled).toBe(true) → ).toBeDisabled()
-  if grep -q '\.props\.disabled)\.toBe(true)' "$file"; then
-    sed -i '' 's/\.props\.disabled)\.toBe(true)/).toBeDisabled()/g' "$file"
+  if grep -qE '\??\.props\.disabled\)\.toBe\(true\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.disabled\)\.toBe\(true\)/).toBeDisabled()/g' "$file"
     changed=true
   fi
 
-  # .props.disabled).toBe(false) → ).toBeEnabled()
-  if grep -q '\.props\.disabled)\.toBe(false)' "$file"; then
-    sed -i '' 's/\.props\.disabled)\.toBe(false)/).toBeEnabled()/g' "$file"
+  if grep -qE '\??\.props\.disabled\)\.toBe\(false\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.disabled\)\.toBe\(false\)/).toBeEnabled()/g' "$file"
     changed=true
   fi
 
-  # .props.disabled).toBeTruthy() → ).toBeDisabled()
-  if grep -q '\.props\.disabled)\.toBeTruthy()' "$file"; then
-    sed -i '' 's/\.props\.disabled)\.toBeTruthy()/).toBeDisabled()/g' "$file"
+  if grep -qE '\??\.props\.disabled\)\.toBeTruthy\(\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.disabled\)\.toBeTruthy\(\)/).toBeDisabled()/g' "$file"
     changed=true
   fi
 
-  # .props.disabled).toBeFalsy() → ).toBeEnabled()
-  if grep -q '\.props\.disabled)\.toBeFalsy()' "$file"; then
-    sed -i '' 's/\.props\.disabled)\.toBeFalsy()/).toBeEnabled()/g' "$file"
+  if grep -qE '\??\.props\.disabled\)\.toBeFalsy\(\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.disabled\)\.toBeFalsy\(\)/).toBeEnabled()/g' "$file"
     changed=true
   fi
 
@@ -52,179 +58,175 @@ fix_file() {
   # ACCESSIBILITY STATE DISABLED PATTERNS
   # =======================================================
 
-  # .props.accessibilityState.disabled).toBe(true) → ).toBeDisabled()
-  if grep -q '\.props\.accessibilityState\.disabled)\.toBe(true)' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState\.disabled)\.toBe(true)/).toBeDisabled()/g' "$file"
+  # Handle .props.accessibilityState.disabled and .props.accessibilityState?.disabled
+  # Also handle ?.props. optional chaining before props
+  if grep -qE '\??\.props\.accessibilityState\??\.disabled\)\.toBe\(true\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.accessibilityState\??\.disabled\)\.toBe\(true\)/).toBeDisabled()/g' "$file"
     changed=true
   fi
 
-  # .props.accessibilityState.disabled).toBe(false) → ).toBeEnabled()
-  if grep -q '\.props\.accessibilityState\.disabled)\.toBe(false)' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState\.disabled)\.toBe(false)/).toBeEnabled()/g' "$file"
+  if grep -qE '\??\.props\.accessibilityState\??\.disabled\)\.toBe\(false\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.accessibilityState\??\.disabled\)\.toBe\(false\)/).toBeEnabled()/g' "$file"
     changed=true
   fi
 
-  # .props.accessibilityState.disabled).toBeTruthy() → ).toBeDisabled()
-  if grep -q '\.props\.accessibilityState\.disabled)\.toBeTruthy()' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState\.disabled)\.toBeTruthy()/).toBeDisabled()/g' "$file"
+  if grep -qE '\??\.props\.accessibilityState\??\.disabled\)\.toBeTruthy\(\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.accessibilityState\??\.disabled\)\.toBeTruthy\(\)/).toBeDisabled()/g' "$file"
     changed=true
   fi
 
-  # .props.accessibilityState.disabled).toBeFalsy() → ).toBeEnabled()
-  if grep -q '\.props\.accessibilityState\.disabled)\.toBeFalsy()' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState\.disabled)\.toBeFalsy()/).toBeEnabled()/g' "$file"
-    changed=true
-  fi
-
-  # .props.accessibilityState?.disabled).toBe(true) → ).toBeDisabled()
-  if grep -q '\.props\.accessibilityState?\.disabled)\.toBe(true)' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState?\.disabled)\.toBe(true)/).toBeDisabled()/g' "$file"
-    changed=true
-  fi
-
-  # .props.accessibilityState?.disabled).toBe(false) → ).toBeEnabled()
-  if grep -q '\.props\.accessibilityState?\.disabled)\.toBe(false)' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState?\.disabled)\.toBe(false)/).toBeEnabled()/g' "$file"
-    changed=true
-  fi
-
-  # .props.accessibilityState?.disabled).toBeTruthy() → ).toBeDisabled()
-  if grep -q '\.props\.accessibilityState?\.disabled)\.toBeTruthy()' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState?\.disabled)\.toBeTruthy()/).toBeDisabled()/g' "$file"
-    changed=true
-  fi
-
-  # .props.accessibilityState?.disabled).toBeFalsy() → ).toBeEnabled()
-  if grep -q '\.props\.accessibilityState?\.disabled)\.toBeFalsy()' "$file"; then
-    sed -i '' 's/\.props\.accessibilityState?\.disabled)\.toBeFalsy()/).toBeEnabled()/g' "$file"
+  if grep -qE '\??\.props\.accessibilityState\??\.disabled\)\.toBeFalsy\(\)' "$file"; then
+    sed -i '' -E 's/\??\.props\.accessibilityState\??\.disabled\)\.toBeFalsy\(\)/).toBeEnabled()/g' "$file"
     changed=true
   fi
 
   # =======================================================
-  # CALLBACK PATTERNS (no arguments) → fireEvent
+  # CALLBACK PATTERNS → fireEvent
+  # Use perl for proper greedy matching of complex expressions
   # =======================================================
 
-  # element.props.onPress() → fireEvent.press(element)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onPress\(\)' "$file"; then
-    sed -i '' -E 's/([a-zA-Z0-9_\]\)]+)\.props\.onPress\(\)/fireEvent.press(\1)/g' "$file"
+  # All callback patterns use perl with (\S+?) to match the element expression
+  # before .props or ?.props, including array[0], getByText('x'), etc.
+  # The (?:\?)?\.props\. handles both .props. and ?.props.
+
+  # .props.onPress() → fireEvent.press(...)
+  if grep -qE '\??\.props\.onPress\(\)' "$file"; then
+    perl -i -pe 's/(\S+?)\??\.props\.onPress\(\)/fireEvent.press($1)/g' "$file"
     changed=true
   fi
 
-  # element.props.onLongPress() → fireEvent(element, 'longPress')
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onLongPress\(\)' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onLongPress\(\)/fireEvent(\1, 'longPress')/g" "$file"
+  # .props.onPress(event) → fireEvent.press(..., event)
+  if grep -qE '\??\.props\.onPress\([^)]+\)' "$file"; then
+    perl -i -pe 's/(\S+?)\??\.props\.onPress\(([^)]+)\)/fireEvent.press($1, $2)/g' "$file"
     changed=true
   fi
 
-  # element.props.onPressIn() → fireEvent(element, 'pressIn')
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onPressIn\(\)' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onPressIn\(\)/fireEvent(\1, 'pressIn')/g" "$file"
+  # .props.onLongPress() → fireEvent(el, 'longPress')
+  if grep -qE '\??\.props\.onLongPress\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onLongPress\(\)/fireEvent(\$1, 'longPress')/g" "$file"
     changed=true
   fi
 
-  # element.props.onPressOut() → fireEvent(element, 'pressOut')
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onPressOut\(\)' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onPressOut\(\)/fireEvent(\1, 'pressOut')/g" "$file"
+  # .props.onPressIn() → fireEvent(el, 'pressIn')
+  if grep -qE '\??\.props\.onPressIn\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onPressIn\(\)/fireEvent(\$1, 'pressIn')/g" "$file"
     changed=true
   fi
 
-  # element.props.onSubmitEditing() → fireEvent(element, 'submitEditing')
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onSubmitEditing\(\)' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onSubmitEditing\(\)/fireEvent(\1, 'submitEditing')/g" "$file"
+  # .props.onPressOut() → fireEvent(el, 'pressOut')
+  if grep -qE '\??\.props\.onPressOut\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onPressOut\(\)/fireEvent(\$1, 'pressOut')/g" "$file"
+    changed=true
+  fi
+
+  # .props.onSubmitEditing() → fireEvent(el, 'submitEditing')
+  if grep -qE '\??\.props\.onSubmitEditing\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onSubmitEditing\(\)/fireEvent(\$1, 'submitEditing')/g" "$file"
+    changed=true
+  fi
+
+  # .props.onChangeText(args) → fireEvent.changeText(el, args)
+  if grep -qE '\??\.props\.onChangeText\(' "$file"; then
+    perl -i -pe 's/(\S+?)\??\.props\.onChangeText\(([^)]*)\)/fireEvent.changeText($1, $2)/g' "$file"
+    changed=true
+  fi
+
+  # .props.onError(args) → fireEvent(el, 'error', args)
+  if grep -qE '\??\.props\.onError\(' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onError\(([^)]*)\)/fireEvent(\$1, 'error', \$2)/g" "$file"
+    changed=true
+  fi
+
+  # .props.onLoad(args) → fireEvent(el, 'load', args)
+  if grep -qE '\??\.props\.onLoad\(' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onLoad\(([^)]*)\)/fireEvent(\$1, 'load', \$2)/g" "$file"
+    changed=true
+  fi
+
+  # .props.onLoadEnd(args) → fireEvent(el, 'loadEnd', args)
+  if grep -qE '\??\.props\.onLoadEnd\(' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onLoadEnd\(([^)]*)\)/fireEvent(\$1, 'loadEnd', \$2)/g" "$file"
+    changed=true
+  fi
+
+  # .props.onRefresh() → fireEvent(el, 'refresh')
+  if grep -qE '\??\.props\.onRefresh\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onRefresh\(\)/fireEvent(\$1, 'refresh')/g" "$file"
+    changed=true
+  fi
+
+  # .props.onEndReached() → fireEvent(el, 'endReached')
+  if grep -qE '\??\.props\.onEndReached\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onEndReached\(\)/fireEvent(\$1, 'endReached')/g" "$file"
+    changed=true
+  fi
+
+  # .props.onMessage(args) → fireEvent(el, 'message', args)
+  if grep -qE '\??\.props\.onMessage\(' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onMessage\(([^)]*)\)/fireEvent(\$1, 'message', \$2)/g" "$file"
+    changed=true
+  fi
+
+  # .props.onConfirm() → fireEvent(el, 'confirm')
+  if grep -qE '\??\.props\.onConfirm\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onConfirm\(\)/fireEvent(\$1, 'confirm')/g" "$file"
+    changed=true
+  fi
+
+  # .props.onRequestClose() → fireEvent(el, 'requestClose')
+  if grep -qE '\??\.props\.onRequestClose\(\)' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onRequestClose\(\)/fireEvent(\$1, 'requestClose')/g" "$file"
+    changed=true
+  fi
+
+  # .props.onContentSizeChange(args) → fireEvent(el, 'contentSizeChange', args)
+  if grep -qE '\??\.props\.onContentSizeChange\(' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onContentSizeChange\(([^)]*)\)/fireEvent(\$1, 'contentSizeChange', \$2)/g" "$file"
+    changed=true
+  fi
+
+  # .props.onValueChange(args) → fireEvent(el, 'valueChange', args)
+  if grep -qE '\??\.props\.onValueChange\(' "$file"; then
+    perl -i -pe "s/(\S+?)\??\.props\.onValueChange\(([^)]*)\)/fireEvent(\$1, 'valueChange', \$2)/g" "$file"
     changed=true
   fi
 
   # =======================================================
-  # CALLBACK PATTERNS (with arguments) → fireEvent
+  # COMPOSITE COMPONENT PROP PATTERNS
   # =======================================================
 
-  # element.props.onChangeText(args) → fireEvent.changeText(element, args)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onChangeText\(' "$file"; then
-    sed -i '' -E 's/([a-zA-Z0-9_\]\)]+)\.props\.onChangeText\(([^)]*)\)/fireEvent.changeText(\1, \2)/g' "$file"
+  if grep -qE '\??\.props\.secureTextEntry\)\.toBe\(true\)' "$file"; then
+    sed -i '' -E "s/\??\.props\.secureTextEntry\)\.toBe\(true\)/).toHaveProp('secureTextEntry', true)/g" "$file"
     changed=true
   fi
 
-  # element.props.onError(args) → fireEvent(element, 'error', args)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onError\(' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onError\(([^)]*)\)/fireEvent(\1, 'error', \2)/g" "$file"
+  if grep -qE '\??\.props\.secureTextEntry\)\.toBe\(false\)' "$file"; then
+    sed -i '' -E "s/\??\.props\.secureTextEntry\)\.toBe\(false\)/).toHaveProp('secureTextEntry', false)/g" "$file"
     changed=true
   fi
 
-  # element.props.onLoad(args) → fireEvent(element, 'load', args)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onLoad\(' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onLoad\(([^)]*)\)/fireEvent(\1, 'load', \2)/g" "$file"
+  if grep -qE '\??\.props\.placeholder\)\.toBe\(' "$file"; then
+    sed -i '' -E "s/\??\.props\.placeholder\)\.toBe\(([^)]+)\)/).toHaveProp('placeholder', \1)/g" "$file"
     changed=true
   fi
 
-  # element.props.onLoadEnd(args) → fireEvent(element, 'loadEnd', args)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onLoadEnd\(' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onLoadEnd\(([^)]*)\)/fireEvent(\1, 'loadEnd', \2)/g" "$file"
+  if grep -qE '\??\.props\.editable\)\.toBe\(true\)' "$file"; then
+    sed -i '' -E "s/\??\.props\.editable\)\.toBe\(true\)/).toHaveProp('editable', true)/g" "$file"
     changed=true
   fi
 
-  # element.props.onRefresh() → fireEvent(element, 'refresh')
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onRefresh\(\)' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onRefresh\(\)/fireEvent(\1, 'refresh')/g" "$file"
+  if grep -qE '\??\.props\.editable\)\.toBe\(false\)' "$file"; then
+    sed -i '' -E "s/\??\.props\.editable\)\.toBe\(false\)/).toHaveProp('editable', false)/g" "$file"
     changed=true
   fi
 
-  # element.props.onMessage(args) → fireEvent(element, 'message', args)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onMessage\(' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onMessage\(([^)]*)\)/fireEvent(\1, 'message', \2)/g" "$file"
+  if grep -qE '\??\.props\.editable\)\.toBeTruthy\(\)' "$file"; then
+    sed -i '' -E "s/\??\.props\.editable\)\.toBeTruthy\(\)/).toHaveProp('editable', true)/g" "$file"
     changed=true
   fi
 
-  # element.props.onConfirm() → fireEvent(element, 'confirm')
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onConfirm\(\)' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onConfirm\(\)/fireEvent(\1, 'confirm')/g" "$file"
-    changed=true
-  fi
-
-  # element.props.onContentSizeChange(args) → fireEvent(element, 'contentSizeChange', args)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onContentSizeChange\(' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onContentSizeChange\(([^)]*)\)/fireEvent(\1, 'contentSizeChange', \2)/g" "$file"
-    changed=true
-  fi
-
-  # element.props.onValueChange(args) → fireEvent(element, 'valueChange', args)
-  if grep -qE '([a-zA-Z0-9_\]\)]+)\.props\.onValueChange\(' "$file"; then
-    sed -i '' -E "s/([a-zA-Z0-9_\]\)]+)\.props\.onValueChange\(([^)]*)\)/fireEvent(\1, 'valueChange', \2)/g" "$file"
-    changed=true
-  fi
-
-  # =======================================================
-  # COMPOSITE COMPONENT PROP PATTERNS (secureTextEntry, placeholder, editable)
-  # These only break on composite wrappers like TextField, not on TextInput host.
-  # We replace with RNTL queries where possible.
-  # =======================================================
-
-  # .props.secureTextEntry).toBe(true) → ).toHaveProp('secureTextEntry', true)
-  if grep -q '\.props\.secureTextEntry)\.toBe(true)' "$file"; then
-    sed -i '' "s/\.props\.secureTextEntry)\.toBe(true)/).toHaveProp('secureTextEntry', true)/g" "$file"
-    changed=true
-  fi
-
-  # .props.secureTextEntry).toBe(false) → ).toHaveProp('secureTextEntry', false)
-  if grep -q '\.props\.secureTextEntry)\.toBe(false)' "$file"; then
-    sed -i '' "s/\.props\.secureTextEntry)\.toBe(false)/).toHaveProp('secureTextEntry', false)/g" "$file"
-    changed=true
-  fi
-
-  # .props.placeholder).toBe(X) → ).toHaveProp('placeholder', X)
-  if grep -qE '\.props\.placeholder\)\.toBe\(' "$file"; then
-    sed -i '' -E "s/\.props\.placeholder\)\.toBe\(([^)]+)\)/).toHaveProp('placeholder', \1)/g" "$file"
-    changed=true
-  fi
-
-  # .props.editable).toBe(true) → ).toHaveProp('editable', true)
-  if grep -q '\.props\.editable)\.toBe(true)' "$file"; then
-    sed -i '' "s/\.props\.editable)\.toBe(true)/).toHaveProp('editable', true)/g" "$file"
-    changed=true
-  fi
-
-  # .props.editable).toBe(false) → ).toHaveProp('editable', false)
-  if grep -q '\.props\.editable)\.toBe(false)' "$file"; then
-    sed -i '' "s/\.props\.editable)\.toBe(false)/).toHaveProp('editable', false)/g" "$file"
+  if grep -qE '\??\.props\.editable\)\.toBeFalsy\(\)' "$file"; then
+    sed -i '' -E "s/\??\.props\.editable\)\.toBeFalsy\(\)/).toHaveProp('editable', false)/g" "$file"
     changed=true
   fi
 
@@ -255,7 +257,7 @@ echo ""
 # Find all test files and process them
 while IFS= read -r -d '' file; do
   fix_file "$file"
-done < <(find app -type f \( -name '*.test.tsx' -o -name '*.test.ts' -o -name '*.test.js' \) -print0)
+done < <(find app -type f \( -name '*.test.tsx' -o -name '*.test.ts' -o -name '*.test.js' -o -name '*.test.jsx' \) -print0)
 
 echo ""
 echo "=== Fixed ${#FIXED_FILES[@]} files ==="
@@ -270,7 +272,7 @@ echo ""
 echo "--- .props.accessibilityState (non-standard patterns) ---"
 grep -rnE '\.props\.accessibilityState' app --include='*.test.*' | grep -v 'node_modules' | head -10 || echo "  None found"
 echo ""
-echo "--- .props.on* callbacks not auto-fixed (onSelectNetwork, onSubmit, custom) ---"
+echo "--- .props.on* callbacks not auto-fixed ---"
 grep -rnE '\.props\.on[A-Z][a-zA-Z]*\(' app --include='*.test.*' | grep -v 'node_modules' | head -30 || echo "  None found"
 echo ""
 echo "--- .props.secureTextEntry / .props.placeholder / .props.editable (remaining) ---"

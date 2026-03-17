@@ -6,7 +6,7 @@ import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor , act , fireEventAsync } from '@testing-library/react-native';
 import {
   useNavigation,
   NavigationProp,
@@ -198,7 +198,7 @@ describe('LedgerConnect', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('calls connectLedger when continue button is pressed', () => {
+  it('calls connectLedger when continue button is pressed', async () => {
     isSendingLedgerCommands = false;
     isAppLaunchConfirmationNeeded = false;
 
@@ -217,7 +217,7 @@ describe('LedgerConnect', () => {
     );
 
     const continueButton = getByTestId('add-network-button');
-    fireEvent.press(continueButton);
+    await fireEventAsync.press(continueButton);
 
     expect(ledgerLogicToRun).toHaveBeenCalled();
   });
@@ -326,7 +326,7 @@ describe('LedgerConnect', () => {
     ).toBeTruthy();
   });
 
-  it('opens "how to install eth" on link', () => {
+  it('opens "how to install eth" on link', async () => {
     const navigate = jest.fn();
     (useNavigation as jest.Mock).mockReturnValue({
       navigate,
@@ -348,7 +348,7 @@ describe('LedgerConnect', () => {
     const installInstructionsLink = getByText(
       strings('ledger.how_to_install_eth_app'),
     );
-    fireEvent.press(installInstructionsLink);
+    await fireEventAsync.press(installInstructionsLink);
 
     expect(navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
@@ -359,8 +359,8 @@ describe('LedgerConnect', () => {
     });
   });
 
-  it('calls connectLedger on retry button', () => {
-    isSendingLedgerCommands = true;
+  it('calls connectLedger on retry button', async () => {
+    isSendingLedgerCommands = false;
     isAppLaunchConfirmationNeeded = false;
 
     const { getByTestId } = renderWithProvider(
@@ -376,7 +376,7 @@ describe('LedgerConnect', () => {
     );
 
     const retryButton = getByTestId('add-network-button');
-    fireEvent.press(retryButton);
+    await fireEventAsync.press(retryButton);
 
     expect(ledgerLogicToRun).toHaveBeenCalled();
   });

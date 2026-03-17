@@ -3,7 +3,7 @@ import SkipAccountSecurityModal from './';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { SkipAccountSecurityModalSelectorsIDs } from './SkipAccountSecurityModal.testIds';
 import { Platform } from 'react-native';
 
@@ -85,13 +85,13 @@ describe('SkipAccountSecurityModal', () => {
       };
     };
 
-    it('render matches snapshot', () => {
+    it('render matches snapshot', async () => {
       const { wrapper, mockNavigation } = setupTest();
       expect(wrapper).toMatchSnapshot();
       mockNavigation.mockRestore();
     });
 
-    it('render Skip and Secure now buttons with correct content', () => {
+    it('render Skip and Secure now buttons with correct content', async () => {
       const { wrapper, mockNavigation } = setupTest();
 
       const cancelButton = wrapper.getByRole('button', {
@@ -106,7 +106,7 @@ describe('SkipAccountSecurityModal', () => {
       mockNavigation.mockRestore();
     });
 
-    it('on skip button press, the bottom sheet is closed and the onConfirm function is called', () => {
+    it('on skip button press, the bottom sheet is closed and the onConfirm function is called', async () => {
       Platform.OS = 'android';
 
       const { wrapper, mockGoBack, mockNavigation } = setupTest();
@@ -114,22 +114,26 @@ describe('SkipAccountSecurityModal', () => {
       const confirmButton = wrapper.getByRole('button', {
         name: strings('account_backup_step_1.skip_button_confirm'),
       });
-      expect(confirmButton.props.disabled).toBe(true);
+      expect(confirmButton).toBeDisabled();
 
       const checkbox = wrapper.getByTestId(
         SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
       );
-      fireEvent.press(checkbox);
+      await act(async () => {
+        fireEvent.press(checkbox);
+      });
 
-      expect(confirmButton.props.disabled).toBe(false);
+      expect(confirmButton).toBeEnabled();
 
-      fireEvent.press(confirmButton);
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockOnConfirm).toHaveBeenCalledTimes(1);
       mockNavigation.mockRestore();
     });
 
-    it('on secure now button press, the bottom sheet is closed and the onCancel function is called', () => {
+    it('on secure now button press, the bottom sheet is closed and the onCancel function is called', async () => {
       Platform.OS = 'android';
 
       const { wrapper, mockGoBack, mockNavigation } = setupTest();
@@ -144,9 +148,13 @@ describe('SkipAccountSecurityModal', () => {
         SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
       );
 
-      fireEvent.press(checkbox);
+      await act(async () => {
+        fireEvent.press(checkbox);
+      });
 
-      fireEvent.press(cancelButton);
+      await act(async () => {
+        fireEvent.press(cancelButton);
+      });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockOnCancel).toHaveBeenCalledTimes(1);
       mockNavigation.mockRestore();
@@ -188,28 +196,35 @@ describe('SkipAccountSecurityModal', () => {
       mockNavigation.mockRestore();
     });
 
-    it('on secure now button press, the bottom sheet is closed and the onCancel function is not called', () => {
+    it('on secure now button press, the bottom sheet is closed and the onCancel function is not called', async () => {
       const { wrapper, mockGoBack, mockNavigation } = setupTest();
 
       const cancelButton = wrapper.getByRole('button', {
         name: strings('account_backup_step_1.skip_button_cancel'),
       });
 
-      fireEvent.press(cancelButton);
+      await act(async () => {
+        fireEvent.press(cancelButton);
+      });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockOnCancel).toHaveBeenCalledTimes(0);
       mockNavigation.mockRestore();
     });
 
-    it('on skip button press, the bottom sheet is closed and the onConfirm function is not called', () => {
+    it('on skip button press without checkbox, the button is disabled and goBack is not called', async () => {
       const { wrapper, mockGoBack, mockNavigation } = setupTest();
 
       const confirmButton = wrapper.getByRole('button', {
         name: strings('account_backup_step_1.skip_button_confirm'),
       });
 
-      fireEvent.press(confirmButton);
-      expect(mockGoBack).toHaveBeenCalled();
+      // Button is disabled when checkbox is unchecked
+      expect(confirmButton).toBeDisabled();
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockOnConfirm).toHaveBeenCalledTimes(0);
       mockNavigation.mockRestore();
     });

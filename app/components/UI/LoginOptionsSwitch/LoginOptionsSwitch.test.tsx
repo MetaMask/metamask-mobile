@@ -9,7 +9,7 @@ describe('LoginWithBiometricsSwitch', () => {
   // eslint-disable-next-line no-empty-function
   const handleUpdate = (_biometricsEnabled: boolean) => {};
   it('should render correctly', () => {
-    const store = mockStore({});
+    const store = mockStore({ security: { allowLoginWithRememberMe: false } });
     const { toJSON } = render(
       <Provider store={store}>
         <LoginOptionsSwitch
@@ -24,7 +24,7 @@ describe('LoginWithBiometricsSwitch', () => {
   });
 
   it('should return empty object when shouldRenderBiometricOption is undefined and allowLoginWithRememberMe is false in settings', () => {
-    const store = mockStore({});
+    const store = mockStore({ security: { allowLoginWithRememberMe: false } });
     const { toJSON } = render(
       <Provider store={store}>
         <LoginOptionsSwitch

@@ -1018,7 +1018,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Note: Candle data now uses WebSocket streaming (usePerpsLiveCandles)
@@ -1053,7 +1053,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - Candle data uses WebSocket streaming, no manual refresh needed
@@ -1104,7 +1104,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - All data now updates via WebSocket, no manual refresh needed
@@ -1142,7 +1142,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - Candle data now uses WebSocket streaming (no manual refresh)
@@ -1171,7 +1171,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Note: Candle data now uses WebSocket streaming (no manual refresh needed)
@@ -1208,7 +1208,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh - should complete without errors
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Refresh control should exist and be functional

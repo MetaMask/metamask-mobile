@@ -266,6 +266,29 @@ const renderWithTheme = (component: React.ReactElement) =>
     </ThemeContext.Provider>,
   );
 
+// Normalize non-deterministic values (timestamps, animation values) in snapshots
+// to avoid flaky test failures from React 19 fiber data leaking into toJSON().
+const normalizeSnapshotValue = (obj: unknown): unknown => {
+  const seen = new WeakSet();
+  const walk = (val: unknown): unknown => {
+    if (val === null || val === undefined) return val;
+    if (typeof val !== 'object') return val;
+    if (seen.has(val as object)) return '[Circular]';
+    seen.add(val as object);
+    if (Array.isArray(val)) return val.map(walk);
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(val as Record<string, unknown>)) {
+      if (key === 'actualStartTime' || key === 'treeBaseDuration' || key === 'actualDuration' || key === 'selfBaseDuration') {
+        result[key] = 0;
+      } else {
+        result[key] = walk(value);
+      }
+    }
+    return result;
+  };
+  return walk(obj);
+};
+
 describe('V2BankDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -276,7 +299,7 @@ describe('V2BankDetails', () => {
 
   it('matches snapshot when order is null (loading)', () => {
     const { toJSON } = renderWithTheme(<V2BankDetails />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(normalizeSnapshotValue(toJSON())).toMatchSnapshot();
   });
 
   it('renders loader when order is not available', () => {
@@ -294,7 +317,7 @@ describe('V2BankDetails', () => {
       expect(mockGetOrder).toHaveBeenCalled();
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(normalizeSnapshotValue(toJSON())).toMatchSnapshot();
   });
 
   it('renders bank detail rows when order has payment details', async () => {
@@ -342,7 +365,7 @@ describe('V2BankDetails', () => {
     });
   });
 
-  it('renders the refresh control scroll view', () => {
+  it('renders the refresh control scroll view', async () => {
     mockGetOrderById.mockReturnValue(createMockV2Order({ paymentDetails: [] }));
 
     const { getByTestId } = renderWithTheme(<V2BankDetails />);
@@ -411,7 +434,9 @@ describe('V2BankDetails', () => {
 
     expect(queryByText('Test Bank')).toBeNull();
 
-    fireEvent.press(getByText('deposit.bank_details.show_bank_info'));
+    await act(async () => {
+      fireEvent.press(getByText('deposit.bank_details.show_bank_info'));
+    });
 
     expect(getByText('Test Bank')).toBeOnTheScreen();
   });
@@ -555,7 +580,7 @@ describe('V2BankDetails', () => {
       expect(mockGetOrder).toHaveBeenCalled();
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(normalizeSnapshotValue(toJSON())).toMatchSnapshot();
   });
 
   it('shows confirm payment error when confirmPayment fails with non-401', async () => {
@@ -623,7 +648,7 @@ describe('V2BankDetails', () => {
       await Promise.resolve();
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(normalizeSnapshotValue(toJSON())).toMatchSnapshot();
 
     await act(async () => {
       resolveConfirm();
@@ -653,7 +678,7 @@ describe('V2BankDetails', () => {
       await Promise.resolve();
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(normalizeSnapshotValue(toJSON())).toMatchSnapshot();
 
     await act(async () => {
       resolveCancel();
@@ -680,7 +705,7 @@ describe('V2BankDetails', () => {
 
       const { toJSON } = renderWithTheme(<V2BankDetails />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(normalizeSnapshotValue(toJSON())).toMatchSnapshot();
     });
 
     it('confirms payment using paymentMethod from controller order', async () => {

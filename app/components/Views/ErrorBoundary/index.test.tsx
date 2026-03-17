@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor , fireEventAsync } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -40,6 +40,17 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock(
+  'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
+  () => {
+    const { View } = require('react-native');
+    return {
+      __esModule: true,
+      default: View,
+    };
+  },
+);
+
 const mockError = new Error('Throw');
 const MockThrowComponent = () => {
   useEffect(() => {
@@ -75,15 +86,15 @@ describe('ErrorBoundary', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
+  it('render matches snapshot', async () => {
     const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('tracks error event when error is thrown by child component', () => {
+  it('tracks error event when error is thrown by child component', async () => {
     renderWithProvider(
       <ErrorBoundary view={'Root'}>
         <MockThrowComponent />
@@ -93,7 +104,7 @@ describe('ErrorBoundary', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('renders all buttons when dataCollectionForMarketing is true', () => {
+  it('renders all buttons when dataCollectionForMarketing is true', async () => {
     const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
       state: initialState,
     });
@@ -103,7 +114,7 @@ describe('ErrorBoundary', () => {
     expect(getByText('Try again')).toBeTruthy();
   });
 
-  it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
+  it('hides Describe what happened button when dataCollectionForMarketing is false', async () => {
     const stateWithoutDataCollection = {
       security: {
         dataCollectionForMarketing: false,
@@ -127,7 +138,7 @@ describe('ErrorBoundary', () => {
     );
 
     const describeButton = getByText('Describe what happened');
-    fireEvent.press(describeButton);
+    await fireEventAsync.press(describeButton);
 
     await waitFor(() => {
       expect(
@@ -148,7 +159,7 @@ describe('ErrorBoundary', () => {
 
     // Open modal
     const describeButton = getByText('Describe what happened');
-    fireEvent.press(describeButton);
+    await fireEventAsync.press(describeButton);
 
     await waitFor(() => {
       expect(getByText('Cancel')).toBeTruthy();
@@ -156,7 +167,7 @@ describe('ErrorBoundary', () => {
 
     // Close modal
     const cancelButton = getByText('Cancel');
-    fireEvent.press(cancelButton);
+    await fireEventAsync.press(cancelButton);
 
     // Verify modal is closed
     await waitFor(() => {
@@ -172,9 +183,7 @@ describe('ErrorBoundary', () => {
     // Open modal
     const describeButton = getByText('Describe what happened');
 
-    await act(async () => {
-      fireEvent.press(describeButton);
-    });
+    await fireEventAsync.press(describeButton);
 
     await waitFor(() => {
       const submitButton = getByText('Submit');
@@ -185,18 +194,18 @@ describe('ErrorBoundary', () => {
     });
   });
 
-  it('calls copyErrorToClipboard when copy button is pressed', () => {
+  it('calls copyErrorToClipboard when copy button is pressed', async () => {
     const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
       state: initialState,
     });
 
     const copyButton = getByText('Copy');
-    fireEvent.press(copyButton);
+    await fireEventAsync.press(copyButton);
 
     expect(mockProps.copyErrorToClipboard).toHaveBeenCalledTimes(1);
   });
 
-  it('calls showExportSeedphrase when save seedphrase link is pressed', () => {
+  it('calls showExportSeedphrase when save seedphrase link is pressed', async () => {
     const { getAllByText } = renderWithProvider(<Fallback {...mockProps} />, {
       state: initialState,
     });
@@ -204,7 +213,7 @@ describe('ErrorBoundary', () => {
     const seedphraseLink = getAllByText(
       strings('error_screen.save_seedphrase_2'),
     )[0];
-    fireEvent.press(seedphraseLink);
+    await fireEventAsync.press(seedphraseLink);
 
     expect(mockProps.showExportSeedphrase).toHaveBeenCalledTimes(1);
   });
@@ -219,26 +228,25 @@ describe('ErrorBoundary', () => {
 
     const describeButton = getByText('Describe what happened');
 
-    await act(async () => {
-      fireEvent.press(describeButton);
-    });
+    await fireEventAsync.press(describeButton);
 
-    await waitFor(() => {
-      const textInput = getByPlaceholderText(
+    const textInput = await waitFor(() =>
+      getByPlaceholderText(
         'Sharing details like how we can reproduce the bug will help us fix the problem.',
-      );
-      const submitButton = getByText('Submit');
-      fireEvent.changeText(textInput, 'Test feedback');
+      ),
+    );
 
-      fireEvent.press(submitButton);
+    await fireEventAsync.changeText(textInput, 'Test feedback');
 
-      expect(captureSentryFeedback).toHaveBeenCalledWith({
-        sentryId: mockProps.sentryId,
-        comments: 'Test feedback',
-      });
+    const submitButton = getByText('Submit');
+    await fireEventAsync.press(submitButton);
 
-      expect(spyAlert).toHaveBeenCalledWith('Thanks! We’ll take a look soon.');
+    expect(captureSentryFeedback).toHaveBeenCalledWith({
+      sentryId: mockProps.sentryId,
+      comments: 'Test feedback',
     });
+
+    expect(spyAlert).toHaveBeenCalledWith('Thanks! We\u2019ll take a look soon.');
   });
 
   it('renders error message correctly', () => {
@@ -295,7 +303,7 @@ describe('ErrorBoundary', () => {
       );
     });
 
-    it('renders onboarding error fallback with correct props', () => {
+    it('renders onboarding error fallback with correct props', async () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
         { state: initialState },
@@ -313,7 +321,7 @@ describe('ErrorBoundary', () => {
       );
 
       const sendReportButton = getByText('Send report');
-      fireEvent.press(sendReportButton);
+      await fireEventAsync.press(sendReportButton);
 
       await waitFor(() => {
         expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
@@ -329,14 +337,14 @@ describe('ErrorBoundary', () => {
       });
     });
 
-    it('navigates to onboarding when Try again is pressed in onboarding mode', () => {
+    it('navigates to onboarding when Try again is pressed in onboarding mode', async () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
         { state: initialState },
       );
 
       const tryAgainButton = getByText('Try again');
-      fireEvent.press(tryAgainButton);
+      await fireEventAsync.press(tryAgainButton);
 
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [{ name: 'OnboardingRootNav' }],

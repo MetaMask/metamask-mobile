@@ -4,6 +4,31 @@ import { fireEvent } from '@testing-library/react-native';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { Linking, Platform } from 'react-native';
 
+// Mock ReusableModal so that dismissModal immediately invokes its callback,
+// allowing tests to verify Linking.canOpenURL is called on button press.
+jest.mock('../ReusableModal', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { forwardRef, useImperativeHandle } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: forwardRef(
+      ({ children }: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
+        useImperativeHandle(ref, () => ({
+          dismissModal: (cb?: () => void) => cb?.(),
+        }));
+        return <View>{children}</View>;
+      },
+    ),
+  };
+});
+
+beforeEach(() => {
+  Linking.canOpenURL = jest.fn().mockResolvedValue(true);
+  Linking.openURL = jest.fn().mockResolvedValue(undefined);
+});
+
 describe('UpdateNeeded', () => {
   it('should render snapshot correctly', () => {
     const { toJSON } = renderScreen(

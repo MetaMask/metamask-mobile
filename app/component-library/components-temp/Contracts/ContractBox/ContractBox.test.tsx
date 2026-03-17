@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import TEST_ADDRESS from '../../../../constants/address';
 import ContractBox from './ContractBox';
 import {
@@ -10,10 +10,11 @@ import {
   CONTRACT_EXPORT_ADDRESS,
   CONTRACT_ON_PRESS,
 } from './ContractBox.constants';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 describe('ContractBox', () => {
   it('should render ContractBox', () => {
-    render(
+    renderWithProvider(
       <ContractBox
         contractAddress={TEST_ADDRESS}
         contractPetName={CONTRACT_PET_NAME}
@@ -22,7 +23,16 @@ describe('ContractBox', () => {
         onExportAddress={CONTRACT_EXPORT_ADDRESS}
         onContractPress={CONTRACT_ON_PRESS}
       />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              PreferencesController: { isIpfsGatewayEnabled: true },
+            },
+          },
+        },
+      },
     );
-    expect(screen.getByTestId(CONTRACT_BOX_TEST_ID)).toBeTruthy();
+    expect(screen.getAllByTestId(CONTRACT_BOX_TEST_ID).length).toBeGreaterThan(0);
   });
 });

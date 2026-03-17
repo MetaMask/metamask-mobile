@@ -383,7 +383,7 @@ describe('OAuthRehydration', () => {
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
       // Assert
-      expect(loginButton.props.disabled).toBe(true);
+      expect(loginButton).toBeDisabled();
     });
 
     it('enables login button when password is entered', () => {
@@ -396,7 +396,7 @@ describe('OAuthRehydration', () => {
       fireEvent.changeText(passwordInput, 'password123');
 
       // Assert
-      expect(loginButton.props.disabled).toBe(false);
+      expect(loginButton).toBeEnabled();
     });
   });
 
@@ -610,11 +610,12 @@ describe('OAuthRehydration', () => {
     it('handles loading state when isDeletingInProgress is true', () => {
       // Arrange
       mockIsDeletingInProgress.mockReturnValue(true);
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const { getByTestId, queryByText } = renderWithProvider(<OAuthRehydration />);
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
-      // Assert
-      expect(loginButton.props.loading).toBe(true);
+      // Assert - when loading, button is disabled and label text is replaced by ActivityIndicator
+      expect(loginButton).toBeDisabled();
+      expect(queryByText(strings('login.unlock_button'))).toBeNull();
     });
 
     it('handles seedless error with zero remainingTime', async () => {

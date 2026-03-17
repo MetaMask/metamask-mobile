@@ -1,16 +1,17 @@
 /* eslint-disable import/no-nodejs-modules */
 import React from 'react';
-import { render } from '@testing-library/react-native';
-// eslint-disable-next-line import/named
-import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialRootState from '../../../util/test/initial-root-state';
 
 // Mock Ramp SDK dependencies to prevent SdkEnvironment.Production errors
-jest.mock('../../../components/UI/Ramp', () => ({
-  RampOrders: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock('../../../components/UI/Ramp', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => React.createElement('RampOrdersMock'),
+  };
+});
 
 jest.mock('../../../components/UI/Ramp/Deposit/sdk', () => ({
   DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -20,6 +21,87 @@ jest.mock('../../../components/UI/Ramp/Deposit/sdk', () => ({
 }));
 
 jest.mock('../../../components/UI/Ramp/Deposit/orderProcessor', () => ({}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '0.0.0'),
+  getBuildNumber: jest.fn(() => '0'),
+  getUniqueId: jest.fn(() => 'test-device-id'),
+  getDeviceId: jest.fn(() => 'test-device-id'),
+}));
+
+// Mock heavy child components to avoid deep dependency issues
+jest.mock('./MainNavigator', () => {
+  const React = require('react');
+  const MockMainNavigator = () => React.createElement('MainNavigatorMock');
+  MockMainNavigator.router = {};
+  return {
+    __esModule: true,
+    default: MockMainNavigator,
+  };
+});
+
+jest.mock('../../UI/GlobalAlert', () => {
+  const React = require('react');
+  return () => React.createElement('GlobalAlertMock');
+});
+
+jest.mock('../../UI/FadeOutOverlay', () => {
+  const React = require('react');
+  return () => React.createElement('FadeOutOverlayMock');
+});
+
+jest.mock('../../UI/Notification', () => {
+  const React = require('react');
+  return () => React.createElement('NotificationMock');
+});
+
+jest.mock('../../UI/Card/sdk', () => ({
+  CardVerification: () => null,
+  CardSDKProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('../../UI/Earn/components/EarnTransactionMonitor', () => {
+  const React = require('react');
+  return () => React.createElement('EarnTransactionMonitorMock');
+});
+
+jest.mock('../../UI/ProtectYourWalletModal', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => React.createElement('ProtectYourWalletModalMock'),
+  };
+});
+
+jest.mock('./RootRPCMethodsUI', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => React.createElement('RootRPCMethodsUIMock'),
+  };
+});
+
+jest.mock('../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => React.createElement('ProtectWalletMandatoryModalMock'),
+  };
+});
+
+jest.mock('../../UI/ReviewModal', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => React.createElement('ReviewModalMock'),
+  };
+});
+
+jest.mock('../../../util/transaction-controller', () => ({
+  updateIncomingTransactions: jest.fn(),
+  startIncomingTransactionPolling: jest.fn(),
+  stopIncomingTransactionPolling: jest.fn(),
+}));
 
 jest.mock('@consensys/native-ramps-sdk', () => ({
   SdkEnvironment: {
@@ -37,45 +119,34 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
   NativeRampsSdk: jest.fn(),
 }));
 
-const mockStore = configureMockStore();
-const mockInitialState = {
-  user: {
-    isConnectionRemoved: false,
-  },
-};
-
 describe('Main', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should render correctly', () => {
-    const MainAppContainer = () => (
-      <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer>
-          <Main />
-        </NavigationContainer>
-      </Provider>
-    );
-    const { toJSON } = render(<MainAppContainer />);
+    const { toJSON } = renderWithProvider(<Main />, {
+      state: {
+        ...initialRootState,
+        user: {
+          ...initialRootState.user,
+          isConnectionRemoved: false,
+        },
+      },
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly with isConnectionRemoved true', () => {
-    const mockInitialStateWithConnectionRemoved = {
-      user: {
-        isConnectionRemoved: true,
+    const { toJSON } = renderWithProvider(<Main />, {
+      state: {
+        ...initialRootState,
+        user: {
+          ...initialRootState.user,
+          isConnectionRemoved: true,
+        },
       },
-    };
-
-    const MainAppContainer = () => (
-      <Provider store={mockStore(mockInitialStateWithConnectionRemoved)}>
-        <NavigationContainer>
-          <Main />
-        </NavigationContainer>
-      </Provider>
-    );
-    const { toJSON } = render(<MainAppContainer />);
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,11 +1,11 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 import EditGasFee1559 from './';
 
 describe('EditGasFee1559', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const { toJSON } = renderWithProvider(
       <EditGasFee1559
         gasFee={{
           maxWaitTimeEstimate: 150000,
@@ -13,6 +13,9 @@ describe('EditGasFee1559', () => {
           suggestedMaxFeePerGas: '50',
           suggestedMaxPriorityFeePerGas: '2',
         }}
+        gasOptions={{}}
+        ignoreOptions={[]}
+        onChange={jest.fn()}
         view={''}
       />,
     );

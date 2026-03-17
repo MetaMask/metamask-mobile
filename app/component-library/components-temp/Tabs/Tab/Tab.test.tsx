@@ -133,7 +133,7 @@ describe('Tab', () => {
       );
 
       const tab = getByTestId('enabled-tab');
-      expect(tab.props.disabled).toBeFalsy();
+      expect(tab).toBeEnabled();
     });
   });
 

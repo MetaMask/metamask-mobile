@@ -17,16 +17,16 @@ const styles = StyleSheet.create({
  * View that renders an action modal
  */
 export default function ActionModal({
-  cancelTestID,
-  confirmTestID,
-  cancelText,
+  cancelTestID = '',
+  confirmTestID = '',
+  cancelText = strings('action_view.cancel'),
   children,
-  confirmText,
-  confirmDisabled,
-  cancelButtonMode,
-  confirmButtonMode,
-  displayCancelButton,
-  displayConfirmButton,
+  confirmText = strings('action_view.confirm'),
+  confirmDisabled = false,
+  cancelButtonMode = 'neutral',
+  confirmButtonMode = 'warning',
+  displayCancelButton = true,
+  displayConfirmButton = true,
   onCancelPress,
   onConfirmPress,
   onRequestClose,
@@ -38,7 +38,7 @@ export default function ActionModal({
   childrenContainerStyle,
   verticalButtons,
   propagateSwipe,
-  cancelButtonDisabled,
+  cancelButtonDisabled = false,
 }) {
   const { colors } = useTheme();
 

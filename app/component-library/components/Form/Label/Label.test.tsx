@@ -21,8 +21,6 @@ describe('Label', () => {
   });
   it('should render the given text with the appropriate variant', () => {
     render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
-    const titleElement = screen.getByTestId(LABEL_TEST_ID);
-    expect(titleElement.props.children).toBe(SAMPLE_LABEL_TEXT);
-    expect(titleElement.props.variant).toBe(DEFAULT_LABEL_TEXT_VARIANT);
+    expect(screen.getByText(SAMPLE_LABEL_TEXT)).toBeDefined();
   });
 });

@@ -83,8 +83,8 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('renders multiple children correctly', () => {
@@ -183,8 +183,8 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('handles empty children gracefully when transaction metadata is not available', () => {
@@ -227,8 +227,8 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK, '0x89'],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('does not duplicate chainId when transaction chainId is already in bridge chains', () => {
@@ -256,8 +256,8 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('handles empty bridge chains list', () => {
@@ -287,8 +287,8 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: ['0x89'],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('filters out non-EVM chains from bridge chains', () => {
@@ -316,8 +316,8 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('handles newly added network from dapp scenario', () => {
@@ -347,8 +347,8 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK, newCustomChainId],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        expect.anything(),
-      );
+      undefined,
+    );
     });
   });
 });

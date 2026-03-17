@@ -1,7 +1,27 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, act , fireEventAsync } from '@testing-library/react-native';
 import React from 'react';
+import { findNodeHandle } from 'react-native';
 import { PredictMarketListSelectorsIDs } from '../../Predict.testIds';
 import PredictFeed from './PredictFeed';
+
+// Patch reanimated to avoid React 19 + test-renderer crashes where
+// findNodeHandle fails in AnimatedComponent.componentDidUpdate.
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  const RN = require('react-native');
+  const animatedDefault = {
+    ...actual.default,
+    createAnimatedComponent: (component: React.ComponentType) => component,
+    View: RN.View,
+    ScrollView: RN.ScrollView,
+  };
+  // Spread actual named exports and override the default
+  return {
+    __esModule: true,
+    ...actual,
+    default: animatedDefault,
+  };
+});
 
 jest.mock('react-native-pager-view', () => {
   const MockReact = jest.requireActual('react');
@@ -290,19 +310,25 @@ describe('PredictFeed', () => {
   });
 
   describe('search functionality', () => {
-    it('opens search overlay when search button pressed', () => {
+    it('opens search overlay when search button pressed', async () => {
       const { getByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
 
       expect(getByTestId('search-icon')).toBeOnTheScreen();
     });
 
-    it('closes search overlay when cancel button pressed', () => {
+    it('closes search overlay when cancel button pressed', async () => {
       const { getByTestId, getByText, queryByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
-      fireEvent.press(getByText('Cancel'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
+      await act(async () => {
+        fireEvent.press(getByText('Cancel'));
+      });
 
       expect(queryByTestId('search-icon')).toBeNull();
     });
@@ -320,10 +346,12 @@ describe('PredictFeed', () => {
       expect(getByTestId('tab-politics')).toBeOnTheScreen();
     });
 
-    it('does not track analytics when tab pressed', () => {
+    it('does not track analytics when tab pressed', async () => {
       const { getByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('tab-sports'));
+      await act(async () => {
+        fireEvent.press(getByTestId('tab-sports'));
+      });
 
       expect(mockSessionManager.trackTabChange).not.toHaveBeenCalled();
     });
@@ -362,19 +390,23 @@ describe('PredictFeed', () => {
   });
 
   describe('navigation', () => {
-    it('calls goBack when back button pressed and navigation can go back', () => {
+    it('calls goBack when back button pressed and navigation can go back', async () => {
       const { getByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+      });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
-    it('navigates to wallet home when back button pressed and navigation cannot go back', () => {
+    it('navigates to wallet home when back button pressed and navigation cannot go back', async () => {
       mockNavigation.canGoBack.mockReturnValue(false);
       const { getByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+      });
 
       expect(mockNavigation.navigate).toHaveBeenCalled();
     });
@@ -436,18 +468,20 @@ describe('PredictFeed', () => {
   });
 
   describe('search overlay interactions', () => {
-    it('displays search results when query is entered', () => {
+    it('displays search results when query is entered', async () => {
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
+      await fireEventAsync.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
       expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
     });
 
-    it('displays skeleton loaders while search is fetching', () => {
+    it('displays skeleton loaders while search is fetching', async () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
         isFetching: true,
@@ -460,22 +494,28 @@ describe('PredictFeed', () => {
 
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
+      await fireEventAsync.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
     });
 
-    it('clears search query when clear button is pressed', () => {
+    it('clears search query when clear button is pressed', async () => {
       const { getByTestId, getByPlaceholderText, queryByTestId } = render(
         <PredictFeed />,
       );
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'test query');
-      fireEvent.press(getByTestId('clear-button'));
+      await fireEventAsync.changeText(searchInput, 'test query');
+      await act(async () => {
+        fireEvent.press(getByTestId('clear-button'));
+      });
 
       // After clearing search, the clear button should no longer be visible
       // (only shows when searchQuery.length > 0)
@@ -546,7 +586,7 @@ describe('PredictFeed', () => {
   });
 
   describe('search empty states', () => {
-    it('displays no results message when search returns empty', () => {
+    it('displays no results message when search returns empty', async () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
@@ -561,14 +601,16 @@ describe('PredictFeed', () => {
         <PredictFeed />,
       );
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'nonexistent');
+      await fireEventAsync.changeText(searchInput, 'nonexistent');
 
       expect(getByText(/No results found/i)).toBeOnTheScreen();
     });
 
-    it('displays error state in search when fetch fails', () => {
+    it('displays error state in search when fetch fails', async () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
@@ -583,9 +625,11 @@ describe('PredictFeed', () => {
         <PredictFeed />,
       );
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'test');
+      await fireEventAsync.changeText(searchInput, 'test');
 
       const offlineElements = getAllByTestId('predict-offline-mock');
       expect(offlineElements.length).toBeGreaterThan(0);
@@ -645,13 +689,15 @@ describe('PredictFeed', () => {
   });
 
   describe('search debounce behavior', () => {
-    it('passes debounced search query to usePredictMarketData', () => {
+    it('passes debounced search query to usePredictMarketData', async () => {
       mockUseDebouncedValue.mockReturnValue('debounced-query');
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
+      await fireEventAsync.changeText(searchInput, 'bitcoin');
 
       const searchCalls = mockUsePredictMarketData.mock.calls.filter(
         (call: [{ q?: string }]) => call[0].q !== undefined,
@@ -659,7 +705,7 @@ describe('PredictFeed', () => {
       expect(searchCalls[searchCalls.length - 1][0].q).toBe('debounced-query');
     });
 
-    it('displays skeleton loaders when debouncing search input', () => {
+    it('displays skeleton loaders when debouncing search input', async () => {
       mockUseDebouncedValue.mockReturnValue('');
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
@@ -672,14 +718,16 @@ describe('PredictFeed', () => {
       });
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
+      await fireEventAsync.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
     });
 
-    it('displays search results after debounce completes', () => {
+    it('displays search results after debounce completes', async () => {
       mockUseDebouncedValue.mockReturnValue('bitcoin');
       mockUsePredictMarketData.mockReturnValue({
         marketData: [
@@ -695,20 +743,24 @@ describe('PredictFeed', () => {
       });
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
+      await fireEventAsync.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
       expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
     });
 
-    it('invokes useDebouncedValue with 200ms delay', () => {
+    it('invokes useDebouncedValue with 200ms delay', async () => {
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-search-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-search-button'));
+      });
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'test');
+      await fireEventAsync.changeText(searchInput, 'test');
 
       expect(mockUseDebouncedValue).toHaveBeenCalledWith('test', 200);
     });
@@ -856,7 +908,7 @@ describe('PredictFeed', () => {
       },
     );
 
-    it('closes search overlay when cancel is pressed', () => {
+    it('closes search overlay when cancel is pressed', async () => {
       mockUseRoute.mockReturnValue({
         params: {
           entryPoint: 'deeplink',
@@ -868,7 +920,9 @@ describe('PredictFeed', () => {
 
       expect(getByTestId('search-icon')).toBeOnTheScreen();
 
-      fireEvent.press(getByText('Cancel'));
+      await act(async () => {
+        fireEvent.press(getByText('Cancel'));
+      });
       expect(queryByTestId('search-icon')).toBeNull();
     });
   });

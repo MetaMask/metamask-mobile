@@ -1621,7 +1621,7 @@ describe('PerpsOrderView', () => {
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
       expect(placeOrderButton).toBeDefined();
-      expect(placeOrderButton.props.accessibilityState?.disabled).toBeFalsy();
+      expect(placeOrderButton).toBeEnabled();
     });
   });
 
@@ -1966,7 +1966,7 @@ describe('PerpsOrderView', () => {
       );
 
       // Verify the button is disabled due to liquidation risk
-      expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
+      expect(placeOrderButton).toBeDisabled();
     });
   });
 

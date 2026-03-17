@@ -1,7 +1,7 @@
 import React from 'react';
 import RemoteImage from './';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor , fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Logger from '../../../util/Logger';
@@ -239,7 +239,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       await waitFor(async () => {
@@ -260,7 +260,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       await waitFor(() => {
@@ -279,7 +279,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       // After error, Identicon should be rendered
@@ -534,7 +534,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({ source: {} });
+        fireEvent(image, 'load', { source: {} });
       });
 
       await waitFor(() => {

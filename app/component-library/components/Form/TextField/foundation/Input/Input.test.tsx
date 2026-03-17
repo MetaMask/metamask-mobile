@@ -53,7 +53,7 @@ describe('Input', () => {
 
     const input = getByTestId(INPUT_TEST_ID);
 
-    expect(input.props.editable).toBe(false);
+    expect(input).toHaveProp('editable', false);
     expect(getStyleProp(input.props.style, 'opacity')).toBe(0.5);
   });
 

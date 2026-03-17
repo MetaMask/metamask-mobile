@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor , act } from '@testing-library/react-native';
 import { PayWithModal } from './pay-with-modal';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
@@ -71,6 +71,22 @@ jest.mock('../../../hooks/send/metrics/useAssetSelectionMetrics', () => ({
     setAssetListSize: jest.fn(),
     setNoneAssetFilterMethod: jest.fn(),
     setSearchAssetFilterMethod: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: () => ({
+    filterAllowedTokens: jest.fn((tokens: unknown[]) => tokens),
+    isConversionToken: jest.fn(() => false),
+    isMusdSupportedOnChain: jest.fn(() => false),
+    hasConvertibleTokensByChainId: jest.fn(() => false),
+    tokens: [],
+  }),
+}));
+
+jest.mock('../../../../../UI/Earn/hooks/useMusdPaymentToken', () => ({
+  useMusdPaymentToken: () => ({
+    onPaymentTokenChange: jest.fn(),
   }),
 }));
 
@@ -214,7 +230,7 @@ describe('PayWithModal', () => {
   );
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -269,7 +285,7 @@ describe('PayWithModal', () => {
     it('sets pay asset', async () => {
       const { getByText } = render();
 
-      await waitFor(() => {
+      await act(async () => {
         fireEvent.press(getByText('Test Token 1'));
       });
 
@@ -292,7 +308,7 @@ describe('PayWithModal', () => {
 
       const { getByText } = render();
 
-      await waitFor(() => {
+      await act(async () => {
         fireEvent.press(getByText('Test Token 1'));
       });
 
@@ -355,7 +371,7 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('uses withdrawTokenFilter for withdrawal transactions', () => {
+    it('uses withdrawTokenFilter for withdrawal transactions', async () => {
       const withdrawFilterFn = jest.fn((tokens: AssetType[]) => tokens);
       useWithdrawTokenFilterMock.mockReturnValue(withdrawFilterFn);
 
@@ -384,7 +400,7 @@ describe('PayWithModal', () => {
 
       const { getByText } = render();
 
-      await waitFor(() => {
+      await act(async () => {
         fireEvent.press(getByText('Zero Token'));
       });
 

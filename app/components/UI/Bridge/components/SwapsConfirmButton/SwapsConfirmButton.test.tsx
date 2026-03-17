@@ -325,7 +325,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button when balance is insufficient', () => {
@@ -339,7 +339,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button when transaction is submitting', () => {
@@ -359,7 +359,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button for hardware wallet with Solana source', () => {
@@ -388,7 +388,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button when blockaid error exists', () => {
@@ -407,7 +407,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button when gas is insufficient', () => {
@@ -421,7 +421,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button when walletAddress is missing', () => {
@@ -435,7 +435,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -458,7 +458,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Button is disabled (isLoading && !activeQuote)
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       // Label text is hidden behind ActivityIndicator
       expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
     });
@@ -480,7 +480,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       // Label hidden by loading indicator
       expect(queryByText(strings('bridge.submitting_transaction'))).toBeNull();
     });
@@ -502,7 +502,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       // Label hidden by loading indicator during debounce gap
       expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
     });
@@ -584,7 +584,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Not disabled because activeQuote exists
-      expect(button.props.disabled).toBe(false);
+      expect(button).toBeEnabled();
       // Label is visible (no loading indicator)
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
@@ -601,7 +601,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Button is disabled
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       // But not in loading state (isLoading=false, isSubmittingTx=false)
       // so the label is visible
       expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
@@ -618,7 +618,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       // Label visible because not loading/submitting
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
     });
@@ -641,7 +641,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       // Label hidden by loading indicator
       expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
     });
@@ -663,7 +663,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       // Label visible (not loading) — shows default "Confirm swap"
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
@@ -678,7 +678,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(false);
+      expect(button).toBeEnabled();
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
   });
@@ -722,7 +722,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(false);
+      expect(button).toBeEnabled();
     });
 
     it('calls resetState and updateQuoteParams when expired quote button is pressed', async () => {
@@ -775,7 +775,7 @@ describe('SwapsConfirmButton', () => {
       ).toBeTruthy();
       // Button is not disabled — user can press "Get new quote"
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(false);
+      expect(button).toBeEnabled();
     });
 
     it('does not show "Get new quote" when expired and loading with active quote', () => {
@@ -987,7 +987,7 @@ describe('SwapsConfirmButton', () => {
 
       // Button should be disabled when walletAddress is missing
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
 
       // Verify submitBridgeTx is not called since button is disabled
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();

@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import FiatSelectorModal from './FiatSelectorModal';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -106,19 +107,19 @@ describe('FiatSelectorModal', () => {
     it('displays filtered currencies when search string matches results', () => {
       const { getByTestId, toJSON } = render(FiatSelectorModal);
       const searchInput = getByTestId('textfieldsearch');
-      searchInput.props.onChangeText('USD');
+      fireEvent.changeText(searchInput, 'USD');
       expect(toJSON()).toMatchSnapshot();
     });
     it('displays filtered currencies when search string does not match results', () => {
       const { getByTestId, toJSON } = render(FiatSelectorModal);
       const searchInput = getByTestId('textfieldsearch');
-      searchInput.props.onChangeText('Nonexistent Currency');
+      fireEvent.changeText(searchInput, 'Nonexistent Currency');
       expect(toJSON()).toMatchSnapshot();
     });
     it('displays max 20 results', () => {
       const { getByTestId, toJSON } = render(FiatSelectorModal);
       const searchInput = getByTestId('textfieldsearch');
-      searchInput.props.onChangeText('u');
+      fireEvent.changeText(searchInput, 'u');
       expect(toJSON()).toMatchSnapshot();
     });
   });

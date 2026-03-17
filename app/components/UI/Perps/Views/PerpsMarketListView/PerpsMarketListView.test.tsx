@@ -320,11 +320,14 @@ jest.mock('../../../../../images/image-icons', () => ({
   HL: 'mock-hl-image',
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-  }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = () => ({});
+  twFn.color = () => 'black';
+  return {
+    useTailwind: () => twFn,
+  };
+});
 
 // Mock Animated to prevent act() warnings
 jest.mock('react-native', () => {

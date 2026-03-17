@@ -216,7 +216,7 @@ describe('Account Network Row', () => {
         { state: MOCK_STATE },
       );
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      expect(switchComponent.props.disabled).toBe(true);
+      expect(switchComponent).toHaveProp('disabled', true);
     });
 
     it('disables switch for standard account when upgradeContractAddress is missing', () => {
@@ -234,7 +234,7 @@ describe('Account Network Row', () => {
         { state: MOCK_STATE },
       );
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      expect(switchComponent.props.disabled).toBe(true);
+      expect(switchComponent).toHaveProp('disabled', true);
     });
   });
 

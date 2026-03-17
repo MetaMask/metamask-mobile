@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import {
   usePredictPositionsForHomepage,
   _clearPositionsCache,
@@ -75,13 +75,13 @@ describe('usePredictPositionsForHomepage', () => {
   });
 
   it('fetches positions on mount when predict is enabled', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictPositionsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.positions).toHaveLength(3);
+    await waitFor(() => {
+      expect(result.current.positions).toHaveLength(3);
+    });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
     expect(mockGetPositions).toHaveBeenCalledWith({
@@ -119,25 +119,25 @@ describe('usePredictPositionsForHomepage', () => {
       createMockPosition('5'),
     ]);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictPositionsForHomepage(2),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.positions).toHaveLength(2);
+    await waitFor(() => {
+      expect(result.current.positions).toHaveLength(2);
+    });
   });
 
   it('sets error state when fetch fails', async () => {
     mockGetPositions.mockRejectedValue(new Error('API error'));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictPositionsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.error).toBe('API error');
+    await waitFor(() => {
+      expect(result.current.error).toBe('API error');
+    });
     expect(result.current.positions).toHaveLength(0);
     expect(result.current.isLoading).toBe(false);
   });
@@ -145,36 +145,36 @@ describe('usePredictPositionsForHomepage', () => {
   it('sets fallback error for non-Error throws', async () => {
     mockGetPositions.mockRejectedValue('string error');
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictPositionsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.error).toBe('Failed to fetch positions');
+    await waitFor(() => {
+      expect(result.current.error).toBe('Failed to fetch positions');
+    });
   });
 
   it('handles null response from getPositions', async () => {
     mockGetPositions.mockResolvedValue(null);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictPositionsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.positions).toHaveLength(0);
+    await waitFor(() => {
+      expect(result.current.positions).toHaveLength(0);
+    });
     expect(result.current.error).toBeNull();
   });
 
   it('uses cached data on subsequent renders within TTL', async () => {
-    const { waitForNextUpdate, unmount } = renderHook(() =>
+    const { unmount } = renderHook(() =>
       usePredictPositionsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(mockGetPositions).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
+    });
     unmount();
 
     const { result: result2 } = renderHook(() =>
@@ -187,13 +187,13 @@ describe('usePredictPositionsForHomepage', () => {
   });
 
   it('clears cache and refetches on refresh', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictPositionsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(mockGetPositions).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
+    });
 
     await act(async () => {
       await result.current.refresh();
@@ -204,48 +204,48 @@ describe('usePredictPositionsForHomepage', () => {
 
   describe('claimable parameter', () => {
     it('passes claimable: false to getPositions by default', async () => {
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictPositionsForHomepage(5),
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetPositions).toHaveBeenCalledWith({
-        address: '0xuser123',
-        claimable: false,
+      await waitFor(() => {
+        expect(mockGetPositions).toHaveBeenCalledWith({
+          address: '0xuser123',
+          claimable: false,
+        });
       });
     });
 
     it('passes claimable: true to getPositions when specified', async () => {
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictPositionsForHomepage(undefined, true),
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetPositions).toHaveBeenCalledWith({
-        address: '0xuser123',
-        claimable: true,
+      await waitFor(() => {
+        expect(mockGetPositions).toHaveBeenCalledWith({
+          address: '0xuser123',
+          claimable: true,
+        });
       });
     });
 
     it('uses separate cache keys for claimable and non-claimable fetches', async () => {
       // Fetch non-claimable
-      const { waitForNextUpdate: wait1, unmount: unmount1 } = renderHook(() =>
+      const { unmount: unmount1 } = renderHook(() =>
         usePredictPositionsForHomepage(5, false),
       );
-      await wait1();
+      await waitFor(() => {
+        expect(mockGetPositions).toHaveBeenCalledTimes(1);
+      });
       unmount1();
 
-      expect(mockGetPositions).toHaveBeenCalledTimes(1);
-
       // Fetch claimable — must hit the API again (different cache key)
-      const { waitForNextUpdate: wait2 } = renderHook(() =>
+      renderHook(() =>
         usePredictPositionsForHomepage(5, true),
       );
-      await wait2();
-
-      expect(mockGetPositions).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(mockGetPositions).toHaveBeenCalledTimes(2);
+      });
     });
 
     it('serves claimable positions from cache independently of non-claimable', async () => {
@@ -262,18 +262,20 @@ describe('usePredictPositionsForHomepage', () => {
       // Populate both caches
       const {
         result: r1,
-        waitForNextUpdate: w1,
         unmount: u1,
       } = renderHook(() => usePredictPositionsForHomepage(undefined, false));
-      await w1();
+      await waitFor(() => {
+        expect(r1.current.positions).toHaveLength(2);
+      });
       u1();
 
       const {
         result: r2,
-        waitForNextUpdate: w2,
         unmount: u2,
       } = renderHook(() => usePredictPositionsForHomepage(undefined, true));
-      await w2();
+      await waitFor(() => {
+        expect(r2.current.positions).toHaveLength(1);
+      });
       u2();
 
       // Each set has its own cached value

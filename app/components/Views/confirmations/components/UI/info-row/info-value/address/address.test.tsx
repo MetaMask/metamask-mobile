@@ -49,7 +49,7 @@ describe('InfoAddress', () => {
         variation: CHAIN_IDS.MAINNET,
         type: NameType.EthereumAddress,
       }),
-      expect.anything(),
+      undefined,
     );
   });
 });

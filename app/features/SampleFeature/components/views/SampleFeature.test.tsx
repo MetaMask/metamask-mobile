@@ -185,11 +185,11 @@ describe('SampleFeature', () => {
 
       // Assert
       expect(mockSampleNetworkDisplay).toHaveBeenCalledWith(
-        {
+        expect.objectContaining({
           name: expectedNetworkName,
           imageSource: expectedImageSource,
-        },
-        expect.anything(),
+        }),
+        undefined,
       );
     });
 

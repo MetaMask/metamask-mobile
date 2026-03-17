@@ -1,4 +1,4 @@
-import { render, act } from '@testing-library/react-native';
+import { render, act , fireEvent } from '@testing-library/react-native';
 import React, { Ref } from 'react';
 import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
 import { PredictHomePositionsHandle } from '../../components/PredictHome/PredictHomePositions';
@@ -11,6 +11,8 @@ jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));
 
+const mockRefreshFn = jest.fn();
+
 jest.mock('../../components/PredictHome', () => {
   const ReactLib = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -22,7 +24,7 @@ jest.mock('../../components/PredictHome', () => {
         ref: Ref<PredictHomePositionsHandle>,
       ) => {
         ReactLib.useImperativeHandle(ref, () => ({
-          refresh: jest.fn(),
+          refresh: mockRefreshFn,
         }));
         return (
           <View testID="predict-home-positions">
@@ -165,24 +167,7 @@ describe('PredictTabView', () => {
       }
       return '0x1';
     });
-    const mockRefresh = jest.fn().mockResolvedValue(undefined);
-    const PredictHomeMock = jest.requireMock('../../components/PredictHome');
-    PredictHomeMock.PredictHomePositions = React.forwardRef(
-      (
-        _props: MockPredictHomePositionsProps,
-        ref: Ref<PredictHomePositionsHandle>,
-      ) => {
-        const { View, Text } = jest.requireActual('react-native');
-        React.useImperativeHandle(ref, () => ({
-          refresh: mockRefresh,
-        }));
-        return (
-          <View testID="predict-home-positions">
-            <Text>Home Positions</Text>
-          </View>
-        );
-      },
-    );
+    mockRefreshFn.mockResolvedValue(undefined);
 
     const { getByTestId } = renderWithProviders(<PredictTabView />);
     const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
@@ -192,7 +177,7 @@ describe('PredictTabView', () => {
       await refreshControl.props.onRefresh();
     });
 
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefreshFn).toHaveBeenCalledTimes(1);
   });
 
   it('sets refreshing state to false before pull-to-refresh executes', async () => {

@@ -253,7 +253,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -289,7 +289,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -316,7 +316,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
+    expect(importButton).toBeDisabled();
   });
 
   it('disables import button when SRP length is invalid', async () => {
@@ -335,7 +335,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
+    expect(importButton).toBeDisabled();
   });
 
   it('shows clear button after pasting SRP', async () => {
@@ -412,7 +412,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -458,7 +458,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -569,7 +569,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -612,7 +612,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -653,7 +653,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -694,7 +694,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -768,7 +768,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(true);
+      expect(importButton).toBeDisabled();
     });
 
     it('handles empty string in textarea', async () => {

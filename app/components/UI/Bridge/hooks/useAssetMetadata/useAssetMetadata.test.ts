@@ -1,5 +1,5 @@
 import '../../_mocks_/initialState';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { AssetType, useAssetMetadata } from './index';
 
@@ -35,42 +35,46 @@ describe('useAssetMetadata', () => {
   it('should return undefined when external services are disabled', async () => {
     (useSelector as jest.Mock).mockReturnValue(false); // allowExternalServices = false
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useAssetMetadata(mockSearchQuerySol, true, mockChainIdSol),
     );
 
-    await waitForNextUpdate();
-    expect(result.current.assetMetadata).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.assetMetadata).toBeUndefined();
+    });
     expect(mockFetchAssetMetadata).not.toHaveBeenCalled();
   });
 
   it('should return undefined when chainId is not provided', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useAssetMetadata(mockSearchQuerySol, true),
     );
 
-    await waitForNextUpdate();
-    expect(result.current.assetMetadata).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.assetMetadata).toBeUndefined();
+    });
     expect(mockFetchAssetMetadata).not.toHaveBeenCalled();
   });
 
   it('should return undefined when search query is empty', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useAssetMetadata('', true, mockChainIdEvm),
     );
 
-    await waitForNextUpdate();
-    expect(result.current.assetMetadata).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.assetMetadata).toBeUndefined();
+    });
     expect(mockFetchAssetMetadata).not.toHaveBeenCalled();
   });
 
   it('should return undefined when search query is not an address', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useAssetMetadata('not-an-address', true, mockChainIdEvm),
     );
 
-    await waitForNextUpdate();
-    expect(result.current.assetMetadata).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.assetMetadata).toBeUndefined();
+    });
     expect(mockFetchAssetMetadata).not.toHaveBeenCalled();
   });
 
@@ -86,13 +90,12 @@ describe('useAssetMetadata', () => {
 
       mockFetchAssetMetadata.mockResolvedValueOnce(mockMetadata);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useAssetMetadata(mockSearchQueryEvm, true, mockChainIdEvm),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.assetMetadata).toEqual({
+      await waitFor(() => {
+        expect(result.current.assetMetadata).toEqual({
         ...mockMetadata,
         chainId: mockChainIdEvm,
         isNative: false,
@@ -100,6 +103,7 @@ describe('useAssetMetadata', () => {
         image: 'mock-image-url',
         balance: '',
         string: '',
+        });
       });
 
       expect(mockFetchAssetMetadata).toHaveBeenCalledWith(
@@ -124,13 +128,12 @@ describe('useAssetMetadata', () => {
 
       mockFetchAssetMetadata.mockResolvedValueOnce(mockMetadata);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         useAssetMetadata(mockSearchQuerySol, true, mockChainIdSol),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.assetMetadata).toEqual({
+      await waitFor(() => {
+        expect(result.current.assetMetadata).toEqual({
         ...mockMetadata,
         chainId: mockChainIdSol,
         isNative: false,
@@ -138,6 +141,7 @@ describe('useAssetMetadata', () => {
         image: 'mock-image-url',
         balance: '',
         string: '',
+        });
       });
 
       expect(mockFetchAssetMetadata).toHaveBeenCalledWith(
@@ -154,12 +158,13 @@ describe('useAssetMetadata', () => {
   it('should return undefined when fetchAssetMetadata returns undefined', async () => {
     mockFetchAssetMetadata.mockResolvedValueOnce(undefined);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useAssetMetadata(mockSearchQuerySol, true, mockChainIdSol),
     );
 
-    await waitForNextUpdate();
-    expect(result.current.assetMetadata).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.assetMetadata).toBeUndefined();
+    });
 
     expect(mockFetchAssetMetadata).toHaveBeenCalledWith(
       mockSearchQuerySol.trim(),
@@ -170,12 +175,13 @@ describe('useAssetMetadata', () => {
   it('should handle errors gracefully', async () => {
     mockFetchAssetMetadata.mockRejectedValueOnce(new Error('API Error'));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useAssetMetadata(mockSearchQuerySol, true, mockChainIdSol),
     );
 
-    await waitForNextUpdate();
-    expect(result.current.assetMetadata).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.assetMetadata).toBeUndefined();
+    });
 
     expect(mockFetchAssetMetadata).toHaveBeenCalledWith(
       mockSearchQuerySol.trim(),

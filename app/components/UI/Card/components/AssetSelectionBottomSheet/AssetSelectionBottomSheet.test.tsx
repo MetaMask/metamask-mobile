@@ -92,6 +92,28 @@ jest.mock('../../hooks/useUpdateTokenPriority', () => ({
 
 jest.mock('../../../../../util/Logger');
 
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactMock = require('react');
+    const MockBottomSheet = ReactMock.forwardRef(
+      ({ children }: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
+        ReactMock.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        }));
+        return <>{children}</>;
+      },
+    );
+    MockBottomSheet.displayName = 'MockBottomSheet';
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
+
 // Create a mock tailwind function that can be called and has a style method
 const mockTw = Object.assign(
   jest.fn((className: string) => ({ className })),
@@ -118,7 +140,7 @@ jest.mock('react-native-gesture-handler', () => {
 });
 
 import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act , fireEventAsync } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
@@ -513,7 +535,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('token selection', () => {
-    it('calls onTokenSelect and closes bottom sheet in selection only mode', () => {
+    it('calls onTokenSelect and closes bottom sheet in selection only mode', async () => {
       const mockOnTokenSelect = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
@@ -525,7 +547,9 @@ describe('AssetSelectionBottomSheet', () => {
         onTokenSelect: mockOnTokenSelect,
       });
 
-      fireEvent.press(getByText(/USDC on/));
+      await act(async () => {
+        fireEvent.press(getByText(/USDC on/));
+      });
 
       expect(mockOnTokenSelect).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -541,7 +565,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('navigates to spending limit for not enabled token', () => {
+    it('navigates to spending limit for not enabled token', async () => {
       const token = createMockToken({
         allowanceState: AllowanceState.NotEnabled,
       });
@@ -552,7 +576,9 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      fireEvent.press(getByText(/USDC on/));
+      await act(async () => {
+        fireEvent.press(getByText(/USDC on/));
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.SPENDING_LIMIT,
@@ -618,7 +644,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        fireEvent.press(tokenElement);
+        await fireEventAsync.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
@@ -644,7 +670,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('closes bottom sheet when already priority token is selected and navigateToCardHomeOnPriorityToken is false', () => {
+    it('closes bottom sheet when already priority token is selected and navigateToCardHomeOnPriorityToken is false', async () => {
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
       const cardExternalWalletDetails = {
@@ -660,7 +686,9 @@ describe('AssetSelectionBottomSheet', () => {
         navigateToCardHomeOnPriorityToken: false,
       });
 
-      fireEvent.press(getByText(/USDC on/));
+      await act(async () => {
+        fireEvent.press(getByText(/USDC on/));
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
@@ -709,7 +737,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        fireEvent.press(tokenElement);
+        await fireEventAsync.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
@@ -740,7 +768,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        fireEvent.press(tokenElement);
+        await fireEventAsync.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
@@ -803,7 +831,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        fireEvent.press(tokenElement);
+        await fireEventAsync.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
@@ -819,7 +847,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('navigation-based selection', () => {
-    it('navigates back to caller route with selected token', () => {
+    it('navigates back to caller route with selected token', async () => {
       const token = createMockToken({
         symbol: 'EURe',
         address: '0xeure',
@@ -845,7 +873,9 @@ describe('AssetSelectionBottomSheet', () => {
         callerParams,
       });
 
-      fireEvent.press(getByText(/EURe on/));
+      await act(async () => {
+        fireEvent.press(getByText(/EURe on/));
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.SPENDING_LIMIT,
@@ -859,7 +889,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('goes back when no caller route is provided in navigation mode', () => {
+    it('goes back when no caller route is provided in navigation mode', async () => {
       const token = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
@@ -884,7 +914,9 @@ describe('AssetSelectionBottomSheet', () => {
         callerParams: undefined,
       });
 
-      fireEvent.press(getByText(/mUSD on/));
+      await act(async () => {
+        fireEvent.press(getByText(/mUSD on/));
+      });
 
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -905,7 +937,7 @@ describe('AssetSelectionBottomSheet', () => {
       expect(getByText('Enable on card.metamask.io')).toBeOnTheScreen();
     });
 
-    it('calls navigateToCardPage when Solana not supported button is pressed', () => {
+    it('calls navigateToCardPage when Solana not supported button is pressed', async () => {
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
@@ -915,7 +947,9 @@ describe('AssetSelectionBottomSheet', () => {
         hideSolanaAssets: true,
       });
 
-      fireEvent.press(getByText('Others tokens on Solana'));
+      await act(async () => {
+        fireEvent.press(getByText('Others tokens on Solana'));
+      });
 
       expect(mockNavigateToCardPage).toHaveBeenCalled();
     });

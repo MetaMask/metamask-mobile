@@ -313,14 +313,14 @@ describe('TokenListControlBar', () => {
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
 
-      expect(filterButton.props.disabled).toBe(false);
+      expect(filterButton).toBeEnabled();
     });
 
     it('renders add token button as enabled', () => {
       const { getByTestId } = renderComponent();
       const addTokenButton = getByTestId('import-token-button');
 
-      expect(addTokenButton.props.disabled).toBe(false);
+      expect(addTokenButton).toBeEnabled();
     });
   });
 });

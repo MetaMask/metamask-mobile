@@ -25,7 +25,7 @@ describe('SRP -> Input', () => {
   it('should render the correct disabled state when disabled = true', () => {
     render(<Input isDisabled />);
     const inputComponent = screen.getByTestId(INPUT_TEST_ID);
-    expect(inputComponent.props.editable).toBe(false);
+    expect(inputComponent).toHaveProp('editable', false);
     expect(inputComponent.props.style.opacity).toBe(0.5);
   });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { GasFeeTokenListItem } from './gas-fee-token-list-item';
 import { useGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
@@ -159,7 +160,7 @@ describe('GasFeeTokenListItem', () => {
       onClick,
       mockGasFeeTokenResponse: MOCK_TOKEN,
     });
-    getByTestId(`gas-fee-token-list-item-${MOCK_TOKEN.symbol}`).props.onPress();
+    fireEvent.press(getByTestId(`gas-fee-token-list-item-${MOCK_TOKEN.symbol}`));
     expect(onClick).toHaveBeenCalledWith(MOCK_TOKEN);
   });
 

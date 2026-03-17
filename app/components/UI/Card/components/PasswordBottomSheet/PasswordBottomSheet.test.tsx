@@ -41,6 +41,23 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactMock = require('react');
+    const MockBottomSheet = ReactMock.forwardRef(
+      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) => (
+        <>{children}</>
+      ),
+    );
+    MockBottomSheet.displayName = 'MockBottomSheet';
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
+
 const renderWithProvider = (component: React.ComponentType) =>
   renderScreen(
     component,
@@ -132,7 +149,7 @@ describe('PasswordBottomSheet', () => {
     const passwordInput = getByTestId(CardHomeSelectors.PASSWORD_INPUT);
 
     expect(passwordInput).toBeTruthy();
-    expect(passwordInput.props.secureTextEntry).toBe(true);
+    expect(passwordInput).toHaveProp('secureTextEntry', true);
   });
 
   it('displays cancel and confirm buttons', () => {

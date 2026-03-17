@@ -5,7 +5,10 @@ import { render, screen } from '@testing-library/react-native';
 // Internal dependencies.
 import TextFieldSearch from './TextFieldSearch';
 import { TEXTFIELDSEARCH_TEST_ID } from './TextFieldSearch.constants';
-import styles from './TextFieldSearch.styles';
+import {
+  TEXTFIELD_TEST_ID,
+  TEXTFIELD_ENDACCESSORY_TEST_ID,
+} from '../TextField/TextField.constants';
 
 describe('TextFieldSearch', () => {
   const mockOnPressClearButton = jest.fn();
@@ -35,10 +38,14 @@ describe('TextFieldSearch', () => {
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
-    const styleArray = textFieldComponent.props.style;
+    const textFieldContainer = screen.getByTestId(TEXTFIELD_TEST_ID);
+    const containerStyle = textFieldContainer.props.style;
 
-    expect(styleArray).toContainEqual(styles.base);
+    // The borderRadius from TextFieldSearch.styles.base (24) should be applied
+    const flatStyle = Array.isArray(containerStyle)
+      ? Object.assign({}, ...containerStyle.flat(Infinity).filter(Boolean))
+      : containerStyle;
+    expect(flatStyle).toHaveProperty('borderRadius', 24);
   });
 
   it('renders clear button when value exists', () => {
@@ -49,9 +56,8 @@ describe('TextFieldSearch', () => {
       />,
     );
 
-    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
-
-    expect(textFieldComponent.props.endAccessory).not.toBe(false);
+    // When value exists, the end accessory container should be rendered
+    expect(screen.queryByTestId(TEXTFIELD_ENDACCESSORY_TEST_ID)).toBeTruthy();
   });
 
   it('hides clear button when no value', () => {
@@ -59,9 +65,8 @@ describe('TextFieldSearch', () => {
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
-
-    expect(textFieldComponent.props.endAccessory).toBe(false);
+    // When no value, the end accessory container should not be rendered
+    expect(screen.queryByTestId(TEXTFIELD_ENDACCESSORY_TEST_ID)).toBeNull();
   });
 
   it('hides clear button when value is empty string', () => {
@@ -69,8 +74,7 @@ describe('TextFieldSearch', () => {
       <TextFieldSearch value="" onPressClearButton={mockOnPressClearButton} />,
     );
 
-    const textFieldComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
-
-    expect(textFieldComponent.props.endAccessory).toBe(false);
+    // When value is empty string, the end accessory container should not be rendered
+    expect(screen.queryByTestId(TEXTFIELD_ENDACCESSORY_TEST_ID)).toBeNull();
   });
 });

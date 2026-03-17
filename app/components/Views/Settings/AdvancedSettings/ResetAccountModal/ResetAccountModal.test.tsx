@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent , act , fireEventAsync } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';
@@ -78,7 +78,7 @@ describe('ResetAccountModal', () => {
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
   });
 
-  it('calls wipeBridgeStatus, wipeTransactions, and wipeSmartTransactions when reset button is pressed', () => {
+  it('calls wipeBridgeStatus, wipeTransactions, and wipeSmartTransactions when reset button is pressed', async () => {
     const { getByText } = renderWithProvider(
       <ResetAccountModal {...defaultProps} />,
       { state: initialState },
@@ -87,7 +87,7 @@ describe('ResetAccountModal', () => {
     const confirmButton = getByText(
       strings('app_settings.reset_account_confirm_button'),
     );
-    fireEvent.press(confirmButton);
+    await fireEventAsync.press(confirmButton);
 
     expect(wipeBridgeStatus).toHaveBeenCalledWith(
       '0x123456789abcdef123456789abcdef123456789a',
@@ -100,7 +100,7 @@ describe('ResetAccountModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
-  it('does not call wipeBridgeStatus when selectedAddress is falsy', () => {
+  it('does not call wipeBridgeStatus when selectedAddress is falsy', async () => {
     (
       selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
     ).mockReturnValue(undefined);
@@ -113,7 +113,7 @@ describe('ResetAccountModal', () => {
     const confirmButton = getByText(
       strings('app_settings.reset_account_confirm_button'),
     );
-    fireEvent.press(confirmButton);
+    await fireEventAsync.press(confirmButton);
 
     expect(wipeBridgeStatus).not.toHaveBeenCalled();
     expect(wipeTransactions).toHaveBeenCalledWith();

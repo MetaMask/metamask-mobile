@@ -221,13 +221,13 @@ describe('LearnMoreBottomSheet', () => {
     );
 
     // Initially checkbox should be unchecked and confirm button disabled
-    expect(confirmButton).toHaveProp('disabled', true);
+    expect(confirmButton).toBeDisabled();
 
     // Press checkbox to check it
     fireEvent.press(checkbox);
 
     // Confirm button should now be enabled
-    expect(confirmButton).toHaveProp('disabled', false);
+    expect(confirmButton).not.toBeDisabled();
   });
 
   it('handles confirm button press when checkbox is checked', () => {

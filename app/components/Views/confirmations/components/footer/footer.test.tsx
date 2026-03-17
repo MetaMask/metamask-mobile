@@ -160,7 +160,7 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -194,7 +194,7 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -211,7 +211,7 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -231,7 +231,7 @@ describe('Footer', () => {
     });
 
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
     ).toBe(true);
   });
 

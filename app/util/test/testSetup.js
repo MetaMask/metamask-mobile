@@ -1,4 +1,4 @@
-import { NativeModules, Linking } from 'react-native';
+import { NativeModules, Linking, Keyboard } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 /* eslint-disable import/no-namespace */
@@ -12,6 +12,26 @@ global.base64ToArrayBuffer = base64js.toByteArray;
 // Augment RN preset Linking mock with missing methods needed by @react-navigation/native
 Linking.removeEventListener = jest.fn();
 Linking.openURL = jest.fn().mockResolvedValue(undefined);
+
+// Keyboard.addListener must return a subscription with .remove() for KeyboardAvoidingView
+// We need to patch the prototype/instance method that KeyboardAvoidingView uses
+const RNKeyboard = require('react-native/Libraries/Components/Keyboard/Keyboard');
+const origAddListener = RNKeyboard.default?.addListener || RNKeyboard.addListener;
+const patchedAddListener = jest.fn((...args) => {
+  try {
+    const sub = origAddListener?.call(RNKeyboard.default || RNKeyboard, ...args);
+    if (sub && typeof sub.remove === 'function') return sub;
+    return { remove: jest.fn() };
+  } catch {
+    return { remove: jest.fn() };
+  }
+});
+if (RNKeyboard.default) {
+  RNKeyboard.default.addListener = patchedAddListener;
+} else {
+  RNKeyboard.addListener = patchedAddListener;
+}
+Keyboard.addListener = patchedAddListener;
 
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
@@ -416,6 +436,7 @@ jest.mock('react-native-mmkv', () => {
       getBoolean: jest.fn((key) => store.get(key)),
       getNumber: jest.fn((key) => store.get(key)),
       delete: jest.fn((key) => store.delete(key)),
+      remove: jest.fn((key) => store.delete(key)),
       contains: jest.fn((key) => store.has(key)),
       clearAll: jest.fn(() => store.clear()),
       getAllKeys: jest.fn(() => [...store.keys()]),
@@ -578,9 +599,170 @@ jest.mock('../../store/storage-wrapper', () => ({
 }));
 
 // eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated').setUpTests();
+const Reanimated = require('react-native-reanimated');
+Reanimated.setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
+
+// Patch Reanimated's makeMutable so that shared values' toJSON() won't blow up
+// on circular references (the default implementation does JSON.stringify(value)
+// which throws "Converting circular structure to JSON" or causes RangeError).
+try {
+  const mutables = require('react-native-reanimated/src/mutables');
+  const origMakeMutable = mutables.makeMutable;
+  if (origMakeMutable) {
+    mutables.makeMutable = function patchedMakeMutable(value) {
+      const mutable = origMakeMutable(value);
+      if (mutable && typeof mutable.toJSON === 'function') {
+        mutable.toJSON = () => {
+          try {
+            const seen = new WeakSet();
+            return JSON.stringify(value, function(_key, val) {
+              if (typeof val === 'object' && val !== null) {
+                if (seen.has(val)) return '[Circular]';
+                seen.add(val);
+              }
+              return val;
+            });
+          } catch {
+            return '"SharedValue(<unserializable>)"';
+          }
+        };
+      }
+      return mutable;
+    };
+  }
+} catch {
+  // Reanimated internals may change — fall through silently
+}
+
+// useAnimatedGestureHandler was removed in react-native-reanimated v4 but is
+// still imported by legacy source code (e.g. ReusableModal). Patch the module
+// so tests that render those components don't crash.
+if (typeof Reanimated.useAnimatedGestureHandler !== 'function') {
+  Reanimated.useAnimatedGestureHandler = jest.fn(() => ({}));
+}
+
 global.__DEV__ = false;
+
+// Custom snapshot serializer to handle Reanimated shared value proxies.
+expect.addSnapshotSerializer({
+  test: (val) =>
+    val != null &&
+    typeof val === 'object' &&
+    val._isReanimatedSharedValue === true,
+  serialize: (val) => {
+    try {
+      const v = val.value;
+      return `"SharedValue(${typeof v === 'object' ? JSON.stringify(v) : String(v)})"`;
+    } catch {
+      return '"SharedValue(<circular>)"';
+    }
+  },
+});
+
+
+// Mock the component-library BottomSheet to render children immediately
+// and handle close/open callbacks synchronously (bypasses reanimated animations).
+// Note: This mock can be overridden by individual test files if needed.
+jest.mock(
+  '../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const React = require('react');
+    const { View } = require('react-native');
+
+    const BottomSheet = React.forwardRef(({ children, onClose, onOpen, shouldNavigateBack = true, ...props }, ref) => {
+      // Mimic real BottomSheet: call navigation.goBack() when shouldNavigateBack is true
+      let navigation;
+      try {
+        const { useNavigation } = require('@react-navigation/native');
+        navigation = useNavigation();
+      } catch {
+        // navigation not available in this context
+      }
+      React.useImperativeHandle(ref, () => ({
+        onOpenDialog: () => onOpen?.(),
+        onOpenBottomSheet: () => onOpen?.(),
+        onCloseDialog: () => {
+          onClose?.();
+          if (shouldNavigateBack) navigation?.goBack();
+        },
+        onCloseBottomSheet: (callback) => {
+          onClose?.(!!callback);
+          if (shouldNavigateBack) navigation?.goBack();
+          callback?.();
+        },
+      }));
+      const { testID, style: sheetStyle, accessibilityLabel } = props;
+      return React.createElement(View, { testID: testID || 'bottom-sheet-mock', style: sheetStyle, accessibilityLabel }, children);
+    });
+    BottomSheet.displayName = 'BottomSheet';
+
+    return {
+      __esModule: true,
+      default: BottomSheet,
+    };
+  },
+);
+
+// Mock react-native-modal to render children immediately (bypasses animation)
+jest.mock('react-native-modal', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Modal = ({ children, isVisible, testID, ...props }) => {
+    if (isVisible === false) return null;
+    return React.createElement(View, { testID: testID || 'modal-mock' }, children);
+  };
+  Modal.displayName = 'Modal';
+  return { __esModule: true, default: Modal };
+});
+
+// Patch NativeAnimatedHelper to provide nativeEventEmitter.addListener
+// This prevents crashes in components using Animated when they mount/unmount
+try {
+  const paths = [
+    'react-native/Libraries/Animated/NativeAnimatedHelper',
+  ];
+  const emitterMock = {
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeAllListeners: jest.fn(),
+    removeSubscription: jest.fn(),
+  };
+  for (const p of paths) {
+    try {
+      const mod = require(p);
+      const target = mod.default || mod;
+      if (target && !target.nativeEventEmitter) {
+        target.nativeEventEmitter = emitterMock;
+      }
+      if (mod.default && !mod.default.nativeEventEmitter) {
+        mod.default.nativeEventEmitter = emitterMock;
+      }
+    } catch { /* skip */ }
+  }
+} catch {
+  // Ignore if module path changed
+}
+
+// Patch NativeAnimatedHelper from Libraries path (which is what babel-transpiled
+// private/animated/NativeAnimatedHelper resolves to) to ensure nativeEventEmitter
+// always has addListener. In RN 0.81+, createAnimatedPropsHook accesses
+// NativeAnimatedHelper.nativeEventEmitter.addListener during useEffect mount.
+{
+  const emitterMock = {
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeAllListeners: jest.fn(),
+    removeSubscription: jest.fn(),
+  };
+  try {
+    const mod = require('react-native/Libraries/Animated/NativeAnimatedHelper');
+    const target = mod.default || mod;
+    Object.defineProperty(target, 'nativeEventEmitter', {
+      get: () => emitterMock,
+      configurable: true,
+      enumerable: true,
+    });
+  } catch { /* ignore */ }
+}
 
 jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
@@ -589,6 +771,7 @@ jest.mock('../../core/Engine', () =>
 jest.mock('react-native-safe-area-context', () => ({
   ...jest.requireActual('react-native-safe-area-context'),
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
 }));
 
 jest.mock(

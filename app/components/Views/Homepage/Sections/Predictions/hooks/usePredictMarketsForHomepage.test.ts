@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import {
   usePredictMarketsForHomepage,
   _clearMarketsCache,
@@ -62,13 +62,13 @@ describe('usePredictMarketsForHomepage', () => {
   });
 
   it('fetches markets on mount when predict is enabled', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictMarketsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.markets).toHaveLength(3);
+    await waitFor(() => {
+      expect(result.current.markets).toHaveLength(3);
+    });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
     expect(mockGetMarkets).toHaveBeenCalledWith({
@@ -96,25 +96,25 @@ describe('usePredictMarketsForHomepage', () => {
       createMockMarket('5'),
     ]);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictMarketsForHomepage(3),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.markets).toHaveLength(3);
+    await waitFor(() => {
+      expect(result.current.markets).toHaveLength(3);
+    });
   });
 
   it('sets error state when fetch fails', async () => {
     mockGetMarkets.mockRejectedValue(new Error('Network error'));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictMarketsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.error).toBe('Network error');
+    await waitFor(() => {
+      expect(result.current.error).toBe('Network error');
+    });
     expect(result.current.markets).toHaveLength(0);
     expect(result.current.isLoading).toBe(false);
   });
@@ -122,36 +122,36 @@ describe('usePredictMarketsForHomepage', () => {
   it('sets fallback error for non-Error throws', async () => {
     mockGetMarkets.mockRejectedValue('string error');
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictMarketsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.error).toBe('Failed to fetch prediction markets');
+    await waitFor(() => {
+      expect(result.current.error).toBe('Failed to fetch prediction markets');
+    });
   });
 
   it('handles null response from getMarkets', async () => {
     mockGetMarkets.mockResolvedValue(null);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictMarketsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(result.current.markets).toHaveLength(0);
+    await waitFor(() => {
+      expect(result.current.markets).toHaveLength(0);
+    });
     expect(result.current.error).toBeNull();
   });
 
   it('uses cached data on subsequent renders within TTL', async () => {
-    const { waitForNextUpdate, unmount } = renderHook(() =>
+    const { unmount } = renderHook(() =>
       usePredictMarketsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+    });
     unmount();
 
     const { result: result2 } = renderHook(() =>
@@ -164,13 +164,13 @@ describe('usePredictMarketsForHomepage', () => {
   });
 
   it('clears cache and refetches on refresh', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePredictMarketsForHomepage(5),
     );
 
-    await waitForNextUpdate();
-
-    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+    });
 
     await act(async () => {
       await result.current.refresh();

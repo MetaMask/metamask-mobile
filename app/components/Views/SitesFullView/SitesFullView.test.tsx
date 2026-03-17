@@ -242,7 +242,7 @@ describe('SitesFullView', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates back when back button is pressed', () => {
+    it('navigates back when back button is pressed', async () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -252,49 +252,63 @@ describe('SitesFullView', () => {
       const { getByTestId } = render(<SitesFullView />);
       const backButton = getByTestId('sites-full-view-header-back-button');
 
-      fireEvent.press(backButton);
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Search Functionality', () => {
-    it('filters sites by name, URL, and display URL', () => {
+    it('filters sites by name, URL, and display URL', async () => {
       setupMockWithSearchFilter();
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
-      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      });
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Search by name
-      fireEvent.changeText(searchInput, 'Meta');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'Meta');
+      });
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
       expect(queryByTestId('site-item-2')).toBeNull();
 
       // Search by URL
-      fireEvent.changeText(searchInput, 'opensea');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'opensea');
+      });
       expect(queryByTestId('site-item-1')).toBeNull();
       expect(getByTestId('site-item-2')).toBeOnTheScreen();
 
       // Search by display URL
-      fireEvent.changeText(searchInput, 'uniswap.org');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'uniswap.org');
+      });
       expect(queryByTestId('site-item-2')).toBeNull();
       expect(getByTestId('site-item-3')).toBeOnTheScreen();
     });
 
-    it('shows all sites when search query is empty', () => {
+    it('shows all sites when search query is empty', async () => {
       setupMockWithSearchFilter();
 
       const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
-      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      });
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Empty search
-      fireEvent.changeText(searchInput, '');
+      await act(async () => {
+        fireEvent.changeText(searchInput, '');
+      });
 
       // All sites should be visible
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
@@ -302,7 +316,7 @@ describe('SitesFullView', () => {
       expect(getByTestId('site-item-3')).toBeOnTheScreen();
     });
 
-    it('clears search query when search is closed', () => {
+    it('clears search query when search is closed', async () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -312,24 +326,32 @@ describe('SitesFullView', () => {
       const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
-      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      });
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Type search query
-      fireEvent.changeText(searchInput, 'test');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'test');
+      });
 
       // Close search
-      fireEvent.press(getByTestId('sites-full-view-header-search-close'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-close'));
+      });
 
       // Reopen search
-      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      });
 
       // Search input should be empty
       const newSearchInput = getByTestId('sites-full-view-header-search-bar');
       expect(newSearchInput.props.value).toBe('');
     });
 
-    it('displays SitesSearchFooter when search is active', () => {
+    it('displays SitesSearchFooter when search is active', async () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -342,17 +364,21 @@ describe('SitesFullView', () => {
       expect(queryByTestId('sites-search-footer')).toBeNull();
 
       // Activate search
-      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      });
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Type search query
-      fireEvent.changeText(searchInput, 'test');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'test');
+      });
 
       // Footer should appear
       expect(getByTestId('sites-search-footer')).toBeOnTheScreen();
     });
 
-    it('hides SitesSearchFooter when search query is empty or search is inactive', () => {
+    it('hides SitesSearchFooter when search query is empty or search is inactive', async () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -365,7 +391,9 @@ describe('SitesFullView', () => {
       expect(queryByTestId('sites-search-footer')).toBeNull();
 
       // Activate search
-      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      });
 
       // Footer should not appear with empty query
       expect(queryByTestId('sites-search-footer')).toBeNull();
@@ -404,9 +432,9 @@ describe('SitesFullView', () => {
 
       expect(refreshControl).toBeDefined();
 
-      // Simulate refresh
+      // Simulate refresh by calling onRefresh directly
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        refreshControl.props.onRefresh();
       });
 
       await waitFor(() => {
@@ -437,7 +465,7 @@ describe('SitesFullView', () => {
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
     });
 
-    it('handles empty sites array', () => {
+    it('handles empty sites array', async () => {
       mockUseSitesData.mockReturnValue({
         sites: [],
         isLoading: false,
@@ -450,17 +478,21 @@ describe('SitesFullView', () => {
       expect(queryByTestId('site-item-1')).toBeNull();
     });
 
-    it('performs case-insensitive search', () => {
+    it('performs case-insensitive search', async () => {
       setupMockWithSearchFilter();
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
-      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      await act(async () => {
+        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      });
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Search with different case
-      fireEvent.changeText(searchInput, 'METAMASK');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'METAMASK');
+      });
 
       // MetaMask should still be found
       expect(getByTestId('site-item-1')).toBeOnTheScreen();

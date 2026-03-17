@@ -1,5 +1,5 @@
 import '../../_mocks_/initialState';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useTokenSearch } from '.';
 import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
@@ -60,14 +60,14 @@ describe('useTokenSearch', () => {
     jest.clearAllTimers();
   });
 
-  it('should initialize with empty search string and empty token list', () => {
+  it('should initialize with empty search string and empty token list', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     expect(result.current.searchString).toBe('');
     expect(result.current.searchResults).toEqual([]);
   });
 
-  it('should update search string when setSearchString is called', () => {
+  it('should update search string when setSearchString is called', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
@@ -77,7 +77,7 @@ describe('useTokenSearch', () => {
     expect(result.current.searchString).toBe('ETH');
   });
 
-  it('should find tokens by symbol', () => {
+  it('should find tokens by symbol', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
@@ -85,12 +85,19 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults[0].symbol).toBe('ETH');
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+  expect(result.current.searchResults[0].symbol).toBe('ETH');
+    });
   });
 
-  it('should find tokens by name', () => {
+  it('should find tokens by name', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
@@ -98,12 +105,19 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults[0].symbol).toBe('USDC');
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+  expect(result.current.searchResults[0].symbol).toBe('USDC');
+    });
   });
 
-  it('should find tokens by address', () => {
+  it('should find tokens by address', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
@@ -111,12 +125,19 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults[0].symbol).toBe('ETH');
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+  expect(result.current.searchResults[0].symbol).toBe('ETH');
+    });
   });
 
-  it('should return empty array when no matches found', () => {
+  it('should return empty array when no matches found', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
@@ -124,12 +145,19 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults).toHaveLength(0);
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+  expect(result.current.searchResults).toHaveLength(0);
+    });
   });
 
-  it('should sort results by tokenFiatAmount in descending order', () => {
+  it('should sort results by tokenFiatAmount in descending order', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
@@ -137,14 +165,21 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults).toHaveLength(2);
-    expect(result.current.searchResults[0].symbol).toBe('USDC'); // Higher fiat value should be first
-    expect(result.current.searchResults[1].symbol).toBe('USDT');
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+      expect(result.current.searchResults).toHaveLength(2);
+      expect(result.current.searchResults[0].symbol).toBe('USDC'); // Higher fiat value should be first
+      expect(result.current.searchResults[1].symbol).toBe('USDT');
+    });
   });
 
-  it('should handle empty token list', () => {
+  it('should handle empty token list', async () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: [] }));
 
     act(() => {
@@ -152,12 +187,19 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults).toHaveLength(0);
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+  expect(result.current.searchResults).toHaveLength(0);
+    });
   });
 
-  it('should handle undefined token list', () => {
+  it('should handle undefined token list', async () => {
     const { result } = renderHook(() =>
       useTokenSearch({ tokens: undefined as unknown as BridgeToken[] }),
     );
@@ -167,12 +209,19 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults).toHaveLength(0);
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+  expect(result.current.searchResults).toHaveLength(0);
+    });
   });
 
-  it('should limit results to MAX_TOKENS_RESULTS', () => {
+  it('should limit results to MAX_TOKENS_RESULTS', async () => {
     // Create a large token list
     const largeTokenList = Array.from({ length: 30 }, (_, i) => ({
       address: `0x${i}`,
@@ -195,8 +244,15 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
 
-    expect(result.current.searchResults.length).toBeLessThanOrEqual(20); // MAX_TOKENS_RESULTS is 20
+      jest.advanceTimersByTime(500);
+
+    });
+
+
+    await waitFor(() => {
+  expect(result.current.searchResults.length).toBeLessThanOrEqual(20);
+    }); // MAX_TOKENS_RESULTS is 20
   });
 });

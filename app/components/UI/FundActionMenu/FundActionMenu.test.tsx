@@ -258,7 +258,7 @@ describe('FundActionMenu', () => {
         WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
       );
       expect(sellButton).toBeOnTheScreen();
-      expect(sellButton.props.accessibilityState.disabled).toBe(true);
+      expect(sellButton).toBeDisabled();
     });
 
     it('renders all buttons when all features are enabled', () => {
@@ -336,7 +336,7 @@ describe('FundActionMenu', () => {
 
       fireEvent.press(sellButton);
 
-      expect(sellButton.props.accessibilityState.disabled).toBe(true);
+      expect(sellButton).toBeDisabled();
     });
 
     it('calls buy action when unified buy button is pressed and useRampsUnifiedV1Enabled is true', async () => {
@@ -699,7 +699,7 @@ describe('FundActionMenu', () => {
       const sellButton = getByTestId(
         WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
       );
-      expect(sellButton.props.accessibilityState.disabled).toBe(true);
+      expect(sellButton).toBeDisabled();
     });
   });
 });

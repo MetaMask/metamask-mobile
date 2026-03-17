@@ -50,11 +50,14 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 // Mock useTailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((styles) => (typeof styles === 'string' ? {} : styles)),
-  }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = (styles) => (typeof styles === 'string' ? {} : styles);
+  twFn.color = () => 'black';
+  return {
+    useTailwind: () => twFn,
+  };
+});
 
 // Mock RewardSettingsAccountGroupList component
 jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {

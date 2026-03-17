@@ -102,8 +102,8 @@ describe('QRHardwareContext', () => {
       },
     );
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
-    ).toBe(false);
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
   });
 
   it('does not invoke rejectPendingScan when request is cancelled id QR signing is not in progress', async () => {

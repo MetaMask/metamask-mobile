@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent , act } from '@testing-library/react-native';
 import { WebView } from '@metamask/react-native-webview';
 import ModalMandatory from './ModalMandatory';
 import { TermsOfUseModalSelectorsIDs } from '../../../../util/termsOfUse/TermsOfUseModal.testIds';
@@ -67,7 +67,7 @@ describe('ModalMandatory', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with all props', () => {
+  it('renders correctly with all props', async () => {
     const { getByText, toJSON } = render(<ModalMandatory route={mockRoute} />);
 
     expect(getByText('Test Title')).toBeTruthy();
@@ -78,33 +78,37 @@ describe('ModalMandatory', () => {
     expect(toJSON).toMatchSnapshot();
   });
 
-  it('handles scroll events correctly', () => {
+  it('handles scroll events correctly', async () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const webview = getByTestId(TermsOfUseModalSelectorsIDs.WEBVIEW);
 
-    fireEvent.press(webview);
+    await act(async () => {
+      fireEvent.press(webview);
+    });
     expect(WebView).toHaveBeenCalledWith(
       expect.objectContaining({
         onMessage: expect.any(Function),
         onScroll: expect.any(Function),
       }),
-      expect.any(Object),
+      undefined,
     );
   });
 
-  it('handles checkbox selection', () => {
+  it('handles checkbox selection', async () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const checkbox = getByTestId(TermsOfUseModalSelectorsIDs.CHECKBOX);
 
-    fireEvent.press(checkbox);
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
     expect(checkbox).toBeTruthy();
   });
 
-  it('disables button when conditions are not met', () => {
+  it('disables button when conditions are not met', async () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const button = getByTestId('test-button');
 
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
   });
 
   it('enables button when conditions are met', async () => {
@@ -123,13 +127,15 @@ describe('ModalMandatory', () => {
     const button = getByTestId('test-button');
 
     // Initially disabled
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
 
     // Select checkbox
-    fireEvent.press(checkbox);
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
 
     // Should be enabled after checkbox selection
-    expect(button.props.disabled).toBe(false);
+    expect(button).toBeEnabled();
   });
 
   it('calls onAccept when button is pressed', async () => {
@@ -156,10 +162,14 @@ describe('ModalMandatory', () => {
     const button = getByTestId('test-button');
 
     // Select checkbox
-    fireEvent.press(checkbox);
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
 
     // Press button
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
     expect(mockRoute.params.onAccept).toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
   });

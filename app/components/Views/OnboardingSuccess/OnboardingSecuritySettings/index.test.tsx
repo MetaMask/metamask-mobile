@@ -106,12 +106,12 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
-      );
+      undefined,
+    );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('should render security sections when social login is active', () => {
@@ -125,12 +125,12 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
-      );
+      undefined,
+    );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('should NOT render security sections when auth connection is null', () => {
@@ -187,8 +187,8 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('should pass metricsOptin=false to DeleteMetaMetricsData by default', () => {
@@ -196,8 +196,8 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('should pass correct analyticsEnabled state to DeleteMetaMetricsData', () => {
@@ -205,8 +205,8 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: expect.any(Boolean) }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
   });
 
@@ -258,8 +258,8 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('should pass metricsOptin=true when analytics is enabled', () => {
@@ -271,8 +271,8 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
 
     it('should call useMetrics hook to get analytics state', () => {
@@ -298,8 +298,8 @@ describe('OnboardingSecuritySettings', () => {
       expect(mockIsEnabled).toHaveBeenCalled();
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
-      );
+      undefined,
+    );
     });
   });
 });

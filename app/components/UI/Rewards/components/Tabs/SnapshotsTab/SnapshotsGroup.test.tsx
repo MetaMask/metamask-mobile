@@ -71,17 +71,17 @@ describe('SnapshotsGroup', () => {
     expect(mockSnapshotTile).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({ snapshot: snapshots[0] }),
-      expect.anything(),
+      undefined,
     );
     expect(mockSnapshotTile).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({ snapshot: snapshots[1] }),
-      expect.anything(),
+      undefined,
     );
     expect(mockSnapshotTile).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({ snapshot: snapshots[2] }),
-      expect.anything(),
+      undefined,
     );
   });
 

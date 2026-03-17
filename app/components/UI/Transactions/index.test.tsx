@@ -2,7 +2,7 @@ import React from 'react';
 import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { render, cleanup } from '@testing-library/react-native';
+import { render, cleanup , act } from '@testing-library/react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -29,6 +29,7 @@ const mockNavigation = {
 
 // Mock the multichain utils
 jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
   isNonEvmChainId: jest.fn(),
 }));
 
@@ -172,6 +173,9 @@ const initialState = {
   },
   settings: {
     primaryCurrency: 'USD',
+  },
+  qrKeyringScanner: {
+    pendingScanRequest: undefined,
   },
 };
 const store = mockStore(initialState);
@@ -1842,7 +1846,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.mounted).toBe(true);
 
     // Fast-forward timers
-    jest.advanceTimersByTime(100);
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
     expect(instance.setState).toHaveBeenCalledWith({ ready: true });
     expect(instance.init).toHaveBeenCalled();
@@ -1898,7 +1904,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.setState).toHaveBeenCalledWith({ ready: true });
 
     // Fast-forward the setTimeout for notification handling
-    jest.advanceTimersByTime(1000);
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
 
     expect(instance.toggleDetailsView).toHaveBeenCalledWith(
       'tx-notification',
@@ -1924,7 +1932,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     });
 
     // Fast-forward the timeout
-    jest.advanceTimersByTime(300);
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
 
     expect(instance.scrolling).toBe(false);
 

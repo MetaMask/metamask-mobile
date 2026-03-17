@@ -319,7 +319,7 @@ describe('RegionSelector', () => {
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
     const searchInput = screen.getByTestId('textfieldsearch');
-    expect(searchInput.props.placeholder).toBe('Search by state');
+    expect(searchInput).toHaveProp('placeholder', 'Search by state');
   });
 
   it('renders description text only in country view', () => {

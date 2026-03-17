@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ShowWarningBanner from './showWarningBanner';
@@ -26,8 +27,6 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
   };
 });
 
-const mockOpenURL = jest.fn();
-
 describe('ShowWarningBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -50,6 +49,6 @@ describe('ShowWarningBanner', () => {
 
     fireEvent.press(getByText('Learn more'));
 
-    expect(mockOpenURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
+    expect(Linking.openURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
   });
 });

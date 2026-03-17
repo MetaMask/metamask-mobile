@@ -2,10 +2,18 @@ import React from 'react';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent , act } from '@testing-library/react-native';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
+
+jest.mock(
+  'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
+  () => {
+    const { View } = require('react-native');
+    return { __esModule: true, default: View };
+  },
+);
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -152,6 +160,8 @@ jest.mock('react-native', () => {
       OS: 'ios',
       select: jest.fn((options) => options.ios),
     },
+    KeyboardAvoidingView: ({ children }: { children: React.ReactNode }) =>
+      children,
   };
 });
 
@@ -496,7 +506,7 @@ describe('DiscoveryTab', () => {
       expect(BrowserBottomBarMock).not.toHaveBeenCalled();
     });
 
-    it('does not render BrowserBottomBar when URL bar is focused', () => {
+    it('does not render BrowserBottomBar when URL bar is focused', async () => {
       const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
@@ -512,7 +522,9 @@ describe('DiscoveryTab', () => {
 
       // Focus the URL bar
       const urlBar = getByTestId('browser-url-bar');
-      fireEvent.press(urlBar);
+      await act(async () => {
+        fireEvent.press(urlBar);
+      });
 
       // After focusing, BrowserBottomBar should not be rendered
       // We verify this by checking that setIsUrlBarFocused was called
@@ -531,7 +543,7 @@ describe('DiscoveryTab', () => {
         expect.objectContaining({
           openNewTab: expect.any(Function),
         }),
-        {},
+        undefined,
       );
 
       // Call the newTab callback
@@ -660,7 +672,7 @@ describe('DiscoveryTab', () => {
           sessionENSNames: {},
           favicon: { uri: '' },
         }),
-        {},
+        undefined,
       );
     });
   });

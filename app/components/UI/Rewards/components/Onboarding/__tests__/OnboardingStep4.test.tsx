@@ -530,7 +530,7 @@ describe('OnboardingStep4', () => {
         'mocked_rewards.onboarding.step4_referral_input_placeholder',
       );
 
-      input.props.onChangeText('ABC123');
+      fireEvent.changeText(input, 'ABC123');
 
       expect(mockSetReferralCode).toHaveBeenCalledWith('ABC123');
     });
@@ -718,7 +718,7 @@ describe('OnboardingStep4', () => {
       );
 
       if (termsLink.props.onPress) {
-        termsLink.props.onPress();
+        fireEvent.press(termsLink);
         expect(mockOpenURL).toHaveBeenCalled();
       }
     });
@@ -734,7 +734,7 @@ describe('OnboardingStep4', () => {
       );
 
       if (learnMoreLink.props.onPress) {
-        learnMoreLink.props.onPress();
+        fireEvent.press(learnMoreLink);
         expect(mockOpenURL).toHaveBeenCalled();
       }
     });
@@ -939,7 +939,7 @@ describe('OnboardingStep4', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       const checkbox = screen.getByTestId('checkbox');
-      expect(checkbox.props.disabled).toBe(true);
+      expect(checkbox).toBeDisabled();
     });
 
     it('enables checkbox when optin is not loading', () => {
@@ -953,7 +953,7 @@ describe('OnboardingStep4', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       const checkbox = screen.getByTestId('checkbox');
-      expect(checkbox.props.disabled).toBe(false);
+      expect(checkbox).toBeEnabled();
     });
 
     it('calls optin with bulkLink true when checkbox is checked and next is pressed', () => {

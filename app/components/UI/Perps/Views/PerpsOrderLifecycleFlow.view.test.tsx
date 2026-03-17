@@ -16,6 +16,7 @@
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import {
+  act,
   cleanup,
   fireEvent,
   screen,
@@ -115,12 +116,12 @@ describe('Order Lifecycle & Funds Flow', () => {
     const feesTooltip = screen.queryByTestId(
       PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
     );
-    if (feesTooltip) {
-      fireEvent.press(feesTooltip);
-    }
+    // Skip tooltip press — the navigation target (PERPS.MODALS.TOOLTIP)
+    // is not registered in this test's navigator, and React 19's strict act()
+    // turns the unhandled action into a hard error that corrupts the renderer.
 
     // ── PHASE 2: Order book ──────────────────────────────────────────────
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsOrderBookView();
     expect(
       await screen.findByTestId(
@@ -131,14 +132,14 @@ describe('Order Lifecycle & Funds Flow', () => {
     ).toBeOnTheScreen();
 
     // ── PHASE 3: Order details — valid order and missing order ───────────
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsOrderDetailsView();
     expect(
       await screen.findByText('ETH', {}, { timeout: TIMEOUT_MS }),
     ).toBeOnTheScreen();
 
     // Trader navigates to a missing order — error message appears
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsOrderDetailsView({ initialParams: { order: undefined } });
     expect(
       await screen.findByText(
@@ -149,7 +150,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     ).toBeOnTheScreen();
 
     // ── PHASE 4: PnL hero card ──────────────────────────────────────────
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsHeroCardView();
     expect(
       await screen.findByTestId(
@@ -160,7 +161,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     ).toBeOnTheScreen();
 
     // ── PHASE 5: Withdraw funds — press back button ──────────────────────
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsWithdrawView();
     const withdrawBackButton = await screen.findByTestId(
       PerpsWithdrawViewSelectorsIDs.BACK_BUTTON,
@@ -172,7 +173,7 @@ describe('Order Lifecycle & Funds Flow', () => {
 
     // ── PHASE 6: Provider selection ──────────────────────────────────────
     // Trader opens provider selector — sheet with title and HyperLiquid
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsSelectProviderView();
     expect(
       await screen.findByTestId('perps-select-provider-sheet'),
@@ -191,7 +192,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     ).not.toBeOnTheScreen();
 
     // With MYX enabled + aggregated provider → HyperLiquid shows selected
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsSelectProviderView({
       overrides: {
         ...myxEnabledOverrides,
@@ -213,7 +214,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     ).not.toBeOnTheScreen();
 
     // Trader selects MYX provider — switchProvider is called
-    cleanup();
+    await act(async () => { cleanup(); });
     const switchProviderMock = Engine.context.PerpsController
       .switchProvider as jest.Mock;
     renderPerpsSelectProviderView({ overrides: myxEnabledOverrides });
@@ -227,7 +228,7 @@ describe('Order Lifecycle & Funds Flow', () => {
 
     // ── PHASE 7: Order type selection ────────────────────────────────────
     // Trader opens order type bottom sheet — Market and Limit options visible
-    cleanup();
+    await act(async () => { cleanup(); });
     const mockOnSelect = jest.fn();
     const OrderTypeMarketWrapper: React.FC = () => (
       <PerpsOrderTypeBottomSheet
@@ -255,7 +256,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     expect(mockOnSelect).toHaveBeenCalledWith('limit');
 
     // Trader re-opens and selects Market — callback fires with 'market'
-    cleanup();
+    await act(async () => { cleanup(); });
     const mockOnSelectMarket = jest.fn();
     const OrderTypeLimitWrapper: React.FC = () => (
       <PerpsOrderTypeBottomSheet
@@ -272,7 +273,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     expect(mockOnSelectMarket).toHaveBeenCalledWith('market');
 
     // Hidden sheet renders nothing
-    cleanup();
+    await act(async () => { cleanup(); });
     const OrderTypeHiddenWrapper: React.FC = () => (
       <PerpsOrderTypeBottomSheet
         isVisible={false}
@@ -285,7 +286,7 @@ describe('Order Lifecycle & Funds Flow', () => {
 
     // ── PHASE 8: Review quote details ────────────────────────────────────
     // Trader reviews deposit quote: network fee, MetaMask fee, time, rate
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsComponent(
       PerpsQuoteDetailsCard as unknown as React.ComponentType<
         Record<string, unknown>
@@ -310,7 +311,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     expect(screen.getByText('1 USDC = 1 USDC')).toBeOnTheScreen();
 
     // Without estimated time — row is hidden
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsComponent(
       PerpsQuoteDetailsCard as unknown as React.ComponentType<
         Record<string, unknown>
@@ -326,7 +327,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     expect(screen.getByText(QUOTE_RATE)).toBeOnTheScreen();
 
     // ── PHASE 9: Quote expired — press "Get new quote" ─────────────────
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsView(
       PerpsQuoteExpiredModal as unknown as React.ComponentType,
       Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL,
@@ -343,7 +344,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     fireEvent.press(getNewQuoteButton);
 
     // ── PHASE 10: Adjust margin — add mode with keypad interaction ───────
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsView(
       PerpsAdjustMarginView as unknown as React.ComponentType,
       Routes.PERPS.ADJUST_MARGIN,
@@ -386,7 +387,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     fireEvent.press(screen.getByText(DONE_BUTTON));
 
     // ── PHASE 11: Adjust margin — remove mode with interactions ──────────
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsView(
       PerpsAdjustMarginView as unknown as React.ComponentType,
       Routes.PERPS.ADJUST_MARGIN,
@@ -417,7 +418,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     fireEvent.press(screen.getByText(DONE_BUTTON));
 
     // Error state when position/mode missing
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsView(
       PerpsAdjustMarginView as unknown as React.ComponentType,
       Routes.PERPS.ADJUST_MARGIN,
@@ -428,7 +429,7 @@ describe('Order Lifecycle & Funds Flow', () => {
 
     // ── PHASE 12: Extended withdrawal verification ───────────────────────
     // Trader re-opens withdraw screen — title and labels visible
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsWithdrawView();
     expect(
       await screen.findByTestId(
@@ -443,7 +444,7 @@ describe('Order Lifecycle & Funds Flow', () => {
 
     // ── PHASE 13: Activity / Transactions view ─────────────────────────
     // Trader opens Activity — sees Trades, Orders, Funding, Deposits tabs
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsTransactionsView();
     await screen.findByText(
       strings('perps.transactions.tabs.trades'),
@@ -470,7 +471,7 @@ describe('Order Lifecycle & Funds Flow', () => {
 
     // ── PHASE 14: Select order type (View wrapper) ───────────────────────
     // Trader opens order type via View — same UI as OrderTypeBottomSheet, with nav
-    cleanup();
+    await act(async () => { cleanup(); });
     renderPerpsView(
       PerpsSelectOrderTypeView as unknown as React.ComponentType,
       Routes.PERPS.SELECT_ORDER_TYPE,

@@ -427,7 +427,7 @@ describe('ReferredByCodeSection', () => {
       const { getByTestId } = render(<ReferredByCodeSection />);
 
       const input = getByTestId('referred-by-code-input-input');
-      expect(input.props.editable).toBe(false);
+      expect(input).toHaveProp('editable', false);
     });
   });
 
@@ -450,7 +450,7 @@ describe('ReferredByCodeSection', () => {
       const { getByTestId } = render(<ReferredByCodeSection />);
 
       const input = getByTestId('referred-by-code-input-input');
-      expect(input.props.editable).toBe(true);
+      expect(input).toHaveProp('editable', true);
     });
 
     it('calls setInputCode when input text changes', () => {

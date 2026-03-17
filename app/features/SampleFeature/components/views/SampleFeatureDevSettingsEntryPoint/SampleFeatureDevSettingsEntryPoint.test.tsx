@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import SampleFeatureDevSettingsEntryPoint from './SampleFeatureDevSettingsEntryPoint';
 
@@ -30,7 +31,7 @@ describe('SampleFeature', () => {
       <SampleFeatureDevSettingsEntryPoint />,
     );
     const navigateButton = getByRole('button');
-    navigateButton.props.onPress();
+    fireEvent.press(navigateButton);
     expect(navigateButton).toBeDefined();
     expect(mockNavigate).toHaveBeenCalledWith('SampleFeature');
   });

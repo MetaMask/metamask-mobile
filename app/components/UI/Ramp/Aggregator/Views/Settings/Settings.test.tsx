@@ -328,9 +328,9 @@ describe('Settings', () => {
       });
       const [switchButton] = screen.getAllByRole('switch');
 
-      expect(addActivationKeyButton.props.disabled).toBe(true);
-      expect(removeActivationKeyButton.props.disabled).toBe(true);
-      expect(switchButton.props.disabled).toBe(true);
+      expect(addActivationKeyButton).toBeDisabled();
+      expect(removeActivationKeyButton).toBeDisabled();
+      expect(switchButton).toHaveProp('disabled', true);
     });
 
     it('renders correctly when there are no keys', () => {

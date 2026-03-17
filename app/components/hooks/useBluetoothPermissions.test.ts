@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   PERMISSIONS,
   request,
@@ -43,18 +43,22 @@ jest.mock('../../util/device', () => ({
 describe('useBluetoothPermissions', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.spyOn(AppState, 'addEventListener').mockReturnValue({
+      remove: jest.fn(),
+    } as unknown as ReturnType<typeof AppState.addEventListener>);
   });
 
   it('grants permissions on iOS', async () => {
     (Device.isIos as jest.Mock).mockReturnValue(true);
     (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
-    expect(result.current.hasBluetoothPermissions).toBe(true);
+    await waitFor(() => {
+      expect(result.current.hasBluetoothPermissions).toBe(true);
+    });
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 
@@ -62,15 +66,16 @@ describe('useBluetoothPermissions', () => {
     (Device.isIos as jest.Mock).mockReturnValue(true);
     (request as jest.Mock).mockResolvedValue(RESULTS.DENIED);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
+    await waitFor(() => {
+      expect(result.current.bluetoothPermissionError).toBe(
+        BluetoothPermissionErrors.BluetoothAccessBlocked,
+      );
+    });
     expect(result.current.hasBluetoothPermissions).toBe(false);
-    expect(result.current.bluetoothPermissionError).toBe(
-      BluetoothPermissionErrors.BluetoothAccessBlocked,
-    );
   });
 
   it('grants permissions on Android 12+', async () => {
@@ -81,12 +86,13 @@ describe('useBluetoothPermissions', () => {
       [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: RESULTS.GRANTED,
     });
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
-    expect(result.current.hasBluetoothPermissions).toBe(true);
+    await waitFor(() => {
+      expect(result.current.hasBluetoothPermissions).toBe(true);
+    });
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 
@@ -98,15 +104,16 @@ describe('useBluetoothPermissions', () => {
       [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: RESULTS.DENIED,
     });
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
+    await waitFor(() => {
+      expect(result.current.bluetoothPermissionError).toBe(
+        BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
+      );
+    });
     expect(result.current.hasBluetoothPermissions).toBe(false);
-    expect(result.current.bluetoothPermissionError).toBe(
-      BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
-    );
   });
 
   it('grants permissions on Android <12', async () => {
@@ -114,12 +121,13 @@ describe('useBluetoothPermissions', () => {
     (getSystemVersion as jest.Mock).mockReturnValue('11');
     (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
-    expect(result.current.hasBluetoothPermissions).toBe(true);
+    await waitFor(() => {
+      expect(result.current.hasBluetoothPermissions).toBe(true);
+    });
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 
@@ -128,15 +136,16 @@ describe('useBluetoothPermissions', () => {
     (getSystemVersion as jest.Mock).mockReturnValue('11');
     (request as jest.Mock).mockResolvedValue(RESULTS.DENIED);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
+    await waitFor(() => {
+      expect(result.current.bluetoothPermissionError).toBe(
+        BluetoothPermissionErrors.LocationAccessBlocked,
+      );
+    });
     expect(result.current.hasBluetoothPermissions).toBe(false);
-    expect(result.current.bluetoothPermissionError).toBe(
-      BluetoothPermissionErrors.LocationAccessBlocked,
-    );
   });
 
   it('checks permissions when app state changes to active', async () => {
@@ -186,12 +195,13 @@ describe('useBluetoothPermissions', () => {
     (getSystemVersion as jest.Mock).mockReturnValue(null);
     (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
-    expect(result.current.hasBluetoothPermissions).toBe(true);
+    await waitFor(() => {
+      expect(result.current.hasBluetoothPermissions).toBe(true);
+    });
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 
@@ -200,12 +210,13 @@ describe('useBluetoothPermissions', () => {
     (getSystemVersion as jest.Mock).mockReturnValue('adbd');
     (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useBluetoothPermissions(),
     );
-    await waitForNextUpdate();
 
-    expect(result.current.hasBluetoothPermissions).toBe(true);
+    await waitFor(() => {
+      expect(result.current.hasBluetoothPermissions).toBe(true);
+    });
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 });

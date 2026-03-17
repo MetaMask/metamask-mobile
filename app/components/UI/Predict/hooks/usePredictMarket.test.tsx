@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePredictMarket } from './usePredictMarket';
 import { PredictMarket, Recurrence } from '../types';
@@ -110,7 +110,7 @@ describe('usePredictMarket', () => {
     it('fetches market data successfully with string id', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictMarket({ id: 'market-1' }),
       );
 
@@ -120,9 +120,9 @@ describe('usePredictMarket', () => {
       expect(result.current.error).toBe(null);
 
       // Wait for data to load
-      await waitForNextUpdate();
-
-      expect(result.current.isFetching).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
       expect(result.current.market).toEqual(mockMarket);
       expect(result.current.error).toBe(null);
       expect(mockGetMarket).toHaveBeenCalledWith({
@@ -134,13 +134,13 @@ describe('usePredictMarket', () => {
     it('fetches market data successfully with number id', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictMarket({ id: 123 }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.market).toEqual(mockMarket);
+      await waitFor(() => {
+        expect(result.current.market).toEqual(mockMarket);
+      });
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: '123',
       });
@@ -149,13 +149,13 @@ describe('usePredictMarket', () => {
     it('fetches market data with string id', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictMarket({ id: 'market-1' }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.market).toEqual(mockMarket);
+      await waitFor(() => {
+        expect(result.current.market).toEqual(mockMarket);
+      });
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
       });
@@ -164,13 +164,13 @@ describe('usePredictMarket', () => {
     it('handles null market response', async () => {
       mockGetMarket.mockResolvedValue(null);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictMarket({ id: 'market-1' }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.isFetching).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
       expect(result.current.market).toBe(null);
       expect(result.current.error).toBe(null);
     });
@@ -181,13 +181,13 @@ describe('usePredictMarket', () => {
       const errorMessage = 'Network error occurred';
       mockGetMarket.mockRejectedValue(new Error(errorMessage));
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictMarket({ id: 'market-1' }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.isFetching).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
       expect(result.current.market).toBe(null);
       expect(result.current.error).toBe(errorMessage);
     });
@@ -195,13 +195,13 @@ describe('usePredictMarket', () => {
     it('handles API error with non-Error instance', async () => {
       mockGetMarket.mockRejectedValue('String error');
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictMarket({ id: 'market-1' }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.isFetching).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
       expect(result.current.market).toBe(null);
       expect(result.current.error).toBe('Failed to fetch market');
     });
@@ -217,14 +217,14 @@ describe('usePredictMarket', () => {
     it('clears state when disabled after being enabled', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { result, rerender, waitForNextUpdate } = renderHook(
+      const { result, rerender } = renderHook(
         ({ enabled }) => usePredictMarket({ id: 'market-1', enabled }),
         { initialProps: { enabled: true } },
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.market).toEqual(mockMarket);
+      await waitFor(() => {
+        expect(result.current.market).toEqual(mockMarket);
+      });
 
       // Disable the hook
       rerender({ enabled: false });
@@ -237,7 +237,7 @@ describe('usePredictMarket', () => {
     it('fetches when enabled changes from false to true', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { result, rerender, waitForNextUpdate } = renderHook(
+      const { result, rerender } = renderHook(
         ({ enabled }) => usePredictMarket({ id: 'market-1', enabled }),
         { initialProps: { enabled: false } },
       );
@@ -247,9 +247,9 @@ describe('usePredictMarket', () => {
       // Enable the hook
       rerender({ enabled: true });
 
-      await waitForNextUpdate();
-
-      expect(result.current.market).toEqual(mockMarket);
+      await waitFor(() => {
+        expect(result.current.market).toEqual(mockMarket);
+      });
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
       });
@@ -260,13 +260,13 @@ describe('usePredictMarket', () => {
     it('refetches data when calling refetch', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictMarket({ id: 'market-1' }),
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledTimes(1);
+      });
 
       // Call refetch
       await act(async () => {
@@ -308,24 +308,24 @@ describe('usePredictMarket', () => {
     it('refetches when id changes', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ id }) => usePredictMarket({ id }),
         { initialProps: { id: 'market-1' } },
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledWith({
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
+        });
       });
 
       // Change id
       rerender({ id: 'market-2' });
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledWith({
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-2',
+        });
       });
       expect(mockGetMarket).toHaveBeenCalledTimes(2);
     });
@@ -333,24 +333,24 @@ describe('usePredictMarket', () => {
     it('refetches when id changes across rerenders', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ id }) => usePredictMarket({ id }),
         { initialProps: { id: 'market-1' } },
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledWith({
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
+        });
       });
 
       // Change id
       rerender({ id: 'market-2' });
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledWith({
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-2',
+        });
       });
       expect(mockGetMarket).toHaveBeenCalledTimes(2);
     });
@@ -389,28 +389,28 @@ describe('usePredictMarket', () => {
     it('handles id conversion from number to string', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictMarket({ id: 0 }),
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledWith({
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: '0',
+        });
       });
     });
 
     it('handles id conversion from negative number to string', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictMarket({ id: -1 }),
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledWith({
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: '-1',
+        });
       });
     });
 
@@ -440,16 +440,16 @@ describe('usePredictMarket', () => {
     it('calls getMarket with correct parameters', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictMarket({
           id: 'test-market-id',
         }),
       );
 
-      await waitForNextUpdate();
-
-      expect(mockGetMarket).toHaveBeenCalledWith({
+      await waitFor(() => {
+        expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'test-market-id',
+        });
       });
       expect(mockGetMarket).toHaveBeenCalledTimes(1);
     });

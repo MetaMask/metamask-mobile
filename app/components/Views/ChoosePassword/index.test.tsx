@@ -312,7 +312,7 @@ describe('ChoosePassword', () => {
     });
 
     // Button should still be disabled (checkbox not checked)
-    expect(submitButton.props.disabled).toBe(false);
+    expect(submitButton).toBeEnabled();
 
     await act(async () => {
       fireEvent.press(submitButton);
@@ -636,6 +636,7 @@ describe('ChoosePassword', () => {
     const headerLeftComponent = headerLeftFn();
 
     // Simulate pressing the back button by calling the onPress handler directly
+    // (fireEvent.press on a raw React element doesn't work in React 19/RNTL)
     await act(async () => {
       headerLeftComponent.props.onPress();
     });
@@ -789,7 +790,7 @@ describe('ChoosePassword', () => {
     });
 
     await waitFor(() => {
-      expect(checkbox.props.disabled).toBe(false);
+      expect(checkbox).toBeEnabled();
     });
 
     const submitButton = component.getByTestId(
@@ -1022,9 +1023,6 @@ describe('ChoosePassword', () => {
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
 
-    const submitButton = component.getByTestId(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
     // Use short password that will fail passwordRequirementsMet
     await act(async () => {
       fireEvent.press(checkbox);
@@ -1036,7 +1034,12 @@ describe('ChoosePassword', () => {
     });
 
     await act(async () => {
-      fireEvent(submitButton, 'press');
+      // Button is disabled when password is too short; use UNSAFE_getByProps to get the
+      // composite TouchableOpacity element (which has onPress on it) and call it directly.
+      const submitButton = component.UNSAFE_getByProps({
+        testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      });
+      submitButton.props.onPress();
     });
 
     // Should not proceed with wallet creation
@@ -1070,10 +1073,6 @@ describe('ChoosePassword', () => {
     const checkbox = component.getByTestId(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
-    const submitButton = component.getByTestId(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
-
     // Enter mismatched passwords
     await act(async () => {
       fireEvent.press(checkbox);
@@ -1085,7 +1084,12 @@ describe('ChoosePassword', () => {
     });
 
     await act(async () => {
-      fireEvent(submitButton, 'press');
+      // Button is disabled when passwords don't match; use UNSAFE_getByProps to get the
+      // composite TouchableOpacity element (which has onPress on it) and call it directly.
+      const submitButton = component.UNSAFE_getByProps({
+        testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      });
+      submitButton.props.onPress();
     });
 
     // Should not proceed with wallet creation
@@ -1968,7 +1972,7 @@ describe('ChoosePassword', () => {
           fireEvent.changeText(confirmPasswordInput, 'Test1234');
         });
 
-        expect(submitButton.props.disabled).toBe(false);
+        expect(submitButton).toBeEnabled();
       });
 
       it('should require marketing opt-in checkbox for non-OAuth users', async () => {
@@ -2002,7 +2006,7 @@ describe('ChoosePassword', () => {
           fireEvent.changeText(confirmPasswordInput, 'Test1234');
         });
 
-        expect(submitButton.props.disabled).toBe(true);
+        expect(submitButton).toBeDisabled();
       });
 
       it('should handle edge case where oauthLoginSuccess is undefined', async () => {
@@ -2035,7 +2039,7 @@ describe('ChoosePassword', () => {
           fireEvent.changeText(confirmPasswordInput, 'Test1234');
         });
 
-        expect(submitButton.props.disabled).toBe(true);
+        expect(submitButton).toBeDisabled();
       });
     });
   });

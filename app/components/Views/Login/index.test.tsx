@@ -199,6 +199,9 @@ jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
+// Mock FadeOutOverlay to prevent animation state updates after unmount (React 19)
+jest.mock('../../UI/FadeOutOverlay', () => () => null);
+
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
   isE2E: false,
@@ -312,7 +315,9 @@ jest.mock('../../../core/redux', () => ({
   },
 }));
 
-const mockBackHandlerAddEventListener = jest.fn();
+const mockBackHandlerAddEventListener = jest
+  .fn()
+  .mockReturnValue({ remove: jest.fn() });
 const mockBackHandlerRemoveEventListener = jest.fn();
 
 describe('Login', () => {
@@ -362,6 +367,7 @@ describe('Login', () => {
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
     mockBackHandlerAddEventListener.mockClear();
+    mockBackHandlerAddEventListener.mockReturnValue({ remove: jest.fn() });
     mockBackHandlerRemoveEventListener.mockClear();
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
@@ -782,6 +788,9 @@ describe('Login', () => {
         },
       });
 
+      const mockRemove = jest.fn();
+      mockBackHandlerAddEventListener.mockReturnValue({ remove: mockRemove });
+
       const { unmount } = renderWithProvider(<Login />);
       unmount();
 
@@ -789,10 +798,7 @@ describe('Login', () => {
         'hardwareBackPress',
         expect.any(Function),
       );
-      expect(mockBackHandlerRemoveEventListener).toHaveBeenCalledWith(
-        'hardwareBackPress',
-        expect.any(Function),
-      );
+      expect(mockRemove).toHaveBeenCalled();
     });
 
     it('locks app when back button is pressed', () => {
@@ -1256,7 +1262,7 @@ describe('Login', () => {
       const { getByTestId } = renderWithProvider(<Login />);
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
-      expect(loginButton).toHaveProp('disabled', true);
+      expect(loginButton).toBeDisabled();
     });
 
     it('renders login button as enabled when password is entered', () => {
@@ -1266,7 +1272,7 @@ describe('Login', () => {
       fireEvent.changeText(passwordInput, 'some-password');
 
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      expect(loginButton).toHaveProp('disabled', false);
+      expect(loginButton).not.toBeDisabled();
     });
   });
 

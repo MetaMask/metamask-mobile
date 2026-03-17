@@ -324,7 +324,7 @@ describe('AddNewAccount', () => {
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
       fireEvent.press(addButton);
 
-      expect(addButton.props.disabled).toBe(true);
+      expect(addButton).toBeDisabled();
     });
 
     it.each([

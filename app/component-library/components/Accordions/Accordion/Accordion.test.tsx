@@ -37,7 +37,7 @@ describe('Accordion', () => {
         <View />
       </Accordion>,
     );
-    expect(screen.getByTestId(TESTID_ACCORDION)).toBeDefined();
+    expect(screen.getByText(SAMPLE_ACCORDION_TITLE)).toBeDefined();
   });
 
   it('should render Accordion content if isExpanded = true', () => {

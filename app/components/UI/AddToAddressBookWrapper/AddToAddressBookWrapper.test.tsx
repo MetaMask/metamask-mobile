@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent , act , fireEventAsync } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';
@@ -115,10 +115,12 @@ describe('AddToAddressBookWrapper', () => {
     const aliasInput = getByTestId(
       AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
     );
-    fireEvent.changeText(aliasInput, 'New Alias');
+    await fireEventAsync.changeText(aliasInput, 'New Alias');
     expect(aliasInput.props.value).toBe('New Alias');
 
-    fireEvent.press(getByTestId(AddAddressModalSelectorsIDs.SAVE_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(AddAddressModalSelectorsIDs.SAVE_BUTTON));
+    });
 
     expect(Engine.context.AddressBookController.set).toHaveBeenCalledWith(
       '0x10e08af911f2e48948',

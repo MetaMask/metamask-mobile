@@ -5,6 +5,23 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import TemplateConfirmationModal from './TemplateConfirmationModal';
 
+jest.mock('react-native-modal', () => {
+  const React = require('react');
+  const MockModal = ({
+    isVisible,
+    children,
+  }: {
+    isVisible?: boolean;
+    children?: React.ReactNode;
+    [key: string]: unknown;
+  }) => {
+    if (!isVisible) return null;
+    return <>{children}</>;
+  };
+  MockModal.displayName = 'MockModal';
+  return MockModal;
+});
+
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
 // TODO: Replace "any" with type
@@ -14,6 +31,9 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
+    onConfirm: jest.fn(),
+    onCancel: jest.fn(),
+    onReject: jest.fn(),
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent , act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -259,7 +259,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('rendering', () => {
-    it('renders the component title', () => {
+    it('renders the component title', async () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -267,7 +267,7 @@ describe('WaysToEarn', () => {
       expect(getByText('Ways to earn')).toBeOnTheScreen();
     });
 
-    it('renders all earning ways from selector data', () => {
+    it('renders all earning ways from selector data', async () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -277,7 +277,7 @@ describe('WaysToEarn', () => {
       expect(getByText('Perps')).toBeOnTheScreen();
     });
 
-    it('displays correct short descriptions for each earning way', () => {
+    it('displays correct short descriptions for each earning way', async () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -287,7 +287,7 @@ describe('WaysToEarn', () => {
       expect(getByText('10 points per $100')).toBeOnTheScreen();
     });
 
-    it('renders an empty list when no ways to earn exist', () => {
+    it('renders an empty list when no ways to earn exist', async () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -303,12 +303,14 @@ describe('WaysToEarn', () => {
   });
 
   describe('earning way press (modal open)', () => {
-    it('opens modal with correct data when an earning way is pressed', () => {
+    it('opens modal with correct data when an earning way is pressed', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Swap'));
+      await act(async () => {
+        fireEvent.press(getByText('Swap'));
+      });
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -319,18 +321,20 @@ describe('WaysToEarn', () => {
           showCancelButton: false,
           confirmAction: expect.objectContaining({
             label: 'Start a swap',
-            variant: 'primary',
+            variant: 'Primary',
           }),
         }),
       );
     });
 
-    it('tracks button click event with correct properties', () => {
+    it('tracks button click event with correct properties', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Swap'));
+      await act(async () => {
+        fireEvent.press(getByText('Swap'));
+      });
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -344,12 +348,14 @@ describe('WaysToEarn', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('passes WaysToEarnSheetTitle as modal title with bottomSheetTitle and pointsEarningRule', () => {
+    it('passes WaysToEarnSheetTitle as modal title with bottomSheetTitle and pointsEarningRule', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Perps'));
+      await act(async () => {
+        fireEvent.press(getByText('Perps'));
+      });
 
       // Assert
       const modalCall = mockNavigate.mock.calls.find(
@@ -359,12 +365,14 @@ describe('WaysToEarn', () => {
       expect(modalCall?.[1]?.title.type).toBeDefined();
     });
 
-    it('passes description content to modal', () => {
+    it('passes description content to modal', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Perps'));
+      await act(async () => {
+        fireEvent.press(getByText('Perps'));
+      });
 
       // Assert
       const modalCall = mockNavigate.mock.calls.find(
@@ -376,7 +384,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('BONUS_CODE earning way press', () => {
-    it('navigates to BonusCodeBottomSheet instead of generic modal', () => {
+    it('navigates to BonusCodeBottomSheet instead of generic modal', async () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -385,7 +393,9 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Bonus code'));
+      await act(async () => {
+        fireEvent.press(getByText('Bonus code'));
+      });
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -400,7 +410,7 @@ describe('WaysToEarn', () => {
       );
     });
 
-    it('passes title and description to BonusCodeBottomSheet', () => {
+    it('passes title and description to BonusCodeBottomSheet', async () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -409,7 +419,9 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Bonus code'));
+      await act(async () => {
+        fireEvent.press(getByText('Bonus code'));
+      });
 
       // Assert
       const navCall = mockNavigate.mock.calls.find(
@@ -420,7 +432,7 @@ describe('WaysToEarn', () => {
       expect(navCall?.[1]?.ctaLabel).toBe('Submit');
     });
 
-    it('tracks button click event for BONUS_CODE type', () => {
+    it('tracks button click event for BONUS_CODE type', async () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -429,7 +441,9 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Bonus code'));
+      await act(async () => {
+        fireEvent.press(getByText('Bonus code'));
+      });
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -444,10 +458,12 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - deeplink action', () => {
-    it('calls handleDeeplink when buttonAction has deeplink', () => {
+    it('calls handleDeeplink when buttonAction has deeplink', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Swap'));
+      await act(async () => {
+        fireEvent.press(getByText('Swap'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -464,10 +480,12 @@ describe('WaysToEarn', () => {
       });
     });
 
-    it('tracks CTA click event with correct properties for deeplink action', () => {
+    it('tracks CTA click event with correct properties for deeplink action', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Swap'));
+      await act(async () => {
+        fireEvent.press(getByText('Swap'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -493,10 +511,12 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - route action', () => {
-    it('navigates to route when buttonAction has route with root and screen', () => {
+    it('navigates to route when buttonAction has route with root and screen', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Perps'));
+      await act(async () => {
+        fireEvent.press(getByText('Perps'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -515,10 +535,12 @@ describe('WaysToEarn', () => {
       });
     });
 
-    it('navigates to route without screen param when screen is empty', () => {
+    it('navigates to route without screen param when screen is empty', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Refer friends'));
+      await act(async () => {
+        fireEvent.press(getByText('Refer friends'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -540,14 +562,16 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - URL action', () => {
-    it('navigates to browser when buttonAction has url', () => {
+    it('navigates to browser when buttonAction has url', async () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
       mockUseSelector.mockReturnValue([urlWayToEarn]);
 
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('External action'));
+      await act(async () => {
+        fireEvent.press(getByText('External action'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -572,14 +596,16 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - no action', () => {
-    it('closes modal but does not navigate when buttonAction is undefined', () => {
+    it('closes modal but does not navigate when buttonAction is undefined', async () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
       mockUseSelector.mockReturnValue([noActionWayToEarn]);
 
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Info only'));
+      await act(async () => {
+        fireEvent.press(getByText('Info only'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -600,7 +626,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - action priority', () => {
-    it('prioritizes deeplink over route and url', () => {
+    it('prioritizes deeplink over route and url', async () => {
       // Arrange
       const mixedActionWay = createWayToEarn({
         id: 'mixed-id',
@@ -617,7 +643,9 @@ describe('WaysToEarn', () => {
       mockUseSelector.mockReturnValue([mixedActionWay]);
 
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Mixed action'));
+      await act(async () => {
+        fireEvent.press(getByText('Mixed action'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -637,7 +665,7 @@ describe('WaysToEarn', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('prioritizes route over url when no deeplink', () => {
+    it('prioritizes route over url when no deeplink', async () => {
       // Arrange
       const routeAndUrlWay = createWayToEarn({
         id: 'route-url-id',
@@ -653,7 +681,9 @@ describe('WaysToEarn', () => {
       mockUseSelector.mockReturnValue([routeAndUrlWay]);
 
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Route and URL'));
+      await act(async () => {
+        fireEvent.press(getByText('Route and URL'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -678,12 +708,14 @@ describe('WaysToEarn', () => {
   });
 
   describe('specificContent rendering', () => {
-    it('includes SwapSupportedNetworksSection in description when specificContent has supportedNetworks', () => {
+    it('includes SwapSupportedNetworksSection in description when specificContent has supportedNetworks', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Swap'));
+      await act(async () => {
+        fireEvent.press(getByText('Swap'));
+      });
 
       // Get the modal navigation call
       const modalCall = mockNavigate.mock.calls.find(
@@ -695,12 +727,14 @@ describe('WaysToEarn', () => {
       expect(modalCall?.[1]?.description.type).toBeDefined();
     });
 
-    it('includes ReferralStatsSummary in description when specificContent has referralPointsTitle', () => {
+    it('includes ReferralStatsSummary in description when specificContent has referralPointsTitle', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Refer friends'));
+      await act(async () => {
+        fireEvent.press(getByText('Refer friends'));
+      });
 
       // Get the modal navigation call
       const modalCall = mockNavigate.mock.calls.find(
@@ -712,12 +746,14 @@ describe('WaysToEarn', () => {
       expect(modalCall?.[1]?.description.type).toBeDefined();
     });
 
-    it('does not include specific content sections when specificContent is undefined', () => {
+    it('does not include specific content sections when specificContent is undefined', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Perps'));
+      await act(async () => {
+        fireEvent.press(getByText('Perps'));
+      });
 
       // Get the modal navigation call
       const modalCall = mockNavigate.mock.calls.find(
@@ -730,10 +766,12 @@ describe('WaysToEarn', () => {
   });
 
   describe('modal close before navigation', () => {
-    it('closes modal (goBack) before executing CTA navigation', () => {
+    it('closes modal (goBack) before executing CTA navigation', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Perps'));
+      await act(async () => {
+        fireEvent.press(getByText('Perps'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -751,7 +789,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('FlatList configuration', () => {
-    it('renders list items with unique keys', () => {
+    it('renders list items with unique keys', async () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -763,12 +801,14 @@ describe('WaysToEarn', () => {
   });
 
   describe('metrics tracking', () => {
-    it('tracks button click events with ways_to_earn_type matching wayToEarn.type', () => {
+    it('tracks button click events with ways_to_earn_type matching wayToEarn.type', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      fireEvent.press(getByText('Refer friends'));
+      await act(async () => {
+        fireEvent.press(getByText('Refer friends'));
+      });
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -781,10 +821,12 @@ describe('WaysToEarn', () => {
       });
     });
 
-    it('tracks CTA click events with ways_to_earn_type matching wayToEarn.type', () => {
+    it('tracks CTA click events with ways_to_earn_type matching wayToEarn.type', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      fireEvent.press(getByText('Perps'));
+      await act(async () => {
+        fireEvent.press(getByText('Perps'));
+      });
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -809,7 +851,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA labels', () => {
-    it('renders correct CTA label for each earning way type', () => {
+    it('renders correct CTA label for each earning way type', async () => {
       // Arrange
       const testCases = [
         { title: 'Swap', expectedLabel: 'Start a swap' },
@@ -817,7 +859,7 @@ describe('WaysToEarn', () => {
         { title: 'Perps', expectedLabel: 'Start a trade' },
       ];
 
-      testCases.forEach(({ title, expectedLabel }) => {
+      for (const { title, expectedLabel } of testCases) {
         jest.clearAllMocks();
         mockUseNavigation.mockReturnValue({
           navigate: mockNavigate,
@@ -835,14 +877,16 @@ describe('WaysToEarn', () => {
         const { getByText } = render(<WaysToEarn />);
 
         // Act
-        fireEvent.press(getByText(title));
+        await act(async () => {
+          fireEvent.press(getByText(title));
+        });
 
         // Assert
         const modalCall = mockNavigate.mock.calls.find(
           (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         );
         expect(modalCall?.[1]?.confirmAction?.label).toBe(expectedLabel);
-      });
+      }
     });
   });
 });

@@ -1,7 +1,4 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -10,9 +7,6 @@ import {
   chainableBuilder,
 } from '../../../util/analytics/AnalyticsEventBuilder';
 import NavbarTitle from './';
-
-const mockStore = configureMockStore();
-const store = mockStore({});
 
 const mockAnalyticsTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -69,10 +63,13 @@ jest.mock('@react-navigation/compat', () => ({
 describe('NavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
-    const { toJSON } = render(
-      <Provider store={store}>
-        <NavbarTitle title={title} />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <NavbarTitle title={title} />,
+      {
+        state: {
+          engine: { backgroundState },
+        },
+      },
     );
     expect(toJSON()).toMatchSnapshot();
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, userEvent, fireEvent } from '@testing-library/react-native';
+import { render, userEvent, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
@@ -242,8 +242,8 @@ describe('TrendingTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     const mocks = arrangeMocks();
-    mocks.setTrendingRequestMock({ results: [] });
-    mocks.setTrendingSearchMock({ data: [] });
+    mocks.setTrendingRequestMock({ results: [createMockToken()] });
+    mocks.setTrendingSearchMock({ data: [createMockToken()] });
   });
 
   it('renders header with title and buttons', () => {
@@ -438,10 +438,10 @@ describe('TrendingTokensFullView', () => {
 
       // Open search and type a query
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
-      fireEvent.press(searchToggle);
+      await fireEventAsync.press(searchToggle);
 
       const searchInput = getByTestId('trending-tokens-header-search-bar');
-      fireEvent.changeText(searchInput, 'eth');
+      await fireEventAsync.changeText(searchInput, 'eth');
 
       // Tokens should be displayed in original order (relevance), not sorted
       // Even if we select a sort option, search results should maintain relevance order
@@ -449,7 +449,7 @@ describe('TrendingTokensFullView', () => {
       expect(getByText('Bitcoin')).toBeOnTheScreen();
     });
 
-    it('returns results without sorting when no price change option is selected', () => {
+    it('returns results without sorting when no price change option is selected', async () => {
       const mockTokens = [
         createMockToken({
           name: 'Token A',
@@ -480,7 +480,7 @@ describe('TrendingTokensFullView', () => {
       expect(getByText('Token C')).toBeOnTheScreen();
     });
 
-    it('returns empty array when search results are empty', () => {
+    it('returns empty array when search results are empty', async () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: [] });
 
@@ -562,7 +562,7 @@ describe('TrendingTokensFullView', () => {
       await userEvent.press(searchToggle);
 
       const searchInput = getByTestId('trending-tokens-header-search-bar');
-      fireEvent.changeText(searchInput, 'eth');
+      await fireEventAsync.changeText(searchInput, 'eth');
 
       // Even with volume sort selected, search results should maintain relevance order
       // (Ethereum Classic first because that's the order returned by mock)
@@ -594,13 +594,13 @@ describe('TrendingTokensFullView', () => {
 
       // Type search query
       const searchInput = getByTestId('trending-tokens-header-search-bar');
-      fireEvent.changeText(searchInput, 'token');
+      await fireEventAsync.changeText(searchInput, 'token');
 
       // Verify search is active
       expect(searchInput.props.value).toBe('token');
 
       // Clear search by changing text to empty
-      fireEvent.changeText(searchInput, '');
+      await fireEventAsync.changeText(searchInput, '');
 
       // Results should still be displayed
       expect(getByText('Token X')).toBeOnTheScreen();

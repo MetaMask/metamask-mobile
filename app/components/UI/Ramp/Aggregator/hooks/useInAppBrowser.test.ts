@@ -260,14 +260,8 @@ describe('useInAppBrowser', () => {
     });
 
     it('calls Linking.openURL if device is android', async () => {
-      // mock Platform.OS to be android
-      jest.mock('react-native/Libraries/Utilities/Platform', () => {
-        const platform = {
-          ...jest.requireActual('react-native/Libraries/Utilities/Platform'),
-          OS: 'android',
-        };
-        return { __esModule: true, default: platform, ...platform };
-      });
+      const Device = jest.requireActual('../../../../../util/device').default;
+      const spy = jest.spyOn(Device, 'isAndroid').mockReturnValue(true);
 
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
@@ -275,6 +269,7 @@ describe('useInAppBrowser', () => {
 
       await result.current(buyAction, testProvider);
       expect(Linking.openURL).toHaveBeenCalledWith('test-url');
+      spy.mockRestore();
     });
 
     it('calls Linking.openURL if InAppBrowser.isAvailable is false', async () => {

@@ -11,6 +11,7 @@ import {
   fireEvent,
   screen,
   render as renderComponent,
+  fireEventAsync,
 } from '@testing-library/react-native';
 import {
   renderScreen,
@@ -194,6 +195,33 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
+// Mock LoadingAnimation to immediately call onAnimationEnd when finish is true.
+// In React 19, Reanimated's withTiming callback (runOnJS) doesn't fire in the mock,
+// so the real LoadingAnimation never transitions out of loading state.
+jest.mock('../../components/LoadingAnimation', () => {
+  const ReactMock = require('react');
+  const { View, Text: RNText } = require('react-native');
+  return function MockLoadingAnimation({
+    title,
+    finish,
+    onAnimationEnd,
+  }: {
+    title: string;
+    finish: boolean;
+    onAnimationEnd?: () => void;
+    asScreen?: boolean;
+  }) {
+    ReactMock.useEffect(() => {
+      if (finish && onAnimationEnd) {
+        onAnimationEnd();
+      }
+    }, [finish, onAnimationEnd]);
+    return ReactMock.createElement(View, null,
+      ReactMock.createElement(RNText, null, title),
+    );
+  };
+});
+
 describe('Quotes', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -233,7 +261,9 @@ describe('Quotes', () => {
 
   it('navigates and tracks event on back button press', async () => {
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    });
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
@@ -252,7 +282,9 @@ describe('Quotes', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',
@@ -288,7 +320,7 @@ describe('Quotes', () => {
       recommendedQuote: undefined,
     };
     render(Quotes);
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
@@ -409,15 +441,13 @@ describe('Quotes', () => {
     });
 
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
-    fireEvent.press(quoteToSelect);
+    await fireEventAsync.press(quoteToSelect);
 
     const quoteContinueButton = screen.getByRole('button', {
       name: `Continue with ${mockQuoteProviderName}`,
     });
 
-    await act(async () => {
-      fireEvent.press(quoteContinueButton);
-    });
+    await fireEventAsync.press(quoteContinueButton);
 
     return { mockedRecommendedQuote, mockedBuyAction };
   };
@@ -472,15 +502,13 @@ describe('Quotes', () => {
         mockCustomActionProviderName,
       );
 
-      fireEvent.press(customActionToSelect);
+      await fireEventAsync.press(customActionToSelect);
 
       const customActionContinueButton = screen.getByRole('button', {
         name: `Continue with ${mockCustomActionProviderName}`,
       });
 
-      await act(async () => {
-        fireEvent.press(customActionContinueButton);
-      });
+      await fireEventAsync.press(customActionContinueButton);
     };
 
     it('renders correctly after animation with the recommended custom action', async () => {
@@ -817,7 +845,7 @@ describe('Quotes', () => {
       `${mockRecommendedProvider.name} logo`,
     );
 
-    fireEvent.press(quoteProviderLogo);
+    await fireEventAsync.press(quoteProviderLogo);
 
     const description = screen.queryByText(mockRecommendedProvider.description);
     expect(description).toBeTruthy();

@@ -1,19 +1,23 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import CustomNonceModal from '.';
+import { ThemeContext } from '../../../../../../util/theme';
+import { mockTheme } from '../../../../../../util/theme';
 
 const PROPOSED_NONCE = 26;
 const saveMock = jest.fn();
 const closeMock = jest.fn();
 const renderComponent = (props = {}) =>
   render(
-    <CustomNonceModal
-      save={saveMock}
-      close={closeMock}
-      proposedNonce={PROPOSED_NONCE}
-      nonceValue={PROPOSED_NONCE}
-      {...props}
-    />,
+    <ThemeContext.Provider value={mockTheme}>
+      <CustomNonceModal
+        save={saveMock}
+        close={closeMock}
+        proposedNonce={PROPOSED_NONCE}
+        nonceValue={PROPOSED_NONCE}
+        {...props}
+      />
+    </ThemeContext.Provider>,
   );
 describe('CustomNonceModal', () => {
   it('renders correctly', () => {

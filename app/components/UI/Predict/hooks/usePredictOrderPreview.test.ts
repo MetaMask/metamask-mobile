@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePredictOrderPreview } from './usePredictOrderPreview';
 import { usePredictTrading } from './usePredictTrading';
 import { OrderPreview, PreviewOrderParams, Side } from '../types';
@@ -65,7 +65,7 @@ describe('usePredictOrderPreview', () => {
     it('calculates preview when size is valid', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
 
@@ -73,7 +73,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
 
       expect(mockPreviewOrder).toHaveBeenCalledWith({
         marketId: 'market-1',
@@ -82,8 +84,6 @@ describe('usePredictOrderPreview', () => {
         side: Side.BUY,
         size: 100,
       });
-
-      expect(result.current.preview).toEqual(mockPreview);
       expect(result.current.isCalculating).toBe(false);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
@@ -119,7 +119,7 @@ describe('usePredictOrderPreview', () => {
       mockPreviewOrder.mockResolvedValue({ ...mockPreview, side: Side.SELL });
 
       const params = { ...defaultParams, side: Side.SELL };
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview(params),
       );
 
@@ -127,8 +127,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.preview).not.toBeNull();
+      });
       expect(mockPreviewOrder).toHaveBeenCalledWith(
         expect.objectContaining({ side: Side.SELL }),
       );
@@ -174,7 +175,7 @@ describe('usePredictOrderPreview', () => {
     it('returns false when preview exists', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
 
@@ -182,9 +183,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(result.current.preview).toEqual(mockPreview);
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -197,7 +198,7 @@ describe('usePredictOrderPreview', () => {
           // Suppress console.error output during test
         });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
 
@@ -205,10 +206,10 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
       expect(result.current.preview).toBeNull();
-      expect(result.current.error).toBe('Failed to preview order');
       expect(result.current.isCalculating).toBe(false);
       expect(result.current.isLoading).toBe(false);
 
@@ -244,7 +245,7 @@ describe('usePredictOrderPreview', () => {
     it('does not auto-refresh when autoRefreshTimeout is not provided', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
 
@@ -252,9 +253,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      });
 
       act(() => {
         jest.advanceTimersByTime(5000);
@@ -267,7 +268,7 @@ describe('usePredictOrderPreview', () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const params = { ...defaultParams, autoRefreshTimeout: 2000 };
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictOrderPreview(params),
       );
 
@@ -275,25 +276,25 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      });
 
       act(() => {
         jest.advanceTimersByTime(2000);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      });
 
       act(() => {
         jest.advanceTimersByTime(2000);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(3);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(3);
+      });
     });
 
     it('waits for response before starting timeout countdown', async () => {
@@ -304,7 +305,7 @@ describe('usePredictOrderPreview', () => {
       });
 
       const params = { ...defaultParams, autoRefreshTimeout: 1000 };
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictOrderPreview(params),
       );
 
@@ -312,9 +313,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(callCount).toBe(1);
+      await waitFor(() => {
+        expect(callCount).toBe(1);
+      });
 
       act(() => {
         jest.advanceTimersByTime(500);
@@ -326,9 +327,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(500);
       });
 
-      await waitForNextUpdate();
-
-      expect(callCount).toBe(2);
+      await waitFor(() => {
+        expect(callCount).toBe(2);
+      });
     });
 
     it('schedules next refresh after error response', async () => {
@@ -341,7 +342,7 @@ describe('usePredictOrderPreview', () => {
         });
 
       const params = { ...defaultParams, autoRefreshTimeout: 2000 };
-      const { waitForNextUpdate } = renderHook(() =>
+      renderHook(() =>
         usePredictOrderPreview(params),
       );
 
@@ -349,9 +350,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      });
 
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
@@ -359,9 +360,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(2000);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      });
 
       consoleErrorSpy.mockRestore();
     });
@@ -370,7 +371,7 @@ describe('usePredictOrderPreview', () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const params = { ...defaultParams, autoRefreshTimeout: 2000 };
-      const { waitForNextUpdate, rerender } = renderHook(
+      const { rerender } = renderHook(
         (props: PreviewOrderParams & { autoRefreshTimeout?: number }) =>
           usePredictOrderPreview(props),
         { initialProps: params },
@@ -380,9 +381,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+      });
 
       act(() => {
         jest.advanceTimersByTime(1000);
@@ -394,9 +395,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      });
     });
   });
 
@@ -411,7 +412,7 @@ describe('usePredictOrderPreview', () => {
           // Suppress console.error output during test
         });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
 
@@ -419,9 +420,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(result.current.error).toBe('Failed to preview order');
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
       expect(result.current.preview).toBeNull();
       expect(result.current.isCalculating).toBe(false);
       expect(result.current.isLoading).toBe(false);
@@ -438,7 +439,7 @@ describe('usePredictOrderPreview', () => {
           // Suppress console.error output during test
         });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
 
@@ -446,9 +447,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
-      expect(result.current.error).toBe('Failed to preview order');
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
       expect(result.current.isCalculating).toBe(false);
       expect(result.current.isLoading).toBe(false);
 
@@ -464,7 +465,7 @@ describe('usePredictOrderPreview', () => {
           // Suppress console.error output during test
         });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
 
@@ -472,11 +473,11 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
       expect(result.current.isCalculating).toBe(false);
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe('Failed to preview order');
 
       consoleErrorSpy.mockRestore();
     });
@@ -486,7 +487,7 @@ describe('usePredictOrderPreview', () => {
     it('reacts to outcomeTokenId changes', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
-      const { waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview({
           ...defaultParams,
           outcomeTokenId: 'new-token',
@@ -497,8 +498,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.preview).not.toBeNull();
+      });
       expect(mockPreviewOrder).toHaveBeenCalledWith(
         expect.objectContaining({ outcomeTokenId: 'new-token' }),
       );
@@ -507,7 +509,7 @@ describe('usePredictOrderPreview', () => {
     it('reacts to marketId changes', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
-      const { waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePredictOrderPreview({
           ...defaultParams,
           marketId: 'market-2',
@@ -518,8 +520,9 @@ describe('usePredictOrderPreview', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitForNextUpdate();
-
+      await waitFor(() => {
+        expect(result.current.preview).not.toBeNull();
+      });
       expect(mockPreviewOrder).toHaveBeenCalledWith(
         expect.objectContaining({ marketId: 'market-2' }),
       );

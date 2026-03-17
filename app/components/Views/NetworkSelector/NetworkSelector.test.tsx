@@ -455,7 +455,7 @@ describe('Network Selector', () => {
     );
 
     expect(testNetworksSwitch.props.value).toBeTruthy();
-    expect(testNetworksSwitch.props.disabled).toBeTruthy();
+    expect(testNetworksSwitch).toHaveProp('disabled', true);
   });
 
   it('changes to non infura network when another network cell is pressed', async () => {
@@ -722,8 +722,13 @@ describe('Network Selector', () => {
 
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      // Reset the mock before each test
-      jest.clearAllMocks();
+      // Reset only the specific mocks being asserted, not all mocks
+      // (jest.clearAllMocks() would clear Engine mock implementations too)
+      (mockEngine.context.SelectedNetworkController
+        .setNetworkClientIdForDomain as jest.Mock).mockClear();
+      (mockEngine.context.MultichainNetworkController
+        .setActiveNetwork as jest.Mock).mockClear();
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     });
 
     it('should not call setNetworkClientIdForDomain when dapp is not connected', async () => {

@@ -406,7 +406,7 @@ describe('DeviceSecurityToggle', () => {
         const toggleAfterSuccess = getByTestId(
           SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
         );
-        expect(toggleAfterSuccess.props.disabled).toBe(false);
+        expect(toggleAfterSuccess).toBeEnabled();
       });
       jest.useRealTimers();
     });
@@ -423,7 +423,7 @@ describe('DeviceSecurityToggle', () => {
         const toggle = getByTestId(
           SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
         );
-        expect(toggle.props.disabled).toBe(true);
+        expect(toggle).toHaveProp('disabled', true);
       });
     });
 

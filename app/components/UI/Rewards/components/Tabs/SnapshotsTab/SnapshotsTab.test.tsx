@@ -142,7 +142,7 @@ describe('SnapshotsTab', () => {
     expect(getByText('rewards.snapshots_tab.active_title')).toBeOnTheScreen();
     expect(mockSnapshotTile).toHaveBeenCalledWith(
       expect.objectContaining({ snapshot: activeSnapshot }),
-      expect.anything(),
+      undefined,
     );
   });
 
@@ -166,7 +166,7 @@ describe('SnapshotsTab', () => {
     expect(getByText('rewards.snapshots_tab.upcoming_title')).toBeOnTheScreen();
     expect(mockSnapshotTile).toHaveBeenCalledWith(
       expect.objectContaining({ snapshot: upcomingSnapshot }),
-      expect.anything(),
+      undefined,
     );
   });
 
@@ -190,7 +190,7 @@ describe('SnapshotsTab', () => {
     expect(getByText('rewards.snapshots_tab.previous_title')).toBeOnTheScreen();
     expect(mockSnapshotTile).toHaveBeenCalledWith(
       expect.objectContaining({ snapshot: previousSnapshot }),
-      expect.anything(),
+      undefined,
     );
   });
 

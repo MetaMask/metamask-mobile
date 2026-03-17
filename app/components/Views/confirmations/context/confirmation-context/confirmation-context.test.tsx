@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import {
   ConfirmationContextProvider,
   useConfirmationContext,
@@ -42,7 +42,9 @@ describe('ConfirmationContext', () => {
   it('updates isFooterVisible state when calling setIsFooterVisible', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
-    result.current.setIsFooterVisible(false);
+    act(() => {
+      result.current.setIsFooterVisible(false);
+    });
 
     expect(result.current.isFooterVisible).toBe(false);
   });

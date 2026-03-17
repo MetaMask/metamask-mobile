@@ -223,7 +223,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const continueButton = getByRole('button', { name: 'Continue' });
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('renders paste button when no seed phrase is entered', () => {
@@ -338,7 +338,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Wait for continue button to be enabled
       await waitFor(
         () => {
-          expect(continueButton.props.disabled).toBe(false);
+          expect(continueButton).toBeEnabled();
         },
         { timeout: 3000 },
       );
@@ -516,7 +516,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Verify continue button is still disabled (since it's not a complete seed phrase)
       const continueButton = getByRole('button', { name: 'Continue' });
-      expect(continueButton.props.disabled).toBe(false);
+      expect(continueButton).toBeEnabled();
     });
 
     it('on backspace key press, the input field length is updated', async () => {
@@ -1290,16 +1290,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Initially passwords should be hidden
-      expect(passwordInput.props.secureTextEntry).toBe(true);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+      expect(confirmPasswordInput).toHaveProp('secureTextEntry', true);
 
       // Toggle visibility for new password
       fireEvent.press(newPasswordVisibilityIcon);
-      expect(passwordInput.props.secureTextEntry).toBe(false);
+      expect(passwordInput).toHaveProp('secureTextEntry', false);
 
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
+      expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
     });
 
     it('error message is shown when passwords do not match', async () => {
@@ -1328,7 +1328,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      expect(confirmPasswordInput.props.editable).toBe(false);
+      expect(confirmPasswordInput).toHaveProp('editable', false);
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1336,7 +1336,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
 
       await waitFor(() => {
-        expect(confirmPasswordInput.props.editable).toBe(true);
+        expect(confirmPasswordInput).toHaveProp('editable', true);
       });
     });
 
@@ -1518,7 +1518,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent(passwordInput, 'submitEditing');
 
       // Verify that confirm password field is enabled and ready for input
-      expect(confirmPasswordInput.props.editable).toBe(true);
+      expect(confirmPasswordInput).toHaveProp('editable', true);
       expect(confirmPasswordInput.props.value).toBe('');
     });
 

@@ -362,6 +362,13 @@ describe('useFeedScrollManager', () => {
     });
 
     it('handles scroll down events', () => {
+      // Ensure reanimated worklet functions are available in the mock.
+      // The global setUpTests() may override the test-level jest.mock factory,
+      // so we patch the mock module at runtime.
+      const reanimated = jest.requireMock('react-native-reanimated');
+      reanimated.withTiming = mockWithTiming;
+      reanimated.runOnJS = mockRunOnJS;
+
       const props = createDefaultProps();
 
       const { result } = renderHook(() => useFeedScrollManager(props));

@@ -155,6 +155,14 @@ const transactionState: Transaction = {
 };
 
 describe('AccountFromToInfoCard', () => {
+  beforeAll(() => {
+    // Update the global store mock so that selectors called via
+    // store.getState() (e.g. inside renderAccountName) receive the
+    // correct background state.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('../../../store')._updateMockState(mockInitialState);
+  });
+
   it('should render correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>

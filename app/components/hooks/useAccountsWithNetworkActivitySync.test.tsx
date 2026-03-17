@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import Engine from '../../core/Engine/Engine';
 import { useAccountsWithNetworkActivitySync } from './useAccountsWithNetworkActivitySync';
 import configureMockStore from 'redux-mock-store';
@@ -70,7 +70,7 @@ describe('useAccountsWithNetworkActivitySync', () => {
           controllerMessenger: unknown;
         }) => void;
       }
-    ).setMocks({ context: {}, controllerMessenger: {} });
+    ).setMocks({ context: {}, controllerMessenger: { subscribe: jest.fn(), unsubscribe: jest.fn() } });
   });
 
   it('fetches on first load if basicFunctionalityEnabled is true', async () => {
@@ -108,10 +108,8 @@ describe('useAccountsWithNetworkActivitySync', () => {
       mockEngineInstance.context.MultichainNetworkController,
       'getNetworksWithTransactionActivityByAccounts',
     );
-    await act(async () => {
-      renderHook(() => useAccountsWithNetworkActivitySync(), {
-        wrapper: getWrapper(store),
-      });
+    renderHook(() => useAccountsWithNetworkActivitySync(), {
+      wrapper: getWrapper(store),
     });
     expect(fetchAccountsSpy).toHaveBeenCalledTimes(1);
   });
@@ -151,10 +149,8 @@ describe('useAccountsWithNetworkActivitySync', () => {
       mockEngineInstance.context.MultichainNetworkController,
       'getNetworksWithTransactionActivityByAccounts',
     );
-    await act(async () => {
-      renderHook(() => useAccountsWithNetworkActivitySync(), {
-        wrapper: getWrapper(store),
-      });
+    renderHook(() => useAccountsWithNetworkActivitySync(), {
+      wrapper: getWrapper(store),
     });
     expect(fetchAccountsSpy).not.toHaveBeenCalled();
   });
@@ -337,14 +333,12 @@ describe('useAccountsWithNetworkActivitySync', () => {
       mockEngineInstance.context.MultichainNetworkController,
       'getNetworksWithTransactionActivityByAccounts',
     );
-    await act(async () => {
-      renderHook(
-        () => useAccountsWithNetworkActivitySync({ onFirstLoad: false }),
-        {
-          wrapper: getWrapper(store),
-        },
-      );
-    });
+    renderHook(
+      () => useAccountsWithNetworkActivitySync({ onFirstLoad: false }),
+      {
+        wrapper: getWrapper(store),
+      },
+    );
     expect(fetchAccountsSpy).not.toHaveBeenCalled();
   });
 });
