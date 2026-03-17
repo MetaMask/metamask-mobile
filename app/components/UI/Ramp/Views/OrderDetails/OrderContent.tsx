@@ -24,9 +24,11 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { renderFiat, renderNumber } from '../../../../../util/number';
+import { renderFiat } from '../../../../../util/number';
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import Button, {
@@ -209,10 +211,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
   const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
-  const tokenAmountDisplay = order.cryptoAmount
-    ? renderNumber(String(order.cryptoAmount))
-    : '...';
-
   const normalizeChainIdForBadge = (chainId: string): string => {
     if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
       return chainId;
@@ -322,7 +320,21 @@ const OrderContent: React.FC<OrderContentProps> = ({
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {tokenAmountDisplay} {cryptoSymbol}
+          {order.cryptoAmount != null
+            ? (formatSubscriptNotation(
+                parseFloat(String(order.cryptoAmount)),
+              ) ??
+              formatWithThreshold(
+                parseFloat(String(order.cryptoAmount)),
+                0.00001,
+                I18n.locale,
+                {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 5,
+                },
+              ))
+            : '...'}{' '}
+          {cryptoSymbol}
         </Text>
       </Box>
 
