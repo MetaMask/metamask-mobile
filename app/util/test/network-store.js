@@ -120,11 +120,17 @@ class ReadOnlyNetworkStore {
           // (e.g. snap source code migrated out of SnapController state by migration 119)
           const filesystemStorage = response.data?.filesystemStorage;
           if (filesystemStorage) {
-            await Promise.all(
-              Object.entries(filesystemStorage).map(([key, value]) =>
-                FilesystemStorage.setItem(key, value, Device.isIos()),
-              ),
-            );
+            try {
+              await Promise.all(
+                Object.entries(filesystemStorage).map(([key, value]) =>
+                  FilesystemStorage.setItem(key, value, Device.isIos()),
+                ),
+              );
+            } catch (fsError) {
+              throw new Error(
+                `Failed to write filesystemStorage fixture entries: ${fsError}`,
+              );
+            }
           }
           // eslint-disable-next-line no-console
           console.debug(`Successfully loaded fixture state from ${url}`);
