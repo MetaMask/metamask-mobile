@@ -34,7 +34,7 @@ import {
 } from '../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
