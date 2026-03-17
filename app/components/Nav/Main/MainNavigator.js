@@ -297,7 +297,7 @@ const RewardsHome = () => (
   <Stack.Navigator
     screenOptions={{
       ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
+      presentation: 'modal',
       cardStyle: { backgroundColor: importedColors.white },
     }}
   >
@@ -979,7 +979,7 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        presentation: 'transparentModal',
+        presentation: 'modal',
       }}
       initialRouteName={'Home'}
     >
