@@ -7,7 +7,7 @@
  *
  * Required env vars:
  *   GITHUB_TOKEN      — GitHub Actions token for API access
- *   WORKFLOW_RUN_ID   — ID of the main CI run that produced tests artifacts
+ *   GITHUB_REPOSITORY — Repository in "owner/repo" format (set automatically in Actions)
  * 
  * How to add a new metric:
  *   1. Add a collector function that returns a plain object
@@ -31,9 +31,9 @@ import { execSync } from 'child_process';
 import { join } from 'path';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const WORKFLOW_RUN_ID = process.env.WORKFLOW_RUN_ID;
+const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
+const WORKFLOW_RUN_ID = "23197782954";
 
-if (!WORKFLOW_RUN_ID) throw new Error('Missing required WORKFLOW_RUN_ID env var');
 if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 
 
@@ -41,7 +41,42 @@ if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 // GitHub artifact helpers
 // ---------------------------------------------------------------------------
 
+let _runId = null;
 let _artifactList = null;
+
+/**
+ * Fetches the ID of the latest successful CI workflow run on `main`.
+ *
+ * @returns {Promise<string>}
+ */
+async function getLatestCiRunId() {
+  const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=1`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch CI workflow runs: ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  const run = data.workflow_runs?.[0];
+  if (!run) {
+    throw new Error('No successful CI workflow runs found on main');
+  }
+
+  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, ${run.created_at})`);
+  return String(run.id);
+}
+
+async function getRunId() {
+  if (_runId) return _runId;
+  _runId = await getLatestCiRunId();
+  return _runId;
+}
 
 /**
  * Fetches (and caches) the list of artifact names for the triggering CI run.
@@ -52,11 +87,13 @@ let _artifactList = null;
 async function getArtifactList() {
   if (_artifactList) return _artifactList;
 
+  const runId = await getRunId();
   const artifacts = [];
   let page = 1;
 
   while (true) {
-    const url = `https://api.github.com/repos/MetaMask/metamask-mobile/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
+    // const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -89,10 +126,11 @@ async function getArtifactList() {
 async function downloadArtifact(artifactName) {
   const artifacts = await getArtifactList();
   const artifact = artifacts.find((a) => a.name === artifactName);
+  const runId = await getRunId();
 
   if (!artifact) {
     throw new Error(
-      `Artifact "${artifactName}" not found in run ${WORKFLOW_RUN_ID}`,
+      `Artifact "${artifactName}" not found in run ${runId}`,
     );
   }
 
@@ -384,8 +422,8 @@ async function main() {
   const stats = {};
 
   const collectors = [
-    { namespace: 'component_view', collect: collectComponentViewTestCount },
     { namespace: 'unit', collect: collectUnitTestCount },
+    { namespace: 'component_view', collect: collectComponentViewTestCount },
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
   ];
