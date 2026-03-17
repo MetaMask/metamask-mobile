@@ -1061,6 +1061,32 @@ class PerpsConnectionManagerClass {
     }
   }
 
+  /**
+   * Called on foreground return. Always forces a full reconnect.
+   *
+   * The grace period timer handles battery savings (disconnects after 30s
+   * in background). But regardless of whether the timer fired or not,
+   * we cannot trust the WebSocket state after backgrounding:
+   * - Grace period fired: already disconnected, need fresh connect
+   * - Grace period didn't fire (iOS suspends JS timers): WebSocket
+   * likely dead but isConnected still true, need fresh connect
+   *
+   * By always doing disconnect + connect, behavior is identical on both
+   * iOS and Android regardless of how long the app was backgrounded.
+   */
+  async ensureConnected(): Promise<void> {
+    // Cancel grace period if still pending — we're taking over
+    this.cancelGracePeriod();
+
+    // Force clean state so connect() runs the full init → ping → preload path
+    if (this.isConnected || this.isInitialized) {
+      await this.performActualDisconnection();
+    }
+
+    // Full reconnect: init → ping → preload
+    await this.connect();
+  }
+
   async disconnect(): Promise<void> {
     this.connectionRefCount--;
     DevLogger.log(
