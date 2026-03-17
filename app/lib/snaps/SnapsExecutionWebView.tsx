@@ -51,7 +51,7 @@ export class SnapsExecutionWebView extends Component {
               this.webViews[jobId]?.ref,
               'Snaps execution webview reference not found.',
             );
-            this.webViews[jobId].ref.injectJavaScript(js);
+            this.webViews[jobId].ref?.injectJavaScript(js);
           },
           registerMessageListener: (
             listener: (event: PostMessageEvent) => void,
@@ -74,7 +74,7 @@ export class SnapsExecutionWebView extends Component {
       const onWebViewMessage = (data: WebViewMessageEvent) => {
         if (this.webViews[jobId]?.listener) {
           try {
-            this.webViews[jobId].listener(
+            this.webViews[jobId].listener?.(
               data.nativeEvent as unknown as PostMessageEvent,
             );
           } catch (error) {
