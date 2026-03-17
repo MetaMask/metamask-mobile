@@ -95,6 +95,16 @@ export const useRampNavigation = () => {
         return;
       }
 
+      // V2: If no assetId and V2 is enabled, route to TokenSelection (matches handleRampUrl deeplink behavior)
+      if (
+        isRampsUnifiedV2Enabled &&
+        !intent?.assetId &&
+        !overrideUnifiedRouting
+      ) {
+        navigation.navigate(...createTokenSelectionNavDetails());
+        return;
+      }
+
       // V1 routing logic
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
         // If no assetId is provided, route to TokenSelection
