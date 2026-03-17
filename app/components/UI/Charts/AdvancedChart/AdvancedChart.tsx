@@ -70,6 +70,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
+    const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
 
     const htmlContent = useMemo(
       () =>
@@ -240,10 +241,39 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // ---- Declarative prop syncing ----
 
     useEffect(() => {
-      if (ohlcvData.length > 0 && webViewLoaded) {
+      if (ohlcvData.length === 0 || !webViewLoaded) return;
+
+      const prevData = prevOhlcvDataRef.current;
+      
+      // If this is the first load or data length changed significantly, send full dataset
+      if (prevData.length === 0 || Math.abs(ohlcvData.length - prevData.length) > 1) {
+        console.log('[AdvancedChart] Sending full dataset:', ohlcvData.length, 'candles');
         sendOHLCVData(ohlcvData);
+        prevOhlcvDataRef.current = ohlcvData;
+        return;
       }
-    }, [ohlcvData, webViewLoaded, sendOHLCVData]);
+
+      // If only the last candle changed (polling update), use REALTIME_UPDATE instead
+      const lastCandle = ohlcvData[ohlcvData.length - 1];
+      const prevLastCandle = prevData[prevData.length - 1];
+      
+      if (lastCandle && prevLastCandle && 
+          (lastCandle.time !== prevLastCandle.time ||
+           lastCandle.close !== prevLastCandle.close ||
+           lastCandle.high !== prevLastCandle.high ||
+           lastCandle.low !== prevLastCandle.low ||
+           lastCandle.volume !== prevLastCandle.volume)) {
+        console.log('[AdvancedChart] Sending realtime update for last candle:', JSON.stringify(lastCandle));
+        postMessage({
+          type: 'REALTIME_UPDATE',
+          payload: { bar: lastCandle },
+        });
+        prevOhlcvDataRef.current = ohlcvData;
+        return;
+      }
+
+      prevOhlcvDataRef.current = ohlcvData;
+    }, [ohlcvData, webViewLoaded, sendOHLCVData, postMessage]);
 
     // Forward real-time bar updates to WebView
     useEffect(() => {

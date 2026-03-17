@@ -170,6 +170,16 @@ function handleSetOHLCVData(payload) {
     } else {
       try {
         window.chartWidget.activeChart().resetData();
+        // Re-apply axis line overrides after resetData (resetData can reset to defaults)
+        // Use setTimeout to ensure overrides apply after resetData completes
+        setTimeout(function() {
+          if (window.chartWidget && window.isChartReady) {
+            window.chartWidget.applyOverrides({
+              'scalesProperties.lineColor': '#444444',
+              'timeScale.borderColor': '#444444',
+            });
+          }
+        }, 0);
         createLastPriceLine();
       } catch (e) {
         // resetData can fail if chart is in a transitional state
@@ -361,7 +371,12 @@ function applySeriesColors() {
   if (!window.chartWidget) return;
   var color = window.CONFIG.theme.successColor;
   try {
-    window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
+    // Apply series color overrides AND axis line overrides
+    var overrides = Object.assign({}, getSeriesColorOverrides(color), {
+      'scalesProperties.lineColor': '#444444',
+      'timeScale.borderColor': '#444444',
+    });
+    window.chartWidget.applyOverrides(overrides);
     var series = window.chartWidget.activeChart().getSeries();
     series.setChartStyleProperties(2, {
       color: color,
@@ -381,6 +396,7 @@ function handleSetChartType(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
 
   var type = payload.type;
+  
   try {
     var ac = window.chartWidget.activeChart();
     ac.setChartType(type);
@@ -951,7 +967,9 @@ function initChart() {
           'paneProperties.vertGridProperties.color': 'transparent',
           'paneProperties.horzGridProperties.color': 'transparent',
           'scalesProperties.textColor': theme.textColor,
+          // Axis border lines: visible by default, hidden dynamically for line chart
           'scalesProperties.lineColor': '#444444',
+          'timeScale.borderColor': '#444444',
           'scalesProperties.fontSize': 11,
           'scalesProperties.showStudyLastValue': false, // Hides volume label
           'scalesProperties.showSeriesLastValue': false, // Hides open/close labels

@@ -102,6 +102,7 @@ export const useOHLCVChart = ({
   const cursorRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const isFetchingMoreRef = useRef(false);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadInitial = useCallback(async () => {
     if (!assetId || !enabled) return;
@@ -169,6 +170,87 @@ export const useOHLCVChart = ({
     loadInitial();
     return () => abortRef.current?.abort();
   }, [loadInitial]);
+
+  // Poll for real-time updates every 10 seconds
+  // TODO: Replace with WebSocket subscription when ready (see REALTIME_UPDATES_IMPLEMENTATION.md)
+  useEffect(() => {
+    if (!enabled || !assetId || isLoading) return;
+
+    const pollForUpdates = async () => {
+      try {
+        // Fetch a small window (1h) to get just the latest candle
+        // This minimizes data transfer while ensuring we get the current forming candle
+        const result = await fetchOHLCV(assetId, {
+          timePeriod: '1h',
+          interval,
+          vsCurrency,
+        });
+        console.log(
+          '[useOHLCVChart] Polling received',
+          result.data.length,
+          'candles',
+        );
+
+        if (result.data.length > 0) {
+          const latestCandle = mapCandle(result.data[result.data.length - 1]);
+          console.log(
+            '[useOHLCVChart] Latest candle from API:',
+            JSON.stringify(latestCandle),
+          );
+
+          setOhlcvData((prev) => {
+            if (prev.length === 0) {
+              console.log(
+                '[useOHLCVChart] No previous data, returning latest candle',
+              );
+              return [latestCandle];
+            }
+
+            const lastCandle = prev[prev.length - 1];
+            console.log(
+              '[useOHLCVChart] Last candle in state:',
+              JSON.stringify(lastCandle),
+            );
+
+            // If same candle (same opening time), update it (candle is still forming)
+            if (lastCandle.time === latestCandle.time) {
+              const hasChanged =
+                lastCandle.close !== latestCandle.close ||
+                lastCandle.high !== latestCandle.high ||
+                lastCandle.low !== latestCandle.low ||
+                lastCandle.volume !== latestCandle.volume;
+              console.log(
+                '[useOHLCVChart] ✓ Updating existing candle (same time). Data changed:',
+                hasChanged,
+              );
+              return [...prev.slice(0, -1), latestCandle];
+            }
+
+            // New candle — append it
+            console.log(
+              '[useOHLCVChart] ✓ Appending new candle (different time)',
+            );
+            return [...prev, latestCandle];
+          });
+        }
+      } catch (err) {
+        console.error('[useOHLCVChart] Polling update failed:', err);
+        // Don't set error state — keep showing existing data
+      }
+    };
+
+    // Poll immediately on mount, then every 10 seconds
+    pollForUpdates();
+    pollingIntervalRef.current = setInterval(pollForUpdates, 10000);
+
+    // Cleanup on unmount or dependency change
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [assetId, timePeriod, interval, vsCurrency, enabled, isLoading]);
 
   return { ohlcvData, isLoading, error, hasMore, fetchMoreHistory };
 };
