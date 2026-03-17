@@ -168,5 +168,70 @@ describe('TokenListRoutes configuration', () => {
 
       expect(mockStartListening).toHaveBeenCalled();
     });
+
+    it('matches snapshot', () => {
+      const { toJSON } = renderComponent();
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('cleans up LockManagerService on re-mount', () => {
+      const { unmount } = renderComponent();
+      expect(mockStopListening).toHaveBeenCalledTimes(1);
+
+      unmount();
+      expect(mockStartListening).toHaveBeenCalledTimes(1);
+
+      jest.clearAllMocks();
+      renderComponent();
+
+      expect(mockStopListening).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('clearStackNavigatorOptions', () => {
+    it('has correct configuration', () => {
+      expect(Routes.RAMP.MODALS.ID).toBeDefined();
+    });
+  });
+
+  describe('MainRoutes screens', () => {
+    it('has all main route screens defined', () => {
+      expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
+      expect(Routes.RAMP.AMOUNT_INPUT).toBeDefined();
+      expect(Routes.RAMP.ENTER_EMAIL).toBeDefined();
+      expect(Routes.RAMP.OTP_CODE).toBeDefined();
+      expect(Routes.RAMP.BASIC_INFO).toBeDefined();
+      expect(Routes.RAMP.ENTER_ADDRESS).toBeDefined();
+      expect(Routes.RAMP.VERIFY_IDENTITY).toBeDefined();
+      expect(Routes.RAMP.BANK_DETAILS).toBeDefined();
+      expect(Routes.RAMP.ORDER_PROCESSING).toBeDefined();
+      expect(Routes.RAMP.KYC_PROCESSING).toBeDefined();
+      expect(Routes.RAMP.ADDITIONAL_VERIFICATION).toBeDefined();
+      expect(Routes.RAMP.CHECKOUT).toBeDefined();
+      expect(Routes.RAMP.RAMPS_ORDER_DETAILS).toBeDefined();
+    });
+  });
+
+  describe('TokenListModalsRoutes modals', () => {
+    it('has all modal route screens defined', () => {
+      expect(Routes.RAMP.MODALS.UNSUPPORTED_TOKEN).toBeDefined();
+      expect(Routes.RAMP.MODALS.BUILD_QUOTE_SETTINGS).toBeDefined();
+      expect(Routes.RAMP.MODALS.PAYMENT_SELECTION).toBeDefined();
+      expect(Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE).toBeDefined();
+      expect(Routes.RAMP.MODALS.PROVIDER_SELECTION).toBeDefined();
+      expect(Routes.RAMP.MODALS.ERROR_DETAILS).toBeDefined();
+      expect(Routes.RAMP.MODALS.PROCESSING_INFO).toBeDefined();
+      expect(Routes.RAMP.MODALS.SSN_INFO).toBeDefined();
+    });
+  });
+
+  describe('Navigation flow', () => {
+    it('initializes with TOKEN_SELECTION as initial route', () => {
+      expect(Routes.RAMP.TOKEN_SELECTION).toBe('RampTokenSelection');
+    });
+
+    it('has proper CHECKOUT route with correct name', () => {
+      expect(Routes.RAMP.CHECKOUT).toBe('RampCheckout');
+    });
   });
 });

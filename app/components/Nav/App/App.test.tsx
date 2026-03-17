@@ -819,4 +819,349 @@ describe('App', () => {
       expect(Routes.SHEET.SELECT_SRP).toBeDefined();
     });
   });
+
+  describe('Flow navigators', () => {
+    it('has onboarding success flow screens defined', () => {
+      expect(Routes.ONBOARDING.SUCCESS).toBeDefined();
+      expect(Routes.ONBOARDING.DEFAULT_SETTINGS).toBeDefined();
+      expect(Routes.ONBOARDING.GENERAL_SETTINGS).toBeDefined();
+      expect(Routes.ONBOARDING.ASSETS_SETTINGS).toBeDefined();
+      expect(Routes.ONBOARDING.SECURITY_SETTINGS).toBeDefined();
+    });
+
+    it('has vault recovery flow screens defined', () => {
+      expect(Routes.VAULT_RECOVERY.RESTORE_WALLET).toBeDefined();
+      expect(Routes.VAULT_RECOVERY.WALLET_RESTORED).toBeDefined();
+      expect(Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED).toBeDefined();
+    });
+
+    it('has detected tokens flow screens defined', () => {
+      expect(Routes.SHEET.BASIC_FUNCTIONALITY).toBeDefined();
+    });
+
+    it('has multichain account group details screens defined', () => {
+      expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS).toBeDefined();
+      expect(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS).toBeDefined();
+    });
+
+    it('has multichain account details action screens defined', () => {
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+      ).toBeDefined();
+      expect(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
+      ).toBeDefined();
+    });
+  });
+
+  describe('Import flows', () => {
+    it('has import private key routes defined', () => {
+      expect(Routes.QR_TAB_SWITCHER).toBeDefined();
+    });
+
+    it('has import SRP routes defined', () => {
+      expect(Routes.MULTI_SRP.IMPORT).toBeDefined();
+    });
+
+    it('has connect QR hardware flow defined', () => {
+      expect(Routes.HW.CONNECT).toBeDefined();
+    });
+
+    it('has ledger connect flow defined', () => {
+      expect(Routes.HW.LEDGER_CONNECT).toBeDefined();
+    });
+  });
+
+  describe('Modal stacks', () => {
+    it('has root modal flow route defined', () => {
+      expect(Routes.MODAL.ROOT_MODAL_FLOW).toBeDefined();
+    });
+
+    it('has confirmation modal routes defined', () => {
+      expect(Routes.CONFIRMATION_REQUEST_MODAL).toBeDefined();
+      expect(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE).toBeDefined();
+      expect(Routes.CONFIRMATION_PAY_WITH_MODAL).toBeDefined();
+    });
+
+    it('has ledger modal routes defined', () => {
+      expect(Routes.LEDGER_TRANSACTION_MODAL).toBeDefined();
+      expect(Routes.LEDGER_MESSAGE_SIGN_MODAL).toBeDefined();
+    });
+
+    it('has QR signing modal route defined', () => {
+      expect(Routes.QR_SIGNING_TRANSACTION_MODAL).toBeDefined();
+    });
+  });
+
+  describe('Additional sheets and modals', () => {
+    it('has security badge bottom sheet route defined', () => {
+      expect(Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET).toBeDefined();
+    });
+
+    it('has more token actions menu route defined', () => {
+      expect(Routes.MODAL.MORE_TOKEN_ACTIONS_MENU).toBeDefined();
+    });
+
+    it('has fund action menu route defined', () => {
+      expect(Routes.MODAL.FUND_ACTION_MENU).toBeDefined();
+    });
+
+    it('has update needed modal route defined', () => {
+      expect(Routes.MODAL.UPDATE_NEEDED).toBeDefined();
+    });
+
+    it('has OTA updates modal route defined', () => {
+      expect(Routes.MODAL.OTA_UPDATES_MODAL).toBeDefined();
+    });
+  });
+
+  describe('Account management screens', () => {
+    it('has account selector route defined', () => {
+      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
+    });
+
+    it('has address selector route defined', () => {
+      expect(Routes.SHEET.ADDRESS_SELECTOR).toBeDefined();
+    });
+
+    it('has add account route defined', () => {
+      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
+    });
+
+    it('has account actions route defined', () => {
+      expect(Routes.SHEET.ACCOUNT_ACTIONS).toBeDefined();
+    });
+
+    it('has edit account name route defined', () => {
+      expect(Routes.EDIT_ACCOUNT_NAME).toBeDefined();
+    });
+
+    it('has network selector route defined', () => {
+      expect(Routes.SHEET.NETWORK_SELECTOR).toBeDefined();
+    });
+
+    it('has network manager route defined', () => {
+      expect(Routes.SHEET.NETWORK_MANAGER).toBeDefined();
+    });
+  });
+
+  describe('Permission screens', () => {
+    it('has account connect route defined', () => {
+      expect(Routes.SHEET.ACCOUNT_CONNECT).toBeDefined();
+    });
+
+    it('has account permissions route defined', () => {
+      expect(Routes.SHEET.ACCOUNT_PERMISSIONS).toBeDefined();
+    });
+
+    it('has connection details route defined', () => {
+      expect(Routes.SHEET.CONNECTION_DETAILS).toBeDefined();
+    });
+
+    it('has permitted networks info sheet route defined', () => {
+      expect(Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET).toBeDefined();
+    });
+  });
+
+  describe('SDK screens', () => {
+    it('has SDK loading route defined', () => {
+      expect(Routes.SHEET.SDK_LOADING).toBeDefined();
+    });
+
+    it('has SDK feedback route defined', () => {
+      expect(Routes.SHEET.SDK_FEEDBACK).toBeDefined();
+    });
+
+    it('has SDK manage connections route defined', () => {
+      expect(Routes.SHEET.SDK_MANAGE_CONNECTIONS).toBeDefined();
+    });
+
+    it('has SDK disconnect route defined', () => {
+      expect(Routes.SHEET.SDK_DISCONNECT).toBeDefined();
+    });
+
+    it('has SDK return to dapp notification route defined', () => {
+      expect(Routes.SDK.RETURN_TO_DAPP_NOTIFICATION).toBeDefined();
+    });
+  });
+
+  describe('Settings and preference screens', () => {
+    it('has basic functionality route defined', () => {
+      expect(Routes.SHEET.BASIC_FUNCTIONALITY).toBeDefined();
+    });
+
+    it('has confirm turn on backup and sync route defined', () => {
+      expect(Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC).toBeDefined();
+    });
+
+    it('has experience enhancer route defined', () => {
+      expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
+    });
+
+    it('has data collection route defined', () => {
+      expect(Routes.SHEET.DATA_COLLECTION).toBeDefined();
+    });
+
+    it('has fiat on testnets friction route defined', () => {
+      expect(Routes.SHEET.FIAT_ON_TESTNETS_FRICTION).toBeDefined();
+    });
+  });
+
+  describe('NFT and token screens', () => {
+    it('has show IPFS route defined', () => {
+      expect(Routes.SHEET.SHOW_IPFS).toBeDefined();
+    });
+
+    it('has show NFT display media route defined', () => {
+      expect(Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA).toBeDefined();
+    });
+
+    it('has NFT auto detection modal route defined', () => {
+      expect(Routes.MODAL.NFT_AUTO_DETECTION_MODAL).toBeDefined();
+    });
+
+    it('has show token ID route defined', () => {
+      expect(Routes.SHEET.SHOW_TOKEN_ID).toBeDefined();
+    });
+
+    it('has token sort route defined', () => {
+      expect(Routes.SHEET.TOKEN_SORT).toBeDefined();
+    });
+  });
+
+  describe('Security screens', () => {
+    it('has SRP reveal quiz route defined', () => {
+      expect(Routes.MODAL.SRP_REVEAL_QUIZ).toBeDefined();
+    });
+
+    it('has turn off remember me route defined', () => {
+      expect(Routes.MODAL.TURN_OFF_REMEMBER_ME).toBeDefined();
+    });
+
+    it('has seedphrase modal route defined', () => {
+      expect(Routes.SHEET.SEEDPHRASE_MODAL).toBeDefined();
+    });
+
+    it('has skip account security modal route defined', () => {
+      expect(Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL).toBeDefined();
+    });
+
+    it('has reveal private credential route defined', () => {
+      expect(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL).toBeDefined();
+    });
+  });
+
+  describe('Notification and alert screens', () => {
+    it('has origin spam modal route defined', () => {
+      expect(Routes.SHEET.ORIGIN_SPAM_MODAL).toBeDefined();
+    });
+
+    it('has change in simulation modal route defined', () => {
+      expect(Routes.SHEET.CHANGE_IN_SIMULATION_MODAL).toBeDefined();
+    });
+
+    it('has ambiguous address route defined', () => {
+      expect(Routes.SHEET.AMBIGUOUS_ADDRESS).toBeDefined();
+    });
+
+    it('has tooltip modal route defined', () => {
+      expect(Routes.SHEET.TOOLTIP_MODAL).toBeDefined();
+    });
+
+    it('has whats new route defined', () => {
+      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
+    });
+  });
+
+  describe('Multichain introduction screens', () => {
+    it('has multichain accounts intro route defined', () => {
+      expect(Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO).toBeDefined();
+    });
+
+    it('has multichain accounts learn more route defined', () => {
+      expect(Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE).toBeDefined();
+    });
+
+    it('has PNA25 notice bottom sheet route defined', () => {
+      expect(Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET).toBeDefined();
+    });
+  });
+
+  describe('Transaction screens', () => {
+    it('has multichain transaction details route defined', () => {
+      expect(Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS).toBeDefined();
+    });
+
+    it('has transaction details route defined', () => {
+      expect(Routes.SHEET.TRANSACTION_DETAILS).toBeDefined();
+    });
+  });
+
+  describe('Ramp screens', () => {
+    it('has eligibility failed modal route defined', () => {
+      expect(Routes.SHEET.ELIGIBILITY_FAILED_MODAL).toBeDefined();
+    });
+
+    it('has unsupported region modal route defined', () => {
+      expect(Routes.SHEET.UNSUPPORTED_REGION_MODAL).toBeDefined();
+    });
+  });
+
+  describe('Wallet action screens', () => {
+    it('has wallet actions route defined', () => {
+      expect(Routes.MODAL.WALLET_ACTIONS).toBeDefined();
+    });
+
+    it('has trade wallet actions route defined', () => {
+      expect(Routes.MODAL.TRADE_WALLET_ACTIONS).toBeDefined();
+    });
+
+    it('has delete wallet route defined', () => {
+      expect(Routes.MODAL.DELETE_WALLET).toBeDefined();
+    });
+  });
+
+  describe('Card screens', () => {
+    it('has card notification route defined', () => {
+      expect(Routes.CARD.NOTIFICATION).toBeDefined();
+    });
+  });
+
+  describe('Deep link screens', () => {
+    it('has deep link modal route defined', () => {
+      expect(Routes.MODAL.DEEP_LINK_MODAL).toBeDefined();
+    });
+  });
+
+  describe('Options screens', () => {
+    it('has options sheet route defined', () => {
+      expect(Routes.OPTIONS_SHEET).toBeDefined();
+    });
+  });
+
+  describe('Browser tabs', () => {
+    it('has max browser tabs modal route defined', () => {
+      expect(Routes.MODAL.MAX_BROWSER_TABS_MODAL).toBeDefined();
+    });
+  });
+
+  describe('Network screens', () => {
+    it('has add network route defined', () => {
+      expect(Routes.ADD_NETWORK).toBeDefined();
+    });
+
+    it('has edit network route defined', () => {
+      expect(Routes.EDIT_NETWORK).toBeDefined();
+    });
+
+    it('has multi RPC migration modal route defined', () => {
+      expect(Routes.MODAL.MULTI_RPC_MIGRATION_MODAL).toBeDefined();
+    });
+  });
 });

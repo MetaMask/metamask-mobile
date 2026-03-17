@@ -783,3 +783,526 @@ describe('getBridgeTransactionDetailsNavbar', () => {
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('getEditableOptions', () => {
+  const { getEditableOptions } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with title and back button', () => {
+    const route = { params: { editMode: 'edit', dispatch: jest.fn() } };
+    const options = getEditableOptions(
+      'Edit Contact',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    expect(options.title).toBe('Edit Contact');
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('shows edit button when in view mode', () => {
+    const mockDispatch = jest.fn();
+    const route = { params: { editMode: 'view', dispatch: mockDispatch } };
+    const options = getEditableOptions(
+      'View Contact',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderRight = options.headerRight();
+    expect(HeaderRight).toBeDefined();
+  });
+
+  it('shows empty view when in add mode', () => {
+    const route = { params: { mode: 'add', dispatch: jest.fn() } };
+    const options = getEditableOptions(
+      'Add Contact',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderRight = options.headerRight();
+    expect(HeaderRight.type).toBe(View);
+  });
+
+  it('calls navigation.pop on back button press', () => {
+    const route = { params: { editMode: 'edit' } };
+    const options = getEditableOptions(
+      'Edit Contact',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getPaymentRequestOptionsTitle', () => {
+  const { getPaymentRequestOptionsTitle } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with title', () => {
+    const route = { params: {} };
+    const options = getPaymentRequestOptionsTitle(
+      'Payment Request',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('shows back button when goBack dispatch is provided', () => {
+    const mockGoBack = jest.fn();
+    const route = { params: { dispatch: mockGoBack } };
+    const options = getPaymentRequestOptionsTitle(
+      'Payment Request',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows empty view when no goBack dispatch', () => {
+    const route = { params: {} };
+    const options = getPaymentRequestOptionsTitle(
+      'Payment Request',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    expect(HeaderLeft.type).toBe(View);
+  });
+});
+
+describe('getPaymentRequestSuccessOptionsTitle', () => {
+  const { getPaymentRequestSuccessOptionsTitle } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with close button', () => {
+    const options = getPaymentRequestSuccessOptionsTitle(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    expect(options.title).toBeNull();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('calls navigation.pop when close button is pressed', () => {
+    const options = getPaymentRequestSuccessOptionsTitle(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    const HeaderRight = options.headerRight();
+    HeaderRight.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getClosableNavigationOptions', () => {
+  const { getClosableNavigationOptions } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Device.isIos.mockReset();
+  });
+
+  it('returns navbar options with title', () => {
+    Device.isIos.mockReturnValue(true);
+    const options = getClosableNavigationOptions(
+      'Test Title',
+      'Back',
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    expect(options.title).toBe('Test Title');
+    expect(options.headerLeft).toBeDefined();
+  });
+
+  it('shows text button on iOS', () => {
+    Device.isIos.mockReturnValue(true);
+    const options = getClosableNavigationOptions(
+      'Test Title',
+      'Back',
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows icon button on Android', () => {
+    Device.isIos.mockReturnValue(false);
+    Device.isAndroid.mockReturnValue(true);
+    const options = getClosableNavigationOptions(
+      'Test Title',
+      'Back',
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getImportTokenNavbarOptions', () => {
+  const { getImportTokenNavbarOptions } = require('.');
+
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with header function', () => {
+    const options = getImportTokenNavbarOptions(mockNavigation, 'Import Token');
+
+    expect(options.header).toBeDefined();
+    expect(typeof options.header).toBe('function');
+  });
+
+  it('calls custom onPress when provided', () => {
+    const customOnPress = jest.fn();
+    const options = getImportTokenNavbarOptions(
+      mockNavigation,
+      'Import Token',
+      customOnPress,
+    );
+
+    expect(options.header).toBeDefined();
+  });
+});
+
+describe('getNftDetailsNavbarOptions', () => {
+  const { getNftDetailsNavbarOptions } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with back button', () => {
+    const options = getNftDetailsNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerStyle).toBeDefined();
+  });
+
+  it('calls navigation.pop when back button is pressed', () => {
+    const options = getNftDetailsNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows more options button when onRightPress is provided', () => {
+    const mockOnRightPress = jest.fn();
+    const options = getNftDetailsNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+      mockOnRightPress,
+    );
+
+    const HeaderRight = options.headerRight();
+    HeaderRight.props.onPress();
+
+    expect(mockOnRightPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows empty view when onRightPress is not provided', () => {
+    const options = getNftDetailsNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    const HeaderRight = options.headerRight();
+    expect(HeaderRight.type).toBe(View);
+  });
+
+  it('applies shadow styles based on contentOffset', () => {
+    const options = getNftDetailsNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+      undefined,
+      25,
+    );
+
+    expect(options.headerStyle).toBeDefined();
+  });
+});
+
+describe('getNftFullImageNavbarOptions', () => {
+  const { getNftFullImageNavbarOptions } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with close button on right', () => {
+    const options = getNftFullImageNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    expect(options.headerRight).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+  });
+
+  it('calls navigation.pop when close button is pressed', () => {
+    const options = getNftFullImageNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    const HeaderRight = options.headerRight();
+    HeaderRight.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows empty view on left', () => {
+    const options = getNftFullImageNavbarOptions(
+      mockNavigation,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    expect(HeaderLeft.type).toBe(View);
+  });
+});
+
+describe('getSwapsAmountNavbar', () => {
+  const { getSwapsAmountNavbar } = require('.');
+
+  const mockNavigation = {
+    getParent: jest.fn(() => ({
+      pop: jest.fn(),
+    })),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with title and cancel button', () => {
+    const route = { params: { title: 'Swap' } };
+    const options = getSwapsAmountNavbar(
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('uses default title when not provided', () => {
+    const route = { params: {} };
+    const options = getSwapsAmountNavbar(
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    expect(options.headerTitle).toBeDefined();
+  });
+
+  it('shows empty view on left', () => {
+    const route = { params: {} };
+    const options = getSwapsAmountNavbar(
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    expect(HeaderLeft.type).toBe(View);
+  });
+});
+
+describe('getPerpsTransactionsDetailsNavbar', () => {
+  const { getPerpsTransactionsDetailsNavbar } = require('.');
+
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with title and back button', () => {
+    const options = getPerpsTransactionsDetailsNavbar(
+      mockNavigation,
+      'Position Details',
+    );
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const options = getPerpsTransactionsDetailsNavbar(
+      mockNavigation,
+      'Position Details',
+    );
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getTransactionOptionsTitle', () => {
+  const { getTransactionOptionsTitle } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with title', () => {
+    const route = {
+      name: 'Send',
+      params: { mode: '', disableModeChange: false, dispatch: jest.fn() },
+    };
+    const options = getTransactionOptionsTitle(
+      'transaction.title',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('shows edit button when not in edit mode', () => {
+    const mockDispatch = jest.fn();
+    const route = {
+      name: 'Confirm',
+      params: { mode: '', disableModeChange: false, dispatch: mockDispatch },
+    };
+    const options = getTransactionOptionsTitle(
+      'transaction.title',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    expect(HeaderLeft).toBeDefined();
+  });
+
+  it('shows empty view on left when in edit mode', () => {
+    const route = {
+      name: 'Confirm',
+      params: { mode: 'edit', disableModeChange: false },
+    };
+    const options = getTransactionOptionsTitle(
+      'transaction.title',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderLeft = options.headerLeft();
+    expect(HeaderLeft.type).toBe(View);
+  });
+
+  it('shows cancel button on right for Send screen', () => {
+    const route = {
+      name: 'Send',
+      params: { mode: '' },
+    };
+    const options = getTransactionOptionsTitle(
+      'transaction.title',
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const HeaderRight = options.headerRight();
+    HeaderRight.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});

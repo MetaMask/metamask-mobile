@@ -375,4 +375,94 @@ describe('ProtectWalletMandatoryModal', () => {
       expect(getByTestId('modal-container')).toBeTruthy();
     });
   });
+
+  it('shows modal when password not set and user has no funds', async () => {
+    mockHasFunds.mockReturnValue(false);
+    const store = createMockStore(false, false);
+
+    const { getByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('modal-container')).toBeTruthy();
+    });
+  });
+
+  it('does not show modal when on AccountBackupStep1 route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'AccountBackupStep1' }],
+    });
+
+    const store = createMockStore(false, false);
+
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('does not show modal when on LockScreen route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'LockScreen' }],
+    });
+
+    const store = createMockStore(false, false);
+
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('displays correct title text', async () => {
+    const store = createMockStore(false, false);
+
+    const { getByText } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(getByText('Protect your wallet')).toBeTruthy();
+    });
+  });
+
+  it('re-evaluates modal visibility when token balance changes', async () => {
+    mockHasFunds.mockReturnValue(false);
+    const store = createMockStore(true, false);
+
+    const { queryByTestId, rerender } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+
+    mockHasFunds.mockReturnValue(true);
+    const storeWithFunds = createMockStore(true, false);
+
+    rerender(
+      <ThemeContext.Provider value={mockTheme}>
+        <Provider store={storeWithFunds}>
+          <ProtectWalletMandatoryModal />
+        </Provider>
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeTruthy();
+    });
+  });
 });
