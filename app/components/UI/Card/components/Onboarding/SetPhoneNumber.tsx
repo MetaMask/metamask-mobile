@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -17,27 +23,23 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectSelectedCountry,
   selectUserCardLocation,
-  setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
-import { CardError } from '../../types';
+import { CardError, Region } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
-  Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { useCardSDK } from '../../sdk';
 import SelectField from './SelectField';
 
 const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
@@ -46,66 +48,38 @@ const SetPhoneNumber = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
-  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { data: registrationSettings } = useRegistrationSettings();
-  const { user } = useCardSDK();
+  const { signUpRegions, userCountry, getRegionByCode } = useRegions();
   const userCardLocation = useSelector(selectUserCardLocation);
-
-  const regions: Region[] = useMemo(() => {
-    if (!registrationSettings?.countries) {
-      return [];
-    }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .filter((country) => country.canSignUp)
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        name: country.name,
-        emoji: countryCodeToFlag(country.iso3166alpha2),
-        areaCode: country.callingCode,
-      }));
-  }, [registrationSettings]);
-
-  const selectedCountry = useMemo(
-    () =>
-      initialSelectedCountry ||
-      regions.find((region) => region.key === user?.countryOfResidence),
-    [initialSelectedCountry, regions, user?.countryOfResidence],
-  );
-
-  useEffect(() => {
-    if (!initialSelectedCountry && selectedCountry) {
-      dispatch(setSelectedCountry(selectedCountry));
-    }
-  }, [selectedCountry, dispatch, initialSelectedCountry]);
-
+  const { countryKey } = useParams<{ countryKey?: string }>();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [isUsPhoneNumberError, setIsUsPhoneNumberError] = useState(false);
-  const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
-    useState<string>(selectedCountry?.areaCode || '');
-  const [selectedCountryEmoji, setSelectedCountryEmoji] = useState<string>(
-    selectedCountry?.emoji || '',
+  const [selectedCountry, setSelectedCountry] = useState<Region | null>(
+    () => getRegionByCode(countryKey) ?? userCountry ?? null,
   );
-
+  const hasAutoSelected = useRef(selectedCountry !== null);
   const isUsUser = userCardLocation === 'us';
 
   // For US users, only show US in the region selector
   const availableRegions = useMemo(() => {
     if (isUsUser) {
-      return regions.filter((region) => region.key === 'US');
+      return signUpRegions.filter((region) => region.key === 'US');
     }
-    return regions;
-  }, [regions, isUsUser]);
+    return signUpRegions;
+  }, [signUpRegions, isUsUser]);
 
-  // Sync local state when selectedCountry changes (e.g., after regions load)
+  // Sync local state once when registration settings first become available
+  // (cache miss on first render). Preserves countryKey nav param priority over
+  // userCountry, mirroring the lazy initializer's resolution order.
   useEffect(() => {
-    if (selectedCountry) {
-      setSelectedCountryAreaCode(selectedCountry.areaCode || '');
-      setSelectedCountryEmoji(selectedCountry.emoji || '');
+    if (hasAutoSelected.current) return;
+    const country = getRegionByCode(countryKey) ?? userCountry ?? null;
+    if (country) {
+      hasAutoSelected.current = true;
+      setSelectedCountry(country);
     }
-  }, [selectedCountry]);
+  }, [userCountry, getRegionByCode, countryKey]);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const {
@@ -127,7 +101,8 @@ const SetPhoneNumber = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleContinue = async () => {
-    if (!phoneNumber || !selectedCountryAreaCode || !contactVerificationId) {
+    const areaCode = selectedCountry?.areaCode;
+    if (!phoneNumber || !areaCode || !contactVerificationId) {
       return;
     }
 
@@ -148,19 +123,19 @@ const SetPhoneNumber = () => {
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
             action: CardActions.SET_PHONE_NUMBER_BUTTON,
-            phone_number_country_code: selectedCountryAreaCode,
+            phone_number_country_code: areaCode,
           })
           .build(),
       );
       const { success } = await sendPhoneVerification({
-        phoneCountryCode: selectedCountryAreaCode,
+        phoneCountryCode: areaCode,
         phoneNumber,
         contactVerificationId,
       });
 
       if (success) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
-          phoneCountryCode: selectedCountryAreaCode,
+          phoneCountryCode: areaCode,
           phoneNumber,
         });
       }
@@ -181,17 +156,23 @@ const SetPhoneNumber = () => {
     setIsUsPhoneNumberError(false);
 
     setOnValueChange((region) => {
-      setSelectedCountryAreaCode(region.areaCode || '');
-      setSelectedCountryEmoji(region.emoji || '');
+      hasAutoSelected.current = true;
+      setSelectedCountry(region);
     });
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
         regions: availableRegions,
         renderAreaCode: true,
+        selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
-  }, [navigation, availableRegions, resetPhoneVerificationSend]);
+  }, [
+    navigation,
+    availableRegions,
+    selectedCountry?.key,
+    resetPhoneVerificationSend,
+  ]);
 
   const handlePhoneNumberChange = (text: string) => {
     resetPhoneVerificationSend();
@@ -228,7 +209,7 @@ const SetPhoneNumber = () => {
 
     return (
       !phoneNumber ||
-      !selectedCountryAreaCode ||
+      !selectedCountry?.areaCode ||
       !contactVerificationId ||
       !isCurrentPhoneNumberValid ||
       !isUsPhoneValid ||
@@ -237,7 +218,7 @@ const SetPhoneNumber = () => {
     );
   }, [
     phoneNumber,
-    selectedCountryAreaCode,
+    selectedCountry?.areaCode,
     contactVerificationId,
     phoneVerificationIsLoading,
     phoneVerificationIsError,
@@ -255,7 +236,7 @@ const SetPhoneNumber = () => {
       <Box twClassName="flex flex-row items-center justify-center gap-2">
         <Box twClassName="w-26">
           <SelectField
-            value={`${selectedCountryEmoji} +${selectedCountryAreaCode}`}
+            value={`${selectedCountry?.emoji ?? ''} +${selectedCountry?.areaCode ?? ''}`}
             onPress={handleCountrySelect}
             hideIcon
             testID="set-phone-number-country-area-code-select"
