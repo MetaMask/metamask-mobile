@@ -1,9 +1,9 @@
 import {
   MIN_CLAIMABLE_BONUS_USD,
   isClaimableBonusAboveThreshold,
-} from './merklClaimableThreshold';
+} from './MerklRewards.utils';
 
-describe('merklClaimableThreshold', () => {
+describe('MerklRewards.utils', () => {
   describe('MIN_CLAIMABLE_BONUS_USD', () => {
     it('is 0.01', () => {
       expect(MIN_CLAIMABLE_BONUS_USD).toBe(0.01);

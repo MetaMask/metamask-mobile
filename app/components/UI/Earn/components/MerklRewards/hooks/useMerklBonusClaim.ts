@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../../Tokens/types';
-import { isClaimableBonusAboveThreshold } from './merklClaimableThreshold';
+import { isClaimableBonusAboveThreshold } from '../MerklRewards.utils';
 import {
   useMerklRewards,
   isTokenEligibleForMerklRewards,
