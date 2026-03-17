@@ -85,7 +85,7 @@ describe('WhatsHappeningSection', () => {
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
       screen.getByTestId('homepage-whats-happening-carousel'),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('renders item cards when data is available', () => {
@@ -98,8 +98,8 @@ describe('WhatsHappeningSection', () => {
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
       screen.getByTestId('homepage-whats-happening-carousel'),
-    ).toBeTruthy();
-    expect(screen.getByText(mockItem.title)).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
   });
 
   it('renders error state when fetch fails', () => {
@@ -113,7 +113,7 @@ describe('WhatsHappeningSection', () => {
     expect(
       screen.queryByTestId('homepage-whats-happening-carousel'),
     ).toBeNull();
-    expect(screen.getByText(/unable to load/i)).toBeTruthy();
+    expect(screen.getByText(/unable to load/i)).toBeOnTheScreen();
   });
 
   it('calls refresh when error retry button is pressed', () => {
