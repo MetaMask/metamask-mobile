@@ -11,6 +11,6 @@ export const selectWhatsHappeningEnabled = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.aiSocialWhatsHappeningEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
