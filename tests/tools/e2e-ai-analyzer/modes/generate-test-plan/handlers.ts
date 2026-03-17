@@ -38,6 +38,7 @@ function extractFeatureAreaFromMessage(message: string): string | null {
  * Human-friendly feature area names mapping
  */
 const FEATURE_AREA_DISPLAY_NAMES: Record<string, string> = {
+  // Tag names (PascalCase)
   SmokeAccounts: 'Accounts',
   SmokeConfirmations: 'Confirmations (Transactions/Signatures)',
   SmokeIdentity: 'Identity (Profile Sync)',
@@ -51,6 +52,20 @@ const FEATURE_AREA_DISPLAY_NAMES: Record<string, string> = {
   SmokeMultiChainAPI: 'Multi-Chain API (CAIP-25)',
   SmokePredictions: 'Predictions (Polymarket)',
   FlaskBuildTests: 'Snaps (Flask)',
+  // Commit scope names (lowercase from conventional commits)
+  card: 'Card',
+  perps: 'Perps',
+  ramps: 'Buy/Sell (Ramps)',
+  trade: 'Trade (Swap/Bridge)',
+  swap: 'Trade (Swap/Bridge)',
+  bridge: 'Trade (Swap/Bridge)',
+  accounts: 'Accounts',
+  confirmations: 'Confirmations (Transactions/Signatures)',
+  identity: 'Identity (Profile Sync)',
+  networks: 'Networks',
+  snaps: 'Snaps (Flask)',
+  notifications: 'Notifications',
+  wallet: 'Wallet Platform (Navigation/Core)',
 };
 
 /**
