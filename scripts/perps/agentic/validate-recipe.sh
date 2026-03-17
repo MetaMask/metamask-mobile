@@ -161,8 +161,14 @@ while IFS= read -r sj; do
   case "$ACT" in
     navigate)
       TARGET=$(node -p "JSON.parse(process.argv[1]).target||''" "$sj")
-      echo "  -> app-navigate.sh --no-screenshot $TARGET"
-      [ "$DRY" = false ] && bash "$SD/app-navigate.sh" --no-screenshot "$TARGET" >/dev/null 2>&1
+      PARAMS=$(node -p "const p=JSON.parse(process.argv[1]).params;p?JSON.stringify(p):''" "$sj")
+      if [ -n "$PARAMS" ]; then
+        echo "  -> app-navigate.sh --no-screenshot $TARGET '<params>'"
+        [ "$DRY" = false ] && bash "$SD/app-navigate.sh" --no-screenshot "$TARGET" "$PARAMS" >/dev/null 2>&1
+      else
+        echo "  -> app-navigate.sh --no-screenshot $TARGET"
+        [ "$DRY" = false ] && bash "$SD/app-navigate.sh" --no-screenshot "$TARGET" >/dev/null 2>&1
+      fi
       ;;
     eval_sync)
       EXPR=$(node -p "JSON.parse(process.argv[1]).expression||''" "$sj")

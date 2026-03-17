@@ -397,7 +397,7 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
 const NESTED_ROUTE_PARENTS = {
   // Perps
   PerpsMarketListView: 'Perps', PerpsMarketDetails: 'Perps', PerpsPositions: 'Perps',
-  PerpsTrendingView: 'Perps', PerpsWithdraw: 'Perps', PerpsTutorial: 'Perps',
+  PerpsTrendingView: 'Perps', PerpsWithdraw: 'Perps', PerpsTutorial: 'Perps', PerpsOrderRedirect: 'Perps',
   PerpsClosePosition: 'Perps', PerpsTPSL: 'Perps', PerpsAdjustMargin: 'Perps',
   PerpsOrderDetailsView: 'Perps', PerpsActivity: 'Perps', PerpsOrderBook: 'Perps',
   PerpsPnlHeroCard: 'Perps', PerpsHIP3Debug: 'Perps',
