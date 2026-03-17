@@ -111,6 +111,7 @@ function makeFiber(
   return {
     child: null,
     sibling: null,
+    return: null,
     memoizedProps: testID || onPress ? { testID, onPress } : null,
     stateNode: null,
     ...rest,
