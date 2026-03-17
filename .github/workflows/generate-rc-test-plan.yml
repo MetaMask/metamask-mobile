@@ -84,10 +84,11 @@ jobs:
         with:
           script: |
             const comment = context.payload.comment.body;
-            // Match build number from "build 4025" or "(4025)"
-            const buildMatch = comment.match(/build\s+(\d+)|[(\s](\d{4,})[)\s]/i);
+            // Match build number from "RC X.Y.Z (BUILD)" pattern specifically
+            // e.g., "RC 7.65.0 (4025)" captures "4025"
+            const buildMatch = comment.match(/RC\s+\d+\.\d+\.\d+\s*\((\d+)\)/i);
             if (buildMatch) {
-              const buildNumber = buildMatch[1] || buildMatch[2];
+              const buildNumber = buildMatch[1];
               console.log(`Extracted build number: ${buildNumber}`);
               core.setOutput('build_number', buildNumber);
             } else {
@@ -106,10 +107,13 @@ jobs:
 
           echo "Generating test plan for version: $VERSION, build: $BUILD"
 
+          # Sanitize PR_NUMBER to only allow digits
+          PR_NUM=$(echo "${{ env.PR_NUMBER }}" | tr -cd '0-9')
+
           # Run the analyzer
           if node -r esbuild-register tests/tools/e2e-ai-analyzer \
             --mode generate-test-plan \
-            --pr ${{ env.PR_NUMBER }} \
+            --pr "$PR_NUM" \
             --auto-ff \
             -v "$VERSION"; then
 
