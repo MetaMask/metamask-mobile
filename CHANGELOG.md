@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed root pages scrollable behavior with SafeAreaView, standardizing safe area and header inset handling across main tab views (#27446)
+- Fixed token prices in the wallet list displaying without thousand-separator commas and with too many decimal places (#27485)
 
 ## [7.69.0]
 
