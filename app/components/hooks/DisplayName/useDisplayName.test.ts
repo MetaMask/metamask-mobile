@@ -6,7 +6,6 @@ import useDisplayName, {
   TrustSignalDisplayState,
 } from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
-import { useERC20Tokens } from './useERC20Tokens';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
@@ -19,7 +18,6 @@ const KNOWN_NFT_ADDRESS_CHECKSUMMED =
   '0x495f947276749Ce646f68AC8c248420045cb7b5e';
 const KNOWN_NFT_NAME_MOCK = 'Known NFT';
 const KNOWN_FIRST_PARTY_CONTRACT_NAME = 'Pool Staking';
-const KNOWN_TOKEN_LIST_NAME = 'Known Token List';
 const KNOWN_ACCOUNT_NAME = 'Account 1';
 const KNOWN_ACCOUNT_WALLET_NAME = 'Account Wallet 1';
 
@@ -29,10 +27,6 @@ jest.mock('./useWatchedNFTNames', () => ({
 
 jest.mock('./useFirstPartyContractNames', () => ({
   useFirstPartyContractNames: jest.fn(),
-}));
-
-jest.mock('./useERC20Tokens', () => ({
-  useERC20Tokens: jest.fn(),
 }));
 
 jest.mock('./useAccountNames', () => ({
@@ -61,7 +55,6 @@ describe('useDisplayName', () => {
   const mockUseFirstPartyContractNames = jest.mocked(
     useFirstPartyContractNames,
   );
-  const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
   const mockUseAccountNames = jest.mocked(useAccountNames);
   const mockUseAccountWalletNames = jest.mocked(useAccountWalletNames);
   const mockUseSendFlowEnsResolutions = jest.mocked(useSendFlowEnsResolutions);
@@ -72,7 +65,6 @@ describe('useDisplayName', () => {
     jest.resetAllMocks();
     mockUseWatchedNFTNames.mockReturnValue([]);
     mockUseFirstPartyContractNames.mockReturnValue([]);
-    mockUseERC20Tokens.mockReturnValue([]);
     mockUseAccountNames.mockReturnValue([]);
     mockUseAccountWalletNames.mockReturnValue([]);
     mockUseSendFlowEnsResolutions.mockReturnValue({
@@ -93,8 +85,6 @@ describe('useDisplayName', () => {
 
       expect(displayName).toEqual({
         variant: DisplayNameVariant.Unknown,
-        contractDisplayName: undefined,
-        image: undefined,
         isFirstPartyContractName: false,
         name: undefined,
         displayState: TrustSignalDisplayState.Unknown,
@@ -120,8 +110,6 @@ describe('useDisplayName', () => {
       expect(displayName).toEqual({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_FIRST_PARTY_CONTRACT_NAME,
-        contractDisplayName: undefined,
-        image: undefined,
         isFirstPartyContractName: true,
         displayState: TrustSignalDisplayState.Recognized,
         icon: null,
@@ -151,42 +139,12 @@ describe('useDisplayName', () => {
       expect(displayName).toEqual({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NFT_NAME_MOCK,
-        contractDisplayName: undefined,
-        image: undefined,
         isFirstPartyContractName: false,
         displayState: TrustSignalDisplayState.Recognized,
         icon: null,
         isAccount: false,
         subtitle: undefined,
       });
-    });
-
-    it('returns ERC20 token name', () => {
-      mockUseERC20Tokens.mockReturnValue([
-        { name: KNOWN_TOKEN_LIST_NAME, image: '' },
-      ]);
-
-      const displayName = useDisplayName({
-        type: NameType.EthereumAddress,
-        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
-        variation: CHAIN_IDS.MAINNET,
-      });
-
-      expect(mockUseFirstPartyContractNames).toHaveBeenCalledWith([
-        {
-          value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
-          variation: CHAIN_IDS.MAINNET,
-          type: NameType.EthereumAddress,
-          preferContractSymbol: undefined,
-        },
-      ]);
-
-      expect(displayName).toEqual(
-        expect.objectContaining({
-          variant: DisplayNameVariant.Recognized,
-          name: KNOWN_TOKEN_LIST_NAME,
-        }),
-      );
     });
 
     it('returns internal account name', () => {

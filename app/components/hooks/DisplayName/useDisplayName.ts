@@ -1,7 +1,6 @@
 import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
-import { useERC20Tokens } from './useERC20Tokens';
 import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
 import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
@@ -140,7 +139,6 @@ export function useDisplayNames(
 ): UseDisplayNameResponse[] {
   const firstPartyContractNames = useFirstPartyContractNames(requests);
   const watchedNftNames = useWatchedNFTNames(requests);
-  const erc20Tokens = useERC20Tokens(requests);
   const accountNames = useAccountNames(requests);
   const accountWalletNames = useAccountWalletNames(requests);
   const { getResolvedENSName } = useSendFlowEnsResolutions();
@@ -154,7 +152,6 @@ export function useDisplayNames(
   return requests.map(({ value, variation }, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
-    const erc20Token = erc20Tokens[index];
     const accountName = accountNames[index];
     const subtitle = accountWalletNames[index];
     const ensName = getResolvedENSName(variation, value);
@@ -165,7 +162,7 @@ export function useDisplayNames(
       ensName ||
       firstPartyContractName ||
       watchedNftName ||
-      erc20Token?.name;
+      undefined;
 
     const hasPetname = Boolean(accountName);
 
@@ -180,16 +177,12 @@ export function useDisplayNames(
       name = trustSignal.label;
     }
 
-    const image = erc20Token?.image;
-
     const isFirstPartyContractName =
       firstPartyContractName !== undefined && firstPartyContractName !== null;
 
     const icon = getTrustSignalIcon(displayState);
 
     return {
-      contractDisplayName: erc20Token?.name,
-      image,
       isFirstPartyContractName,
       name,
       subtitle,
