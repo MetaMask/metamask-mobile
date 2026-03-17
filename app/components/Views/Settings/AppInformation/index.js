@@ -245,6 +245,12 @@ class AppInformation extends PureComponent {
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
                 </Text>
                 <Text style={styles.branchInfo}>
+                  {`Rewards API URL: ${process.env.REWARDS_API_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
                 </Text>
                 {isOTAUpdatesEnabled && (

@@ -112,6 +112,29 @@ describe('useNetworkForm', () => {
       expect(result.current.form.rpcUrl).toBe(
         'https://mainnet.infura.io/v3/key',
       );
+      // Built-in network (mainnet) is not editable regardless of entry point
+      expect(result.current.form.editable).toBe(false);
+    });
+
+    it('sets editable true when opened by RPC URL for non-built-in network', () => {
+      const customConfigs = {
+        '0x89': {
+          chainId: '0x89',
+          name: 'Polygon',
+          nativeCurrency: 'MATIC',
+          rpcEndpoints: [{ url: 'https://polygon-rpc.com', type: 'custom' }],
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+        },
+      };
+      mockUseSelector.mockReturnValue(customConfigs);
+
+      const { result } = renderHook(() =>
+        useNetworkForm({ network: 'https://polygon-rpc.com' }),
+      );
+
+      expect(result.current.form.addMode).toBe(false);
+      expect(result.current.form.nickname).toBe('Polygon');
       expect(result.current.form.editable).toBe(true);
     });
   });

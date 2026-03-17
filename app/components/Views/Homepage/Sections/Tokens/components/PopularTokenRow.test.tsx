@@ -7,6 +7,7 @@ import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/con
 
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
+const mockTrackBuyButtonClicked = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -21,6 +22,12 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
+  }),
+}));
+
+jest.mock('../hooks', () => ({
+  useRampsButtonClickedEvent: () => ({
+    trackBuyButtonClicked: mockTrackBuyButtonClicked,
   }),
 }));
 
@@ -76,8 +83,8 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Price should be formatted with currency symbol
-      expect(screen.getByText('$1,234.56')).toBeOnTheScreen();
+      // Price is rendered with dot separator when percentage exists (e.g. "$1,234.56 • +5.25%")
+      expect(screen.getByText(/\$1,234\.56/)).toBeOnTheScreen();
     });
 
     it('renders dash when price is undefined', () => {
@@ -85,7 +92,8 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      expect(screen.getByText('—')).toBeOnTheScreen();
+      // Dash is rendered; with default percentage we get "— • +5.25%"
+      expect(screen.getByText(/—/)).toBeOnTheScreen();
     });
 
     it('renders positive percentage change with plus sign', () => {
@@ -117,8 +125,23 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Use regex to match any text containing a percentage value (e.g. +5.25%, -3.50%)
+      // No percentage should be shown
       expect(screen.queryByText(/[+-]?\d+\.\d+%/)).toBeNull();
+      // Price only, no trailing bullet
+      expect(screen.getByText('$100.50')).toBeOnTheScreen();
+    });
+
+    it('does not render trailing bullet when percentage change is undefined', () => {
+      const token = createMockToken({
+        price: 99.99,
+        priceChange1d: undefined,
+      });
+
+      renderWithProvider(<PopularTokenRow token={token} />);
+
+      // Price without trailing bullet (no "•" after it)
+      expect(screen.getByText('$99.99')).toBeOnTheScreen();
+      expect(screen.queryByText(/\$\d+\.\d+\s+•\s*$/)).toBeNull();
     });
 
     it('renders description instead of price when provided', () => {
@@ -131,8 +154,8 @@ describe('PopularTokenRow', () => {
       renderWithProvider(<PopularTokenRow token={token} />);
 
       expect(screen.getByText('Earn 3% bonus')).toBeOnTheScreen();
-      // Price should not be rendered when description is present
-      expect(screen.queryByText('$100.00')).not.toBeOnTheScreen();
+      // Price and percentage should not be rendered when description is present
+      expect(screen.queryByText(/\$100\.00/)).toBeNull();
     });
 
     it('renders Buy button', () => {
@@ -249,6 +272,16 @@ describe('PopularTokenRow', () => {
         assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
       });
     });
+
+    it('fires Ramps Button Clicked analytics event when Buy is pressed', () => {
+      const token = createMockToken();
+
+      renderWithProvider(<PopularTokenRow token={token} />);
+
+      fireEvent.press(screen.getByText('Buy'));
+
+      expect(mockTrackBuyButtonClicked).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('edge cases', () => {
@@ -276,8 +309,9 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Should not render percentage for Infinity
-      expect(screen.queryByText('Infinity%')).not.toBeOnTheScreen();
+      // Should not render percentage for Infinity; price only, no trailing bullet
+      expect(screen.queryByText('Infinity%')).toBeNull();
+      expect(screen.getByText('$100.50')).toBeOnTheScreen();
     });
 
     it('handles NaN price change gracefully', () => {
@@ -285,8 +319,9 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      // Should not render percentage for NaN
-      expect(screen.queryByText('NaN%')).not.toBeOnTheScreen();
+      // Should not render percentage for NaN; price only, no trailing bullet
+      expect(screen.queryByText('NaN%')).toBeNull();
+      expect(screen.getByText('$100.50')).toBeOnTheScreen();
     });
   });
 });

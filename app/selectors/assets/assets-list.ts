@@ -8,6 +8,7 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
+import { toHex } from '@metamask/controller-utils';
 import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
@@ -27,10 +28,11 @@ import {
 import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectAccountsByChainId } from '../accountTrackerController';
 import {
-  TRON_RESOURCE,
-  TRON_RESOURCE_SYMBOLS_SET,
-  TronResourceSymbol,
+  TRON_SPECIAL_ASSET_SYMBOLS,
+  TRON_SPECIAL_ASSET_SYMBOLS_SET,
+  TronSpecialAssetSymbol,
 } from '../../core/Multichain/constants';
+import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import { selectAllTokens } from '../tokensController';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
@@ -38,10 +40,14 @@ import { selectSelectedInternalAccountByScope } from '../multichainAccounts/acco
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 
 /**
- * Structured map of Tron resources for efficient access.
- * Each property corresponds to a specific Tron resource type.
+ * Structured map of Tron special assets for efficient access.
+ *
+ * Includes network resources (Energy, Bandwidth and their max capacities),
+ * staking-related assets (staked TRX for Energy/Bandwidth, total staked TRX),
+ * and additional staking lifecycle assets (Ready for Withdrawal, Staking
+ * Rewards, In Lock Period).
  */
-export interface TronResourcesMap {
+export interface TronSpecialAssetsMap {
   /** Current available energy */
   energy: Asset | undefined;
   /** Current available bandwidth */
@@ -56,12 +62,18 @@ export interface TronResourcesMap {
   stakedTrxForBandwidth: Asset | undefined;
   /** Total staked TRX (sum of energy + bandwidth staking) */
   totalStakedTrx: number;
+  /** TRX ready for withdrawal (unstaked TRX that has completed the lock period) */
+  trxReadyForWithdrawal: Asset | undefined;
+  /** TRX staking rewards */
+  trxStakingRewards: Asset | undefined;
+  /** TRX in lock period (unstaked but waiting for lock period to end) */
+  trxInLockPeriod: Asset | undefined;
 }
 
 /**
  * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
  */
-const EMPTY_TRON_RESOURCES_MAP: TronResourcesMap = Object.freeze({
+const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -69,6 +81,9 @@ const EMPTY_TRON_RESOURCES_MAP: TronResourcesMap = Object.freeze({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  trxReadyForWithdrawal: undefined,
+  trxStakingRewards: undefined,
+  trxInLockPeriod: undefined,
 });
 
 const getStateForAssetSelector = (state: RootState) => {
@@ -225,7 +240,7 @@ const selectStakedAssets = createDeepEqualSelector(
   },
 );
 
-const selectEnabledNetworks = createDeepEqualSelector(
+export const selectEnabledNetworks = createDeepEqualSelector(
   [selectEnabledNetworksByNamespace],
   (enabledNetworksByNamespace) =>
     Object.values(enabledNetworksByNamespace).flatMap((network) =>
@@ -235,66 +250,182 @@ const selectEnabledNetworks = createDeepEqualSelector(
     ),
 );
 
-export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    selectEnabledNetworks,
-    selectTokenSortConfig,
-    selectStakedAssets,
-  ],
-  (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
-    const assets = Object.entries(bip44Assets)
-      .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
-
-    const stakedAssetsArray = [];
-    for (const asset of assets) {
-      if (asset.isNative) {
-        const stakedAsset = stakedAssets.find(
-          (item) =>
-            item.chainId === asset.chainId &&
-            item.accountId === asset.accountId,
+/**
+ * Factory that returns a selector for sorted assets by selected account group.
+ * @param enabledNetworksSelector - Selector that returns the list of enabled network IDs to filter by. Defaults to selectEnabledNetworks.
+ * @returns Memoized selector returning sorted asset keys for the selected account group.
+ */
+export const createSelectSortedAssetsBySelectedAccountGroup = (
+  enabledNetworksSelector = selectEnabledNetworks,
+) =>
+  createDeepEqualSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      enabledNetworksSelector,
+      selectTokenSortConfig,
+      selectStakedAssets,
+    ],
+    (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
+      const filteredAssets = Object.entries(bip44Assets)
+        .filter(([networkId]) => enabledNetworks.includes(networkId))
+        .flatMap(([_, chainAssets]) =>
+          chainAssets.filter(
+            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+          ),
         );
-        if (stakedAsset) {
-          stakedAssetsArray.push({
-            ...stakedAsset.stakedAsset,
-          } as Asset);
-        }
+      return mergeStakedSortAndDedupeAssets(
+        filteredAssets,
+        stakedAssets,
+        tokenSortConfig,
+      );
+    },
+  );
+
+/** Default selector using selectEnabledNetworks. Use createSelectSortedAssetsBySelectedAccountGroup(customSelector) for a custom enabled-networks source. */
+export const selectSortedAssetsBySelectedAccountGroup =
+  createSelectSortedAssetsBySelectedAccountGroup();
+
+interface SortedAssetItem {
+  address: string;
+  chainId: string;
+  isStaked: boolean;
+}
+
+interface StakedAssetEntry {
+  chainId: string;
+  accountId: string;
+  stakedAsset: Asset;
+}
+
+/**
+ * Merges staked assets into the list, sorts by token sort config, and deduplicates by assetId-chainId-isStaked.
+ * Shared by createSelectSortedAssetsBySelectedAccountGroup and selectSortedAssetsBySelectedAccountGroupForChainIds.
+ */
+function mergeStakedSortAndDedupeAssets(
+  filteredChainAssets: Asset[],
+  stakedAssets: StakedAssetEntry[],
+  tokenSortConfig: ReturnType<typeof selectTokenSortConfig>,
+): SortedAssetItem[] {
+  const assets = [...filteredChainAssets];
+  const stakedAssetsArray: Asset[] = [];
+  for (const asset of assets) {
+    if (asset.isNative) {
+      const stakedAsset = stakedAssets.find(
+        (item) =>
+          item.chainId === asset.chainId && item.accountId === asset.accountId,
+      );
+      if (stakedAsset) {
+        stakedAssetsArray.push({ ...stakedAsset.stakedAsset } as Asset);
       }
     }
+  }
+  assets.push(...stakedAssetsArray);
 
-    assets.push(...stakedAssetsArray);
+  const tokensSorted = sortAssetsWithPriority(
+    assets.map((asset) => ({
+      ...asset,
+      tokenFiatAmount: asset.fiat?.balance.toString(),
+    })),
+    tokenSortConfig,
+  );
 
-    // Current sorting options
-    // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
-    // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
-    const tokensSorted = sortAssetsWithPriority(
-      assets.map((asset) => ({
-        ...asset,
-        tokenFiatAmount: asset.fiat?.balance.toString(),
-      })),
-      tokenSortConfig,
-    );
+  const uniqueTokensMap = new Map<string, SortedAssetItem>();
+  tokensSorted.forEach(
+    ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
+      const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
+      if (!uniqueTokensMap.has(uniqueKey)) {
+        uniqueTokensMap.set(uniqueKey, {
+          address: assetId || '',
+          chainId: chainId?.toString() || '',
+          isStaked: Boolean(isStaked),
+        });
+      }
+    },
+  );
+  return Array.from(uniqueTokensMap.values());
+}
 
-    // Remove duplicates by creating a unique key for deduplication
-    const uniqueTokensMap = new Map();
+/**
+ * Builds a set of network IDs for filtering. listPopularNetworks() returns CAIP-2;
+ * asset keys may be Hex for EVM, so we include both forms for eip155:*.
+ */
+function buildAllowedNetworkIdSet(chainIds: string[]): Set<string> {
+  const set = new Set(chainIds);
+  for (const id of chainIds) {
+    if (id.startsWith('eip155:')) {
+      const reference = id.slice(7);
+      if (reference) set.add(toHex(reference) as Hex);
+    }
+  }
+  return set;
+}
 
-    tokensSorted.forEach(
-      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-        const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
-        if (!uniqueTokensMap.has(uniqueKey)) {
-          uniqueTokensMap.set(uniqueKey, {
-            address: assetId || '',
-            chainId: chainId?.toString() || '',
-            isStaked: Boolean(isStaked),
-          });
-        }
-      },
-    );
+/** Sort config for "by balance" (fiat value descending). Used for homepage so it always shows balance order; View all uses user preference. */
+const BALANCE_SORT_CONFIG = {
+  key: 'tokenFiatAmount',
+  order: 'dsc',
+  sortCallback: 'stringNumeric',
+} as const;
 
-    return Array.from(uniqueTokensMap.values());
-  },
-);
+/**
+ * Sorted assets by selected account group filtered by an explicit list of chain IDs (e.g. from listPopularNetworks()).
+ * Use when the chain list comes from a hook or callback rather than from state.
+ * Respects user's token sort preference (balance vs name).
+ * @param state - Redux state
+ * @param chainIds - Array of network/chain IDs (CAIP-2 or Hex) to include
+ */
+export const selectSortedAssetsBySelectedAccountGroupForChainIds =
+  createDeepEqualSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      (_state: RootState, chainIds: string[]) => chainIds,
+      selectTokenSortConfig,
+      selectStakedAssets,
+    ],
+    (bip44Assets, chainIds, tokenSortConfig, stakedAssets) => {
+      const allowedIds = buildAllowedNetworkIdSet(chainIds);
+      const filteredAssets = Object.entries(bip44Assets)
+        .filter(([networkId]) => allowedIds.has(networkId))
+        .flatMap(([_, chainAssets]) =>
+          chainAssets.filter(
+            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+          ),
+        );
+      return mergeStakedSortAndDedupeAssets(
+        filteredAssets,
+        stakedAssets,
+        tokenSortConfig,
+      );
+    },
+  );
+
+/**
+ * Like selectSortedAssetsBySelectedAccountGroupForChainIds but always sorts by balance (fiat value desc).
+ * Use on the homepage so the tokens section always shows by balance; the full "View all" list keeps the user's sort preference.
+ */
+export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
+  createDeepEqualSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      (_state: RootState, chainIds: string[]) => chainIds,
+      selectStakedAssets,
+    ],
+    (bip44Assets, chainIds, stakedAssets) => {
+      const allowedIds = buildAllowedNetworkIdSet(chainIds);
+      const filteredAssets = Object.entries(bip44Assets)
+        .filter(([networkId]) => allowedIds.has(networkId))
+        .flatMap(([_, chainAssets]) =>
+          chainAssets.filter(
+            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+          ),
+        );
+      return mergeStakedSortAndDedupeAssets(
+        filteredAssets,
+        stakedAssets,
+        BALANCE_SORT_CONFIG,
+      );
+    },
+  );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(
@@ -425,22 +556,26 @@ function assetToToken(
 }
 
 /**
- * Selects Tron resources (Energy, Bandwidth, Max values, and staked TRX) for the
- * currently selected account group.
+ * Selects Tron special assets for the currently selected account group.
  *
- * Returns a structured object with all resources pre-mapped for efficient access,
- * eliminating the need for consumers to iterate/search the array.
+ * This includes:
+ * - **Network resources**: Energy, Bandwidth, and their maximum capacities.
+ * - **Staking assets**: TRX staked for Energy/Bandwidth and a pre-computed `totalStakedTrx` sum.
+ * - **Staking lifecycle assets**: TRX Ready for Withdrawal, Staking Rewards, and TRX In Lock Period.
+ *
+ * Returns a structured {@link TronSpecialAssetsMap} with all assets pre-mapped by type
+ * for efficient access, eliminating the need for consumers to iterate or search the array.
  */
-export const selectTronResourcesBySelectedAccountGroup =
+export const selectTronSpecialAssetsBySelectedAccountGroup =
   createDeepEqualSelector(
     [getStateForAssetSelector, selectEnabledNetworks],
-    (assetsState, enabledNetworks): TronResourcesMap => {
+    (assetsState, enabledNetworks): TronSpecialAssetsMap => {
       const enabledTronNetworks = enabledNetworks.filter((networkId) =>
         networkId.startsWith('tron:'),
       );
 
       if (enabledTronNetworks.length === 0) {
-        return EMPTY_TRON_RESOURCES_MAP;
+        return EMPTY_TRON_SPECIAL_ASSETS_MAP;
       }
 
       const allAssets = _selectAssetsBySelectedAccountGroup(assetsState, {
@@ -449,7 +584,7 @@ export const selectTronResourcesBySelectedAccountGroup =
 
       const enabledTronNetworksSet = new Set(enabledTronNetworks);
 
-      const resourceMap: TronResourcesMap = {
+      const specialAssetsMap: TronSpecialAssetsMap = {
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,
@@ -457,33 +592,45 @@ export const selectTronResourcesBySelectedAccountGroup =
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 0,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
       };
 
       for (const [networkId, chainAssets] of Object.entries(allAssets)) {
         if (!enabledTronNetworksSet.has(networkId)) continue;
 
         for (const asset of chainAssets) {
-          const symbol = asset.symbol?.toLowerCase() as TronResourceSymbol;
-          if (!TRON_RESOURCE_SYMBOLS_SET.has(symbol)) continue;
+          const symbol = asset.symbol?.toLowerCase() as TronSpecialAssetSymbol;
+          if (!TRON_SPECIAL_ASSET_SYMBOLS_SET.has(symbol)) continue;
 
           switch (symbol) {
-            case TRON_RESOURCE.ENERGY:
-              resourceMap.energy = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.ENERGY:
+              specialAssetsMap.energy = asset;
               break;
-            case TRON_RESOURCE.BANDWIDTH:
-              resourceMap.bandwidth = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.BANDWIDTH:
+              specialAssetsMap.bandwidth = asset;
               break;
-            case TRON_RESOURCE.MAX_ENERGY:
-              resourceMap.maxEnergy = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_ENERGY:
+              specialAssetsMap.maxEnergy = asset;
               break;
-            case TRON_RESOURCE.MAX_BANDWIDTH:
-              resourceMap.maxBandwidth = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_BANDWIDTH:
+              specialAssetsMap.maxBandwidth = asset;
               break;
-            case TRON_RESOURCE.STRX_ENERGY:
-              resourceMap.stakedTrxForEnergy = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_ENERGY:
+              specialAssetsMap.stakedTrxForEnergy = asset;
               break;
-            case TRON_RESOURCE.STRX_BANDWIDTH:
-              resourceMap.stakedTrxForBandwidth = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_BANDWIDTH:
+              specialAssetsMap.stakedTrxForBandwidth = asset;
+              break;
+            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_READY_FOR_WITHDRAWAL:
+              specialAssetsMap.trxReadyForWithdrawal = asset;
+              break;
+            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_STAKING_REWARDS:
+              specialAssetsMap.trxStakingRewards = asset;
+              break;
+            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_IN_LOCK_PERIOD:
+              specialAssetsMap.trxInLockPeriod = asset;
               break;
           }
         }
@@ -493,17 +640,17 @@ export const selectTronResourcesBySelectedAccountGroup =
        * Compute total staked TRX using BigNumber to avoid floating-point precision errors
        */
       const stakedTrxForEnergyBN = safeParseBigNumber(
-        resourceMap.stakedTrxForEnergy?.balance,
+        specialAssetsMap.stakedTrxForEnergy?.balance,
       );
       const stakedTrxForBandwidthBN = safeParseBigNumber(
-        resourceMap.stakedTrxForBandwidth?.balance,
+        specialAssetsMap.stakedTrxForBandwidth?.balance,
       );
       const totalStakedTrxBN = stakedTrxForEnergyBN.plus(
         stakedTrxForBandwidthBN,
       );
 
-      resourceMap.totalStakedTrx = totalStakedTrxBN.toNumber();
+      specialAssetsMap.totalStakedTrx = totalStakedTrxBN.toNumber();
 
-      return resourceMap;
+      return specialAssetsMap;
     },
   );

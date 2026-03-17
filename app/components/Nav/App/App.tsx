@@ -56,7 +56,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
@@ -71,6 +71,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
+import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -333,10 +334,10 @@ const AddNetworkFlow = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
         name="AddNetwork"
-        component={NetworkSettings}
+        component={NetworkDetailsView}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -379,6 +380,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
       component={MoreTokenActionsMenu}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET}
+      component={SecurityBadgeBottomSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}
@@ -1059,13 +1064,21 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.ADD_NETWORK}
       component={AddNetworkFlow}
-      options={{ animationEnabled: true }}
+      options={{
+        animationEnabled: true,
+        cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+        gestureEnabled: true,
+      }}
     />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.EDIT_NETWORK}
         component={AddNetworkFlow}
-        options={{ animationEnabled: true }}
+        options={{
+          animationEnabled: true,
+          cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+          gestureEnabled: true,
+        }}
       />
     ) : null}
     <Stack.Screen
