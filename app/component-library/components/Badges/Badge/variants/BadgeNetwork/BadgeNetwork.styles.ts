@@ -6,7 +6,9 @@ import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
 import { BadgeNetworkStyleSheetVars } from './BadgeNetwork.types';
-import getScaledStyles from './BadgeNetwork.utils';
+
+const BADGE_SIZE = 16;
+const BORDER_WIDTH = 1;
 
 /**
  * Style sheet function for BadgeNetwork component.
@@ -21,43 +23,20 @@ const styleSheet = (params: {
   vars: BadgeNetworkStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style, containerSize, size, isScaled } = vars;
-
-  let opacity = 0;
-
-  if (containerSize) {
-    // This is so that the BadgeNetwork won't be visible until a containerSize is known
-    opacity = 1;
-  }
-
-  let baseStyles = {};
-  let networkIconStyles = {};
-
-  if (isScaled) {
-    const scaledStyles = getScaledStyles(Number(size), containerSize);
-    baseStyles = {
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: scaledStyles.minHeight,
-      maxHeight: scaledStyles.maxHeight,
-      height: scaledStyles.height,
-      aspectRatio: 1,
-      opacity,
-    };
-    networkIconStyles = {
-      transform: [{ scale: scaledStyles.scaleRatio }],
-      borderWidth: scaledStyles.borderWidth,
-      borderColor: theme.colors.background.default,
-      ...theme.shadows.size.xs,
-    };
-  }
+  const { style } = vars;
 
   return StyleSheet.create({
-    base: baseStyles,
+    base: {
+      width: BADGE_SIZE,
+      height: BADGE_SIZE,
+      aspectRatio: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      opacity: 1,
+    },
     networkIcon: Object.assign(
-      isScaled ? networkIconStyles : {},
       {
-        borderWidth: Number(size) * (1 / 16),
+        borderWidth: BORDER_WIDTH,
         borderColor: theme.colors.background.default,
         ...theme.shadows.size.xs,
       } as ViewStyle,

@@ -7,20 +7,9 @@ import { AvatarNetworkProps } from '../../../../Avatars/Avatar/variants/AvatarNe
  */
 export interface BadgeNetworkProps
   extends Omit<BadgeBaseProps, 'children'>,
-    AvatarNetworkProps {
-  /**
-   * Optional prop to control whether the Badge should be scaled to the content.
-   * @default true
-   */
-  isScaled?: boolean;
-}
+    AvatarNetworkProps {}
 
 /**
  * Style sheet BadgeNetwork parameters.
  */
-export type BadgeNetworkStyleSheetVars = Pick<
-  BadgeNetworkProps,
-  'style' | 'size' | 'isScaled'
-> & {
-  containerSize: { width: number; height: number } | null;
-};
+export type BadgeNetworkStyleSheetVars = Pick<BadgeNetworkProps, 'style'>;

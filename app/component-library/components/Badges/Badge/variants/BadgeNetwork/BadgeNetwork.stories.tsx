@@ -14,7 +14,6 @@ export default {
   component: BadgeNetwork,
   argTypes: {
     name: { control: 'text' },
-    isScaled: { control: 'boolean' },
   },
 } as Meta;
 
@@ -37,16 +36,4 @@ const Template: Story<BadgeNetworkProps> = (args) => customRender(args);
 export const Default = Template.bind({});
 Default.args = {
   ...SAMPLE_BADGENETWORK_PROPS,
-};
-
-export const Scaled = Template.bind({});
-Scaled.args = {
-  ...SAMPLE_BADGENETWORK_PROPS,
-  isScaled: true,
-};
-
-export const NotScaled = Template.bind({});
-NotScaled.args = {
-  ...SAMPLE_BADGENETWORK_PROPS,
-  isScaled: false,
 };
