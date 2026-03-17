@@ -4,10 +4,6 @@ import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position } from '@metamask/perps-controller';
 
 // Mock dependencies
-jest.mock('react-native-reanimated', () =>
-  jest.requireActual('react-native-reanimated/mock'),
-);
-
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',
