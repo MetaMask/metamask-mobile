@@ -18,6 +18,7 @@ import {
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
+import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -39,30 +40,6 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
-
-  /**
-   * Resolves an assetId to the controller's canonical format.
-   * Handles casing (API lowercase vs checksummed) and native token
-   * placeholder ('slip44:.' vs 'slip44:{coinType}').
-   */
-  const resolveControllerAssetId = useCallback(
-    (assetId: string): string => {
-      const allTokens = rampsTokens?.allTokens ?? [];
-      const isNative = assetId.includes('/slip44:');
-      const [chainId] = assetId.split('/');
-
-      const match = allTokens.find((tok) => {
-        if (!tok.assetId) return false;
-        if (isNative) {
-          return tok.chainId === chainId && tok.assetId.includes('/slip44:');
-        }
-        return tok.assetId.toLowerCase() === assetId.toLowerCase();
-      });
-
-      return match?.assetId ?? assetId;
-    },
-    [rampsTokens],
-  );
 
   const goToBuy = useCallback(
     (
@@ -102,7 +79,10 @@ export const useRampNavigation = () => {
         !overrideUnifiedRouting
       ) {
         // Resolve to the controller's canonical assetId format (lowercase)
-        const controllerAssetId = resolveControllerAssetId(intent.assetId);
+        const controllerAssetId = resolveRampControllerAssetId(
+          intent.assetId,
+          rampsTokens?.allTokens ?? [],
+        );
         try {
           setSelectedToken(controllerAssetId);
         } catch {
@@ -151,11 +131,11 @@ export const useRampNavigation = () => {
     },
     [
       setSelectedToken,
-      resolveControllerAssetId,
       navigation,
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,
       rampRoutingDecision,
+      rampsTokens?.allTokens,
     ],
   );
 
