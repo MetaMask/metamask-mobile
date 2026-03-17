@@ -1,15 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -104,7 +99,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
-  const privacyMode = useSelector(selectPrivacyMode);
 
   // Determine which type of data we have
   const symbol = position?.symbol || order?.symbol || '';
@@ -197,30 +191,19 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
         {/* Right side: Value and label */}
         <View style={styles.cardRight}>
-          <SensitiveText
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {displayData?.valueText ?? ''}
-          </SensitiveText>
-          <SensitiveText
+          </Text>
+          <Text
             variant={TextVariant.BodySM}
-            color={
-              privacyMode && !!position
-                ? TextColor.Default
-                : (displayData?.valueColor ?? TextColor.Default)
-            }
-            isHidden={privacyMode && !!position}
-            length={SensitiveTextLength.Short}
+            color={displayData?.valueColor ?? TextColor.Default}
           >
             {displayData?.labelText ?? ''}
-          </SensitiveText>
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 };
 
-export default React.memo(PerpsCard);
+export default PerpsCard;

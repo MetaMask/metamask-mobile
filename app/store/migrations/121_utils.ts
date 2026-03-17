@@ -30,6 +30,9 @@ export const checkNetworkEnablementState = (
   if (
     !hasProperty(state.engine.backgroundState, 'NetworkEnablementController')
   ) {
+    captureException(
+      new Error(`Migration ${version}: NetworkEnablementController not found.`),
+    );
     return false;
   }
 
@@ -46,6 +49,11 @@ export const checkNetworkEnablementState = (
   }
 
   if (!hasProperty(networkEnablementState, 'nativeAssetIdentifiers')) {
+    captureException(
+      new Error(
+        `Migration ${version}: NetworkEnablementController missing property nativeAssetIdentifiers.`,
+      ),
+    );
     return false;
   }
 

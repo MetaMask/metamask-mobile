@@ -44,7 +44,6 @@ import {
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -81,7 +80,6 @@ const PerpsHomeView = () => {
 
   // Feature flag for feedback button
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
-  const privacyMode = useSelector(selectPrivacyMode);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -430,9 +428,9 @@ const PerpsHomeView = () => {
         {/* Positions Section */}
         <PerpsHomeSection
           title={strings('perps.home.positions')}
-          subtitle={privacyMode ? undefined : positionsSubtitle}
+          subtitle={positionsSubtitle}
           subtitleColor={positionsSubtitleColor}
-          subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
+          subtitleSuffix={positionsSubtitleSuffix}
           subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
           isLoading={isLoading.positions}
           isEmpty={positions.length === 0}

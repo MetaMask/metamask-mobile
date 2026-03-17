@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme; vars: { iconSize: number } }) => {
 
   return StyleSheet.create({
     card: {
-      paddingVertical: 12,
+      paddingVertical: 6,
     },
     cardContent: {
       flexDirection: 'row',

@@ -7,7 +7,6 @@ import { usePerpsNetworkConfig } from '../../hooks/usePerpsNetworkConfig';
 import { selectPerpsNetwork } from '../../selectors/perpsController';
 import PerpsProviderSelectorSheet from '../../components/PerpsProviderSelector/PerpsProviderSelectorSheet';
 import type { ProviderNetworkOption } from '../../components/PerpsProviderSelector/PerpsProviderSelector.types';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 /**
  * PerpsSelectProviderView
@@ -48,19 +47,7 @@ const PerpsSelectProviderView: React.FC = () => {
             new Error(
               `Failed to switch perps provider to ${option.providerId}`,
             ),
-            {
-              tags: {
-                feature: PERPS_CONSTANTS.FeatureName,
-              },
-              context: {
-                name: 'PerpsSelectProviderView',
-                data: {
-                  action: 'switch_provider',
-                  providerId: option.providerId,
-                  error: result.error,
-                },
-              },
-            },
+            { message: result.error },
           );
           return;
         }
@@ -71,17 +58,7 @@ const PerpsSelectProviderView: React.FC = () => {
         const result = await toggleTestnet();
         if (!result.success) {
           Logger.error(new Error(`Failed to toggle perps testnet`), {
-            tags: {
-              feature: PERPS_CONSTANTS.FeatureName,
-            },
-            context: {
-              name: 'PerpsSelectProviderView',
-              data: {
-                action: 'toggle_testnet',
-                targetNetwork: option.isTestnet ? 'testnet' : 'mainnet',
-                error: result.error,
-              },
-            },
+            message: result.error,
           });
           return;
         }

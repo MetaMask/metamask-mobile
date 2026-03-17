@@ -44,7 +44,6 @@ const mockNfts: Nft[] = [
   {
     address: '0x2222222222222222222222222222222222222222',
     standard: 'ERC721',
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     name: 'CryptoPunk #1000',
     collectionName: 'CryptoPunks',
     chainId: '0x1',
@@ -66,7 +65,6 @@ const mockNfts: Nft[] = [
   {
     address: '0x4444444444444444444444444444444444444444',
     standard: 'ERC721',
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     name: 'Ape Avatar #200',
     collectionName: 'Ape Avatars',
     chainId: '0x89',
@@ -267,7 +265,6 @@ describe('useTokenSearch', () => {
       expect(result.current.filteredNfts).toHaveLength(2);
       expect(result.current.filteredNfts.map((nft) => nft.name)).toEqual([
         'Bored Ape #1',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         'Ape Avatar #200',
       ]);
     });
@@ -284,7 +281,6 @@ describe('useTokenSearch', () => {
         result.current.filteredNfts.every((nft) => nft.chainId === '0x89'),
       ).toBe(true);
       expect(result.current.filteredNfts.map((nft) => nft.name)).toEqual([
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         'Ape Avatar #200',
       ]);
     });

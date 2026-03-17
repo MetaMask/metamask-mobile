@@ -3,7 +3,6 @@ import { render } from '@testing-library/react-native';
 import PerpsOrderBookTable from './PerpsOrderBookTable';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { PerpsOrderBookTableSelectorsIDs } from '../../Perps.testIds';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -48,11 +47,8 @@ jest.mock('../../../../hooks/useStyles', () => ({
         bottom: 0,
         opacity: 0.15,
       },
-      bidDepthBar: {
-        right: 0,
-        backgroundColor: mockTheme.colors.success.default,
-      },
-      askDepthBar: { left: 0, backgroundColor: mockTheme.colors.error.default },
+      bidDepthBar: { right: 0, backgroundColor: '#28a745' },
+      askDepthBar: { left: 0, backgroundColor: '#dc3545' },
       totalColumn: { flex: 1, zIndex: 1 },
       totalColumnRight: { flex: 1, alignItems: 'flex-end', zIndex: 1 },
       priceColumnBid: {
@@ -82,7 +78,14 @@ jest.mock('../../../../hooks/useStyles', () => ({
         paddingVertical: 48,
       },
     },
-    theme: mockTheme,
+    theme: {
+      colors: {
+        background: { default: '#ffffff' },
+        border: { muted: '#e0e0e0' },
+        success: { default: '#28a745' },
+        error: { default: '#dc3545' },
+      },
+    },
   })),
 }));
 

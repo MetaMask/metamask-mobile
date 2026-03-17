@@ -461,68 +461,68 @@ const DaimoPayModal: React.FC = () => {
         // These flags help wagmi identify the provider
         window.ethereum.isMetaMask = true;
         window.ethereum.isMetaMaskMobile = true;
-        
+
         // Ensure _metamask namespace exists with required methods
         window.ethereum._metamask = window.ethereum._metamask || {};
         if (!window.ethereum._metamask.isUnlocked) {
-          window.ethereum._metamask.isUnlocked = function() { 
-            return Promise.resolve(true); 
+          window.ethereum._metamask.isUnlocked = function() {
+            return Promise.resolve(true);
           };
         }
-        
+
         // Add connect method if missing
         if (!window.ethereum.connect) {
           window.ethereum.connect = function() {
             return window.ethereum.request({ method: 'eth_requestAccounts' });
           };
         }
-        
+
         // Click interceptor to bypass wagmi's broken connector validation
         // and directly trigger eth_requestAccounts
         document.addEventListener('click', function(e) {
           var target = e.target;
-          
+
           // Only process clicks on actual DOM elements within the document body
           if (!target || !document.body.contains(target)) {
             return;
           }
-          
+
           var el = target;
           var foundWalletButton = null;
-          
+
           // Walk up the DOM tree to find if this is a MetaMask wallet button
           // Look for max 5 levels to avoid matching large containers
           var depth = 0;
           while (el && el !== document.body && depth < 5) {
             var text = (el.innerText || el.textContent || '').toLowerCase().trim();
-            
+
             // Check if this looks like a wallet button:
             // 1. Contains "metamask" text
             // 2. Is short text (wallet name only, not a container)
             // 3. Is a clickable element (button, has role, or has cursor pointer)
-            var isClickable = el.tagName === 'BUTTON' || 
+            var isClickable = el.tagName === 'BUTTON' ||
                               el.getAttribute('role') === 'button' ||
                               el.tagName === 'A' ||
                               (el.onclick !== null) ||
                               (window.getComputedStyle && window.getComputedStyle(el).cursor === 'pointer');
-            
-            var isMetaMaskText = text === 'metamask' || 
+
+            var isMetaMaskText = text === 'metamask' ||
                                  (text.includes('metamask') && text.length < 30);
-            
+
             if (isMetaMaskText && isClickable) {
               foundWalletButton = el;
               break;
             }
-            
+
             el = el.parentElement;
             depth++;
           }
-          
+
           if (foundWalletButton) {
             // Prevent the default wagmi connector action
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Directly call eth_requestAccounts
             if (window.ethereum && window.ethereum.request) {
               window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -534,7 +534,7 @@ const DaimoPayModal: React.FC = () => {
       // Transparency styles
       document.documentElement.style.backgroundColor = 'transparent';
       document.body.style.backgroundColor = 'transparent';
-      
+
       var style = document.createElement('style');
       style.textContent = \`
         html, body {
@@ -553,7 +553,7 @@ const DaimoPayModal: React.FC = () => {
         }
       \`;
       document.head.appendChild(style);
-      
+
       var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
           mutation.addedNodes.forEach(function(node) {

@@ -52,12 +52,19 @@ const mockUseUnlockedRewards = useUnlockedRewards as jest.MockedFunction<
 >;
 
 // Mock useTheme
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    themeAppearance: 'light',
+    colors: {
+      background: {
+        default: '#FFFFFF',
+      },
+      text: {
+        muted: '#999999',
+      },
+    },
+  }),
+}));
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -182,7 +189,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Skeleton
-jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
+jest.mock('../../../../../component-library/components/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

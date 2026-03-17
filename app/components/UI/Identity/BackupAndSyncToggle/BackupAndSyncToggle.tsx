@@ -26,7 +26,6 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/noti
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
-import { BACKUP_AND_SYNC_TOGGLE_TEST_IDS } from './BackupAndSyncToggle.testIds';
 
 interface Props {
   trackBackupAndSyncToggleEventOverride?: (newValue: boolean) => void;
@@ -161,7 +160,7 @@ const BackupAndSyncToggle = ({
           }}
           thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
-          testID={BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE}
+          testID="toggle-backupAndSync"
         />
       </View>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

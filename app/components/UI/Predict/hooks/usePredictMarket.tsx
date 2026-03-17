@@ -1,44 +1,126 @@
-import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { predictQueries } from '../queries';
+import { PredictMarket } from '../types';
+
+export interface UsePredictMarketOptions {
+  id?: string | number;
+  enabled?: boolean;
+}
+
+export interface UsePredictMarketResult {
+  market: PredictMarket | null;
+  isFetching: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
 
 /**
  * Hook to fetch detailed Predict market information
  */
-export const usePredictMarket = ({
-  id,
-  enabled = true,
-}: {
-  id: string;
-  enabled?: boolean;
-}) => {
-  const query = useQuery({
-    ...predictQueries.market.options({ marketId: id }),
-    enabled: enabled && !!id,
-  });
+export const usePredictMarket = (
+  options: UsePredictMarketOptions = {},
+): UsePredictMarketResult => {
+  const { id, enabled = true } = options;
+  const [market, setMarket] = useState<PredictMarket | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isMountedRef = useRef(true);
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
 
   useEffect(() => {
-    if (!query.error) return;
+    if (!enabled && isMountedRef.current) {
+      setMarket(null);
+      setError(null);
+      setIsFetching(false);
+    }
+  }, [enabled]);
 
-    Logger.error(ensureError(query.error), {
-      tags: {
-        feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        component: 'usePredictMarket',
-      },
-      context: {
-        name: 'usePredictMarket',
-        data: {
-          method: 'queryFn',
-          action: 'market_load',
-          operation: 'data_fetching',
-          marketId: id,
+  const fetchMarket = useCallback(async () => {
+    if (!enabled) {
+      return;
+    }
+
+    const marketId = id !== undefined && id !== null ? String(id) : '';
+    if (!marketId) {
+      if (isMountedRef.current) {
+        setMarket(null);
+        setError(null);
+        setIsFetching(false);
+      }
+      return;
+    }
+
+    if (isMountedRef.current) {
+      setIsFetching(true);
+      setError(null);
+    }
+
+    try {
+      if (!Engine || !Engine.context) {
+        throw new Error('Engine not initialized');
+      }
+
+      const controller = Engine.context.PredictController;
+      if (!controller) {
+        throw new Error('Predict controller not available');
+      }
+
+      const marketData = await controller.getMarket({
+        marketId,
+      });
+
+      if (isMountedRef.current) {
+        setMarket(marketData ?? null);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to fetch market';
+
+      // Capture exception with market loading context
+      Logger.error(ensureError(err), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePredictMarket',
         },
-      },
-    });
-  }, [query.error, id]);
+        context: {
+          name: 'usePredictMarket',
+          data: {
+            method: 'loadMarket',
+            action: 'market_load',
+            operation: 'data_fetching',
+            marketId: id,
+          },
+        },
+      });
 
-  return query;
+      if (isMountedRef.current) {
+        setError(errorMessage);
+        setMarket(null);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsFetching(false);
+      }
+    }
+  }, [enabled, id]);
+
+  useEffect(() => {
+    fetchMarket();
+  }, [fetchMarket]);
+
+  return {
+    market,
+    isFetching,
+    error,
+    refetch: fetchMarket,
+  };
 };

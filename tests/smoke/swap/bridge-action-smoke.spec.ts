@@ -5,6 +5,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
+import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
@@ -13,7 +14,6 @@ import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -38,7 +38,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const sourceSymbol: string = 'ETH';
     const chainId = '0x1';
     const destChainId = '0x2105';
-    const FIRST_ROW: number = 0;
 
     await withFixtures(
       {
@@ -51,11 +50,13 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              chainId,
-              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
+              providerConfig: {
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
+              },
             })
             .withDisabledSmartTransactions()
             .build();
@@ -79,10 +80,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
-        await Assertions.expectElementToBeVisible(QuoteView.searchToken, {
-          timeout: 15000,
-          description: 'Token search input visible in destination token picker',
-        });
+        await TestHelpers.delay(2000); // wait until tokens are displayed
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);
         // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
@@ -100,23 +98,11 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await QuoteView.tapConfirmBridge();
 
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          timeout: 30000,
-          description: 'Activity title visible after bridge submission',
+          description: 'Activity title visible',
         });
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
-          {
-            description: 'Bridge activity for destination network visible',
-          },
-        );
-
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(FIRST_ROW),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          {
-            timeout: 120000,
-            description: 'Bridge transaction should show Confirmed status',
-          },
+          { description: 'Bridge activity for destination network visible' },
         );
       },
     );

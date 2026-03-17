@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -40,7 +39,7 @@ jest.mock('../../../../hooks/useStyles', () => ({
       },
       statisticsItem: {
         flex: 1,
-        backgroundColor: mockTheme.colors.background.alternative,
+        backgroundColor: '#f0f0f0',
         padding: 16,
         borderRadius: 8,
       },

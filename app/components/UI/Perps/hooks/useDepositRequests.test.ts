@@ -39,7 +39,6 @@ describe('useDepositRequests', () => {
 
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
-    getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
   };
   let mockProvider: {
     getUserNonFundingLedgerUpdates: jest.MockedFunction<
@@ -159,7 +158,6 @@ describe('useDepositRequests', () => {
     // Mock controller
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
-      getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
     };
 
     // Mock Engine context
@@ -322,7 +320,7 @@ describe('useDepositRequests', () => {
     });
 
     it('handles no active provider', async () => {
-      mockController.getActiveProviderOrNull.mockReturnValue(null);
+      mockController.getActiveProvider.mockReturnValue(undefined);
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -332,14 +330,13 @@ describe('useDepositRequests', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // With getActiveProviderOrNull returning null, hook bails early without error
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe('No active provider available');
       expect(result.current.depositRequests).toEqual([]);
     });
 
     it('handles provider without getUserNonFundingLedgerUpdates method', async () => {
       mockProvider = {} as unknown as typeof mockProvider;
-      mockController.getActiveProviderOrNull.mockReturnValue(mockProvider);
+      mockController.getActiveProvider.mockReturnValue(mockProvider);
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),

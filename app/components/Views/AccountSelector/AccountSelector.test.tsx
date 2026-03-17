@@ -101,12 +101,11 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
     dispatch: jest.fn(),
-    isFocused: jest.fn(() => true),
   }),
 }));
 
 // Mock whenEngineReady
-jest.mock('../../../util/analytics/whenEngineReady', () => ({
+jest.mock('../../../core/Analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

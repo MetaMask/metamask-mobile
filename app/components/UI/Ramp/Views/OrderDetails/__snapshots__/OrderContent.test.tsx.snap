@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OrderContent renders completed state correctly 1`] = `
 <View
@@ -6,9 +6,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
     [
       {
         "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
         "width": "100%",
       },
       undefined,
@@ -541,18 +538,22 @@ exports[`OrderContent renders completed state correctly 1`] = `
       ]
     }
   >
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
-      }
+    <TouchableOpacity
+      onPress={[Function]}
     >
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "marginBottom": 16,
+            },
+            undefined,
+          ]
+        }
       >
         <Text
           accessibilityRole="text"
@@ -565,37 +566,30 @@ exports[`OrderContent renders completed state correctly 1`] = `
                 "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 22,
-                "textAlign": "center",
               },
               undefined,
             ]
           }
         >
           Card purchases typically take a few minutes
-           
-          <SvgMock
-            fill="currentColor"
-            name="Info"
-            style={
-              [
-                {
-                  "color": "#66676a",
-                  "height": 16,
-                  "width": 16,
-                },
-                {
-                  "transform": [
-                    {
-                      "translateY": 4,
-                    },
-                  ],
-                },
-              ]
-            }
-          />
         </Text>
-      </TouchableOpacity>
-    </View>
+        <SvgMock
+          fill="currentColor"
+          name="Info"
+          style={
+            [
+              {
+                "color": "#66676a",
+                "height": 16,
+                "marginLeft": 4,
+                "width": 16,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;
@@ -606,9 +600,6 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
     [
       {
         "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
         "width": "100%",
       },
       undefined,
@@ -1036,18 +1027,22 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       ]
     }
   >
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
-      }
+    <TouchableOpacity
+      onPress={[Function]}
     >
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "marginBottom": 16,
+            },
+            undefined,
+          ]
+        }
       >
         <Text
           accessibilityRole="text"
@@ -1060,37 +1055,30 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
                 "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 22,
-                "textAlign": "center",
               },
               undefined,
             ]
           }
         >
           Card purchases typically take a few minutes
-           
-          <SvgMock
-            fill="currentColor"
-            name="Info"
-            style={
-              [
-                {
-                  "color": "#66676a",
-                  "height": 16,
-                  "width": 16,
-                },
-                {
-                  "transform": [
-                    {
-                      "translateY": 4,
-                    },
-                  ],
-                },
-              ]
-            }
-          />
         </Text>
-      </TouchableOpacity>
-    </View>
+        <SvgMock
+          fill="currentColor"
+          name="Info"
+          style={
+            [
+              {
+                "color": "#66676a",
+                "height": 16,
+                "marginLeft": 4,
+                "width": 16,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;

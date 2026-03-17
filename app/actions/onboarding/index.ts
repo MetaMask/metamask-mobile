@@ -1,11 +1,8 @@
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
-import { AccountType } from '../../constants/onboarding';
 
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';
 export const SET_COMPLETED_ONBOARDING = 'SET_COMPLETED_ONBOARDING';
-export const SET_ACCOUNT_TYPE = 'SET_ACCOUNT_TYPE';
-export const CLEAR_ACCOUNT_TYPE = 'CLEAR_ACCOUNT_TYPE';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -21,21 +18,10 @@ export interface SetCompletedOnboardingAction {
   completedOnboarding: boolean;
 }
 
-interface SetAccountTypeAction {
-  type: typeof SET_ACCOUNT_TYPE;
-  accountType: AccountType;
-}
-
-interface ClearAccountTypeAction {
-  type: typeof CLEAR_ACCOUNT_TYPE;
-}
-
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
-  | SetCompletedOnboardingAction
-  | SetAccountTypeAction
-  | ClearAccountTypeAction;
+  | SetCompletedOnboardingAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -58,18 +44,5 @@ export function setCompletedOnboarding(
   return {
     type: SET_COMPLETED_ONBOARDING,
     completedOnboarding,
-  };
-}
-
-export function setAccountType(accountType: AccountType): SetAccountTypeAction {
-  return {
-    type: SET_ACCOUNT_TYPE,
-    accountType,
-  };
-}
-
-export function clearAccountType(): ClearAccountTypeAction {
-  return {
-    type: CLEAR_ACCOUNT_TYPE,
   };
 }

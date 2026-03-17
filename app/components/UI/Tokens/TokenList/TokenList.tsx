@@ -32,7 +32,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
-import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
 
 export interface FlashListAssetKey {
   address: string;
@@ -46,7 +45,7 @@ interface TokenListProps {
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
   showPercentageChange?: boolean;
-  setShowScamWarningModal: (chainId: string | null) => void;
+  setShowScamWarningModal: () => void;
   maxItems?: number;
   isFullView?: boolean;
 }
@@ -70,9 +69,6 @@ const TokenListComponent = ({
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
-
-  // Declaring this here and passing it down to avoid O(n) API calls to on-ramp
-  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
 
   // A/B test: Token list item layout (V1 vs V2)
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
@@ -159,7 +155,6 @@ const TokenListComponent = ({
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
-        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
       />
     ),
     [
@@ -169,7 +164,6 @@ const TokenListComponent = ({
       privacyMode,
       showPercentageChange,
       isFullView,
-      shouldShowTokenListItemCta,
     ],
   );
 
@@ -188,7 +182,6 @@ const TokenListComponent = ({
             privacyMode={privacyMode}
             showPercentageChange={showPercentageChange}
             isFullView={isFullView}
-            shouldShowTokenListItemCta={shouldShowTokenListItemCta}
           />
         ))}
         {shouldShowViewAllButton && (

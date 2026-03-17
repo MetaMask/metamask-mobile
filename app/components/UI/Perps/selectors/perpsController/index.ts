@@ -56,55 +56,19 @@ const selectPerpsBalances = createSelector(
   (perpsControllerState) => perpsControllerState?.perpsBalances || {},
 );
 
-const DEFAULT_MARKET_FILTER_PREFERENCES = {
-  optionId: 'volume',
-  direction: 'desc' as const,
-};
-
-// When PerpsController state is missing or partial (e.g. before Engine init, rehydration, or minimal E2E fixtures),
-// avoid calling perps-controller selectors with undefined (they may access .length etc. on nested props).
-// Normalize return values (?? []) so we're safe even when the package returns undefined for partial state.
 const selectIsFirstTimePerpsUser = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => {
-    try {
-      return perpsControllerState
-        ? selectIsFirstTimeUser(perpsControllerState)
-        : true;
-    } catch {
-      return true;
-    }
-  },
+  (perpsControllerState) => selectIsFirstTimeUser(perpsControllerState),
 );
 
 const selectPerpsWatchlistMarkets = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => {
-    try {
-      return (
-        (perpsControllerState
-          ? selectWatchlistMarkets(perpsControllerState)
-          : undefined) ?? []
-      );
-    } catch {
-      return [];
-    }
-  },
+  (perpsControllerState) => selectWatchlistMarkets(perpsControllerState),
 );
 
 const selectPerpsMarketFilterPreferences = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => {
-    try {
-      return (
-        (perpsControllerState
-          ? selectMarketFilterPreferences(perpsControllerState)
-          : undefined) ?? DEFAULT_MARKET_FILTER_PREFERENCES
-      );
-    } catch {
-      return DEFAULT_MARKET_FILTER_PREFERENCES;
-    }
-  },
+  (perpsControllerState) => selectMarketFilterPreferences(perpsControllerState),
 );
 
 /**
@@ -138,15 +102,9 @@ const selectPerpsInitializationState = createSelector(
 
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
-  createSelector(selectPerpsControllerState, (perpsControllerState) => {
-    try {
-      return perpsControllerState
-        ? selectIsWatchlistMarket(perpsControllerState, symbol)
-        : false;
-    } catch {
-      return false;
-    }
-  });
+  createSelector(selectPerpsControllerState, (perpsControllerState) =>
+    selectIsWatchlistMarket(perpsControllerState, symbol),
+  );
 
 export {
   selectPerpsProvider,

@@ -249,8 +249,9 @@ const ActivityView = () => {
                 tabLabel={strings('perps.transactions.title')}
                 style={styles.tabWrapper}
               >
+                {/* Only mount providers when tab is active to prevent polling when hidden */}
                 {isPerpsTabActive ? (
-                  <PerpsConnectionProvider>
+                  <PerpsConnectionProvider isVisible={isPerpsTabActive}>
                     <PerpsStreamProvider>
                       <PerpsTransactionsView />
                     </PerpsStreamProvider>

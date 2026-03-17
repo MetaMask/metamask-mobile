@@ -876,9 +876,14 @@ describe('MarketDataService', () => {
     };
 
     it('fetches historical candles successfully', async () => {
-      mockProvider.fetchHistoricalCandles = jest
-        .fn()
-        .mockResolvedValue(mockCandleData);
+      const hyperLiquidProvider = mockProvider as unknown as {
+        clientService: {
+          fetchHistoricalCandles: jest.Mock;
+        };
+      };
+      hyperLiquidProvider.clientService = {
+        fetchHistoricalCandles: jest.fn().mockResolvedValue(mockCandleData),
+      };
 
       const result = await marketDataService.fetchHistoricalCandles({
         provider: mockProvider,
@@ -889,7 +894,9 @@ describe('MarketDataService', () => {
       });
 
       expect(result).toEqual(mockCandleData);
-      expect(mockProvider.fetchHistoricalCandles).toHaveBeenCalledWith({
+      expect(
+        hyperLiquidProvider.clientService.fetchHistoricalCandles,
+      ).toHaveBeenCalledWith({
         symbol: 'BTC',
         interval: '1h',
         limit: 100,
@@ -927,10 +934,15 @@ describe('MarketDataService', () => {
     });
 
     it('updates error state on failure', async () => {
+      const hyperLiquidProvider = mockProvider as unknown as {
+        clientService: {
+          fetchHistoricalCandles: jest.Mock;
+        };
+      };
       const mockError = new Error('Network timeout');
-      mockProvider.fetchHistoricalCandles = jest
-        .fn()
-        .mockRejectedValue(mockError);
+      hyperLiquidProvider.clientService = {
+        fetchHistoricalCandles: jest.fn().mockRejectedValue(mockError),
+      };
 
       await expect(
         marketDataService.fetchHistoricalCandles({

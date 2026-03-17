@@ -11,7 +11,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
@@ -101,7 +101,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // no premature immediate fire via the null path.
     const willRender = !isLoading;
 
-    const { onLayout } = useHomeViewedEvent({
+    useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.DEFI,
@@ -124,9 +124,9 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // Show retry UI on error
     if (!isLoading && hasError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
+        <View ref={sectionViewRef}>
           <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllDeFi} />
+            <SectionTitle title={title} onPress={handleViewAllDeFi} />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
                 section: title.toLowerCase(),
@@ -139,9 +139,9 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllDeFi} />
+          <SectionTitle title={title} onPress={handleViewAllDeFi} />
           <SectionRow>
             <Box>
               {isLoading ? (

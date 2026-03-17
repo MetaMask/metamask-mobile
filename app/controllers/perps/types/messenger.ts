@@ -2,7 +2,6 @@ import type {
   AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
   AccountTreeControllerSelectedAccountGroupChangeEvent,
 } from '@metamask/account-tree-controller';
-import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import type {
   KeyringControllerGetStateAction,
   KeyringControllerSignTypedMessageAction,
@@ -24,7 +23,6 @@ import type { TransactionControllerAddTransactionAction } from '@metamask/transa
  * Actions from other controllers that PerpsController is allowed to call.
  */
 export type PerpsControllerAllowedActions =
-  | GeolocationControllerGetGeolocationAction
   | NetworkControllerGetStateAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
@@ -33,7 +31,7 @@ export type PerpsControllerAllowedActions =
   | TransactionControllerAddTransactionAction
   | RemoteFeatureFlagControllerGetStateAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
-  | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
+  | AuthenticationController.AuthenticationControllerGetBearerToken;
 
 /**
  * Events from other controllers that PerpsController is allowed to subscribe to.

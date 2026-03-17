@@ -590,8 +590,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   }
 }
 
-// Specific channel for orders (null = cleared on account switch; hooks show skeleton until next update)
-class OrderStreamChannel extends StreamChannel<Order[] | null> {
+// Specific channel for orders
+class OrderStreamChannel extends StreamChannel<Order[]> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
@@ -664,8 +664,8 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
     return getPreloadedData<Order[]>('cachedOrders');
   }
 
-  protected getClearedData(): Order[] | null {
-    return null;
+  protected getClearedData(): Order[] {
+    return [];
   }
 
   /**
@@ -718,8 +718,8 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   }
 }
 
-// Specific channel for positions (null = cleared on account switch; hooks show skeleton until next update)
-class PositionStreamChannel extends StreamChannel<Position[] | null> {
+// Specific channel for positions
+class PositionStreamChannel extends StreamChannel<Position[]> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
@@ -796,8 +796,8 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
     return getPreloadedData<Position[]>('cachedPositions');
   }
 
-  protected getClearedData(): Position[] | null {
-    return null;
+  protected getClearedData(): Position[] {
+    return [];
   }
 
   /**
@@ -1523,30 +1523,25 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   }
 
   /**
-   * Clear cache and reset fetch time.
-   *
-   * @param skipNotify - When true, subscribers keep their current data (used on
-   * account switches where market data is global and stays valid). When false
-   * (default), subscribers are notified with `[]` and their throttle state is
-   * reset so the next fetch result is delivered immediately.
+   * Clear cache and reset fetch time
    */
-  public clearCache(skipNotify = false): void {
+  public clearCache(): void {
+    // Clear the cache
     this.cache.clear();
     this.lastFetchTime = 0;
     this.fetchPromise = null;
     this.cachedProviderId = null;
 
+    // Notify subscribers with empty array (no market data) instead of null (loading)
     this.subscribers.forEach((subscriber) => {
+      // Clear any pending updates and timers
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-
-      if (!skipNotify) {
-        subscriber.hasReceivedFirstUpdate = false;
-        subscriber.callback([]);
-      }
+      // Send empty array to indicate "no market data" rather than "loading"
+      subscriber.callback([]);
     });
   }
 }

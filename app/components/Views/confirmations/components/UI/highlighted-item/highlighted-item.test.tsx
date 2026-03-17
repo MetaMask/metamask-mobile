@@ -95,18 +95,4 @@ describe('HighlightedItem', () => {
 
     expect(queryByText('Add')).not.toBeOnTheScreen();
   });
-
-  it('renders PaymentMethodIcon when paymentType is set', () => {
-    const paymentItem: HighlightedItem = {
-      ...assetItem,
-      paymentType: 'debit-credit-card',
-    };
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <HighlightedItemRow item={paymentItem} />,
-    );
-
-    expect(getByTestId('icon')).toBeOnTheScreen();
-    expect(getByText('Perps Balance')).toBeOnTheScreen();
-  });
 });

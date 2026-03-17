@@ -17,7 +17,7 @@ import {
   SnapshotTile,
   UpcomingSnapshotTileCondensed,
 } from '../../../../components/SnapshotTile';
-import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import RewardsErrorBanner from '../../../../components/RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from '../../../../Views/RewardsView.constants';
 

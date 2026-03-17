@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     incompleteStep: {
-      backgroundColor: theme.colors.background.muted,
+      backgroundColor: theme.colors.background.alternative,
       justifyContent: 'center',
       alignItems: 'center',
     },

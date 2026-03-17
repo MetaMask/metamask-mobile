@@ -13,11 +13,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
 import { strings } from '../../../../../../locales/i18n';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -69,7 +65,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
-  const privacyMode = useSelector(selectPrivacyMode);
 
   // Get withdrawal requests filtered by current account using memoized selector
   const withdrawalRequests = useSelector(
@@ -217,18 +212,16 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               </Text>
               {/* Only show dollar value when there's a single transaction in progress */}
               {shouldShowDollarAmount && (
-                <SensitiveText
+                <Text
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Default}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Short}
                 >
                   {isOnlyDepositInProgress && transactionAmountWei
                     ? convertPerpsAmountToUSD(transactionAmountWei)
                     : isOnlyWithdrawalInProgress && withdrawalAmount
                       ? convertPerpsAmountToUSD(withdrawalAmount)
                       : null}
-                </SensitiveText>
+                </Text>
               )}
             </Box>
           </Box>
@@ -242,39 +235,28 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         ) : (
           <Box twClassName="px-4 pt-4 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
-              <SensitiveText
+              <Text
                 variant={TextVariant.DisplayMD}
                 color={TextColor.Default}
                 testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
               >
                 {formatPerpsFiat(totalBalance)}
-              </SensitiveText>
+              </Text>
             </Animated.View>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
               style={tw.style('mt-1')}
               testID={
                 PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
               }
             >
-              <SensitiveText
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-              >
-                {formatPerpsFiat(availableBalance, {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  stripTrailingZeros: false,
-                })}
-              </SensitiveText>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {' '}
-                {strings('perps.available')}
-              </Text>
-            </Box>
+              {formatPerpsFiat(availableBalance, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+                stripTrailingZeros: false,
+              })}{' '}
+              {strings('perps.available')}
+            </Text>
             {/* Action Buttons */}
             {showActionButtons && (
               <Box

@@ -7,8 +7,3 @@ export const selectCompletedOnboarding = createSelector(
   selectOnboarding,
   (onboardingState) => onboardingState.completedOnboarding,
 );
-
-export const selectOnboardingAccountType = createSelector(
-  selectOnboarding,
-  (onboardingState) => onboardingState.accountType,
-);

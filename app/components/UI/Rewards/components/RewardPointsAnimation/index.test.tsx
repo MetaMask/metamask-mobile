@@ -26,12 +26,16 @@ jest.mock('../../../../../component-library/hooks', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      text: {
+        default: '#000000',
+        alternative: '#666666',
+      },
+    },
+  })),
+}));
 
 jest.mock('rive-react-native', () => ({
   __esModule: true,

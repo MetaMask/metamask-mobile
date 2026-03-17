@@ -134,10 +134,6 @@ export class AnthropicProvider implements ILLMProvider {
       content: fromAnthropicContent(response.content),
       model: response.model,
       stopReason: response.stop_reason || 'end_turn',
-      usage: {
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-      },
     };
   }
 
@@ -154,9 +150,7 @@ export class AnthropicProvider implements ILLMProvider {
         messages: [{ role: 'user', content: 'hi' }],
       });
       return true;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(`   ⚠️  Anthropic API error: ${message}`);
+    } catch {
       return false;
     }
   }

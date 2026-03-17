@@ -41,11 +41,7 @@ const SeedPhraseDisplay = ({
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item, index }) => (
           <View style={[styles.inputContainer]}>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              maxFontSizeMultiplier={1}
-            >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {index + 1}.
             </Text>
             <Text
@@ -54,9 +50,12 @@ const SeedPhraseDisplay = ({
               key={index}
               ellipsizeMode="tail"
               numberOfLines={1}
-              maxFontSizeMultiplier={1}
               style={styles.word}
               testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+              adjustsFontSizeToFit
+              allowFontScaling
+              minimumFontScale={0.1}
+              maxFontSizeMultiplier={0}
             >
               {item}
             </Text>

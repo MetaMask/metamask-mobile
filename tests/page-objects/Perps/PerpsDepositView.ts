@@ -1,43 +1,11 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class PerpsDepositView {
   // Custom deposit keypad container
   get keypad(): DetoxElement {
     return Matchers.getElementByID('deposit-keyboard');
-  }
-
-  /** Amount input - wdio PerpsDepositScreen uses 'custom-amount-input' for isAmountInputVisible */
-  get amountInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID('custom-amount-input'),
-      appium: () =>
-        PlaywrightMatchers.getElementById('custom-amount-input', {
-          exact: true,
-        }),
-    });
-  }
-
-  /** Add funds button - wdio uses getElementByText('Add funds') for isAddFundsVisible */
-  get addFundsButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Add funds'),
-      appium: () => PlaywrightMatchers.getElementByText('Add funds'),
-    });
-  }
-
-  /** Total text - wdio uses getElementByText('Total') for isTotalVisible */
-  get totalText(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Total'),
-      appium: () => PlaywrightMatchers.getElementByText('Total'),
-    });
   }
 
   // Continue button (toolbar text)

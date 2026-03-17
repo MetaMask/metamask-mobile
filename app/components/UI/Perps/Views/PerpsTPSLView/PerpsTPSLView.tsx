@@ -225,9 +225,6 @@ const PerpsTPSLView: React.FC = () => {
       // Add initial TP/SL state to understand what user already has set
       [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
       [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: !!initialStopLossPrice,
-      [PERPS_EVENT_PROPERTY.SOURCE]: isEditingExistingPosition
-        ? PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN
-        : PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
     },
   });
 

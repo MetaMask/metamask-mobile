@@ -25,12 +25,12 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.section,
     },
     tradeItemFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
     },
     tradeItemLast: {
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     leftSection: {
       flex: 1,

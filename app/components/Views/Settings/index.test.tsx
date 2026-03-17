@@ -16,7 +16,7 @@ jest.mock('../../../core', () => ({
 }));
 
 // Mock whenEngineReady to prevent Jest environment teardown errors
-jest.mock('../../../util/analytics/whenEngineReady', () => ({
+jest.mock('../../../core/Analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn(() => Promise.resolve()),
   isEngineReady: jest.fn(() => false),
   getEngine: jest.fn(() => ({})),

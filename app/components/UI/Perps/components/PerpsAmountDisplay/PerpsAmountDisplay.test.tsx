@@ -4,12 +4,23 @@ import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
 import { formatPositionSize } from '../../utils/formatUtils';
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      text: {
+        default: '#141618',
+        alternative: '#9fa6ae',
+      },
+      primary: {
+        default: '#037DD6',
+      },
+      warning: {
+        default: '#ffd33d',
+      },
+    },
+    themeAppearance: 'light',
+  }),
+}));
 
 jest.mock('../../utils/formatUtils', () => {
   const actual = jest.requireActual('../../utils/formatUtils');

@@ -5,7 +5,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
   collapsable={false}
   contentContainerStyle={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#f3f3f4",
       "flexGrow": 1,
       "justifyContent": "space-between",
       "paddingHorizontal": 16,

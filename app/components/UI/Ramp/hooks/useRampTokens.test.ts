@@ -83,18 +83,10 @@ const createMockState = (
   detectedGeolocation?: string,
 ) => ({
   ...initialRootState,
-  engine: {
-    ...initialRootState.engine,
-    backgroundState: {
-      ...initialRootState.engine.backgroundState,
-      GeolocationController: {
-        location: detectedGeolocation ?? 'UNKNOWN',
-      },
-    },
-  },
   fiatOrders: {
     ...initialRootState.fiatOrders,
     rampRoutingDecision,
+    detectedGeolocation,
   },
 });
 

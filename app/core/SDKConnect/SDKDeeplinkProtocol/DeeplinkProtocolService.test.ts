@@ -497,6 +497,11 @@ describe('DeeplinkProtocolService', () => {
           unlock: jest.fn().mockResolvedValue(null),
           isUnlocked: jest.fn().mockReturnValue(true),
         },
+        PreferencesController: {
+          state: {
+            selectedAddress: '0xAddress',
+          },
+        },
       };
     });
 

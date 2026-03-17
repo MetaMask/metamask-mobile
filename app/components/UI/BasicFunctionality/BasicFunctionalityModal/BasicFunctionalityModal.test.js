@@ -55,7 +55,6 @@ jest.mock('@react-navigation/native', () => {
       dangerouslyGetParent: () => ({
         pop: jest.fn(),
       }),
-      isFocused: jest.fn(() => true),
     }),
   };
 });

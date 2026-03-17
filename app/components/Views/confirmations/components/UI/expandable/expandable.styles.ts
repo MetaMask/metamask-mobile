@@ -11,7 +11,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     container: {
-      backgroundColor: theme.colors.background.muted,
+      backgroundColor: theme.colors.background.default,
       borderRadius: 8,
       display: 'flex',
       flexDirection: 'row',
@@ -21,7 +21,7 @@ const styleSheet = (params: {
       marginBottom: isCompact ? 0 : 8,
     },
     modalContent: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.alternative,
       paddingBottom: 34,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,

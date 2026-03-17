@@ -1,19 +1,15 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../../util/theme/models';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { layout?: 'default' | 'horizontal' };
-}) => {
-  const { theme, vars } = params;
-  const { layout } = vars;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     wrapper: {
       paddingTop: 12,
       paddingBottom: 16,
       justifyContent: 'center',
-      alignItems: layout === 'horizontal' ? 'stretch' : 'center',
+      alignItems: 'center',
     },
     loadingWrapper: {
       height: 78,
@@ -32,25 +28,6 @@ const styleSheet = (params: {
       borderRadius: 4,
       marginTop: 8,
       marginBottom: 12,
-    },
-    skeletonHorizontalContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-    },
-    skeletonTextContainer: {
-      gap: 8,
-    },
-    skeletonHorizontalBar: {
-      borderRadius: 4,
-    },
-    skeletonHorizontalBarMedium: {
-      borderRadius: 6,
-    },
-    skeletonHorizontalIcon: {
-      borderRadius: 20,
     },
   });
 };

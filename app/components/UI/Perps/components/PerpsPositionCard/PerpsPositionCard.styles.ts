@@ -184,12 +184,12 @@ const styleSheet = (params: StyleSheetParams) => {
       backgroundColor: colors.background.section,
     },
     detailRowFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
     },
     detailRowLast: {
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     liquidationPriceValue: {
       flexDirection: 'row',

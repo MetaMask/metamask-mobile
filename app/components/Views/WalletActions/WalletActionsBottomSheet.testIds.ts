@@ -1,5 +1,3 @@
-import enContent from '../../../../locales/languages/en.json';
-
 export const WalletActionsBottomSheetSelectorsIDs = {
   SEND_BUTTON: 'wallet-send-button',
   RECEIVE_BUTTON: 'wallet-receive-action',
@@ -13,8 +11,3 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   PERPS_BUTTON: 'wallet-perps-action',
   PREDICT_BUTTON: 'wallet-predict-action',
 };
-
-export const WalletActionsBottomSheetSelectorsText = {
-  PERPS_DESCRIPTION: enContent.asset_overview.perps_description,
-  PREDICT_DESCRIPTION: enContent.asset_overview.predict_description,
-} as const;

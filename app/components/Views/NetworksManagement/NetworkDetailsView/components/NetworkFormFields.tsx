@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { Linking } from 'react-native';
 import {
   Box,
-  Label,
   Text,
   TextVariant,
   Icon,
@@ -11,6 +10,7 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
+import Label from '../../../../../component-library/components/Form/Label';
 import { strings } from '../../../../../../locales/i18n';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
 import { CHAIN_LIST_URL } from '../NetworkDetailsView.constants';
