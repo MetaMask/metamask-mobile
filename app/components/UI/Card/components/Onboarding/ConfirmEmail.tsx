@@ -122,7 +122,6 @@ const ConfirmEmail = () => {
     ) {
       return;
     }
-    setLatestValueSubmitted(confirmCode);
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -211,15 +210,27 @@ const ConfirmEmail = () => {
     }
   }, [resendCooldown]);
 
-  // Auto-submit when all digits are entered
   useEffect(() => {
     if (
       confirmCode.length === CODE_LENGTH &&
-      latestValueSubmitted !== confirmCode
+      latestValueSubmitted !== confirmCode &&
+      selectedCountry &&
+      email &&
+      password &&
+      contactVerificationId
     ) {
+      setLatestValueSubmitted(confirmCode);
       handleContinue();
     }
-  }, [confirmCode, handleContinue, latestValueSubmitted]);
+  }, [
+    confirmCode,
+    contactVerificationId,
+    email,
+    handleContinue,
+    latestValueSubmitted,
+    password,
+    selectedCountry,
+  ]);
 
   const isDisabled =
     verifyLoading ||
