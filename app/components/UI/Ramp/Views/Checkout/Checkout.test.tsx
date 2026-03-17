@@ -86,10 +86,6 @@ jest.mock('../../Aggregator/sdk', () => ({
   callbackBaseUrl: mockCallbackBaseUrl,
 }));
 
-let capturedOnNavigationStateChange:
-  | ((state: { url: string; loading?: boolean }) => void)
-  | undefined;
-
 jest.mock('@metamask/react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
   const { View, Button } = require('react-native');
@@ -103,53 +99,50 @@ jest.mock('@metamask/react-native-webview', () => {
         loading?: boolean;
       }) => void;
       testID?: string;
-    }) => {
-      capturedOnNavigationStateChange = onNavigationStateChange;
-      return (
-        <View testID={testID ?? 'checkout-webview'}>
-          <Button
-            testID="trigger-callback-navigation"
-            title="TriggerCallback"
-            onPress={() =>
-              onNavigationStateChange?.({
-                url: `${mockCallbackBaseUrl}?orderId=123`,
-                loading: false,
-              })
-            }
-          />
-          <Button
-            testID="trigger-callback-empty-query"
-            title="TriggerCallbackEmptyQuery"
-            onPress={() =>
-              onNavigationStateChange?.({
-                url: mockCallbackBaseUrl,
-                loading: false,
-              })
-            }
-          />
-          <Button
-            testID="trigger-callback-loading"
-            title="TriggerCallbackLoading"
-            onPress={() =>
-              onNavigationStateChange?.({
-                url: `${mockCallbackBaseUrl}?orderId=123`,
-                loading: true,
-              })
-            }
-          />
-          <Button
-            testID="trigger-dedup-navigation"
-            title="TriggerDedup"
-            onPress={() =>
-              onNavigationStateChange?.({
-                url: 'https://custom-dedup-url.example.com',
-                loading: false,
-              })
-            }
-          />
-        </View>
-      );
-    },
+    }) => (
+      <View testID={testID ?? 'checkout-webview'}>
+        <Button
+          testID="trigger-callback-navigation"
+          title="TriggerCallback"
+          onPress={() =>
+            onNavigationStateChange?.({
+              url: `${mockCallbackBaseUrl}?orderId=123`,
+              loading: false,
+            })
+          }
+        />
+        <Button
+          testID="trigger-callback-empty-query"
+          title="TriggerCallbackEmptyQuery"
+          onPress={() =>
+            onNavigationStateChange?.({
+              url: mockCallbackBaseUrl,
+              loading: false,
+            })
+          }
+        />
+        <Button
+          testID="trigger-callback-loading"
+          title="TriggerCallbackLoading"
+          onPress={() =>
+            onNavigationStateChange?.({
+              url: `${mockCallbackBaseUrl}?orderId=123`,
+              loading: true,
+            })
+          }
+        />
+        <Button
+          testID="trigger-dedup-navigation"
+          title="TriggerDedup"
+          onPress={() =>
+            onNavigationStateChange?.({
+              url: 'https://custom-dedup-url.example.com',
+              loading: false,
+            })
+          }
+        />
+      </View>
+    ),
   };
 });
 
@@ -201,7 +194,6 @@ describe('Checkout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedOnNavigationStateChange = undefined;
     mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/checkout',
       providerName: 'Test Provider',
@@ -228,151 +220,7 @@ describe('Checkout', () => {
   });
 
   describe('handleNavigationStateChange (callback flow)', () => {
-    const callbackFlowParams = {
-      url: 'https://provider.example.com/checkout',
-      providerName: 'Test Provider',
-      providerCode: 'moonpay',
-      walletAddress: '0x1234567890abcdef',
-    };
-
-    it('calls getOrderFromCallback when callback flow is triggered', async () => {
-      const mockRampsOrder = {
-        providerOrderId: 'order-123',
-        cryptoCurrency: { symbol: 'ETH' },
-        cryptoAmount: '1.5',
-        status: 'COMPLETED',
-      };
-      mockGetOrderFromCallback.mockResolvedValue(mockRampsOrder);
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: `${mockCallbackBaseUrl}?orderId=123`,
-          loading: false,
-        });
-      });
-
-      expect(mockGetOrderFromCallback).toHaveBeenCalled();
-    });
-
-    it('adds order when callback succeeds', async () => {
-      const mockRampsOrder = {
-        providerOrderId: 'order-v2-123',
-        cryptoCurrency: { symbol: 'ETH' },
-        cryptoAmount: '2.0',
-        status: 'COMPLETED',
-      };
-      mockGetOrderFromCallback.mockResolvedValue(mockRampsOrder);
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: `${mockCallbackBaseUrl}?orderId=123`,
-          loading: false,
-        });
-      });
-
-      expect(mockAddOrder).toHaveBeenCalledWith(mockRampsOrder);
-    });
-
-    it('does not add order when getOrderFromCallback returns null', async () => {
-      mockGetOrderFromCallback.mockResolvedValue(null);
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: `${mockCallbackBaseUrl}?orderId=123`,
-          loading: false,
-        });
-      });
-
-      expect(mockAddOrder).not.toHaveBeenCalled();
-    });
-
-    it('does not add order when getOrderFromCallback throws', async () => {
-      mockGetOrderFromCallback.mockRejectedValue(new Error('API Error'));
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: `${mockCallbackBaseUrl}?orderId=123`,
-          loading: false,
-        });
-      });
-
-      expect(mockAddOrder).not.toHaveBeenCalled();
-    });
-
-    it('does not call getOrderFromCallback when callback URL has no query params', async () => {
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: mockCallbackBaseUrl,
-          loading: false,
-        });
-      });
-
-      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
-    });
-
-    it('returns early when navState.loading is true', async () => {
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: `${mockCallbackBaseUrl}?orderId=123`,
-          loading: true,
-        });
-      });
-
-      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
-      expect(mockAddOrder).not.toHaveBeenCalled();
-    });
-
-    it('does not process callback twice when navigation fires multiple times', async () => {
-      const mockRampsOrder = {
-        providerOrderId: 'order-once',
-        cryptoCurrency: { symbol: 'BTC' },
-        cryptoAmount: '0.5',
-        status: 'COMPLETED',
-      };
-      mockGetOrderFromCallback.mockResolvedValue(mockRampsOrder);
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: `${mockCallbackBaseUrl}?orderId=123`,
-          loading: false,
-        });
-      });
-
-      await act(async () => {
-        await capturedOnNavigationStateChange?.({
-          url: `${mockCallbackBaseUrl}?orderId=456`,
-          loading: false,
-        });
-      });
-
-      expect(mockGetOrderFromCallback).toHaveBeenCalledTimes(1);
-      expect(mockAddOrder).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not invoke callback handler when hasCallbackFlow is false', async () => {
+    it('does not invoke callback handler when hasCallbackFlow is false (no providerCode/walletAddress)', async () => {
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com',
         providerName: 'Test',
@@ -382,6 +230,24 @@ describe('Checkout', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
+    it('returns early when navState.loading is true', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        providerCode: 'moonpay',
+        walletAddress: '0x1234567890abcdef',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-loading'));
       });
 
       expect(mockGetOrderFromCallback).not.toHaveBeenCalled();

@@ -38,14 +38,17 @@ jest.mock('../../../sdk', () => ({
 }));
 
 const mockShowToast = jest.fn();
-jest.mock('../../../../../../../component-library/components/Toast', () => ({
-  ToastContext: React.createContext({
-    toastRef: { current: { showToast: mockShowToast } },
-  }),
-  ToastVariants: {
-    Icon: 'Icon',
-  },
-}));
+jest.mock('../../../../../../../component-library/components/Toast', () => {
+  const mockReact = jest.requireActual('react');
+  return {
+    ToastContext: mockReact.createContext({
+      toastRef: { current: { showToast: mockShowToast } },
+    }),
+    ToastVariants: {
+      Icon: 'Icon',
+    },
+  };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics', () => ({
@@ -69,12 +72,12 @@ jest.mock('../../../../../../../util/Logger', () => ({
 jest.mock(
   '../../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const { forwardRef } = jest.requireActual('react');
+    const mockReact = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
-    const MockBottomSheet = forwardRef(
+    const MockBottomSheet = mockReact.forwardRef(
       (
-        { children }: { children: React.ReactNode },
-        _ref: React.Ref<unknown>,
+        { children }: { children: mockReact.ReactNode },
+        _ref: mockReact.Ref<unknown>,
       ) => <View testID="bottom-sheet">{children}</View>,
     );
     MockBottomSheet.displayName = 'MockBottomSheet';
@@ -137,6 +140,19 @@ jest.mock('react-native', () => {
 });
 
 import ConfigurationModal from './ConfigurationModal';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../../../component-library/components/Toast';
+
+const renderWithToastProvider = (component: React.ReactElement) => {
+  const mockToastRef = { current: { showToast: mockShowToast } };
+  return render(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      {component}
+    </ToastContext.Provider>,
+  );
+};
 
 describe('ConfigurationModal', () => {
   beforeEach(() => {
@@ -144,27 +160,27 @@ describe('ConfigurationModal', () => {
   });
 
   it('renders correctly with bottom sheet', () => {
-    const { getByTestId } = render(<ConfigurationModal />);
+    const { getByTestId } = renderWithToastProvider(<ConfigurationModal />);
     expect(getByTestId('bottom-sheet')).toBeTruthy();
   });
 
   it('renders view order history menu item', () => {
-    const { getByText } = render(<ConfigurationModal />);
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
     expect(getByText('View order history')).toBeTruthy();
   });
 
   it('renders contact support menu item', () => {
-    const { getByText } = render(<ConfigurationModal />);
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
     expect(getByText('Contact support')).toBeTruthy();
   });
 
   it('renders more ways to buy menu item', () => {
-    const { getByText } = render(<ConfigurationModal />);
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
     expect(getByText('More ways to buy')).toBeTruthy();
   });
 
   it('navigates to order history when menu item is pressed', () => {
-    const { getByText } = render(<ConfigurationModal />);
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
 
     fireEvent.press(getByText('View order history'));
 
@@ -177,7 +193,7 @@ describe('ConfigurationModal', () => {
   });
 
   it('opens support URL when contact support is pressed', () => {
-    const { getByText } = render(<ConfigurationModal />);
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
 
     fireEvent.press(getByText('Contact support'));
 
@@ -187,17 +203,33 @@ describe('ConfigurationModal', () => {
   it('calls logoutFromProvider when logout is pressed', async () => {
     mockLogoutFromProvider.mockResolvedValueOnce(undefined);
 
-    const { getByText } = render(<ConfigurationModal />);
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
 
-    fireEvent.press(getByText('Log out'));
+    fireEvent.press(getByText('Log out of Transak'));
 
     await waitFor(() => {
       expect(mockLogoutFromProvider).toHaveBeenCalled();
     });
   });
 
+  it('shows success toast when logout succeeds', async () => {
+    mockLogoutFromProvider.mockResolvedValueOnce(undefined);
+
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
+
+    fireEvent.press(getByText('Log out of Transak'));
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+        }),
+      );
+    });
+  });
+
   it('tracks analytics and navigates to aggregator when more ways to buy is pressed', () => {
-    const { getByText } = render(<ConfigurationModal />);
+    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
 
     fireEvent.press(getByText('More ways to buy'));
 
