@@ -315,15 +315,15 @@ describe('useMerklBonusClaim', () => {
           button_text: 'Claim bonus',
           network_chain_id: eligibleAsset.chainId,
           asset_symbol: eligibleAsset.symbol,
-          reward_amount_range: '1.00 - 9.99',
+          bonus_amount_range: '1.00 - 9.99',
           has_claimed_before: true,
         }),
       );
     });
   });
 
-  describe('getRewardAmountRange', () => {
-    const rewardRangeCases: [string, string][] = [
+  describe('getBonusAmountRange', () => {
+    const bonusRangeCases: [string, string][] = [
       ['< 0.001', '< 0.01'],
       ['0.50', '0.01 - 0.99'],
       ['0.99', '0.01 - 0.99'],
@@ -337,11 +337,11 @@ describe('useMerklBonusClaim', () => {
       ['9999.00', '1000.00+'],
     ];
 
-    it.each(rewardRangeCases)(
+    it.each(bonusRangeCases)(
       'maps reward "%s" to range "%s" via the analytics event',
-      (rewardValue, expectedRange) => {
+      (bonusValue, expectedRange) => {
         mockUseMerklRewards.mockReturnValue({
-          claimableReward: rewardValue,
+          claimableReward: bonusValue,
           hasClaimedBefore: false,
         });
 
@@ -350,7 +350,7 @@ describe('useMerklBonusClaim', () => {
         );
 
         expect(getAnalyticsMocks().addProperties).toHaveBeenCalledWith(
-          expect.objectContaining({ reward_amount_range: expectedRange }),
+          expect.objectContaining({ bonus_amount_range: expectedRange }),
         );
       },
     );

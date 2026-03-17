@@ -35,9 +35,9 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   claimRewards: async () => undefined,
 };
 
-const getRewardAmountRange = (reward: string): string => {
-  if (reward.startsWith('<')) return '< 0.01';
-  const value = parseFloat(reward);
+const getBonusAmountRange = (bonusAmount: string): string => {
+  if (bonusAmount.startsWith('<')) return '< 0.01';
+  const value = parseFloat(bonusAmount);
   if (value < 1) return '0.01 - 0.99';
   if (value < 10) return '1.00 - 9.99';
   if (value < 100) return '10.00 - 99.99';
@@ -115,7 +115,7 @@ export const useMerklBonusClaim = (
             network_chain_id: asset?.chainId,
             network_name: network?.name,
             asset_symbol: asset?.symbol,
-            reward_amount_range: getRewardAmountRange(claimableReward),
+            bonus_amount_range: getBonusAmountRange(claimableReward),
             has_claimed_before: hasClaimedBefore,
           })
           .build(),
