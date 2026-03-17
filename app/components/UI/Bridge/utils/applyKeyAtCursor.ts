@@ -1,7 +1,6 @@
 import clamp from 'lodash/clamp';
 import { Keys } from '../../../Base/Keypad';
-
-const isDigitKey = (input: Keys) => /^(\d)$/u.test(input);
+import { regex } from '../../../../util/regex';
 
 const normalizeLeadingDecimal = (
   value: string,
@@ -98,7 +97,7 @@ export const applyKeyAtCursor = ({
     return normalizeValue(insertedValue, boundedCursor + 1);
   }
 
-  if (!isDigitKey(pressedKey)) {
+  if (!regex.hasOneDigit.test(pressedKey)) {
     return { value: normalizedCurrentValue, cursorPosition: boundedCursor };
   }
 
