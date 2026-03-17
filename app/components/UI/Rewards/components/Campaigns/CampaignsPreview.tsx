@@ -73,11 +73,6 @@ const CampaignsPreview: React.FC = () => {
 
       {upcomingCampaign && (
         <Pressable
-          onPress={() =>
-            navigation.navigate(Routes.CAMPAIGN_DETAILS, {
-              campaign: upcomingCampaign,
-            })
-          }
           style={({ pressed }) =>
             tw.style('rounded-xl bg-muted px-4 py-3', pressed && 'opacity-70')
           }

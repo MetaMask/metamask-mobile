@@ -82,8 +82,8 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGN_DETAILS}
-            component={CampaignDetailsView}
+            name={Routes.PREVIOUS_SEASON_VIEW}
+            component={PreviousSeasonView}
             options={{ headerShown: false }}
           />
           <Stack.Screen

@@ -1,6 +1,5 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -18,7 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { getCampaignStatusInfo } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -53,9 +51,9 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
       ? campaign.details?.image?.darkModeUrl
       : campaign.details?.image?.lightModeUrl;
 
-  const handlePress = useCallback(() => {
-    navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaign });
-  }, [navigation, campaign]);
+  const handlePress = () => {
+    // TODO: Implement campaign details screen
+  };
 
   return (
     <Pressable
