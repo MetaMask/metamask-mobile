@@ -1,11 +1,15 @@
 import React from 'react';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
-import BuildQuote from './BuildQuote';
+import BuildQuote, {
+  createBuildQuoteNavDetails,
+  isBailedOrderStatus,
+} from './BuildQuote';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 
 jest.mock('../../../../Base/Keypad', () => {
   const ReactActual = jest.requireActual('react');
@@ -45,6 +49,17 @@ jest.mock('../../../../Base/Keypad', () => {
               value: '99.99',
               valueAsNumber: 42,
               pressedKey: '0',
+            }),
+        }),
+        ReactActual.createElement(Button, {
+          key: 'back',
+          testID: 'keypad-trigger-back',
+          title: 'Back',
+          onPress: () =>
+            onChange({
+              value: '10',
+              valueAsNumber: 10,
+              pressedKey: 'back',
             }),
         }),
       ]),
@@ -202,6 +217,7 @@ const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
 const mockNavigationReset = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockGetBuyWidgetData = jest.fn();
 const mockAddOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
@@ -219,6 +235,18 @@ const WIDGET_PROVIDER_QUOTE = {
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   quote: {
     buyWidget: { browser: 'IN_APP_OS_BROWSER' as const },
+    buyURL: 'https://widget.example.com/checkout',
+  },
+};
+
+const IN_APP_CHECKOUT_QUOTE = {
+  provider: 'moonpay',
+  id: 'quote-inapp-1',
+  inputAmount: 100,
+  inputCurrency: 'USD',
+  outputAmount: '0.05',
+  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+  quote: {
     buyURL: 'https://widget.example.com/checkout',
   },
 };
@@ -277,6 +305,47 @@ const USER_REGION = {
   regionCode: 'us-ca',
 };
 
+describe('isBailedOrderStatus', () => {
+  it('returns true for Precreated, IdExpired, Unknown', () => {
+    expect(isBailedOrderStatus(RampsOrderStatus.Precreated)).toBe(true);
+    expect(isBailedOrderStatus(RampsOrderStatus.IdExpired)).toBe(true);
+    expect(isBailedOrderStatus(RampsOrderStatus.Unknown)).toBe(true);
+  });
+
+  it('returns false for other statuses', () => {
+    expect(isBailedOrderStatus(RampsOrderStatus.Pending)).toBe(false);
+    expect(isBailedOrderStatus(RampsOrderStatus.Completed)).toBe(false);
+  });
+
+  it('returns false for null or undefined', () => {
+    expect(isBailedOrderStatus(undefined)).toBe(false);
+    expect(isBailedOrderStatus(null as unknown as RampsOrderStatus)).toBe(
+      false,
+    );
+  });
+});
+
+describe('createBuildQuoteNavDetails', () => {
+  it('returns token selection route with amount input screen', () => {
+    const result = createBuildQuoteNavDetails();
+    expect(result[0]).toBe(Routes.RAMP.TOKEN_SELECTION);
+    expect(result[1].screen).toBe(Routes.RAMP.TOKEN_SELECTION);
+    expect(result[1].params.screen).toBe(Routes.RAMP.AMOUNT_INPUT);
+    expect(result[1].params.params).toBeUndefined();
+  });
+
+  it('passes params when provided', () => {
+    const result = createBuildQuoteNavDetails({
+      assetId: 'eip155:1/slip44:60',
+      nativeFlowError: 'error',
+    });
+    expect(result[1].params.params).toEqual({
+      assetId: 'eip155:1/slip44:60',
+      nativeFlowError: 'error',
+    });
+  });
+});
+
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -318,7 +387,7 @@ describe('BuildQuote', () => {
       reset: mockNavigationReset,
       setParams: jest.fn(),
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     });
   });
 
@@ -470,6 +539,135 @@ describe('BuildQuote', () => {
 
       expect(amountInput.props.color).toBeUndefined();
     });
+
+    it('clears amount to 0 when Back key pressed and keyboard not dirty', async () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-back'));
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('0');
+    });
+
+    it('updates amount when Back key pressed and keyboard is dirty', async () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-string'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-back'));
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('10');
+    });
+  });
+
+  describe('handleSettingsPress', () => {
+    it('navigates to settings modal and tracks analytics', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(getByTestId('build-quote-settings-button'));
+
+      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: expect.stringContaining('Settings'),
+        }),
+      );
+    });
+  });
+
+  describe('handleBackPress', () => {
+    it('calls goBack and tracks analytics', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(getByTestId('build-quote-back-button'));
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: expect.stringContaining('Back'),
+        }),
+      );
+    });
+  });
+
+  describe('handlePaymentPillPress', () => {
+    it('navigates to payment selection modal and tracks analytics', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(getByTestId('build-quote-payment-pill'));
+
+      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: expect.stringContaining('Payment'),
+        }),
+      );
+    });
+  });
+
+  describe('handleQuickAmountPress', () => {
+    it('tracks RAMPS_QUICK_AMOUNT_CLICKED when quick amount pressed', async () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-empty'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('quick-amount-50'));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: expect.stringContaining('Quick Amount'),
+        }),
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: 50,
+          currency_source: 'USD',
+          location: 'Amount Input',
+        }),
+      );
+    });
+  });
+
+  describe('quoteFetchError', () => {
+    it('tracks RAMPS_QUOTE_ERROR and shows BannerAlert when quote fetch fails', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: null,
+        loading: false,
+        error: new Error('Quote fetch failed'),
+      });
+
+      const { toJSON } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: expect.stringContaining('Quote Error'),
+        }),
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 
   describe('handleNativeProviderContinue', () => {
@@ -574,6 +772,65 @@ describe('BuildQuote', () => {
       mockCheckExistingToken.mockResolvedValue(true);
       mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
       mockRouteAfterAuth.mockRejectedValue(new Error('Routing failed'));
+
+      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('handleWidgetProviderContinue', () => {
+    it('sets rampsError when getBuyWidgetData returns no URL', async () => {
+      mockGetBuyWidgetData.mockResolvedValue({});
+
+      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockGetBuyWidgetData).toHaveBeenCalled();
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('navigates to Checkout when useExternalBrowser is false', async () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: { success: [IN_APP_CHECKOUT_QUOTE] },
+        loading: false,
+        error: null,
+      });
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/embed',
+        orderId: 'ord-456',
+      });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockGetBuyWidgetData).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalled();
+      const navigateArgs = JSON.stringify(mockNavigate.mock.calls);
+      expect(navigateArgs).toContain('https://checkout.example.com/embed');
+      expect(navigateArgs).toContain('MoonPay');
+    });
+
+    it('sets rampsError when getBuyWidgetData throws', async () => {
+      mockGetBuyWidgetData.mockRejectedValue(
+        new Error('Network request failed'),
+      );
 
       const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,

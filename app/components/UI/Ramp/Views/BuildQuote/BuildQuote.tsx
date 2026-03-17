@@ -797,6 +797,7 @@ function BuildQuote() {
                   }
                   isLoading={paymentMethodsLoading}
                   onPress={handlePaymentPillPress}
+                  testID="build-quote-payment-pill"
                 />
               </View>
             </View>
