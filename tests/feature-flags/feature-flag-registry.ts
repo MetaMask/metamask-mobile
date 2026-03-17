@@ -441,14 +441,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  cardCARD338AbtestAttentionBadge: {
-    name: 'cardCARD338AbtestAttentionBadge',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [],
-    status: FeatureFlagStatus.Active,
-  },
-
   cardExperimentalSwitch2: {
     name: 'cardExperimentalSwitch2',
     type: FeatureFlagType.Remote,
