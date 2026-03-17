@@ -12,7 +12,8 @@ const selectTransactionControllerState = (state: RootState) =>
 
 const selectTransactionsStrict = createSelector(
   selectTransactionControllerState,
-  (transactionControllerState) => transactionControllerState.transactions,
+  (transactionControllerState) =>
+    transactionControllerState?.transactions ?? [],
 );
 
 const selectTransactionBatchesStrict = createSelector(
