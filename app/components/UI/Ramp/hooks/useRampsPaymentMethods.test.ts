@@ -99,7 +99,7 @@ const createWrapper = (store: ReturnType<typeof createMockStore>) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       Provider,
-      { store },
+      { store } as never,
       React.createElement(
         QueryClientProvider,
         { client: queryClient },

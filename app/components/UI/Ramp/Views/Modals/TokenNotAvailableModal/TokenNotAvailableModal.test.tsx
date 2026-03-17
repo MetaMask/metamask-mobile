@@ -262,12 +262,12 @@ describe('TokenNotAvailableModal', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
     });
 
-    it('calls goBack twice when modal is dismissed without a pending action', () => {
+    it('calls goBack once when modal is dismissed without a pending action', () => {
       render(TokenNotAvailableModal);
 
       capturedOnClose?.(false);
 
-      expect(mockGoBack).toHaveBeenCalledTimes(2);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });

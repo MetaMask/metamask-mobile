@@ -138,10 +138,8 @@ function TokenNotAvailableModal() {
       if (!hasPendingAction) {
         if (buyFlowOrigin === 'tokenInfo') {
           // Token Info buy flow: pop back through the ramp flow to the
-          // existing Asset screen. Using goBack() preserves the original
-          // Asset screen params (avoids crash from navigating without params).
-          // First goBack → BuildQuote→TokenSelection, second → exits ramp flow.
-          navigation.goBack();
+          // existing Asset screen. BottomSheet already performs one goBack
+          // when shouldNavigateBack is true; we need one more to exit ramp.
           navigation.goBack();
         } else if (buyFlowOrigin === 'homeTokenList') {
           // Home token list buy flow: return to home screen
