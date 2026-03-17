@@ -539,7 +539,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: token.symbol,
-      caip19Id: marketInsightsCaip19Id,
+      assetIdentifier: marketInsightsCaip19Id,
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
       // Pass token data needed for swap navigation

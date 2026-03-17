@@ -22,6 +22,7 @@ import BankDetailRow from '../../Deposit/components/BankDetailRow';
 import {
   RampsOrderStatus,
   type TransakDepositOrder,
+  normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
 import Button, {
@@ -114,10 +115,7 @@ const V2BankDetails = () => {
         setDepositOrder(updatedDepositOrder);
       }
 
-      const providerCode = (order.provider?.id ?? '').replace(
-        '/providers/',
-        '',
-      );
+      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
       await refreshOrder(
         providerCode,
         order.providerOrderId,
