@@ -39,7 +39,7 @@ const ReferralRewardsView: React.FC = () => {
           includesTopInset
         />
         <ScrollView
-          contentContainerStyle={tw.style('px-4 py-4')}
+          contentContainerStyle={tw.style('flex-grow p-4')}
           showsVerticalScrollIndicator={false}
         >
           <ReferralDetails />

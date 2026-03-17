@@ -71,7 +71,7 @@ describe('PreviousSeasonTile', () => {
 
     const { getByTestId } = render(<PreviousSeasonTile />);
 
-    expect(getByTestId('previous-season-tile-background')).toBeDefined();
+    expect(getByTestId('previous-season-tile-background')).toBeOnTheScreen();
   });
 
   it('renders foreground image', () => {
@@ -79,7 +79,7 @@ describe('PreviousSeasonTile', () => {
 
     const { getByTestId } = render(<PreviousSeasonTile />);
 
-    expect(getByTestId('previous-season-tile-image')).toBeDefined();
+    expect(getByTestId('previous-season-tile-image')).toBeOnTheScreen();
   });
 
   it('navigates to PreviousSeasonView on press', () => {
@@ -89,8 +89,6 @@ describe('PreviousSeasonTile', () => {
 
     fireEvent.press(getByTestId('previous-season-tile'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
-      screen: Routes.PREVIOUS_SEASON_VIEW,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREVIOUS_SEASON_VIEW);
   });
 });

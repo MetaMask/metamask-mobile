@@ -29,11 +29,7 @@ const PreviousSeasonTile: React.FC = () => {
 
   return (
     <Pressable
-      onPress={() =>
-        navigation.navigate(Routes.REWARDS_VIEW, {
-          screen: Routes.PREVIOUS_SEASON_VIEW,
-        })
-      }
+      onPress={() => navigation.navigate(Routes.PREVIOUS_SEASON_VIEW)}
       style={({ pressed }) =>
         tw.style(
           'rounded-xl overflow-hidden h-50 bg-muted',
