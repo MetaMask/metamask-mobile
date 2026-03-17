@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      ref:
+        description: 'Git ref to checkout when skip_version_bump is true. Defaults to the triggering event ref.'
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       build_name:
@@ -141,7 +146,13 @@ jobs:
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump }}
+        if: ${{ inputs.skip_version_bump && inputs.ref != '' }}
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump && inputs.ref == '' }}
         with:
           submodules: recursive
 

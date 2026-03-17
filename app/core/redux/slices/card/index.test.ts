@@ -18,17 +18,14 @@ import cardReducer, {
   setUserCardLocation,
   verifyCardAuthentication,
   setOnboardingId,
-  setSelectedCountry,
   setContactVerificationId,
   setConsentSetId,
   resetOnboardingState,
   selectOnboardingId,
-  selectSelectedCountry,
   selectContactVerificationId,
   selectConsentSetId,
   resetAuthenticatedData,
 } from '.';
-import { Region } from '../../../../components/UI/Card/components/Onboarding/RegionSelectorModal';
 
 // Mock the multichain selectors
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -92,22 +89,6 @@ const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
   '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 ];
 
-// Mock Region objects for testing
-const MOCK_REGION_US: Region = {
-  key: 'US',
-  name: 'United States',
-  emoji: '🇺🇸',
-};
-const MOCK_REGION_GB: Region = {
-  key: 'GB',
-  name: 'United Kingdom',
-  emoji: '🇬🇧',
-};
-const MOCK_REGION_CA: Region = { key: 'CA', name: 'Canada', emoji: '🇨🇦' };
-const MOCK_REGION_DE: Region = { key: 'DE', name: 'Germany', emoji: '🇩🇪' };
-const MOCK_REGION_FR: Region = { key: 'FR', name: 'France', emoji: '🇫🇷' };
-const MOCK_REGION_JP: Region = { key: 'JP', name: 'Japan', emoji: '🇯🇵' };
-
 const CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: CARDHOLDER_ACCOUNTS_MOCK,
   isDaimoDemo: false,
@@ -119,7 +100,6 @@ const CARD_STATE_MOCK: CardSliceState = {
   userCardLocation: 'international',
   onboarding: {
     onboardingId: null,
-    selectedCountry: null,
     contactVerificationId: null,
     consentSetId: null,
   },
@@ -136,7 +116,6 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   userCardLocation: 'international',
   onboarding: {
     onboardingId: null,
-    selectedCountry: null,
     contactVerificationId: null,
     consentSetId: null,
   },
@@ -330,53 +309,6 @@ describe('Card Selectors', () => {
       });
     });
 
-    describe('selectSelectedCountry', () => {
-      it('should return null by default from initial state', () => {
-        const mockRootState = { card: initialState } as unknown as RootState;
-        expect(selectSelectedCountry(mockRootState)).toBe(null);
-      });
-
-      it('should return the selected country when set', () => {
-        const selectedCountry = MOCK_REGION_US;
-        const stateWithCountry: CardSliceState = {
-          ...initialState,
-          onboarding: {
-            ...initialState.onboarding,
-            selectedCountry,
-          },
-        };
-        const mockRootState = {
-          card: stateWithCountry,
-        } as unknown as RootState;
-        expect(selectSelectedCountry(mockRootState)).toBe(selectedCountry);
-      });
-
-      it('should handle different country codes', () => {
-        const regions: Region[] = [
-          MOCK_REGION_US,
-          MOCK_REGION_GB,
-          MOCK_REGION_CA,
-          MOCK_REGION_DE,
-          MOCK_REGION_FR,
-          MOCK_REGION_JP,
-        ];
-
-        regions.forEach((region) => {
-          const stateWithCountry: CardSliceState = {
-            ...initialState,
-            onboarding: {
-              ...initialState.onboarding,
-              selectedCountry: region,
-            },
-          };
-          const mockRootState = {
-            card: stateWithCountry,
-          } as unknown as RootState;
-          expect(selectSelectedCountry(mockRootState)).toBe(region);
-        });
-      });
-    });
-
     describe('selectContactVerificationId', () => {
       it('should return null by default from initial state', () => {
         const mockRootState = { card: initialState } as unknown as RootState;
@@ -524,7 +456,6 @@ describe('Card Reducer', () => {
         userCardLocation: 'us',
         onboarding: {
           onboardingId: null,
-          selectedCountry: null,
           contactVerificationId: null,
           consentSetId: null,
         },
@@ -567,7 +498,6 @@ describe('Card Reducer', () => {
           );
           expect(state.onboarding.onboardingId).toBe(onboardingId);
           // ensure other parts of state untouched
-          expect(state.onboarding.selectedCountry).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
           expect(state.onboarding.consentSetId).toBe(null);
         });
@@ -598,43 +528,6 @@ describe('Card Reducer', () => {
         });
       });
 
-      describe('setSelectedCountry', () => {
-        it('should set selectedCountry', () => {
-          const country = MOCK_REGION_US;
-          const state = cardReducer(initialState, setSelectedCountry(country));
-          expect(state.onboarding.selectedCountry).toBe(country);
-          // ensure other parts of state untouched
-          expect(state.onboarding.onboardingId).toBe(null);
-          expect(state.onboarding.contactVerificationId).toBe(null);
-          expect(state.onboarding.consentSetId).toBe(null);
-        });
-
-        it('should update selectedCountry when previously set', () => {
-          const current: CardSliceState = {
-            ...initialState,
-            onboarding: {
-              ...initialState.onboarding,
-              selectedCountry: MOCK_REGION_GB,
-            },
-          };
-          const newCountry = MOCK_REGION_CA;
-          const state = cardReducer(current, setSelectedCountry(newCountry));
-          expect(state.onboarding.selectedCountry).toBe(newCountry);
-        });
-
-        it('should set selectedCountry to null', () => {
-          const current: CardSliceState = {
-            ...initialState,
-            onboarding: {
-              ...initialState.onboarding,
-              selectedCountry: MOCK_REGION_US,
-            },
-          };
-          const state = cardReducer(current, setSelectedCountry(null));
-          expect(state.onboarding.selectedCountry).toBe(null);
-        });
-      });
-
       describe('setContactVerificationId', () => {
         it('should set contactVerificationId', () => {
           const verificationId = 'verification-123';
@@ -645,7 +538,6 @@ describe('Card Reducer', () => {
           expect(state.onboarding.contactVerificationId).toBe(verificationId);
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
-          expect(state.onboarding.selectedCountry).toBe(null);
           expect(state.onboarding.consentSetId).toBe(null);
         });
 
@@ -690,7 +582,6 @@ describe('Card Reducer', () => {
           expect(state.onboarding.consentSetId).toBe(consentSetId);
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
-          expect(state.onboarding.selectedCountry).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
         });
 
@@ -726,7 +617,6 @@ describe('Card Reducer', () => {
             ...initialState,
             onboarding: {
               onboardingId: 'test-id',
-              selectedCountry: MOCK_REGION_US,
               contactVerificationId: 'verification-123',
               consentSetId: 'consent-456',
             },
@@ -734,7 +624,6 @@ describe('Card Reducer', () => {
           const state = cardReducer(current, resetOnboardingState());
           expect(state.onboarding).toEqual({
             onboardingId: null,
-            selectedCountry: null,
             contactVerificationId: null,
             consentSetId: null,
           });
@@ -747,7 +636,6 @@ describe('Card Reducer', () => {
           const state = cardReducer(initialState, resetOnboardingState());
           expect(state.onboarding).toEqual({
             onboardingId: null,
-            selectedCountry: null,
             contactVerificationId: null,
             consentSetId: null,
           });
@@ -792,7 +680,6 @@ describe('Card Reducer', () => {
           isAuthenticated: true,
           onboarding: {
             onboardingId: 'test-id',
-            selectedCountry: MOCK_REGION_US,
             contactVerificationId: 'verification-123',
             consentSetId: 'consent-456',
           },
@@ -813,7 +700,6 @@ describe('Card Reducer', () => {
         expect(state.alwaysShowCardButton).toBe(true);
         expect(state.onboarding).toEqual({
           onboardingId: 'test-id',
-          selectedCountry: MOCK_REGION_US,
           contactVerificationId: 'verification-123',
           consentSetId: 'consent-456',
         });
