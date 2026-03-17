@@ -219,6 +219,26 @@ describe('PredictController', () => {
       prepareWithdrawConfirmation: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
+    // Default safe mocks for async fire-and-forget methods
+    // (prevents unhandled rejections when payWithAnyTokenConfirmation is
+    // triggered by onBuyPaymentTokenChange but the async chain completes
+    // after mock cleanup)
+    mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+      transactions: [
+        {
+          params: {
+            to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+            data: '0xa9059cbb' as `0x${string}`,
+          },
+          type: TransactionType.predictDeposit,
+        },
+      ],
+      chainId: '0x89',
+    });
+    (addTransactionBatch as jest.Mock).mockResolvedValue({
+      batchId: 'default-batch',
+    });
+
     // Mock the PolymarketProvider constructor
     (
       PolymarketProvider as unknown as jest.MockedClass<
@@ -3657,7 +3677,7 @@ describe('PredictController', () => {
   });
 
   describe('onConfirmOrder', () => {
-    it('clears error and sets state to DEPOSITING when isConfirmation is true', () => {
+    it('clears error and sets state to DEPOSIT when isDeposit is true', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
           amount: 50,
@@ -3665,16 +3685,16 @@ describe('PredictController', () => {
           error: 'previous error',
         });
 
-        controller.onConfirmOrder(true);
+        controller.onConfirmOrder({ isDeposit: true });
 
         expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.DEPOSITING,
+          ActiveOrderState.DEPOSIT,
         );
         expect(controller.state.activeOrder?.error).toBeUndefined();
       });
     });
 
-    it('clears error and sets state to PLACING_ORDER when isConfirmation is false', () => {
+    it('clears error and sets state to PLACE_ORDER when isDeposit is false', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
           amount: 50,
@@ -3682,10 +3702,10 @@ describe('PredictController', () => {
           error: 'previous error',
         });
 
-        controller.onConfirmOrder(false);
+        controller.onConfirmOrder({ isDeposit: false });
 
         expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.PLACING_ORDER,
+          ActiveOrderState.PLACE_ORDER,
         );
         expect(controller.state.activeOrder?.error).toBeUndefined();
       });
@@ -3693,7 +3713,9 @@ describe('PredictController', () => {
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
-        expect(() => controller.onConfirmOrder(true)).not.toThrow();
+        expect(() =>
+          controller.onConfirmOrder({ isDeposit: true }),
+        ).not.toThrow();
       });
     });
   });
@@ -3787,7 +3809,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('clears error and transitions PREVIEW to PAY_WITH_ANY_TOKEN for external token', () => {
+    it('clears error and transitions PREVIEW to REDIRECTING for external token', () => {
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [
           {
@@ -3818,7 +3840,7 @@ describe('PredictController', () => {
         );
 
         expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          ActiveOrderState.REDIRECTING,
         );
         expect(controller.state.activeOrder?.error).toBeUndefined();
       });
@@ -3948,18 +3970,18 @@ describe('PredictController', () => {
     });
   });
 
-  describe('onDepositFailed', () => {
-    it('sets activeOrder state to PAY_WITH_ANY_TOKEN', () => {
+  describe('onDepositOrderFailed', () => {
+    it('sets activeOrder state to REDIRECTING', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
           amount: 50,
           state: ActiveOrderState.DEPOSITING,
         });
 
-        controller.onDepositFailed('Deposit failed');
+        controller.onDepositOrderFailed('Deposit failed');
 
         expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          ActiveOrderState.REDIRECTING,
         );
       });
     });
@@ -3971,7 +3993,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.DEPOSITING,
         });
 
-        controller.onDepositFailed('Something went wrong');
+        controller.onDepositOrderFailed('Something went wrong');
 
         expect(controller.state.activeOrder?.error).toBe(
           'Something went wrong',
@@ -3987,7 +4009,7 @@ describe('PredictController', () => {
           batchId: 'batch-123',
         });
 
-        controller.onDepositFailed('error');
+        controller.onDepositOrderFailed('error');
 
         expect(controller.state.activeOrder?.batchId).toBeUndefined();
       });
@@ -4000,7 +4022,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.DEPOSITING,
         });
 
-        controller.onDepositFailed('error');
+        controller.onDepositOrderFailed('error');
 
         expect(controller.state.activeOrder?.amount).toBe(75);
       });
@@ -4008,14 +4030,17 @@ describe('PredictController', () => {
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
+        jest
+          .spyOn(controller, 'payWithAnyTokenConfirmation')
+          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
         expect(controller.state.activeOrder).toBeNull();
 
-        expect(() => controller.onDepositFailed('error')).not.toThrow();
+        expect(() => controller.onDepositOrderFailed('error')).not.toThrow();
       });
     });
   });
 
-  describe('onOrderResultError', () => {
+  describe('onOrderError', () => {
     it('resets activeOrder state to PREVIEW', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
@@ -4023,7 +4048,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PLACING_ORDER,
         });
 
-        controller.onOrderResultError();
+        controller.onOrderError();
 
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.PREVIEW,
@@ -4039,7 +4064,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.DEPOSITING,
         });
 
-        controller.onOrderResultError();
+        controller.onOrderError();
 
         expect(controller.state.activeOrder).toEqual({
           amount: 100,
@@ -4053,11 +4078,11 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state.activeOrder).toBeNull();
 
-        expect(() => controller.onOrderResultError()).not.toThrow();
+        expect(() => controller.onOrderError()).not.toThrow();
       });
     });
 
-    it('does not clear selectedPaymentToken', () => {
+    it('clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         const token = {
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -4070,9 +4095,9 @@ describe('PredictController', () => {
           state: ActiveOrderState.PLACING_ORDER,
         });
 
-        controller.onOrderResultError();
+        controller.onOrderError();
 
-        expect(controller.state.selectedPaymentToken).toEqual(token);
+        expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
   });

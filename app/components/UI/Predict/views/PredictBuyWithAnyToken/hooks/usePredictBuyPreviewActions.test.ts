@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePredictBuyActions } from './usePredictBuyPreviewActions';
 import {
   ActiveOrderState,
@@ -78,25 +78,29 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 const mockOnOrderError = jest.fn();
-const mockOnOrderResultError = jest.fn();
-const mockOnDepositFailed = jest.fn();
 const mockOnConfirmOrder = jest.fn();
 const mockOnOrderCancelled = jest.fn();
 const mockOnOrderSuccess = jest.fn();
 const mockOnConfirmationRedirected = jest.fn();
+const mockOnPlaceOrder = jest.fn();
+const mockOnPlaceOrderEnd = jest.fn();
+const mockOnDepositOrder = jest.fn();
+const mockOnDepositOrderFailed = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       onOrderError: (...args: unknown[]) => mockOnOrderError(...args),
-      onOrderResultError: (...args: unknown[]) =>
-        mockOnOrderResultError(...args),
-      onDepositFailed: (...args: unknown[]) => mockOnDepositFailed(...args),
       onConfirmOrder: (...args: unknown[]) => mockOnConfirmOrder(...args),
       onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       onOrderSuccess: (...args: unknown[]) => mockOnOrderSuccess(...args),
       onConfirmationRedirected: (...args: unknown[]) =>
         mockOnConfirmationRedirected(...args),
+      onPlaceOrder: (...args: unknown[]) => mockOnPlaceOrder(...args),
+      onPlaceOrderEnd: (...args: unknown[]) => mockOnPlaceOrderEnd(...args),
+      onDepositOrder: (...args: unknown[]) => mockOnDepositOrder(...args),
+      onDepositOrderFailed: (...args: unknown[]) =>
+        mockOnDepositOrderFailed(...args),
     },
   },
 }));
@@ -193,10 +197,6 @@ describe('usePredictBuyActions', () => {
 
   describe('handleConfirm', () => {
     it('sets isConfirming to true', async () => {
-      mockPlaceOrder.mockResolvedValue({
-        status: 'success',
-        result: { success: true, response: undefined },
-      });
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -208,11 +208,8 @@ describe('usePredictBuyActions', () => {
       expect(mockSetIsConfirming).toHaveBeenCalledWith(true);
     });
 
-    it('delegates to PredictController.onConfirmOrder', async () => {
-      mockPlaceOrder.mockResolvedValue({
-        status: 'success',
-        result: { success: true, response: undefined },
-      });
+    it('delegates to PredictController.onConfirmOrder with isDeposit false when not confirmation route', async () => {
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -221,64 +218,11 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockOnConfirmOrder).toHaveBeenCalledWith(false);
+      expect(mockOnConfirmOrder).toHaveBeenCalledWith({ isDeposit: false });
     });
 
-    it('calls placeOrder with preview and analyticsProperties when not in confirmation', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
-      mockPlaceOrder.mockResolvedValue({
-        status: 'success',
-        result: { success: true, response: undefined },
-      });
-      const params = createDefaultParams();
-      const { result } = renderHook(() => usePredictBuyActions(params));
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      expect(mockPlaceOrder).toHaveBeenCalledWith({
-        preview: params.preview,
-        analyticsProperties: params.analyticsProperties,
-      });
-    });
-
-    it('delegates to onOrderResultError on placeOrder error', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
-      mockPlaceOrder.mockResolvedValue({
-        status: 'error',
-        error: 'Order failed',
-      });
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
-      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
-    });
-
-    it('delegates to onOrderResultError on order_not_filled', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
-      mockPlaceOrder.mockResolvedValue({ status: 'order_not_filled' });
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
-      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
-    });
-
-    it('calls onApprovalConfirm when isConfirmationRoute is true', async () => {
+    it('delegates to PredictController.onConfirmOrder with isDeposit true when confirmation route', async () => {
       mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
-      mockOnApprovalConfirm.mockResolvedValue(undefined);
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -287,60 +231,20 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockOnApprovalConfirm).toHaveBeenCalledWith({
-        deleteAfterResult: true,
-        waitForResult: true,
-        handleErrors: false,
+      expect(mockOnConfirmOrder).toHaveBeenCalledWith({ isDeposit: true });
+    });
+
+    it('does not call placeOrder directly from handleConfirm', async () => {
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
       });
-      expect(mockOnConfirmOrder).toHaveBeenCalledWith(true);
+
       expect(mockPlaceOrder).not.toHaveBeenCalled();
-    });
-
-    it('delegates to onOrderResultError on deposit_required', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
-      mockPlaceOrder.mockResolvedValue({ status: 'deposit_required' });
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
-      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
-    });
-
-    it('delegates to onOrderResultError on deposit_in_progress', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
-      mockPlaceOrder.mockResolvedValue({ status: 'deposit_in_progress' });
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      expect(mockOnOrderResultError).toHaveBeenCalledTimes(1);
-      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
-    });
-
-    it('throws error when no preview available', async () => {
-      mockRouteParams = {
-        ...defaultRouteParams,
-        isConfirmationRoute: false,
-        preview: null,
-      };
-      const params = createDefaultParams();
-      params.preview = undefined;
-      const { result } = renderHook(() => usePredictBuyActions(params));
-
-      await expect(
-        act(async () => {
-          await result.current.handleConfirm();
-        }),
-      ).rejects.toThrow('Preview is required');
     });
   });
 
@@ -363,6 +267,124 @@ describe('usePredictBuyActions', () => {
           preview: createDefaultParams().preview,
         },
       });
+    });
+
+    it('calls onConfirmationRedirected on confirmation route', () => {
+      mockActiveOrder = { state: ActiveOrderState.REDIRECTING };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockOnConfirmationRedirected).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('confirming state effect', () => {
+    it.each([
+      ActiveOrderState.DEPOSIT,
+      ActiveOrderState.DEPOSITING,
+      ActiveOrderState.PLACING_ORDER,
+    ])('sets isConfirming to true in %s state', (state) => {
+      mockActiveOrder = { state };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockSetIsConfirming).toHaveBeenCalledWith(true);
+    });
+
+    it('sets isConfirming to true in PLACE_ORDER state', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PLACE_ORDER };
+      mockPlaceOrder.mockResolvedValue({ status: 'deposit_required' });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      await waitFor(() => {
+        expect(mockSetIsConfirming).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it.each([ActiveOrderState.PREVIEW, ActiveOrderState.PAY_WITH_ANY_TOKEN])(
+      'sets isConfirming to false in %s state',
+      (state) => {
+        mockActiveOrder = { state };
+
+        renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+        expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
+      },
+    );
+  });
+
+  describe('success effect', () => {
+    it('calls onPlaceOrderEnd and pops navigation in SUCCESS state', () => {
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockOnPlaceOrderEnd).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'POP' }),
+      );
+    });
+  });
+
+  describe('deposit confirmation effect', () => {
+    it('calls onDepositOrder, navigates to buy preview and confirms approval', () => {
+      mockActiveOrder = { state: ActiveOrderState.DEPOSIT };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockOnDepositOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
+        {
+          market: defaultRouteParams.market,
+          outcome: defaultRouteParams.outcome,
+          outcomeToken: defaultRouteParams.outcomeToken,
+          animationEnabled: false,
+          entryPoint: defaultRouteParams.entryPoint,
+          isConfirming: true,
+          preview: { ...createDefaultParams().preview },
+        },
+        { replace: true },
+      );
+      expect(mockOnApprovalConfirm).toHaveBeenCalledWith({
+        deleteAfterResult: true,
+        waitForResult: true,
+        handleErrors: false,
+      });
+    });
+
+    it('throws error in DEPOSIT state on confirmation route without preview', () => {
+      mockActiveOrder = { state: ActiveOrderState.DEPOSIT };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
+
+      const params = createDefaultParams();
+      params.preview = null;
+
+      expect(() => renderHook(() => usePredictBuyActions(params))).toThrow(
+        'Preview is required',
+      );
+    });
+  });
+
+  describe('place order effect', () => {
+    it('calls placeOrder when state is PLACE_ORDER', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PLACE_ORDER };
+      mockPlaceOrder.mockResolvedValue({ status: 'deposit_required' });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      await waitFor(() => {
+        expect(mockPlaceOrder).toHaveBeenCalledWith({
+          analyticsProperties: { marketId: 'market-1' },
+          preview: createDefaultParams().preview,
+        });
+      });
+
+      expect(mockOnPlaceOrder).toHaveBeenCalledTimes(1);
+      expect(mockOnOrderError).toHaveBeenCalledTimes(1);
     });
   });
 });
