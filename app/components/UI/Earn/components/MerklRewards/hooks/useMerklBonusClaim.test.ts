@@ -229,6 +229,32 @@ describe('useMerklBonusClaim', () => {
     expect(result.current.claimRewards).toBe(mockClaimRewards);
   });
 
+  it('returns claimableReward null when raw value is "< 0.01" (below threshold)', () => {
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '< 0.01',
+      hasClaimedBefore: false,
+    });
+
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
+
+    expect(result.current.claimableReward).toBeNull();
+  });
+
+  it('returns claimableReward null when raw value is below 0.01', () => {
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '0.005',
+      hasClaimedBefore: false,
+    });
+
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
+
+    expect(result.current.claimableReward).toBeNull();
+  });
+
   describe('CTA available analytics event', () => {
     it('fires trackEvent once when claimable bonus is available and visible', () => {
       mockUseMerklRewards.mockReturnValue({
@@ -283,6 +309,32 @@ describe('useMerklBonusClaim', () => {
       expect(getAnalyticsMocks().trackEvent).not.toHaveBeenCalled();
     });
 
+    it('does not fire trackEvent when claimableReward is "< 0.01" (below threshold)', () => {
+      mockUseMerklRewards.mockReturnValue({
+        claimableReward: '< 0.01',
+        hasClaimedBefore: false,
+      });
+
+      renderHook(() =>
+        useMerklBonusClaim(eligibleAsset, 'test_location', true),
+      );
+
+      expect(getAnalyticsMocks().trackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not fire trackEvent when claimableReward is below threshold (e.g. "0.005")', () => {
+      mockUseMerklRewards.mockReturnValue({
+        claimableReward: '0.005',
+        hasClaimedBefore: false,
+      });
+
+      renderHook(() =>
+        useMerklBonusClaim(eligibleAsset, 'test_location', true),
+      );
+
+      expect(getAnalyticsMocks().trackEvent).not.toHaveBeenCalled();
+    });
+
     it('fires trackEvent only once across multiple re-renders', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
@@ -324,7 +376,6 @@ describe('useMerklBonusClaim', () => {
 
   describe('getBonusAmountRange', () => {
     const bonusRangeCases: [string, string][] = [
-      ['< 0.001', '< 0.01'],
       ['0.50', '0.01 - 0.99'],
       ['0.99', '0.01 - 0.99'],
       ['1.00', '1.00 - 9.99'],

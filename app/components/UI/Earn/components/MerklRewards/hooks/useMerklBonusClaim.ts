@@ -2,6 +2,7 @@ import { useMemo, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../../Tokens/types';
+import { isClaimableBonusAboveThreshold } from '../MerklRewards.utils';
 import {
   useMerklRewards,
   isTokenEligibleForMerklRewards,
@@ -16,6 +17,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 
 export interface MerklClaimData {
+  /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
   hasPendingClaim: boolean;
   isClaiming: boolean;
@@ -100,27 +102,37 @@ export const useMerklBonusClaim = (
   const { hasPendingClaim } = usePendingMerklClaim();
   const { claimRewards, isClaiming } = useMerklClaimTransaction(eligibleAsset);
 
-  const hasClaimableBonus = isEligible && !!claimableReward && !hasPendingClaim;
+  const hasClaimableBonus =
+    isEligible &&
+    isClaimableBonusAboveThreshold(claimableReward) &&
+    !hasPendingClaim;
+
   const hasFiredCtaAvailableEvent = useRef(false);
 
   useEffect(() => {
-    if (hasClaimableBonus && isVisible && !hasFiredCtaAvailableEvent.current) {
-      hasFiredCtaAvailableEvent.current = true;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_CTA_DISPLAYED)
-          .addProperties({
-            location,
-            view_trigger: 'component_mounted',
-            button_text: 'Claim bonus',
-            network_chain_id: asset?.chainId,
-            network_name: network?.name,
-            asset_symbol: asset?.symbol,
-            bonus_amount_range: getBonusAmountRange(claimableReward),
-            has_claimed_before: hasClaimedBefore,
-          })
-          .build(),
-      );
+    if (
+      !hasClaimableBonus ||
+      !isVisible ||
+      !claimableReward ||
+      hasFiredCtaAvailableEvent.current
+    ) {
+      return;
     }
+    hasFiredCtaAvailableEvent.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_CTA_DISPLAYED)
+        .addProperties({
+          location,
+          view_trigger: 'component_mounted',
+          button_text: 'Claim bonus',
+          network_chain_id: asset?.chainId,
+          network_name: network?.name,
+          asset_symbol: asset?.symbol,
+          bonus_amount_range: getBonusAmountRange(claimableReward),
+          has_claimed_before: hasClaimedBefore,
+        })
+        .build(),
+    );
   }, [
     hasClaimableBonus,
     isVisible,
@@ -140,7 +152,9 @@ export const useMerklBonusClaim = (
     }
 
     return {
-      claimableReward,
+      claimableReward: isClaimableBonusAboveThreshold(claimableReward)
+        ? claimableReward
+        : null,
       hasPendingClaim,
       claimRewards,
       isClaiming,

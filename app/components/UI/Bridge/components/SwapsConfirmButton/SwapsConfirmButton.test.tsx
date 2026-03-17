@@ -957,11 +957,7 @@ describe('SwapsConfirmButton', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: {
-              ...mockActiveQuote,
-              aggregator: mockActiveQuote.quote.bridgeId,
-              walletAddress: '0x1234567890123456789012345678901234567890',
-            },
+            quoteResponse: mockActiveQuote,
             location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -1020,11 +1016,7 @@ describe('SwapsConfirmButton', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: {
-              ...solanaActiveQuote,
-              aggregator: solanaActiveQuote.quote.bridgeId,
-              walletAddress: '0x1234567890123456789012345678901234567890',
-            },
+            quoteResponse: solanaActiveQuote,
             location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);

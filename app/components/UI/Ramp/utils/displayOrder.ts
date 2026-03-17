@@ -74,11 +74,20 @@ export function rampsOrderToDisplayOrder(order: RampsOrder): DisplayOrder {
   };
 }
 
+const HIDDEN_ORDER_STATUSES = new Set<RampsOrderStatus>([
+  RampsOrderStatus.Precreated,
+  RampsOrderStatus.IdExpired,
+  RampsOrderStatus.Unknown,
+]);
+
 export function mergeDisplayOrders(
   legacyOrders: FiatOrder[],
   v2Orders: RampsOrder[],
 ): DisplayOrder[] {
-  const v2Ids = new Set(v2Orders.map((o) => o.providerOrderId));
+  const visibleV2Orders = v2Orders.filter(
+    (o) => !HIDDEN_ORDER_STATUSES.has(o.status),
+  );
+  const v2Ids = new Set(visibleV2Orders.map((o) => o.providerOrderId));
 
   const legacy = legacyOrders
     .filter((o) => {
@@ -88,7 +97,7 @@ export function mergeDisplayOrders(
     })
     .map(fiatOrderToDisplayOrder);
 
-  const v2 = v2Orders.map(rampsOrderToDisplayOrder);
+  const v2 = visibleV2Orders.map(rampsOrderToDisplayOrder);
 
   return [...legacy, ...v2].sort((a, b) => b.createdAt - a.createdAt);
 }
