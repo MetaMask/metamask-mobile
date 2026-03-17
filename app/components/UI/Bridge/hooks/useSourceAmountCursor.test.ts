@@ -1,21 +1,24 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { Keys } from '../../../Base/Keypad';
 import {
-  type SourceAmountSelectionChangeEvent,
-  type UseSourceAmountCursorParams,
-} from './useSourceAmountCursor.types';
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
+} from 'react-native';
+import { Keys } from '../../../Base/Keypad';
 import { useSourceAmountCursor } from './useSourceAmountCursor';
+
+type UseSourceAmountCursorParams = Parameters<typeof useSourceAmountCursor>[0];
 
 const createSelectionEvent = (
   start: number,
-): SourceAmountSelectionChangeEvent => ({
-  nativeEvent: {
-    selection: {
-      start,
-      end: start,
+): NativeSyntheticEvent<TextInputSelectionChangeEventData> =>
+  ({
+    nativeEvent: {
+      selection: {
+        start,
+        end: start,
+      },
     },
-  },
-});
+  }) as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
 
 describe('useSourceAmountCursor', () => {
   it('uses keypad value directly when cursor position is not manually set', () => {
