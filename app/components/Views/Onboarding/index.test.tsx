@@ -18,6 +18,19 @@ jest.mock('../../../core/BackupVault', () => ({
   ),
 }));
 
+let mockSkipLoadingUnset = false;
+jest.mock('../../../actions/user', () => {
+  const actualUserActions = jest.requireActual('../../../actions/user');
+  return {
+    ...actualUserActions,
+    loadingUnset: jest.fn(() =>
+      mockSkipLoadingUnset
+        ? { type: 'UNIT_TEST_NOOP' }
+        : actualUserActions.loadingUnset(),
+    ),
+  };
+});
+
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
@@ -386,6 +399,127 @@ describe('Onboarding', () => {
       },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('applies compact gap and medium button size on medium device', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('applies standard gap and large button size on non-medium device', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
+
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders loading overlay with loading message', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingMessage = 'Creating your wallet...';
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: loadingMessage,
+      },
+    };
+    mockRoute.params = { delete: true };
+
+    try {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText(loadingMessage)).toBeOnTheScreen();
+      });
+    } finally {
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('applies iPhoneX notification padding when on iPhoneX', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: 'Loading...',
+      },
+    };
+    mockRoute.params = { delete: true };
+    (Device.isIphoneX as jest.Mock).mockReturnValue(true);
+
+    try {
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(toJSON()).toMatchSnapshot();
+      });
+    } finally {
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('applies standard notification padding when not on iPhoneX', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: 'Loading...',
+      },
+    };
+    mockRoute.params = { delete: true };
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+
+    try {
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(toJSON()).toMatchSnapshot();
+      });
+    } finally {
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
   });
 
   it('handles click on create wallet button', () => {

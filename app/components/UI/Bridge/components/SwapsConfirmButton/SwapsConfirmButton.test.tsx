@@ -776,7 +776,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          isExpired: true,
+          needsNewQuote: true,
           isLoading: false,
         }));
 
@@ -800,7 +800,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          isExpired: true,
+          needsNewQuote: true,
           isLoading: false,
         }));
 
@@ -823,7 +823,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          isExpired: true,
+          needsNewQuote: true,
           isLoading: false,
         }));
 
@@ -853,7 +853,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          isExpired: true,
+          needsNewQuote: true,
           isLoading: true,
           activeQuote: null,
         }));
@@ -868,7 +868,7 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // needsNewQuote is true because there is no active quote
+      // needsNewQuote is true because the hook computed it from isExpired=true with no activeQuote
       expect(
         getByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeTruthy();
@@ -882,7 +882,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          isExpired: true,
+          needsNewQuote: false,
           isLoading: true,
           activeQuote: mockActiveQuote,
         }));
@@ -897,7 +897,7 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // needsNewQuote is false because activeQuote exists and isLoading is true
+      // needsNewQuote is false because hook suppresses it when activeQuote exists and isLoading is true
       expect(
         queryByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeNull();
@@ -908,7 +908,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          isExpired: true,
+          needsNewQuote: false,
           isLoading: false,
         }));
 
@@ -930,7 +930,7 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // needsNewQuote is false because isSubmittingTx is true
+      // needsNewQuote is false because the hook suppresses it when isSubmittingTx is true
       expect(
         queryByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeNull();
