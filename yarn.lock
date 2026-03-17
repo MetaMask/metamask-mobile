@@ -35615,6 +35615,7 @@ __metadata:
     "@types/serve-handler": "npm:^6.1.4"
     "@types/url-parse": "npm:^1.4.8"
     "@types/valid-url": "npm:^1.0.4"
+    "@types/ws": "npm:^8.18.1"
     "@typescript-eslint/eslint-plugin": "npm:^7.10.0"
     "@typescript-eslint/parser": "npm:^7.10.0"
     "@veriff/react-native-sdk": "npm:^11.2.0"
@@ -35853,6 +35854,7 @@ __metadata:
     webextension-polyfill: "npm:^0.12.0"
     webpack: "npm:^5.88.2"
     webpack-cli: "npm:^5.1.4"
+    ws: "npm:^8.19.0"
     xhr2: "npm:^0.2.1"
     xml2js: "npm:^0.5.0"
   dependenciesMeta:
@@ -47354,7 +47356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:*, ws@npm:^8.0.0, ws@npm:^8.12.1, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.18.2, ws@npm:^8.18.3, ws@npm:^8.5.0, ws@npm:^8.8.0":
+"ws@npm:*, ws@npm:^8.0.0, ws@npm:^8.12.1, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.18.2, ws@npm:^8.18.3, ws@npm:^8.19.0, ws@npm:^8.5.0, ws@npm:^8.8.0":
   version: 8.19.0
   resolution: "ws@npm:8.19.0"
   peerDependencies:

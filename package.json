@@ -574,6 +574,7 @@
     "@types/serve-handler": "^6.1.4",
     "@types/url-parse": "^1.4.8",
     "@types/valid-url": "^1.0.4",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
     "@walletconnect/types": "^2.23.0",
@@ -658,6 +659,7 @@
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
+    "ws": "^8.19.0",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
   },
@@ -756,7 +758,9 @@
       "appium-chromium-driver>appium-chromedriver>@appium/support>sharp": false,
       "@metamask/transaction-controller>babel-runtime>core-js": false,
       "webdriverio>@wdio/utils>edgedriver": false,
-      "webdriverio>@wdio/utils>geckodriver": false
+      "webdriverio>@wdio/utils>geckodriver": false,
+      "ws>bufferutil": false,
+      "ws>utf-8-validate": false
     }
   },
   "packageManager": "yarn@4.10.3",
