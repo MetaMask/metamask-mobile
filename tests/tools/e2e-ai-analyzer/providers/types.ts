@@ -8,7 +8,7 @@
 /**
  * Supported LLM provider types
  */
-export type ProviderType = 'anthropic' | 'openai' | 'google' | 'litellm';
+export type ProviderType = 'anthropic' | 'openai' | 'google';
 
 /**
  * Content block types used in messages
