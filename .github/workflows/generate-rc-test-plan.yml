@@ -50,7 +50,13 @@ jobs:
             }
 
             // Extract version from branch name (e.g., release/7.70.0 -> 7.70.0)
-            const version = pr.data.head.ref.replace('release/', '');
+            // Sanitize to prevent shell injection - only allow semver chars
+            const rawVersion = pr.data.head.ref.replace('release/', '');
+            const version = rawVersion.replace(/[^0-9.]/g, '');
+            if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
+              console.log(`Invalid version format: ${rawVersion}`);
+              return;
+            }
             core.setOutput('version', version);
             core.setOutput('is_release', 'true');
             core.setOutput('pr_title', pr.data.title);

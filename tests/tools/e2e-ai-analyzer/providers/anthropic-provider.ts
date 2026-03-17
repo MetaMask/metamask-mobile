@@ -137,6 +137,10 @@ export class AnthropicProvider implements ILLMProvider {
         content: fromAnthropicContent(response.content),
         model: response.model,
         stopReason: response.stop_reason || 'end_turn',
+        usage: {
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+        },
       };
     }
 
