@@ -227,6 +227,67 @@ export class OAuthService {
     );
   };
 
+  #executeProviderLogin = async (
+    loginHandler: BaseLoginHandler,
+  ): Promise<LoginHandlerResult> => {
+    let providerLoginSuccess = false;
+    try {
+      trace({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      const loginResult = await loginHandler.login();
+      if (!loginResult) {
+        throw new OAuthError(
+          'Login handler return empty result',
+          OAuthErrorType.LoginError,
+        );
+      }
+      providerLoginSuccess = true;
+      return loginResult;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      if (
+        !(
+          error instanceof OAuthError &&
+          (error.code === OAuthErrorType.UserCancelled ||
+            error.code === OAuthErrorType.UserDismissed)
+        )
+      ) {
+        trace({
+          name: TraceName.OnboardingOAuthProviderLoginError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+      }
+
+      this.#trackSocialLoginFailure({
+        authConnection: loginHandler.authConnection,
+        errorCategory: 'provider_login',
+        error,
+      });
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        data: { success: providerLoginSuccess },
+      });
+
+      if (
+        Platform.OS === 'android' &&
+        loginHandler.authConnection === AuthConnection.Google
+      ) {
+        acmSignOut().catch((e) =>
+          Logger.log(e, 'acmSignOut: failed to clear cached credential'),
+        );
+      }
+    }
+  };
+
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
     userClickedRehydration: boolean,
@@ -247,67 +308,9 @@ export class OAuthService {
     }
 
     try {
-      let result: LoginHandlerResult,
-        data: AuthResponse,
-        handleCodeFlowResult: HandleOAuthLoginResult;
-      let providerLoginSuccess = false;
-      try {
-        trace({
-          name: TraceName.OnboardingOAuthProviderLogin,
-          op: TraceOperation.OnboardingSecurityOp,
-        });
-        const loginResult = await loginHandler.login();
-        if (!loginResult) {
-          throw new OAuthError(
-            'Login handler return empty result',
-            OAuthErrorType.LoginError,
-          );
-        }
-        result = loginResult;
-        providerLoginSuccess = true;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+      let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
-        // trace only if error is not a user cancelled error
-        if (
-          !(
-            error instanceof OAuthError &&
-            (error.code === OAuthErrorType.UserCancelled ||
-              error.code === OAuthErrorType.UserDismissed)
-          )
-        ) {
-          trace({
-            name: TraceName.OnboardingOAuthProviderLoginError,
-            op: TraceOperation.OnboardingError,
-            tags: { errorMessage },
-          });
-          endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
-        }
-
-        this.#trackSocialLoginFailure({
-          authConnection: loginHandler.authConnection,
-          errorCategory: 'provider_login',
-          error,
-        });
-
-        throw error;
-      } finally {
-        endTrace({
-          name: TraceName.OnboardingOAuthProviderLogin,
-          data: { success: providerLoginSuccess },
-        });
-
-        if (
-          Platform.OS === 'android' &&
-          loginHandler.authConnection === AuthConnection.Google
-        ) {
-          acmSignOut().catch((e) =>
-            Logger.log(e, 'acmSignOut: failed to clear cached credential'),
-          );
-        }
-      }
-
+      const result = await this.#executeProviderLogin(loginHandler);
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: before getAuthToken');
