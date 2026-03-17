@@ -5,13 +5,9 @@ import configureMockStore from 'redux-mock-store';
 import NftGrid from './NftGrid';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
-import { RootState } from '../../../reducers';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import {
-  isNftFetchingProgressSelector,
-  multichainCollectiblesByEnabledNetworksSelector,
-} from '../../../reducers/collectibles';
+import { isNftFetchingProgressSelector } from '../../../reducers/collectibles';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 
@@ -23,7 +19,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     useNavigation: () => ({
       navigate: mockNavigate,
@@ -31,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
     }),
     useFocusEffect: (callback: () => void | (() => void)) => {
       // Use real useEffect to ensure cleanup runs on unmount
-      React.useEffect(() => callback(), [callback]);
+      ReactActual.useEffect(() => callback(), [callback]);
     },
   };
 });
@@ -351,7 +347,7 @@ describe('NftGrid', () => {
     isHomepageRedesignEnabled?: boolean;
     collectibles?: Record<string, Nft[]>;
     isNftFetching?: boolean;
-    selectedGroupAccounts?: Array<{ address: string }>;
+    selectedGroupAccounts?: { address: string }[];
   }) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectHomepageRedesignV1Enabled) {
