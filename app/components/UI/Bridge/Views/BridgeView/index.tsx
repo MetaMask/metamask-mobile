@@ -344,6 +344,11 @@ const BridgeView = () => {
       type: 'source',
     });
 
+  const handleFlipTokensPress = useCallback(() => {
+    resetSourceAmountCursorPosition();
+    void handleSwitchTokens(destTokenAmount)();
+  }, [destTokenAmount, handleSwitchTokens, resetSourceAmountCursorPosition]);
+
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
@@ -427,7 +432,7 @@ const BridgeView = () => {
               isQuoteSponsored={isQuoteSponsored}
             />
             <FLipQuoteButton
-              onPress={handleSwitchTokens(destTokenAmount)}
+              onPress={handleFlipTokensPress}
               disabled={
                 !destChainId ||
                 !destToken ||
