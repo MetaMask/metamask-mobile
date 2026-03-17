@@ -550,7 +550,7 @@ export async function processAnalysis(
 
     return {
       summary,
-      featureAreas: featureAreas.sort((a, b) => a.priority - b.priority),
+      featureAreas: [...featureAreas].sort((a, b) => a.priority - b.priority),
       crossCuttingConcerns: parsed.cross_cutting_concerns || [],
       regressionFocusAreas: parsed.regression_focus_areas || [],
       platformSpecificGuidance: {
