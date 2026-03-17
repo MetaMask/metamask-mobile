@@ -15,12 +15,13 @@ import AccountListComponent from '../../../wdio/screen-objects/AccountListCompon
 import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
 import { unlockIfLockScreenVisible } from '../mm-connect/utils.js';
 import { PerformanceLogin } from '../../tags.performance.js';
+import AppwrightSelectors from '../../framework/AppwrightSelectors.ts';
 
 const UNISWAP_URL = 'https://app.uniswap.org';
 const UNISWAP_DAPP_NAME = 'Uniswap';
 
 test.describe(`${PerformanceLogin}`, () => {
-  test.setTimeout(180000000);
+  test.setTimeout(240000);
 
   test(
     'Connect to Uniswap dapp, edit accounts, choose another account, and skip Solana popup',
@@ -54,17 +55,25 @@ test.describe(`${PerformanceLogin}`, () => {
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // 2. Tap Connect on Uniswap and select MetaMask from the wallet picker
-      await AppwrightHelpers.withWebAction(
-        device,
-        async () => {
-          await UniswapDapp.connectWithMetaMask();
-        },
-        UNISWAP_URL,
-      );
+      if (AppwrightSelectors.isAndroid(device)) {
+        await AppwrightHelpers.withWebAction(
+          device,
+          async () => {
+            await UniswapDapp.connectWithMetaMask();
+          },
+          UNISWAP_URL,
+        );
+      } else {
+        await AppwrightHelpers.withNativeAction(device, async () => {
+          await UniswapDapp.connectIOS();
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          await UniswapDapp.selectWalletConnectOption();
+        });
+      }
 
       // 3. Click MetaMask in native wallet picker.
       await AppwrightHelpers.withNativeAction(device, async () => {
-        await UniswapDapp.tapOnMetaMaskWalletOption();
+        await UniswapDapp.tapOnMetaMaskWalletOptionAndOpenDeeplink();
       });
       metamaskTimer.start();
       // 4. Handle MetaMask connection modal in native context:
@@ -81,11 +90,13 @@ test.describe(`${PerformanceLogin}`, () => {
       });
       connectTimer.start();
       await switchToMobileBrowser(device);
-
       await AppwrightHelpers.withNativeAction(
         device,
         async () => {
-          await UniswapDapp.isUniswapDisplayed();
+          if (AppwrightSelectors.isAndroid(device)) {
+            // with the current framework we are limited with autoaccept alerts and on ios it clicks it before we can make the assertion
+            await UniswapDapp.isUniswapDisplayed();
+          }
         },
         UNISWAP_URL,
       );

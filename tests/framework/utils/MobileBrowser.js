@@ -152,6 +152,22 @@ export async function launchMobileBrowser(device) {
   }
 }
 
+async function logIfSystemAlertIsOpen(device, tag = '') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = device.webDriverClient;
+
+  try {
+    const isOpen = await client.isAlertOpen();
+    if (isOpen) {
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.log(`[ALERT ${tag}] check failed: ${String(e)}`);
+    return false;
+  }
+}
+
 /**
  * Switch back to the mobile browser without clearing or re-launching.
  * Use after confirming connection in the mobile app so the existing dapp tab stays as-is.
@@ -162,6 +178,8 @@ export async function switchToMobileBrowser(device) {
     isAndroid ? CHROME_PACKAGE : 'com.apple.mobilesafari',
   );
   MobileBrowserScreen.device = device;
+
+  return await logIfSystemAlertIsOpen(device, 'switchToMobileBrowser');
 }
 
 export async function navigateToDappAndroid(device, url, dappName) {
@@ -178,7 +196,12 @@ export async function navigateToDappAndroid(device, url, dappName) {
 }
 
 export async function navigateToDappIOS(device, url, dappName) {
-  throw new Error('Not implemented');
+  MobileBrowserScreen.device = device;
+  const element = await AppwrightSelectors.getElementByNameiOS(
+    device,
+    'TabBarItemTitle',
+  );
+  await AppwrightGestures.typeText(element, `${url}\n`);
 }
 
 export async function navigateToDapp(device, url, dappName) {
