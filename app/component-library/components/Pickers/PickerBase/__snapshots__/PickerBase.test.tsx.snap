@@ -1,16 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PickerBase should render correctly 1`] = `
-<TouchableOpacity
-  onPress={[MockFunction]}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#949596",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -19,7 +46,7 @@ exports[`PickerBase should render correctly 1`] = `
     Test Content
   </Text>
   <SvgMock
-    color="#131416"
+    color="#121314"
     fill="currentColor"
     height={20}
     name="ArrowDown"
@@ -32,5 +59,5 @@ exports[`PickerBase should render correctly 1`] = `
     }
     width={20}
   />
-</TouchableOpacity>
+</View>
 `;

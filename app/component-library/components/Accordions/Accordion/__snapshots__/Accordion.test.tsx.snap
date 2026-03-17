@@ -1,30 +1,250 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
-<Fragment>
-  <AccordionHeader
-    isExpanded={true}
-    onPress={[Function]}
-    style={{}}
-    testID="accordion"
-    title="Sample Accordion Header Title"
-  />
+[
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "height": 24,
+        "justifyContent": "center",
+        "opacity": 1,
+      }
+    }
+    testID="accordionheader"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#4459ff",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+      testID="accordionheader-title"
+    >
+      Sample Accordion Header Title
+    </Text>
+    <View
+      collapsable={false}
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "rotate": "180deg",
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
+        [
+          {
+            "marginLeft": 4,
+          },
+        ]
+      }
+      nativeID="1"
+      style={
+        [
+          {
+            "marginLeft": 4,
+          },
+          {
+            "transform": [
+              {
+                "rotate": "180deg",
+              },
+            ],
+          },
+        ]
+      }
+      testID="accordionheader-arrow-icon-animation"
+    >
+      <SvgMock
+        color="#4459ff"
+        fill="currentColor"
+        height={16}
+        name="ArrowDown"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        testID="accordionheader-arrow-icon"
+        width={16}
+      />
+    </View>
+  </View>,
+  <View
+    collapsable={false}
+    jestAnimatedProps={
+      {
+        "value": {},
+      }
+    }
+    jestAnimatedStyle={
+      {
+        "value": {},
+      }
+    }
+    nativeID="2"
     testID="accordion-content"
   >
     <View />
-  </View>
-</Fragment>
+  </View>,
+]
 `;
 
 exports[`Accordion - Snapshot should render default settings correctly 1`] = `
-<Fragment>
-  <AccordionHeader
-    isExpanded={false}
-    onPress={[Function]}
-    style={{}}
-    testID="accordion"
-    title="Sample Accordion Header Title"
-  />
-</Fragment>
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "height": 24,
+      "justifyContent": "center",
+      "opacity": 1,
+    }
+  }
+  testID="accordionheader"
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#4459ff",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+    testID="accordionheader-title"
+  >
+    Sample Accordion Header Title
+  </Text>
+  <View
+    collapsable={false}
+    jestAnimatedProps={
+      {
+        "value": {},
+      }
+    }
+    jestAnimatedStyle={
+      {
+        "value": {
+          "transform": [
+            {
+              "rotate": "0deg",
+            },
+          ],
+        },
+      }
+    }
+    jestInlineStyle={
+      [
+        {
+          "marginLeft": 4,
+        },
+      ]
+    }
+    nativeID="0"
+    style={
+      [
+        {
+          "marginLeft": 4,
+        },
+        {
+          "transform": [
+            {
+              "rotate": "0deg",
+            },
+          ],
+        },
+      ]
+    }
+    testID="accordionheader-arrow-icon-animation"
+  >
+    <SvgMock
+      color="#4459ff"
+      fill="currentColor"
+      height={16}
+      name="ArrowDown"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      testID="accordionheader-arrow-icon"
+      width={16}
+    />
+  </View>
+</View>
 `;

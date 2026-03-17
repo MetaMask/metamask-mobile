@@ -1,39 +1,385 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Main should render correctly 1`] = `
-<Provider
-  store={
+<View
+  style={
     {
-      "clearActions": [Function],
-      "dispatch": [Function],
-      "getActions": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
+      "flex": 1,
     }
   }
 >
-  <ForwardRef(NavigationContainer)>
-    <MainFlow />
-  </ForwardRef(NavigationContainer)>
-</Provider>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateY": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <MainNavigatorMock />
+                      <GlobalAlertMock />
+                      <FadeOutOverlayMock />
+                      <NotificationMock />
+                      <RampOrdersMock />
+                      <EarnTransactionMonitorMock />
+                      <ProtectYourWalletModalMock />
+                      <RootRPCMethodsUIMock />
+                      <ProtectWalletMandatoryModalMock />
+                    </View>
+                  </View>
+                  <View
+                    collapsable={false}
+                    pointerEvents="box-none"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RNCSafeAreaProvider>
+</View>
 `;
 
 exports[`Main should render correctly with isConnectionRemoved true 1`] = `
-<Provider
-  store={
+<View
+  style={
     {
-      "clearActions": [Function],
-      "dispatch": [Function],
-      "getActions": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
+      "flex": 1,
     }
   }
 >
-  <ForwardRef(NavigationContainer)>
-    <MainFlow />
-  </ForwardRef(NavigationContainer)>
-</Provider>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateY": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <MainNavigatorMock />
+                      <GlobalAlertMock />
+                      <FadeOutOverlayMock />
+                      <NotificationMock />
+                      <RampOrdersMock />
+                      <EarnTransactionMonitorMock />
+                      <ProtectYourWalletModalMock />
+                      <RootRPCMethodsUIMock />
+                      <ProtectWalletMandatoryModalMock />
+                    </View>
+                  </View>
+                  <View
+                    collapsable={false}
+                    pointerEvents="box-none"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RNCSafeAreaProvider>
+</View>
 `;

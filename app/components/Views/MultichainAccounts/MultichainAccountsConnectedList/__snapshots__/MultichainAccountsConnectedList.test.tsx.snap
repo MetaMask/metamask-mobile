@@ -39,7 +39,6 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
         removeClippedSubviews={false}
         scrollEventThrottle={0.0001}
         showsVerticalScrollIndicator={false}
-        style={{}}
       >
         <View>
           <View
@@ -93,7 +92,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "flexDirection": "row",
                     "paddingHorizontal": 16,
                     "width": "100%",
@@ -128,8 +127,34 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                     }
                     testID="multichain-account-cell-container"
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -137,6 +162,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           "flexDirection": "row",
                           "gap": 16,
                           "minHeight": 36,
+                          "opacity": 1,
                         }
                       }
                     >
@@ -189,7 +215,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "flex": 1,
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
@@ -204,7 +230,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           </Text>
                         </View>
                       </View>
-                    </TouchableOpacity>
+                    </View>
                     <View
                       style={
                         {
@@ -217,8 +243,39 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         }
                       }
                     >
-                      <TouchableOpacity
-                        onPress={[Function]}
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          {
+                            "opacity": 1,
+                          }
+                        }
                       >
                         <View
                           style={
@@ -234,7 +291,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -244,21 +301,48 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             testID="multichain-account-cell-balance"
                           />
                         </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={[Function]}
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "display": "flex",
                             "flexDirection": "row",
                             "justifyContent": "center",
+                            "opacity": 1,
                           }
                         }
                         testID="multichain-account-cell-menu"
                       >
                         <SvgMock
-                          color="#66676a"
+                          color="#686e7d"
                           fill="currentColor"
                           height={20}
                           name="MoreVertical"
@@ -270,7 +354,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           }
                           width={20}
                         />
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -333,8 +417,34 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                     }
                     testID="multichain-account-cell-container"
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -342,6 +452,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           "flexDirection": "row",
                           "gap": 16,
                           "minHeight": 36,
+                          "opacity": 1,
                         }
                       }
                     >
@@ -394,7 +505,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             numberOfLines={1}
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "flex": 1,
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
@@ -409,7 +520,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           </Text>
                         </View>
                       </View>
-                    </TouchableOpacity>
+                    </View>
                     <View
                       style={
                         {
@@ -422,8 +533,39 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         }
                       }
                     >
-                      <TouchableOpacity
-                        onPress={[Function]}
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          {
+                            "opacity": 1,
+                          }
+                        }
                       >
                         <View
                           style={
@@ -439,7 +581,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -449,21 +591,48 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             testID="multichain-account-cell-balance"
                           />
                         </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={[Function]}
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "display": "flex",
                             "flexDirection": "row",
                             "justifyContent": "center",
+                            "opacity": 1,
                           }
                         }
                         testID="multichain-account-cell-menu"
                       >
                         <SvgMock
-                          color="#66676a"
+                          color="#686e7d"
                           fill="currentColor"
                           height={20}
                           name="MoreVertical"
@@ -475,7 +644,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           }
                           width={20}
                         />
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -483,8 +652,34 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
             </View>
           </View>
           <View>
-            <TouchableOpacity
-              onPress={[MockFunction]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -493,6 +688,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                   "justifyContent": "flex-start",
                   "marginLeft": 16,
                   "marginTop": 16,
+                  "opacity": 1,
                 }
               }
               testID="account-list-bottom-sheet"
@@ -538,7 +734,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
               >
                 Edit accounts
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </RCTScrollView>

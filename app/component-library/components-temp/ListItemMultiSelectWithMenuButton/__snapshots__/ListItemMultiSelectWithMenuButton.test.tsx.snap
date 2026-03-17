@@ -10,8 +10,34 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
     }
   }
 >
-  <TouchableOpacity
-    disabled={false}
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": false,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "flex": 1,
@@ -46,8 +72,34 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
           }
         }
       >
-        <TouchableOpacity
-          disabled={false}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -63,7 +115,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 4,
                 "borderWidth": 2,
                 "height": 20,
@@ -72,7 +124,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
               }
             }
           />
-        </TouchableOpacity>
+        </View>
         <View
           accessible={false}
           style={
@@ -85,7 +137,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
         <View />
       </View>
     </View>
-  </TouchableOpacity>
+  </View>
   <View
     style={
       {
@@ -93,13 +145,35 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -113,7 +187,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
       testID="button-menu-select-with-menu-button-test-id"
     >
       <SvgMock
-        color="#131416"
+        color="#121314"
         fill="currentColor"
         height={20}
         name="MoreVertical"
@@ -125,7 +199,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
         }
         width={20}
       />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

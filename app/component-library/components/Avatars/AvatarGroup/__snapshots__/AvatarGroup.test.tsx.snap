@@ -33,7 +33,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       testID="avatargroup-avatar"
     >
       <SvgMock
-        color="#131416"
+        color="#121314"
         fill="currentColor"
         height={12}
         name="AddSquare"
@@ -159,7 +159,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#66676a",
+        "color": "#686e7d",
         "fontFamily": "Geist-Medium",
         "fontSize": 14,
         "letterSpacing": 0,

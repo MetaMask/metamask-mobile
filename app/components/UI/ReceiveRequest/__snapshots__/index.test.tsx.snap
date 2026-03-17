@@ -131,7 +131,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -359,17 +342,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b4b4b566",
-                                  "borderRadius": 16,
-                                  "borderWidth": 1,
-                                  "display": "flex",
-                                  "paddingBottom": 24,
-                                  "paddingLeft": 24,
-                                  "paddingRight": 24,
-                                  "paddingTop": 24,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -384,11 +357,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "display": "flex",
-                                  "marginBottom": 16,
-                                  "marginTop": 24,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -396,11 +365,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             <View
                               testID="receive-request-qr-account-display"
                             >
-                              <Text
-                                testID="qr-account-address"
-                              >
-                                0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                         </View>
@@ -419,94 +384,94 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                         }
                       >
                         <View
-                          accessibilityLabel="Request payment"
-                          accessibilityRole="button"
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
                           collapsable={false}
-                          focusable={true}
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
+                          jestAnimatedProps={
+                            {
+                              "value": {},
+                            }
+                          }
+                          jestAnimatedStyle={
+                            {
+                              "value": {
+                                "transform": [Array],
+                              },
+                            }
+                          }
+                          jestInlineStyle={
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#b4b4b528",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "columnGap": 8,
-                                "flexDirection": "row",
-                                "height": 48,
                                 "justifyContent": "center",
-                                "minWidth": 80,
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "width": "100%",
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
                               },
                             ]
                           }
-                          testID="request-payment-button"
+                          nativeID="0"
+                          style={
+                            [
+                              {
+                                "transform": [Array],
+                              },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
+                            ]
+                          }
                         >
-                          <Text
-                            accessibilityRole="text"
-                            ellipsizeMode="clip"
-                            numberOfLines={1}
+                          <View
+                            accessibilityLabel="Request payment"
+                            accessibilityRole="button"
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "flexGrow": 0,
-                                  "flexShrink": 1,
-                                  "flexWrap": "wrap",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": 400,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
-                                },
-                                undefined,
+                                [Object],
                               ]
                             }
+                            testID="request-payment-button"
                           >
-                            Request payment
-                          </Text>
+                            <View
+                              style={[Object]}
+                              testID="spinner-container"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                              testID="content-container"
+                            >
+                              <Text … />
+                            </View>
+                          </View>
                         </View>
                       </View>
-                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -514,8 +479,8 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -651,7 +616,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -659,24 +624,8 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -684,7 +633,6 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -879,17 +827,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b4b4b566",
-                                  "borderRadius": 16,
-                                  "borderWidth": 1,
-                                  "display": "flex",
-                                  "paddingBottom": 24,
-                                  "paddingLeft": 24,
-                                  "paddingRight": 24,
-                                  "paddingTop": 24,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -904,11 +842,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "display": "flex",
-                                  "marginBottom": 16,
-                                  "marginTop": 24,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -916,11 +850,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             <View
                               testID="receive-request-qr-account-display"
                             >
-                              <Text
-                                testID="qr-account-address"
-                              >
-                                0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                         </View>
@@ -939,94 +869,94 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                         }
                       >
                         <View
-                          accessibilityLabel="Request payment"
-                          accessibilityRole="button"
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
                           collapsable={false}
-                          focusable={true}
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
+                          jestAnimatedProps={
+                            {
+                              "value": {},
+                            }
+                          }
+                          jestAnimatedStyle={
+                            {
+                              "value": {
+                                "transform": [Array],
+                              },
+                            }
+                          }
+                          jestInlineStyle={
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#b4b4b528",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "columnGap": 8,
-                                "flexDirection": "row",
-                                "height": 48,
                                 "justifyContent": "center",
-                                "minWidth": 80,
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "width": "100%",
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
                               },
                             ]
                           }
-                          testID="request-payment-button"
+                          nativeID="6"
+                          style={
+                            [
+                              {
+                                "transform": [Array],
+                              },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
+                            ]
+                          }
                         >
-                          <Text
-                            accessibilityRole="text"
-                            ellipsizeMode="clip"
-                            numberOfLines={1}
+                          <View
+                            accessibilityLabel="Request payment"
+                            accessibilityRole="button"
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "flexGrow": 0,
-                                  "flexShrink": 1,
-                                  "flexWrap": "wrap",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": 400,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
-                                },
-                                undefined,
+                                [Object],
                               ]
                             }
+                            testID="request-payment-button"
                           >
-                            Request payment
-                          </Text>
+                            <View
+                              style={[Object]}
+                              testID="spinner-container"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                              testID="content-container"
+                            >
+                              <Text … />
+                            </View>
+                          </View>
                         </View>
                       </View>
-                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1034,8 +964,8 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1171,7 +1101,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -1179,24 +1109,8 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1204,7 +1118,6 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1399,17 +1312,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b4b4b566",
-                                  "borderRadius": 16,
-                                  "borderWidth": 1,
-                                  "display": "flex",
-                                  "paddingBottom": 24,
-                                  "paddingLeft": 24,
-                                  "paddingRight": 24,
-                                  "paddingTop": 24,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -1424,11 +1327,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "display": "flex",
-                                  "marginBottom": 16,
-                                  "marginTop": 24,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -1436,11 +1335,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             <View
                               testID="receive-request-qr-account-display"
                             >
-                              <Text
-                                testID="qr-account-address"
-                              >
-                                0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                         </View>
@@ -1459,94 +1354,94 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                         }
                       >
                         <View
-                          accessibilityLabel="Request payment"
-                          accessibilityRole="button"
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
                           collapsable={false}
-                          focusable={true}
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
+                          jestAnimatedProps={
+                            {
+                              "value": {},
+                            }
+                          }
+                          jestAnimatedStyle={
+                            {
+                              "value": {
+                                "transform": [Array],
+                              },
+                            }
+                          }
+                          jestInlineStyle={
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#b4b4b528",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "columnGap": 8,
-                                "flexDirection": "row",
-                                "height": 48,
                                 "justifyContent": "center",
-                                "minWidth": 80,
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "width": "100%",
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
                               },
                             ]
                           }
-                          testID="request-payment-button"
+                          nativeID="8"
+                          style={
+                            [
+                              {
+                                "transform": [Array],
+                              },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
+                            ]
+                          }
                         >
-                          <Text
-                            accessibilityRole="text"
-                            ellipsizeMode="clip"
-                            numberOfLines={1}
+                          <View
+                            accessibilityLabel="Request payment"
+                            accessibilityRole="button"
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "flexGrow": 0,
-                                  "flexShrink": 1,
-                                  "flexWrap": "wrap",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": 400,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
-                                },
-                                undefined,
+                                [Object],
                               ]
                             }
+                            testID="request-payment-button"
                           >
-                            Request payment
-                          </Text>
+                            <View
+                              style={[Object]}
+                              testID="spinner-container"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                              testID="content-container"
+                            >
+                              <Text … />
+                            </View>
+                          </View>
                         </View>
                       </View>
-                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1554,8 +1449,8 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

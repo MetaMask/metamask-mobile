@@ -47,7 +47,7 @@ exports[`PaymentSelectionAlert matches snapshot with default severity 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -108,7 +108,7 @@ exports[`PaymentSelectionAlert matches snapshot with warning severity 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,

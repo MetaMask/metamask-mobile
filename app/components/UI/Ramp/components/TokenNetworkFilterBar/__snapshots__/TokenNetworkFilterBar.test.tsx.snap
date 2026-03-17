@@ -18,22 +18,45 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
   showsHorizontalScrollIndicator={false}
 >
   <View>
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -53,25 +76,48 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       >
         All
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -108,7 +154,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -118,25 +164,48 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       >
         Ethereum
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -173,7 +242,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -183,25 +252,48 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       >
         Optimism
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -238,7 +330,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -248,7 +340,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       >
         Polygon
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </RCTScrollView>
 `;
@@ -271,22 +363,45 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
   showsHorizontalScrollIndicator={false}
 >
   <View>
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -306,25 +421,48 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       >
         All
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -361,7 +499,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -371,25 +509,48 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       >
         Ethereum
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -426,7 +587,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -436,25 +597,48 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       >
         Optimism
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -491,7 +675,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -501,7 +685,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       >
         Polygon
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </RCTScrollView>
 `;
@@ -524,24 +708,47 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
   showsHorizontalScrollIndicator={false}
 >
   <View>
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -551,7 +758,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -561,23 +768,46 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       >
         All
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -624,25 +854,48 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       >
         Ethereum
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -679,7 +932,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -689,25 +942,48 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       >
         Optimism
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -744,7 +1020,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -754,7 +1030,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       >
         Polygon
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </RCTScrollView>
 `;

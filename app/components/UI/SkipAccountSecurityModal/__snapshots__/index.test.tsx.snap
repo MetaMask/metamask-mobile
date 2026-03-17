@@ -17,7 +17,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
     }
   >
     <SvgMock
-      color="#131416"
+      color="#121314"
       fill="currentColor"
       height={24}
       name="Danger"
@@ -37,9 +37,9 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
-          "fontSize": 20,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -58,9 +58,34 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
       }
       testID="skip-backup-modal"
     >
-      <TouchableOpacity
-        disabled={false}
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -80,7 +105,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#949596",
+              "borderColor": "#b7bbc8",
               "borderRadius": 4,
               "borderWidth": 2,
               "height": 20,
@@ -89,13 +114,13 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
             }
           }
         />
-      </TouchableOpacity>
+      </View>
       <Text
         accessibilityRole="text"
         onPress={[Function]}
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -118,18 +143,40 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -137,18 +184,18 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
         testID="Cancel-Skip"
-        type="Secondary"
       >
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -158,15 +205,36 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         >
           Secure now
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        disabled={true}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={false}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -183,7 +251,6 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           }
         }
         testID="Skip-button"
-        type="Primary"
       >
         <Text
           accessibilityRole="text"
@@ -199,7 +266,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         >
           Skip
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </div>
@@ -222,7 +289,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
     }
   >
     <SvgMock
-      color="#131416"
+      color="#121314"
       fill="currentColor"
       height={24}
       name="Danger"
@@ -242,9 +309,9 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
-          "fontSize": 20,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -263,9 +330,34 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
       }
       testID="skip-backup-modal"
     >
-      <TouchableOpacity
-        disabled={false}
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -285,7 +377,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#949596",
+              "borderColor": "#b7bbc8",
               "borderRadius": 4,
               "borderWidth": 2,
               "height": 20,
@@ -294,13 +386,13 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
             }
           }
         />
-      </TouchableOpacity>
+      </View>
       <Text
         accessibilityRole="text"
         onPress={[Function]}
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -323,18 +415,40 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -342,18 +456,18 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
         testID="Cancel-Skip"
-        type="Secondary"
       >
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -363,15 +477,36 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
         >
           Secure now
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        disabled={true}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={false}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -388,7 +523,6 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           }
         }
         testID="Skip-button"
-        type="Primary"
       >
         <Text
           accessibilityRole="text"
@@ -404,7 +538,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
         >
           Skip
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </div>

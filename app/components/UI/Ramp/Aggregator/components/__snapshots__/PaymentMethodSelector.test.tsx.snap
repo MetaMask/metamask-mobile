@@ -6,7 +6,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -18,15 +18,45 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
   >
     Update payment method
   </Text>,
-  <TouchableOpacity
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": true,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={false}
-    disabled={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <View
       style={
         [
           {
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -93,9 +123,9 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -129,7 +159,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -140,7 +170,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
               Change
             </Text>
             <SvgMock
-              color="#66676a"
+              color="#686e7d"
               fill="currentColor"
               height={16}
               name="ArrowDown"
@@ -159,7 +189,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#b4b4b566",
+            "backgroundColor": "#b7bbc866",
             "height": 1,
             "marginLeft": 16,
             "marginRight": 16,
@@ -204,7 +234,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
         />
       </View>
     </View>
-  </TouchableOpacity>,
+  </View>,
 ]
 `;
 
@@ -214,7 +244,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -226,15 +256,45 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
   >
     Update payment method
   </Text>,
-  <TouchableOpacity
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": true,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={false}
-    disabled={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <View
       style={
         [
           {
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -301,9 +361,9 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -337,7 +397,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -348,7 +408,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
               Change
             </Text>
             <SvgMock
-              color="#66676a"
+              color="#686e7d"
               fill="currentColor"
               height={16}
               name="ArrowDown"
@@ -367,7 +427,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#b4b4b566",
+            "backgroundColor": "#b7bbc866",
             "height": 1,
             "marginLeft": 16,
             "marginRight": 16,
@@ -383,7 +443,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
         }
       />
     </View>
-  </TouchableOpacity>,
+  </View>,
 ]
 `;
 
@@ -393,7 +453,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -405,15 +465,45 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
   >
     Update payment method
   </Text>,
-  <TouchableOpacity
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": true,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={false}
-    disabled={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <View
       style={
         [
           {
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -455,7 +545,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#858b9a14",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -500,7 +590,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#858b9a14",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -527,7 +617,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#b4b4b566",
+            "backgroundColor": "#b7bbc866",
             "height": 1,
             "marginLeft": 16,
             "marginRight": 16,
@@ -546,7 +636,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
           style={
             [
               {
-                "backgroundColor": "#b4b4b528",
+                "backgroundColor": "#858b9a14",
                 "borderRadius": 30,
                 "padding": 14,
               },
@@ -571,6 +661,6 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
         />
       </View>
     </View>
-  </TouchableOpacity>,
+  </View>,
 ]
 `;

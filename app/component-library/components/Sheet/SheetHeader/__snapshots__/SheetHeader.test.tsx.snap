@@ -21,7 +21,16 @@ exports[`SheetHeader should render correctly 1`] = `
     }
   />
   <Text
-    variant="sHeadingMD"
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist-Bold",
+        "fontSize": 18,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
   >
     Title
   </Text>

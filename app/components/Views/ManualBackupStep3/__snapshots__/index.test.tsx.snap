@@ -1,32 +1,274 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ManualBackupStep3 should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "marginTop": 16,
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <View
+    count={300}
+    fadeOut={true}
+    origin={
+      {
+        "x": 375,
+        "y": 0,
+      }
+    }
+  />
+  <View
+    style={
+      {
+        "paddingHorizontal": 20,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "rgba(1,0,0,0)",
+          },
+          {
+            "flexDirection": "column",
+          },
+        ]
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "rgba(1,0,0,0)",
+              "flexDirection": "row",
+              "justifyContent": "space-around",
+            },
+            {
+              "flexDirection": "row",
+              "height": 20,
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+  <RNCSafeAreaView
+    edges={
+      {
+        "bottom": "additive",
+        "left": "off",
+        "right": "off",
+        "top": "off",
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="onboarding-success-screen"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "height": 667,
+              "justifyContent": "center",
+            }
+          }
+          testID="onboarding-success-end-animation"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              alignment="center"
+              autoplay={true}
+              fit="contain"
+              source="onboarding_loader.riv"
+              style={
+                {
+                  "alignSelf": "center",
+                  "height": 667,
+                  "width": 750,
+                }
+              }
+              testID="mock-rive-animation"
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+              "marginBottom": 16,
+              "marginHorizontal": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            }
+          }
+        >
+          Your wallet is ready!
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          }
+        }
+      >
+        <View
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "opacity": 1,
+              "paddingVertical": 8,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </View>
+      </View>
+    </View>
+  </RNCSafeAreaView>
+</View>
 `;

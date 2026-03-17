@@ -131,7 +131,7 @@ exports[`TransactionsView Basic Rendering renders correctly and matches snapshot
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`TransactionsView Basic Rendering renders correctly and matches snapshot
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`TransactionsView Basic Rendering renders correctly and matches snapshot
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -325,8 +308,8 @@ exports[`TransactionsView Basic Rendering renders correctly and matches snapshot
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

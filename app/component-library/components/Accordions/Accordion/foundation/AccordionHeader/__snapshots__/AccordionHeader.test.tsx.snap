@@ -1,31 +1,86 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpanded is true 1`] = `
-<TouchableOpacity
-  activeOpacity={0.5}
-  onPress={[Function]}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 24,
       "justifyContent": "center",
+      "opacity": 1,
     }
   }
   testID="accordionheader"
 >
   <Text
+    accessibilityRole="text"
     style={
       {
         "color": "#4459ff",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
     testID="accordionheader-title"
-    variant="sBodyMD"
   >
     Sample Accordion Header Title
   </Text>
   <View
+    collapsable={false}
+    jestAnimatedProps={
+      {
+        "value": {},
+      }
+    }
+    jestAnimatedStyle={
+      {
+        "value": {
+          "transform": [
+            {
+              "rotate": "180deg",
+            },
+          ],
+        },
+      }
+    }
+    jestInlineStyle={
+      [
+        {
+          "marginLeft": 4,
+        },
+      ]
+    }
+    nativeID="1"
     style={
       [
         {
@@ -42,42 +97,105 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
     }
     testID="accordionheader-arrow-icon-animation"
   >
-    <Icon
+    <SvgMock
       color="#4459ff"
+      fill="currentColor"
+      height={16}
       name="ArrowDown"
-      size="16"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
       testID="accordionheader-arrow-icon"
+      width={16}
     />
   </View>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`AccordionHeader - Snapshot should render default settings correctly 1`] = `
-<TouchableOpacity
-  activeOpacity={0.5}
-  onPress={[Function]}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 24,
       "justifyContent": "center",
+      "opacity": 1,
     }
   }
   testID="accordionheader"
 >
   <Text
+    accessibilityRole="text"
     style={
       {
         "color": "#4459ff",
+        "fontFamily": "Geist-Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
     testID="accordionheader-title"
-    variant="sBodyMD"
   >
     Sample Accordion Header Title
   </Text>
   <View
+    collapsable={false}
+    jestAnimatedProps={
+      {
+        "value": {},
+      }
+    }
+    jestAnimatedStyle={
+      {
+        "value": {
+          "transform": [
+            {
+              "rotate": "0deg",
+            },
+          ],
+        },
+      }
+    }
+    jestInlineStyle={
+      [
+        {
+          "marginLeft": 4,
+        },
+      ]
+    }
+    nativeID="0"
     style={
       [
         {
@@ -94,12 +212,20 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
     }
     testID="accordionheader-arrow-icon-animation"
   >
-    <Icon
+    <SvgMock
       color="#4459ff"
+      fill="currentColor"
+      height={16}
       name="ArrowDown"
-      size="16"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
       testID="accordionheader-arrow-icon"
+      width={16}
     />
   </View>
-</TouchableOpacity>
+</View>
 `;

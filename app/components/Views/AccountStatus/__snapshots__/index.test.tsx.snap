@@ -48,7 +48,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
@@ -85,7 +85,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -110,22 +110,45 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -146,25 +169,48 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         >
           Log in
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -175,7 +221,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -185,7 +231,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         >
           Use a different login method
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -239,7 +285,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
@@ -276,7 +322,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -301,22 +347,45 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -337,25 +406,48 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         >
           Log in
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -366,7 +458,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -376,7 +468,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         >
           Use a different login method
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -430,7 +522,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
@@ -467,7 +559,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -492,22 +584,45 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -528,25 +643,48 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         >
           Create a new wallet
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -557,7 +695,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -567,7 +705,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         >
           Use a different login method
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -621,7 +759,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
@@ -658,7 +796,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -683,22 +821,45 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -719,25 +880,48 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         >
           Unlock wallet
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -748,7 +932,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -758,7 +942,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         >
           Use a different login method
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -812,7 +996,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
@@ -849,7 +1033,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -874,22 +1058,45 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -910,25 +1117,48 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         >
           Unlock wallet
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -939,7 +1169,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -949,7 +1179,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         >
           Use a different login method
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1003,7 +1233,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
@@ -1040,7 +1270,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1065,22 +1295,45 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -1101,25 +1354,48 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         >
           Create a new wallet
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -1130,7 +1406,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1140,7 +1416,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         >
           Use a different login method
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>

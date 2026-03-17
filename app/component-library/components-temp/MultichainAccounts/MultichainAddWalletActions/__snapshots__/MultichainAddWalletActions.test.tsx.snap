@@ -131,7 +131,7 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -371,78 +354,20 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "flex-start",
-                                  "display": "flex",
-                                  "flexBasis": "0%",
-                                  "flexDirection": "row",
-                                  "flexGrow": 1,
-                                  "flexShrink": 1,
-                                  "gap": 16,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="Wallet"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 20,
-                                      "width": 20,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <SvgMock … />
                             </View>
                             <View
-                              style={
-                                [
-                                  {
-                                    "display": "flex",
-                                    "flexBasis": "0%",
-                                    "flexGrow": 1,
-                                    "flexShrink": 1,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                Import a wallet
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                         </View>
@@ -505,78 +430,20 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "flex-start",
-                                  "display": "flex",
-                                  "flexBasis": "0%",
-                                  "flexDirection": "row",
-                                  "flexGrow": 1,
-                                  "flexShrink": 1,
-                                  "gap": 16,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="Download"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 20,
-                                      "width": 20,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <SvgMock … />
                             </View>
                             <View
-                              style={
-                                [
-                                  {
-                                    "display": "flex",
-                                    "flexBasis": "0%",
-                                    "flexGrow": 1,
-                                    "flexShrink": 1,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                Import an account
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                         </View>
@@ -639,78 +506,20 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "flex-start",
-                                  "display": "flex",
-                                  "flexBasis": "0%",
-                                  "flexDirection": "row",
-                                  "flexGrow": 1,
-                                  "flexShrink": 1,
-                                  "gap": 16,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="Usb"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 20,
-                                      "width": 20,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <SvgMock … />
                             </View>
                             <View
-                              style={
-                                [
-                                  {
-                                    "display": "flex",
-                                    "flexBasis": "0%",
-                                    "flexGrow": 1,
-                                    "flexShrink": 1,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                Add a hardware wallet
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                         </View>
@@ -722,8 +531,8 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

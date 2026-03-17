@@ -4,22 +4,51 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
 <View
   style={
     {
-      "opacity": 0,
+      "opacity": 1,
     }
   }
   testID="animated-view-opacity"
 >
-  <TouchableOpacity
+  <View
     accessibilityLabel="Mock Provider"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": true,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={0.8}
-    disabled={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <View
       style={
         [
           {
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -123,10 +152,41 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
               </Text>
             </View>
           </View>
-          <TouchableOpacity
+          <View
             accessibilityHint="Shows provider details"
             accessibilityLabel="Mock Provider logo"
-            disabled={true}
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": true,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={false}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
           >
             <View
               style={
@@ -159,7 +219,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                       "fontSize": 12,
                     },
                     {
-                      "color": "#66676a",
+                      "color": "#686e7d",
                       "marginLeft": 8,
                     },
                     {
@@ -174,7 +234,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                 
               </Text>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
         <View
           style={
@@ -196,9 +256,9 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -230,9 +290,9 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -260,7 +320,10 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                   "marginTop": 4,
                   "overflow": "hidden",
                 },
-                {},
+                {
+                  "height": 0,
+                  "opacity": 0,
+                },
               ]
             }
             testID="animated-view-height"
@@ -272,20 +335,40 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": true,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
                 accessible={true}
-                activeOpacity={1}
-                disabled={true}
-                loading={true}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+                collapsable={false}
+                focusable={false}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "alignSelf": "stretch",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#121314",
                     "borderRadius": 12,
                     "flexDirection": "row",
                     "height": 48,
@@ -300,12 +383,12 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                   color="#ffffff"
                   size="small"
                 />
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
       </View>
     </View>
-  </TouchableOpacity>
+  </View>
 </View>
 `;

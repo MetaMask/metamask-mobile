@@ -1,16 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddChainApproval renders 1`] = `
-<ForwardRef
-  onClose={[Function]}
-  shouldNavigateBack={false}
+<View
+  testID="bottom-sheet-mock"
 >
-  <NetworkVerificationInfo
-    customNetworkInformation={{}}
-  />
-</ForwardRef>
+  <View
+    testID="network-verification-info"
+  >
+    <Text>
+      NetworkVerificationInfo Mock
+    </Text>
+  </View>
+</View>
 `;
 
-exports[`AddChainApproval returns null if incorrect approval request type 1`] = `""`;
+exports[`AddChainApproval returns null if incorrect approval request type 1`] = `null`;
 
-exports[`AddChainApproval returns null if no approval request 1`] = `""`;
+exports[`AddChainApproval returns null if no approval request 1`] = `null`;

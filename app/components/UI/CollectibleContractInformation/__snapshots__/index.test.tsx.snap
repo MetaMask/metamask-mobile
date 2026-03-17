@@ -1,42 +1,296 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleContractInformation should render correctly 1`] = `
-<ContextProvider
-  value={
+<RCTSafeAreaView
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "borderRadius": 10,
+      "minHeight": 450,
     }
   }
 >
-  <Component
-    collectibleContract={
+  <View
+    style={
       {
-        "address": "0x123",
-        "description": "description",
-        "name": "name",
-        "symbol": "symbol",
-        "totalSupply": 1,
+        "borderBottomWidth": 0.5,
+        "borderColor": "#b7bbc866",
       }
     }
-  />
-</ContextProvider>
+  >
+    <Text
+      onPress={[Function]}
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Bold",
+          "fontSize": 18,
+          "marginHorizontal": 20,
+          "marginVertical": 12,
+          "textAlign": "center",
+        }
+      }
+      testID="collectible-contract-information-title"
+    >
+      name
+    </Text>
+  </View>
+  <RCTScrollView
+    style={
+      {
+        "flex": 1,
+        "paddingHorizontal": 20,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          {
+            "marginVertical": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "borderColor": "#b7bbc866",
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "marginTop": 0,
+            }
+          }
+        >
+          Description
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "paddingTop": 10,
+            }
+          }
+        >
+          description
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "marginVertical": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "borderColor": "#b7bbc866",
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "marginTop": 0,
+            }
+          }
+        >
+          Total supply
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "paddingTop": 10,
+            }
+          }
+        >
+          1
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "marginVertical": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "borderColor": "#b7bbc866",
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "marginTop": 0,
+            }
+          }
+        >
+          Address
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "paddingTop": 10,
+              },
+              {
+                "fontSize": 12,
+              },
+            ]
+          }
+        >
+          0x123
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "marginTop": 15,
+          }
+        }
+      >
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "opacity": 1,
+              "textAlign": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 8,
+                  "marginTop": 4,
+                  "paddingRight": 5,
+                  "textAlignVertical": "center",
+                }
+              }
+              testID="collectible-contract-information-opensea"
+            >
+              Powered by
+            </Text>
+            <Image
+              source={1}
+              style={
+                {
+                  "height": 20,
+                  "resizeMode": "contain",
+                  "width": 80,
+                }
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "borderColor": "#b7bbc866",
+        "borderTopWidth": 0.5,
+        "flexDirection": "row",
+        "height": 60,
+        "justifyContent": "center",
+      }
+    }
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignContent": "center",
+          "alignItems": "center",
+          "flex": 1,
+          "height": 60,
+          "justifyContent": "center",
+          "opacity": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 16,
+          }
+        }
+      >
+        Close
+      </Text>
+    </View>
+  </View>
+</RCTSafeAreaView>
 `;

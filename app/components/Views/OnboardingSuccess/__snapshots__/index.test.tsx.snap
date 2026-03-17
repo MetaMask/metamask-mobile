@@ -74,7 +74,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -98,22 +98,45 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -134,12 +157,39 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -159,7 +209,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -239,7 +289,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -263,22 +313,45 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -299,12 +372,39 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -324,7 +424,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -404,7 +504,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -428,22 +528,45 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -464,12 +587,39 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -489,7 +639,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -569,7 +719,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -593,22 +743,45 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -629,12 +802,39 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -654,7 +854,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -734,7 +934,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -758,22 +958,45 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -794,12 +1017,39 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -819,7 +1069,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -899,7 +1149,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -923,22 +1173,45 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -959,12 +1232,39 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -984,7 +1284,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1064,7 +1364,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -1088,22 +1388,45 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -1124,12 +1447,39 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -1149,7 +1499,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1229,7 +1579,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -1253,22 +1603,45 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -1289,12 +1662,39 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -1314,7 +1714,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1394,7 +1794,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -1418,22 +1818,45 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -1454,12 +1877,39 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
+            "opacity": 1,
             "paddingVertical": 8,
           }
         }
@@ -1479,7 +1929,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>

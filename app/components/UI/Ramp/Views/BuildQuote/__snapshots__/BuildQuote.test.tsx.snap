@@ -107,16 +107,42 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
               >
                 $100
               </Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 100,
                     "flexDirection": "row",
+                    "opacity": 1,
                     "padding": 8,
                   }
                 }
@@ -130,7 +156,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   }
                 >
                   <SvgMock
-                    color="#131416"
+                    color="#121314"
                     fill="currentColor"
                     height={16}
                     name="Card"
@@ -147,7 +173,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -167,7 +193,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   }
                 >
                   <SvgMock
-                    color="#131416"
+                    color="#121314"
                     fill="currentColor"
                     height={16}
                     name="ArrowDown"
@@ -180,7 +206,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     width={16}
                   />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
           <View
@@ -229,7 +255,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -253,7 +279,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -265,54 +291,34 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
               fiat_on_ramp.powered_by_provider
             </Text>
             <View
-              accessibilityLabel="fiat_on_ramp.continue"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
               collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
                     "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                    "width": "100%",
                   },
+                ]
+              }
+              nativeID="84"
+              style={
+                [
                   {
                     "transform": [
                       {
@@ -320,34 +326,183 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                       },
                     ],
                   },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
                 ]
               }
-              testID="build-quote-continue-button"
             >
-              <Text
-                accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
+              <View
+                accessibilityLabel="fiat_on_ramp.continue"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": true,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
+                      "alignItems": "center",
+                      "backgroundColor": "#121314",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 0.5,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "100%",
                     },
-                    undefined,
                   ]
                 }
+                testID="build-quote-continue-button"
               >
-                fiat_on_ramp.continue
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      collapsable={false}
+                      jestAnimatedProps={
+                        {
+                          "value": {},
+                        }
+                      }
+                      jestAnimatedStyle={
+                        {
+                          "value": {
+                            "transform": [
+                              {
+                                "rotate": "1.44deg",
+                              },
+                            ],
+                          },
+                        }
+                      }
+                      jestInlineStyle={[]}
+                      nativeID="85"
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    ellipsizeMode="clip"
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    fiat_on_ramp.continue
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -387,22 +542,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -410,7 +588,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -424,7 +602,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     1
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -439,22 +617,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -462,7 +663,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -476,7 +677,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     2
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -491,22 +692,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -514,7 +738,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -528,7 +752,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     3
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
             <View
@@ -557,22 +781,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -580,7 +827,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -594,7 +841,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     4
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -609,22 +856,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -632,7 +902,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -646,7 +916,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     5
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -661,22 +931,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -684,7 +977,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -698,7 +991,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     6
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
             <View
@@ -727,22 +1020,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -750,7 +1066,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -764,7 +1080,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     7
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -779,22 +1095,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -802,7 +1141,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -816,7 +1155,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     8
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -831,22 +1170,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -854,7 +1216,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -868,7 +1230,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     9
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
             <View
@@ -897,24 +1259,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      {
-                        "backgroundColor": "transparent",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -922,7 +1305,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -936,7 +1319,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     .
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -951,22 +1334,45 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -974,7 +1380,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -988,7 +1394,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   >
                     0
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1003,23 +1409,44 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  delayLongPress={500}
-                  onLongPress={[Function]}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                   testID="keypad-delete-button"
                 >
@@ -1029,7 +1456,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "height": 32,
                           "width": 32,
                         },
@@ -1037,7 +1464,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                       ]
                     }
                   />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
@@ -1142,7 +1569,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 64,
                     "fontWeight": "400",
@@ -1155,16 +1582,42 @@ exports[`BuildQuote matches snapshot 1`] = `
               >
                 $100
               </Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 100,
                     "flexDirection": "row",
+                    "opacity": 1,
                     "padding": 8,
                   }
                 }
@@ -1178,7 +1631,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#131416"
+                    color="#121314"
                     fill="currentColor"
                     height={16}
                     name="Card"
@@ -1195,7 +1648,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1215,7 +1668,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#131416"
+                    color="#121314"
                     fill="currentColor"
                     height={16}
                     name="ArrowDown"
@@ -1228,7 +1681,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     width={16}
                   />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
           <View
@@ -1240,54 +1693,34 @@ exports[`BuildQuote matches snapshot 1`] = `
             }
           >
             <View
-              accessibilityLabel="fiat_on_ramp.continue"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
               collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
                     "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                    "width": "100%",
                   },
+                ]
+              }
+              nativeID="82"
+              style={
+                [
                   {
                     "transform": [
                       {
@@ -1295,34 +1728,183 @@ exports[`BuildQuote matches snapshot 1`] = `
                       },
                     ],
                   },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
                 ]
               }
-              testID="build-quote-continue-button"
             >
-              <Text
-                accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
+              <View
+                accessibilityLabel="fiat_on_ramp.continue"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": true,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
+                      "alignItems": "center",
+                      "backgroundColor": "#121314",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 0.5,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "100%",
                     },
-                    undefined,
                   ]
                 }
+                testID="build-quote-continue-button"
               >
-                fiat_on_ramp.continue
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      collapsable={false}
+                      jestAnimatedProps={
+                        {
+                          "value": {},
+                        }
+                      }
+                      jestAnimatedStyle={
+                        {
+                          "value": {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        }
+                      }
+                      jestInlineStyle={[]}
+                      nativeID="83"
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    ellipsizeMode="clip"
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    fiat_on_ramp.continue
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -1362,22 +1944,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1385,7 +1990,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1399,7 +2004,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     1
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1414,22 +2019,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1437,7 +2065,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1451,7 +2079,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     2
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1466,22 +2094,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1489,7 +2140,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1503,7 +2154,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     3
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
             <View
@@ -1532,22 +2183,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1555,7 +2229,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1569,7 +2243,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     4
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1584,22 +2258,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1607,7 +2304,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1621,7 +2318,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     5
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1636,22 +2333,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1659,7 +2379,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1673,7 +2393,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     6
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
             <View
@@ -1702,22 +2422,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1725,7 +2468,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1739,7 +2482,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     7
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1754,22 +2497,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1777,7 +2543,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1791,7 +2557,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     8
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1806,22 +2572,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1829,7 +2618,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1843,7 +2632,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     9
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
             <View
@@ -1872,24 +2661,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      {
-                        "backgroundColor": "transparent",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1897,7 +2707,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1911,7 +2721,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     .
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1926,22 +2736,45 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#b4b4b528",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                 >
                   <Text
@@ -1949,7 +2782,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Bold",
                           "fontSize": 32,
                           "fontWeight": "500",
@@ -1963,7 +2796,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   >
                     0
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 style={
@@ -1978,23 +2811,44 @@ exports[`BuildQuote matches snapshot 1`] = `
                   ]
                 }
               >
-                <TouchableOpacity
+                <View
                   accessibilityRole="button"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
                   accessible={true}
-                  delayLongPress={500}
-                  onLongPress={[Function]}
-                  onPress={[Function]}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "borderRadius": 12,
-                        "height": 48,
-                        "justifyContent": "center",
-                        "paddingHorizontal": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
                   }
                   testID="keypad-delete-button"
                 >
@@ -2004,7 +2858,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "height": 32,
                           "width": 32,
                         },
@@ -2012,7 +2866,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                       ]
                     }
                   />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>

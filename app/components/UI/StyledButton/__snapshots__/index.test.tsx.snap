@@ -1,266 +1,35 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
-<TouchableNativeFeedback
+<View
   accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#66676a",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
     }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "#4459ff",
-          "minHeight": 50,
-        },
-        null,
-        undefined,
-      ]
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
     }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type danger 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
+  }
   accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "#ca3542",
-          "borderColor": "#ca3542",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type info 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#4459ff",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type inverse-transparent 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "transparent",
-          "borderColor": "transparent",
-          "borderWidth": 0,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type onOverlay 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "borderColor": "#ffffff",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "borderColor": "#9a6300",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type secondary 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#949596",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type transparent 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "transparent",
-          "borderColor": "transparent",
-          "borderWidth": 0,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
-<Button
-  accessibilityRole="button"
-  containerStyle={
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -269,34 +38,46 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
       },
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#66676a",
+        "borderColor": "#686e7d",
         "borderWidth": 1,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#66676a",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -307,31 +88,43 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "backgroundColor": "#4459ff",
         "minHeight": 50,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type danger 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type danger 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -343,31 +136,43 @@ exports[`StyledButton should render correctly on iOS the button with type danger
         "borderColor": "#ca3542",
         "borderWidth": 1,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type info 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type info 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -379,31 +184,43 @@ exports[`StyledButton should render correctly on iOS the button with type info 1
         "borderColor": "#4459ff",
         "borderWidth": 1,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#4459ff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type inverse-transparent 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type inverse-transparent 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -415,31 +232,43 @@ exports[`StyledButton should render correctly on iOS the button with type invers
         "borderColor": "transparent",
         "borderWidth": 0,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -451,31 +280,43 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "borderColor": "#4459ff",
         "borderWidth": 1,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#4459ff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type onOverlay 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type onOverlay 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -486,33 +327,43 @@ exports[`StyledButton should render correctly on iOS the button with type onOver
         "borderColor": "#ffffff",
         "borderWidth": 1,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-        "fontFamily": "Geist-Bold",
-        "fontSize": 18,
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -523,31 +374,43 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "borderColor": "#9a6300",
         "borderWidth": 1,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#9a6300",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type secondary 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type secondary 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -556,34 +419,46 @@ exports[`StyledButton should render correctly on iOS the button with type second
       },
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#949596",
+        "borderColor": "#b7bbc8",
         "borderWidth": 1,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#131416",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type transparent 1`] = `
-<Button
+exports[`StyledButton should render correctly on Android the button with type transparent 1`] = `
+<View
   accessibilityRole="button"
-  containerStyle={
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
     [
       {
         "borderRadius": 12,
@@ -595,24 +470,446 @@ exports[`StyledButton should render correctly on iOS the button with type transp
         "borderColor": "transparent",
         "borderWidth": 0,
       },
+      null,
       undefined,
     ]
   }
-  disabledContainerStyle={null}
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
-    [
-      {
-        "fontFamily": "Geist-Bold",
-        "fontSize": 14,
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-        "fontFamily": "Geist-Bold",
-      },
-      undefined,
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#686e7d",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
   }
-  styleDisabled={null}
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "#4459ff",
+      "borderRadius": 12,
+      "justifyContent": "center",
+      "minHeight": 50,
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type danger 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "#ca3542",
+      "borderColor": "#ca3542",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type info 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#4459ff",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type inverse-transparent 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderRadius": 12,
+      "borderWidth": 0,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "transparent",
+      "borderColor": "#4459ff",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type onOverlay 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "borderColor": "#ffffff",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "borderColor": "#9a6300",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type secondary 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type transparent 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderRadius": 12,
+      "borderWidth": 0,
+      "justifyContent": "center",
+      "opacity": 1,
+      "padding": 15,
+    }
+  }
 />
 `;

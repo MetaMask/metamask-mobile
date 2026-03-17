@@ -89,7 +89,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -103,7 +103,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -127,7 +127,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -172,8 +172,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#b4b4b528",
-                  "borderColor": "#949596",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 12,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -203,7 +203,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholderTextColor="#66676a"
+                  placeholderTextColor="#686e7d"
                   returnKeyType="next"
                   secureTextEntry={true}
                   style={
@@ -211,7 +211,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -233,11 +233,42 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
                 testID="textfield-endacccessory"
               >
-                <TouchableOpacity
-                  onPress={[Function]}
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "opacity": 1,
+                    }
+                  }
                 >
                   <SvgMock
-                    color="#66676a"
+                    color="#686e7d"
                     fill="currentColor"
                     height={24}
                     name="Eye"
@@ -249,14 +280,14 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                     }
                     width={24}
                   />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -280,7 +311,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -325,8 +356,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#b4b4b528",
-                  "borderColor": "#b4b4b566",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 12,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -357,7 +388,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholderTextColor="#66676a"
+                  placeholderTextColor="#686e7d"
                   returnKeyType="done"
                   secureTextEntry={true}
                   style={
@@ -365,7 +396,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -386,11 +417,42 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
                 testID="textfield-endacccessory"
               >
-                <TouchableOpacity
-                  onPress={[Function]}
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "opacity": 1,
+                    }
+                  }
                 >
                   <SvgMock
-                    color="#66676a"
+                    color="#686e7d"
                     fill="currentColor"
                     height={24}
                     name="Eye"
@@ -402,7 +464,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                     }
                     width={24}
                   />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
@@ -410,7 +472,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
             style={
               {
                 "alignItems": "flex-start",
-                "backgroundColor": "#f3f3f4",
+                "backgroundColor": "#f3f5f9",
                 "borderRadius": 8,
                 "flexDirection": "row",
                 "gap": 8,
@@ -420,10 +482,35 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
             }
           >
-            <TouchableOpacity
+            <View
               accessibilityLabel="password-understand-box"
-              disabled={false}
-              onPress={[Function]}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "flex-start",
@@ -440,7 +527,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#949596",
+                    "borderColor": "#b7bbc8",
                     "borderRadius": 4,
                     "borderWidth": 2,
                     "height": 20,
@@ -449,7 +536,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </View>
             <Text
               accessibilityRole="link"
               accessible={true}
@@ -460,7 +547,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 {
                   "alignItems": "flex-start",
                   "backgroundColor": "transparent",
-                  "color": "#131416",
+                  "color": "#121314",
                   "flexDirection": "row",
                   "flexWrap": "wrap",
                   "fontFamily": "Geist-Regular",
@@ -480,7 +567,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -492,7 +579,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#66676a",
+                      "color": "#686e7d",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
@@ -533,19 +620,40 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
             }
           >
-            <TouchableOpacity
+            <View
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": true,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={true}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={false}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flexDirection": "row",
                   "height": 48,
@@ -571,7 +679,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               >
                 Create password
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

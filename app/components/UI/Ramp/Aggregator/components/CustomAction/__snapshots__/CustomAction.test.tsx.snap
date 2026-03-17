@@ -2,24 +2,70 @@
 
 exports[`CustomAction Component shows loading indicator when isLoading is true 1`] = `
 <View
-  style={
+  collapsable={false}
+  jestAnimatedProps={
     {
-      "opacity": 0,
+      "value": {},
     }
+  }
+  jestAnimatedStyle={
+    {
+      "value": {
+        "opacity": 0,
+      },
+    }
+  }
+  jestInlineStyle={{}}
+  nativeID="4"
+  style={
+    [
+      {
+        "opacity": 0,
+      },
+    ]
   }
   testID="animated-view-opacity"
 >
-  <TouchableOpacity
+  <View
     accessibilityLabel="Paypal (Staging)"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": true,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={0.8}
-    disabled={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <View
       style={
         [
           {
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -48,10 +94,41 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
             }
           }
         >
-          <TouchableOpacity
+          <View
             accessibilityHint="Shows provider details"
             accessibilityLabel="Paypal (Staging) logo"
-            disabled={true}
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": true,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={false}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
           >
             <View
               style={
@@ -84,7 +161,7 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
                       "fontSize": 12,
                     },
                     {
-                      "color": "#66676a",
+                      "color": "#686e7d",
                       "marginLeft": 8,
                     },
                     {
@@ -99,7 +176,7 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
                 
               </Text>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
         <View
           style={
@@ -117,6 +194,26 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
           }
         >
           <View
+            collapsable={false}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {},
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "marginTop": 4,
+                  "overflow": "hidden",
+                },
+              ]
+            }
+            nativeID="5"
             onLayout={[Function]}
             style={
               [
@@ -136,20 +233,40 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": true,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
                 accessible={true}
-                activeOpacity={1}
-                disabled={true}
-                loading={true}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+                collapsable={false}
+                focusable={false}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "alignSelf": "stretch",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#121314",
                     "borderRadius": 12,
                     "flexDirection": "row",
                     "height": 48,
@@ -164,12 +281,12 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
                   color="#ffffff"
                   size="small"
                 />
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
       </View>
     </View>
-  </TouchableOpacity>
+  </View>
 </View>
 `;

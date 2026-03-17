@@ -4,15 +4,40 @@ exports[`StakingBalance render matches snapshot 1`] = `
 <View
   testID="staking-balance-container"
 >
-  <TouchableOpacity
-    disabled={false}
-    onLongPress={[Function]}
-    onPress={[Function]}
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": false,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
         "flexDirection": "row",
         "height": 64,
+        "opacity": 1,
       }
     }
     testID="asset-Ethereum"
@@ -183,7 +208,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -198,7 +223,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -232,11 +257,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
         }
       }
     />
-  </TouchableOpacity>
+  </View>
   <View
     style={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 12,
         "marginTop": 16,
         "padding": 16,
@@ -291,7 +316,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -352,7 +377,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -374,7 +399,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             {
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -414,18 +439,40 @@ exports[`StakingBalance render matches snapshot 1`] = `
         ]
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -433,6 +480,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -443,7 +491,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -453,19 +501,41 @@ exports[`StakingBalance render matches snapshot 1`] = `
         >
           Unstake
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -473,6 +543,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -483,7 +554,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -493,7 +564,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         >
           Stake more
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -515,9 +586,9 @@ exports[`StakingBalance render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Bold",
-            "fontSize": 20,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingBottom": 8,
@@ -547,7 +618,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -557,15 +628,36 @@ exports[`StakingBalance render matches snapshot 1`] = `
             >
               Annual rate
             </Text>
-            <TouchableOpacity
+            <View
               accessibilityLabel="Annual rate tooltip"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -578,7 +670,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#babbbe"
+                color="#b7bbc8"
                 fill="currentColor"
                 height={16}
                 name="Info"
@@ -590,7 +682,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                 }
                 width={16}
               />
-            </TouchableOpacity>
+            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -629,7 +721,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -651,7 +743,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -665,7 +757,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -698,7 +790,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -720,7 +812,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -734,7 +826,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -747,24 +839,47 @@ exports[`StakingBalance render matches snapshot 1`] = `
           </View>
         </View>
         <View>
-          <TouchableOpacity
+          <View
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#b4b4b528",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 40,
                 "justifyContent": "center",
+                "opacity": 1,
                 "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
@@ -775,7 +890,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -785,7 +900,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             >
               View earnings history
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -797,15 +912,40 @@ exports[`StakingBalance should match the snapshot 1`] = `
 <View
   testID="staking-balance-container"
 >
-  <TouchableOpacity
-    disabled={false}
-    onLongPress={[Function]}
-    onPress={[Function]}
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": false,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
         "flexDirection": "row",
         "height": 64,
+        "opacity": 1,
       }
     }
     testID="asset-Ethereum"
@@ -976,7 +1116,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -991,7 +1131,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1025,11 +1165,11 @@ exports[`StakingBalance should match the snapshot 1`] = `
         }
       }
     />
-  </TouchableOpacity>
+  </View>
   <View
     style={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 12,
         "marginTop": 16,
         "padding": 16,
@@ -1084,7 +1224,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1145,7 +1285,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1167,7 +1307,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             {
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1207,18 +1347,40 @@ exports[`StakingBalance should match the snapshot 1`] = `
         ]
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1226,6 +1388,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -1236,7 +1399,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1246,19 +1409,41 @@ exports[`StakingBalance should match the snapshot 1`] = `
         >
           Unstake
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1266,6 +1451,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -1276,7 +1462,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1286,7 +1472,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
         >
           Stake more
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -1308,9 +1494,9 @@ exports[`StakingBalance should match the snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Bold",
-            "fontSize": 20,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingBottom": 8,
@@ -1340,7 +1526,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1350,15 +1536,36 @@ exports[`StakingBalance should match the snapshot 1`] = `
             >
               Annual rate
             </Text>
-            <TouchableOpacity
+            <View
               accessibilityLabel="Annual rate tooltip"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1371,7 +1578,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#babbbe"
+                color="#b7bbc8"
                 fill="currentColor"
                 height={16}
                 name="Info"
@@ -1383,7 +1590,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
                 }
                 width={16}
               />
-            </TouchableOpacity>
+            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -1422,7 +1629,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1444,7 +1651,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1458,7 +1665,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -1491,7 +1698,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1513,7 +1720,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1527,7 +1734,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#66676a",
+                  "color": "#686e7d",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -1540,24 +1747,47 @@ exports[`StakingBalance should match the snapshot 1`] = `
           </View>
         </View>
         <View>
-          <TouchableOpacity
+          <View
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#b4b4b528",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 40,
                 "justifyContent": "center",
+                "opacity": 1,
                 "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
@@ -1568,7 +1798,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1578,7 +1808,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             >
               View earnings history
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

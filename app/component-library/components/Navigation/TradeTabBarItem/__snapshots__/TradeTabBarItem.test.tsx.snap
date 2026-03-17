@@ -48,6 +48,37 @@ exports[`TradeTabBarItem renders TradeTabBarItem with icon and label 1`] = `
   testID="trade-tab-item"
 >
   <View
+    collapsable={false}
+    jestAnimatedProps={
+      {
+        "value": {},
+      }
+    }
+    jestAnimatedStyle={
+      {
+        "value": {
+          "backgroundColor": "#4459ff",
+          "transform": [
+            {
+              "rotateZ": "0deg",
+            },
+          ],
+        },
+      }
+    }
+    jestInlineStyle={
+      [
+        {
+          "alignItems": "center",
+          "borderRadius": 28,
+          "height": 56,
+          "justifyContent": "center",
+          "marginTop": -28,
+          "width": 56,
+        },
+      ]
+    }
+    nativeID="0"
     onLayout={[Function]}
     style={
       [
@@ -91,7 +122,7 @@ exports[`TradeTabBarItem renders TradeTabBarItem with icon and label 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#66676a",
+        "color": "#686e7d",
         "flexShrink": 0,
         "fontFamily": "Geist-Medium",
         "fontSize": 12,
@@ -156,6 +187,37 @@ exports[`TradeTabBarItem renders TradeTabBarItem with icon only 1`] = `
   testID="trade-tab-item"
 >
   <View
+    collapsable={false}
+    jestAnimatedProps={
+      {
+        "value": {},
+      }
+    }
+    jestAnimatedStyle={
+      {
+        "value": {
+          "backgroundColor": "#4459ff",
+          "transform": [
+            {
+              "rotateZ": "0deg",
+            },
+          ],
+        },
+      }
+    }
+    jestInlineStyle={
+      [
+        {
+          "alignItems": "center",
+          "borderRadius": 28,
+          "height": 56,
+          "justifyContent": "center",
+          "marginTop": -28,
+          "width": 56,
+        },
+      ]
+    }
+    nativeID="1"
     onLayout={[Function]}
     style={
       [

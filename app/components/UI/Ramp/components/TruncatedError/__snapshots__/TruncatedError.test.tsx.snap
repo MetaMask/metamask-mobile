@@ -32,9 +32,29 @@ exports[`TruncatedError Basic rendering renders an empty error string 1`] = `
       }
     }
   />
-  <TouchableOpacity
+  <View
     accessibilityLabel="View error details"
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
     hitSlop={
       {
         "bottom": 8,
@@ -43,7 +63,18 @@ exports[`TruncatedError Basic rendering renders an empty error string 1`] = `
         "top": 8,
       }
     }
-    onPress={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <SvgMock
       color="#ca3542"
@@ -58,7 +89,7 @@ exports[`TruncatedError Basic rendering renders an empty error string 1`] = `
       }
       width={16}
     />
-  </TouchableOpacity>
+  </View>
 </View>
 `;
 
@@ -96,9 +127,29 @@ exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1
   >
     This is a test error message
   </Text>
-  <TouchableOpacity
+  <View
     accessibilityLabel="View error details"
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
     hitSlop={
       {
         "bottom": 8,
@@ -107,7 +158,18 @@ exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1
         "top": 8,
       }
     }
-    onPress={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <SvgMock
       color="#ca3542"
@@ -122,7 +184,7 @@ exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1
       }
       width={16}
     />
-  </TouchableOpacity>
+  </View>
 </View>
 `;
 
@@ -160,9 +222,29 @@ exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = 
   >
     This is a test error message
   </Text>
-  <TouchableOpacity
+  <View
     accessibilityLabel="View error details"
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
     hitSlop={
       {
         "bottom": 8,
@@ -171,7 +253,18 @@ exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = 
         "top": 8,
       }
     }
-    onPress={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <SvgMock
       color="#ca3542"
@@ -186,7 +279,7 @@ exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = 
       }
       width={16}
     />
-  </TouchableOpacity>
+  </View>
 </View>
 `;
 
@@ -222,9 +315,29 @@ exports[`TruncatedError Info icon visibility displays the error text after measu
   >
     Short error message
   </Text>
-  <TouchableOpacity
+  <View
     accessibilityLabel="View error details"
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
     hitSlop={
       {
         "bottom": 8,
@@ -233,7 +346,18 @@ exports[`TruncatedError Info icon visibility displays the error text after measu
         "top": 8,
       }
     }
-    onPress={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <SvgMock
       color="#ca3542"
@@ -248,7 +372,7 @@ exports[`TruncatedError Info icon visibility displays the error text after measu
       }
       width={16}
     />
-  </TouchableOpacity>
+  </View>
 </View>
 `;
 
@@ -284,9 +408,29 @@ exports[`TruncatedError Truncation behavior shows fallback text when error is tr
   >
     We've encountered an error
   </Text>
-  <TouchableOpacity
+  <View
     accessibilityLabel="View error details"
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
     hitSlop={
       {
         "bottom": 8,
@@ -295,7 +439,18 @@ exports[`TruncatedError Truncation behavior shows fallback text when error is tr
         "top": 8,
       }
     }
-    onPress={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
   >
     <SvgMock
       color="#ca3542"
@@ -310,6 +465,6 @@ exports[`TruncatedError Truncation behavior shows fallback text when error is tr
       }
       width={16}
     />
-  </TouchableOpacity>
+  </View>
 </View>
 `;

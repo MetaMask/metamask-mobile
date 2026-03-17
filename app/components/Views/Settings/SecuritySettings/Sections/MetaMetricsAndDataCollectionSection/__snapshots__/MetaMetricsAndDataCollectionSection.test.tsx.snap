@@ -131,7 +131,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -332,10 +315,10 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#121314",
                               "flex": 1,
                               "fontFamily": "Geist-Medium",
-                              "fontSize": 20,
+                              "fontSize": 18,
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -359,24 +342,13 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             onTintColor="#4459ff"
                             style={
                               [
-                                {
-                                  "height": 31,
-                                  "width": 51,
-                                },
-                                [
-                                  {
-                                    "alignSelf": "flex-start",
-                                  },
-                                  {
-                                    "backgroundColor": "#b4b4b566",
-                                    "borderRadius": 16,
-                                  },
-                                ],
+                                [Object],
+                                [Array],
                               ]
                             }
                             testID="metametrics-switch"
                             thumbTintColor="#ffffff"
-                            tintColor="#b4b4b566"
+                            tintColor="#b7bbc866"
                             value={false}
                           />
                         </View>
@@ -385,7 +357,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#66676a",
+                            "color": "#686e7d",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -405,7 +377,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           style={
                             {
                               "backgroundColor": "transparent",
-                              "color": "#131416",
+                              "color": "#121314",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -451,10 +423,10 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#121314",
                               "flex": 1,
                               "fontFamily": "Geist-Medium",
-                              "fontSize": 20,
+                              "fontSize": 18,
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -478,24 +450,13 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             onTintColor="#4459ff"
                             style={
                               [
-                                {
-                                  "height": 31,
-                                  "width": 51,
-                                },
-                                [
-                                  {
-                                    "alignSelf": "flex-start",
-                                  },
-                                  {
-                                    "backgroundColor": "#b4b4b566",
-                                    "borderRadius": 16,
-                                  },
-                                ],
+                                [Object],
+                                [Array],
                               ]
                             }
                             testID="data-collection-switch"
                             thumbTintColor="#ffffff"
-                            tintColor="#b4b4b566"
+                            tintColor="#b7bbc866"
                             value={false}
                           />
                         </View>
@@ -504,7 +465,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#66676a",
+                            "color": "#686e7d",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -522,8 +483,8 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

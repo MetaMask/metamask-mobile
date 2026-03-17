@@ -131,7 +131,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -355,119 +338,21 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                             <View
                               onLayout={[Function]}
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
-                                    {
-                                      "transform": [
-                                        {
-                                          "scale": 1,
-                                        },
-                                      ],
-                                    },
-                                  ]
-                                }
-                                testID="button-icon"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#131416",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              <View … />
                             </View>
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                  "flexBasis": "0%",
-                                  "flexGrow": 1,
-                                  "flexShrink": 1,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                fiat_on_ramp.providers
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                           <View>
@@ -481,37 +366,11 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                           data={
                             [
                               {
-                                "provider": {
-                                  "description": "Test provider",
-                                  "environmentType": "PRODUCTION",
-                                  "hqAddress": "Test Address",
-                                  "id": "/providers/transak",
-                                  "links": [],
-                                  "logos": {
-                                    "dark": "https://example.com/logo-dark.png",
-                                    "height": 24,
-                                    "light": "https://example.com/logo-light.png",
-                                    "width": 90,
-                                  },
-                                  "name": "Transak",
-                                },
+                                "provider": [Object],
                                 "type": "provider",
                               },
                               {
-                                "provider": {
-                                  "description": "Test provider 2",
-                                  "environmentType": "PRODUCTION",
-                                  "hqAddress": "Test Address 2",
-                                  "id": "/providers/moonpay",
-                                  "links": [],
-                                  "logos": {
-                                    "dark": "https://example.com/moonpay-dark.png",
-                                    "height": 24,
-                                    "light": "https://example.com/moonpay-light.png",
-                                    "width": 90,
-                                  },
-                                  "name": "MoonPay",
-                                },
+                                "provider": [Object],
                                 "type": "provider",
                               },
                             ]
@@ -551,149 +410,14 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                               onLayout={[Function]}
                               style={null}
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
-                                  }
-                                }
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "padding": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "flex": 1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          [
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "fontWeight": 500,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        Transak
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </View>
-                                <View
-                                  accessibilityRole="checkbox"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "backgroundColor": "#b4b4b528",
-                                      "bottom": 0,
-                                      "flexDirection": "row",
-                                      "left": 0,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                />
-                              </TouchableOpacity>
+                              <View … />
                             </View>
                             <View
                               onFocusCapture={[Function]}
                               onLayout={[Function]}
                               style={null}
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
-                                  }
-                                }
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "padding": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "flex": 1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          [
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "fontWeight": 500,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        MoonPay
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
+                              <View … />
                             </View>
                           </View>
                         </RCTScrollView>
@@ -705,8 +429,8 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

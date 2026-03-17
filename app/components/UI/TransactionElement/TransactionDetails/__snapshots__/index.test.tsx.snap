@@ -131,7 +131,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`TransactionDetails should render correctly 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`TransactionDetails should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -331,7 +314,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               "paddingVertical": 16,
                             },
                             {
-                              "borderBottomColor": "#b4b4b566",
+                              "borderBottomColor": "#b7bbc866",
                               "borderBottomWidth": 1,
                             },
                           ]
@@ -351,12 +334,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -380,15 +358,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -397,20 +367,11 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
-                                {
-                                  "fontFamily": "Geist-Bold",
-                                },
-                                {
-                                  "color": "#457a39",
-                                },
+                                [Object],
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -430,18 +391,11 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "fontSize": 12,
-                                    "letterSpacing": 0.5,
-                                    "marginTop": 4,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
-                            Confirmed
+                            [missing "en.undefined.confirmed" translation]
                           </Text>
                         </View>
                         <View
@@ -460,12 +414,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -489,15 +438,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -509,7 +450,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             small={true}
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -546,12 +487,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -575,15 +511,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -599,64 +527,9 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "justifyContent": "center",
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 6,
-                                      "height": 24,
-                                      "marginRight": 8,
-                                      "overflow": "hidden",
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  primary={true}
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                  testID="account-label"
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={null}
-                                  >
-                                    0x0...0x0
-                                  </Text>
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -676,12 +549,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -705,15 +573,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -729,64 +589,9 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "justifyContent": "center",
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 6,
-                                      "height": 24,
-                                      "marginRight": 8,
-                                      "overflow": "hidden",
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  primary={true}
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                  testID="account-label"
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={null}
-                                  >
-                                    0x1...0x1
-                                  </Text>
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -816,12 +621,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -838,24 +638,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "textTransform": "uppercase",
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -880,7 +670,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           style={
                             [
                               {
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderRadius": 8,
                                 "borderWidth": 1,
                                 "padding": 16,
@@ -892,11 +682,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -904,98 +690,18 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Amount
                             </Text>
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -1003,71 +709,15 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "flex": 1,
-                                    "flexDirection": "row",
-                                    "flexWrap": "wrap",
-                                  },
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <Text
-                                italic={true}
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 30,
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#131416",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "fontSize": 12,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                No fee
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "borderBottomColor": "#b4b4b566",
-                                  "borderBottomWidth": 1,
-                                  "marginVertical": 6,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -1075,11 +725,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -1087,164 +733,63 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontFamily": "Geist-Bold",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Total amount
                             </Text>
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontFamily": "Geist-Bold",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
-                                {
-                                  "justifyContent": "flex-end",
-                                },
-                                {
-                                  "marginBottom": 0,
-                                  "marginTop": 3,
-                                },
+                                [Object],
+                                [Object],
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  {
-                                    "textAlign": "right",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                         </View>
                       </View>
-                      <TouchableOpacity
-                        onPress={[Function]}
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "marginBottom": 24,
                             "marginTop": 12,
+                            "opacity": 1,
                           }
                         }
                       >
@@ -1263,7 +808,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                         >
                           View on Etherscan
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1271,8 +816,8 @@ exports[`TransactionDetails should render correctly 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1408,7 +953,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -1416,24 +961,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1441,7 +970,6 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1608,7 +1136,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               "paddingVertical": 16,
                             },
                             {
-                              "borderBottomColor": "#b4b4b566",
+                              "borderBottomColor": "#b7bbc866",
                               "borderBottomWidth": 1,
                             },
                           ]
@@ -1628,12 +1156,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -1657,15 +1180,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -1674,20 +1189,11 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
-                                {
-                                  "fontFamily": "Geist-Bold",
-                                },
-                                {
-                                  "color": "#457a39",
-                                },
+                                [Object],
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -1707,18 +1213,11 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "fontSize": 12,
-                                    "letterSpacing": 0.5,
-                                    "marginTop": 4,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
-                            Confirmed
+                            [missing "en.undefined.confirmed" translation]
                           </Text>
                         </View>
                         <View
@@ -1737,12 +1236,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -1766,15 +1260,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -1786,7 +1272,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             small={true}
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -1823,12 +1309,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -1852,15 +1333,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -1876,64 +1349,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "justifyContent": "center",
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 6,
-                                      "height": 24,
-                                      "marginRight": 8,
-                                      "overflow": "hidden",
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  primary={true}
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                  testID="account-label"
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={null}
-                                  >
-                                    0x0...0x0
-                                  </Text>
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -1953,12 +1371,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -1982,15 +1395,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -2006,64 +1411,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "justifyContent": "center",
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 6,
-                                      "height": 24,
-                                      "marginRight": 8,
-                                      "overflow": "hidden",
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  primary={true}
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                  testID="account-label"
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={null}
-                                  >
-                                    0x1...0x1
-                                  </Text>
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -2093,12 +1443,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -2115,24 +1460,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "textTransform": "uppercase",
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -2157,7 +1492,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             [
                               {
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderRadius": 8,
                                 "borderWidth": 1,
                                 "padding": 16,
@@ -2169,11 +1504,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -2181,98 +1512,18 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Amount
                             </Text>
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -2280,71 +1531,15 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "flex": 1,
-                                    "flexDirection": "row",
-                                    "flexWrap": "wrap",
-                                  },
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <Text
-                                italic={true}
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 30,
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#131416",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "fontSize": 12,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                No fee
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "borderBottomColor": "#b4b4b566",
-                                  "borderBottomWidth": 1,
-                                  "marginVertical": 6,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -2352,11 +1547,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -2364,164 +1555,63 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontFamily": "Geist-Bold",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Total amount
                             </Text>
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontFamily": "Geist-Bold",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
-                                {
-                                  "justifyContent": "flex-end",
-                                },
-                                {
-                                  "marginBottom": 0,
-                                  "marginTop": 3,
-                                },
+                                [Object],
+                                [Object],
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  {
-                                    "textAlign": "right",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                         </View>
                       </View>
-                      <TouchableOpacity
-                        onPress={[Function]}
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "marginBottom": 24,
                             "marginTop": 12,
+                            "opacity": 1,
                           }
                         }
                       >
@@ -2540,7 +1630,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         >
                           View on Etherscan
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2548,8 +1638,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -2685,7 +1775,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -2693,24 +1783,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2718,7 +1792,6 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -2885,7 +1958,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               "paddingVertical": 16,
                             },
                             {
-                              "borderBottomColor": "#b4b4b566",
+                              "borderBottomColor": "#b7bbc866",
                               "borderBottomWidth": 1,
                             },
                           ]
@@ -2905,12 +1978,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -2934,15 +2002,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -2951,20 +2011,11 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
-                                {
-                                  "fontFamily": "Geist-Bold",
-                                },
-                                {
-                                  "color": "#457a39",
-                                },
+                                [Object],
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -2984,18 +2035,11 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "fontSize": 12,
-                                    "letterSpacing": 0.5,
-                                    "marginTop": 4,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
-                            Confirmed
+                            [missing "en.undefined.confirmed" translation]
                           </Text>
                         </View>
                         <View
@@ -3014,12 +2058,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -3043,15 +2082,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -3063,7 +2094,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             small={true}
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -3100,12 +2131,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -3129,15 +2155,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -3153,64 +2171,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "justifyContent": "center",
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 6,
-                                      "height": 24,
-                                      "marginRight": 8,
-                                      "overflow": "hidden",
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  primary={true}
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                  testID="account-label"
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={null}
-                                  >
-                                    0x0...0x0
-                                  </Text>
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -3230,12 +2193,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -3259,15 +2217,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -3283,64 +2233,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "justifyContent": "center",
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 6,
-                                      "height": 24,
-                                      "marginRight": 8,
-                                      "overflow": "hidden",
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  primary={true}
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                  testID="account-label"
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={null}
-                                  >
-                                    0x1...0x1
-                                  </Text>
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -3370,12 +2265,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -3392,24 +2282,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "textTransform": "uppercase",
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
-                                [
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 10,
-                                    "marginBottom": 8,
-                                  },
-                                  undefined,
-                                ],
+                                [Array],
                               ]
                             }
                           >
@@ -3434,7 +2314,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             [
                               {
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderRadius": 8,
                                 "borderWidth": 1,
                                 "padding": 16,
@@ -3446,11 +2326,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -3458,98 +2334,18 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Amount
                             </Text>
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -3557,71 +2353,15 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "flex": 1,
-                                    "flexDirection": "row",
-                                    "flexWrap": "wrap",
-                                  },
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
-                              <Text
-                                italic={true}
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 30,
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#131416",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "fontSize": 12,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                No fee
-                              </Text>
+                              <Text … />
                             </View>
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "borderBottomColor": "#b4b4b566",
-                                  "borderBottomWidth": 1,
-                                  "marginVertical": 6,
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
@@ -3629,11 +2369,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,
@@ -3641,164 +2377,63 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontFamily": "Geist-Bold",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Total amount
                             </Text>
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontFamily": "Geist-Bold",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "color": "#131416",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                           <View
                             style={
                               [
-                                {
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 3,
-                                },
-                                {
-                                  "justifyContent": "flex-end",
-                                },
-                                {
-                                  "marginBottom": 0,
-                                  "marginTop": 3,
-                                },
+                                [Object],
+                                [Object],
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 30,
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  {
-                                    "textAlign": "right",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 12,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "textTransform": "uppercase",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             />
                           </View>
                         </View>
                       </View>
-                      <TouchableOpacity
-                        onPress={[Function]}
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "marginBottom": 24,
                             "marginTop": 12,
+                            "opacity": 1,
                           }
                         }
                       >
@@ -3817,7 +2452,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         >
                           View on Etherscan
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3825,8 +2460,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

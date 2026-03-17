@@ -1,36 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetList should render correctly 1`] = `
-<ContextProvider
-  value={
+<Text
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "color": "#121314",
+      "fontFamily": "Geist-Regular",
     }
   }
 >
-  <AssetList
-    emptyMessage="Enpty Message"
-    handleSelectAsset={[Function]}
-    searchResults={[]}
-  />
-</ContextProvider>
+  Enpty Message
+</Text>
 `;

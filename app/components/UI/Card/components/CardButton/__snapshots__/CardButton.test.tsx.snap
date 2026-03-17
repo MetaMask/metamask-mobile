@@ -131,7 +131,7 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -313,55 +296,34 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                     }
                   >
                     <View
-                      accessibilityState={
-                        {
-                          "busy": undefined,
-                          "checked": undefined,
-                          "disabled": false,
-                          "expanded": undefined,
-                          "selected": undefined,
-                        }
-                      }
-                      accessibilityValue={
-                        {
-                          "max": undefined,
-                          "min": undefined,
-                          "now": undefined,
-                          "text": undefined,
-                        }
-                      }
-                      accessible={true}
                       collapsable={false}
-                      focusable={true}
-                      hitSlop={
+                      jestAnimatedProps={
                         {
-                          "bottom": 0,
-                          "left": 0,
-                          "right": 0,
-                          "top": 0,
+                          "value": {},
                         }
                       }
-                      onBlur={[Function]}
-                      onClick={[Function]}
-                      onFocus={[Function]}
-                      onResponderGrant={[Function]}
-                      onResponderMove={[Function]}
-                      onResponderRelease={[Function]}
-                      onResponderTerminate={[Function]}
-                      onResponderTerminationRequest={[Function]}
-                      onStartShouldSetResponder={[Function]}
-                      style={
+                      jestAnimatedStyle={
+                        {
+                          "value": {
+                            "transform": [
+                              {
+                                "scale": 1,
+                              },
+                            ],
+                          },
+                        }
+                      }
+                      jestInlineStyle={
                         [
                           {
                             "alignItems": "center",
-                            "backgroundColor": "transparent",
-                            "borderRadius": 8,
-                            "height": 32,
                             "justifyContent": "center",
-                            "opacity": 1,
-                            "width": 32,
                           },
-                          undefined,
+                        ]
+                      }
+                      nativeID="0"
+                      style={
+                        [
                           {
                             "transform": [
                               {
@@ -369,24 +331,82 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                               },
                             ],
                           },
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          },
                         ]
                       }
-                      testID="card-button"
                     >
-                      <SvgMock
-                        fill="currentColor"
-                        name="Card"
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        hitSlop={
+                          {
+                            "bottom": 0,
+                            "left": 0,
+                            "right": 0,
+                            "top": 0,
+                          }
+                        }
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           [
                             {
-                              "color": "#131416",
-                              "height": 24,
-                              "width": 24,
+                              "alignItems": "center",
+                              "backgroundColor": "transparent",
+                              "borderRadius": 8,
+                              "height": 32,
+                              "justifyContent": "center",
+                              "opacity": 1,
+                              "width": 32,
                             },
                             undefined,
                           ]
                         }
-                      />
+                        testID="card-button"
+                      >
+                        <SvgMock
+                          fill="currentColor"
+                          name="Card"
+                          style={
+                            [
+                              {
+                                "color": "#121314",
+                                "height": 24,
+                                "width": 24,
+                              },
+                              undefined,
+                            ]
+                          }
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -394,8 +414,8 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

@@ -131,7 +131,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -317,8 +300,8 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -454,7 +437,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -462,24 +445,8 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -487,7 +454,6 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -565,7 +531,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={-1}
+              handlerTag={2}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -676,72 +642,14 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                             onLayout={[Function]}
                           >
                             <View
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": false,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessibilityValue={
-                                {
-                                  "max": undefined,
-                                  "min": undefined,
-                                  "now": undefined,
-                                  "text": undefined,
-                                }
-                              }
-                              accessible={true}
                               collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "transparent",
-                                    "borderRadius": 8,
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "opacity": 1,
-                                    "width": 32,
-                                  },
-                                  undefined,
-                                  {
-                                    "transform": [
-                                      {
-                                        "scale": 1,
-                                      },
-                                    ],
-                                  },
-                                ]
-                              }
-                              testID="wallet-connect-sessions-back-button"
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="1"
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="ArrowLeft"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 24,
-                                      "width": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -762,29 +670,14 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               WalletConnect sessions
                             </Text>
@@ -820,13 +713,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                             }
                           >
                             <Text
-                              style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 16,
-                                }
-                              }
+                              style={[Object]}
                             >
                               You have no active sessions
                             </Text>
@@ -840,8 +727,8 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -977,7 +864,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -985,24 +872,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1010,7 +881,6 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1088,7 +958,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={-1}
+              handlerTag={3}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1199,72 +1069,14 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onLayout={[Function]}
                           >
                             <View
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": false,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessibilityValue={
-                                {
-                                  "max": undefined,
-                                  "min": undefined,
-                                  "now": undefined,
-                                  "text": undefined,
-                                }
-                              }
-                              accessible={true}
                               collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "transparent",
-                                    "borderRadius": 8,
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "opacity": 1,
-                                    "width": 32,
-                                  },
-                                  undefined,
-                                  {
-                                    "transform": [
-                                      {
-                                        "scale": 1,
-                                      },
-                                    ],
-                                  },
-                                ]
-                              }
-                              testID="wallet-connect-sessions-back-button"
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="2"
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="ArrowLeft"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 24,
-                                      "width": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -1285,29 +1097,14 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               WalletConnect sessions
                             </Text>
@@ -1333,234 +1130,106 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                         }
                       >
                         <View>
-                          <TouchableOpacity
-                            onLongPress={[Function]}
+                          <View
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={false}
+                            onClick={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#b4b4b566",
+                                "borderBottomColor": "#b7bbc866",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
+                                "opacity": 1,
                                 "paddingHorizontal": 20,
                                 "paddingVertical": 10,
                               }
                             }
                           >
                             <View>
-                              <View
-                                placeholderStyle={
-                                  {
-                                    "backgroundColor": "#f3f3f4",
-                                  }
-                                }
-                                useNativeDriver={true}
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  onLoadEnd={[Function]}
-                                  source={
-                                    {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 44,
-                                      "width": 44,
-                                    }
-                                  }
-                                />
-                                <View
-                                  collapsable={false}
-                                  style={
-                                    {
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 1,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "height": 44,
-                                          "width": 44,
-                                        },
-                                        {
-                                          "backgroundColor": "#eee",
-                                        },
-                                        {
-                                          "backgroundColor": "#f3f3f4",
-                                        },
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
+                              <View … />
                             </View>
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                  "marginLeft": 20,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <Text
-                                style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "marginBottom": 10,
-                                  }
-                                }
-                              >
-                                Session 1
-                              </Text>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 12,
-                                    "marginBottom": 10,
-                                  }
-                                }
-                              >
-                                topic1
-                              </Text>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 12,
-                                    "marginBottom": 10,
-                                  }
-                                }
-                              >
-                                https://example.com
-                              </Text>
+                              <Text … />
+                              <Text … />
+                              <Text … />
                             </View>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onLongPress={[Function]}
+                          </View>
+                          <View
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={false}
+                            onClick={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#b4b4b566",
+                                "borderBottomColor": "#b7bbc866",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
+                                "opacity": 1,
                                 "paddingHorizontal": 20,
                                 "paddingVertical": 10,
                               }
                             }
                           >
                             <View>
-                              <View
-                                placeholderStyle={
-                                  {
-                                    "backgroundColor": "#f3f3f4",
-                                  }
-                                }
-                                useNativeDriver={true}
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  onLoadEnd={[Function]}
-                                  source={
-                                    {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 44,
-                                      "width": 44,
-                                    }
-                                  }
-                                />
-                                <View
-                                  collapsable={false}
-                                  style={
-                                    {
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 1,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "height": 44,
-                                          "width": 44,
-                                        },
-                                        {
-                                          "backgroundColor": "#eee",
-                                        },
-                                        {
-                                          "backgroundColor": "#f3f3f4",
-                                        },
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
+                              <View … />
                             </View>
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                  "marginLeft": 20,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <Text
-                                style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "marginBottom": 10,
-                                  }
-                                }
-                              >
-                                Session 2
-                              </Text>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 12,
-                                    "marginBottom": 10,
-                                  }
-                                }
-                              >
-                                topic2
-                              </Text>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 12,
-                                    "marginBottom": 10,
-                                  }
-                                }
-                              >
-                                https://example.org
-                              </Text>
+                              <Text … />
+                              <Text … />
+                              <Text … />
                             </View>
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </RCTScrollView>
                     </RNCSafeAreaView>
@@ -1570,8 +1239,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

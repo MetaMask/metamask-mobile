@@ -1,11 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PermissionItem renders correctly 1`] = `
-<TouchableOpacity
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "flexDirection": "row",
+      "opacity": 1,
       "paddingVertical": 10,
     }
   }
@@ -22,7 +50,7 @@ exports[`PermissionItem renders correctly 1`] = `
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#f3f3f4",
+            "backgroundColor": "#f3f5f9",
           }
         }
         useNativeDriver={true}
@@ -67,7 +95,7 @@ exports[`PermissionItem renders correctly 1`] = `
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#f3f3f4",
+                  "backgroundColor": "#f3f5f9",
                 },
               ]
             }
@@ -98,9 +126,9 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
-            "fontSize": 20,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -122,7 +150,7 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -138,7 +166,7 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -153,7 +181,7 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -176,7 +204,7 @@ exports[`PermissionItem renders correctly 1`] = `
     }
   >
     <SvgMock
-      color="#131416"
+      color="#121314"
       fill="currentColor"
       height={20}
       name="ArrowRight"
@@ -189,5 +217,5 @@ exports[`PermissionItem renders correctly 1`] = `
       width={20}
     />
   </View>
-</TouchableOpacity>
+</View>
 `;

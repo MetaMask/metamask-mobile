@@ -2,8 +2,17 @@
 
 exports[`Label should render default settings correctly 1`] = `
 <Text
+  accessibilityRole="text"
+  style={
+    {
+      "color": "#121314",
+      "fontFamily": "Geist-Regular",
+      "fontSize": 16,
+      "letterSpacing": 0,
+      "lineHeight": 24,
+    }
+  }
   testID="label"
-  variant="sBodyMD"
 >
   Sample Label Text
 </Text>

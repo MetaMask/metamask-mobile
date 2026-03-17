@@ -131,7 +131,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -363,112 +346,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "display": "flex",
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#66676a",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Rate
-                                  </Text>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "display": "flex",
-                                        },
-                                        {
-                                          "minWidth": 40,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#66676a",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      0:30
-                                    </Text>
-                                  </View>
-                                </View>
-                                <TouchableOpacity
-                                  accessibilityLabel="Rate tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Info"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                           <View
@@ -480,40 +360,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  adjustsFontSizeToFit={true}
-                                  minimumFontScale={0.8}
-                                  numberOfLines={1}
-                                  style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  1 ETH = 24.4 USDC
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -541,72 +390,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Network fee
-                                </Text>
-                                <TouchableOpacity
-                                  accessibilityLabel="Network fee tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Info"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                           <View
@@ -618,38 +404,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  0.01
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -677,72 +434,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Slippage
-                                </Text>
-                                <TouchableOpacity
-                                  accessibilityLabel="Slippage tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Info"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                           <View
@@ -754,63 +448,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <TouchableOpacity
-                                  activeOpacity={0.6}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "gap": 4,
-                                    }
-                                  }
-                                  testID="edit-slippage-button"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#66676a",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    0.5%
-                                  </Text>
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Edit"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -838,72 +478,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Price impact
-                                </Text>
-                                <TouchableOpacity
-                                  accessibilityLabel="Price impact tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Info"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                           <View
@@ -915,38 +492,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                              style={[Object]}
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  -0.06%
-                                </Text>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -966,28 +514,14 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "display": "flex",
-                                },
-                                {
-                                  "flex": 1,
-                                  "minWidth": "auto",
-                                  "width": "auto",
-                                },
+                                [Object],
+                                [Object],
                               ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#66676a",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
+                              style={[Object]}
                             >
                               Recipient
                             </Text>
@@ -995,61 +529,30 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "flex-end",
-                                  "display": "flex",
-                                  "justifyContent": "flex-end",
-                                },
-                                {
-                                  "flex": 1,
-                                },
+                                [Object],
+                                [Object],
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              activeOpacity={0.6}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                  "flexDirection": "row",
-                                  "gap": 4,
-                                }
-                              }
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
                               testID="recipient-selector-button"
                             >
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="tail"
-                                numberOfLines={1}
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "flexShrink": 1,
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Select recipient
-                              </Text>
-                              <SvgMock
-                                color="#66676a"
-                                fill="currentColor"
-                                height={16}
-                                name="Edit"
-                                style={
-                                  {
-                                    "height": 16,
-                                    "width": 16,
-                                  }
-                                }
-                                width={16}
-                              />
-                            </TouchableOpacity>
+                              <Text … />
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1060,8 +563,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

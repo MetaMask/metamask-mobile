@@ -4,7 +4,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "height": "100%",
       "justifyContent": "space-between",
     }
@@ -139,7 +139,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 24,
               "letterSpacing": 0,
@@ -156,7 +156,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#66676a",
+              "color": "#686e7d",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -243,7 +243,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -254,15 +254,36 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   >
                     Withdrawal time
                   </Text>
-                  <TouchableOpacity
+                  <View
                     accessibilityLabel="Withdrawal time tooltip"
                     accessibilityRole="button"
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
                     accessible={true}
-                    activeOpacity={1}
-                    disabled={false}
-                    onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -275,7 +296,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#66676a"
+                      color="#686e7d"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -287,7 +308,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                       }
                       width={16}
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
@@ -320,7 +341,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -404,7 +425,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -564,7 +585,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -575,15 +596,36 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   >
                     Protocol
                   </Text>
-                  <TouchableOpacity
+                  <View
                     accessibilityLabel="Protocol tooltip"
                     accessibilityRole="button"
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
                     accessible={true}
-                    activeOpacity={1}
-                    disabled={false}
-                    onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -596,7 +638,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#66676a"
+                      color="#686e7d"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -608,7 +650,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                       }
                       width={16}
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
@@ -644,11 +686,11 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     style={
                       {
                         "alignSelf": "flex-start",
-                        "backgroundColor": "#f3f3f4",
-                        "borderColor": "#949596",
+                        "backgroundColor": "#f3f5f9",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 999,
                         "borderWidth": 0,
-                        "color": "#66676a",
+                        "color": "#686e7d",
                         "padding": 16,
                         "paddingHorizontal": 8,
                         "paddingVertical": 2,
@@ -692,7 +734,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#121314",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -712,7 +754,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "height": 1,
               "marginLeft": -8,
               "marginRight": -8,
@@ -774,7 +816,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -856,7 +898,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -895,19 +937,40 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
       }
       testID="bottomsheetfooter"
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        disabled={false}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -915,6 +978,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -925,7 +989,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -935,20 +999,41 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
         >
           Cancel
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </View>
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        disabled={false}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
@@ -956,6 +1041,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
             "justifyContent": "center",
             "marginLeft": 16,
             "marginTop": 0,
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -976,7 +1062,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
         >
           Confirm
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
     <View
       style={
@@ -999,7 +1085,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1014,7 +1100,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1039,7 +1125,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1056,7 +1142,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1072,7 +1158,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,

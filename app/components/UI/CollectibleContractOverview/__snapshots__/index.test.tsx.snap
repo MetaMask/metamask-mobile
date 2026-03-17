@@ -1,42 +1,589 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleContractOverview should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "alignContent": "center",
+      "alignItems": "center",
+      "borderBottomColor": "#b7bbc866",
+      "borderBottomWidth": 0.5,
+      "flex": 1,
+      "paddingBottom": 30,
+      "paddingHorizontal": 20,
     }
   }
+  testID="collectible-overview-screen"
 >
-  <Component
-    collectibleContract={
+  <View
+    style={
       {
-        "address": "",
-        "description": "description",
-        "name": "name",
-        "symbol": "symbol",
-        "totalSupply": 1,
+        "marginTop": 20,
       }
     }
-  />
-</ContextProvider>
+  >
+    <View
+      style={
+        {
+          "backgroundColor": undefined,
+          "borderRadius": 12,
+          "flex": 0,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "alignSelf": "flex-start",
+            "position": "relative",
+          }
+        }
+        testID="badge-wrapper-badge"
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#f3f5f9",
+                  "borderRadius": 8,
+                  "flex": 1,
+                  "justifyContent": "center",
+                },
+                undefined,
+                undefined,
+                {
+                  "height": 50,
+                  "width": 50,
+                },
+                undefined,
+                undefined,
+              ]
+            }
+            testID="fallback-nft-with-token-id"
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 30,
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "fontSize": 12,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                    "textAlign": "center",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "bottom": 5,
+              "position": "absolute",
+              "right": 5,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+            style={{}}
+            testID="badgenetwork"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#ffffff",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "height": 16,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "shadowColor": "#0000001a",
+                  "shadowOffset": {
+                    "height": 2,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 1,
+                  "shadowRadius": 4,
+                  "width": 16,
+                }
+              }
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+        "flexDirection": "row",
+        "marginBottom": 20,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 30,
+          "textAlign": "center",
+        }
+      }
+      testID="collectible-name"
+    >
+       
+      name
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "flex-start",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+        "width": "50%",
+      }
+    }
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexShrink": 1,
+          "justifyContent": "center",
+          "marginHorizontal": 0,
+          "minWidth": 60,
+          "opacity": 1,
+        }
+      }
+      testID="token-send-button"
+    >
+      <View
+        style={
+          {
+            "alignContent": "center",
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 18,
+            "height": 36,
+            "justifyContent": "center",
+            "paddingLeft": 1,
+            "paddingTop": 4,
+            "width": 36,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 20,
+              },
+              {
+                "alignContent": "center",
+                "color": "#ffffff",
+                "justifyContent": "center",
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "Material Design Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          󰁜
+        </Text>
+      </View>
+      <Text
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 30,
+              "marginVertical": 2,
+            },
+            {
+              "textAlign": "center",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#4459ff",
+              "fontSize": 14,
+              "marginHorizontal": 3,
+              "marginTop": 8,
+            },
+          ]
+        }
+      >
+        Send
+      </Text>
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexShrink": 1,
+          "justifyContent": "center",
+          "marginHorizontal": 0,
+          "minWidth": 60,
+          "opacity": 1,
+        }
+      }
+      testID="token-add-button"
+    >
+      <View
+        style={
+          {
+            "alignContent": "center",
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 18,
+            "height": 36,
+            "justifyContent": "center",
+            "paddingLeft": 1,
+            "paddingTop": 4,
+            "width": 36,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 30,
+              },
+              {
+                "alignContent": "center",
+                "color": "#ffffff",
+                "justifyContent": "center",
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "Ionicons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 30,
+              "marginVertical": 2,
+            },
+            {
+              "textAlign": "center",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#4459ff",
+              "fontSize": 14,
+              "marginHorizontal": 3,
+              "marginTop": 8,
+            },
+          ]
+        }
+      >
+        Add
+      </Text>
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexShrink": 1,
+          "justifyContent": "center",
+          "marginHorizontal": 0,
+          "minWidth": 60,
+          "opacity": 1,
+        }
+      }
+      testID="collectible-info-button"
+    >
+      <View
+        style={
+          {
+            "alignContent": "center",
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 18,
+            "height": 36,
+            "justifyContent": "center",
+            "paddingLeft": 1,
+            "paddingTop": 4,
+            "width": 36,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 30,
+              },
+              {
+                "alignContent": "center",
+                "color": "#ffffff",
+                "justifyContent": "center",
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "Ionicons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 30,
+              "marginVertical": 2,
+            },
+            {
+              "textAlign": "center",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#4459ff",
+              "fontSize": 14,
+              "marginHorizontal": 3,
+              "marginTop": 8,
+            },
+          ]
+        }
+      >
+        Info
+      </Text>
+    </View>
+  </View>
+</View>
 `;

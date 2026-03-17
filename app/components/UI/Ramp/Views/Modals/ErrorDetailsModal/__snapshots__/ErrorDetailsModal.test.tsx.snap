@@ -131,7 +131,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -374,9 +357,9 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 20,
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -390,13 +373,34 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
+                          <View
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
+                            collapsable={false}
+                            focusable={true}
+                            onClick={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -410,19 +414,14 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#131416"
+                              color="#121314"
                               fill="currentColor"
                               height={24}
                               name="Close"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
+                              style={[Object]}
                               width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -446,7 +445,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -468,22 +467,45 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
                         accessibilityRole="button"
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
                         accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "alignSelf": "flex-start",
-                            "backgroundColor": "#131416",
+                            "backgroundColor": "#121314",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "opacity": 1,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "width": "100%",
@@ -504,7 +526,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -512,8 +534,8 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -649,7 +671,7 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -657,24 +679,8 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -682,7 +688,6 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -892,9 +897,9 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 20,
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -908,13 +913,34 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
+                          <View
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
+                            collapsable={false}
+                            focusable={true}
+                            onClick={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -928,19 +954,14 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#131416"
+                              color="#121314"
                               fill="currentColor"
                               height={24}
                               name="Close"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
+                              style={[Object]}
                               width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -964,7 +985,7 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -988,22 +1009,45 @@ Additional context for debugging.
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
                         accessibilityRole="button"
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
                         accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "alignSelf": "flex-start",
-                            "backgroundColor": "#131416",
+                            "backgroundColor": "#121314",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "opacity": 1,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "width": "100%",
@@ -1024,7 +1068,7 @@ Additional context for debugging.
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1032,8 +1076,8 @@ Additional context for debugging.
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1169,7 +1213,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -1177,24 +1221,8 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1202,7 +1230,6 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1412,9 +1439,9 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 20,
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -1428,13 +1455,34 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
+                          <View
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
+                            collapsable={false}
+                            focusable={true}
+                            onClick={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1448,19 +1496,14 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#131416"
+                              color="#121314"
                               fill="currentColor"
                               height={24}
                               name="Close"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
+                              style={[Object]}
                               width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -1484,7 +1527,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -1504,22 +1547,45 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
                         accessibilityRole="button"
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
                         accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "alignSelf": "flex-start",
-                            "backgroundColor": "#131416",
+                            "backgroundColor": "#121314",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "opacity": 1,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "width": "100%",
@@ -1540,7 +1606,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1548,8 +1614,8 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1685,7 +1751,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -1693,24 +1759,8 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1718,7 +1768,6 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1928,9 +1977,9 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 20,
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -1944,13 +1993,34 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
+                          <View
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
+                            collapsable={false}
+                            focusable={true}
+                            onClick={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1964,19 +2034,14 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#131416"
+                              color="#121314"
                               fill="currentColor"
                               height={24}
                               name="Close"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
+                              style={[Object]}
                               width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -2000,7 +2065,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -2022,24 +2087,47 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
                         accessibilityRole="button"
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
                         accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "alignSelf": "flex-start",
-                            "backgroundColor": "#b4b4b528",
+                            "backgroundColor": "#3c4d9d0f",
                             "borderColor": "transparent",
                             "borderRadius": 12,
                             "borderWidth": 1,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "opacity": 1,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "width": "100%",
@@ -2050,7 +2138,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#121314",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -2060,23 +2148,46 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                         >
                           Change provider
                         </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
+                      </View>
+                      <View
                         accessibilityRole="button"
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
                         accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "alignSelf": "flex-start",
-                            "backgroundColor": "#131416",
+                            "backgroundColor": "#121314",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "opacity": 1,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "width": "100%",
@@ -2097,7 +2208,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2105,8 +2216,8 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -2242,7 +2353,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -2250,24 +2361,8 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2275,7 +2370,6 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -2485,9 +2579,9 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 20,
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -2501,13 +2595,34 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
+                          <View
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
+                            collapsable={false}
+                            focusable={true}
+                            onClick={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2521,19 +2636,14 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#131416"
+                              color="#121314"
                               fill="currentColor"
                               height={24}
                               name="Close"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
+                              style={[Object]}
                               width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -2557,7 +2667,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#121314",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -2579,24 +2689,47 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
                         accessibilityRole="button"
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
                         accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "alignSelf": "flex-start",
-                            "backgroundColor": "#b4b4b528",
+                            "backgroundColor": "#3c4d9d0f",
                             "borderColor": "transparent",
                             "borderRadius": 12,
                             "borderWidth": 1,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "opacity": 1,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "width": "100%",
@@ -2607,7 +2740,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#121314",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -2617,23 +2750,46 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                         >
                           Contact Transak support
                         </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
+                      </View>
+                      <View
                         accessibilityRole="button"
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": undefined,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
                         accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
+                        collapsable={false}
+                        focusable={true}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "alignItems": "center",
                             "alignSelf": "flex-start",
-                            "backgroundColor": "#131416",
+                            "backgroundColor": "#121314",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "opacity": 1,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "width": "100%",
@@ -2654,7 +2810,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2662,8 +2818,8 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

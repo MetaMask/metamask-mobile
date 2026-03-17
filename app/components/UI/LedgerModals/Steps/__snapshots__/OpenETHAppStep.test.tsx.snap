@@ -26,7 +26,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -79,7 +79,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -115,7 +115,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
@@ -153,7 +153,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
@@ -191,28 +191,45 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
       </Text>
     </Text>
   </View>,
-  <TouchableOpacity
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={0.2}
-    onPress={[MockFunction]}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
-      [
-        [
-          {
-            "borderRadius": 12,
-            "justifyContent": "center",
-            "padding": 15,
-          },
-          {
-            "backgroundColor": "#ffffff",
-            "borderColor": "#66676a",
-            "borderWidth": 1,
-          },
-          undefined,
-        ],
-        null,
-      ]
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#686e7d",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+      }
     }
   >
     <Text
@@ -232,7 +249,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
               "textAlign": "center",
             },
             {
-              "color": "#66676a",
+              "color": "#686e7d",
             },
             {
               "width": 600,
@@ -244,6 +261,6 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
     >
       Reject
     </Text>
-  </TouchableOpacity>,
+  </View>,
 ]
 `;

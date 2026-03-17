@@ -131,7 +131,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -396,17 +379,10 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                                 "justifyContent": "center",
                                 "overflow": "hidden",
                                 "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
+                                "shadowOffset": [Object],
                                 "shadowOpacity": 1,
                                 "shadowRadius": 4,
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
+                                "transform": [Array],
                                 "width": 32,
                               }
                             }
@@ -414,17 +390,8 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                             <Image
                               onError={[Function]}
                               resizeMode="contain"
-                              source={
-                                {
-                                  "uri": "https://example.com/testnet.png",
-                                }
-                              }
-                              style={
-                                {
-                                  "height": 32,
-                                  "width": 32,
-                                }
-                              }
+                              source={[Object]}
+                              style={[Object]}
                               testID="network-avatar-image"
                             />
                           </View>
@@ -437,8 +404,8 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -574,7 +541,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -582,24 +549,8 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -607,7 +558,6 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -824,8 +774,8 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -961,7 +911,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -969,24 +919,8 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -994,7 +928,6 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1206,8 +1139,8 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

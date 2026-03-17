@@ -131,7 +131,7 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -348,72 +331,14 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                             onLayout={[Function]}
                           >
                             <View
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": false,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessibilityValue={
-                                {
-                                  "max": undefined,
-                                  "min": undefined,
-                                  "now": undefined,
-                                  "text": undefined,
-                                }
-                              }
-                              accessible={true}
                               collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "transparent",
-                                    "borderRadius": 8,
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "opacity": 1,
-                                    "width": 32,
-                                  },
-                                  undefined,
-                                  {
-                                    "transform": [
-                                      {
-                                        "scale": 1,
-                                      },
-                                    ],
-                                  },
-                                ]
-                              }
-                              testID="button-icon"
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="0"
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="ArrowLeft"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 24,
-                                      "width": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -434,29 +359,14 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Providers
                             </Text>
@@ -478,13 +388,8 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                 "environmentType": "PRODUCTION",
                                 "hqAddress": "Test Address",
                                 "id": "/providers/transak",
-                                "links": [],
-                                "logos": {
-                                  "dark": "https://example.com/logo-dark.png",
-                                  "height": 24,
-                                  "light": "https://example.com/logo-light.png",
-                                  "width": 90,
-                                },
+                                "links": [Array],
+                                "logos": [Object],
                                 "name": "Transak",
                               },
                               "type": "provider",
@@ -526,82 +431,25 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <TouchableOpacity
+                            <View
                               accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
                               accessible={true}
-                              disabled={false}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "opacity": 1,
-                                  "position": "relative",
-                                }
-                              }
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
                             >
-                              <View
-                                accessibilityRole="none"
-                                accessible={true}
-                                style={
-                                  {
-                                    "padding": 16,
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                    testID="listitemcolumn"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#131416",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 20,
-                                            "fontWeight": 500,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      Transak
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                              <View
-                                accessibilityRole="checkbox"
-                                accessible={true}
-                                style={
-                                  {
-                                    "backgroundColor": "#b4b4b528",
-                                    "bottom": 0,
-                                    "flexDirection": "row",
-                                    "left": 0,
-                                    "position": "absolute",
-                                    "right": 0,
-                                    "top": 0,
-                                  }
-                                }
-                              />
-                            </TouchableOpacity>
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -612,8 +460,8 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -749,7 +597,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -757,24 +605,8 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -782,7 +614,6 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -966,72 +797,14 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             onLayout={[Function]}
                           >
                             <View
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": false,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessibilityValue={
-                                {
-                                  "max": undefined,
-                                  "min": undefined,
-                                  "now": undefined,
-                                  "text": undefined,
-                                }
-                              }
-                              accessible={true}
                               collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "transparent",
-                                    "borderRadius": 8,
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "opacity": 1,
-                                    "width": 32,
-                                  },
-                                  undefined,
-                                  {
-                                    "transform": [
-                                      {
-                                        "scale": 1,
-                                      },
-                                    ],
-                                  },
-                                ]
-                              }
-                              testID="button-icon"
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="1"
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="ArrowLeft"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 24,
-                                      "width": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -1052,29 +825,14 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Providers
                             </Text>
@@ -1086,8 +844,34 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           />
                         </View>
                       </View>
-                      <TouchableOpacity
-                        disabled={true}
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": true,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={false}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1115,137 +899,53 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
-                                }
-                              >
-                                <View
-                                  collapsable={false}
-                                  pointerEvents="none"
-                                  style={
-                                    {
-                                      "backgroundColor": "#66676a",
-                                      "borderRadius": 4,
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 0.2,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                />
-                              </View>
+                              <View … />
                             </View>
                             <View
                               accessible={false}
-                              style={
-                                {
-                                  "width": 16,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitem-gap"
                             />
                             <View
-                              style={
-                                {
-                                  "flex": -1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "flex-end",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "height": 6,
-                                    }
-                                  }
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        disabled={true}
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": true,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={false}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1273,137 +973,53 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
-                                }
-                              >
-                                <View
-                                  collapsable={false}
-                                  pointerEvents="none"
-                                  style={
-                                    {
-                                      "backgroundColor": "#66676a",
-                                      "borderRadius": 4,
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 0.2,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                />
-                              </View>
+                              <View … />
                             </View>
                             <View
                               accessible={false}
-                              style={
-                                {
-                                  "width": 16,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitem-gap"
                             />
                             <View
-                              style={
-                                {
-                                  "flex": -1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "flex-end",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "height": 6,
-                                    }
-                                  }
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        disabled={true}
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": true,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={false}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1431,137 +1047,53 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
-                                }
-                              >
-                                <View
-                                  collapsable={false}
-                                  pointerEvents="none"
-                                  style={
-                                    {
-                                      "backgroundColor": "#66676a",
-                                      "borderRadius": 4,
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 0.2,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                />
-                              </View>
+                              <View … />
                             </View>
                             <View
                               accessible={false}
-                              style={
-                                {
-                                  "width": 16,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitem-gap"
                             />
                             <View
-                              style={
-                                {
-                                  "flex": -1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "flex-end",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "height": 6,
-                                    }
-                                  }
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        disabled={true}
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": true,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={false}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1589,137 +1121,53 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
-                                }
-                              >
-                                <View
-                                  collapsable={false}
-                                  pointerEvents="none"
-                                  style={
-                                    {
-                                      "backgroundColor": "#66676a",
-                                      "borderRadius": 4,
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 0.2,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                />
-                              </View>
+                              <View … />
                             </View>
                             <View
                               accessible={false}
-                              style={
-                                {
-                                  "width": 16,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitem-gap"
                             />
                             <View
-                              style={
-                                {
-                                  "flex": -1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "flex-end",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "height": 6,
-                                    }
-                                  }
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        disabled={true}
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": true,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={false}
+                        onClick={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1747,135 +1195,25 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                             }
                           >
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  {
-                                    "borderRadius": 4,
-                                    "height": 18,
-                                    "overflow": "hidden",
-                                    "width": 120,
-                                  }
-                                }
-                              >
-                                <View
-                                  collapsable={false}
-                                  pointerEvents="none"
-                                  style={
-                                    {
-                                      "backgroundColor": "#66676a",
-                                      "borderRadius": 4,
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 0.2,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                />
-                              </View>
+                              <View … />
                             </View>
                             <View
                               accessible={false}
-                              style={
-                                {
-                                  "width": 16,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitem-gap"
                             />
                             <View
-                              style={
-                                {
-                                  "flex": -1,
-                                }
-                              }
+                              style={[Object]}
                               testID="listitemcolumn"
                             >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "flex-end",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 80,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "height": 6,
-                                    }
-                                  }
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "borderRadius": 4,
-                                      "height": 16,
-                                      "overflow": "hidden",
-                                      "width": 60,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "backgroundColor": "#66676a",
-                                        "borderRadius": 4,
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "opacity": 0.2,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1883,8 +1221,8 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -2020,7 +1358,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -2028,24 +1366,8 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2053,7 +1375,6 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -2237,72 +1558,14 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                             onLayout={[Function]}
                           >
                             <View
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": false,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessibilityValue={
-                                {
-                                  "max": undefined,
-                                  "min": undefined,
-                                  "now": undefined,
-                                  "text": undefined,
-                                }
-                              }
-                              accessible={true}
                               collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "transparent",
-                                    "borderRadius": 8,
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "opacity": 1,
-                                    "width": 32,
-                                  },
-                                  undefined,
-                                  {
-                                    "transform": [
-                                      {
-                                        "scale": 1,
-                                      },
-                                    ],
-                                  },
-                                ]
-                              }
-                              testID="button-icon"
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="3"
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="ArrowLeft"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 24,
-                                      "width": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -2323,29 +1586,14 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Providers
                             </Text>
@@ -2395,12 +1643,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                               fill="currentColor"
                               height={24}
                               name="Danger"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
+                              style={[Object]}
                               width={24}
                             />
                           </View>
@@ -2413,15 +1656,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 14,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                }
-                              }
+                              style={[Object]}
                             >
                               Failed to load quotes
                             </Text>
@@ -2438,13 +1673,8 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                 "environmentType": "PRODUCTION",
                                 "hqAddress": "Test Address",
                                 "id": "/providers/transak",
-                                "links": [],
-                                "logos": {
-                                  "dark": "https://example.com/logo-dark.png",
-                                  "height": 24,
-                                  "light": "https://example.com/logo-light.png",
-                                  "width": 90,
-                                },
+                                "links": [Array],
+                                "logos": [Object],
                                 "name": "Transak",
                               },
                               "type": "provider",
@@ -2486,82 +1716,25 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <TouchableOpacity
+                            <View
                               accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
                               accessible={true}
-                              disabled={false}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "opacity": 1,
-                                  "position": "relative",
-                                }
-                              }
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
                             >
-                              <View
-                                accessibilityRole="none"
-                                accessible={true}
-                                style={
-                                  {
-                                    "padding": 16,
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                    testID="listitemcolumn"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#131416",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 20,
-                                            "fontWeight": 500,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      Transak
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                              <View
-                                accessibilityRole="checkbox"
-                                accessible={true}
-                                style={
-                                  {
-                                    "backgroundColor": "#b4b4b528",
-                                    "bottom": 0,
-                                    "flexDirection": "row",
-                                    "left": 0,
-                                    "position": "absolute",
-                                    "right": 0,
-                                    "top": 0,
-                                  }
-                                }
-                              />
-                            </TouchableOpacity>
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -2572,8 +1745,8 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -2709,7 +1882,7 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -2717,24 +1890,8 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2742,7 +1899,6 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -2926,72 +2082,14 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                             onLayout={[Function]}
                           >
                             <View
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": false,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessibilityValue={
-                                {
-                                  "max": undefined,
-                                  "min": undefined,
-                                  "now": undefined,
-                                  "text": undefined,
-                                }
-                              }
-                              accessible={true}
                               collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "transparent",
-                                    "borderRadius": 8,
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "opacity": 1,
-                                    "width": 32,
-                                  },
-                                  undefined,
-                                  {
-                                    "transform": [
-                                      {
-                                        "scale": 1,
-                                      },
-                                    ],
-                                  },
-                                ]
-                              }
-                              testID="button-icon"
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="5"
+                              style={[Array]}
                             >
-                              <SvgMock
-                                fill="currentColor"
-                                name="ArrowLeft"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "height": 24,
-                                      "width": 24,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              />
+                              <View … />
                             </View>
                           </View>
                         </View>
@@ -3012,29 +2110,14 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                           <View
                             style={
                               [
-                                {
-                                  "alignItems": "center",
-                                  "display": "flex",
-                                },
+                                [Object],
                                 undefined,
                               ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  },
-                                  undefined,
-                                ]
-                              }
+                              style={[Array]}
                             >
                               Providers
                             </Text>
@@ -3056,13 +2139,8 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                                 "environmentType": "PRODUCTION",
                                 "hqAddress": "Test Address",
                                 "id": "/providers/transak",
-                                "links": [],
-                                "logos": {
-                                  "dark": "https://example.com/logo-dark.png",
-                                  "height": 24,
-                                  "light": "https://example.com/logo-light.png",
-                                  "width": 90,
-                                },
+                                "links": [Array],
+                                "logos": [Object],
                                 "name": "Transak",
                               },
                               "type": "provider",
@@ -3104,82 +2182,25 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                             onLayout={[Function]}
                             style={null}
                           >
-                            <TouchableOpacity
+                            <View
                               accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
                               accessible={true}
-                              disabled={false}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "opacity": 1,
-                                  "position": "relative",
-                                }
-                              }
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
                             >
-                              <View
-                                accessibilityRole="none"
-                                accessible={true}
-                                style={
-                                  {
-                                    "padding": 16,
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                    testID="listitemcolumn"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#131416",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 20,
-                                            "fontWeight": 500,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      Transak
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                              <View
-                                accessibilityRole="checkbox"
-                                accessible={true}
-                                style={
-                                  {
-                                    "backgroundColor": "#b4b4b528",
-                                    "bottom": 0,
-                                    "flexDirection": "row",
-                                    "left": 0,
-                                    "position": "absolute",
-                                    "right": 0,
-                                    "top": 0,
-                                  }
-                                }
-                              />
-                            </TouchableOpacity>
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -3190,8 +2211,8 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

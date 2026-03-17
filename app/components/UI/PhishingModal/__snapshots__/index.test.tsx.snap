@@ -4,7 +4,7 @@ exports[`PhishingModal should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#f3f5f9",
       "flex": 1,
       "justifyContent": "center",
       "marginTop": -100,
@@ -48,7 +48,7 @@ exports[`PhishingModal should render correctly 1`] = `
   <Text
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Bold",
         "fontSize": 24,
         "marginBottom": 16,
@@ -61,7 +61,7 @@ exports[`PhishingModal should render correctly 1`] = `
   <Text
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Regular",
         "fontSize": 14,
         "marginBottom": 20,
@@ -73,7 +73,7 @@ exports[`PhishingModal should render correctly 1`] = `
   <Text
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Regular",
         "fontSize": 14,
         "marginBottom": 20,
@@ -95,7 +95,34 @@ exports[`PhishingModal should render correctly 1`] = `
     , 
     but please do so at your own risk.
   </Text>
-  <TouchableOpacity
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -104,6 +131,7 @@ exports[`PhishingModal should render correctly 1`] = `
         "elevation": 2,
         "flexDirection": "row",
         "marginVertical": 8,
+        "opacity": 1,
         "padding": 16,
         "shadowColor": "#0000001a",
         "shadowOffset": {
@@ -125,7 +153,7 @@ exports[`PhishingModal should render correctly 1`] = `
             "fontSize": 16,
           },
           {
-            "color": "#131416",
+            "color": "#121314",
             "textAlign": "center",
             "width": 24,
           },
@@ -143,7 +171,7 @@ exports[`PhishingModal should render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "marginLeft": 12,
@@ -152,9 +180,35 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       Report a detection problem
     </Text>
-  </TouchableOpacity>
-  <TouchableOpacity
-    onPress={[Function]}
+  </View>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -163,6 +217,7 @@ exports[`PhishingModal should render correctly 1`] = `
         "elevation": 2,
         "flexDirection": "row",
         "marginVertical": 8,
+        "opacity": 1,
         "padding": 16,
         "shadowColor": "#0000001a",
         "shadowOffset": {
@@ -184,7 +239,7 @@ exports[`PhishingModal should render correctly 1`] = `
             "fontSize": 16,
           },
           {
-            "color": "#131416",
+            "color": "#121314",
             "textAlign": "center",
             "width": 24,
           },
@@ -202,7 +257,7 @@ exports[`PhishingModal should render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "marginLeft": 12,
@@ -211,23 +266,47 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       If you found this helpful, share on X!
     </Text>
-  </TouchableOpacity>
-  <TouchableOpacity
+  </View>
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={1}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#131416",
+        "backgroundColor": "#121314",
         "borderRadius": 12,
         "flexDirection": "row",
         "height": 48,
         "justifyContent": "center",
         "marginTop": 32,
+        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -247,6 +326,6 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       Back to safety
     </Text>
-  </TouchableOpacity>
+  </View>
 </View>
 `;

@@ -1,8 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] = `
-<TouchableOpacity
-  activeOpacity={1}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
   hitSlop={
     {
       "bottom": 10,
@@ -11,17 +30,22 @@ exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] 
       "top": 10,
     }
   }
-  onPress={[MockFunction]}
-  onPressIn={[Function]}
-  onPressOut={[Function]}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#949596",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 0,
       "flexDirection": "row",
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -31,7 +55,7 @@ exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] 
     numberOfLines={1}
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -43,7 +67,7 @@ exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] 
     Orangefox.eth
   </Text>
   <SvgMock
-    color="#131416"
+    color="#121314"
     fill="currentColor"
     height={16}
     name="ArrowDown"
@@ -56,24 +80,48 @@ exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] 
     }
     width={16}
   />
-</TouchableOpacity>
+</View>
 `;
 
 exports[`PickerAccount Props Forwarding forwards style prop 1`] = `
-<TouchableOpacity
-  activeOpacity={1}
-  onPress={[MockFunction]}
-  onPressIn={[Function]}
-  onPressOut={[Function]}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#949596",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 0,
       "flexDirection": "row",
       "marginTop": 20,
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -83,7 +131,7 @@ exports[`PickerAccount Props Forwarding forwards style prop 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -95,7 +143,7 @@ exports[`PickerAccount Props Forwarding forwards style prop 1`] = `
     Orangefox.eth
   </Text>
   <SvgMock
-    color="#131416"
+    color="#121314"
     fill="currentColor"
     height={16}
     name="ArrowDown"
@@ -108,23 +156,47 @@ exports[`PickerAccount Props Forwarding forwards style prop 1`] = `
     }
     width={16}
   />
-</TouchableOpacity>
+</View>
 `;
 
 exports[`PickerAccount Rendering should render correctly with snapshot 1`] = `
-<TouchableOpacity
-  activeOpacity={1}
-  onPress={[MockFunction]}
-  onPressIn={[Function]}
-  onPressOut={[Function]}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "alignItems": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#949596",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 0,
       "flexDirection": "row",
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -134,7 +206,7 @@ exports[`PickerAccount Rendering should render correctly with snapshot 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
         "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -146,7 +218,7 @@ exports[`PickerAccount Rendering should render correctly with snapshot 1`] = `
     Orangefox.eth
   </Text>
   <SvgMock
-    color="#131416"
+    color="#121314"
     fill="currentColor"
     height={16}
     name="ArrowDown"
@@ -159,5 +231,5 @@ exports[`PickerAccount Rendering should render correctly with snapshot 1`] = `
     }
     width={16}
   />
-</TouchableOpacity>
+</View>
 `;

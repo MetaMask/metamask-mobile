@@ -26,23 +26,45 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -62,7 +84,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       >
         Mode 1
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -72,25 +94,47 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -100,7 +144,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -110,7 +154,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       >
         Mode 2
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -120,23 +164,45 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -156,7 +222,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       >
         Mode 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -166,25 +232,47 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -194,7 +282,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -204,7 +292,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       >
         Mode 4
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -230,23 +318,45 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -266,7 +376,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       >
         Mode 1
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -276,25 +386,47 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -304,7 +436,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -314,7 +446,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       >
         Mode 2
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -324,25 +456,47 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -352,7 +506,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -362,7 +516,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       >
         Mode 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -372,25 +526,47 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -400,7 +576,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -410,7 +586,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       >
         Mode 4
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

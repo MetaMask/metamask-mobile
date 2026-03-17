@@ -18,7 +18,7 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#b4b4b566",
+        "backgroundColor": "#b7bbc866",
         "height": 1,
         "position": "absolute",
         "width": "100%",
@@ -36,14 +36,38 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
       ]
     }
   >
-    <TouchableOpacity
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": true,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 10000,
           "height": 44,
           "justifyContent": "center",
@@ -54,7 +78,7 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
       testID="arrow-button"
     >
       <SvgMock
-        color="#131416"
+        color="#121314"
         fill="currentColor"
         height={24}
         name="SwapVertical"
@@ -66,7 +90,7 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
         }
         width={24}
       />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -89,7 +113,7 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#b4b4b566",
+        "backgroundColor": "#b7bbc866",
         "height": 1,
         "position": "absolute",
         "width": "100%",
@@ -107,17 +131,38 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
       ]
     }
   >
-    <TouchableOpacity
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[MockFunction]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 10000,
           "height": 44,
           "justifyContent": "center",
@@ -128,7 +173,7 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
       testID="arrow-button"
     >
       <SvgMock
-        color="#131416"
+        color="#121314"
         fill="currentColor"
         height={24}
         name="SwapVertical"
@@ -140,7 +185,7 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
         }
         width={24}
       />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

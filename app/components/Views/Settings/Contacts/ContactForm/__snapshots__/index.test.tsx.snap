@@ -58,7 +58,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -76,16 +76,16 @@ exports[`ContactForm renders correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="Name"
-          placeholderTextColor="#babbbe"
+          placeholderTextColor="#b7bbc8"
           spellCheck={false}
           style={
             [
               {
                 "alignItems": "center",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#121314",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -102,7 +102,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -116,10 +116,10 @@ exports[`ContactForm renders correctly 1`] = `
             [
               {
                 "alignItems": "center",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#121314",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -147,12 +147,12 @@ exports[`ContactForm renders correctly 1`] = `
               onChangeText={[Function]}
               onSubmitEditing={[Function]}
               placeholder="Public address (0x), or ENS"
-              placeholderTextColor="#babbbe"
+              placeholderTextColor="#b7bbc8"
               spellCheck={false}
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "padding": 0,
                     "paddingRight": 8,
@@ -165,11 +165,38 @@ exports[`ContactForm renders correctly 1`] = `
               value={null}
             />
           </View>
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "flex-end",
+                "opacity": 1,
               }
             }
           >
@@ -197,12 +224,12 @@ exports[`ContactForm renders correctly 1`] = `
             >
               
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -216,10 +243,10 @@ exports[`ContactForm renders correctly 1`] = `
             [
               {
                 "alignItems": "center",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#121314",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -247,12 +274,12 @@ exports[`ContactForm renders correctly 1`] = `
               numberOfLines={1}
               onChangeText={[Function]}
               placeholder="Memo"
-              placeholderTextColor="#babbbe"
+              placeholderTextColor="#b7bbc8"
               spellCheck={false}
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "padding": 0,
                     "paddingRight": 8,
@@ -268,7 +295,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -277,23 +304,46 @@ exports[`ContactForm renders correctly 1`] = `
         >
           Network
         </Text>
-        <TouchableOpacity
-          disabled={false}
-          onLongPress={[Function]}
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
-              {
-                "borderColor": "#949596",
-                "borderRadius": 5,
-                "borderWidth": 2,
-                "flex": 1,
-                "flexDirection": "row",
-                "fontFamily": "Geist-Regular",
-                "justifyContent": "space-between",
-                "padding": 10,
-              },
-            ]
+            {
+              "borderColor": "#b7bbc8",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "flex": 1,
+              "flexDirection": "row",
+              "fontFamily": "Geist-Regular",
+              "justifyContent": "space-between",
+              "opacity": 1,
+              "padding": 10,
+            }
           }
           testID="add-contact-network-input"
         >
@@ -340,19 +390,40 @@ exports[`ContactForm renders correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                 }
               }
             />
           </View>
-          <TouchableOpacity
+          <View
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -365,7 +436,7 @@ exports[`ContactForm renders correctly 1`] = `
             }
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="ArrowDown"
@@ -377,8 +448,8 @@ exports[`ContactForm renders correctly 1`] = `
               }
               width={20}
             />
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       </View>
       <View
         style={
@@ -405,29 +476,44 @@ exports[`ContactForm renders correctly 1`] = `
               }
             }
           >
-            <TouchableOpacity
+            <View
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": true,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={true}
+              collapsable={false}
+              focusable={false}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
-                [
-                  [
-                    {
-                      "borderRadius": 12,
-                      "justifyContent": "center",
-                      "padding": 15,
-                    },
-                    {
-                      "backgroundColor": "#4459ff",
-                      "minHeight": 50,
-                    },
-                    undefined,
-                  ],
-                  {
-                    "opacity": 0.6,
-                  },
-                ]
+                {
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "minHeight": 50,
+                  "opacity": 0.6,
+                  "padding": 15,
+                }
               }
               testID="add-contact-add-contact-button"
             >
@@ -462,7 +548,7 @@ exports[`ContactForm renders correctly 1`] = `
               >
                 Add contact
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

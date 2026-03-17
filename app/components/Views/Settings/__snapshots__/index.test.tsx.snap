@@ -42,47 +42,34 @@ exports[`Settings renders settings component with all sections 1`] = `
         onLayout={[Function]}
       >
         <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
           collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 8,
-                "height": 32,
                 "justifyContent": "center",
-                "opacity": 1,
-                "width": 32,
               },
-              undefined,
+            ]
+          }
+          nativeID="0"
+          style={
+            [
               {
                 "transform": [
                   {
@@ -90,24 +77,74 @@ exports[`Settings renders settings component with all sections 1`] = `
                   },
                 ],
               },
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
             ]
           }
-          testID="settings-back-button"
         >
-          <SvgMock
-            fill="currentColor"
-            name="ArrowLeft"
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "color": "#131416",
-                  "height": 24,
-                  "width": 24,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-          />
+            testID="settings-back-button"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="ArrowLeft"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -141,7 +178,7 @@ exports[`Settings renders settings component with all sections 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -173,8 +210,39 @@ exports[`Settings renders settings component with all sections 1`] = `
     testID="settings-scroll"
   >
     <View>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="general-settings"
       >
         <View
@@ -207,9 +275,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -221,7 +289,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -250,7 +318,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -266,9 +334,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="security-settings"
       >
         <View
@@ -301,9 +400,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -315,7 +414,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -344,7 +443,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -360,9 +459,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="advanced-settings"
       >
         <View
@@ -395,9 +525,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -409,7 +539,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -438,7 +568,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -454,9 +584,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="backup-and-sync-settings"
       >
         <View
@@ -489,9 +650,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -503,7 +664,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -532,7 +693,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -548,9 +709,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="notifications-settings"
       >
         <View
@@ -583,9 +775,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -597,7 +789,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -626,7 +818,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -642,9 +834,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="permissions"
       >
         <View
@@ -677,9 +900,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -691,7 +914,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -720,7 +943,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -736,9 +959,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="contacts-settings"
       >
         <View
@@ -771,9 +1025,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -785,7 +1039,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -814,7 +1068,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -830,9 +1084,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="snaps"
       >
         <View
@@ -865,9 +1150,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -879,7 +1164,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -908,7 +1193,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -924,9 +1209,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="on-ramp-settings"
       >
         <View
@@ -959,9 +1275,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -973,7 +1289,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1002,7 +1318,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1018,9 +1334,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="experimental-settings"
       >
         <View
@@ -1053,9 +1400,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1067,7 +1414,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1096,7 +1443,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1112,9 +1459,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="aes-crypto-settings"
       >
         <View
@@ -1147,9 +1525,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1161,7 +1539,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1190,7 +1568,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1206,9 +1584,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="about-metamask-settings"
       >
         <View
@@ -1241,9 +1650,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1270,7 +1679,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1286,9 +1695,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
       >
         <View
           accessibilityRole="none"
@@ -1320,9 +1760,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1334,7 +1774,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1363,7 +1803,7 @@ exports[`Settings renders settings component with all sections 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#131416"
+                color="#121314"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -1379,9 +1819,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="request-settings"
       >
         <View
@@ -1414,9 +1885,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1427,9 +1898,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="contact-settings"
       >
         <View
@@ -1462,9 +1964,9 @@ exports[`Settings renders settings component with all sections 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1475,9 +1977,40 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="lock-settings"
       >
         <View
@@ -1512,7 +2045,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#4459ff",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1523,7 +2056,7 @@ exports[`Settings renders settings component with all sections 1`] = `
             </View>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </View>
   </RCTScrollView>
 </RNCSafeAreaView>

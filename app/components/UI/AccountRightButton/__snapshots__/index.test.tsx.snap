@@ -131,7 +131,7 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -312,8 +295,34 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
                       }
                     }
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -322,6 +331,7 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
                           "marginLeft": 0,
                           "marginRight": 16,
                           "marginTop": 12,
+                          "opacity": 1,
                         }
                       }
                       testID="navbar-account-button"
@@ -355,15 +365,15 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
                           }
                         />
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -499,7 +509,7 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -507,24 +517,8 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -532,7 +526,6 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -680,8 +673,34 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
                       }
                     }
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -690,6 +709,7 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
                           "marginLeft": 0,
                           "marginRight": 16,
                           "marginTop": 12,
+                          "opacity": 1,
                         }
                       }
                       testID="navbar-account-button"
@@ -729,15 +749,15 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
                           testID="network-avatar-image"
                         />
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -873,7 +893,7 @@ exports[`AccountRightButton should render correctly 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -881,24 +901,8 @@ exports[`AccountRightButton should render correctly 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -906,7 +910,6 @@ exports[`AccountRightButton should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1054,8 +1057,34 @@ exports[`AccountRightButton should render correctly 1`] = `
                       }
                     }
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -1064,6 +1093,7 @@ exports[`AccountRightButton should render correctly 1`] = `
                           "marginLeft": 0,
                           "marginRight": 16,
                           "marginTop": 12,
+                          "opacity": 1,
                         }
                       }
                       testID="navbar-account-button"
@@ -1097,15 +1127,15 @@ exports[`AccountRightButton should render correctly 1`] = `
                           }
                         />
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1241,7 +1271,7 @@ exports[`AccountRightButton should render correctly when a EVM network is select
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -1249,24 +1279,8 @@ exports[`AccountRightButton should render correctly when a EVM network is select
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1274,7 +1288,6 @@ exports[`AccountRightButton should render correctly when a EVM network is select
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1422,8 +1435,34 @@ exports[`AccountRightButton should render correctly when a EVM network is select
                       }
                     }
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -1432,6 +1471,7 @@ exports[`AccountRightButton should render correctly when a EVM network is select
                           "marginLeft": 0,
                           "marginRight": 16,
                           "marginTop": 12,
+                          "opacity": 1,
                         }
                       }
                       testID="navbar-account-button"
@@ -1465,15 +1505,15 @@ exports[`AccountRightButton should render correctly when a EVM network is select
                           }
                         />
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1609,7 +1649,7 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -1617,24 +1657,8 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1642,7 +1666,6 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1790,8 +1813,34 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
                       }
                     }
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -1800,6 +1849,7 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
                           "marginLeft": 0,
                           "marginRight": 16,
                           "marginTop": 12,
+                          "opacity": 1,
                         }
                       }
                       testID="navbar-account-button"
@@ -1833,15 +1883,15 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
                           }
                         />
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1977,7 +2027,7 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -1985,24 +2035,8 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2010,7 +2044,6 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -2158,8 +2191,34 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
                       }
                     }
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -2168,6 +2227,7 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
                           "marginLeft": 0,
                           "marginRight": 16,
                           "marginTop": 12,
+                          "opacity": 1,
                         }
                       }
                       testID="navbar-account-button"
@@ -2207,15 +2267,15 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
                           testID="network-avatar-image"
                         />
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -2351,7 +2411,7 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -2359,24 +2419,8 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2384,7 +2428,6 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -2532,8 +2575,34 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
                       }
                     }
                   >
-                    <TouchableOpacity
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": undefined,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -2542,6 +2611,7 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
                           "marginLeft": 0,
                           "marginRight": 16,
                           "marginTop": 12,
+                          "opacity": 1,
                         }
                       }
                       testID="navbar-account-button"
@@ -2581,15 +2651,15 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
                           testID="network-avatar-image"
                         />
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

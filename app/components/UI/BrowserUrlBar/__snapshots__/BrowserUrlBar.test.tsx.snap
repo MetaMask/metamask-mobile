@@ -13,7 +13,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 999,
         "flex": 1,
         "flexDirection": "row",
@@ -40,13 +40,13 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search by site or address"
-        placeholderTextColor="#babbbe"
+        placeholderTextColor="#b7bbc8"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           [
             {
-              "color": "#131416",
+              "color": "#121314",
               "flex": 1,
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
@@ -84,7 +84,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         onStartShouldSetResponder={[Function]}
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -97,10 +97,27 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         https://example.com
       </Text>
     </View>
-    <TouchableOpacity
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
+      collapsable={false}
+      focusable={true}
       hitSlop={
         {
           "bottom": 8,
@@ -109,9 +126,13 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
           "top": 8,
         }
       }
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -127,7 +148,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
       testID="url-clear-icon"
     >
       <SvgMock
-        color="#66676a"
+        color="#686e7d"
         fill="currentColor"
         height={20}
         name="CircleX"
@@ -139,7 +160,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         }
         width={20}
       />
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -149,7 +170,27 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
       hitSlop={
         {
           "bottom": 12,
@@ -158,11 +199,18 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
           "top": 12,
         }
       }
-      onPress={[Function]}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "justifyContent": "center",
           "marginRight": 16,
+          "opacity": 1,
         }
       }
       testID="cancel-url-button"
@@ -171,7 +219,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -182,7 +230,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
       >
         Cancel
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -210,7 +258,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
     testID="url-input"
   >
     <SvgMock
-      color="#66676a"
+      color="#686e7d"
       fill="currentColor"
       height={16}
       name="Lock"
@@ -241,13 +289,13 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search by site or address"
-        placeholderTextColor="#babbbe"
+        placeholderTextColor="#b7bbc8"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           [
             {
-              "color": "#131416",
+              "color": "#121314",
               "flex": 1,
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
@@ -288,7 +336,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         onStartShouldSetResponder={[Function]}
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -310,8 +358,34 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -320,6 +394,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
           "marginLeft": 0,
           "marginRight": 16,
           "marginTop": 12,
+          "opacity": 1,
         }
       }
       testID="navbar-account-button"
@@ -344,7 +419,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
           }
         }
       />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

@@ -72,7 +72,7 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "fontWeight": 400,
@@ -91,7 +91,7 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
       style={
         [
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Medium",
             "fontSize": 14,
             "fontWeight": 400,
@@ -120,47 +120,34 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 8,
-            "height": 32,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 32,
           },
-          undefined,
+        ]
+      }
+      nativeID="0"
+      style={
+        [
           {
             "transform": [
               {
@@ -168,24 +155,74 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="multichain-address-row-qr-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="QrCode"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 24,
-              "width": 24,
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 8,
+              "height": 32,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 32,
             },
             undefined,
           ]
         }
-      />
+        testID="multichain-address-row-qr-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="QrCode"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>

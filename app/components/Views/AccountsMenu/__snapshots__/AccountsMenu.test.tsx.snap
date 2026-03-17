@@ -43,47 +43,34 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
         onLayout={[Function]}
       >
         <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
           collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 8,
-                "height": 32,
                 "justifyContent": "center",
-                "opacity": 1,
-                "width": 32,
               },
-              undefined,
+            ]
+          }
+          nativeID="3"
+          style={
+            [
               {
                 "transform": [
                   {
@@ -91,24 +78,74 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                   },
                 ],
               },
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
             ]
           }
-          testID="accounts-menu-back-button"
         >
-          <SvgMock
-            fill="currentColor"
-            name="ArrowLeft"
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "color": "#131416",
-                  "height": 24,
-                  "width": 24,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-          />
+            testID="accounts-menu-back-button"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="ArrowLeft"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -223,7 +260,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "justifyContent": "center",
                     "opacity": 1,
@@ -245,7 +282,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 }
               >
                 <SvgMock
-                  color="#66676a"
+                  color="#686e7d"
                   fill="currentColor"
                   height={24}
                   name="QrCode"
@@ -263,7 +300,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexShrink": 0,
                       "fontFamily": "Geist-Medium",
                       "fontSize": 14,
@@ -290,7 +327,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               "display": "flex",
             },
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "height": 1,
               "marginBottom": 8,
               "marginLeft": 16,
@@ -321,7 +358,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -412,7 +449,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -438,7 +475,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -469,7 +506,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -557,7 +594,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -583,7 +620,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -614,7 +651,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -702,7 +739,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -728,7 +765,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -759,7 +796,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -777,7 +814,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               "display": "flex",
             },
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "height": 1,
               "marginBottom": 8,
               "marginLeft": 16,
@@ -808,7 +845,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -899,7 +936,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -925,7 +962,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -956,7 +993,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -1044,7 +1081,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -1070,7 +1107,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1164,7 +1201,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -1190,7 +1227,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1214,7 +1251,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
               "display": "flex",
             },
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "height": 1,
               "marginBottom": 8,
               "marginLeft": 16,
@@ -1393,47 +1430,34 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
         onLayout={[Function]}
       >
         <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
           collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 8,
-                "height": 32,
                 "justifyContent": "center",
-                "opacity": 1,
-                "width": 32,
               },
-              undefined,
+            ]
+          }
+          nativeID="4"
+          style={
+            [
               {
                 "transform": [
                   {
@@ -1441,24 +1465,74 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                   },
                 ],
               },
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
             ]
           }
-          testID="accounts-menu-back-button"
         >
-          <SvgMock
-            fill="currentColor"
-            name="ArrowLeft"
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "color": "#131416",
-                  "height": 24,
-                  "width": 24,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-          />
+            testID="accounts-menu-back-button"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="ArrowLeft"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -1573,7 +1647,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "justifyContent": "center",
                     "opacity": 1,
@@ -1595,7 +1669,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 }
               >
                 <SvgMock
-                  color="#66676a"
+                  color="#686e7d"
                   fill="currentColor"
                   height={24}
                   name="QrCode"
@@ -1613,7 +1687,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexShrink": 0,
                       "fontFamily": "Geist-Medium",
                       "fontSize": 14,
@@ -1710,7 +1784,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -1736,7 +1810,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1767,7 +1841,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -1785,7 +1859,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               "display": "flex",
             },
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "height": 1,
               "marginBottom": 8,
               "marginLeft": 16,
@@ -1816,7 +1890,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -1907,7 +1981,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -1933,7 +2007,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1964,7 +2038,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -2052,7 +2126,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -2078,7 +2152,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2109,7 +2183,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -2197,7 +2271,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -2223,7 +2297,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2254,7 +2328,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -2342,7 +2416,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -2368,7 +2442,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2399,7 +2473,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -2417,7 +2491,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               "display": "flex",
             },
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "height": 1,
               "marginBottom": 8,
               "marginLeft": 16,
@@ -2448,7 +2522,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -2539,7 +2613,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -2565,7 +2639,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2596,7 +2670,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "height": 16,
                     "width": 16,
                   },
@@ -2684,7 +2758,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -2710,7 +2784,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2804,7 +2878,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "height": 24,
                     "width": 24,
                   },
@@ -2830,7 +2904,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2854,7 +2928,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
               "display": "flex",
             },
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "height": 1,
               "marginBottom": 8,
               "marginLeft": 16,

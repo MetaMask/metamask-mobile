@@ -1,11 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountSelector renders correctly with selected address 1`] = `
-<TouchableOpacity
-  onPress={[Function]}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "flexShrink": 1,
+      "opacity": 1,
     }
   }
   testID="ramps-account-picker"
@@ -14,7 +41,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#b4b4b528",
+        "backgroundColor": "#3c4d9d0f",
         "borderRadius": 100,
         "flexDirection": "row",
         "justifyContent": "center",
@@ -49,7 +76,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
       numberOfLines={1}
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "flexShrink": 1,
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
@@ -63,7 +90,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
       Test Account
     </Text>
     <SvgMock
-      color="#66676a"
+      color="#686e7d"
       fill="currentColor"
       height={16}
       name="ArrowDown"
@@ -77,5 +104,5 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
       width={16}
     />
   </View>
-</TouchableOpacity>
+</View>
 `;

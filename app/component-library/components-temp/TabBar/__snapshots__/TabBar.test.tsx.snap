@@ -23,7 +23,7 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
         },
         [
           {
-            "borderBottomColor": "#b4b4b566",
+            "borderBottomColor": "#b7bbc866",
             "borderBottomWidth": 1,
             "borderColor": "#ffffff",
           },
@@ -32,14 +32,39 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
       ]
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityLabel="Tab 1"
-      accessibilityTraits="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flex": 1,
+          "opacity": 1,
         }
       }
     >
@@ -80,15 +105,40 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
           Tab 1
         </Text>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityLabel="Tab 2"
-      accessibilityTraits="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flex": 1,
+          "opacity": 1,
         }
       }
     >
@@ -129,12 +179,12 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
           Tab 2
         </Text>
       </View>
-    </TouchableOpacity>
+    </View>
     <View
       collapsable={false}
       style={
         {
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "bottom": 0,
           "height": 2,
           "position": "absolute",
@@ -155,7 +205,7 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -174,7 +224,7 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -212,7 +262,7 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
         },
         [
           {
-            "borderBottomColor": "#b4b4b566",
+            "borderBottomColor": "#b7bbc866",
             "borderBottomWidth": 1,
             "borderColor": "#ffffff",
           },
@@ -221,14 +271,39 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
       ]
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityLabel="Tab 1"
-      accessibilityTraits="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flex": 1,
+          "opacity": 1,
         }
       }
     >
@@ -253,7 +328,7 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontWeight": "bold",
               },
               {
@@ -269,15 +344,40 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
           Tab 1
         </Text>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityLabel="Tab 2"
-      accessibilityTraits="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flex": 1,
+          "opacity": 1,
         }
       }
     >
@@ -302,7 +402,7 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontWeight": "normal",
               },
               {
@@ -318,12 +418,12 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
           Tab 2
         </Text>
       </View>
-    </TouchableOpacity>
+    </View>
     <View
       collapsable={false}
       style={
         {
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "bottom": 0,
           "height": 2,
           "position": "absolute",
@@ -344,7 +444,7 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -363,7 +463,7 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -401,7 +501,7 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
         },
         [
           {
-            "borderBottomColor": "#b4b4b566",
+            "borderBottomColor": "#b7bbc866",
             "borderBottomWidth": 1,
             "borderColor": "#ffffff",
           },
@@ -412,14 +512,39 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
       ]
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityLabel="Tab 1"
-      accessibilityTraits="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flex": 1,
+          "opacity": 1,
         }
       }
     >
@@ -444,7 +569,7 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
           style={
             [
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontWeight": "bold",
               },
               {
@@ -460,15 +585,40 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
           Tab 1
         </Text>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityLabel="Tab 2"
-      accessibilityTraits="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flex": 1,
+          "opacity": 1,
         }
       }
     >
@@ -493,7 +643,7 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontWeight": "normal",
               },
               {
@@ -509,12 +659,12 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
           Tab 2
         </Text>
       </View>
-    </TouchableOpacity>
+    </View>
     <View
       collapsable={false}
       style={
         {
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "bottom": 0,
           "height": 2,
           "position": "absolute",
@@ -535,7 +685,7 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -554,7 +704,7 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
