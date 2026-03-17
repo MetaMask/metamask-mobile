@@ -56,7 +56,7 @@ function TokenListItem({
       isDisabled={isDisabled}
       gap={20}
       listItemProps={{
-        style: { height: 64, paddingVertical: 12, paddingHorizontal: 16 },
+        style: { paddingVertical: 8, paddingHorizontal: 16 },
       }}
       testID={`${TOKEN_LIST_ITEM_TEST_IDS.ITEM_PREFIX}${token.assetId}`}
     >

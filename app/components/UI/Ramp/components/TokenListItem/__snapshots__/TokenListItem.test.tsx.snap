@@ -19,10 +19,9 @@ exports[`TokenListItem basic rendering renders correctly and matches snapshot 1`
     accessible={true}
     style={
       {
-        "height": 64,
         "padding": 16,
         "paddingHorizontal": 16,
-        "paddingVertical": 12,
+        "paddingVertical": 8,
       }
     }
   >
@@ -237,10 +236,9 @@ exports[`TokenListItem basic rendering renders disabled token with info button a
     accessible={true}
     style={
       {
-        "height": 64,
         "padding": 16,
         "paddingHorizontal": 16,
-        "paddingVertical": 12,
+        "paddingVertical": 8,
       }
     }
   >

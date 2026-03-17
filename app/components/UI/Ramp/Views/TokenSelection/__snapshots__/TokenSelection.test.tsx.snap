@@ -1686,10 +1686,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -1989,10 +1988,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2292,10 +2290,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2595,10 +2592,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2898,10 +2894,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4021,10 +4016,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4324,10 +4318,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4627,10 +4620,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4930,10 +4922,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -5233,10 +5224,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessible={true}
                                     style={
                                       {
-                                        "height": 64,
                                         "padding": 16,
                                         "paddingHorizontal": 16,
-                                        "paddingVertical": 12,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
