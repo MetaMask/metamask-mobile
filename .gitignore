@@ -1,5 +1,8 @@
 # osx
 .DS_Store
+
+# MYX PoC secrets
+scripts/perps/myx-poc/.myx.env
 # don't save asdf tools-version config as nvm is prioritized.
 .tool-versions
 

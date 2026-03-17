@@ -1,0 +1,13 @@
+{
+  "name": "myx-poc",
+  "private": true,
+  "description": "MYX SDK standalone reference scripts",
+  "scripts": {
+    "markets": "npx tsx listMarkets.ts",
+    "account": "npx tsx showAccount.ts",
+    "orders": "npx tsx listOrders.ts",
+    "place": "npx tsx placeOrder.ts",
+    "close": "npx tsx closeOrder.ts"
+  },
+  "dependencies": {}
+}
