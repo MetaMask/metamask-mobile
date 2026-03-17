@@ -716,37 +716,11 @@ jest.mock('react-native-modal', () => {
   return { __esModule: true, default: Modal };
 });
 
-// Patch NativeAnimatedHelper to provide nativeEventEmitter.addListener
-// This prevents crashes in components using Animated when they mount/unmount
-try {
-  const paths = [
-    'react-native/Libraries/Animated/NativeAnimatedHelper',
-  ];
-  const emitterMock = {
-    addListener: jest.fn(() => ({ remove: jest.fn() })),
-    removeAllListeners: jest.fn(),
-    removeSubscription: jest.fn(),
-  };
-  for (const p of paths) {
-    try {
-      const mod = require(p);
-      const target = mod.default || mod;
-      if (target && !target.nativeEventEmitter) {
-        target.nativeEventEmitter = emitterMock;
-      }
-      if (mod.default && !mod.default.nativeEventEmitter) {
-        mod.default.nativeEventEmitter = emitterMock;
-      }
-    } catch { /* skip */ }
-  }
-} catch {
-  // Ignore if module path changed
-}
-
-// Patch NativeAnimatedHelper from Libraries path (which is what babel-transpiled
-// private/animated/NativeAnimatedHelper resolves to) to ensure nativeEventEmitter
-// always has addListener. In RN 0.81+, createAnimatedPropsHook accesses
+// Patch NativeAnimatedHelper to provide nativeEventEmitter.addListener.
+// In RN 0.81+, createAnimatedPropsHook accesses
 // NativeAnimatedHelper.nativeEventEmitter.addListener during useEffect mount.
+// Using Object.defineProperty with a getter ensures the mock is always returned
+// even if the original module uses a getter internally.
 {
   const emitterMock = {
     addListener: jest.fn(() => ({ remove: jest.fn() })),
