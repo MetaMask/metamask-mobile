@@ -54,6 +54,10 @@ function TokenListItem({
       onPress={onPress}
       isDisabled={isDisabled}
       testID={`token-list-item-${token.assetId}`}
+      gap={20}
+      listItemProps={{
+        style: { height: 64, paddingVertical: 12, paddingHorizontal: 16 },
+      }}
     >
       <ListItemColumn widthType={WidthType.Auto}>
         <BadgeWrapper
@@ -68,13 +72,13 @@ function TokenListItem({
           <AvatarToken
             name={token.name}
             imageSource={{ uri: token.iconUrl }}
-            size={AvatarSize.Md}
+            size={AvatarSize.Lg}
           />
         </BadgeWrapper>
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyLGMedium}>{token.name}</Text>
-        <Text variant={TextVariant.BodyMD} color={textColor}>
+        <Text variant={TextVariant.BodyMDMedium}>{token.name}</Text>
+        <Text variant={TextVariant.BodySMMedium} color={textColor}>
           {token.symbol}
         </Text>
       </ListItemColumn>
