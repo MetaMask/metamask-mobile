@@ -1,6 +1,5 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import OrderDetails, {
   createRampsOrderDetailsNavDetails,
 } from './OrderDetails';
@@ -148,9 +147,10 @@ describe('OrderDetails', () => {
     });
     // eslint-disable-next-line no-empty-function -- Never-resolving promise for loading state test
     mockRefreshOrder.mockImplementation(() => new Promise<never>(() => {}));
-    const { UNSAFE_getAllByType } = render();
-    const indicators = UNSAFE_getAllByType(ActivityIndicator);
-    expect(indicators.length).toBeGreaterThan(0);
+    const { getByTestId } = render();
+    expect(
+      getByTestId(RampsOrderDetailsSelectorsIDs.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
   });
 
   it('shows error state with retry when refresh fails', async () => {
@@ -161,14 +161,25 @@ describe('OrderDetails', () => {
     });
     mockRefreshOrder.mockRejectedValue(new Error('Refresh failed'));
 
-    const { getByText } = render();
+    const { getByTestId } = render();
 
     await waitFor(() => {
-      expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+      expect(
+        getByTestId(RampsOrderDetailsSelectorsIDs.ERROR_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
-    fireEvent.press(getByText('ramps_order_details.try_again'));
-    expect(mockRefreshOrder).toHaveBeenCalled();
+    expect(mockRefreshOrder).toHaveBeenCalledTimes(1);
+
+    mockRefreshOrder.mockClear();
+    const tryAgainButton = getByTestId(
+      RampsOrderDetailsSelectorsIDs.TRY_AGAIN_BUTTON,
+    );
+    await act(async () => {
+      tryAgainButton.props.onPress();
+    });
+
+    expect(mockRefreshOrder).toHaveBeenCalledTimes(1);
   });
 
   it('tracks RAMPS_SCREEN_VIEWED when order is displayed', async () => {
