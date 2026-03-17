@@ -77,6 +77,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockedNavigate,
       goBack: mockedGoBack,
+      isFocused: () => true,
     }),
   };
 });

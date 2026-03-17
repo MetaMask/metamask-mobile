@@ -16,7 +16,10 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -82,6 +85,7 @@ import {
 } from 'expo-local-authentication';
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
+import { containsErrorMessage } from '../../util/errorHandling';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1174,14 +1178,22 @@ class AuthenticationService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        trace({
-          name: TraceName.OnboardingFetchSrpsError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({
-          name: TraceName.OnboardingFetchSrpsError,
-        });
+        // trace only if error is not an incorrect password error
+        if (
+          !containsErrorMessage(
+            error as Error,
+            SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+          )
+        ) {
+          trace({
+            name: TraceName.OnboardingFetchSrpsError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({
+            name: TraceName.OnboardingFetchSrpsError,
+          });
+        }
 
         throw error;
       } finally {
@@ -1443,6 +1455,7 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding completion
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
+    ReduxService.store.dispatch(clearAccountType());
   };
 
   /**

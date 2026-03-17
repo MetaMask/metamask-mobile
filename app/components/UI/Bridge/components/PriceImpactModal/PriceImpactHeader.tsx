@@ -1,9 +1,4 @@
 import React from 'react';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
   BoxAlignItems,
@@ -11,54 +6,42 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
-  FontWeight,
-  IconName as DSIconName,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { PriceImpactModalType } from './constants';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PriceImpactHeaderProps {
-  type: PriceImpactModalType;
   onClose: () => void;
-  warningIconName?: IconName;
-  warningIconColor?: string;
+  iconName?: IconName;
+  iconColor?: IconColor;
+  content: string;
 }
 
 export function PriceImpactHeader({
-  type,
   onClose,
-  warningIconName,
-  warningIconColor,
+  iconColor,
+  iconName,
+  content,
 }: PriceImpactHeaderProps) {
-  const isWarning = Boolean(warningIconName && warningIconColor);
-  const title =
-    type === PriceImpactModalType.Execution
-      ? strings('bridge.price_impact_high')
-      : strings('bridge.price_impact');
-
   return (
     <Box
       paddingHorizontal={2}
       flexDirection={BoxFlexDirection.Row}
-      alignItems={isWarning ? BoxAlignItems.Start : BoxAlignItems.Center}
-      twClassName={isWarning ? 'py-2' : 'min-h-14'}
+      alignItems={BoxAlignItems.Start}
+      twClassName={'py-2'}
     >
       <Box twClassName="flex-1" />
       <Box alignItems={BoxAlignItems.Center}>
-        {isWarning && warningIconName && warningIconColor && (
-          <Icon
-            name={warningIconName}
-            size={IconSize.Xl}
-            color={warningIconColor}
-          />
+        {iconColor && iconName && (
+          <Icon name={iconName} size={IconSize.Xl} color={iconColor} />
         )}
-        <Text
-          variant={isWarning ? TextVariant.HeadingMd : TextVariant.BodyMd}
-          fontWeight={isWarning ? undefined : FontWeight.Bold}
-          twClassName={isWarning ? 'text-center mt-2' : 'text-center'}
-        >
-          {title}
+        <Text variant={TextVariant.HeadingMd} twClassName={'text-center mt-4'}>
+          {strings(content)}
         </Text>
       </Box>
       <Box
@@ -67,7 +50,7 @@ export function PriceImpactHeader({
         justifyContent={BoxJustifyContent.End}
       >
         <ButtonIcon
-          iconName={DSIconName.Close}
+          iconName={IconName.Close}
           size={ButtonIconSize.Md}
           onPress={onClose}
         />

@@ -60,13 +60,11 @@ describe(SmokeConfirmations('Dapp Network Switching'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: LOCAL_CHAIN_ID,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: LOCAL_CHAIN_NAME,
-                ticker: 'ETH',
-              },
+              chainId: LOCAL_CHAIN_ID,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: LOCAL_CHAIN_NAME,
+              ticker: 'ETH',
             })
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions([LOCAL_CHAIN_ID]),

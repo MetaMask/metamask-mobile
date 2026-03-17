@@ -11,14 +11,12 @@ const defaultState = {
   },
 };
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      icon: { default: '#000' },
-      border: { muted: '#ccc' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn().mockReturnValue(mockTheme),
+  };
+});
 
 const mockProps = {
   name: 'Debit or Credit',
