@@ -119,6 +119,10 @@
       "message": "Estás enviando tus activos a una dirección de quema. Si continúas, perderás tus activos.",
       "title": "Envío de activos a la dirección de quema"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "El patrocinio de gas no está disponible para esta transacción. Deberás mantener al menos %{minBalance} %{nativeTokenSymbol} en tu cuenta.",
       "title": "Patrocinio de gas no disponible"
@@ -689,7 +693,11 @@
     "invisible_character_error": "Detectamos un carácter invisible en el nombre de ENS. Verifica el nombre de ENS para evitar una posible estafa.",
     "could_not_resolve_name": "No se pudo resolver el nombre",
     "invalid_address": "Dirección no válida",
-    "contractAddressError": "Estás enviando tokens a la dirección del contrato del token. Esto podría resultar en la pérdida de estos tokens."
+    "contractAddressError": "Estás enviando tokens a la dirección del contrato del token. Esto podría resultar en la pérdida de estos tokens.",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "Comprendo",
+    "cancel": "Cancelar"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -2154,6 +2162,7 @@
     "sell_position": "Posición de venta",
     "cash_out": "Retiro de efectivo",
     "cash_out_info": "Los fondos se agregarán a tu saldo disponible",
+    "buy_preview_outcome_at_price": "{{outcome}} a {{price}}",
     "at_price_per_share": "Vendiendo {{size}} acciones a {{price}}",
     "cashout_info": "{{amount}} por {{outcome}} a {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} en {{outcomeGroupTitle}} • {{outcome}} a {{initialPrice}}",
@@ -2338,7 +2347,9 @@
       "exchange_fee_description": "Tarifa pagada al cambio o al mercado",
       "total_incl_fees": "tarifas incl.",
       "close": "Cerrar",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "No se puede conectar a las predicciones",
@@ -5921,6 +5932,7 @@
   "earn": {
     "claimable_bonus_tooltip": "El bono anualizado que has ganado por mantener mUSD. Puedes reclamar tu bono diariamente en Linea.",
     "earn_a_percentage_bonus": "Gana un bono del {{percentage}} %",
+    "percentage_bonus": "Bonificación del {{percentage}} %",
     "claimable_bonus": "Bonificación reclamable",
     "claim_bonus": "Reclamar bono",
     "claim_bonus_subtitle": "El bono se pagará en {{networkName}}.",
@@ -6930,7 +6942,7 @@
       "upgrade_title": "Actualiza a Metal",
       "continue_button": "Continuar",
       "virtual_card": {
-        "name": "Tarjeta Virtual Orange",
+        "name": "Virtual Card",
         "price": "Gratis",
         "feature_1": "Tarjeta virtual para Apple Pay y Google Pay",
         "feature_2": "Paga con criptomonedas (USDC, USDT, WETH y más)",
@@ -6939,10 +6951,13 @@
       "metal_card": {
         "name": "Tarjeta Metal",
         "price": "$199/año",
-        "feature_1": "Tarjeta metálica grabada y tarjeta virtual para Apple Pay y Google Pay",
-        "feature_2": "3 % de cashback en los primeros $10.000 gastados cada año, y 1 % a partir de entonces",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Sin tarifas por transacciones internacionales"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Revisa tu orden",
@@ -7090,7 +7105,8 @@
         "ssn_label": "Número de seguro social",
         "ssn_description": "Requerido por el emisor de la tarjeta. No se realizará ninguna verificación de crédito.",
         "invalid_ssn": "SSN no válido",
-        "invalid_date_of_birth": "Fecha de nacimiento no válida. Debes tener al menos 18 años"
+        "invalid_date_of_birth": "Fecha de nacimiento no válida. Debes tener al menos 18 años",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Agrega tu dirección",
@@ -7174,6 +7190,7 @@
       "enable_assets_button_label": "Habilitar activos",
       "spending_limit_warning": "Estás cerca de tu límite de gasto. Actualiza tu cuenta para evitar rechazos.",
       "logout": "Cerrar sesión",
+      "contact_support": "Contactar a soporte",
       "logout_confirmation_title": "¿Cerrar sesión en Card?",
       "logout_confirmation_message": "¿Seguro que quieres cerrar sesión en tu cuenta de MetaMask Card?",
       "logout_confirmation_cancel": "Cancelar",
@@ -7727,6 +7744,18 @@
     },
     "active_boosts_title": "Potenciadores activos",
     "season_1": "Temporada 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "Comprar mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Recompensas bloqueadas",
       "points_needed": "{{points}} puntos",
@@ -8006,6 +8035,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Tokens",
       "perpetuals": "Contratos perpetuos",
       "predictions": "Predicciones",
