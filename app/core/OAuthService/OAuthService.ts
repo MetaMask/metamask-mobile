@@ -176,65 +176,19 @@ export class OAuthService {
   #handleMockOAuthLogin = async (
     loginHandler: BaseLoginHandler,
   ): Promise<HandleOAuthLoginResult> => {
-    Logger.log(
-      '[OAuthService] E2E_MOCK_OAUTH: bypassing native OAuth UI, using QA mock tokens',
-    );
-
-    const QA_MOCK_TOKEN_URL =
-      'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token';
-    const QA_AUTH_SECRET = '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
-    const e2eEmail = `${loginHandler.authConnection}.newuser+e2e@web3auth.io`;
-    const emailForMock = 'newuser+e2e@web3auth.io';
-
-    const response = await fetch(QA_MOCK_TOKEN_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'byoa-auth-secret': QA_AUTH_SECRET,
-      },
-      body: JSON.stringify({
-        email_id: emailForMock,
-        client_id: loginHandler.options.clientId,
-        login_provider: loginHandler.authConnection,
-        access_type: 'offline',
-      }),
+    Logger.log('[OAuthService] E2E_MOCK_OAUTH: bypassing real OAuth flow');
+    const mockEmail = `mock-perf-${loginHandler.authConnection}@web3auth.io`;
+    this.updateLocalState({
+      userId: `mock-user-${loginHandler.authConnection}`,
+      accountName: mockEmail,
     });
-
-    if (!response.ok) {
-      throw new OAuthError(
-        `QA mock token request failed: ${response.status}`,
-        OAuthErrorType.LoginError,
-      );
-    }
-
-    const rawResponse = await response.json();
-    const tokens = rawResponse.data?.tokens || rawResponse;
-
-    const data: AuthResponse = {
-      id_token: tokens.jwt_token || tokens.id_token,
-      access_token: tokens.access_token,
-      metadata_access_token: tokens.metadata_access_token,
-      refresh_token: tokens.refresh_token,
-      revoke_token: tokens.revoke_token,
-      indexes: tokens.indexes,
-      endpoints: tokens.endpoints,
+    const mockResult: HandleOAuthLoginResult = {
+      type: OAuthLoginResultType.SUCCESS,
+      existingUser: false,
+      accountName: mockEmail,
     };
-
-    const jwtPayload = JSON.parse(
-      loginHandler.decodeIdToken(data.id_token),
-    ) as Partial<OAuthUserInfo>;
-    const userId = jwtPayload.sub ?? `e2e-user-${e2eEmail}`;
-    const accountName = jwtPayload.email ?? e2eEmail;
-
-    this.updateLocalState({ userId, accountName });
-
-    const result = await this.handleSeedlessAuthenticate(
-      data,
-      loginHandler.authConnection as unknown as SeedlessAuthConnection,
-    );
-
-    this.#dispatchPostLogin(result);
-    return result;
+    this.#dispatchPostLogin(mockResult);
+    return mockResult;
   };
 
   #trackSocialLoginFailure = ({

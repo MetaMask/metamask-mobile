@@ -32,32 +32,32 @@ test.describe(PerformanceOnboarding, () => {
       LoginScreen.device = device;
 
       const timer1 = new TimerHelper(
-        'Time since the user taps "Create new wallet" button until OnboardingSheet is visible',
+        'Apple: Tap "Create new wallet" → OnboardingSheet visible',
         { ios: 1500, android: 2000 },
         device,
       );
       const timer2 = new TimerHelper(
-        'Time since the user taps Apple login button until post-OAuth screen is visible',
+        'Apple: Tap Apple login → post-OAuth screen visible',
         { ios: 15000, android: 15000 },
         device,
       );
       const timer3 = new TimerHelper(
-        'Time since post-OAuth screen action until Password fields are visible',
+        'Apple: Post-OAuth action → Password fields visible',
         { ios: 4000, android: 2000 },
         device,
       );
       const timer4 = new TimerHelper(
-        'Time since the user taps "Create Password" button until Onboarding Success screen is visible',
+        'Apple: Tap "Create Password" → Onboarding Success visible',
         { ios: 5000, android: 5000 },
         device,
       );
       const timer5 = new TimerHelper(
-        'Time since the user taps "Done" button until feature sheet is visible',
+        'Apple: Tap "Done" → feature sheet visible',
         { ios: 2500, android: 3100 },
         device,
       );
       const timer6 = new TimerHelper(
-        'Time since feature sheet is dismissed until wallet main screen is visible',
+        'Apple: Dismiss feature sheet → wallet main screen visible',
         { ios: 30000, android: 30000 },
         device,
       );

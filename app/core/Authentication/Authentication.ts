@@ -525,7 +525,7 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      if (authData.oauth2Login) {
+      if (authData.oauth2Login && process.env.E2E_MOCK_OAUTH !== 'true') {
         await this.createAndBackupSeedPhrase(password);
       } else {
         await this.createWalletVaultAndKeychain(password);
