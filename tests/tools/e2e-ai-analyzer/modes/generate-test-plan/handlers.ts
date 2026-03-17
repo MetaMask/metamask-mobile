@@ -671,27 +671,16 @@ function generateMarkdownTestPlan(analysis: GenerateTestPlanAnalysis): string {
     );
     lines.push('');
 
-    // Testing status with progress
-    const prs = area.testingStatus.prs || [];
-    const total = prs.length;
-    const validated = prs.filter(
-      (pr) =>
-        pr.validatedAndroid === 'Passed' ||
-        pr.validatedAndroid === 'Skipped' ||
-        pr.validatedIOS === 'Passed' ||
-        pr.validatedIOS === 'Skipped',
-    ).length;
-    const progressText = total > 0 ? ` (${validated}/${total} PRs)` : '';
-
+    // Testing status
     if (area.testingStatus.tested) {
       const testers = area.testingStatus.testedBy.join(', ') || 'Unknown';
-      lines.push(`**Tested by:** ${testers}${progressText} ✅`);
+      lines.push(`**Tested by:** ${testers} ✅`);
     } else {
       const testers =
         area.testingStatus.testedBy.length > 0
           ? area.testingStatus.testedBy.join(', ')
           : 'Pending';
-      lines.push(`**Tested by:** ${testers}${progressText} ⏳`);
+      lines.push(`**Tested by:** ${testers} ⏳`);
     }
 
     // Build change info
