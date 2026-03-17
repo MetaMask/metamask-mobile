@@ -1,10 +1,10 @@
 import type { ControllerMessenger } from '../types';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import type {
+  AnalyticsUnfilteredProperties,
   IMetaMetricsEvent,
   ITrackingEvent,
-} from '../../../core/Analytics/MetaMetrics.types';
-import type { AnalyticsUnfilteredProperties } from '../../../util/analytics/analytics.types';
+} from '../../../util/analytics/analytics.types';
 import Logger from '../../../util/Logger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
