@@ -20,20 +20,34 @@ permissions:
   id-token: write
 
 jobs:
+  bump-version:
+    name: Bump build version
+    uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ github.ref_name }}
+    secrets: inherit
+
   build-exp:
     name: Nightly exp build (main-exp)
+    needs: [bump-version]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
       platform: both
+      skip_version_bump: true
     secrets: inherit
 
   build-rc:
     name: Nightly RC build (main-rc)
+    needs: [bump-version]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
       platform: both
+      skip_version_bump: true
     secrets: inherit
 
   upload-exp-testflight:
