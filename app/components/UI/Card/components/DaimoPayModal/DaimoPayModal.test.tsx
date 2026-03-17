@@ -511,4 +511,81 @@ describe('DaimoPayModal', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
+
+  describe('navigation fallback', () => {
+    it('navigates directly when parentNavigator is null', async () => {
+      mockGetParent.mockReturnValueOnce(null);
+
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              source: 'daimo-pay',
+              type: 'paymentCompleted',
+              payload: {
+                txHash: '0x123abc',
+                chainId: 1,
+              },
+            }),
+          },
+        });
+      });
+
+      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('backgroundBridge messages', () => {
+    it('processes bridge messages with name property', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onLoadEnd();
+      });
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              name: 'metamask-provider',
+              data: { method: 'eth_accounts' },
+            }),
+          },
+        });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('paymentBounced without error details', () => {
+    it('uses default error message when no error details provided', async () => {
+      const { getByTestId } = renderWithProvider(<DaimoPayModal />);
+
+      const webView = getByTestId(DaimoPayModalSelectors.WEBVIEW);
+
+      await act(async () => {
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              source: 'daimo-pay',
+              type: 'paymentBounced',
+              payload: {},
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeTruthy();
+      });
+    });
+  });
 });
