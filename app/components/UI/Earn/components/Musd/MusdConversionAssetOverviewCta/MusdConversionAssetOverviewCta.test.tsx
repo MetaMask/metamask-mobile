@@ -131,7 +131,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       ).toBeOnTheScreen();
       expect(
         getByText(
-          `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+          `Convert your stablecoins to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
         ),
       ).toBeOnTheScreen();
     });
@@ -435,7 +435,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -482,7 +484,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -530,7 +534,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(

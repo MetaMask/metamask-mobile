@@ -36,7 +36,7 @@ import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
@@ -94,7 +94,7 @@ const NetworkMultiSelector = ({
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);

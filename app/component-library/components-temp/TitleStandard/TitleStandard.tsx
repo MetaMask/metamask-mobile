@@ -68,7 +68,7 @@ const TitleStandard: React.FC<TitleStandardProps> = ({
         alignItems={BoxAlignItems.Center}
       >
         {title && (
-          <Text variant={TextVariant.DisplayMd} {...titleProps}>
+          <Text variant={TextVariant.HeadingLg} {...titleProps}>
             {title}
           </Text>
         )}

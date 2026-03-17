@@ -414,7 +414,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -455,7 +455,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -476,72 +476,49 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                             />
                           </View>
                         </View>
-                        <View
-                          style={
-                            [
-                              {
-                                "display": "flex",
-                                "paddingBottom": 8,
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "paddingTop": 4,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#b7bbc8",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 14,
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
-                              }
-                            }
-                          >
-                            fiat_on_ramp.quotes_displayed_for
-                          </Text>
-                        </View>
                         <RCTScrollView
                           collapsable={false}
                           data={
                             [
                               {
-                                "description": "Test provider",
-                                "environmentType": "PRODUCTION",
-                                "hqAddress": "Test Address",
-                                "id": "/providers/transak",
-                                "links": [],
-                                "logos": {
-                                  "dark": "https://example.com/logo-dark.png",
-                                  "height": 24,
-                                  "light": "https://example.com/logo-light.png",
-                                  "width": 90,
+                                "provider": {
+                                  "description": "Test provider",
+                                  "environmentType": "PRODUCTION",
+                                  "hqAddress": "Test Address",
+                                  "id": "/providers/transak",
+                                  "links": [],
+                                  "logos": {
+                                    "dark": "https://example.com/logo-dark.png",
+                                    "height": 24,
+                                    "light": "https://example.com/logo-light.png",
+                                    "width": 90,
+                                  },
+                                  "name": "Transak",
                                 },
-                                "name": "Transak",
+                                "type": "provider",
                               },
                               {
-                                "description": "Test provider 2",
-                                "environmentType": "PRODUCTION",
-                                "hqAddress": "Test Address 2",
-                                "id": "/providers/moonpay",
-                                "links": [],
-                                "logos": {
-                                  "dark": "https://example.com/moonpay-dark.png",
-                                  "height": 24,
-                                  "light": "https://example.com/moonpay-light.png",
-                                  "width": 90,
+                                "provider": {
+                                  "description": "Test provider 2",
+                                  "environmentType": "PRODUCTION",
+                                  "hqAddress": "Test Address 2",
+                                  "id": "/providers/moonpay",
+                                  "links": [],
+                                  "logos": {
+                                    "dark": "https://example.com/moonpay-dark.png",
+                                    "height": 24,
+                                    "light": "https://example.com/moonpay-light.png",
+                                    "width": 90,
+                                  },
+                                  "name": "MoonPay",
                                 },
-                                "name": "MoonPay",
+                                "type": "provider",
                               },
                             ]
                           }
                           getItem={[Function]}
                           getItemCount={[Function]}
-                          handlerTag={1}
+                          handlerTag={-1}
                           handlerType="NativeViewGestureHandler"
                           keyExtractor={[Function]}
                           keyboardDismissMode="none"
@@ -616,62 +593,21 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                       <Text
                                         accessibilityRole="text"
                                         style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 18,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Transak
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <View
-                                        style={
                                           [
                                             {
-                                              "alignItems": "flex-end",
-                                              "display": "flex",
-                                              "justifyContent": "center",
+                                              "color": "#131416",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 20,
+                                              "fontWeight": 500,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
                                             },
                                             undefined,
                                           ]
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          fiat_on_ramp.quote_unavailable
-                                        </Text>
-                                      </View>
+                                        Transak
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>
@@ -680,7 +616,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "bottom": 0,
                                       "flexDirection": "row",
                                       "left": 0,
@@ -739,62 +675,21 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                       <Text
                                         accessibilityRole="text"
                                         style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 18,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        MoonPay
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <View
-                                        style={
                                           [
                                             {
-                                              "alignItems": "flex-end",
-                                              "display": "flex",
-                                              "justifyContent": "center",
+                                              "color": "#131416",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 20,
+                                              "fontWeight": 500,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
                                             },
                                             undefined,
                                           ]
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          fiat_on_ramp.quote_unavailable
-                                        </Text>
-                                      </View>
+                                        MoonPay
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>

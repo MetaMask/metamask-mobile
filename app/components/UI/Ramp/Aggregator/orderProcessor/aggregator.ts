@@ -137,7 +137,11 @@ export async function processAggregatorOrder(
   } catch (error) {
     Logger.error(error as Error, {
       message: 'FiatOrders::AggregatorProcessor error while processing order',
-      order,
+      orderId: order.id,
+      provider: order.provider,
+      orderType: order.orderType,
+      state: order.state,
+      network: order.network,
     });
     return order as FiatOrder;
   }

@@ -582,6 +582,7 @@
     "ok": "OK",
     "cancel": "キャンセル",
     "error": "エラー",
+    "open_settings": "設定",
     "attempting_to_scan_with_wallet_locked": "QRコードを読み取ろうとしていますが、ウォレットのロックを解除する必要があります。",
     "attempting_sync_from_wallet_error": "拡張機能と同期しようとしています。実行するには、現在のウォレットを消去する必要があります。\n\n新しいバージョンのアプリを消去または再インストールした後、[Sync with MetaMask Extension]というオプションを選択してください。重要！ウォレットを消去する前に、シークレットリカバリーフレーズのバックアップを取っておくことをお勧めします。"
   },

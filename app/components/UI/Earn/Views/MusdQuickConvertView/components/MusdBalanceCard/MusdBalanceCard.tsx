@@ -71,7 +71,7 @@ const MusdBalanceCard = ({ chainId, balance }: MusdBalanceCardProps) => {
 
       <View style={styles.right}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-          {strings('earn.musd_conversion.percentage_boost', {
+          {strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           })}
         </Text>

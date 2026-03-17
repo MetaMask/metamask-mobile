@@ -9,8 +9,25 @@ import { BridgeState } from '../../../../../core/redux/slices/bridge';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
+import { fireEvent } from '@testing-library/react-native';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    }),
+  };
+});
 
 describe('BlockExplorersModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   const mockTx = {
     id: 'test-tx-id',
     chainId: '0x1',
@@ -114,5 +131,45 @@ describe('BlockExplorersModal', () => {
     );
     const etherscanButtons = getAllByText('Etherscan');
     expect(etherscanButtons).toHaveLength(1);
+  });
+
+  it('should navigate to webview when source chain explorer button is pressed', () => {
+    const { getAllByText } = renderScreen(
+      () => <BlockExplorersModal {...mockProps} />,
+      {
+        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+      },
+      { state: mockState },
+    );
+
+    const [srcExplorerButton] = getAllByText('Etherscan');
+    fireEvent.press(srcExplorerButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: expect.objectContaining({
+        url: expect.stringContaining('etherscan.io'),
+      }),
+    });
+  });
+
+  it('should navigate to webview when destination chain explorer button is pressed', () => {
+    const { getByText } = renderScreen(
+      () => <BlockExplorersModal {...mockProps} />,
+      {
+        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+      },
+      { state: mockState },
+    );
+
+    const destExplorerButton = getByText('Optimistic');
+    fireEvent.press(destExplorerButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: expect.objectContaining({
+        url: expect.stringContaining('optimistic.etherscan.io'),
+      }),
+    });
   });
 });

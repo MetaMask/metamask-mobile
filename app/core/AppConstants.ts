@@ -93,6 +93,7 @@ export default {
     },
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_UNIVERSAL_LINK_HOST_ALTERNATE: 'metamask-alternate.app.link',
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -210,9 +211,9 @@ export default {
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
-  TERMINAL_API_URL:
-    process.env.TERMINAL_API_URL ||
-    'https://terminal.dev-api.cx.metamask.io/api/v1',
+  DIGEST_API_URL:
+    process.env.DIGEST_API_URL ||
+    'https://digest-api.dev-api.cx.metamask.io/api/v1',
   // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',

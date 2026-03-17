@@ -142,7 +142,7 @@ const FiatBalanceView = ({
     return <View style={styles.skeleton} />;
   }
 
-  return <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>;
+  return <Text variant={TextVariant.BodyMD}>{balance}</Text>;
 };
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -248,7 +248,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               alignItems={AlignItems.center}
               gap={4}
             >
-              <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+              <Text variant={TextVariant.BodyMD}>{token.symbol}</Text>
               {label && <Tag label={label} />}
               {showNoFeeBadge && (
                 <TagBase
@@ -262,7 +262,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               )}
             </Box>
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodySM}
               color={TextColor.Alternative}
               numberOfLines={2}
               ellipsizeMode="tail"
@@ -281,7 +281,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 <View style={styles.skeleton} />
               ) : (
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {secondaryBalance}

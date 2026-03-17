@@ -14,7 +14,12 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
-import { IconSize as ReactNativeDsIconSize } from '@metamask/design-system-react-native';
+import {
+  IconSize as ReactNativeDsIconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 export type EarnToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
@@ -185,6 +190,14 @@ const useEarnToasts = (): {
           ...earnBaseToastOptions.success,
           labelOptions: getEarnToastLabels({
             primary: strings('earn.musd_conversion.toasts.delivered'),
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('earn.musd_conversion.toasts.delivered_description')}
+              </Text>
+            ),
           }),
           closeButtonOptions,
         },

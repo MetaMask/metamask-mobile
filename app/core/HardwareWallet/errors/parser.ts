@@ -222,6 +222,7 @@ function parseErrorByMessage(
       patterns: ['disconnected', 'disconnect', 'connection lost'],
       code: ErrorCode.DeviceDisconnected,
     },
+    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
     {
       patterns: ['locked', 'unlock'],
       code: ErrorCode.AuthenticationDeviceLocked,
@@ -240,7 +241,6 @@ function parseErrorByMessage(
       patterns: ['rejected', 'cancelled', 'refused'],
       code: ErrorCode.UserRejected,
     },
-    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
     {
       patterns: ['not authorized', 'unauthorized'],
       code: ErrorCode.PermissionNearbyDevicesDenied,
@@ -292,6 +292,12 @@ export function parseErrorByType(
   }
 
   if (isErrorCodeObject(error)) {
+    if (error.code === ErrorCode.Unknown && isErrorLike(error)) {
+      const reParsed = parseErrorByMessage(error, walletType);
+      if (reParsed) {
+        return reParsed;
+      }
+    }
     const message =
       typeof error.message === 'string' ? error.message : undefined;
     return createHardwareWalletError(error.code, walletType, message);

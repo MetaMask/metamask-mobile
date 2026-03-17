@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { TokenRwaData } from '@metamask/assets-controllers';
+import Engine from '../../../../core/Engine';
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -109,6 +110,20 @@ export const usePopularTokens = ({
 }: UsePopularTokensParams): UsePopularTokensResult => {
   const [popularTokens, setPopularTokens] = useState<PopularToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [bearerToken, setBearerToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    Engine.context.AuthenticationController.getBearerToken()
+      .then((token) => {
+        setBearerToken(token);
+      })
+      .catch((error) => {
+        console.warn(
+          'Failed to get bearer token for /getTokens/popular',
+          error,
+        );
+      });
+  }, []);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -141,6 +156,7 @@ export const usePopularTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${bearerToken ?? ''}`,
             },
             body: JSON.stringify({
               chainIds,
@@ -183,7 +199,7 @@ export const usePopularTokens = ({
       isCancelled = true;
       abortController.abort();
     };
-  }, [chainIds, includeAssets]);
+  }, [chainIds, includeAssets, bearerToken]);
 
   return { popularTokens, isLoading };
 };

@@ -135,7 +135,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
       />
 
       <View style={styles.contentWrapper}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyMDMedium}>
           {protocolAggregate.protocolDetails.name}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
@@ -145,7 +145,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 
       <View style={styles.balance}>
         <SensitiveText
-          variant={TextVariant.BodyLGMedium}
+          variant={TextVariant.BodyMDMedium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >

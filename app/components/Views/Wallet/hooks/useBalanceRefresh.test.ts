@@ -33,6 +33,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
   error: jest.fn(),
 }));
 
@@ -85,7 +86,7 @@ describe('useBalanceRefresh', () => {
     ).toHaveBeenCalledWith(['ETH', 'POL']);
   });
 
-  it('handles individual promise rejections gracefully without logging', async () => {
+  it('does not log errors when individual refresh promises reject', async () => {
     const mockError = new Error('Refresh failed');
     (
       Engine.context.AccountTrackerController.refresh as jest.Mock
@@ -101,7 +102,7 @@ describe('useBalanceRefresh', () => {
     expect(Logger.error).not.toHaveBeenCalled();
   });
 
-  it('handles timeout gracefully', async () => {
+  it('logs timeout as non-error without emitting error events', async () => {
     jest.useFakeTimers();
 
     (
@@ -123,11 +124,29 @@ describe('useBalanceRefresh', () => {
 
     await refreshPromise;
 
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Balance refresh timed out' }),
-      'Error refreshing balance',
-    );
+    expect(Logger.log).toHaveBeenCalledWith('Balance refresh timed out');
+    expect(Logger.error).not.toHaveBeenCalled();
 
     jest.useRealTimers();
+  });
+
+  it('logs unexpected refresh exceptions as errors', async () => {
+    const unexpectedError = new Error('Unexpected refresh failure');
+    (
+      Engine.context.AccountTrackerController.refresh as jest.Mock
+    ).mockImplementationOnce(() => {
+      throw unexpectedError;
+    });
+
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      unexpectedError,
+      'Error refreshing balance',
+    );
   });
 });

@@ -23,7 +23,6 @@ export function PredictWithdrawInfo() {
 
   return (
     <CustomAmountInfo
-      hasMax
       currency={PREDICT_CURRENCY}
       disablePay={!canSelectWithdrawToken}
     >

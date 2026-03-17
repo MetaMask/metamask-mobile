@@ -213,8 +213,11 @@ const patchPackageTask = {
 
 const installFoundryTask = {
   title: 'Install Foundry',
-  task: (_, task) =>
-    task.newListr(
+  task: (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping Foundry installation (node-only mode).');
+    }
+    return task.newListr(
       [
         {
           title: 'Install Foundry binary',
@@ -238,7 +241,8 @@ const installFoundryTask = {
         exitOnError: true,
         rendererOptions,
       },
-    ),
+    );
+  },
 };
 
 const expoBuildLinks = {

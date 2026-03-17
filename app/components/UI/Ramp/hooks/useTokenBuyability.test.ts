@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
-import { useTokenBuyability } from './useTokenBuyability';
+// eslint-disable-next-line import/no-namespace
+import * as tokenBuyabilityModule from './useTokenBuyability';
 import {
   useRampTokens,
   UseRampTokensResult,
@@ -8,6 +9,7 @@ import {
 import { useRampsTokens } from './useRampsTokens';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { TokenI } from '../../Tokens/types';
+import parseRampIntent from '../utils/parseRampIntent';
 
 jest.mock('./useRampTokens', () => ({
   useRampTokens: jest.fn(),
@@ -18,33 +20,40 @@ jest.mock('./useRampsTokens', () => ({
 }));
 
 jest.mock('./useRampsUnifiedV2Enabled', () => jest.fn());
+jest.mock('../utils/parseRampIntent', () => jest.fn());
 
 const mockUseRampTokens = jest.mocked(useRampTokens);
 const mockUseRampsTokens = jest.mocked(useRampsTokens);
 const mockUseRampsUnifiedV2Enabled = jest.mocked(useRampsUnifiedV2Enabled);
+const mockParseRampIntent = jest.mocked(parseRampIntent);
 
 describe('useTokenBuyability', () => {
-  const getMockToken = (overrides: Partial<TokenI> = {}): TokenI =>
-    ({
-      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-      symbol: 'DAI',
-      name: 'Dai Stablecoin',
-      decimals: 18,
-      chainId: '0x1',
-      ...overrides,
-    }) as TokenI;
+  const getMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
+    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    symbol: 'DAI',
+    name: 'Dai Stablecoin',
+    decimals: 18,
+    chainId: '0x1',
+    image: '',
+    logo: undefined,
+    balance: '0',
+    isETH: false,
+    isNative: false,
+    ...overrides,
+  });
 
-  const getMockRampToken = (overrides: Record<string, unknown> = {}) =>
-    ({
-      name: 'Mock Token',
-      symbol: 'MOCK',
-      decimals: 18,
-      iconUrl: 'https://example.com/icon.png',
-      assetId: '',
-      chainId: '',
-      tokenSupported: false,
-      ...overrides,
-    }) as unknown as RampsToken;
+  const getMockRampToken = (
+    overrides: Partial<RampsToken> = {},
+  ): RampsToken => ({
+    name: 'Mock Token',
+    symbol: 'MOCK',
+    decimals: 18,
+    iconUrl: 'https://example.com/icon.png',
+    assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+    chainId: 'eip155:1',
+    tokenSupported: false,
+    ...overrides,
+  });
 
   const setupV1Mocks = (): void => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
@@ -67,7 +76,178 @@ describe('useTokenBuyability', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockParseRampIntent.mockReturnValue({
+      assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+    });
     setupV1Mocks();
+  });
+
+  describe('useTokensBuyability', () => {
+    it('maps buyability for multiple tokens by token key', () => {
+      const firstToken = getMockToken({
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      });
+      const secondToken = getMockToken({
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      });
+
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [
+          getMockRampToken({
+            assetId:
+              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+            tokenSupported: true,
+          }),
+          getMockRampToken({
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            tokenSupported: false,
+          }),
+        ],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      mockParseRampIntent.mockImplementation(({ address }) => ({
+        assetId: `eip155:1/erc20:${address?.toLowerCase()}`,
+      }));
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([firstToken, secondToken]),
+      );
+
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(firstToken)]: true,
+        [tokenBuyabilityModule.getTokenBuyabilityKey(secondToken)]: false,
+      });
+    });
+
+    it('returns loading from controller tokens when v2 is enabled', () => {
+      setupV2Mocks();
+      mockUseRampsTokens.mockReturnValue({
+        tokens: null,
+        selectedToken: null,
+        setSelectedToken: jest.fn(),
+        isLoading: true,
+        error: null,
+      });
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([getMockToken()]),
+      );
+
+      expect(result.current.isLoading).toBe(true);
+      expect(mockUseRampTokens).toHaveBeenCalledWith({ fetchOnMount: false });
+    });
+
+    it('returns loading from legacy tokens when v2 is disabled', () => {
+      setupV1Mocks();
+      mockUseRampTokens.mockReturnValue({
+        allTokens: null,
+        isLoading: true,
+      } as UseRampTokensResult);
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([getMockToken()]),
+      );
+
+      expect(result.current.isLoading).toBe(true);
+      expect(mockUseRampTokens).toHaveBeenCalledWith({ fetchOnMount: true });
+    });
+
+    it('does not call parseRampIntent when token address is already a CAIP asset type', () => {
+      const caipToken = getMockToken({
+        address: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+        chainId: 'eip155:1',
+      });
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [
+          getMockRampToken({
+            assetId:
+              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+            tokenSupported: true,
+          }),
+        ],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([caipToken]),
+      );
+
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(caipToken)]: true,
+      });
+      expect(mockParseRampIntent).not.toHaveBeenCalled();
+    });
+
+    it('returns false when mockParseRampIntent parsing throws', () => {
+      mockParseRampIntent.mockImplementation(() => {
+        throw new Error('parse failed');
+      });
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [
+          getMockRampToken({
+            assetId:
+              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+            tokenSupported: true,
+          }),
+        ],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([getMockToken()]),
+      );
+
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(getMockToken())]: false,
+      });
+    });
+
+    it('returns false for native token when chainId differs', () => {
+      const nativeToken = getMockToken({ isNative: true, chainId: '0x1' });
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [
+          getMockRampToken({
+            assetId: 'eip155:10/slip44:60',
+            chainId: 'eip155:10',
+            tokenSupported: true,
+          }),
+        ],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([nativeToken]),
+      );
+
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(nativeToken)]: false,
+      });
+    });
+
+    it('returns false for native token when assetId is not slip44', () => {
+      const nativeToken = getMockToken({ isNative: true, chainId: '0x1' });
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [
+          getMockRampToken({
+            assetId:
+              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+            chainId: 'eip155:1',
+            tokenSupported: true,
+          }),
+        ],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([nativeToken]),
+      );
+
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(nativeToken)]: false,
+      });
+    });
   });
 
   describe('when V2 is disabled (legacy flow)', () => {
@@ -87,11 +267,12 @@ describe('useTokenBuyability', () => {
       {
         testName: 'token is in the list but not supported',
         hookReturn: [
-          {
-            address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          getMockRampToken({
+            assetId:
+              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
             chainId: 'eip155:1',
             tokenSupported: false,
-          },
+          }),
         ],
         token: getMockToken(),
         expectedBuyable: false,
@@ -131,12 +312,27 @@ describe('useTokenBuyability', () => {
           isLoading: false,
         } as UseRampTokensResult);
 
-        const { result } = renderHook(() => useTokenBuyability(token));
+        const { result } = renderHook(() =>
+          tokenBuyabilityModule.useTokenBuyability(token),
+        );
 
         expect(result.current.isBuyable).toBe(expectedBuyable);
         expect(result.current.isLoading).toBe(false);
       },
     );
+
+    it('ignores ramp entries without assetId', () => {
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [getMockRampToken({ assetId: '' })],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
+
+      expect(result.current.isBuyable).toBe(false);
+    });
 
     it('returns isLoading: true when ramp tokens are loading', () => {
       mockUseRampTokens.mockReturnValue({
@@ -144,7 +340,9 @@ describe('useTokenBuyability', () => {
         isLoading: true,
       } as UseRampTokensResult);
 
-      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
 
       expect(result.current.isBuyable).toBe(false);
       expect(result.current.isLoading).toBe(true);
@@ -165,7 +363,9 @@ describe('useTokenBuyability', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
 
       expect(result.current.isBuyable).toBe(false);
     });
@@ -190,7 +390,9 @@ describe('useTokenBuyability', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
 
       expect(result.current.isBuyable).toBe(true);
     });
@@ -213,7 +415,9 @@ describe('useTokenBuyability', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
 
       expect(result.current.isBuyable).toBe(false);
     });
@@ -227,7 +431,9 @@ describe('useTokenBuyability', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
 
       expect(result.current.isBuyable).toBe(false);
       expect(result.current.isLoading).toBe(true);
@@ -257,7 +463,9 @@ describe('useTokenBuyability', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
 
       // V2 enabled: uses only V2 controller tokens, no legacy fallback
       expect(result.current.isBuyable).toBe(false);
@@ -294,10 +502,42 @@ describe('useTokenBuyability', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(getMockToken()),
+      );
 
       // V2 controller has tokens but NOT this one: not buyable (ignores legacy)
       expect(result.current.isBuyable).toBe(false);
+    });
+  });
+
+  describe('single token wrapper contract', () => {
+    it('returns the same result as batch buyability for one token', () => {
+      const token = getMockToken();
+      setupV1Mocks();
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [
+          getMockRampToken({
+            assetId:
+              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+            tokenSupported: true,
+          }),
+        ],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      const { result } = renderHook(() =>
+        tokenBuyabilityModule.useTokenBuyability(token),
+      );
+      const { result: batchResult } = renderHook(() =>
+        tokenBuyabilityModule.useTokensBuyability([token]),
+      );
+
+      const tokenKey = tokenBuyabilityModule.getTokenBuyabilityKey(token);
+      expect(result.current.isBuyable).toBe(
+        batchResult.current.buyabilityByTokenKey[tokenKey] ?? false,
+      );
+      expect(result.current.isLoading).toBe(batchResult.current.isLoading);
     });
   });
 });

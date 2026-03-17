@@ -1667,7 +1667,7 @@ describe('Perps Feature Flag Selectors', () => {
         expect(result).toBe(true);
       });
 
-      it('uses remote flag when valid but disabled', () => {
+      it('local flag overrides remote flag when local is true', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
         process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'true';
 
@@ -1690,10 +1690,10 @@ describe('Perps Feature Flag Selectors', () => {
         const result = selectPerpsMYXProviderEnabledFlag(
           stateWithDisabledRemoteFlag,
         );
-        expect(result).toBe(false);
+        expect(result).toBe(true);
       });
 
-      it('uses remote flag (false) when enabled but version check fails', () => {
+      it('local flag overrides remote flag even when version check fails', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(false);
         process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'true';
 
@@ -1715,6 +1715,32 @@ describe('Perps Feature Flag Selectors', () => {
 
         const result = selectPerpsMYXProviderEnabledFlag(
           stateWithVersionCheckFailure,
+        );
+        expect(result).toBe(true);
+      });
+
+      it('uses remote flag when local is not set', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        delete process.env.MM_PERPS_MYX_PROVIDER_ENABLED;
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsMyxProviderEnabled: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsMYXProviderEnabledFlag(
+          stateWithDisabledRemoteFlag,
         );
         expect(result).toBe(false);
       });

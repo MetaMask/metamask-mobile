@@ -29,6 +29,7 @@ import { useSendTokens } from '../../../hooks/send/useSendTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { HighlightedItem } from '../../UI/highlighted-item';
+import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
 
 export interface AssetProps {
   hideNfts?: boolean;
@@ -226,6 +227,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
         />
       )}
       <ScrollView
+        testID={TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST}
         contentContainerStyle={{
           paddingBottom: bottomOffset,
         }}
