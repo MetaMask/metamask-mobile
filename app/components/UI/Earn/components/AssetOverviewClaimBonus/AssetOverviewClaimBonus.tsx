@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
@@ -40,7 +40,6 @@ interface AssetOverviewClaimBonusProps {
   asset: TokenI;
 }
 
-// TODO: Track bonus claim CTA displayed event in next iteration
 const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
 }) => {
@@ -50,6 +49,16 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
+  // Used to prevent duplicate presses of the claim button.
+  const isClaimPressedRef = useRef(false);
+  const isLoading = isClaiming || hasPendingClaim;
+
+  useEffect(() => {
+    if (!isLoading) {
+      isClaimPressedRef.current = false;
+    }
+  }, [isLoading]);
+
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -58,7 +67,6 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
         .addProperties({
-          location: EVENT_LOCATIONS.ASSET_OVERVIEW,
           location: EVENT_LOCATIONS.ASSET_OVERVIEW_CLAIMABLE_BONUS_TOOLTIP,
           url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
         })
@@ -99,6 +107,9 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   }, [openTooltipModal, handleTermsPress, trackEvent, createEventBuilder]);
 
   const handleClaimPress = useCallback(() => {
+    if (isClaimPressedRef.current || isLoading) return;
+    isClaimPressedRef.current = true;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
         .addProperties({
@@ -113,6 +124,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     );
     claimRewards();
   }, [
+    isLoading,
     trackEvent,
     createEventBuilder,
     asset.chainId,
@@ -124,8 +136,6 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   if (!claimableReward) {
     return null;
   }
-
-  const isLoading = isClaiming || hasPendingClaim;
 
   return (
     <Box
