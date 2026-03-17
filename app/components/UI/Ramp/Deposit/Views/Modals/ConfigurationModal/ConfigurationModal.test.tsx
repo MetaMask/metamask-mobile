@@ -76,8 +76,8 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     const MockBottomSheet = mockReact.forwardRef(
       (
-        { children }: { children: mockReact.ReactNode },
-        _ref: mockReact.Ref<unknown>,
+        { children }: { children: React.ReactNode },
+        _ref: React.Ref<unknown>,
       ) => <View testID="bottom-sheet">{children}</View>,
     );
     MockBottomSheet.displayName = 'MockBottomSheet';
@@ -146,7 +146,9 @@ import {
 } from '../../../../../../../component-library/components/Toast';
 
 const renderWithToastProvider = (component: React.ReactElement) => {
-  const mockToastRef = { current: { showToast: mockShowToast } };
+  const mockToastRef = {
+    current: { showToast: mockShowToast, closeToast: jest.fn() },
+  };
   return render(
     <ToastContext.Provider value={{ toastRef: mockToastRef }}>
       {component}
