@@ -9,7 +9,8 @@ export enum MarketInsightsSelectorsIDs {
   SOURCES_FOOTER = 'market-insights-sources-footer',
   THUMBS_UP_BUTTON = 'market-insights-thumbs-up-button',
   THUMBS_DOWN_BUTTON = 'market-insights-thumbs-down-button',
-  TRADE_BUTTON = 'market-insights-trade-button',
+  SWAP_BUTTON = 'market-insights-swap-button',
+  BUY_BUTTON = 'market-insights-buy-button',
   FEEDBACK_BOTTOM_SHEET = 'market-insights-feedback-bottom-sheet',
   FEEDBACK_OPTION_NOT_RELEVANT = 'market-insights-feedback-option-not-relevant',
   FEEDBACK_OPTION_NOT_ACCURATE = 'market-insights-feedback-option-not-accurate',
@@ -18,4 +19,5 @@ export enum MarketInsightsSelectorsIDs {
   FEEDBACK_OPTION_SOMETHING_ELSE = 'market-insights-feedback-option-something-else',
   FEEDBACK_ADDITIONAL_INPUT = 'market-insights-feedback-additional-input',
   FEEDBACK_SUBMIT_BUTTON = 'market-insights-feedback-submit-button',
+  BACKGROUND_ANIMATION = 'market-insights-background-animation',
 }
