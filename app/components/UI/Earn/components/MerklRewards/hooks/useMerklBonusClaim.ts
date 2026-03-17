@@ -52,7 +52,7 @@ const getBonusAmountRange = (bonusAmount: string): string => {
  * For ineligible or geo-blocked assets, `undefined` is passed to the underlying
  * hooks which causes them to no-op (no API calls, no side effects).
  *
- * Fires `MUSD_CLAIM_BONUS_CTA_AVAILABLE` at most once per mount when the claim
+ * Fires `MUSD_CLAIM_BONUS_CTA_DISPLAYED` at most once per mount when the claim
  * CTA is both eligible and physically visible in the viewport.
  *
  * @param asset - The token to check for Merkl bonus claim eligibility
@@ -107,7 +107,7 @@ export const useMerklBonusClaim = (
     if (hasClaimableBonus && isVisible && !hasFiredCtaAvailableEvent.current) {
       hasFiredCtaAvailableEvent.current = true;
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_CTA_AVAILABLE)
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_CTA_DISPLAYED)
           .addProperties({
             location,
             view_trigger: 'component_mounted',
