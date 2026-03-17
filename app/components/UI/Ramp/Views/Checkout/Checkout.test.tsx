@@ -235,17 +235,96 @@ describe('Checkout', () => {
       walletAddress: '0x1234567890abcdef',
     };
 
-    it.todo(
-      'adds order, dispatches protect wallet modal, and resets to order details when callback succeeds',
-    );
+    it('calls getOrderFromCallback when callback flow is triggered', async () => {
+      const mockRampsOrder = {
+        providerOrderId: 'order-123',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '1.5',
+        status: 'COMPLETED',
+      };
+      mockGetOrderFromCallback.mockResolvedValue(mockRampsOrder);
+      mockUseParams.mockReturnValue(callbackFlowParams);
 
-    it.todo('shows V2 order toast when isV2Enabled and callback succeeds');
+      renderWithProvider(<Checkout />, {}, true, false);
 
-    it.todo('displays error when getOrderFromCallback returns null');
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: `${mockCallbackBaseUrl}?orderId=123`,
+          loading: false,
+        });
+      });
 
-    it.todo('displays error when getOrderFromCallback throws');
+      expect(mockGetOrderFromCallback).toHaveBeenCalled();
+    });
 
-    it.todo('pops parent when callback URL has no query params');
+    it('adds order when callback succeeds', async () => {
+      const mockRampsOrder = {
+        providerOrderId: 'order-v2-123',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '2.0',
+        status: 'COMPLETED',
+      };
+      mockGetOrderFromCallback.mockResolvedValue(mockRampsOrder);
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: `${mockCallbackBaseUrl}?orderId=123`,
+          loading: false,
+        });
+      });
+
+      expect(mockAddOrder).toHaveBeenCalledWith(mockRampsOrder);
+    });
+
+    it('does not add order when getOrderFromCallback returns null', async () => {
+      mockGetOrderFromCallback.mockResolvedValue(null);
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: `${mockCallbackBaseUrl}?orderId=123`,
+          loading: false,
+        });
+      });
+
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not add order when getOrderFromCallback throws', async () => {
+      mockGetOrderFromCallback.mockRejectedValue(new Error('API Error'));
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: `${mockCallbackBaseUrl}?orderId=123`,
+          loading: false,
+        });
+      });
+
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not call getOrderFromCallback when callback URL has no query params', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: mockCallbackBaseUrl,
+          loading: false,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+    });
 
     it('returns early when navState.loading is true', async () => {
       mockUseParams.mockReturnValue(callbackFlowParams);
@@ -263,9 +342,35 @@ describe('Checkout', () => {
       expect(mockAddOrder).not.toHaveBeenCalled();
     });
 
-    it.todo(
-      'does not process callback twice when navigation fires multiple times',
-    );
+    it('does not process callback twice when navigation fires multiple times', async () => {
+      const mockRampsOrder = {
+        providerOrderId: 'order-once',
+        cryptoCurrency: { symbol: 'BTC' },
+        cryptoAmount: '0.5',
+        status: 'COMPLETED',
+      };
+      mockGetOrderFromCallback.mockResolvedValue(mockRampsOrder);
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: `${mockCallbackBaseUrl}?orderId=123`,
+          loading: false,
+        });
+      });
+
+      await act(async () => {
+        await capturedOnNavigationStateChange?.({
+          url: `${mockCallbackBaseUrl}?orderId=456`,
+          loading: false,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).toHaveBeenCalledTimes(1);
+      expect(mockAddOrder).toHaveBeenCalledTimes(1);
+    });
 
     it('does not invoke callback handler when hasCallbackFlow is false', async () => {
       mockUseParams.mockReturnValue({

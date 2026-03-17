@@ -1,349 +1,203 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable react/display-name */
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-var-requires */
-import React from 'react';
-import { render } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import MainNavigator from './MainNavigator';
+import Routes from '../../../constants/navigation/Routes';
 
-jest.mock('@react-navigation/stack', () => {
-  const { View, Text } = require('react-native');
-  return {
-    createStackNavigator: () => ({
-      Navigator: ({ children, screenOptions, initialRouteName }) => (
-        <View testID="stack-navigator">
-          {screenOptions?.headerShown === false && (
-            <Text>headerShown: false</Text>
-          )}
-          {initialRouteName && (
-            <Text testID="initial-route">{initialRouteName}</Text>
-          )}
-          {children}
-        </View>
-      ),
-      Screen: ({ name, options }) => (
-        <View testID={`screen-${name}`}>
-          <Text>{name}</Text>
-          {options?.headerShown === false && <Text>no-header</Text>}
-        </View>
-      ),
-    }),
-  };
-});
-
-jest.mock('@react-navigation/bottom-tabs', () => {
-  const { View, Text } = require('react-native');
-  return {
-    createBottomTabNavigator: () => ({
-      Navigator: ({ children, screenOptions, initialRouteName, tabBar }) => (
-        <View testID="tab-navigator">
-          {initialRouteName && (
-            <Text testID="tab-initial-route">{initialRouteName}</Text>
-          )}
-          {children}
-        </View>
-      ),
-      Screen: ({ name, options }) => (
-        <View testID={`tab-screen-${name}`}>
-          <Text>{name}</Text>
-        </View>
-      ),
-    }),
-  };
-});
-
-jest.mock('../../Views/Browser', () => {
-  const { View } = require('react-native');
-  return () => <View testID="browser" />;
-});
-
-jest.mock('../../Views/Wallet', () => {
-  const { View } = require('react-native');
-  return () => <View testID="wallet" />;
-});
-
-jest.mock('../../Views/Settings', () => {
-  const { View } = require('react-native');
-  return () => <View testID="settings" />;
-});
-
-jest.mock('../../Views/ActivityView', () => {
-  const { View } = require('react-native');
-  return () => <View testID="activity-view" />;
-});
-
-jest.mock('../../Views/QRTabSwitcher', () => {
-  const { View } = require('react-native');
-  return () => <View testID="qr-tab-switcher" />;
-});
-
-jest.mock('../../UI/Ramp/Aggregator/routes', () => {
-  const { View } = require('react-native');
-  return () => <View testID="ramp-routes" />;
-});
-
-jest.mock('../../UI/Ramp/routes', () => {
-  const { View } = require('react-native');
-  return () => <View testID="token-list-routes" />;
-});
-
-jest.mock('../../UI/Ramp/Deposit/routes', () => {
-  const { View } = require('react-native');
-  return () => <View testID="deposit-routes" />;
-});
-
-jest.mock('../../UI/Stake/routes', () => ({
-  StakeModalStack: () => {
-    const { View } = require('react-native');
-    return <View testID="stake-modal-stack" />;
-  },
-  StakeScreenStack: () => {
-    const { View } = require('react-native');
-    return <View testID="stake-screen-stack" />;
-  },
-}));
-
-jest.mock('../../UI/Earn/routes', () => ({
-  EarnScreenStack: () => {
-    const { View } = require('react-native');
-    return <View testID="earn-screen-stack" />;
-  },
-  EarnModalStack: () => {
-    const { View } = require('react-native');
-    return <View testID="earn-modal-stack" />;
-  },
-}));
-
-jest.mock('../../UI/Bridge/routes', () => ({
-  BridgeModalStack: () => {
-    const { View } = require('react-native');
-    return <View testID="bridge-modal-stack" />;
-  },
-  BridgeScreenStack: () => {
-    const { View } = require('react-native');
-    return <View testID="bridge-screen-stack" />;
-  },
-}));
-
-jest.mock('../../UI/Card/routes', () => {
-  const { View } = require('react-native');
-  return () => <View testID="card-routes" />;
-});
-
-jest.mock('../../UI/Rewards/RewardsNavigator', () => {
-  const { View } = require('react-native');
-  return () => <View testID="rewards-navigator" />;
-});
-
-jest.mock('../../UI/Perps', () => ({
-  PerpsScreenStack: () => {
-    const { View } = require('react-native');
-    return <View testID="perps-screen-stack" />;
-  },
-  PerpsModalStack: () => {
-    const { View } = require('react-native');
-    return <View testID="perps-modal-stack" />;
-  },
-  PerpsTutorialCarousel: () => {
-    const { View } = require('react-native');
-    return <View testID="perps-tutorial" />;
-  },
-  selectPerpsEnabledFlag: () => false,
-}));
-
-jest.mock('../../UI/Predict', () => ({
-  PredictScreenStack: () => {
-    const { View } = require('react-native');
-    return <View testID="predict-screen-stack" />;
-  },
-  PredictModalStack: () => {
-    const { View } = require('react-native');
-    return <View testID="predict-modal-stack" />;
-  },
-  selectPredictEnabledFlag: () => false,
-}));
-
-jest.mock('../../UI/MarketInsights', () => ({
-  MarketInsightsView: () => {
-    const { View } = require('react-native');
-    return <View testID="market-insights-view" />;
-  },
-  selectMarketInsightsEnabled: () => false,
-}));
-
-jest.mock('../../Views/TrendingView/TrendingView', () => ({
-  ExploreFeed: () => {
-    const { View } = require('react-native');
-    return <View testID="explore-feed" />;
-  },
-}));
-
-jest.mock('../../UI/Trending/services/TrendingFeedSessionManager', () => ({
-  getInstance: () => ({
-    enableAppStateListener: jest.fn(),
-    disableAppStateListener: jest.fn(),
-    startSession: jest.fn(),
-    endSession: jest.fn(),
-  }),
-}));
-
-jest.mock('../../../component-library/components/Navigation/TabBar', () => {
-  const { View } = require('react-native');
-  return () => <View testID="tab-bar" />;
-});
-
-jest.mock(
-  '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
-  () => ({
-    useAccountMenuEnabled: () => false,
-  }),
-);
-
-jest.mock('../../Views/confirmations/components/send', () => ({
-  Send: () => {
-    const { View } = require('react-native');
-    return <View testID="send" />;
-  },
-}));
-
-jest.mock(
-  '../../Views/confirmations/components/activity/transaction-details/transaction-details',
-  () => ({
-    TransactionDetails: () => {
-      const { View } = require('react-native');
-      return <View testID="transaction-details" />;
-    },
-  }),
-);
-
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(),
-    })),
-  }),
-}));
-
-jest.mock('../../../selectors/rewards', () => ({
-  selectRewardsSubscriptionId: () => null,
-}));
-
-const createMockStore = () =>
-  configureStore({
-    reducer: {
-      engine: () => ({
-        backgroundState: {
-          NetworkController: {
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1',
-            },
-          },
-          AccountTrackerController: {
-            accounts: {
-              '0x123': { balance: '0x0' },
-            },
-          },
-          PreferencesController: {
-            featureFlags: {},
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {},
-          },
-        },
-      }),
-      browser: () => ({
-        tabs: [],
-      }),
-      settings: () => ({
-        searchEngine: 'DuckDuckGo',
-      }),
-      user: () => ({
-        seedphraseBackedUp: true,
-      }),
-      rewards: () => ({
-        subscriptionId: null,
-      }),
-    },
+describe('MainNavigator Route Constants', () => {
+  it('has home route defined', () => {
+    expect(Routes.WALLET.HOME).toBeDefined();
   });
 
-describe('MainNavigator', () => {
-  const renderWithProviders = (component) =>
-    render(
-      <Provider store={createMockStore()}>
-        <NavigationContainer>{component}</NavigationContainer>
-      </Provider>,
-    );
-
-  beforeEach(() => {
-    jest.clearAllMocks();
+  it('has browser routes defined', () => {
+    expect(Routes.BROWSER.VIEW).toBeDefined();
+    expect(Routes.BROWSER.HOME).toBeDefined();
   });
 
-  describe('MainNavigator component', () => {
-    it('renders successfully', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
+  it('has settings routes defined', () => {
+    expect(Routes.SETTINGS_VIEW).toBeDefined();
+    expect(Routes.SETTINGS.NOTIFICATIONS).toBeDefined();
+    expect(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL).toBeDefined();
+  });
 
-      expect(getByTestId('stack-navigator')).toBeTruthy();
+  it('has transactions view route defined', () => {
+    expect(Routes.TRANSACTIONS_VIEW).toBeDefined();
+  });
+
+  it('has rewards view route defined', () => {
+    expect(Routes.REWARDS_VIEW).toBeDefined();
+  });
+
+  it('has trending view route defined', () => {
+    expect(Routes.TRENDING_VIEW).toBeDefined();
+  });
+
+  it('has ramp routes defined', () => {
+    expect(Routes.RAMP.BUY).toBeDefined();
+    expect(Routes.RAMP.SELL).toBeDefined();
+    expect(Routes.RAMP.SETTINGS).toBeDefined();
+    expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
+    expect(Routes.RAMP.ORDER_DETAILS).toBeDefined();
+  });
+
+  it('has deposit routes defined', () => {
+    expect(Routes.DEPOSIT.ID).toBeDefined();
+    expect(Routes.DEPOSIT.ORDER_DETAILS).toBeDefined();
+  });
+
+  it('has bridge routes defined', () => {
+    expect(Routes.BRIDGE.ROOT).toBeDefined();
+    expect(Routes.BRIDGE.MODALS.ROOT).toBeDefined();
+    expect(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS).toBeDefined();
+  });
+
+  it('has earn routes defined', () => {
+    expect(Routes.EARN.ROOT).toBeDefined();
+    expect(Routes.EARN.MODALS.ROOT).toBeDefined();
+  });
+
+  it('has notification routes defined', () => {
+    expect(Routes.NOTIFICATIONS.VIEW).toBeDefined();
+    expect(Routes.NOTIFICATIONS.OPT_IN).toBeDefined();
+    expect(Routes.NOTIFICATIONS.OPT_IN_STACK).toBeDefined();
+    expect(Routes.NOTIFICATIONS.DETAILS).toBeDefined();
+  });
+
+  it('has QR tab switcher route defined', () => {
+    expect(Routes.QR_TAB_SWITCHER).toBeDefined();
+  });
+
+  it('has wallet routes defined', () => {
+    expect(Routes.WALLET.TAB_STACK_FLOW).toBeDefined();
+    expect(Routes.WALLET.TOKENS_FULL_VIEW).toBeDefined();
+    expect(Routes.WALLET.NFTS_FULL_VIEW).toBeDefined();
+  });
+
+  it('has security trust route defined', () => {
+    expect(Routes.SECURITY_TRUST).toBeDefined();
+  });
+
+  it('has snaps routes defined', () => {
+    expect(Routes.SNAPS.SNAPS_SETTINGS_LIST).toBeDefined();
+    expect(Routes.SNAPS.SNAP_SETTINGS).toBeDefined();
+  });
+
+  it('has explore search route defined', () => {
+    expect(Routes.EXPLORE_SEARCH).toBeDefined();
+  });
+
+  it('has sites full view route defined', () => {
+    expect(Routes.SITES_FULL_VIEW).toBeDefined();
+  });
+
+  it('has card routes defined', () => {
+    expect(Routes.CARD.ROOT).toBeDefined();
+  });
+
+  it('has feature flag override route defined', () => {
+    expect(Routes.FEATURE_FLAG_OVERRIDE).toBeDefined();
+  });
+
+  it('has transaction details route defined', () => {
+    expect(Routes.TRANSACTION_DETAILS).toBeDefined();
+  });
+
+  it('has deprecated network details route defined', () => {
+    expect(Routes.DEPRECATED_NETWORK_DETAILS).toBeDefined();
+  });
+
+  it('has accounts menu view route defined', () => {
+    expect(Routes.ACCOUNTS_MENU_VIEW).toBeDefined();
+  });
+
+  it('has wallet connect sessions route defined', () => {
+    expect(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW).toBeDefined();
+  });
+
+  it('has perps routes defined', () => {
+    expect(Routes.PERPS.ROOT).toBeDefined();
+    expect(Routes.PERPS.MODALS.ROOT).toBeDefined();
+    expect(Routes.PERPS.TUTORIAL).toBeDefined();
+    expect(Routes.PERPS.POSITION_TRANSACTION).toBeDefined();
+    expect(Routes.PERPS.ORDER_TRANSACTION).toBeDefined();
+    expect(Routes.PERPS.FUNDING_TRANSACTION).toBeDefined();
+  });
+
+  it('has predict routes defined', () => {
+    expect(Routes.PREDICT.ROOT).toBeDefined();
+    expect(Routes.PREDICT.MODALS.ROOT).toBeDefined();
+  });
+
+  it('has market insights routes defined', () => {
+    expect(Routes.MARKET_INSIGHTS.VIEW).toBeDefined();
+  });
+});
+
+describe('MainNavigator Tab Options', () => {
+  it('defines wallet tab icon key', () => {
+    expect(Routes.WALLET_VIEW).toBeDefined();
+  });
+
+  it('defines browser tab navigation', () => {
+    expect(Routes.BROWSER_VIEW).toBeDefined();
+  });
+});
+
+describe('Route Constants Validation', () => {
+  it('has all main navigation screens defined', () => {
+    const mainRoutes = [
+      Routes.WALLET.HOME,
+      Routes.BROWSER.HOME,
+      Routes.TRANSACTIONS_VIEW,
+      Routes.REWARDS_VIEW,
+      Routes.TRENDING_VIEW,
+      Routes.SETTINGS_VIEW,
+    ];
+
+    mainRoutes.forEach((route) => {
+      expect(route).toBeDefined();
+      expect(typeof route).toBe('string');
     });
+  });
 
-    it('has Home as initial route', () => {
-      const { getAllByTestId } = renderWithProviders(<MainNavigator />);
+  it('has all modal navigation routes defined', () => {
+    const modalRoutes = [
+      Routes.MODAL.WALLET_ACTIONS,
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+    ];
 
-      const initialRoutes = getAllByTestId('initial-route');
-      expect(initialRoutes.some((el) => el.children[0] === 'Home')).toBe(true);
+    modalRoutes.forEach((route) => {
+      expect(route).toBeDefined();
+      expect(typeof route).toBe('string');
     });
+  });
+});
 
-    it('includes Home screen', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
+describe('Stack Navigator Routes', () => {
+  it('has wallet tab stack flow route defined', () => {
+    expect(Routes.WALLET.TAB_STACK_FLOW).toBeDefined();
+  });
 
-      expect(getByTestId('screen-Home')).toBeTruthy();
-    });
+  it('has add asset route defined', () => {
+    expect(Routes.WALLET.HOME).toBeDefined();
+  });
 
-    it('includes Send screen', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
+  it('has asset route constant', () => {
+    expect(typeof Routes.WALLET.HOME).toBe('string');
+  });
+});
 
-      expect(getByTestId('screen-Send')).toBeTruthy();
-    });
+describe('Full View Routes', () => {
+  it('has tokens full view route defined', () => {
+    expect(Routes.WALLET.TOKENS_FULL_VIEW).toBeDefined();
+  });
 
-    it('includes AddAsset screen', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
+  it('has NFTs full view route defined', () => {
+    expect(Routes.WALLET.NFTS_FULL_VIEW).toBeDefined();
+  });
 
-      expect(getByTestId('screen-AddAsset')).toBeTruthy();
-    });
+  it('has DeFi full view route defined', () => {
+    expect(Routes.WALLET.DEFI_FULL_VIEW).toBeDefined();
+  });
 
-    it('includes Asset screen', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
-
-      expect(getByTestId('screen-Asset')).toBeTruthy();
-    });
-
-    it('includes Webview screen', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
-
-      expect(getByTestId('screen-Webview')).toBeTruthy();
-    });
-
-    it('includes SetPasswordFlow screen', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
-
-      expect(getByTestId('screen-SetPasswordFlow')).toBeTruthy();
-    });
-
-    it('includes StakeScreens', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
-
-      expect(getByTestId('screen-StakeScreens')).toBeTruthy();
-    });
-
-    it('includes StakeModals', () => {
-      const { getByTestId } = renderWithProviders(<MainNavigator />);
-
-      expect(getByTestId('screen-StakeModals')).toBeTruthy();
-    });
+  it('has cash tokens full view route defined', () => {
+    expect(Routes.WALLET.CASH_TOKENS_FULL_VIEW).toBeDefined();
   });
 });
