@@ -49,6 +49,7 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
+import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
@@ -836,6 +837,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               secondaryBalance={secondaryBalance}
             />
           )}
+          {/* TODO: Double check potential performance impact of rendering this component for all assets. This component has internal hook calls that may/may not degraded performance unnecessarily for unsupported assets. */}
+          <AssetOverviewClaimBonus asset={token} />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && stakedTrxAsset && (
