@@ -35,7 +35,6 @@ import { join } from 'path';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
-const WORKFLOW_RUN_ID = "23197782954";
 
 if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 
@@ -95,8 +94,7 @@ async function getArtifactList() {
   let page = 1;
 
   while (true) {
-    // const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
-    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
