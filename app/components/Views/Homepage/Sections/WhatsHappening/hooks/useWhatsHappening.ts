@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import type { MarketOverview } from '@metamask/ai-controllers';
 import Engine from '../../../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../../../selectors/featureFlagController/whatsHappening';
-import type { RelatedAsset, WhatsHappeningItem } from '../types';
+import type { WhatsHappeningItem } from '../types';
 
 /**
  * Result interface for useWhatsHappening hook
@@ -26,10 +26,7 @@ const mapTrendsToItems = (
     date: trend.articles[0]?.date ?? overview.generatedAt,
     category: trend.category,
     impact: trend.impact,
-    // The installed @metamask/ai-controllers package declares relatedAssets as
-    // string[], but the live API (and updated core source) returns rich objects.
-    // Remove this cast once the package is published and updated here.
-    relatedAssets: trend.relatedAssets as unknown as RelatedAsset[],
+    relatedAssets: trend.relatedAssets,
     articles: trend.articles,
   }));
 
