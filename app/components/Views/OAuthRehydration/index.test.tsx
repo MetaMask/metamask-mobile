@@ -405,7 +405,7 @@ describe('OAuthRehydration', () => {
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
       // Assert
-      expect(loginButton.props.disabled).toBe(true);
+      expect(loginButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('enables login button when password is entered', () => {
@@ -418,7 +418,7 @@ describe('OAuthRehydration', () => {
       fireEvent.changeText(passwordInput, 'password123');
 
       // Assert
-      expect(loginButton.props.disabled).toBe(false);
+      expect(loginButton.props.accessibilityState.disabled).toBe(false);
     });
   });
 
@@ -636,7 +636,7 @@ describe('OAuthRehydration', () => {
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
       // Assert
-      expect(loginButton.props.loading).toBe(true);
+      expect(loginButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('handles seedless error with zero remainingTime', async () => {

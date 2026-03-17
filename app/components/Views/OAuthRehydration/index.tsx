@@ -14,17 +14,11 @@ import {
   TextInput,
   Platform,
   Alert,
+  StatusBar,
 } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
+
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -68,8 +62,6 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { useStyles } from '../../../component-library/hooks/useStyles';
-import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -85,6 +77,12 @@ import {
   Label,
   FontWeight,
   TextColor as DSTextColor,
+  Text,
+  TextVariant,
+  TextButton,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
@@ -92,10 +90,10 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import Device from '../../../util/device';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
-
-const EmptyRecordConstant = {};
+import { useTheme } from '../../../util/theme';
 
 interface OAuthRehydrationRouteParams {
   locked: boolean;
@@ -142,10 +140,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   const navigation = useNavigation();
-  const {
-    styles,
-    theme: { themeAppearance },
-  } = useStyles(stylesheet, EmptyRecordConstant);
+  const tw = useTailwind();
+  const { colors, themeAppearance } = useTheme();
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
@@ -665,51 +661,80 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
     >
       <ThrowErrorIfNeeded />
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView
+        style={tw.style('flex-1', {
+          paddingTop: Platform.select({
+            android: StatusBar.currentHeight ?? 0,
+            default: 0,
+          }),
+        })}
+      >
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           resetScrollToCoords={{ x: 0, y: 0 }}
-          style={styles.wrapper}
-          contentContainerStyle={styles.scrollContentContainer}
+          style={tw`flex-1`}
+          contentContainerStyle={tw`flex-1`}
           extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
           enableResetScrollToCoords={false}
         >
-          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
-            <View style={styles.oauthContentWrapper}>
+          <View
+            testID={LoginViewSelectors.CONTAINER}
+            style={tw.style('flex-1 w-full items-center px-6', {
+              justifyContent: 'flex-start',
+            })}
+          >
+            <View style={tw.style('w-full items-center', { marginTop: 10 })}>
               <Image
                 source={METAMASK_NAME}
-                style={styles.metamaskName}
+                style={tw.style('self-center', {
+                  width: 80,
+                  height: 40,
+                  marginTop: 10,
+                  tintColor: colors.icon.default,
+                })}
                 resizeMode="contain"
                 resizeMethod={'auto'}
               />
 
               <TouchableOpacity
-                style={styles.foxWrapper}
+                style={tw.style('self-center justify-center', {
+                  width: Device.isIos() ? 175 : 150,
+                  height: Device.isIos() ? 175 : 150,
+                  marginTop: 48,
+                })}
                 delayLongPress={10 * 1000}
                 onLongPress={handleDownloadStateLogs}
                 activeOpacity={1}
               >
                 <Image
                   source={FOX_LOGO}
-                  style={styles.image}
+                  style={tw.style('self-center', {
+                    width: Device.isIos() ? 175 : 150,
+                    height: Device.isIos() ? 175 : 150,
+                  })}
                   resizeMethod={'auto'}
                 />
               </TouchableOpacity>
 
               <Text
-                variant={TextVariant.DisplayMD}
-                color={TextColor.Default}
-                style={styles.title}
+                variant={TextVariant.DisplayMd}
+                color={DSTextColor.TextDefault}
+                style={tw.style('text-center', { marginVertical: 24 })}
                 testID={LoginViewSelectors.TITLE_ID}
               >
                 {strings('login.title')}
               </Text>
 
-              <View style={styles.field}>
+              <View
+                style={tw.style('w-full flex-col', {
+                  rowGap: 8,
+                  justifyContent: 'flex-start',
+                })}
+              >
                 <Label
                   fontWeight={FontWeight.Medium}
                   color={DSTextColor.TextDefault}
-                  style={styles.label}
+                  style={tw.style({ marginBottom: -4 })}
                 >
                   {strings('login.password')}
                 </Label>
@@ -729,11 +754,17 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 />
               </View>
 
-              <View style={styles.helperTextContainer}>
+              <View
+                style={tw.style(
+                  'self-start flex-row items-start justify-start',
+                  {
+                    rowGap: 2,
+                  },
+                )}
+              >
                 {!!error && (
                   <HelpText
                     severity={HelpTextSeverity.Error}
-                    variant={TextVariant.BodyMD}
                     testID={LoginViewSelectors.PASSWORD_ERROR}
                   >
                     {error}
@@ -741,41 +772,54 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 )}
               </View>
 
-              <View style={styles.ctaWrapperRehydration}>
+              <View
+                style={tw.style('w-full flex-col items-center', {
+                  gap: Platform.select({
+                    ios: 0,
+                    android: 16,
+                  }),
+                  marginTop: 16,
+                })}
+              >
                 <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
+                  variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
+                  isFullWidth
                   onPress={handleLogin}
-                  label={strings('login.unlock_button')}
                   isDisabled={
                     password.length === 0 || disabledInput || finalLoading
                   }
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={finalLoading}
-                />
+                  isLoading={finalLoading}
+                >
+                  {strings('login.unlock_button')}
+                </Button>
               </View>
 
               {isSeedlessPasswordOutdated ? (
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
+                <TextButton
+                  style={tw.style('self-center', { marginVertical: 14 })}
                   onPress={toggleWarningModal}
+                  accessibilityRole="link"
                   testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
                   isDisabled={loading}
-                  size={ButtonSize.Lg}
-                />
+                  textProps={{
+                    twClassName: DSTextColor.TextAlternative,
+                  }}
+                >
+                  {strings('login.forgot_password')}
+                </TextButton>
               ) : (
-                <View style={styles.footer}>
+                <View style={tw.style('items-center', { marginTop: 32 })}>
                   <TouchableOpacity
                     onPress={handleUseOtherMethod}
                     disabled={finalLoading}
                     testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   >
                     <Text
-                      variant={TextVariant.BodyMDMedium}
-                      color={TextColor.Primary}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={DSTextColor.PrimaryDefault}
                     >
                       {strings('login.other_methods')}
                     </Text>
