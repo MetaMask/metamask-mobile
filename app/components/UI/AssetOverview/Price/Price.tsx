@@ -77,9 +77,12 @@ const Price = ({
   );
 
   const toggleChartType = useCallback(() => {
-    setChartType((prev) =>
-      prev === ChartType.Candles ? ChartType.Line : ChartType.Candles,
-    );
+    setChartType((prev) => {
+      const next =
+        prev === ChartType.Candles ? ChartType.Line : ChartType.Candles;
+      if (next !== ChartType.Candles) setCrosshairData(null);
+      return next;
+    });
   }, []);
 
   const assetId = useMemo(
@@ -205,7 +208,7 @@ const Price = ({
           ) : null}
         </Text>
       </View>
-      {crosshairData && (
+      {crosshairData && chartType === ChartType.Candles && (
         <OHLCVBar data={crosshairData} currency={currentCurrency} />
       )}
       {/* TODO: Line chart color should match percentage color (green when positive, red when negative) */}

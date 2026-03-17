@@ -4,11 +4,16 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { addCurrencySymbol } from '../../../../../util/number';
+import {
+  formatPerpsFiat,
+  formatVolume,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../Perps/utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
 import type { CrosshairData } from '../AdvancedChart.types';
 
@@ -16,15 +21,6 @@ interface OHLCVBarProps {
   data: CrosshairData;
   currency: string;
   testID?: string;
-}
-
-function formatVolume(value: number): string {
-  const abs = Math.abs(value);
-  if (abs >= 1e12) return `${(value / 1e12).toFixed(1)}T`;
-  if (abs >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
-  if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
-  return value.toFixed(0);
 }
 
 const LABELS = [
@@ -36,11 +32,16 @@ const LABELS = [
 
 const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
   const formatted = useMemo(() => {
+    const formatOpts = {
+      ranges: PRICE_RANGES_UNIVERSAL,
+      stripTrailingZeros: true,
+      currency: currency.toUpperCase(),
+    };
     const prices = {
-      open: addCurrencySymbol(data.open, currency),
-      close: addCurrencySymbol(data.close, currency),
-      high: addCurrencySymbol(data.high, currency),
-      low: addCurrencySymbol(data.low, currency),
+      open: formatPerpsFiat(data.open, formatOpts),
+      close: formatPerpsFiat(data.close, formatOpts),
+      high: formatPerpsFiat(data.high, formatOpts),
+      low: formatPerpsFiat(data.low, formatOpts),
     };
     const volume = data.volume !== undefined ? formatVolume(data.volume) : null;
     return { prices, volume };
@@ -58,6 +59,7 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
           <Box key={key} twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -70,8 +72,10 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
               numberOfLines={1}
+              adjustsFontSizeToFit
             >
               {formatted.volume}
             </Text>
