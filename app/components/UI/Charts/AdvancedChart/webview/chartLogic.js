@@ -172,7 +172,7 @@ function handleSetOHLCVData(payload) {
         window.chartWidget.activeChart().resetData();
         // Re-apply axis line overrides after resetData (resetData can reset to defaults)
         // Use setTimeout to ensure overrides apply after resetData completes
-        setTimeout(function() {
+        setTimeout(function () {
           if (window.chartWidget && window.isChartReady) {
             window.chartWidget.applyOverrides({
               'scalesProperties.lineColor': '#444444',
@@ -396,7 +396,7 @@ function handleSetChartType(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
 
   var type = payload.type;
-  
+
   try {
     var ac = window.chartWidget.activeChart();
     ac.setChartType(type);
@@ -607,7 +607,7 @@ function createVolumeStudy() {
 
   try {
     var chart = window.chartWidget.activeChart();
-    var gray = '#858585';
+    var theme = window.CONFIG.theme;
     chart
       .createStudy(
         'Volume',
@@ -616,9 +616,9 @@ function createVolumeStudy() {
         {},
         {
           'volume ma.visible': false,
-          'volume.color.0': gray,
-          'volume.color.1': gray,
-          'volume.transparency': 50,
+          'volume.color.0': theme.errorColor, // Down/bearish bars (red)
+          'volume.color.1': theme.successColor, // Up/bullish bars (green)
+          'volume.transparency': 0, // No transparency - same shade as candles
         },
       )
       .then(function (studyId) {

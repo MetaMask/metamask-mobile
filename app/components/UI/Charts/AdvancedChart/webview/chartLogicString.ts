@@ -616,7 +616,7 @@ function createVolumeStudy() {
 
   try {
     var chart = window.chartWidget.activeChart();
-    var gray = '#858585';
+    var theme = window.CONFIG.theme;
     chart
       .createStudy(
         'Volume',
@@ -625,9 +625,9 @@ function createVolumeStudy() {
         {},
         {
           'volume ma.visible': false,
-          'volume.color.0': gray,
-          'volume.color.1': gray,
-          'volume.transparency': 50,
+          'volume.color.0': theme.errorColor,   // Down/bearish bars (red)
+          'volume.color.1': theme.successColor, // Up/bullish bars (green)
+          'volume.transparency': 0, // No transparency - same shade as candles
         },
       )
       .then(function (studyId) {
