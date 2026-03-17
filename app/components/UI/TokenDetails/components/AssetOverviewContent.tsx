@@ -633,7 +633,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="py-2 pl-4 pr-2 self-stretch gap-3"
+            twClassName="py-2 pl-4 pr-4 self-stretch gap-3"
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
