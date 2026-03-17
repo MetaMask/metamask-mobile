@@ -25,13 +25,13 @@ const baseItem: WhatsHappeningItem = {
 describe('WhatsHappeningCard', () => {
   it('renders title and description', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} />);
-    expect(screen.getByText(baseItem.title)).toBeTruthy();
-    expect(screen.getByText(baseItem.description)).toBeTruthy();
+    expect(screen.getByText(baseItem.title)).toBeOnTheScreen();
+    expect(screen.getByText(baseItem.description)).toBeOnTheScreen();
   });
 
   it('renders category badge when category is provided', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} />);
-    expect(screen.getByText('Macro')).toBeTruthy();
+    expect(screen.getByText('Macro')).toBeOnTheScreen();
   });
 
   it('does not render category badge when category is absent', () => {
@@ -42,7 +42,7 @@ describe('WhatsHappeningCard', () => {
 
   it('renders related asset symbol pills', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} />);
-    expect(screen.getByText('BTC')).toBeTruthy();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
   it('does not render asset pills when relatedAssets is empty', () => {
@@ -60,13 +60,13 @@ describe('WhatsHappeningCard', () => {
     };
     const item = { ...baseItem, relatedAssets: [mockRelatedAsset, ethAsset] };
     renderWithProvider(<WhatsHappeningCard item={item} />);
-    expect(screen.getByText('BTC')).toBeTruthy();
-    expect(screen.getByText('ETH')).toBeTruthy();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('ETH')).toBeOnTheScreen();
   });
 
   it('renders formatted date when date is valid', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} />);
-    expect(screen.getByText('Mar 15, 2026')).toBeTruthy();
+    expect(screen.getByText('Mar 15, 2026')).toBeOnTheScreen();
   });
 
   it('does not render date when date string is invalid', () => {
