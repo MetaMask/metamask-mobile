@@ -5,10 +5,8 @@ import { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { getNetworkImageSource } from '../../../../util/networks';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import {
-  POLYGON_USDCE,
-  PREDICT_DEPOSIT_AND_ORDER_TYPE,
-} from '../../../Views/confirmations/constants/predict';
+import { POLYGON_USDCE } from '../../../Views/confirmations/constants/predict';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
@@ -38,7 +36,9 @@ export function usePredictBalanceTokenFilter(
     (tokens: AssetType[]): AssetType[] => {
       if (
         !forceEnabled &&
-        !hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
+        !hasTransactionType(transactionMeta, [
+          TransactionType.predictDepositAndOrder,
+        ])
       ) {
         return tokens;
       }

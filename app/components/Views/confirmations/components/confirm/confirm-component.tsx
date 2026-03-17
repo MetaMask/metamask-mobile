@@ -35,7 +35,6 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
-import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -43,15 +42,17 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
-  PREDICT_DEPOSIT_AND_ORDER_TYPE,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
 ];
 
-const TRANSACTION_TYPES_NO_HEADER = [PREDICT_DEPOSIT_AND_ORDER_TYPE];
+const TRANSACTION_TYPES_NO_HEADER = [TransactionType.predictDepositAndOrder];
 const TRANSACTION_TYPES_USE_DEFAULT_BACKGROUND = [
-  PREDICT_DEPOSIT_AND_ORDER_TYPE,
+  TransactionType.predictDepositAndOrder,
 ];
-const TRANSACTION_TYPES_DISABLE_SAFE_AREA = [PREDICT_DEPOSIT_AND_ORDER_TYPE];
+const TRANSACTION_TYPES_DISABLE_SAFE_AREA = [
+  TransactionType.predictDepositAndOrder,
+];
 
 export enum ConfirmationLoader {
   Default = 'default',

@@ -120,7 +120,6 @@ import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../Views/confirmations/constants/predict';
 
 /**
  * State shape for PredictController
@@ -2239,8 +2238,6 @@ export class PredictController extends BaseController<
    * type so the confirmation routing in `info-root.tsx` renders
    * `PredictPayWithAnyTokenInfo`.
    *
-   * TODO: Remove the cast once `predictDepositAndOrder` is added to
-   * `@metamask/transaction-controller`.
    */
   public async payWithAnyTokenConfirmation(): Promise<
     Result<{ batchId: string }>
@@ -2293,7 +2290,7 @@ export class PredictController extends BaseController<
         ...tx,
         type:
           tx.type === TransactionType.predictDeposit
-            ? PREDICT_DEPOSIT_AND_ORDER_TYPE
+            ? TransactionType.predictDepositAndOrder
             : tx.type,
       }));
 
@@ -2409,7 +2406,7 @@ export class PredictController extends BaseController<
     const nestedTransactionType = transactionMeta?.nestedTransactions?.find(
       ({ type }) =>
         type === TransactionType.predictDeposit ||
-        type === (PREDICT_DEPOSIT_AND_ORDER_TYPE as TransactionType) ||
+        type === TransactionType.predictDepositAndOrder ||
         type === TransactionType.predictClaim ||
         type === TransactionType.predictWithdraw,
     )?.type;
@@ -2613,7 +2610,7 @@ export class PredictController extends BaseController<
     Record<TransactionType, PredictTransactionEventType>
   > = {
     [TransactionType.predictDeposit]: 'deposit',
-    [PREDICT_DEPOSIT_AND_ORDER_TYPE as TransactionType]: 'depositAndOrder',
+    [TransactionType.predictDepositAndOrder]: 'depositAndOrder',
     [TransactionType.predictClaim]: 'claim',
     [TransactionType.predictWithdraw]: 'withdraw',
   };

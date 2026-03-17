@@ -20,7 +20,6 @@ import {
 } from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
-import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../components/Views/confirmations/constants/predict';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.musdClaim,
@@ -28,7 +27,7 @@ export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
-  PREDICT_DEPOSIT_AND_ORDER_TYPE,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
 ];
