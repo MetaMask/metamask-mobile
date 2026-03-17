@@ -363,6 +363,10 @@ class Transactions extends PureComponent {
   };
 
   renderEmpty = () => {
+    if (this.props.hideEmptyState) {
+      return null;
+    }
+
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
@@ -735,9 +739,7 @@ class Transactions extends PureComponent {
               ListFooterComponent={
                 filteredTransactions.length > 0
                   ? this.footer
-                  : this.props.hideEmptyState
-                    ? null
-                    : this.renderEmpty()
+                  : this.renderEmpty()
               }
               contentContainerStyle={styles.listContentContainer}
               style={baseStyles.flexGrow}
