@@ -48,9 +48,10 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
   );
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
 
-  const { activeQuote, isLoading, blockaidError } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
+  const { activeQuote, isLoading, blockaidError, needsNewQuote } =
+    useBridgeQuoteData({
+      latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+    });
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -59,14 +60,21 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
     ? !!isHardwareAccount(selectedAddress)
     : false;
 
-  if (isLoading && !activeQuote) {
+  if (isLoading && !activeQuote && !needsNewQuote) {
     return null;
   }
 
-  // Prevent bottom section from rendering when no active
-  // quotes exist and none are being fetching.
-  // This resolves edge cases when users are redirected back from
-  // Select Quote page due to quotes expiry.
+  if (needsNewQuote) {
+    return (
+      <Box style={styles.buttonContainer}>
+        <SwapsConfirmButton
+          location={location}
+          latestSourceBalance={latestSourceBalance}
+        />
+      </Box>
+    );
+  }
+
   if (!activeQuote) {
     return null;
   }
