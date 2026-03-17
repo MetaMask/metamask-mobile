@@ -142,6 +142,9 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -170,7 +173,9 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -261,7 +266,9 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
@@ -463,6 +470,9 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -491,7 +501,9 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -582,7 +594,9 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
@@ -1051,6 +1065,9 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -1079,7 +1096,9 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -1170,7 +1189,9 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
@@ -1372,6 +1393,9 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -1400,7 +1424,9 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -1491,7 +1517,9 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
@@ -1960,6 +1988,9 @@ exports[`Onboarding renders correctly 1`] = `
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -1988,7 +2019,9 @@ exports[`Onboarding renders correctly 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -2079,7 +2112,9 @@ exports[`Onboarding renders correctly 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
@@ -2281,6 +2316,9 @@ exports[`Onboarding renders correctly with android 1`] = `
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -2309,7 +2347,9 @@ exports[`Onboarding renders correctly with android 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -2400,7 +2440,9 @@ exports[`Onboarding renders correctly with android 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
@@ -2602,6 +2644,9 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -2630,7 +2675,9 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -2721,7 +2768,9 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
@@ -2923,6 +2972,9 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                     "width": "100%",
                   },
                   {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
                     "transform": [
                       {
                         "scale": 1,
@@ -2951,7 +3003,9 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#000000",
+                    },
                   ]
                 }
               >
@@ -3042,7 +3096,9 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                       "lineHeight": 24,
                       "textAlign": "center",
                     },
-                    undefined,
+                    {
+                      "color": "#FFFFFF",
+                    },
                   ]
                 }
               >
