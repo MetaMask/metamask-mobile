@@ -77,9 +77,17 @@ const LedgerTransactionModal = () => {
   }, [onConfirmationComplete, goBack]);
 
   const onRejection = useCallback(() => {
+    try {
+      Engine.rejectPendingApproval(
+        transactionId,
+        new Error('User rejected the transaction'),
+      );
+    } catch {
+      // no-op: approval may already be consumed
+    }
     onConfirmationComplete(false);
     goBack();
-  }, [onConfirmationComplete, goBack]);
+  }, [transactionId, onConfirmationComplete, goBack]);
 
   return (
     <LedgerConfirmationModal
