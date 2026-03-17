@@ -24,7 +24,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -149,7 +148,6 @@ import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccoun
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
-import { colorWithOpacity } from '../../../util/colors';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
@@ -227,13 +225,6 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
-    },
-    bottomFadeOverlay: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 40,
     },
     headerEndAccessoryContainer: {
       alignItems: 'flex-end',
@@ -642,10 +633,6 @@ const Wallet = ({
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
   // Tracks which sections have been viewed this visit (reset on each focus).
   const viewedSectionsRef = useRef<Set<string>>(new Set());
-  const scrollContentHeightRef = useRef(0);
-  const scrollYRef = useRef(0);
-  const lastBottomFadeOpacityRef = useRef(0);
-  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -1083,44 +1070,6 @@ const Wallet = ({
     }
   }, [isHomepageSectionsV1Enabled]);
 
-  const handleScrollWithFade = useCallback(
-    (e: {
-      nativeEvent: {
-        contentOffset: { y: number };
-        contentSize: { height: number };
-        layoutMeasurement: { height: number };
-      };
-    }) => {
-      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-      scrollContentHeightRef.current = contentSize.height;
-      scrollYRef.current = contentOffset.y;
-      handleHomepageScroll();
-      if (!isHomepageSectionsV1Enabled) return;
-      const remaining =
-        contentSize.height - contentOffset.y - layoutMeasurement.height;
-      const nextOpacity = remaining > 20 ? Math.min(1, remaining / 80) : 0;
-      if (Math.abs(nextOpacity - lastBottomFadeOpacityRef.current) > 0.05) {
-        lastBottomFadeOpacityRef.current = nextOpacity;
-        setBottomFadeOpacity(nextOpacity);
-      }
-    },
-    [handleHomepageScroll, isHomepageSectionsV1Enabled],
-  );
-
-  const handleScrollContentSizeChange = useCallback(
-    (_w: number, contentHeight: number) => {
-      scrollContentHeightRef.current = contentHeight;
-      if (!isHomepageSectionsV1Enabled || viewportHeight <= 0) return;
-      const remaining = contentHeight - scrollYRef.current - viewportHeight;
-      const nextOpacity = remaining > 20 ? Math.min(1, remaining / 80) : 0;
-      if (Math.abs(nextOpacity - lastBottomFadeOpacityRef.current) > 0.05) {
-        lastBottomFadeOpacityRef.current = nextOpacity;
-        setBottomFadeOpacity(nextOpacity);
-      }
-    },
-    [isHomepageSectionsV1Enabled, viewportHeight],
-  );
-
   const touchAreaSlop = useMemo(
     () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
     [],
@@ -1539,13 +1488,12 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ bottom: 'additive' }}
+          edges={{ top: 'additive' }}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
               <HeaderRoot
-                includesTopInset
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                 endAccessory={
                   <View style={styles.headerEndAccessoryContainer}>
@@ -1684,10 +1632,7 @@ const Wallet = ({
                     contentContainerStyle: scrollViewContentStyle,
                     showsVerticalScrollIndicator: false,
                     onScroll: isHomepageSectionsV1Enabled
-                      ? handleScrollWithFade
-                      : undefined,
-                    onContentSizeChange: isHomepageSectionsV1Enabled
-                      ? handleScrollContentSizeChange
+                      ? handleHomepageScroll
                       : undefined,
                     scrollEventThrottle: 16,
                     refreshControl: shouldEnableParentScroll ? (
@@ -1702,21 +1647,6 @@ const Wallet = ({
                 >
                   {content}
                 </ConditionalScrollView>
-                {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
-                  <LinearGradient
-                    pointerEvents="none"
-                    colors={[
-                      colorWithOpacity(colors.background.default, 0),
-                      colors.background.default,
-                    ]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    style={[
-                      styles.bottomFadeOverlay,
-                      { opacity: bottomFadeOpacity },
-                    ]}
-                  />
-                )}
               </View>
             </>
           ) : (
