@@ -2,7 +2,7 @@ name: Nightly Build
 
 # Triggered by every push to chore/temp-nightly (which nightly-temp-branch-sync.yml
 # force-pushes daily at 4 AM UTC to match main).
-# Temporarily now this is pointing to build/temp-nightly instead of chore/temp-nightly.
+# Temporarily now this is pointing to test/temp-nightly instead of chore/temp-nightly.
 #
 # [skip ci] commits (e.g. version bumps pushed via update-latest-build-version.yml)
 # are automatically skipped by GitHub Actions, so this workflow will NOT
@@ -11,7 +11,7 @@ name: Nightly Build
 on:
   push:
     branches:
-      - build/temp-nightly
+      - test/temp-nightly
   workflow_dispatch:
 
 # contents: write required by build.yml update-build-version job (version bump commit push)
