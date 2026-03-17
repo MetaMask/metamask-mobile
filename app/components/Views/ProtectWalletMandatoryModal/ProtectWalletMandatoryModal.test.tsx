@@ -35,8 +35,9 @@ jest.mock('../../hooks/useMetrics', () => ({
   }),
 }));
 
+const mockHasFunds = jest.fn(() => true);
 jest.mock('../../../core/Engine', () => ({
-  hasFunds: jest.fn(() => true),
+  hasFunds: () => mockHasFunds(),
 }));
 
 jest.mock('react-native-modal', () => {
@@ -112,6 +113,7 @@ describe('ProtectWalletMandatoryModal', () => {
     mockGetState.mockReturnValue({
       routes: [{ name: 'Home' }],
     });
+    mockHasFunds.mockReturnValue(true);
   });
 
   it('does not show modal when password is set and seedphrase is backed up', async () => {
@@ -275,6 +277,102 @@ describe('ProtectWalletMandatoryModal', () => {
       expect(
         getByText(/protect your wallet by setting a password/i),
       ).toBeTruthy();
+    });
+  });
+
+  it('does not show modal when on AccountBackupStep1B route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'AccountBackupStep1B' }],
+    });
+
+    const store = createMockStore(true, false);
+
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('does not show modal when on ManualBackupStep2 route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'ManualBackupStep2' }],
+    });
+
+    const store = createMockStore(true, false);
+
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('does not show modal when on ManualBackupStep3 route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'ManualBackupStep3' }],
+    });
+
+    const store = createMockStore(true, false);
+
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('does not show modal when on Webview route', async () => {
+    mockGetState.mockReturnValue({
+      routes: [{ name: 'Webview' }],
+    });
+
+    const store = createMockStore(true, false);
+
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('does not show modal when user has no funds and password is set', async () => {
+    mockHasFunds.mockReturnValue(false);
+    const store = createMockStore(true, false);
+
+    const { queryByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(queryByTestId('modal-container')).toBeNull();
+    });
+  });
+
+  it('shows modal when user has funds and seedphrase not backed up', async () => {
+    mockHasFunds.mockReturnValue(true);
+    const store = createMockStore(true, false);
+
+    const { getByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('modal-container')).toBeTruthy();
     });
   });
 });

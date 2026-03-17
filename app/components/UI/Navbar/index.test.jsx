@@ -284,14 +284,6 @@ describe('getBridgeNavbar', () => {
       pop: jest.fn(),
     })),
   };
-  const mockThemeColors = {
-    background: {
-      default: '#FFFFFF',
-    },
-    primary: {
-      default: '#037DD6',
-    },
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -304,7 +296,7 @@ describe('getBridgeNavbar', () => {
       const options = getBridgeNavbar(
         mockNavigation,
         BridgeViewMode.Swap,
-        mockThemeColors,
+        mockTheme.colors,
       );
 
       expect(options.header).toBeDefined();
@@ -515,5 +507,279 @@ describe('getSwapsQuotesNavbar', () => {
     );
     expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
     expect(mockNavigation.pop).toHaveBeenCalled();
+  });
+
+  it('does not track event when quote is selected', () => {
+    const route = {
+      params: {
+        title: 'Swap',
+        requestedTrade: {
+          token_from: 'ETH',
+          token_to: 'DAI',
+          request_type: 'Order',
+          custom_slippage: false,
+          chain_id: '0x1',
+          token_from_amount: '1',
+        },
+        selectedQuote: { id: 'quote-1' },
+        quoteBegin: Date.now() - 1000,
+      },
+    };
+
+    const options = getSwapsQuotesNavbar(
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    Device.isAndroid.mockReturnValue(false);
+    const headerLeft = options.headerLeft();
+    headerLeft.props.onPress();
+
+    expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalled();
+    expect(mockNavigation.pop).toHaveBeenCalled();
+  });
+
+  it('renders Android back button correctly', () => {
+    const route = {
+      params: {
+        title: 'Swap',
+      },
+    };
+
+    Device.isAndroid.mockReturnValue(true);
+    const options = getSwapsQuotesNavbar(
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    const headerLeft = options.headerLeft();
+    expect(headerLeft.type).toBe(require('react-native').TouchableOpacity);
+  });
+});
+
+describe('getTransactionsNavbarOptions', () => {
+  const { getTransactionsNavbarOptions } = require('.');
+
+  const mockHandleRightButtonPress = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with title and right button', () => {
+    const options = getTransactionsNavbarOptions(
+      'Transactions',
+      mockTheme.colors,
+      undefined,
+      '0x123',
+      mockHandleRightButtonPress,
+    );
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+    expect(options.headerLeft).toBeNull();
+  });
+});
+
+describe('getApproveNavbar', () => {
+  const { getApproveNavbar } = require('.');
+
+  it('returns navbar options with title and empty left/right components', () => {
+    const options = getApproveNavbar('Approve');
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+
+    const HeaderLeft = options.headerLeft();
+    const HeaderRight = options.headerRight();
+    expect(HeaderLeft.type).toBe(View);
+    expect(HeaderRight.type).toBe(View);
+  });
+});
+
+describe('getModalNavbarOptions', () => {
+  const { getModalNavbarOptions } = require('.');
+
+  it('returns navbar options with modal title', () => {
+    const options = getModalNavbarOptions('Modal Title');
+
+    expect(options.headerTitle).toBeDefined();
+  });
+});
+
+describe('getOfflineModalNavbar', () => {
+  const { getOfflineModalNavbar } = require('.');
+
+  it('returns navbar options with header hidden', () => {
+    const options = getOfflineModalNavbar();
+
+    expect(options.headerShown).toBe(false);
+  });
+});
+
+describe('getOptinMetricsNavbarOptions', () => {
+  const { getOptinMetricsNavbarOptions } = require('.');
+
+  it('returns navbar options with logo when showLogo is true', () => {
+    const options = getOptinMetricsNavbarOptions(mockTheme.colors, true);
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('returns navbar options without logo when showLogo is false', () => {
+    const options = getOptinMetricsNavbarOptions(mockTheme.colors, false);
+
+    const HeaderTitle = options.headerTitle();
+    expect(HeaderTitle).toBeNull();
+  });
+});
+
+describe('getTransparentBackOnboardingNavbarOptions', () => {
+  const { getTransparentBackOnboardingNavbarOptions } = require('.');
+
+  it('returns navbar options with back button', () => {
+    const options = getTransparentBackOnboardingNavbarOptions(mockTheme.colors);
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerBackTitle).toBe(strings('navigation.back'));
+    expect(options.headerRight).toBeDefined();
+  });
+});
+
+describe('getEditAccountNameNavBarOptions', () => {
+  const { getEditAccountNameNavBarOptions } = require('.');
+
+  const mockGoBack = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with close button', () => {
+    const options = getEditAccountNameNavBarOptions(
+      mockGoBack,
+      mockTheme.colors,
+    );
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeNull();
+    expect(options.headerRight).toBeDefined();
+  });
+
+  it('calls goBack when close button is pressed', () => {
+    const options = getEditAccountNameNavBarOptions(
+      mockGoBack,
+      mockTheme.colors,
+    );
+
+    const HeaderRight = options.headerRight();
+    HeaderRight.props.onPress();
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getDeFiProtocolPositionDetailsNavbarOptions', () => {
+  const { getDeFiProtocolPositionDetailsNavbarOptions } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with back button', () => {
+    const options = getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+
+    const HeaderTitle = options.headerTitle();
+    expect(HeaderTitle).toBeNull();
+  });
+
+  it('calls navigation.pop when back button is pressed', () => {
+    const options = getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getRampsOrderDetailsNavbarOptions', () => {
+  const { getRampsOrderDetailsNavbarOptions } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  const mockOnClose = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with back button when showBack is true', () => {
+    const options = getRampsOrderDetailsNavbarOptions(
+      mockNavigation,
+      { title: 'Order Details', showBack: true },
+      mockTheme,
+      mockOnClose,
+    );
+
+    expect(options).toBeDefined();
+    expect(options.header).toBeInstanceOf(Function);
+  });
+
+  it('pops navigation and calls onClose when back is pressed', () => {
+    const options = getRampsOrderDetailsNavbarOptions(
+      mockNavigation,
+      { title: 'Order Details', showBack: true },
+      mockTheme,
+      mockOnClose,
+    );
+
+    const HeaderComponent = options.header();
+    HeaderComponent.props.startButtonIconProps.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getBridgeTransactionDetailsNavbar', () => {
+  const { getBridgeTransactionDetailsNavbar } = require('.');
+
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with back button', () => {
+    const options = getBridgeTransactionDetailsNavbar(mockNavigation);
+
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+  });
+
+  it('calls navigation.pop when back button is pressed', () => {
+    const options = getBridgeTransactionDetailsNavbar(mockNavigation);
+
+    const HeaderLeft = options.headerLeft();
+    HeaderLeft.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
