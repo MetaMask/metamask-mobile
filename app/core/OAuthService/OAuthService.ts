@@ -2,6 +2,7 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import { whenEngineReady } from '../../util/analytics/whenEngineReady';
+import { isE2EMockOAuth } from '../../util/environment';
 
 import {
   HandleOAuthLoginResult,
@@ -241,7 +242,7 @@ export class OAuthService {
     this.updateLocalState({ userClickedRehydration });
     this.#dispatchLogin();
 
-    if (process.env.E2E_MOCK_OAUTH === 'true') {
+    if (isE2EMockOAuth()) {
       return this.#handleMockOAuthLogin(loginHandler);
     }
 

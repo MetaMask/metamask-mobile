@@ -34,6 +34,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
@@ -525,7 +526,7 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      if (authData.oauth2Login && process.env.E2E_MOCK_OAUTH !== 'true') {
+      if (authData.oauth2Login && !isE2EMockOAuth()) {
         await this.createAndBackupSeedPhrase(password);
       } else {
         await this.createWalletVaultAndKeychain(password);

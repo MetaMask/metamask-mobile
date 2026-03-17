@@ -69,6 +69,11 @@ jest.mock('../../util/analytics/analytics', () => ({
   },
 }));
 
+const mockIsE2EMockOAuth = jest.fn().mockReturnValue(false);
+jest.mock('../../util/environment', () => ({
+  isE2EMockOAuth: () => mockIsE2EMockOAuth(),
+}));
+
 import OAuthLoginService from './OAuthService';
 const mockLoginHandlerResponse = jest.fn().mockImplementation(() => ({
   idToken: MOCK_JWT_TOKEN,
@@ -454,6 +459,38 @@ describe('OAuth login service', () => {
       expect(result).toBeDefined();
       expect(result.type).toBe('success');
       expect(acmSignOut).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('E2E_MOCK_OAUTH mode', () => {
+    afterEach(() => {
+      mockIsE2EMockOAuth.mockReturnValue(false);
+    });
+
+    it('returns mock success result when E2E_MOCK_OAUTH is true', async () => {
+      mockIsE2EMockOAuth.mockReturnValue(true);
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result.type).toBe('success');
+      expect(result.existingUser).toBe(false);
+      expect(result.accountName).toBe('mock-perf-google@web3auth.io');
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+    });
+
+    it('does not call real OAuth flow when E2E_MOCK_OAUTH is true', async () => {
+      mockIsE2EMockOAuth.mockReturnValue(true);
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
+      expect(mockGetAuthTokens).not.toHaveBeenCalled();
+      expect(mockAuthenticate).not.toHaveBeenCalled();
     });
   });
 });
