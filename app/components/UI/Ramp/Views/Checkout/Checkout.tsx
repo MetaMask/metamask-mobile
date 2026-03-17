@@ -43,6 +43,8 @@ import {
   getCheckoutCallback,
   removeCheckoutCallback,
 } from '../../utils/checkoutCallbackRegistry';
+import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
+
 interface CheckoutParams {
   url: string;
   providerName: string;
@@ -316,7 +318,7 @@ const Checkout = () => {
           iconName={IconName.Close}
           size={ButtonIconSizes.Lg}
           iconColor={IconColor.Default}
-          testID="checkout-close-button"
+          testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
           onPress={handleClosePress}
         />
       }
@@ -395,7 +397,7 @@ const Checkout = () => {
                 : onNavigationStateChange
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          testID="checkout-webview"
+          testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>
     );
