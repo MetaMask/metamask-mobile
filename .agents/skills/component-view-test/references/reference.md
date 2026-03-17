@@ -203,6 +203,7 @@ yarn eslint <path/to/test.tsx>
 | Engine + native mocks          | `tests/component-view/mocks.ts`                                |
 | render, renderScreenWithRoutes | `tests/component-view/render.tsx`                              |
 | StateFixtureBuilder            | `tests/component-view/stateFixture.ts`                         |
+| HTTP API mocks (nock)          | `tests/component-view/api-mocking/` (per-feature)              |
 | Feature renderers (per view)   | `tests/component-view/renderers/` (e.g. bridge, wallet)        |
 | Feature presets (per view)     | `tests/component-view/presets/` (e.g. bridge, wallet)          |
 | DeepPartial type               | `app/util/test/renderWithProvider`                             |

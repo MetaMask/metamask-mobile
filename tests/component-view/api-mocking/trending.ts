@@ -1,5 +1,15 @@
+/**
+ * Trending tokens API mock for component view tests.
+ * Intercepts GET https://token.api.cx.metamask.io/v3/tokens/trending via nock.
+ *
+ * Use in beforeEach/afterEach of TrendingView.view.test.tsx (or any view that
+ * loads trending data). See tests/component-view/api-mocking/ and references/navigation-mocking.md for adding other API mocks.
+ */
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import nock from 'nock';
+import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+
 export interface MockTrendingToken {
   assetId: string;
   name: string;
@@ -70,36 +80,39 @@ export const mockBnbChainToken: MockTrendingToken[] = [
   },
 ];
 
+const TRENDING_ORIGIN = 'https://token.api.cx.metamask.io';
+const TRENDING_PATH = '/v3/tokens/trending';
+
 /**
- * Setup mock for the trending tokens API using nock.
+ * Sets up the nock mock for the trending tokens API.
  * Intercepts GET requests to the trending URL (any query params) and replies with the given data.
  * Optional customReply(uri) can return different data based on the request URL (e.g. for BNB-only requests).
- * Call in beforeEach: setupTrendingApiFetchMock(...) or await setupTrendingApiFetchMock(...)
+ * Call in beforeEach: setupTrendingApiFetchMock(...)
  */
 export function setupTrendingApiFetchMock(
   responseData: MockTrendingToken[] = mockTrendingTokensData,
   customReply?: (uri: string) => MockTrendingToken[],
 ): void {
-  nock.cleanAll();
-  nock.disableNetConnect();
+  clearAllNockMocks();
+  disableNetConnect();
 
   const replyBody =
-    customReply !== undefined
-      ? (uri: string) => customReply(uri)
-      : () => responseData;
+    customReply === undefined
+      ? () => responseData
+      : (uri: string) => customReply(uri);
 
-  nock('https://token.api.cx.metamask.io')
-    .get('/v3/tokens/trending')
+  nock(TRENDING_ORIGIN)
+    .get(TRENDING_PATH)
     .query(true)
-    .reply(200, (uri) => replyBody(uri))
+    .reply(200, (uri: string) => replyBody(uri))
     .persist();
 }
 
 /**
- * Clear nock interceptors and Jest mocks.
- * Call this in afterEach of your tests.
+ * Clears nock interceptors and Jest mocks for trending tests.
+ * Call in afterEach of your tests.
  */
 export function clearTrendingApiMocks(): void {
   jest.clearAllMocks();
-  nock.cleanAll();
+  clearAllNockMocks();
 }

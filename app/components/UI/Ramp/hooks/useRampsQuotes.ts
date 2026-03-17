@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { QuotesResponse } from '@metamask/ramps-controller';
+import type { BuyWidget, QuotesResponse } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
@@ -28,12 +28,12 @@ export interface UseRampsQuotesResult {
    */
   getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
   /**
-   * Fetches the widget URL from a quote for redirect providers.
-   * Makes a request to the buyURL endpoint to get the actual provider widget URL.
+   * Fetches the widget data from a quote for redirect providers.
+   * Makes a request to the buyURL endpoint to get the actual provider widget URL and order ID.
    * @param quote - The quote to fetch the widget URL from.
-   * @returns Promise resolving to the widget URL string, or null if not available.
+   * @returns Promise resolving to the full BuyWidget (url, browser, orderId), or null if not available.
    */
-  getWidgetUrl: (quote: Quote) => Promise<string | null>;
+  getBuyWidgetData: (quote: Quote) => Promise<BuyWidget | null>;
   /** Fetched quotes response when options is used. Null when not fetching or fetch skipped. */
   data: QuotesResponse | null;
   /** True while a fetch is in progress. Reset when fetch settles, unless the effect was cancelled (component unmounted). */
@@ -50,7 +50,7 @@ export interface UseRampsQuotesResult {
  * Loading is reset when the fetch settles unless the effect was cancelled (avoids setState on unmounted component).
  *
  * @param options - GetQuotesOptions to fetch, or null/undefined to skip fetch.
- * @returns getQuotes, getWidgetUrl, and when options used: data, loading, error.
+ * @returns getQuotes, getBuyWidgetData, and when options used: data, loading, error.
  */
 export function useRampsQuotes(
   options?: GetQuotesOptions | null,
@@ -60,8 +60,8 @@ export function useRampsQuotes(
     [],
   );
 
-  const getWidgetUrl = useCallback(
-    (quote: Quote) => Engine.context.RampsController.getWidgetUrl(quote),
+  const getBuyWidgetData = useCallback(
+    (quote: Quote) => Engine.context.RampsController.getBuyWidgetData(quote),
     [],
   );
 
@@ -109,7 +109,7 @@ export function useRampsQuotes(
 
   return {
     getQuotes,
-    getWidgetUrl,
+    getBuyWidgetData,
     data,
     loading,
     error,
