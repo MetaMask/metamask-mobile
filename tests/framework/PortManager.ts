@@ -7,8 +7,8 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
-  FALLBACK_ACCOUNT_ACTIVITY_WS_PORT,
 } from './Constants.ts';
+import { ACCOUNT_ACTIVITY_WS as ACCOUNT_ACTIVITY_WS_CONFIG } from '../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
 const logger = createLogger({
@@ -55,7 +55,7 @@ function getFallbackPortForResource(resourceType: ResourceType): number {
     case ResourceType.DAPP_SERVER:
       return FALLBACK_DAPP_SERVER_PORT;
     case ResourceType.ACCOUNT_ACTIVITY_WS:
-      return FALLBACK_ACCOUNT_ACTIVITY_WS_PORT;
+      return ACCOUNT_ACTIVITY_WS_CONFIG.fallbackPort;
     default:
       throw new Error(`Unknown resource type: ${resourceType}`);
   }

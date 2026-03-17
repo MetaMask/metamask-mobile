@@ -17,7 +17,6 @@ export const FALLBACK_COMMAND_QUEUE_SERVER_PORT = 2446;
 export const FALLBACK_MOCKSERVER_PORT = 8000;
 export const FALLBACK_GANACHE_PORT = 8546;
 export const FALLBACK_DAPP_SERVER_PORT = 8085;
-export const FALLBACK_ACCOUNT_ACTIVITY_WS_PORT = 8089;
 
 // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
 export const defaultGanacheOptions = {

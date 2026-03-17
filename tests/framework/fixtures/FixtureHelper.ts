@@ -41,7 +41,6 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  FALLBACK_ACCOUNT_ACTIVITY_WS_PORT,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -53,8 +52,12 @@ import type { Fixture } from './types';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
-import WebSocketRegistry from '../../websocket/registry';
-import { accountActivityWebSocketConfig } from '../../websocket/account-activity-mocks';
+import LocalWebSocketServer from '../../websocket/server';
+import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
+import {
+  setupAccountActivityMocks,
+  resetAccountActivityMockState,
+} from '../../websocket/account-activity-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -542,6 +545,7 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
+  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
   let testError: Error | null = null;
 
   try {
@@ -578,12 +582,11 @@ export async function withFixtures(
     mockServerPort = mockServerResult.mockServerPort;
 
     // Step 4.5: Start WebSocket mock servers
-    const wsAllocation = await PortManager.getInstance().allocatePort(
+    await startResourceWithRetry(
       ResourceType.ACCOUNT_ACTIVITY_WS,
+      accountActivityWsServer,
     );
-    accountActivityWebSocketConfig.port = wsAllocation.port;
-    WebSocketRegistry.register(accountActivityWebSocketConfig);
-    await WebSocketRegistry.startAll();
+    await setupAccountActivityMocks(accountActivityWsServer);
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -614,10 +617,6 @@ export async function withFixtures(
       // to the actual allocated ports
       const isAndroid = device.getPlatform() === 'android';
 
-      const websocketPort = PortManager.getInstance().getPort(
-        ResourceType.ACCOUNT_ACTIVITY_WS,
-      );
-
       await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
@@ -631,9 +630,9 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
-          websocketServerPort: isAndroid
-            ? `${FALLBACK_ACCOUNT_ACTIVITY_WS_PORT}`
-            : `${websocketPort}`,
+          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+            : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
@@ -729,7 +728,8 @@ export async function withFixtures(
 
     // Clean up WebSocket servers
     try {
-      await WebSocketRegistry.stopAll();
+      resetAccountActivityMockState();
+      await accountActivityWsServer.stop();
     } catch (cleanupError) {
       logger.error('Error during WebSocket cleanup:', cleanupError);
       cleanupErrors.push(cleanupError as Error);

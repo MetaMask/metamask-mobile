@@ -2,15 +2,13 @@
 import { WebSocket } from 'ws';
 import LocalWebSocketServer from './server.ts';
 import {
-  accountActivityWebSocketConfig,
+  setupAccountActivityMocks,
   waitForAccountActivitySubscription,
   waitForAccountActivityDisconnection,
   getAccountActivitySubscriptionCount,
   resetAccountActivityMockState,
   createBalanceUpdateNotification,
-  ACCOUNT_ACTIVITY_WS_PORT,
 } from './account-activity-mocks.ts';
-import { WEBSOCKET_SERVICES } from './constants.ts';
 
 jest.mock('../framework/logger.ts', () => ({
   LogLevel: { ERROR: 0, WARN: 1, INFO: 2, DEBUG: 3, TRACE: 4 },
@@ -30,9 +28,10 @@ describe('Account Activity WebSocket Mocks', () => {
   beforeEach(async () => {
     clients = [];
     testPort = 51000 + Math.floor(Math.random() * 9000);
-    server = new LocalWebSocketServer('test-account-activity', testPort);
-    server.start();
-    await accountActivityWebSocketConfig.setup(server, []);
+    server = new LocalWebSocketServer('test-account-activity');
+    server.setServerPort(testPort);
+    await server.start();
+    await setupAccountActivityMocks(server);
   });
 
   afterEach(async () => {
@@ -46,14 +45,9 @@ describe('Account Activity WebSocket Mocks', () => {
       }
     }
     clients = [];
-    await server.stopAndCleanup();
+    await server.stop();
   });
 
-  /**
-   * Connect and collect a given number of messages.
-   * Registers the message listener BEFORE the connection opens
-   * to avoid the race where session-created fires before a listener is attached.
-   */
   function connectAndCollect(
     count: number,
     port?: number,
@@ -72,10 +66,6 @@ describe('Account Activity WebSocket Mocks', () => {
     });
   }
 
-  /**
-   * Wait for the next message on a WebSocket that is already connected
-   * and has already consumed earlier messages via connectAndCollect.
-   */
   function nextMessage(ws: WebSocket): Promise<Record<string, unknown>> {
     return new Promise((resolve) => {
       ws.once('message', (data) => {
@@ -83,17 +73,6 @@ describe('Account Activity WebSocket Mocks', () => {
       });
     });
   }
-
-  describe('accountActivityWebSocketConfig', () => {
-    it('has correct name and port', () => {
-      expect(accountActivityWebSocketConfig.name).toBe(
-        WEBSOCKET_SERVICES.accountActivity,
-      );
-      expect(accountActivityWebSocketConfig.port).toBe(
-        ACCOUNT_ACTIVITY_WS_PORT,
-      );
-    });
-  });
 
   describe('session-created on connection', () => {
     it('sends session-created on new connection', async () => {
@@ -327,16 +306,13 @@ describe('Account Activity WebSocket Mocks', () => {
 
   describe('resetAccountActivityMockState()', () => {
     it('clears pending waiters so new waiters work independently', async () => {
-      // Register a stale waiter
       const stalePromise = waitForAccountActivitySubscription(60_000);
 
       resetAccountActivityMockState();
 
-      // Stale timer was cleared; verify fresh waiter times out on its own
       const freshPromise = waitForAccountActivitySubscription(100);
       await expect(freshPromise).rejects.toThrow(/Timed out/);
 
-      // Prevent unhandled rejection from the orphaned stale promise
       stalePromise.catch(() => {
         /* timer was cleared by reset — expected */
       });
@@ -389,9 +365,6 @@ describe('Account Activity WebSocket Mocks', () => {
       const { ws } = await connectAndCollect(1);
 
       const responsePromise = nextMessage(ws);
-      // Send a message that contains "unsubscribe" but isn't a structured unsubscribe event.
-      // This won't match the structured handler (which requires event === 'unsubscribe' AND data.subscription),
-      // so it falls through to the string-match fallback mocks.
       ws.send('I want to unsubscribe from everything');
 
       const response = await responsePromise;
@@ -401,16 +374,14 @@ describe('Account Activity WebSocket Mocks', () => {
 
   describe('custom mocks', () => {
     it('uses custom mocks passed to setup (override behavior)', async () => {
-      await server.stopAndCleanup();
+      await server.stop();
 
       const customPort = testPort + 1;
-      const customServer = new LocalWebSocketServer(
-        'test-custom-mocks',
-        customPort,
-      );
-      customServer.start();
+      const customServer = new LocalWebSocketServer('test-custom-mocks');
+      customServer.setServerPort(customPort);
+      await customServer.start();
 
-      await accountActivityWebSocketConfig.setup(customServer, [
+      await setupAccountActivityMocks(customServer, [
         {
           messageIncludes: 'custom-trigger',
           response: { custom: true, event: 'custom-response' },
@@ -418,7 +389,6 @@ describe('Account Activity WebSocket Mocks', () => {
         },
       ]);
 
-      // Use connectAndCollect to avoid race — registers listener before open
       const { ws: customWs, messages: sessionMsgs } = await connectAndCollect(
         1,
         customPort,
@@ -433,7 +403,7 @@ describe('Account Activity WebSocket Mocks', () => {
       expect(response.event).toBe('custom-response');
 
       customWs.close();
-      await customServer.stopAndCleanup();
+      await customServer.stop();
     });
   });
 });

@@ -14,6 +14,7 @@ import {
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
+import { WS_SERVICES } from './tests/websocket/constants.ts';
 import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
@@ -306,18 +307,28 @@ if (enableApiCallLogs || isTest) {
         );
       }
 
-      // Patch WebSocket to redirect all wss:// connections to the local mock server.
-      // Same approach as fetch/XHR above: intercept at the constructor level.
-      const wsPort = raw?.websocketServerPort;
-      if (wsPort && global.WebSocket) {
+      // Patch WebSocket to route production wss:// URLs to local mock servers.
+      // Each WS service gets its own mock port via WS_SERVICES config.
+      // Non-matching wss:// URLs pass through unchanged.
+      if (WS_SERVICES.length > 0 && global.WebSocket) {
         const OriginalWebSocket = global.WebSocket;
-        const localWsUrl = `ws://localhost:${wsPort}`;
+
+        const wsRoutes = {};
+        for (const svc of WS_SERVICES) {
+          const port = raw?.[svc.launchArgKey] ?? svc.fallbackPort;
+          wsRoutes[svc.url] = `ws://localhost:${port}`;
+        }
 
         global.WebSocket = function (url, protocols) {
-          const targetUrl =
-            typeof url === 'string' && url.startsWith('wss://')
-              ? localWsUrl
-              : url;
+          let targetUrl = url;
+          if (typeof url === 'string') {
+            for (const [prefix, localUrl] of Object.entries(wsRoutes)) {
+              if (url.startsWith(prefix)) {
+                targetUrl = localUrl;
+                break;
+              }
+            }
+          }
           return protocols !== undefined
             ? new OriginalWebSocket(targetUrl, protocols)
             : new OriginalWebSocket(targetUrl);
@@ -328,9 +339,7 @@ if (enableApiCallLogs || isTest) {
         global.WebSocket.prototype = OriginalWebSocket.prototype;
 
         // eslint-disable-next-line no-console
-        console.log(
-          `[WS Patch] All wss:// connections redirected to ${localWsUrl}`,
-        );
+        console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
       }
     }
   })();

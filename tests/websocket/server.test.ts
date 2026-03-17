@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow, import/no-extraneous-dependencies
 import { WebSocket } from 'ws';
 import LocalWebSocketServer from './server.ts';
+import { ServerStatus } from '../framework/types.ts';
 
 jest.mock('../framework/logger.ts', () => ({
   LogLevel: { ERROR: 0, WARN: 1, INFO: 2, DEBUG: 3, TRACE: 4 },
@@ -11,6 +12,12 @@ jest.mock('../framework/logger.ts', () => ({
     error: jest.fn(),
   }),
 }));
+
+function createServer(name: string, port: number): LocalWebSocketServer {
+  const server = new LocalWebSocketServer(name);
+  server.setServerPort(port);
+  return server;
+}
 
 describe('LocalWebSocketServer', () => {
   let server: LocalWebSocketServer;
@@ -35,7 +42,7 @@ describe('LocalWebSocketServer', () => {
     clients.length = 0;
 
     if (server) {
-      await server.stopAndCleanup();
+      await server.stop();
     }
 
     jest.resetAllMocks();
@@ -53,38 +60,74 @@ describe('LocalWebSocketServer', () => {
     return client;
   }
 
+  describe('Resource interface', () => {
+    it('reports STOPPED before start', () => {
+      server = createServer('test-status', testPort);
+
+      expect(server.getServerStatus()).toBe(ServerStatus.STOPPED);
+      expect(server.isStarted()).toBe(false);
+    });
+
+    it('reports STARTED after start', async () => {
+      server = createServer('test-status-started', testPort);
+
+      await server.start();
+
+      expect(server.getServerStatus()).toBe(ServerStatus.STARTED);
+      expect(server.isStarted()).toBe(true);
+    });
+
+    it('stores and returns port via setServerPort/getServerPort', () => {
+      server = new LocalWebSocketServer('test-port');
+
+      server.setServerPort(9999);
+
+      expect(server.getServerPort()).toBe(9999);
+    });
+
+    it('reports STOPPED after stop', async () => {
+      server = createServer('test-status-stopped', testPort);
+      await server.start();
+
+      await server.stop();
+
+      expect(server.getServerStatus()).toBe(ServerStatus.STOPPED);
+      expect(server.isStarted()).toBe(false);
+    });
+  });
+
   describe('start()', () => {
     it('creates a running WebSocket server on the given port', async () => {
-      server = new LocalWebSocketServer('test-start', testPort);
+      server = createServer('test-start', testPort);
 
-      server.start();
+      await server.start();
 
       const client = await connectClient(testPort);
       expect(client.readyState).toBe(WebSocket.OPEN);
     });
 
-    it('is idempotent — calling twice does not throw', () => {
-      server = new LocalWebSocketServer('test-idempotent', testPort);
+    it('is idempotent — calling twice does not throw', async () => {
+      server = createServer('test-idempotent', testPort);
 
-      server.start();
+      await server.start();
 
-      expect(() => server.start()).not.toThrow();
+      await expect(server.start()).resolves.toBeUndefined();
     });
   });
 
   describe('getServer()', () => {
     it('throws if server not started', () => {
-      server = new LocalWebSocketServer('test-get-not-started', testPort);
+      server = createServer('test-get-not-started', testPort);
 
       expect(() => server.getServer()).toThrow(
         "WebSocket server 'test-get-not-started' has not been started yet.",
       );
     });
 
-    it('returns the WebSocketServer instance after start', () => {
-      server = new LocalWebSocketServer('test-get-started', testPort);
+    it('returns the WebSocketServer instance after start', async () => {
+      server = createServer('test-get-started', testPort);
 
-      server.start();
+      await server.start();
 
       const wsServer = server.getServer();
       expect(wsServer).toBeDefined();
@@ -94,8 +137,8 @@ describe('LocalWebSocketServer', () => {
 
   describe('client connections', () => {
     it('accepts client connections on started server', async () => {
-      server = new LocalWebSocketServer('test-connect', testPort);
-      server.start();
+      server = createServer('test-connect', testPort);
+      await server.start();
 
       const client = await connectClient(testPort);
 
@@ -104,9 +147,9 @@ describe('LocalWebSocketServer', () => {
   });
 
   describe('getWebsocketConnectionCount()', () => {
-    it('returns 0 before any connections', () => {
-      server = new LocalWebSocketServer('test-count-zero', testPort);
-      server.start();
+    it('returns 0 before any connections', async () => {
+      server = createServer('test-count-zero', testPort);
+      await server.start();
 
       const count = server.getWebsocketConnectionCount();
 
@@ -114,8 +157,8 @@ describe('LocalWebSocketServer', () => {
     });
 
     it('tracks connected clients', async () => {
-      server = new LocalWebSocketServer('test-count-track', testPort);
-      server.start();
+      server = createServer('test-count-track', testPort);
+      await server.start();
 
       await connectClient(testPort);
       await connectClient(testPort);
@@ -125,8 +168,8 @@ describe('LocalWebSocketServer', () => {
     });
 
     it('decreases when client disconnects', async () => {
-      server = new LocalWebSocketServer('test-count-disconnect', testPort);
-      server.start();
+      server = createServer('test-count-disconnect', testPort);
+      await server.start();
 
       const client1 = await connectClient(testPort);
       await connectClient(testPort);
@@ -142,8 +185,8 @@ describe('LocalWebSocketServer', () => {
 
   describe('sendMessage()', () => {
     it('broadcasts to all connected clients', async () => {
-      server = new LocalWebSocketServer('test-broadcast', testPort);
-      server.start();
+      server = createServer('test-broadcast', testPort);
+      await server.start();
 
       const client1 = await connectClient(testPort);
       const client2 = await connectClient(testPort);
@@ -163,46 +206,29 @@ describe('LocalWebSocketServer', () => {
     });
 
     it('does nothing if server not started (no throw)', () => {
-      server = new LocalWebSocketServer('test-send-no-server', testPort);
+      server = createServer('test-send-no-server', testPort);
 
       expect(() => server.sendMessage('test')).not.toThrow();
     });
   });
 
   describe('stop()', () => {
-    it('stops the server', () => {
-      server = new LocalWebSocketServer('test-stop', testPort);
-      server.start();
-
-      server.stop();
-
-      expect(() => server.getServer()).toThrow();
-    });
-
-    it('is safe to call when server not running', () => {
-      server = new LocalWebSocketServer('test-stop-safe', testPort);
-
-      expect(() => server.stop()).not.toThrow();
-    });
-  });
-
-  describe('stopAndCleanup()', () => {
-    it('closes all connections and stops server', async () => {
-      server = new LocalWebSocketServer('test-cleanup', testPort);
-      server.start();
+    it('closes all connections and stops the server', async () => {
+      server = createServer('test-stop', testPort);
+      await server.start();
 
       const client = await connectClient(testPort);
       expect(client.readyState).toBe(WebSocket.OPEN);
 
-      await server.stopAndCleanup();
+      await server.stop();
 
       expect(() => server.getServer()).toThrow();
     });
 
-    it('is safe when server not running', async () => {
-      server = new LocalWebSocketServer('test-cleanup-safe', testPort);
+    it('is safe to call when server not running', async () => {
+      server = createServer('test-stop-safe', testPort);
 
-      await expect(server.stopAndCleanup()).resolves.toBeUndefined();
+      await expect(server.stop()).resolves.toBeUndefined();
     });
   });
 });

@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow, import/no-extraneous-dependencies
 import { WebSocket, WebSocketServer } from 'ws';
 import { createLogger, LogLevel } from '../framework/logger.ts';
+import { Resource, ServerStatus } from '../framework/types.ts';
 
 const logger = createLogger({
   name: 'WebSocketServer',
@@ -10,44 +11,49 @@ const logger = createLogger({
 /**
  * A local WebSocket server for e2e tests.
  *
- * Each instance manages its own port, connections, and lifecycle.
- * Instances are created by the WebSocketRegistry — one per service
- * (AccountActivity, etc.).
+ * Implements the framework Resource interface so it can be managed
+ * by startResourceWithRetry (port allocation, adb reverse, retry logic).
+ *
+ * Protocol-specific message handling is added by each service's setup
+ * function after start().
  */
-class LocalWebSocketServer {
+class LocalWebSocketServer implements Resource {
   private readonly name: string;
 
-  private readonly port: number;
+  private port = 0;
 
   private server: WebSocketServer | null = null;
 
   private websocketConnections: WebSocket[] = [];
 
-  constructor(name: string, port: number) {
+  private status: ServerStatus = ServerStatus.STOPPED;
+
+  constructor(name: string) {
     this.name = name;
+  }
+
+  setServerPort(port: number): void {
     this.port = port;
   }
 
-  /**
-   * Get the underlying WebSocketServer instance.
-   *
-   * @returns The ws WebSocketServer
-   */
-  public getServer(): WebSocketServer {
-    if (!this.server) {
-      throw new Error(
-        `WebSocket server '${this.name}' has not been started yet.`,
-      );
-    }
-    return this.server;
+  getServerPort(): number {
+    return this.port;
+  }
+
+  getServerStatus(): ServerStatus {
+    return this.status;
+  }
+
+  isStarted(): boolean {
+    return this.status === ServerStatus.STARTED;
   }
 
   /**
-   * Start the WebSocket server.
+   * Start the WebSocket server on the configured port.
    * The base server only tracks connections. Protocol-specific message
    * handling is added by each service's setup function.
    */
-  public start(): void {
+  async start(): Promise<void> {
     if (this.server) {
       logger.info(
         `[${this.name}] WebSocket server is already running on ws://localhost:${this.port}`,
@@ -74,65 +80,19 @@ class LocalWebSocketServer {
       });
     });
 
+    this.status = ServerStatus.STARTED;
     logger.info(
       `[${this.name}] WebSocket server running on ws://localhost:${this.port}`,
     );
   }
 
   /**
-   * Stop the WebSocket server.
-   */
-  public stop(): void {
-    if (this.server) {
-      this.server.close(() => {
-        logger.info(
-          `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
-        );
-      });
-      this.server = null;
-    } else {
-      logger.debug(`[${this.name}] WebSocket server is not running`);
-    }
-  }
-
-  /**
-   * Broadcast a message to all connected clients.
-   *
-   * @param message - The message string to send
-   */
-  public sendMessage(message: string): void {
-    if (this.server) {
-      this.server.clients.forEach((client: WebSocket) => {
-        if (client.readyState === 1) {
-          // 1 === WebSocket.OPEN
-          client.send(message);
-        }
-      });
-    }
-  }
-
-  /**
-   * Get the count of active WebSocket connections.
-   *
-   * @returns The number of active connections
-   */
-  public getWebsocketConnectionCount(): number {
-    if (!this.server) {
-      return 0;
-    }
-    const serverClientCount = this.server.clients.size;
-    logger.debug(
-      `[${this.name}] Server has ${serverClientCount} clients, tracked array has ${this.websocketConnections.length}`,
-    );
-    return serverClientCount;
-  }
-
-  /**
    * Stop the WebSocket server and close all connections.
    */
-  public async stopAndCleanup(): Promise<void> {
+  async stop(): Promise<void> {
     if (!this.server) {
       logger.debug(`[${this.name}] WebSocket server is not running`);
+      this.status = ServerStatus.STOPPED;
       return;
     }
 
@@ -174,11 +134,63 @@ class LocalWebSocketServer {
 
     this.websocketConnections = [];
 
-    // Stop the server
-    this.stop();
+    this.server.close(() => {
+      logger.info(
+        `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
+      );
+    });
+    this.server = null;
+    this.status = ServerStatus.STOPPED;
 
     // Give a delay to ensure all connections are fully closed
     await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  /**
+   * Get the underlying WebSocketServer instance.
+   * Used by mock setup functions to attach protocol-specific handlers.
+   *
+   * @returns The ws WebSocketServer
+   */
+  getServer(): WebSocketServer {
+    if (!this.server) {
+      throw new Error(
+        `WebSocket server '${this.name}' has not been started yet.`,
+      );
+    }
+    return this.server;
+  }
+
+  /**
+   * Broadcast a message to all connected clients.
+   *
+   * @param message - The message string to send
+   */
+  sendMessage(message: string): void {
+    if (this.server) {
+      this.server.clients.forEach((client: WebSocket) => {
+        if (client.readyState === 1) {
+          // 1 === WebSocket.OPEN
+          client.send(message);
+        }
+      });
+    }
+  }
+
+  /**
+   * Get the count of active WebSocket connections.
+   *
+   * @returns The number of active connections
+   */
+  getWebsocketConnectionCount(): number {
+    if (!this.server) {
+      return 0;
+    }
+    const serverClientCount = this.server.clients.size;
+    logger.debug(
+      `[${this.name}] Server has ${serverClientCount} clients, tracked array has ${this.websocketConnections.length}`,
+    );
+    return serverClientCount;
   }
 }
 

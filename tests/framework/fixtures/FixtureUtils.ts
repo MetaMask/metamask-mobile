@@ -17,8 +17,8 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
-  FALLBACK_ACCOUNT_ACTIVITY_WS_PORT,
 } from '../Constants.ts';
+import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
 import { FrameworkDetector } from '../FrameworkDetector.ts';
@@ -52,7 +52,7 @@ function getFallbackPort(resourceType: ResourceType): number {
     case ResourceType.DAPP_SERVER:
       return FALLBACK_DAPP_SERVER_PORT;
     case ResourceType.ACCOUNT_ACTIVITY_WS:
-      return FALLBACK_ACCOUNT_ACTIVITY_WS_PORT;
+      return ACCOUNT_ACTIVITY_WS.fallbackPort;
     default:
       throw new Error(`No fallback port defined for ${resourceType}`);
   }
@@ -96,7 +96,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     FALLBACK_DAPP_SERVER_PORT, // 8085
     FALLBACK_DAPP_SERVER_PORT + 1, // 8086 (dapp-server-1)
     FALLBACK_DAPP_SERVER_PORT + 2, // 8087 (dapp-server-2)
-    FALLBACK_ACCOUNT_ACTIVITY_WS_PORT, // 8089
+    ACCOUNT_ACTIVITY_WS.fallbackPort, // 8089
   ];
 
   logger.debug('Cleaning up test port forwards before test...');

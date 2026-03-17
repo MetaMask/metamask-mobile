@@ -1,11 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow, import/no-extraneous-dependencies
 import { WebSocket } from 'ws';
-import type {
-  WebSocketServiceConfig,
-  WebSocketMessageMock,
-} from './registry.ts';
 import type LocalWebSocketServer from './server.ts';
-import { WEBSOCKET_SERVICES } from './constants.ts';
 import { createLogger, LogLevel } from '../framework/logger.ts';
 
 const logger = createLogger({
@@ -13,7 +8,12 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
-export const ACCOUNT_ACTIVITY_WS_PORT = 8089;
+interface WebSocketMessageMock {
+  messageIncludes: string | string[];
+  response: Record<string, unknown>;
+  delay?: number;
+  logMessage?: string;
+}
 
 interface SubscriptionWaiter {
   resolve: (subscriptionId: string) => void;
@@ -153,7 +153,7 @@ const DEFAULT_ACCOUNT_ACTIVITY_WS_MOCKS: WebSocketMessageMock[] = [
   },
 ];
 
-async function setupAccountActivityWebsocketMocks(
+export async function setupAccountActivityMocks(
   server: LocalWebSocketServer,
   mocks: WebSocketMessageMock[] = [],
   options?: Record<string, unknown>,
@@ -349,10 +349,3 @@ export function createBalanceUpdateNotification(options: {
     timestamp: Date.now(),
   };
 }
-
-export const accountActivityWebSocketConfig: WebSocketServiceConfig = {
-  name: WEBSOCKET_SERVICES.accountActivity,
-  port: ACCOUNT_ACTIVITY_WS_PORT,
-  setup: setupAccountActivityWebsocketMocks,
-  onCleanup: resetAccountActivityMockState,
-};
