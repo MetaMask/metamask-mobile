@@ -212,7 +212,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flex": 1,
+                          "flexBasis": "0%",
+                          "flexGrow": 1,
+                          "flexShrink": 1,
                           "paddingTop": 40,
                         }
                       }
@@ -225,8 +227,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "flex": 1,
-                            "paddingTop": 40,
+                            "flexBasis": "0%",
+                            "flexGrow": 1,
+                            "flexShrink": 1,
                           }
                         }
                         testID="meta-metrics-container"
@@ -234,21 +237,32 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         <View>
                           <View
                             style={
-                              {
-                                "flex": 1,
-                                "flexDirection": "column",
-                                "marginHorizontal": 20,
-                                "paddingBottom": 80,
-                                "rowGap": 16,
-                              }
+                              [
+                                {
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                  "marginLeft": 20,
+                                  "marginRight": 20,
+                                  "paddingBottom": 80,
+                                  "rowGap": 16,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "marginVertical": 12,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "marginBottom": 12,
+                                    "marginTop": 12,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Image
@@ -266,15 +280,18 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 32,
-                                  "fontWeight": "700",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 40,
-                                  "marginTop": 8,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 32,
+                                    "fontWeight": 700,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 40,
+                                    "marginTop": 8,
+                                  },
+                                  undefined,
+                                ]
                               }
                               testID="optin-metrics-title-id"
                             >
@@ -283,60 +300,116 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#66676a",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#66676a",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "fontWeight": 400,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
-                              <TouchableOpacity
-                                activeOpacity={0.7}
-                                onPress={[Function]}
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "backgroundColor": "#f3f3f4",
                                     "borderRadius": 12,
                                     "marginBottom": 16,
-                                    "padding": 16,
+                                    "paddingBottom": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 16,
                                   }
                                 }
                                 testID="optin-metrics-metrics-checkbox"
                               >
                                 <View
                                   style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 16,
-                                      "justifyContent": "space-between",
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "flex-start",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 16,
+                                        "justifyContent": "space-between",
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <View
                                     style={
-                                      {
-                                        "flex": 1,
-                                      }
+                                      [
+                                        {
+                                          "display": "flex",
+                                          "flexBasis": "0%",
+                                          "flexGrow": 1,
+                                          "flexShrink": 1,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 14,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Gather basic usage data
@@ -394,15 +467,18 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "marginLeft": 0,
-                                      "marginTop": 4,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginTop": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
@@ -410,63 +486,106 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     onPress={[Function]}
                                     style={
-                                      {
-                                        "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
+                                      [
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Learn more
                                   </Text>
                                 </Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                activeOpacity={0.7}
-                                disabled={false}
-                                onPress={[Function]}
+                              </View>
+                              <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": false,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "backgroundColor": "#f3f3f4",
-                                      "borderRadius": 12,
-                                      "marginBottom": 16,
-                                      "padding": 16,
-                                    },
-                                    false,
-                                  ]
+                                  {
+                                    "backgroundColor": "#f3f3f4",
+                                    "borderRadius": 12,
+                                    "marginBottom": 16,
+                                    "paddingBottom": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 16,
+                                  }
                                 }
                               >
                                 <View
                                   style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 16,
-                                      "justifyContent": "space-between",
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "flex-start",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 16,
+                                        "justifyContent": "space-between",
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <View
                                     style={
-                                      {
-                                        "flex": 1,
-                                      }
+                                      [
+                                        {
+                                          "display": "flex",
+                                          "flexBasis": "0%",
+                                          "flexGrow": 1,
+                                          "flexShrink": 1,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 14,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Marketing updates
@@ -506,71 +625,131 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "marginLeft": 0,
-                                      "marginTop": 4,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginTop": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                                 </Text>
-                              </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </View>
                       </RCTScrollView>
                       <View
                         style={
-                          {
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
-                            "paddingTop": 16,
-                          }
+                          [
+                            {
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 16,
+                            },
+                            undefined,
+                          ]
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Continue"
                           accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
+                          accessibilityState={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#131416",
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
                             }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
                           }
                           testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#ffffff",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Continue
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -903,7 +1082,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flex": 1,
+                          "flexBasis": "0%",
+                          "flexGrow": 1,
+                          "flexShrink": 1,
                           "paddingTop": 40,
                         }
                       }
@@ -916,8 +1097,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "flex": 1,
-                            "paddingTop": 40,
+                            "flexBasis": "0%",
+                            "flexGrow": 1,
+                            "flexShrink": 1,
                           }
                         }
                         testID="meta-metrics-container"
@@ -925,21 +1107,32 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         <View>
                           <View
                             style={
-                              {
-                                "flex": 1,
-                                "flexDirection": "column",
-                                "marginHorizontal": 20,
-                                "paddingBottom": 80,
-                                "rowGap": 16,
-                              }
+                              [
+                                {
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                  "marginLeft": 20,
+                                  "marginRight": 20,
+                                  "paddingBottom": 80,
+                                  "rowGap": 16,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "marginVertical": 12,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "marginBottom": 12,
+                                    "marginTop": 12,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Image
@@ -957,15 +1150,18 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 32,
-                                  "fontWeight": "700",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 40,
-                                  "marginTop": 8,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 32,
+                                    "fontWeight": 700,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 40,
+                                    "marginTop": 8,
+                                  },
+                                  undefined,
+                                ]
                               }
                               testID="optin-metrics-title-id"
                             >
@@ -974,60 +1170,116 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#66676a",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#66676a",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "fontWeight": 400,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
-                              <TouchableOpacity
-                                activeOpacity={0.7}
-                                onPress={[Function]}
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "backgroundColor": "#f3f3f4",
                                     "borderRadius": 12,
                                     "marginBottom": 16,
-                                    "padding": 16,
+                                    "paddingBottom": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 16,
                                   }
                                 }
                                 testID="optin-metrics-metrics-checkbox"
                               >
                                 <View
                                   style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 16,
-                                      "justifyContent": "space-between",
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "flex-start",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 16,
+                                        "justifyContent": "space-between",
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <View
                                     style={
-                                      {
-                                        "flex": 1,
-                                      }
+                                      [
+                                        {
+                                          "display": "flex",
+                                          "flexBasis": "0%",
+                                          "flexGrow": 1,
+                                          "flexShrink": 1,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 14,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Gather basic usage data
@@ -1085,15 +1337,18 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "marginLeft": 0,
-                                      "marginTop": 4,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginTop": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
@@ -1101,63 +1356,106 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     accessibilityRole="text"
                                     onPress={[Function]}
                                     style={
-                                      {
-                                        "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
+                                      [
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Learn more
                                   </Text>
                                 </Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                activeOpacity={0.7}
-                                disabled={false}
-                                onPress={[Function]}
+                              </View>
+                              <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": false,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "backgroundColor": "#f3f3f4",
-                                      "borderRadius": 12,
-                                      "marginBottom": 16,
-                                      "padding": 16,
-                                    },
-                                    false,
-                                  ]
+                                  {
+                                    "backgroundColor": "#f3f3f4",
+                                    "borderRadius": 12,
+                                    "marginBottom": 16,
+                                    "paddingBottom": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 16,
+                                  }
                                 }
                               >
                                 <View
                                   style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 16,
-                                      "justifyContent": "space-between",
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "flex-start",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 16,
+                                        "justifyContent": "space-between",
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <View
                                     style={
-                                      {
-                                        "flex": 1,
-                                      }
+                                      [
+                                        {
+                                          "display": "flex",
+                                          "flexBasis": "0%",
+                                          "flexGrow": 1,
+                                          "flexShrink": 1,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 14,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Marketing updates
@@ -1197,71 +1495,131 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "marginLeft": 0,
-                                      "marginTop": 4,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginTop": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                                 </Text>
-                              </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </View>
                       </RCTScrollView>
                       <View
                         style={
-                          {
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
-                            "paddingTop": 16,
-                          }
+                          [
+                            {
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 16,
+                            },
+                            undefined,
+                          ]
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Continue"
                           accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
+                          accessibilityState={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#131416",
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
                             }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
                           }
                           testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#ffffff",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Continue
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -1706,7 +2064,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flex": 1,
+                          "flexBasis": "0%",
+                          "flexGrow": 1,
+                          "flexShrink": 1,
                           "paddingTop": 40,
                         }
                       }
@@ -1719,8 +2079,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "flex": 1,
-                            "paddingTop": 40,
+                            "flexBasis": "0%",
+                            "flexGrow": 1,
+                            "flexShrink": 1,
                           }
                         }
                         testID="meta-metrics-container"
@@ -1728,21 +2089,32 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         <View>
                           <View
                             style={
-                              {
-                                "flex": 1,
-                                "flexDirection": "column",
-                                "marginHorizontal": 20,
-                                "paddingBottom": 80,
-                                "rowGap": 16,
-                              }
+                              [
+                                {
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                  "marginLeft": 20,
+                                  "marginRight": 20,
+                                  "paddingBottom": 80,
+                                  "rowGap": 16,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "marginVertical": 12,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "marginBottom": 12,
+                                    "marginTop": 12,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Image
@@ -1760,15 +2132,18 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 32,
-                                  "fontWeight": "700",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 40,
-                                  "marginTop": 8,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 32,
+                                    "fontWeight": 700,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 40,
+                                    "marginTop": 8,
+                                  },
+                                  undefined,
+                                ]
                               }
                               testID="optin-metrics-title-id"
                             >
@@ -1777,60 +2152,116 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#66676a",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#66676a",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "fontWeight": 400,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
-                              <TouchableOpacity
-                                activeOpacity={0.7}
-                                onPress={[Function]}
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "backgroundColor": "#f3f3f4",
                                     "borderRadius": 12,
                                     "marginBottom": 16,
-                                    "padding": 16,
+                                    "paddingBottom": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 16,
                                   }
                                 }
                                 testID="optin-metrics-metrics-checkbox"
                               >
                                 <View
                                   style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 16,
-                                      "justifyContent": "space-between",
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "flex-start",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 16,
+                                        "justifyContent": "space-between",
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <View
                                     style={
-                                      {
-                                        "flex": 1,
-                                      }
+                                      [
+                                        {
+                                          "display": "flex",
+                                          "flexBasis": "0%",
+                                          "flexGrow": 1,
+                                          "flexShrink": 1,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 14,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Gather basic usage data
@@ -1888,15 +2319,18 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "marginLeft": 0,
-                                      "marginTop": 4,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginTop": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
@@ -1904,63 +2338,106 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                     accessibilityRole="text"
                                     onPress={[Function]}
                                     style={
-                                      {
-                                        "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
+                                      [
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Learn more
                                   </Text>
                                 </Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                activeOpacity={0.7}
-                                disabled={false}
-                                onPress={[Function]}
+                              </View>
+                              <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": false,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "backgroundColor": "#f3f3f4",
-                                      "borderRadius": 12,
-                                      "marginBottom": 16,
-                                      "padding": 16,
-                                    },
-                                    false,
-                                  ]
+                                  {
+                                    "backgroundColor": "#f3f3f4",
+                                    "borderRadius": 12,
+                                    "marginBottom": 16,
+                                    "paddingBottom": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 16,
+                                  }
                                 }
                               >
                                 <View
                                   style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 16,
-                                      "justifyContent": "space-between",
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "flex-start",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 16,
+                                        "justifyContent": "space-between",
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <View
                                     style={
-                                      {
-                                        "flex": 1,
-                                      }
+                                      [
+                                        {
+                                          "display": "flex",
+                                          "flexBasis": "0%",
+                                          "flexGrow": 1,
+                                          "flexShrink": 1,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 14,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Marketing updates
@@ -2000,71 +2477,131 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "marginLeft": 0,
-                                      "marginTop": 4,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginTop": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                                 </Text>
-                              </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </View>
                       </RCTScrollView>
                       <View
                         style={
-                          {
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
-                            "paddingTop": 16,
-                          }
+                          [
+                            {
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 16,
+                            },
+                            undefined,
+                          ]
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Continue"
                           accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
+                          accessibilityState={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#131416",
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
                             }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
                           }
                           testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#ffffff",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Continue
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </RNCSafeAreaView>
                   </View>
