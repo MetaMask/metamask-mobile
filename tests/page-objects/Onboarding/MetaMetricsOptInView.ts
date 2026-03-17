@@ -11,11 +11,17 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class MetaMetricsOptIn {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
+    return Matchers.getElementByID(
+      MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+    );
+  }
+
+  get screenTitle(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(
-          MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
         ),
       appium: () =>
         PlaywrightMatchers.getElementById(
@@ -80,7 +86,7 @@ class MetaMetricsOptIn {
   async isScreenTitleVisible(): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const el = await asPlaywrightElement(this.container);
+        const el = await asPlaywrightElement(this.screenTitle);
         await el.waitForDisplayed({ timeout: 30000 });
       },
     });

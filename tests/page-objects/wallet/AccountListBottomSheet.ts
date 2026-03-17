@@ -320,50 +320,33 @@ class AccountListBottomSheet {
   async waitForSyncingToComplete(timeout: number = 60000): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const startTime = Date.now();
-        const pollInterval = 500;
-        const initialWaitTimeout = 5000;
-
         const syncingElement =
           await PlaywrightMatchers.getElementByCatchAll('Syncing');
         const discoveringElement =
           await PlaywrightMatchers.getElementByCatchAll('Discovering');
 
-        // Step 1: Wait up to 5 seconds for "Syncing" or "Discovering" to appear
-        let syncingDetected = false;
-        while (Date.now() - startTime < initialWaitTimeout) {
-          const isSyncing = await syncingElement.isVisible().catch(() => false);
-          const isDiscovering = await discoveringElement
-            .isVisible()
-            .catch(() => false);
-
-          if (isSyncing || isDiscovering) {
-            syncingDetected = true;
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, pollInterval));
-        }
+        // Step 1: Wait up to 5s for either "Syncing" or "Discovering" to appear
+        const syncingDetected = await Promise.race([
+          syncingElement.waitForDisplayed({ timeout: 5000 }).then(() => true),
+          discoveringElement
+            .waitForDisplayed({ timeout: 5000 })
+            .then(() => true),
+        ]).catch(() => false);
 
         if (!syncingDetected) return;
 
         // Step 2: Wait for "Syncing" to disappear
-        while (Date.now() - startTime < timeout) {
-          const isSyncing = await syncingElement.isVisible().catch(() => false);
-          if (!isSyncing) break;
-          await new Promise((resolve) => setTimeout(resolve, pollInterval));
-        }
+        await syncingElement
+          .waitForDisplayed({ timeout, reverse: true })
+          .catch(() => undefined);
 
-        // Step 3: Wait 1 second
+        // Step 3: Brief pause before checking discovery state
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Step 4: Wait for "Discovering" to disappear
-        while (Date.now() - startTime < timeout) {
-          const isDiscovering = await discoveringElement
-            .isVisible()
-            .catch(() => false);
-          if (!isDiscovering) break;
-          await new Promise((resolve) => setTimeout(resolve, pollInterval));
-        }
+        await discoveringElement
+          .waitForDisplayed({ timeout, reverse: true })
+          .catch(() => undefined);
       },
     });
   }

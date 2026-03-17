@@ -13,6 +13,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
+import { UnifiedGestures } from '../../framework';
 
 class ImportWalletView {
   get container(): DetoxElement {
@@ -137,14 +138,14 @@ class ImportWalletView {
   }
 
   async tapContinueButton(): Promise<void> {
-    await Gestures.tap(this.continueButton, {
-      elemDescription: 'Import Wallet Continue Button',
+    await UnifiedGestures.tap(this.continueButton, {
+      description: 'Import Wallet Continue Button',
     });
   }
 
   async tapTitle(): Promise<void> {
-    await Gestures.tap(this.title, {
-      elemDescription: 'Import Wallet Title',
+    await UnifiedGestures.tap(this.title, {
+      description: 'Import Wallet Title',
     });
   }
 
