@@ -4,7 +4,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import Routes from '../../../constants/navigation/Routes';
-import TokenListRoutes from './routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockStopListening = jest.fn();
@@ -13,8 +12,8 @@ const mockStartListening = jest.fn();
 jest.mock('../../../core/LockManagerService', () => ({
   __esModule: true,
   default: {
-    stopListening: mockStopListening,
-    startListening: mockStartListening,
+    stopListening: () => mockStopListening(),
+    startListening: () => mockStartListening(),
   },
 }));
 
@@ -67,6 +66,9 @@ jest.mock(
 );
 jest.mock('./Deposit/Views/Modals/SsnInfoModal', () => () => null);
 jest.mock('./Views/OrderDetails', () => () => null);
+
+// Import after mocks are set up
+import TokenListRoutes from './routes';
 
 const mockStore = configureMockStore();
 const initialState = {
