@@ -34,8 +34,7 @@ import { RootState } from '../../../../../reducers';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
 
-const TOOLTIP_NAME = 'Claim Bonus Info';
-const EXPERIENCE = 'MUSD_BONUS';
+const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
@@ -46,7 +45,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
 }) => {
   const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
-    useMerklBonusClaim(asset);
+    useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -55,30 +54,36 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  // TODO: Add analytics event for terms of use press.
   const handleTermsPress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  }, []);
-
-  const handleInfoPress = useCallback(() => {
-    // TODO: Circle-back on properties. Check if this event is automatically tracked in the reusable tooltip modal component.
     trackEvent(
-      createEventBuilder(EVENT_NAME.TOOLTIP_OPENED)
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
         .addProperties({
-          text: strings('earn.claimable_bonus'),
-          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
-          tooltip_name: TOOLTIP_NAME,
-          experience: EXPERIENCE,
+          location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
         })
         .build(),
     );
+
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  }, [createEventBuilder, trackEvent]);
+
+  const handleInfoPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(EVENT_NAME.TOOLTIP_OPENED)
+        .addProperties({
+          location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+          tooltip_name: 'claim_bonus_info',
+          related_text: 'Claimable bonus',
+        })
+        .build(),
+    );
+
     openTooltipModal(
       strings('earn.claimable_bonus'),
       <Text variant={TextVariant.BodyMd}>
         {strings('earn.claimable_bonus_tooltip_with_percentage', {
           percentage: MUSD_CONVERSION_APY,
         })}{' '}
-        {/* TODO: Migrate nested earn.musd_conversion.education.terms_apply to a top-level earn.terms_apply key */}
         <Text
           variant={TextVariant.BodyMd}
           onPress={handleTermsPress}
@@ -93,11 +98,10 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   }, [openTooltipModal, handleTermsPress, trackEvent, createEventBuilder]);
 
   const handleClaimPress = useCallback(() => {
-    // TODO: Double check that properties match the other "MUSD_CLAIM_BONUS_BUTTON_CLICKED" events.
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
         .addProperties({
-          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
+          location: EVENT_LOCATIONS.ASSET_OVERVIEW,
           action_type: 'claim_bonus',
           button_text: strings('earn.claim'),
           network_chain_id: asset.chainId,
