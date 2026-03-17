@@ -69,15 +69,17 @@ const SetPhoneNumber = () => {
     return signUpRegions;
   }, [signUpRegions, isUsUser]);
 
-  // Sync local state once when userCountry first becomes available (e.g., after
-  // registration settings load for a user whose countryKey nav param was absent).
+  // Sync local state once when registration settings first become available
+  // (cache miss on first render). Preserves countryKey nav param priority over
+  // userCountry, mirroring the lazy initializer's resolution order.
   useEffect(() => {
     if (hasAutoSelected.current) return;
-    if (userCountry) {
+    const country = getRegionByCode(countryKey) ?? userCountry ?? null;
+    if (country) {
       hasAutoSelected.current = true;
-      setSelectedCountry(userCountry);
+      setSelectedCountry(country);
     }
-  }, [userCountry]);
+  }, [userCountry, getRegionByCode, countryKey]);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const {

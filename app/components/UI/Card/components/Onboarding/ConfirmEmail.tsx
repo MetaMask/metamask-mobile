@@ -122,6 +122,7 @@ const ConfirmEmail = () => {
     ) {
       return;
     }
+    setLatestValueSubmitted(confirmCode);
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -216,7 +217,6 @@ const ConfirmEmail = () => {
       confirmCode.length === CODE_LENGTH &&
       latestValueSubmitted !== confirmCode
     ) {
-      setLatestValueSubmitted(confirmCode);
       handleContinue();
     }
   }, [confirmCode, handleContinue, latestValueSubmitted]);
