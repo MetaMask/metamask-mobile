@@ -392,6 +392,11 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
 // ---------------------------------------------------------------------------
 
 // Map of nested route names to their parent navigator.
+// Friendly aliases → actual route names (for developer convenience)
+const ROUTE_ALIASES = {
+  PerpsHomeView: 'PerpsMarketListView',
+};
+
 // When navigating to a nested route, we need: navigate('Parent', { screen: 'Child', params })
 // Routes not in this map are assumed to be root-level and navigated to directly.
 const NESTED_ROUTE_PARENTS = {
@@ -425,7 +430,7 @@ const NESTED_ROUTE_PARENTS = {
 
 const COMMANDS = {
   async navigate(client, args, { deviceName, platform } = {}) {
-    const routeName = args[0];
+    const routeName = ROUTE_ALIASES[args[0]] || args[0];
     if (!routeName) {
       throw new Error('Usage: navigate <RouteName> [params-json]');
     }
