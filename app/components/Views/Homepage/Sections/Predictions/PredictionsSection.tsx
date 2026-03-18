@@ -10,7 +10,6 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { SectionRefreshHandle } from '../../types';
@@ -158,26 +157,9 @@ const PredictionsSection = forwardRef<
     return null;
   }
 
+  // Don't render if there is a connection error
   if (hasError) {
-    return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader
-            title={title}
-            onPress={handleViewAllPredictions}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-              'predictions',
-            )}
-          />
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={refresh}
-          />
-        </Box>
-      </View>
-    );
+    return null;
   }
 
   // Render positions if user has any
