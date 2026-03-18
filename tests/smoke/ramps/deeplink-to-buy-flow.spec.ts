@@ -32,7 +32,10 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withRampsUnifiedBuyRemoteFlagsSeededForE2E()
+          .withRampsUnifiedBuyRemoteFlagsSeededForE2E({
+            rampsUnifiedBuyV1: true,
+            rampsUnifiedBuyV2: false,
+          })
           .withRampsSelectedPaymentMethod()
           .withRampsSelectedRegion(selectedRegion)
           .build(),
@@ -66,7 +69,10 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withRampsUnifiedBuyRemoteFlagsSeededForE2E()
+          .withRampsUnifiedBuyRemoteFlagsSeededForE2E({
+            rampsUnifiedBuyV1: true,
+            rampsUnifiedBuyV2: false,
+          })
           .withPopularNetworks()
           .withRampsSelectedRegion(selectedRegion)
           .withRampsSelectedPaymentMethod()
