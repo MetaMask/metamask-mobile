@@ -26,6 +26,7 @@ import { useRampsController } from '../../../hooks/useRampsController';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -131,11 +132,13 @@ function TokenNotAvailableModal() {
       ref={sheetRef}
       shouldNavigateBack
       onClose={handleDismiss}
-      testID="token-unavailable-for-provider-modal"
+      testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
     >
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
+        closeButtonProps={{
+          testID: TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
       >
         <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp.token_unavailable_modal.title')}
@@ -159,7 +162,7 @@ function TokenNotAvailableModal() {
             label={strings('fiat_on_ramp.token_unavailable_modal.change_token')}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
-            testID="token-unavailable-change-token-button"
+            testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_TOKEN_BUTTON}
           />
         </View>
         <View style={styles.footerButton}>
@@ -171,7 +174,7 @@ function TokenNotAvailableModal() {
             )}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-            testID="token-unavailable-change-provider-button"
+            testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_PROVIDER_BUTTON}
           />
         </View>
       </View>

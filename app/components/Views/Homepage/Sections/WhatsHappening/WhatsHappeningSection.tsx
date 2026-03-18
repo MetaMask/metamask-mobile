@@ -18,10 +18,10 @@ const MAX_ITEMS_DISPLAYED = 5;
 
 const CARD_WIDTH = 280;
 const GAP = 12;
-const PADDING = 16;
 
-const SNAP_OFFSETS = Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, i) =>
-  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
+const SNAP_OFFSETS = Array.from(
+  { length: MAX_ITEMS_DISPLAYED },
+  (_, i) => i * (CARD_WIDTH + GAP),
 );
 
 const SKELETON_KEYS = Array.from(
@@ -56,10 +56,7 @@ const WhatsHappeningSection = forwardRef<
       (initialIndex: number) => {
         navigation.navigate(
           Routes.WHATS_HAPPENING_DETAIL as never,
-          {
-            items,
-            initialIndex,
-          } as never,
+          { items, initialIndex } as never,
         );
       },
       [navigation, items],

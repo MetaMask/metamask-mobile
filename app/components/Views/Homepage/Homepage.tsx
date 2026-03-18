@@ -20,6 +20,7 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
@@ -43,6 +44,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isMusdConversionEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
@@ -70,12 +72,22 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
+        {
+          name: HomeSectionNames.WHATS_HAPPENING,
+          enabled: isWhatsHappeningEnabled,
+        },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled),
-    [isCashSectionEnabled, isPerpsEnabled, isPredictEnabled, isDeFiEnabled],
+    [
+      isCashSectionEnabled,
+      isWhatsHappeningEnabled,
+      isPerpsEnabled,
+      isPredictEnabled,
+      isDeFiEnabled,
+    ],
   );
 
   const totalSectionsLoaded = enabledSections.length;

@@ -169,6 +169,10 @@ class Transactions extends PureComponent {
      */
     header: PropTypes.object,
     /**
+     * When true, suppresses the empty state footer when there are no transactions
+     */
+    hideEmptyState: PropTypes.bool,
+    /**
      * Optional header height
      */
     headerHeight: PropTypes.number,
@@ -359,6 +363,10 @@ class Transactions extends PureComponent {
   };
 
   renderEmpty = () => {
+    if (this.props.hideEmptyState) {
+      return null;
+    }
+
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
