@@ -306,7 +306,7 @@
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "^63.0.0",
     "@metamask/transaction-pay-controller": "^17.1.0",
-    "@metamask/tron-wallet-snap": "1.22.1",
+    "@metamask/tron-wallet-snap": "1.24.0",
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
