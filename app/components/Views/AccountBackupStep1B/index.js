@@ -135,7 +135,10 @@ const AccountBackupStep1B = (props) => {
               {strings('account_backup_step_1B.title')}
             </DSText>
             <Box twClassName="mb-4 justify-center">
-              <DSText variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              <DSText
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+              >
                 {strings('account_backup_step_1B.subtitle_1')}{' '}
                 <DSText
                   variant={TextVariant.BodyMd}
@@ -191,10 +194,7 @@ const AccountBackupStep1B = (props) => {
             >
               {strings('account_backup_step_1B.manual_security')}
             </DSText>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="mb-5"
-            >
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-5">
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
