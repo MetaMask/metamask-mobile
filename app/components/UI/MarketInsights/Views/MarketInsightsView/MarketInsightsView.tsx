@@ -11,6 +11,7 @@ import {
   Linking,
   Pressable,
   Animated,
+  Image,
   useColorScheme,
 } from 'react-native';
 import Video from 'react-native-video';
@@ -18,6 +19,10 @@ import Video from 'react-native-video';
 const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const MarketInsightsBackgroundVideoDark = require('../../animations/market-insights-background-dark.mp4');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-insights-background-light-last-frame.png');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const MarketInsightsBackgroundLastFrameDark = require('../../animations/market-insights-background-dark-last-frame.png');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -200,6 +205,19 @@ const MarketInsightsView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
+  const [videoEnded, setVideoEnded] = useState(false);
+  const lastFrameImage = useMemo(
+    () =>
+      isDarkMode
+        ? MarketInsightsBackgroundLastFrameDark
+        : MarketInsightsBackgroundLastFrameLight,
+    [isDarkMode],
+  );
+
+  const handleVideoEnd = useCallback(() => {
+    setVideoEnded(true);
+  }, []);
+
   const hasTrackedViewRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
@@ -507,16 +525,26 @@ const MarketInsightsView: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
-          <Video
-            source={backgroundVideo}
-            style={tw.style('w-full h-full')}
-            resizeMode="cover"
-            muted
-            paused={false}
-            controls={false}
-            disableFocus
-            testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-          />
+          {videoEnded ? (
+            <Image
+              source={lastFrameImage}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+            />
+          ) : (
+            <Video
+              source={backgroundVideo}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+              muted
+              paused={false}
+              controls={false}
+              disableFocus
+              onEnd={handleVideoEnd}
+              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+            />
+          )}
         </Box>
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">
