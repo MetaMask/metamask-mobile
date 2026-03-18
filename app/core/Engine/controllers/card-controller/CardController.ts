@@ -10,6 +10,7 @@ import {
   CardProviderErrorCode,
   type CardAuthSession,
   type CardAuthResult,
+  type CardAuthStep,
   type CardCredentials,
   type ICardProvider,
 } from './provider-types';
@@ -50,7 +51,7 @@ const metadata: StateMetadata<CardControllerState> = {
 
 export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
-  activeProviderId: null,
+  activeProviderId: 'baanx',
   isAuthenticated: false,
   cardholderAccounts: [],
   providerData: {},
@@ -70,6 +71,7 @@ export class CardController extends BaseController<
   CardControllerMessenger
 > {
   private readonly providers: Record<string, ICardProvider>;
+  private currentSession: CardAuthSession | null = null;
 
   constructor({
     messenger,
@@ -123,19 +125,37 @@ export class CardController extends BaseController<
     }
   }
 
-  async initiateAuth(country: string): Promise<CardAuthSession> {
-    return this.getActiveProvider().initiateAuth(country);
+  async initiateAuth(country: string): Promise<void> {
+    this.currentSession = await this.getActiveProvider().initiateAuth(country);
+  }
+
+  getCurrentAuthStep(): CardAuthStep | null {
+    return this.currentSession?.currentStep ?? null;
   }
 
   async submitCredentials(
-    session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult> {
+    if (!this.currentSession) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'submitCredentials: no active auth session',
+      );
+    }
     const pid = this.state.activeProviderId ?? '';
     const result = await this.getActiveProvider().submitCredentials(
-      session,
+      this.currentSession,
       credentials,
     );
+
+    if (result.nextStep) {
+      this.currentSession = {
+        ...this.currentSession,
+        currentStep: result.nextStep,
+      };
+    } else {
+      this.currentSession = null;
+    }
 
     if (result.done && result.tokenSet) {
       const { tokenSet } = result;
@@ -160,25 +180,15 @@ export class CardController extends BaseController<
     return result;
   }
 
-  async sendOtp(session: CardAuthSession): Promise<void> {
-    const pid = this.state.activeProviderId ?? '';
+  async executeStepAction(): Promise<void> {
+    if (!this.currentSession) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'executeStepAction: no active auth session',
+      );
+    }
     const provider = this.getActiveProvider();
-
-    if (typeof session._metadata.otpUserId !== 'string') {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'sendOtp: session missing otpUserId',
-      );
-    }
-
-    if (!provider.sendOtp) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        `Provider ${pid} does not support OTP`,
-      );
-    }
-
-    await provider.sendOtp(session);
+    await provider.executeStepAction?.(this.currentSession);
   }
 
   async logout(): Promise<void> {
@@ -196,6 +206,7 @@ export class CardController extends BaseController<
       }
     }
 
+    this.currentSession = null;
     await this.clearTokens();
     this.update((s) => {
       s.isAuthenticated = false;

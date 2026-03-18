@@ -31,7 +31,7 @@ function buildMockProvider(
     capabilities: {} as ICardProvider['capabilities'],
     initiateAuth: jest.fn(),
     submitCredentials: jest.fn(),
-    sendOtp: jest.fn(),
+    executeStepAction: jest.fn(),
     refreshTokens: jest.fn(),
     validateTokens: jest.fn(),
     logout: jest.fn(),
@@ -116,7 +116,7 @@ describe('CardController', () => {
     });
 
     expect(controller.state.selectedCountry).toBe('GB');
-    expect(controller.state.activeProviderId).toBeNull();
+    expect(controller.state.activeProviderId).toBe('baanx');
     expect(controller.state.isAuthenticated).toBe(false);
     expect(controller.state.cardholderAccounts).toStrictEqual([]);
     expect(controller.state.providerData).toStrictEqual({});
@@ -152,15 +152,17 @@ describe('CardController — auth methods', () => {
   });
 
   describe('initiateAuth', () => {
-    it('delegates to the active provider and returns the session', async () => {
+    it('delegates to the active provider and stores the session internally', async () => {
       const provider = buildMockProvider();
       provider.initiateAuth.mockResolvedValue(mockSession);
       const controller = buildController(provider);
 
-      const result = await controller.initiateAuth('US');
+      await controller.initiateAuth('US');
 
       expect(provider.initiateAuth).toHaveBeenCalledWith('US');
-      expect(result).toBe(mockSession);
+      expect(controller.getCurrentAuthStep()).toStrictEqual(
+        mockSession.currentStep,
+      );
     });
 
     it('throws CardProviderError when there is no active provider', async () => {
@@ -177,8 +179,22 @@ describe('CardController — auth methods', () => {
   });
 
   describe('submitCredentials', () => {
+    it('throws when no session has been initiated', async () => {
+      const provider = buildMockProvider();
+      const controller = buildController(provider);
+
+      await expect(
+        controller.submitCredentials({
+          type: 'email_password',
+          email: 'a@b.com',
+          password: 'pass',
+        }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+    });
+
     it('stores tokens, sets isAuthenticated and providerData on done:true', async () => {
       const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
       provider.submitCredentials.mockResolvedValue({
         done: true,
         tokenSet: mockTokenSet,
@@ -186,7 +202,8 @@ describe('CardController — auth methods', () => {
       mockTokenStore.set.mockResolvedValue(true);
       const controller = buildController(provider);
 
-      const result = await controller.submitCredentials(mockSession, {
+      await controller.initiateAuth('US');
+      const result = await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
@@ -202,6 +219,7 @@ describe('CardController — auth methods', () => {
 
     it('still sets isAuthenticated when token store write fails', async () => {
       const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
       provider.submitCredentials.mockResolvedValue({
         done: true,
         tokenSet: mockTokenSet,
@@ -209,7 +227,8 @@ describe('CardController — auth methods', () => {
       mockTokenStore.set.mockResolvedValue(false);
       const controller = buildController(provider);
 
-      await controller.submitCredentials(mockSession, {
+      await controller.initiateAuth('US');
+      await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
@@ -218,15 +237,17 @@ describe('CardController — auth methods', () => {
       expect(controller.state.isAuthenticated).toBe(true);
     });
 
-    it('does not set isAuthenticated when OTP step is required', async () => {
+    it('updates currentSession step when OTP step is required', async () => {
       const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
       provider.submitCredentials.mockResolvedValue({
         done: false,
         nextStep: { type: 'otp', destination: '+1555****90' },
       });
       const controller = buildController(provider);
 
-      const result = await controller.submitCredentials(mockSession, {
+      await controller.initiateAuth('US');
+      const result = await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
@@ -234,17 +255,23 @@ describe('CardController — auth methods', () => {
 
       expect(controller.state.isAuthenticated).toBe(false);
       expect(result.done).toBe(false);
+      expect(controller.getCurrentAuthStep()).toStrictEqual({
+        type: 'otp',
+        destination: '+1555****90',
+      });
     });
 
-    it('does not set isAuthenticated when onboarding is required', async () => {
+    it('clears session when onboarding is required', async () => {
       const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
       provider.submitCredentials.mockResolvedValue({
         done: false,
         onboardingRequired: { sessionId: 'ob-session', phase: 'kyc' },
       });
       const controller = buildController(provider);
 
-      const result = await controller.submitCredentials(mockSession, {
+      await controller.initiateAuth('US');
+      const result = await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
@@ -252,44 +279,39 @@ describe('CardController — auth methods', () => {
 
       expect(controller.state.isAuthenticated).toBe(false);
       expect(result.onboardingRequired?.phase).toBe('kyc');
+      expect(controller.getCurrentAuthStep()).toBeNull();
     });
   });
 
-  describe('sendOtp', () => {
-    it('delegates to the provider when session has otpUserId', async () => {
-      const provider = buildMockProvider();
-      (provider.sendOtp as jest.Mock).mockResolvedValue(undefined);
-      const sessionWithOtp: CardAuthSession = {
-        ...mockSession,
-        _metadata: { ...mockSession._metadata, otpUserId: 'user-42' },
-      };
-      const controller = buildController(provider);
-
-      await controller.sendOtp(sessionWithOtp);
-
-      expect(provider.sendOtp).toHaveBeenCalledWith(sessionWithOtp);
-    });
-
-    it('throws CardProviderError when session is missing otpUserId', async () => {
+  describe('executeStepAction', () => {
+    it('throws when no session has been initiated', async () => {
       const provider = buildMockProvider();
       const controller = buildController(provider);
 
-      await expect(controller.sendOtp(mockSession)).rejects.toMatchObject({
+      await expect(controller.executeStepAction()).rejects.toMatchObject({
         code: CardProviderErrorCode.Unknown,
       });
     });
 
-    it('throws CardProviderError when provider does not support OTP', async () => {
-      const provider = buildMockProvider({ sendOtp: undefined });
-      const sessionWithOtp: CardAuthSession = {
-        ...mockSession,
-        _metadata: { ...mockSession._metadata, otpUserId: 'user-42' },
-      };
+    it('delegates to the provider with the current session', async () => {
+      const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      (provider.executeStepAction as jest.Mock).mockResolvedValue(undefined);
       const controller = buildController(provider);
 
-      await expect(controller.sendOtp(sessionWithOtp)).rejects.toMatchObject({
-        code: CardProviderErrorCode.Unknown,
-      });
+      await controller.initiateAuth('US');
+      await controller.executeStepAction();
+
+      expect(provider.executeStepAction).toHaveBeenCalledWith(mockSession);
+    });
+
+    it('is a no-op when the provider does not implement executeStepAction', async () => {
+      const provider = buildMockProvider({ executeStepAction: undefined });
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      const controller = buildController(provider);
+
+      await controller.initiateAuth('US');
+      await expect(controller.executeStepAction()).resolves.toBeUndefined();
     });
   });
 

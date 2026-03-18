@@ -24,7 +24,10 @@ export const cardControllerInit: ControllerInitFunction<
 
   const controller = new CardController({
     messenger: controllerMessenger,
-    state: persistedState.CardController ?? defaultCardControllerState,
+    state: {
+      ...(persistedState.CardController ?? defaultCardControllerState),
+      activeProviderId: 'baanx',
+    },
     providers: { baanx: baanxProvider },
   });
 

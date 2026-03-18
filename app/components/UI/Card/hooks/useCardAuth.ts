@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { cardQueries } from '../queries';
 import {
-  CardAuthSession,
   CardAuthStep,
   CardCredentials,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
@@ -16,49 +15,38 @@ function getController() {
   return controller;
 }
 
+const LOGIN_STEP: CardAuthStep = { type: 'email_password' };
+
 export const useCardAuth = () => {
   const queryClient = useQueryClient();
-  const [session, setSession] = useState<CardAuthSession | null>(null);
+  const [currentStep, setCurrentStep] = useState<CardAuthStep>(LOGIN_STEP);
 
   const initiate = useMutation({
     mutationKey: cardQueries.auth.keys.initiate(),
     mutationFn: (country: string) => getController().initiateAuth(country),
-    onSuccess: (newSession) => setSession(newSession),
     retry: false,
   });
 
   const submit = useMutation({
     mutationKey: cardQueries.auth.keys.submit(),
-    mutationFn: (credentials: CardCredentials) => {
-      if (!session) {
-        throw new Error('No active auth session — call initiate first');
-      }
-      return getController().submitCredentials(session, credentials);
-    },
+    mutationFn: (credentials: CardCredentials) =>
+      getController().submitCredentials(credentials),
     onSuccess: (result) => {
-      if (result.done) {
-        setSession(null);
-        queryClient.invalidateQueries({ queryKey: cardQueries.keys.all() });
+      if (result.done || result.onboardingRequired) {
+        setCurrentStep(LOGIN_STEP);
+        if (result.done) {
+          queryClient.invalidateQueries({ queryKey: cardQueries.keys.all() });
+        }
       } else if (result.nextStep) {
-        setSession((s) =>
-          s ? { ...s, currentStep: result?.nextStep as CardAuthStep } : null,
-        );
-      }
-      if (result.onboardingRequired) {
-        setSession(null);
+        setCurrentStep(result.nextStep);
       }
     },
     retry: false,
   });
 
-  const sendOtp = useMutation({
-    mutationKey: cardQueries.auth.keys.sendOtp(),
-    mutationFn: () => {
-      if (!session) {
-        throw new Error('No active auth session');
-      }
-      return getController().sendOtp(session);
-    },
+  const stepAction = useMutation({
+    mutationKey: cardQueries.auth.keys.stepAction(),
+    mutationFn: () => getController().executeStepAction(),
     retry: false,
   });
 
@@ -66,17 +54,17 @@ export const useCardAuth = () => {
     mutationKey: cardQueries.auth.keys.logout(),
     mutationFn: () => getController().logout(),
     onSuccess: () => {
-      setSession(null);
+      setCurrentStep(LOGIN_STEP);
       queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     },
     retry: false,
   });
 
   return {
-    session,
+    currentStep,
     initiate,
     submit,
-    sendOtp,
+    stepAction,
     logout,
   };
 };

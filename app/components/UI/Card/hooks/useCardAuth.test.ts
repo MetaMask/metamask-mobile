@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { cardQueries } from '../queries';
 import { useCardAuth } from './useCardAuth';
-import type { CardAuthSession } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('@tanstack/react-query', () => ({
   useMutation: jest.fn(),
@@ -15,7 +14,7 @@ jest.mock('../../../../core/Engine', () => ({
     CardController: {
       initiateAuth: jest.fn(),
       submitCredentials: jest.fn(),
-      sendOtp: jest.fn(),
+      executeStepAction: jest.fn(),
       logout: jest.fn(),
     },
   },
@@ -34,17 +33,6 @@ const mockController = Engine.context.CardController as jest.Mocked<
 const mockInvalidateQueries = jest.fn();
 const mockRemoveQueries = jest.fn();
 
-const mockSession: CardAuthSession = {
-  id: 'session-1',
-  currentStep: { type: 'email_password' },
-  _metadata: {
-    initiateToken: 'tok',
-    location: 'international',
-    state: 's',
-    codeVerifier: 'cv',
-  },
-};
-
 describe('useCardAuth', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,8 +42,6 @@ describe('useCardAuth', () => {
       removeQueries: mockRemoveQueries,
     });
 
-    // Simulate React Query: call mutationFn then onSuccess, so tests flow naturally
-    // through result.current.*.mutateAsync — same pattern as useCardPinToken.test.ts
     mockUseMutation.mockImplementation(
       (opts: {
         mutationFn: (...args: unknown[]) => Promise<unknown>;
@@ -73,15 +59,17 @@ describe('useCardAuth', () => {
     );
   });
 
-  it('session starts as null', () => {
+  it('currentStep starts as email_password', () => {
     const { result } = renderHook(() => useCardAuth());
 
-    expect(result.current.session).toBeNull();
+    expect(result.current.currentStep).toStrictEqual({
+      type: 'email_password',
+    });
   });
 
   describe('initiate', () => {
-    it('calls controller.initiateAuth and sets session on success', async () => {
-      mockController.initiateAuth.mockResolvedValue(mockSession);
+    it('calls controller.initiateAuth', async () => {
+      mockController.initiateAuth.mockResolvedValue(undefined);
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
@@ -89,25 +77,11 @@ describe('useCardAuth', () => {
       });
 
       expect(mockController.initiateAuth).toHaveBeenCalledWith('US');
-      expect(result.current.session).toBe(mockSession);
     });
   });
 
   describe('submit', () => {
-    it('throws when session is null', async () => {
-      const { result } = renderHook(() => useCardAuth());
-
-      await expect(
-        result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        }),
-      ).rejects.toThrow('No active auth session');
-    });
-
-    it('calls controller.submitCredentials with the active session', async () => {
-      mockController.initiateAuth.mockResolvedValue(mockSession);
+    it('calls controller.submitCredentials with credentials', async () => {
       mockController.submitCredentials.mockResolvedValue({
         done: true,
         tokenSet: {} as never,
@@ -115,9 +89,6 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.initiate.mutateAsync('US');
-      });
-      await act(async () => {
         await result.current.submit.mutateAsync({
           type: 'email_password',
           email: 'a@b.com',
@@ -125,27 +96,18 @@ describe('useCardAuth', () => {
         });
       });
 
-      expect(mockController.submitCredentials).toHaveBeenCalledWith(
-        mockSession,
-        {
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        },
-      );
+      expect(mockController.submitCredentials).toHaveBeenCalledWith({
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'p',
+      });
     });
 
-    it('clears session and invalidates queries on done:true', async () => {
-      mockController.initiateAuth.mockResolvedValue(mockSession);
+    it('resets currentStep and invalidates queries on done:true', async () => {
       mockController.submitCredentials.mockResolvedValue({ done: true });
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.initiate.mutateAsync('US');
-      });
-      expect(result.current.session).toBe(mockSession);
-
-      await act(async () => {
         await result.current.submit.mutateAsync({
           type: 'email_password',
           email: 'a@b.com',
@@ -153,14 +115,15 @@ describe('useCardAuth', () => {
         });
       });
 
-      expect(result.current.session).toBeNull();
+      expect(result.current.currentStep).toStrictEqual({
+        type: 'email_password',
+      });
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: cardQueries.keys.all(),
       });
     });
 
-    it('updates session.currentStep when nextStep is returned', async () => {
-      mockController.initiateAuth.mockResolvedValue(mockSession);
+    it('updates currentStep when nextStep is returned', async () => {
       mockController.submitCredentials.mockResolvedValue({
         done: false,
         nextStep: { type: 'otp', destination: '+1555****90' },
@@ -168,9 +131,6 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.initiate.mutateAsync('US');
-      });
-      await act(async () => {
         await result.current.submit.mutateAsync({
           type: 'email_password',
           email: 'a@b.com',
@@ -178,14 +138,13 @@ describe('useCardAuth', () => {
         });
       });
 
-      expect(result.current.session?.currentStep).toStrictEqual({
+      expect(result.current.currentStep).toStrictEqual({
         type: 'otp',
         destination: '+1555****90',
       });
     });
 
-    it('clears session when onboardingRequired is returned', async () => {
-      mockController.initiateAuth.mockResolvedValue(mockSession);
+    it('resets currentStep when onboardingRequired is returned', async () => {
       mockController.submitCredentials.mockResolvedValue({
         done: false,
         onboardingRequired: { sessionId: 'ob-1', phase: 'kyc' },
@@ -193,11 +152,6 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.initiate.mutateAsync('US');
-      });
-      expect(result.current.session).toBe(mockSession);
-
-      await act(async () => {
         await result.current.submit.mutateAsync({
           type: 'email_password',
           email: 'a@b.com',
@@ -205,32 +159,22 @@ describe('useCardAuth', () => {
         });
       });
 
-      expect(result.current.session).toBeNull();
+      expect(result.current.currentStep).toStrictEqual({
+        type: 'email_password',
+      });
     });
   });
 
-  describe('sendOtp', () => {
-    it('throws when session is null', async () => {
-      const { result } = renderHook(() => useCardAuth());
-
-      await expect(result.current.sendOtp.mutateAsync()).rejects.toThrow(
-        'No active auth session',
-      );
-    });
-
-    it('calls controller.sendOtp with the active session', async () => {
-      mockController.initiateAuth.mockResolvedValue(mockSession);
-      mockController.sendOtp.mockResolvedValue(undefined);
+  describe('stepAction', () => {
+    it('calls controller.executeStepAction', async () => {
+      mockController.executeStepAction.mockResolvedValue(undefined);
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.initiate.mutateAsync('US');
-      });
-      await act(async () => {
-        await result.current.sendOtp.mutateAsync();
+        await result.current.stepAction.mutateAsync();
       });
 
-      expect(mockController.sendOtp).toHaveBeenCalledWith(mockSession);
+      expect(mockController.executeStepAction).toHaveBeenCalled();
     });
   });
 
@@ -246,21 +190,33 @@ describe('useCardAuth', () => {
       expect(mockController.logout).toHaveBeenCalled();
     });
 
-    it('clears session and removes queries on success', async () => {
-      mockController.initiateAuth.mockResolvedValue(mockSession);
+    it('resets currentStep and removes queries on success', async () => {
+      mockController.submitCredentials.mockResolvedValue({
+        done: false,
+        nextStep: { type: 'otp', destination: '+1555****90' },
+      });
       mockController.logout.mockResolvedValue(undefined);
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.initiate.mutateAsync('US');
+        await result.current.submit.mutateAsync({
+          type: 'email_password',
+          email: 'a@b.com',
+          password: 'p',
+        });
       });
-      expect(result.current.session).toBe(mockSession);
+      expect(result.current.currentStep).toStrictEqual({
+        type: 'otp',
+        destination: '+1555****90',
+      });
 
       await act(async () => {
         await result.current.logout.mutateAsync();
       });
 
-      expect(result.current.session).toBeNull();
+      expect(result.current.currentStep).toStrictEqual({
+        type: 'email_password',
+      });
       expect(mockRemoveQueries).toHaveBeenCalledWith({
         queryKey: cardQueries.keys.all(),
       });
