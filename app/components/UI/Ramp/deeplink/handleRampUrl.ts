@@ -1,26 +1,26 @@
 import handleRedirection from './handleRedirection';
-import getRedirectPathsAndParams from '../../utils/getRedirectPathAndParams';
-import { RampType } from '../types';
-import parseRampIntent from '../../utils/parseRampIntent';
+import getRedirectPathsAndParams from '../utils/getRedirectPathAndParams';
+import { RampType } from '../Aggregator/types';
+import parseRampIntent from '../utils/parseRampIntent';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
-} from '../routes/utils';
-import Logger from '../../../../../util/Logger';
-import NavigationService from '../../../../../core/NavigationService';
-import ReduxService from '../../../../../core/redux';
-import { isRampsUnifiedV2Enabled } from '../../utils/isRampsUnifiedV2Enabled';
+} from '../Aggregator/routes/utils';
+import Logger from '../../../../util/Logger';
+import NavigationService from '../../../../core/NavigationService';
+import ReduxService from '../../../../core/redux';
+import { isRampsUnifiedV2Enabled } from '../utils/isRampsUnifiedV2Enabled';
 import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-import { createEligibilityFailedModalNavigationDetails } from '../../components/EligibilityFailedModal/EligibilityFailedModal';
-import { createRampUnsupportedModalNavigationDetails } from '../../components/RampUnsupportedModal/RampUnsupportedModal';
-import { createBuildQuoteNavDetails } from '../../Views/BuildQuote';
-import { createTokenSelectionNavDetails } from '../../Views/TokenSelection/TokenSelection';
-import { selectTokens } from '../../../../../selectors/rampsController';
-import { resolveRampControllerAssetId } from '../../utils/resolveRampControllerAssetId';
-import Engine from '../../../../../core/Engine';
+} from '../../../../reducers/fiatOrders';
+import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
+import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { selectTokens } from '../../../../selectors/rampsController';
+import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
+import Engine from '../../../../core/Engine';
 
 interface RampUrlOptions {
   rampPath: string;

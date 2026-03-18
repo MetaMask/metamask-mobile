@@ -18,7 +18,6 @@ import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../../util/general';
 import handleRampUrl from './handleRampUrl';
-import handleDepositCashUrl from './handleDepositCashUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl } from './handleSwapUrl';
 import handleBrowserUrl from './handleBrowserUrl';
@@ -68,7 +67,6 @@ const SUPPORTED_ACTIONS = {
   BUY_CRYPTO: ACTIONS.BUY_CRYPTO,
   SELL: ACTIONS.SELL,
   SELL_CRYPTO: ACTIONS.SELL_CRYPTO,
-  DEPOSIT: ACTIONS.DEPOSIT,
   HOME: ACTIONS.HOME,
   ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
@@ -505,11 +503,6 @@ async function handleUniversalLink({
       });
       break;
     }
-    case SUPPORTED_ACTIONS.DEPOSIT:
-      handleDepositCashUrl({
-        depositPath: actionBasedRampPath,
-      });
-      break;
     case SUPPORTED_ACTIONS.HOME:
       navigateToHomeUrl({ homePath: actionBasedRampPath });
       return;

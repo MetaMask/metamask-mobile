@@ -31,7 +31,6 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 jest.mock('../handleDeepLinkModalDisplay');
 jest.mock('../handleRampUrl');
-jest.mock('../handleDepositCashUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBrowserUrl');
@@ -228,14 +227,14 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('ACTIONS.DEPOSIT', () => {
-    it('calls instance._handleDepositCash if action is ACTIONS.DEPOSIT', async () => {
+  describe('deprecated deposit universal link', () => {
+    it('treats deposit path as unsupported without signature', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DEPOSIT}?x=1`;
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        pathname: `/${ACTIONS.DEPOSIT}/additional/path`,
-        href: 'test-href',
+        pathname: `/${ACTIONS.DEPOSIT}`,
+        href: url,
       } as ReturnType<typeof extractURLParams>['urlObj'];
-      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DEPOSIT}/additional/path/additional/path`;
 
       await handleUniversalLink({
         instance,
@@ -244,6 +243,12 @@ describe('handleUniversalLink', () => {
         browserCallBack: mockBrowserCallBack,
         url,
         source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.INVALID,
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
       });
       expect(handled).toHaveBeenCalled();
     });

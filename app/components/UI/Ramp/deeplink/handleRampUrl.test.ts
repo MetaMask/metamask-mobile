@@ -1,12 +1,12 @@
-import { RampType } from '../types';
-import Routes from '../../../../../constants/navigation/Routes';
+import { RampType } from '../Aggregator/types';
+import Routes from '../../../../constants/navigation/Routes';
 import handleRampUrl from './handleRampUrl';
 import handleRedirection from './handleRedirection';
-import NavigationService from '../../../../../core/NavigationService';
-import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders';
-import Engine from '../../../../../core/Engine';
+import NavigationService from '../../../../core/NavigationService';
+import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
+import Engine from '../../../../core/Engine';
 
-jest.mock('../../../../../core/NavigationService', () => ({
+jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
@@ -15,7 +15,7 @@ jest.mock('../../../../../core/NavigationService', () => ({
 jest.mock('@react-navigation/native');
 jest.mock('./handleRedirection');
 
-jest.mock('../../../../../core/redux', () => ({
+jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: {
     store: {
@@ -25,14 +25,14 @@ jest.mock('../../../../../core/redux', () => ({
 }));
 
 const mockIsRampsUnifiedV2Enabled = jest.fn();
-jest.mock('../../utils/isRampsUnifiedV2Enabled', () => ({
+jest.mock('../utils/isRampsUnifiedV2Enabled', () => ({
   isRampsUnifiedV2Enabled: (state: unknown) =>
     mockIsRampsUnifiedV2Enabled(state),
 }));
 
 const mockGetRampRoutingDecision = jest.fn();
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  ...jest.requireActual('../../../../../reducers/fiatOrders'),
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../reducers/fiatOrders'),
   getRampRoutingDecision: (state: unknown) => mockGetRampRoutingDecision(state),
 }));
 
@@ -40,7 +40,7 @@ const mockCreateEligibilityFailedModalNavigationDetails = jest.fn(() => [
   'ELIGIBILITY_FAILED_MODAL_ROUTE',
 ]);
 jest.mock(
-  '../../components/EligibilityFailedModal/EligibilityFailedModal',
+  '../components/EligibilityFailedModal/EligibilityFailedModal',
   () => ({
     createEligibilityFailedModalNavigationDetails: () =>
       mockCreateEligibilityFailedModalNavigationDetails(),
@@ -50,7 +50,7 @@ jest.mock(
 const mockCreateRampUnsupportedModalNavigationDetails = jest.fn(() => [
   'UNSUPPORTED_MODAL_ROUTE',
 ]);
-jest.mock('../../components/RampUnsupportedModal/RampUnsupportedModal', () => ({
+jest.mock('../components/RampUnsupportedModal/RampUnsupportedModal', () => ({
   createRampUnsupportedModalNavigationDetails: () =>
     mockCreateRampUnsupportedModalNavigationDetails(),
 }));
@@ -58,7 +58,7 @@ jest.mock('../../components/RampUnsupportedModal/RampUnsupportedModal', () => ({
 const mockCreateBuildQuoteNavDetails = jest.fn(
   (params: { assetId: string }) => ['BUILD_QUOTE_ROUTE', params],
 );
-jest.mock('../../Views/BuildQuote', () => ({
+jest.mock('../Views/BuildQuote', () => ({
   createBuildQuoteNavDetails: (params: { assetId: string }) =>
     mockCreateBuildQuoteNavDetails(params),
 }));
@@ -66,7 +66,7 @@ jest.mock('../../Views/BuildQuote', () => ({
 const mockCreateTokenSelectionNavDetails = jest.fn(() => [
   'TOKEN_SELECTION_ROUTE',
 ]);
-jest.mock('../../Views/TokenSelection/TokenSelection', () => ({
+jest.mock('../Views/TokenSelection/TokenSelection', () => ({
   createTokenSelectionNavDetails: () => mockCreateTokenSelectionNavDetails(),
 }));
 
@@ -78,19 +78,19 @@ const mockSelectTokens = jest.fn(
     data: { allTokens: [] },
   }),
 );
-jest.mock('../../../../../selectors/rampsController', () => ({
+jest.mock('../../../../selectors/rampsController', () => ({
   selectTokens: (state: unknown) => mockSelectTokens(state),
 }));
 
 const mockResolveRampControllerAssetId = jest.fn(
   (assetId: string, _allTokens: unknown[]) => assetId,
 );
-jest.mock('../../utils/resolveRampControllerAssetId', () => ({
+jest.mock('../utils/resolveRampControllerAssetId', () => ({
   resolveRampControllerAssetId: (assetId: string, allTokens: unknown[]) =>
     mockResolveRampControllerAssetId(assetId, allTokens),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
