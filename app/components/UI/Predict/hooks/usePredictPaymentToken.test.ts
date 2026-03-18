@@ -30,6 +30,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+let mockTransactionMeta: { id: string } | undefined;
+
 jest.mock(
   '../../../Views/confirmations/hooks/pay/useTransactionPayToken',
   () => ({
@@ -37,6 +39,13 @@ jest.mock(
       payToken: null,
       setPayToken: mockSetPayToken,
     }),
+  }),
+);
+
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+  () => ({
+    useTransactionMetadataRequest: () => mockTransactionMeta,
   }),
 );
 
@@ -53,6 +62,7 @@ describe('usePredictPaymentToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectedPaymentToken = null;
+    mockTransactionMeta = undefined;
     jest.mocked(useSelector).mockImplementation(() => mockSelectedPaymentToken);
     jest
       .mocked(Engine.context.PredictController.setSelectedPaymentToken)
@@ -115,7 +125,8 @@ describe('usePredictPaymentToken', () => {
       ).toHaveBeenCalledWith(token);
     });
 
-    it('calls setPayToken for non-balance token', () => {
+    it('calls setPayToken for non-balance token when transaction exists', () => {
+      mockTransactionMeta = { id: 'tx-123' };
       const { result } = renderHook(() => usePredictPaymentToken());
       const token = createMockAsset({
         address: '0xabcd',
@@ -130,6 +141,21 @@ describe('usePredictPaymentToken', () => {
         address: '0xabcd' as Hex,
         chainId: '0x1' as Hex,
       });
+    });
+
+    it('does not call setPayToken for non-balance token when no transaction exists', () => {
+      mockTransactionMeta = undefined;
+      const { result } = renderHook(() => usePredictPaymentToken());
+      const token = createMockAsset({
+        address: '0xabcd',
+        chainId: '0x1',
+      });
+
+      act(() => {
+        result.current.onPaymentTokenChange(token);
+      });
+
+      expect(mockSetPayToken).not.toHaveBeenCalled();
     });
 
     it('does not call setPayToken for balance placeholder token', () => {

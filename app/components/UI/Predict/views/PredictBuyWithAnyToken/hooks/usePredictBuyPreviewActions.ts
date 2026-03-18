@@ -171,6 +171,32 @@ export const usePredictBuyActions = ({
   }, [currentState, onApprovalReject, setIsConfirming]);
 
   useEffect(() => {
+    if (isConfirmationRoute && currentState === ActiveOrderState.PREVIEW) {
+      onApprovalReject();
+      navigateToBuyPreview(
+        {
+          market,
+          outcome,
+          outcomeToken,
+          animationEnabled: false,
+          entryPoint,
+        },
+        { replace: true },
+      );
+    }
+  }, [
+    currentState,
+    isConfirmationRoute,
+    onApprovalReject,
+    navigateToBuyPreview,
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    livePreview,
+  ]);
+
+  useEffect(() => {
     if (currentState === ActiveOrderState.SUCCESS) {
       PredictController.onPlaceOrderEnd();
       navigation.dispatch(StackActions.pop());
