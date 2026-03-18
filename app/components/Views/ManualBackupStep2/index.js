@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Alert,
@@ -8,6 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -18,7 +18,7 @@ import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
-import { seedphraseBackedUp as seedphraseBackedUpAction } from '../../../actions/user';
+import { seedphraseBackedUp } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { compareMnemonics } from '../../../util/mnemonic';
@@ -506,8 +506,27 @@ const ManualBackupStep2 = ({
   );
 };
 
+ManualBackupStep2.propTypes = {
+  /**
+   * Navigation object used for moving between screens.
+   */
+  navigation: PropTypes.object,
+  /**
+   * Redux action that marks the SRP as backed up.
+   */
+  seedphraseBackedUp: PropTypes.func,
+  /**
+   * Current route object with params.
+   */
+  route: PropTypes.object,
+  /**
+   * Action to persist onboarding metrics events.
+   */
+  saveOnboardingEvent: PropTypes.func,
+};
+
 const mapDispatchToProps = (dispatch) => ({
-  seedphraseBackedUp: () => dispatch(seedphraseBackedUpAction()),
+  seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
