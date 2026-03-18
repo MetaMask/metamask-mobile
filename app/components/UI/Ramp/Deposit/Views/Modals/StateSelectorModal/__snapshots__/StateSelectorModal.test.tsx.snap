@@ -323,47 +323,22 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select a state
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="5"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -421,69 +396,21 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search by state"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value="Cal"
-                            />
+                            <TextInput … />
                           </View>
                           <View
-                            style={
-                              {
-                                "marginLeft": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-endacccessory"
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -532,24 +459,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -889,47 +799,22 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select a state
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="3"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -987,69 +872,21 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search by state"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value="Nonexistent State"
-                            />
+                            <TextInput … />
                           </View>
                           <View
-                            style={
-                              {
-                                "marginLeft": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-endacccessory"
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1087,19 +924,9 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                       >
                         <View>
                           <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "padding": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              No states match "Nonexistent State"
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1439,47 +1266,22 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select a state
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="2"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1537,69 +1339,21 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search by state"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value="CA"
-                            />
+                            <TextInput … />
                           </View>
                           <View
-                            style={
-                              {
-                                "marginLeft": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-endacccessory"
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1648,24 +1402,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -2005,47 +1742,22 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select a state
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="1"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -2103,69 +1815,21 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search by state"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value="California"
-                            />
+                            <TextInput … />
                           </View>
                           <View
-                            style={
-                              {
-                                "marginLeft": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-endacccessory"
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -2214,24 +1878,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -2571,47 +2218,22 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select a state
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="0"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -2669,43 +2291,15 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search by state"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value=""
-                            />
+                            <TextInput … />
                           </View>
                         </View>
                       </View>
@@ -2770,120 +2364,35 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -3223,47 +2732,22 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select a state
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="4"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -3321,69 +2805,21 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search by state"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value="Cal"
-                            />
+                            <TextInput … />
                           </View>
                           <View
-                            style={
-                              {
-                                "marginLeft": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-endacccessory"
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -3432,24 +2868,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>

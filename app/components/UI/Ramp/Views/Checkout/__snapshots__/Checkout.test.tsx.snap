@@ -324,25 +324,14 @@ exports[`Checkout renders error view when no URL is provided 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                              ]
-                            }
+                            style={[Array]}
                             testID="header-title"
                           >
                             Test Provider
@@ -352,24 +341,7 @@ exports[`Checkout renders error view when no URL is provided 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="checkout-close-button"
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -391,27 +363,15 @@ exports[`Checkout renders error view when no URL is provided 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RNCSafeAreaView>
@@ -752,25 +712,14 @@ exports[`Checkout sets and displays error on http error for callback URL 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                              ]
-                            }
+                            style={[Array]}
                             testID="header-title"
                           >
                             Test Provider
@@ -780,24 +729,7 @@ exports[`Checkout sets and displays error on http error for callback URL 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="checkout-close-button"
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -819,27 +751,15 @@ exports[`Checkout sets and displays error on http error for callback URL 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RNCSafeAreaView>

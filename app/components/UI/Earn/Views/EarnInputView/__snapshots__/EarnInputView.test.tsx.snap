@@ -329,47 +329,23 @@ exports[`EarnInputView render matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 16,
-                                "minHeight": 56,
-                                "paddingLeft": 8,
-                                "paddingRight": 8,
-                              },
-                              {
-                                "marginTop": 0,
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                           testID="header"
                         >
                           <View>
-                            <View
-                              onLayout={[Function]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
                           </View>
                           <View>
-                            <View
-                              onLayout={[Function]}
-                            />
+                            <View … />
                           </View>
                         </View>
                         <RCTScrollView
@@ -390,16 +366,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                           }
                         >
                           <View>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            />
+                            <View … />
+                            <View … />
                           </View>
                         </RCTScrollView>
                         <View
@@ -416,23 +384,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -443,48 +396,14 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              25%
-                            </Text>
+                            <Text … />
                           </View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -495,48 +414,14 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              50%
-                            </Text>
+                            <Text … />
                           </View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -547,48 +432,14 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              75%
-                            </Text>
+                            <Text … />
                           </View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -599,146 +450,47 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <SvgMock
-                              color="#121314"
-                              fill="currentColor"
-                              height={16}
-                              name="Sparkle"
-                              style={[Object]}
-                              width={16}
-                            />
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              Max
-                            </Text>
+                            <SvgMock … />
+                            <Text … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "display": "flex",
-                                "gap": 12,
-                              },
-                              {
-                                "paddingHorizontal": 16,
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                         <View
@@ -750,23 +502,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": true,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={false}
@@ -777,27 +514,9 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "opacity": 0.5,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Enter amount
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </View>
@@ -1143,47 +862,23 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 16,
-                                "minHeight": 56,
-                                "paddingLeft": 8,
-                                "paddingRight": 8,
-                              },
-                              {
-                                "marginTop": 0,
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                           testID="header"
                         >
                           <View>
-                            <View
-                              onLayout={[Function]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
                           </View>
                           <View>
-                            <View
-                              onLayout={[Function]}
-                            />
+                            <View … />
                           </View>
                         </View>
                         <RCTScrollView
@@ -1204,16 +899,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                           }
                         >
                           <View>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            />
+                            <View … />
+                            <View … />
                           </View>
                         </RCTScrollView>
                         <View
@@ -1230,23 +917,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -1257,48 +929,14 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              25%
-                            </Text>
+                            <Text … />
                           </View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -1309,48 +947,14 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              50%
-                            </Text>
+                            <Text … />
                           </View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -1361,48 +965,14 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              75%
-                            </Text>
+                            <Text … />
                           </View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -1413,146 +983,47 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 20,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <SvgMock
-                              color="#121314"
-                              fill="currentColor"
-                              height={16}
-                              name="Sparkle"
-                              style={[Object]}
-                              width={16}
-                            />
-                            <Text
-                              accessibilityRole="none"
-                              style={[Object]}
-                            >
-                              Max
-                            </Text>
+                            <SvgMock … />
+                            <Text … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "display": "flex",
-                                "gap": 12,
-                              },
-                              {
-                                "paddingHorizontal": 16,
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                         <View
@@ -1564,23 +1035,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": true,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={false}
@@ -1591,27 +1047,9 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "opacity": 0.5,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Enter amount
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </View>

@@ -349,42 +349,24 @@ exports[`Network Selector renders correctly 1`] = `
                           collapsable={false}
                           jestAnimatedProps={
                             {
-                              "value": {},
+                              "value": [Object],
                             }
                           }
                           jestAnimatedStyle={
                             {
-                              "value": {
-                                "opacity": 0,
-                              },
+                              "value": [Object],
                             }
                           }
                           jestInlineStyle={
                             [
-                              {
-                                "backgroundColor": "#3f434a66",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
+                              [Object],
                             ]
                           }
                           nativeID="0"
                           style={
                             [
-                              {
-                                "backgroundColor": "#3f434a66",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
-                              {
-                                "opacity": 0,
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         />
@@ -403,22 +385,14 @@ exports[`Network Selector renders correctly 1`] = `
                         jestAnimatedStyle={
                           {
                             "value": {
-                              "transform": [
-                                [Object],
-                              ],
+                              "transform": [Array],
                             },
                           }
                         }
                         jestInlineStyle={
                           [
                             [
-                              {
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
+                              [Object],
                             ],
                             {
                               "justifyContent": "flex-end",
@@ -438,9 +412,7 @@ exports[`Network Selector renders correctly 1`] = `
                               "top": 0,
                             },
                             {
-                              "transform": [
-                                [Object],
-                              ],
+                              "transform": [Array],
                             },
                             {
                               "justifyContent": "flex-end",
@@ -451,101 +423,31 @@ exports[`Network Selector renders correctly 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "backgroundColor": "#ffffff",
-                                "borderTopLeftRadius": 20,
-                                "borderTopRightRadius": 20,
-                              },
-                              {
-                                "paddingBottom": 0,
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignSelf": "center",
-                                "backgroundColor": "#b7bbc8",
-                                "borderRadius": 4,
-                                "height": 5,
-                                "marginTop": 8,
-                                "width": 48,
-                              }
-                            }
+                            style={[Object]}
                           />
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginBottom": 8,
-                                "marginTop": 8,
-                                "textAlign": "center",
-                              }
-                            }
+                            style={[Object]}
                           >
                             Select a network
                           </Text>
                           <View
-                            style={
-                              {
-                                "marginBottom": 8,
-                                "marginLeft": 16,
-                                "marginRight": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <Text … />
-                              <TextInput … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onLayout={[Function]}
-                            style={
-                              {
-                                "minHeight": 667,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={-1}
-                              handlerType="NativeViewGestureHandler"
-                              keyboardShouldPersistTaps="handled"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                              style={[Object]}
-                              testID="other-networks-scroll"
-                            >
-                              <View … />
-                            </RCTScrollView>
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="add-network-button"
-                            >
-                              <Text … />
-                            </View>
+                            <RCTScrollView … />
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -911,42 +813,24 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           collapsable={false}
                           jestAnimatedProps={
                             {
-                              "value": {},
+                              "value": [Object],
                             }
                           }
                           jestAnimatedStyle={
                             {
-                              "value": {
-                                "opacity": 0,
-                              },
+                              "value": [Object],
                             }
                           }
                           jestInlineStyle={
                             [
-                              {
-                                "backgroundColor": "#3f434a66",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
+                              [Object],
                             ]
                           }
                           nativeID="2"
                           style={
                             [
-                              {
-                                "backgroundColor": "#3f434a66",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
-                              {
-                                "opacity": 0,
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         />
@@ -965,22 +849,14 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                         jestAnimatedStyle={
                           {
                             "value": {
-                              "transform": [
-                                [Object],
-                              ],
+                              "transform": [Array],
                             },
                           }
                         }
                         jestInlineStyle={
                           [
                             [
-                              {
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
+                              [Object],
                             ],
                             {
                               "justifyContent": "flex-end",
@@ -1000,9 +876,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               "top": 0,
                             },
                             {
-                              "transform": [
-                                [Object],
-                              ],
+                              "transform": [Array],
                             },
                             {
                               "justifyContent": "flex-end",
@@ -1013,101 +887,31 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                         <View
                           style={
                             [
-                              {
-                                "backgroundColor": "#ffffff",
-                                "borderTopLeftRadius": 20,
-                                "borderTopRightRadius": 20,
-                              },
-                              {
-                                "paddingBottom": 0,
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignSelf": "center",
-                                "backgroundColor": "#b7bbc8",
-                                "borderRadius": 4,
-                                "height": 5,
-                                "marginTop": 8,
-                                "width": 48,
-                              }
-                            }
+                            style={[Object]}
                           />
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginBottom": 8,
-                                "marginTop": 8,
-                                "textAlign": "center",
-                              }
-                            }
+                            style={[Object]}
                           >
                             Select a network
                           </Text>
                           <View
-                            style={
-                              {
-                                "marginBottom": 8,
-                                "marginLeft": 16,
-                                "marginRight": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <Text … />
-                              <TextInput … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onLayout={[Function]}
-                            style={
-                              {
-                                "minHeight": 667,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={-1}
-                              handlerType="NativeViewGestureHandler"
-                              keyboardShouldPersistTaps="handled"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                              style={[Object]}
-                              testID="other-networks-scroll"
-                            >
-                              <View … />
-                            </RCTScrollView>
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="add-network-button"
-                            >
-                              <Text … />
-                            </View>
+                            <RCTScrollView … />
+                            <View … />
                           </View>
                         </View>
                       </View>

@@ -363,17 +363,9 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                           }
                         >
                           <View>
-                            <View
-                              style={[Object]}
-                            >
-                              <Text … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <Image … />
-                            </View>
-                            <View />
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                         </RCTScrollView>
                         <View
@@ -387,23 +379,8 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -414,28 +391,10 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                             testID="allow"
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Accept
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </View>

@@ -324,69 +324,25 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              contentContainerStyle={[Object]}
-                              handlerTag={7}
-                              handlerType="NativeViewGestureHandler"
-                              horizontal={true}
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                              showsHorizontalScrollIndicator={false}
-                            >
-                              <View … />
-                            </RCTScrollView>
+                            <RCTScrollView … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="textfield"
-                            >
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
                             collapsable={false}
-                            data={[]}
+                            data={[Array]}
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={8}
@@ -407,12 +363,10 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
-                            stickyHeaderIndices={[]}
-                            viewabilityConfigCallbackPairs={[]}
+                            stickyHeaderIndices={[Array]}
+                            viewabilityConfigCallbackPairs={[Array]}
                           >
-                            <View>
-                              <View … />
-                            </View>
+                            <View … />
                           </RCTScrollView>
                         </View>
                       </View>
@@ -753,76 +707,25 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              contentContainerStyle={[Object]}
-                              handlerTag={-1}
-                              handlerType="NativeViewGestureHandler"
-                              horizontal={true}
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                              showsHorizontalScrollIndicator={false}
-                            >
-                              <View … />
-                            </RCTScrollView>
+                            <RCTScrollView … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="textfield"
-                            >
-                              <View … />
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
                             collapsable={false}
-                            data={
-                              [
-                                [Object],
-                                [Object],
-                                [Object],
-                                [Object],
-                                [Object],
-                              ]
-                            }
+                            data={[Array]}
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={-1}
@@ -843,16 +746,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
-                            stickyHeaderIndices={[]}
-                            viewabilityConfigCallbackPairs={[]}
+                            stickyHeaderIndices={[Array]}
+                            viewabilityConfigCallbackPairs={[Array]}
                           >
-                            <View>
-                              <View … />
-                              <View … />
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
+                            <View … />
                           </RCTScrollView>
                         </View>
                       </View>
@@ -1193,76 +1090,25 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              contentContainerStyle={[Object]}
-                              handlerTag={-1}
-                              handlerType="NativeViewGestureHandler"
-                              horizontal={true}
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                              showsHorizontalScrollIndicator={false}
-                            >
-                              <View … />
-                            </RCTScrollView>
+                            <RCTScrollView … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="textfield"
-                            >
-                              <View … />
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
                             collapsable={false}
-                            data={
-                              [
-                                [Object],
-                                [Object],
-                                [Object],
-                                [Object],
-                                [Object],
-                              ]
-                            }
+                            data={[Array]}
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={-1}
@@ -1283,16 +1129,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
-                            stickyHeaderIndices={[]}
-                            viewabilityConfigCallbackPairs={[]}
+                            stickyHeaderIndices={[Array]}
+                            viewabilityConfigCallbackPairs={[Array]}
                           >
-                            <View>
-                              <View … />
-                              <View … />
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
+                            <View … />
                           </RCTScrollView>
                         </View>
                       </View>

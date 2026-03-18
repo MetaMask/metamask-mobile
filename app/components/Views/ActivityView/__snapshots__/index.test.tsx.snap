@@ -340,31 +340,15 @@ exports[`ActivityView matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "flex-start",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Activity
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </View>
@@ -388,23 +372,12 @@ exports[`ActivityView matches snapshot 1`] = `
                           <View
                             testID="tab-transactions"
                           >
-                            <View
-                              style={[Object]}
-                              tabLabel="Transactions"
-                            >
-                              <View … />
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             testID="tab-orders"
                           >
-                            <View
-                              style={[Object]}
-                              tabLabel="Transfers"
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             testID="tab-2"

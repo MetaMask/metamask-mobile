@@ -425,9 +425,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                         {
                           "value": {
                             "transform": [
-                              {
-                                "rotate": "1.44deg",
-                              },
+                              [Object],
                             ],
                           },
                         }
@@ -438,9 +436,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                         [
                           {
                             "transform": [
-                              {
-                                "rotate": "0deg",
-                              },
+                              [Object],
                             ],
                           },
                         ]
@@ -1827,9 +1823,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                         {
                           "value": {
                             "transform": [
-                              {
-                                "rotate": "0deg",
-                              },
+                              [Object],
                             ],
                           },
                         }
@@ -1840,9 +1834,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                         [
                           {
                             "transform": [
-                              {
-                                "rotate": "0deg",
-                              },
+                              [Object],
                             ],
                           },
                         ]

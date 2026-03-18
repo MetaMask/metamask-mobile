@@ -311,12 +311,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                         <Text
                           style={
                             [
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 30,
-                                "marginVertical": 2,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
@@ -340,14 +335,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "fontWeight": "700",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              },
+                              [Object],
                             ]
                           }
                         >
@@ -356,12 +344,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                         <Text
                           style={
                             [
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 30,
-                                "marginVertical": 2,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
@@ -385,47 +368,12 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              },
+                              [Object],
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.
                           </Text>
@@ -440,23 +388,8 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -467,28 +400,9 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
-                                "borderRadius": 12,
-                                "flex": 1,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Got it
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </View>

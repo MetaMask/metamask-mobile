@@ -323,29 +323,14 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "textAlign": "center",
-                              }
-                            }
+                            style={[Object]}
                           >
                             Incompatible account
                           </Text>
@@ -354,23 +339,7 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -442,15 +411,7 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             Got it
                           </Text>

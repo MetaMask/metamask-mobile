@@ -201,12 +201,7 @@ exports[`AddressList renders correctly 1`] = `
                           }
                         >
                           <View
-                            style={
-                              {
-                                "height": 32,
-                                "width": 32,
-                              }
-                            }
+                            style={[Object]}
                           />
                         </View>
                         <View
@@ -223,13 +218,7 @@ exports[`AddressList renders correctly 1`] = `
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                                [Object],
-                              ]
-                            }
+                            style={[Array]}
                           />
                         </View>
                       </View>

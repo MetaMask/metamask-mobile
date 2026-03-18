@@ -141,28 +141,17 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                         <Text
                           style={
                             [
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 30,
-                                "marginVertical": 2,
-                              },
+                              [Object],
                               undefined,
                               undefined,
-                              {
-                                "fontFamily": "Geist-Bold",
-                              },
+                              [Object],
                               undefined,
-                              {
-                                "color": "#121314",
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "color": "#121314",
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
@@ -175,15 +164,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "marginVertical": 0,
-                              },
-                              {
-                                "fontSize": 24,
-                                "justifyContent": "center",
-                                "marginBottom": 14,
-                                "textAlign": "center",
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
@@ -192,21 +174,14 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                         <Text
                           style={
                             [
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 30,
-                                "marginVertical": 2,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "color": "#686e7d",
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
@@ -222,16 +197,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "marginVertical": 0,
-                              },
-                              {
-                                "fontSize": 14,
-                                "justifyContent": "center",
-                                "lineHeight": 20,
-                                "marginBottom": 14,
-                                "textAlign": "center",
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
@@ -240,21 +207,14 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                         <Text
                           style={
                             [
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 30,
-                                "marginVertical": 2,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "color": "#686e7d",
-                              },
+                              [Object],
                               undefined,
                               undefined,
                               undefined,
@@ -270,51 +230,15 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               undefined,
-                              {
-                                "marginVertical": 0,
-                              },
-                              {
-                                "fontSize": 14,
-                                "justifyContent": "center",
-                                "lineHeight": 20,
-                                "marginBottom": 14,
-                                "textAlign": "center",
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
                           Gas fees for transactions are separate from the cost of purchasing ETH.
                            
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
                             MetaMask does not profit from gas fees.
                           </Text>

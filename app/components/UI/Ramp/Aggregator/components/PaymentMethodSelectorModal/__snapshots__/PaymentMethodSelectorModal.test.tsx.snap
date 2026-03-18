@@ -323,47 +323,22 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select payment method
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="0"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -381,28 +356,11 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                       >
                         <View>
                           <View
-                            style={
-                              {
-                                "paddingBottom": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -742,47 +700,22 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select where to send your cash
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="2"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -800,28 +733,11 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                       >
                         <View>
                           <View
-                            style={
-                              {
-                                "paddingBottom": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1161,47 +1077,22 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select payment method
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="1"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1219,23 +1110,10 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                       >
                         <View>
                           <View
-                            style={
-                              {
-                                "paddingBottom": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>

@@ -459,26 +459,10 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         <View>
                           <View
                             collapsable={false}
-                            style={
-                              {
-                                "flex": 1,
-                                "transform": [Array],
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                              testID="import-from-seed-screen-title-id"
-                            >
-                              Import a wallet
-                            </Text>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                              <View … />
-                            </View>
+                            <Text … />
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -538,15 +522,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             Continue
                           </Text>

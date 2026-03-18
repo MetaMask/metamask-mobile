@@ -349,42 +349,24 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                           collapsable={false}
                           jestAnimatedProps={
                             {
-                              "value": {},
+                              "value": [Object],
                             }
                           }
                           jestAnimatedStyle={
                             {
-                              "value": {
-                                "opacity": 0,
-                              },
+                              "value": [Object],
                             }
                           }
                           jestInlineStyle={
                             [
-                              {
-                                "backgroundColor": "#3f434a66",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
+                              [Object],
                             ]
                           }
                           nativeID="0"
                           style={
                             [
-                              {
-                                "backgroundColor": "#3f434a66",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
-                              {
-                                "opacity": 0,
-                              },
+                              [Object],
+                              [Object],
                             ]
                           }
                         />
@@ -403,22 +385,14 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         jestAnimatedStyle={
                           {
                             "value": {
-                              "transform": [
-                                [Object],
-                              ],
+                              "transform": [Array],
                             },
                           }
                         }
                         jestInlineStyle={
                           [
                             [
-                              {
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
+                              [Object],
                             ],
                             {
                               "height": 600,
@@ -441,9 +415,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                               "top": 0,
                             },
                             {
-                              "transform": [
-                                [Object],
-                              ],
+                              "transform": [Array],
                             },
                             {
                               "height": 600,
@@ -467,20 +439,9 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                           }
                         >
                           <RCTSafeAreaView
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </RCTSafeAreaView>
                         </View>
                       </View>

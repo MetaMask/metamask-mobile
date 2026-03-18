@@ -340,12 +340,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
                             onTintColor="#4459ff"
-                            style={
-                              [
-                                [Object],
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                             testID="metametrics-switch"
                             thumbTintColor="#ffffff"
                             tintColor="#b7bbc866"
@@ -388,15 +383,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#4459ff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             Learn more.
                           </Text>
@@ -448,12 +435,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
                             onTintColor="#4459ff"
-                            style={
-                              [
-                                [Object],
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                             testID="data-collection-switch"
                             thumbTintColor="#ffffff"
                             tintColor="#b7bbc866"

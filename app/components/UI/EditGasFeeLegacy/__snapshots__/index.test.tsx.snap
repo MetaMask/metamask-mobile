@@ -527,19 +527,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           selectable={false}
                           style={
                             [
-                              {
-                                "color": undefined,
-                                "fontSize": 14,
-                              },
-                              {
-                                "color": "#b7bbc8",
-                              },
-                              {
-                                "fontFamily": "Material Design Icons",
-                                "fontStyle": "normal",
-                                "fontWeight": "normal",
-                              },
-                              {},
+                              [Object],
+                              [Object],
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
@@ -623,21 +614,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           selectable={false}
                           style={
                             [
-                              {
-                                "color": undefined,
-                                "fontSize": 10,
-                              },
-                              {
-                                "color": "#4459ff",
-                                "paddingLeft": 0.5,
-                                "paddingTop": 1,
-                              },
-                              {
-                                "fontFamily": "FontAwesome",
-                                "fontStyle": "normal",
-                                "fontWeight": "normal",
-                              },
-                              {},
+                              [Object],
+                              [Object],
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
@@ -779,21 +759,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           selectable={false}
                           style={
                             [
-                              {
-                                "color": undefined,
-                                "fontSize": 10,
-                              },
-                              {
-                                "color": "#4459ff",
-                                "paddingLeft": 0.5,
-                                "paddingTop": 1,
-                              },
-                              {
-                                "fontFamily": "FontAwesome",
-                                "fontStyle": "normal",
-                                "fontWeight": "normal",
-                              },
-                              {},
+                              [Object],
+                              [Object],
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
@@ -925,19 +894,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           selectable={false}
                           style={
                             [
-                              {
-                                "color": undefined,
-                                "fontSize": 14,
-                              },
-                              {
-                                "color": "#b7bbc8",
-                              },
-                              {
-                                "fontFamily": "Material Design Icons",
-                                "fontStyle": "normal",
-                                "fontWeight": "normal",
-                              },
-                              {},
+                              [Object],
+                              [Object],
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
@@ -1021,21 +981,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           selectable={false}
                           style={
                             [
-                              {
-                                "color": undefined,
-                                "fontSize": 10,
-                              },
-                              {
-                                "color": "#4459ff",
-                                "paddingLeft": 0.5,
-                                "paddingTop": 1,
-                              },
-                              {
-                                "fontFamily": "FontAwesome",
-                                "fontStyle": "normal",
-                                "fontWeight": "normal",
-                              },
-                              {},
+                              [Object],
+                              [Object],
+                              [Object],
+                              [Object],
                             ]
                           }
                         >
@@ -1220,21 +1169,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           selectable={false}
                           style={
                             [
-                              {
-                                "color": undefined,
-                                "fontSize": 10,
-                              },
-                              {
-                                "color": "#4459ff",
-                                "paddingLeft": 0.5,
-                                "paddingTop": 1,
-                              },
-                              {
-                                "fontFamily": "FontAwesome",
-                                "fontStyle": "normal",
-                                "fontWeight": "normal",
-                              },
-                              {},
+                              [Object],
+                              [Object],
+                              [Object],
+                              [Object],
                             ]
                           }
                         >

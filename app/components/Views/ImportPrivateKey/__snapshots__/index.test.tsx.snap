@@ -360,56 +360,14 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           <View
                             testID="import-account-screen"
                           >
-                            <View
-                              style={[Array]}
-                              testID="header"
-                            >
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <TextInput … />
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                                "justifyContent": "flex-end",
-                                "paddingBottom": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="import-button"
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>

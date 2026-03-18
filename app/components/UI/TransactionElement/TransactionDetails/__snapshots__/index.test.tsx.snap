@@ -323,124 +323,34 @@ exports[`TransactionDetails should render correctly 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Status
                           </Text>
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                [Object],
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            [missing "en.undefined.confirmed" translation]
+                            Confirmed
                           </Text>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
-                              {
-                                "alignItems": "flex-end",
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Date
                           </Text>
@@ -448,15 +358,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             accessibilityRole="text"
                             primary={true}
                             small={true}
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             [missing "en.date.months.NaN" translation] NaN at 12:NaN am
                           </Text>
@@ -476,123 +378,41 @@ exports[`TransactionDetails should render correctly 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             From
                           </Text>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flexDirection": "row",
-                                "justifyContent": "flex-start",
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
-                              {
-                                "alignItems": "flex-end",
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             To
                           </Text>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flexDirection": "row",
-                                "justifyContent": "flex-start",
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -610,44 +430,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Nonce
                           </Text>
@@ -669,91 +459,35 @@ exports[`TransactionDetails should render correctly 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "borderColor": "#b7bbc866",
-                                "borderRadius": 8,
-                                "borderWidth": 1,
-                                "padding": 16,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            >
-                              Amount
-                            </Text>
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           />
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            >
-                              Total amount
-                            </Text>
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
                           </View>
                         </View>
                       </View>
@@ -1145,124 +879,34 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Status
                           </Text>
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                [Object],
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            [missing "en.undefined.confirmed" translation]
+                            Confirmed
                           </Text>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
-                              {
-                                "alignItems": "flex-end",
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Date
                           </Text>
@@ -1270,15 +914,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             accessibilityRole="text"
                             primary={true}
                             small={true}
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             [missing "en.date.months.NaN" translation] NaN at 12:NaN am
                           </Text>
@@ -1298,123 +934,41 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             From
                           </Text>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flexDirection": "row",
-                                "justifyContent": "flex-start",
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
-                              {
-                                "alignItems": "flex-end",
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             To
                           </Text>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flexDirection": "row",
-                                "justifyContent": "flex-start",
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1432,44 +986,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Nonce
                           </Text>
@@ -1491,91 +1015,35 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "borderColor": "#b7bbc866",
-                                "borderRadius": 8,
-                                "borderWidth": 1,
-                                "padding": 16,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            >
-                              Amount
-                            </Text>
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           />
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            >
-                              Total amount
-                            </Text>
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
                           </View>
                         </View>
                       </View>
@@ -1967,124 +1435,34 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Status
                           </Text>
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                [Object],
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            [missing "en.undefined.confirmed" translation]
+                            Confirmed
                           </Text>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
-                              {
-                                "alignItems": "flex-end",
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Date
                           </Text>
@@ -2092,15 +1470,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             accessibilityRole="text"
                             primary={true}
                             small={true}
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             [missing "en.date.months.NaN" translation] NaN at 12:NaN am
                           </Text>
@@ -2120,123 +1490,41 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             From
                           </Text>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flexDirection": "row",
-                                "justifyContent": "flex-start",
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
-                              {
-                                "alignItems": "flex-end",
-                              },
+                              [Object],
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             To
                           </Text>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flexDirection": "row",
-                                "justifyContent": "flex-start",
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -2254,44 +1542,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                               undefined,
                             ]
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                [Array],
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Nonce
                           </Text>
@@ -2313,91 +1571,35 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         <View
                           style={
                             [
-                              {
-                                "borderColor": "#b7bbc866",
-                                "borderRadius": 8,
-                                "borderWidth": 1,
-                                "padding": 16,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            >
-                              Amount
-                            </Text>
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           />
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            >
-                              Total amount
-                            </Text>
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              style={[Array]}
-                            />
+                            <Text … />
                           </View>
                         </View>
                       </View>

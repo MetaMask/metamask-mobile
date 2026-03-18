@@ -353,33 +353,11 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                       >
                         <View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                              <Text … />
-                            </View>
-                            <View
-                              style={[Array]}
-                              testID="onboarding-step-form"
-                            >
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                              testID="onboarding-step-actions"
-                            >
-                              <View … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>

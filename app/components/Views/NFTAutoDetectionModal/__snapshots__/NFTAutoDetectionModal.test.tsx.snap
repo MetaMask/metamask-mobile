@@ -352,12 +352,7 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                         >
                           <Image
                             source={1}
-                            style={
-                              {
-                                "height": 219,
-                                "width": 219,
-                              }
-                            }
+                            style={[Object]}
                           />
                         </View>
                         <View
@@ -370,59 +365,27 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             Allow MetaMask to detect and display your NFTs with autodetection. You’ll be able to:
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                              • 
                             Immediately access your NFTs
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                              • 
                             Effortlessly navigate your digital assets
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                              • 
                             Dive straight into using your NFTs
@@ -439,23 +402,8 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -466,55 +414,18 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                             testID="allow"
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Allow
-                            </Text>
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              {
-                                "height": 8,
-                              }
-                            }
+                            style={[Object]}
                           />
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -525,28 +436,10 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "transparent",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                             testID="cancel"
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Not right now
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </View>

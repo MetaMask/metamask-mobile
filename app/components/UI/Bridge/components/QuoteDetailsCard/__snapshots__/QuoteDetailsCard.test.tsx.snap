@@ -325,234 +325,96 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
-                              [
-                                undefined,
-                              ],
+                              [Object],
+                              [Array],
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-end",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
-                              [
-                                undefined,
-                              ],
+                              [Object],
+                              [Array],
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-end",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
-                              [
-                                undefined,
-                              ],
+                              [Object],
+                              [Array],
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-end",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
-                              [
-                                undefined,
-                              ],
+                              [Object],
+                              [Array],
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
-                            style={
-                              {
-                                "alignItems": "flex-end",
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Recipient
-                            </Text>
+                            <Text … />
                           </View>
                           <View
-                            style={
-                              [
-                                [Object],
-                                [Object],
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="recipient-selector-button"
-                            >
-                              <Text … />
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>

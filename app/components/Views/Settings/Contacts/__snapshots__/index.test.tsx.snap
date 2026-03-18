@@ -224,46 +224,21 @@ exports[`Contacts renders correctly 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="0"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Contacts
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
@@ -364,18 +339,9 @@ exports[`Contacts renders correctly 1`] = `
                         <Text
                           style={
                             [
-                              {
-                                "color": "#007aff",
-                                "fontSize": 17,
-                                "fontWeight": "500",
-                                "textAlign": "center",
-                              },
+                              [Object],
                               null,
-                              [
-                                [Object],
-                                [Object],
-                                undefined,
-                              ],
+                              [Array],
                               null,
                             ]
                           }

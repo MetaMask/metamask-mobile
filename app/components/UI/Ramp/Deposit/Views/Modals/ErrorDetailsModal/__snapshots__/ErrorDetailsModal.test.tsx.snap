@@ -323,63 +323,23 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <SvgMock
-                              color="#ca3542"
-                              fill="currentColor"
-                              height={20}
-                              name="Danger"
-                              style={[Object]}
-                              width={20}
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Error details
-                            </Text>
+                            <SvgMock … />
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -392,19 +352,9 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                       >
                         <View>
                           <View
-                            style={
-                              {
-                                "paddingBottom": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              This is a test error message.
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                       </RCTScrollView>

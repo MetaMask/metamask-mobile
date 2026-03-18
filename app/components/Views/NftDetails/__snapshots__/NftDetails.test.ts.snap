@@ -313,105 +313,22 @@ exports[`NftDetails renders correctly 1`] = `
                       >
                         <View>
                           <View
-                            style={
-                              {
-                                "padding": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
-                            <View>
-                              <View … />
-                              <Text … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                              <View … />
-                              <View … />
-                              <View … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                              <Text … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                              <Text … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                              <Text … />
-                            </View>
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                              <Text … />
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Collection
-                            </Text>
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                              <Text … />
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Price
-                            </Text>
-                            <View
-                              style={[Array]}
-                            >
-                              <Text … />
-                              <View … />
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={[Object]}
-                            >
-                              Attributes
-                            </Text>
-                            <View
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
-                            <View
-                              style={[Object]}
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
+                            <View … />
+                            <View … />
+                            <View … />
+                            <View … />
+                            <View … />
+                            <View … />
+                            <Text … />
+                            <View … />
+                            <Text … />
+                            <View … />
+                            <Text … />
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -467,14 +384,7 @@ exports[`NftDetails renders correctly 1`] = `
                           }
                         >
                           <Text
-                            style={
-                              [
-                                [Object],
-                                null,
-                                [Array],
-                                null,
-                              ]
-                            }
+                            style={[Array]}
                           >
                             Send
                           </Text>

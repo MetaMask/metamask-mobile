@@ -2152,18 +2152,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           minY={0}
                           style={
                             [
-                              {
-                                "backgroundColor": "transparent",
-                                "borderWidth": 0,
-                              },
-                              {
-                                "flex": 1,
-                              },
-                              {
-                                "flex": 0,
-                                "height": "100%",
-                                "width": "100%",
-                              },
+                              [Object],
+                              [Object],
+                              [Object],
                             ]
                           }
                           testID="snaps-ui-image"
@@ -2173,12 +2164,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           xml="<svg height="32" width="32" />"
                         >
                           <RNSVGGroup
-                            fill={
-                              {
-                                "payload": 4278190080,
-                                "type": 0,
-                              }
-                            }
+                            fill={[Object]}
                           />
                         </RNSVGSvgView>
                       </View>

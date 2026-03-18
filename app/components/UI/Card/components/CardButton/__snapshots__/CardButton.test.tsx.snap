@@ -306,9 +306,7 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                         {
                           "value": {
                             "transform": [
-                              {
-                                "scale": 1,
-                              },
+                              [Object],
                             ],
                           },
                         }
@@ -326,9 +324,7 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                         [
                           {
                             "transform": [
-                              {
-                                "scale": 1,
-                              },
+                              [Object],
                             ],
                           },
                           {
@@ -397,11 +393,7 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                           name="Card"
                           style={
                             [
-                              {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }

@@ -1363,20 +1363,14 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <RCTScrollView
                             automaticallyAdjustContentInsets={false}
-                            contentInset={
-                              {
-                                "bottom": 0,
-                              }
-                            }
+                            contentInset={[Object]}
                             enableAutomaticScroll={true}
                             enableOnAndroid={false}
                             enableResetScrollToCoords={true}
@@ -1400,18 +1394,10 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
-                            <View>
-                              <View … />
-                            </View>
+                            <View … />
                           </RCTScrollView>
                           <View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                              <View … />
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1839,20 +1825,14 @@ exports[`EnterAddress Component shows text input for state when region is not US
                         <View
                           style={
                             [
-                              {
-                                "flex": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <RCTScrollView
                             automaticallyAdjustContentInsets={false}
-                            contentInset={
-                              {
-                                "bottom": 0,
-                              }
-                            }
+                            contentInset={[Object]}
                             enableAutomaticScroll={true}
                             enableOnAndroid={false}
                             enableResetScrollToCoords={true}
@@ -1876,18 +1856,10 @@ exports[`EnterAddress Component shows text input for state when region is not US
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
-                            <View>
-                              <View … />
-                            </View>
+                            <View … />
                           </RCTScrollView>
                           <View>
-                            <View
-                              style={[Array]}
-                            >
-                              <View … />
-                              <View … />
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>

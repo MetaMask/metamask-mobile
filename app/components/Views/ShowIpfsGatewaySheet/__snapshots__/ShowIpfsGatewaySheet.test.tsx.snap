@@ -466,15 +466,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             Cancel
                           </Text>
@@ -527,15 +519,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             Confirm
                           </Text>

@@ -323,47 +323,22 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select token
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="2"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -386,23 +361,8 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                         <View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -413,33 +373,9 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "flex-start",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              alignItems="center"
-                              flexDirection="row"
-                              gap={8}
-                              style={[Array]}
-                            >
-                              <View … />
-                              <Text … />
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -497,69 +433,21 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search token by name or address"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value="Nonexistent Token"
-                            />
+                            <TextInput … />
                           </View>
                           <View
-                            style={
-                              {
-                                "marginLeft": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-endacccessory"
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -598,23 +486,8 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                       >
                         <View>
                           <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": true,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={false}
@@ -625,22 +498,9 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "borderRadius": 4,
-                                "opacity": 0.5,
-                                "position": "relative",
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              accessibilityRole="none"
-                              accessible={true}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -882,7 +742,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={6}
+              handlerTag={-1}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -980,47 +840,22 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select network
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="1"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1124,69 +959,21 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1244,15 +1031,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                         >
                           <Text
                             accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
+                            style={[Object]}
                           >
                             Apply
                           </Text>
@@ -1594,47 +1373,22 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                         <View
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexBasis": "0%",
-                                "flexGrow": 1,
-                                "flexShrink": 1,
-                              },
+                              [Object],
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={
-                              [
-                                [Object],
-                                undefined,
-                              ]
-                            }
+                            style={[Array]}
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={[Array]}
-                            >
-                              Select token
-                            </Text>
+                            <Text … />
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View
-                              collapsable={false}
-                              jestAnimatedProps={[Object]}
-                              jestAnimatedStyle={[Object]}
-                              jestInlineStyle={[Array]}
-                              nativeID="0"
-                              style={[Array]}
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </View>
@@ -1657,23 +1411,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                         <View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
+                            accessibilityState={[Object]}
+                            accessibilityValue={[Object]}
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -1684,33 +1423,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "flex-start",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              alignItems="center"
-                              flexDirection="row"
-                              gap={8}
-                              style={[Array]}
-                            >
-                              <View … />
-                              <Text … />
-                              <SvgMock … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1768,43 +1483,15 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                           testID="textfield"
                         >
                           <View
-                            style={
-                              {
-                                "marginRight": 12,
-                              }
-                            }
+                            style={[Object]}
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock
-                              color="#686e7d"
-                              fill="currentColor"
-                              height={20}
-                              name="Search"
-                              style={[Object]}
-                              width={20}
-                            />
+                            <SvgMock … />
                           </View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              multiline={false}
-                              numberOfLines={1}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search token by name or address"
-                              placeholderTextColor="#686e7d"
-                              style={[Object]}
-                              testID="textfieldsearch"
-                              value=""
-                            />
+                            <TextInput … />
                           </View>
                         </View>
                       </View>
@@ -1892,121 +1579,35 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="token-list-item-eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-                            >
-                              <View … />
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="token-list-item-eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7"
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="token-list-item-bip122:000000000019d6689c085ae165831e93/slip44:0"
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="token-list-item-eip155:1/slip44:60"
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="token-list-item-solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
-                            >
-                              <View … />
-                            </View>
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>

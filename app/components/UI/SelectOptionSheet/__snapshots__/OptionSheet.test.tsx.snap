@@ -355,49 +355,10 @@ exports[`OptionSheet render matches snapshot 1`] = `
                       >
                         <View>
                           <View
-                            style={
-                              {
-                                "flex": 1,
-                                "paddingBottom": 10,
-                              }
-                            }
+                            style={[Object]}
                           >
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="select-option-key1"
-                            >
-                              <Text … />
-                            </View>
-                            <View
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
-                              testID="select-option-key2"
-                            >
-                              <Text … />
-                            </View>
+                            <View … />
+                            <View … />
                           </View>
                         </View>
                       </RCTScrollView>
