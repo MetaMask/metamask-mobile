@@ -1702,7 +1702,7 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('skips handling deeplinks without pathname and query params', () => {
+  describe('skips handling deeplinks that should exit early', () => {
     // Link cases to test for skipping handling
     const testLinkCases = [
       {
@@ -1732,6 +1732,14 @@ describe('handleUniversalLink', () => {
       {
         link: 'metamask://action?query=value',
         shouldSkip: false,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.OAUTH_REDIRECT}`,
+        shouldSkip: true,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.OAUTH_REDIRECT}?code=test-code&state=test-state`,
+        shouldSkip: true,
       },
     ];
 
