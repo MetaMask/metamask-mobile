@@ -651,7 +651,9 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(networksButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.NETWORKS_MANAGEMENT);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.NETWORKS_MANAGEMENT,
+      );
     });
   });
 
