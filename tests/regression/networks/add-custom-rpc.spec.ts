@@ -8,7 +8,6 @@ import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import { asDetoxElement } from '../../framework/EncapsulatedElement';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 
@@ -75,7 +74,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
           NetworkEducationModal.container,
         );
         await Assertions.expectElementToHaveText(
-          asDetoxElement(NetworkEducationModal.networkName),
+          NetworkEducationModal.networkName,
           CustomNetworks.Gnosis.providerConfig.nickname,
         );
         await NetworkEducationModal.tapGotItButton();

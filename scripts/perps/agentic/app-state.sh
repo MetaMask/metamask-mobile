@@ -16,7 +16,6 @@
 #   scripts/perps/agentic/app-state.sh switch-account <addr>    # Switch account
 #   scripts/perps/agentic/app-state.sh press <testId>           # Press component by testID
 #   scripts/perps/agentic/app-state.sh scroll [--test-id <id>] [--offset <n>]  # Scroll
-#   scripts/perps/agentic/app-state.sh set-input <testId> <value>  # Set text input value
 #   scripts/perps/agentic/app-state.sh recipe perps/positions   # Run a recipe
 #   scripts/perps/agentic/app-state.sh recipe --list            # List recipes
 
@@ -67,9 +66,6 @@ case "$COMMAND" in
   scroll)
     node scripts/perps/agentic/cdp-bridge.js scroll-view "$@"
     ;;
-  set-input)
-    node scripts/perps/agentic/cdp-bridge.js set-input "$@"
-    ;;
   sentry-debug)
     node scripts/perps/agentic/cdp-bridge.js sentry-debug "$@"
     ;;
@@ -97,7 +93,6 @@ case "$COMMAND" in
     echo "  press <testId>         Press a component by its testID prop"
     echo "  scroll [opts]          Scroll a ScrollView/FlatList"
     echo "                         --test-id <id>  --offset <n>  --animated"
-    echo "  set-input <testId> <value>  Set text input value by testID"
     echo "  sentry-debug [enable|disable]  Patch Sentry to log errors to console"
     echo "  unlock <password>      Unlock wallet via fiber tree"
     echo "  recipe <team/name>     Run a recipe (e.g. perps/positions)"

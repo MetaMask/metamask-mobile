@@ -69,13 +69,6 @@ jest.mock('../../actions/security', () => ({
   setDataCollectionForMarketing: () => ({
     type: 'SET_DATA_COLLECTION_FOR_MARKETING',
   }),
-  setOsAuthEnabled: (enabled: boolean) => ({
-    type: 'SET_OS_AUTH_ENABLED',
-    enabled,
-  }),
-}));
-jest.mock('../../actions/settings', () => ({
-  setLockTime: (lockTime: number) => ({ type: 'SET_LOCK_TIME', lockTime }),
 }));
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((s: string) => new Uint8Array(s.length)),
@@ -118,7 +111,6 @@ function makeFiber(
   return {
     child: null,
     sibling: null,
-    return: null,
     memoizedProps: testID || onPress ? { testID, onPress } : null,
     stateNode: null,
     ...rest,
@@ -712,52 +704,6 @@ describe('AgenticService.install', () => {
         accounts: [],
       });
       expect(mockMarkTutorial).not.toHaveBeenCalled();
-    });
-
-    it('dispatches setLockTime(-1) when autoLockNever is true', async () => {
-      mockDispatch.mockClear();
-      await bridge().setupWallet({
-        password: 'test123',
-        accounts: [],
-        settings: { autoLockNever: true },
-      });
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'SET_LOCK_TIME', lockTime: -1 }),
-      );
-    });
-
-    it('does not dispatch setLockTime when autoLockNever is not set', async () => {
-      mockDispatch.mockClear();
-      await bridge().setupWallet({
-        password: 'test123',
-        accounts: [],
-      });
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'SET_LOCK_TIME' }),
-      );
-    });
-
-    it('dispatches setOsAuthEnabled(true) when deviceAuthEnabled is true', async () => {
-      mockDispatch.mockClear();
-      await bridge().setupWallet({
-        password: 'test123',
-        accounts: [],
-        settings: { deviceAuthEnabled: true },
-      });
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'SET_OS_AUTH_ENABLED', enabled: true }),
-      );
-    });
-
-    it('does not dispatch setOsAuthEnabled when deviceAuthEnabled is not set', async () => {
-      mockDispatch.mockClear();
-      await bridge().setupWallet({
-        password: 'test123',
-        accounts: [],
-      });
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'SET_OS_AUTH_ENABLED' }),
-      );
     });
   });
 });

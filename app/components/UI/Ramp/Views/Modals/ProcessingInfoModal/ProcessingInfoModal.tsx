@@ -24,7 +24,6 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -102,13 +101,11 @@ function ProcessingInfoModal() {
       ref={sheetRef}
       shouldNavigateBack
       isInteractable={false}
-      testID={PROCESSING_INFO_MODAL_TEST_IDS.MODAL}
+      testID="processing-info-modal"
     >
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{
-          testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,
-        }}
+        closeButtonProps={{ testID: 'processing-info-modal-close-button' }}
       />
 
       {statusDescription && (

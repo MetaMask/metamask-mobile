@@ -283,33 +283,28 @@ jest.mock(
   },
 );
 
-// Mock HeaderCompactStandard
+// Mock BottomSheetHeader
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({
-        title,
+        children,
         onClose,
-        closeButtonProps,
       }: {
-        title?: React.ReactNode;
+        children?: React.ReactNode;
         onClose?: () => void;
-        closeButtonProps?: { testID?: string };
       }) =>
         ReactActual.createElement(
           View,
           { testID: 'bottom-sheet-header' },
-          ReactActual.createElement(Text, {}, title),
+          ReactActual.createElement(Text, {}, children),
           ReactActual.createElement(
             TouchableOpacity,
-            {
-              onPress: onClose,
-              testID: closeButtonProps?.testID ?? 'close-button',
-            },
+            { onPress: onClose, testID: 'close-button' },
             ReactActual.createElement(Text, {}, 'Close'),
           ),
         ),
@@ -464,16 +459,19 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       );
 
       expect(getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL)).toBeOnTheScreen();
-      expect(getByText('Test Reward')).toBeOnTheScreen();
+      expect(getByText('Reward Details')).toBeOnTheScreen();
     });
 
     it('renders title for non-LINEA_TOKENS reward', () => {
-      const { getByText } = render(
+      const { getByTestId, getByText } = render(
         <EndOfSeasonClaimBottomSheet
           route={createRoute({ title: 'My Reward Title' })}
         />,
       );
 
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TITLE),
+      ).toBeOnTheScreen();
       expect(getByText('My Reward Title')).toBeOnTheScreen();
     });
 

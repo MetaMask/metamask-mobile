@@ -8,7 +8,6 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { asDetoxElement } from '../../framework';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import WalletView from '../../page-objects/wallet/WalletView';
@@ -78,7 +77,7 @@ describe(
           await Assertions.expectTextDisplayed('USDC');
           await Assertions.expectTextDisplayed('USDT');
           await Assertions.expectElementToHaveText(
-            asDetoxElement(QuoteView.amountInput),
+            QuoteView.amountInput,
             '1.0',
           );
           await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);

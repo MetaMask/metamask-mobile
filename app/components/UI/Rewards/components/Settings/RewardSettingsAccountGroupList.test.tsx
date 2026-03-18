@@ -266,7 +266,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Skeleton component
-jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
+jest.mock('../../../../../component-library/components/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 

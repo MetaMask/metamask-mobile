@@ -222,7 +222,6 @@ export const useTrendingRequest = (options: {
           minMarketCap,
           maxMarketCap,
           excludeLabels: ['stable_coin', 'blue_chip'],
-          includeTokenSecurityData: true,
         });
         // Only update state if this is still the current request
         if (currentRequestId === requestIdRef.current) {

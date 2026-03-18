@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import VeriffSdk, { type VeriffBranding } from '@veriff/react-native-sdk';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,17 +26,17 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { selectSelectedCountry } from '../../../../../core/redux/slices/card';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { brandColor } from '@metamask/design-tokens';
-import useRegions from '../../hooks/useRegions';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { userCountry: selectedCountry } = useRegions();
+  const selectedCountry = useSelector(selectSelectedCountry);
   const [isLaunchingVeriff, setIsLaunchingVeriff] = useState(false);
 
   const veriffBranding: VeriffBranding = useMemo(

@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../../Tokens/types';
-import { isClaimableBonusAboveThreshold } from '../MerklRewards.utils';
 import {
   useMerklRewards,
   isTokenEligibleForMerklRewards,
@@ -13,7 +12,6 @@ import { selectMerklCampaignClaimingEnabledFlag } from '../../../selectors/featu
 import { useMusdConversionEligibility } from '../../../hooks/useMusdConversionEligibility';
 
 export interface MerklClaimData {
-  /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
   hasPendingClaim: boolean;
   isClaiming: boolean;
@@ -81,9 +79,7 @@ export const useMerklBonusClaim = (
     }
 
     return {
-      claimableReward: isClaimableBonusAboveThreshold(claimableReward)
-        ? claimableReward
-        : null,
+      claimableReward,
       hasPendingClaim,
       claimRewards,
       isClaiming,

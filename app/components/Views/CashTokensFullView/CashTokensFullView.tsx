@@ -48,7 +48,7 @@ const CashTokensFullView = () => {
       {!hasMusdBalanceOnAnyChain ? (
         <Box twClassName="flex-1">
           <SectionRow>
-            <CashGetMusdEmptyState isFullView />
+            <CashGetMusdEmptyState />
           </SectionRow>
         </Box>
       ) : (

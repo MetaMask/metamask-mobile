@@ -20,11 +20,6 @@ const selectPredictWithdrawTransaction = createSelector(
   (predictControllerState) => predictControllerState?.withdrawTransaction,
 );
 
-const selectPredictActiveOrder = createSelector(
-  selectPredictControllerState,
-  (predictState) => predictState?.activeOrder ?? null,
-);
-
 const selectPredictClaimablePositions = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.claimablePositions || {},
@@ -86,11 +81,6 @@ const selectPredictPendingClaimByAddress = ({ address }: { address: string }) =>
     (pendingClaims) => pendingClaims[address] || undefined,
   );
 
-const selectPredictSelectedPaymentToken = createSelector(
-  selectPredictControllerState,
-  (predictState) => predictState?.selectedPaymentToken ?? null,
-);
-
 const selectPredictAccountMeta = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.accountMeta || {},
@@ -113,7 +103,6 @@ export {
   selectPredictPendingDeposits,
   selectPredictPendingClaims,
   selectPredictWithdrawTransaction,
-  selectPredictActiveOrder,
   selectPredictClaimablePositions,
   selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,
@@ -125,5 +114,4 @@ export {
   selectPredictPendingClaimByAddress,
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
-  selectPredictSelectedPaymentToken,
 };

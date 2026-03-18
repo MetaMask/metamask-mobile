@@ -102,7 +102,11 @@ describe('useBridgeConfirm', () => {
       });
 
       expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-        quoteResponse: mockQuoteWithMetadata,
+        quoteResponse: {
+          ...mockQuoteWithMetadata,
+          aggregator: mockQuoteWithMetadata.quote.bridgeId,
+          walletAddress: WALLET_ADDRESS,
+        },
         location: MetaMetricsSwapsEventSource.MainView,
       });
     });

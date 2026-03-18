@@ -12,11 +12,11 @@ const mockGetQuotes = jest.fn().mockResolvedValue({
   customActions: [],
 });
 
-const mockGetBuyWidgetData = jest.fn();
+const mockGetWidgetUrl = jest.fn();
 
 const defaultQuotesReturn = {
   getQuotes: mockGetQuotes,
-  getBuyWidgetData: mockGetBuyWidgetData,
+  getWidgetUrl: mockGetWidgetUrl,
   data: null,
   loading: false,
   error: null,
@@ -349,28 +349,5 @@ describe('PaymentSelectionModal', () => {
       ],
       forceRefresh: true,
     });
-  });
-
-  it('shows payment method without quote when only custom-action quote matches', () => {
-    const customActionQuote = {
-      provider: '/providers/transak',
-      quote: {
-        paymentMethod: '/payments/debit-credit-card-1',
-        isCustomAction: true,
-      },
-    };
-    mockUseRampsQuotes.mockImplementation(() => ({
-      ...defaultQuotesReturn,
-      data: {
-        success: [customActionQuote],
-        error: [],
-        sorted: [],
-        customActions: [],
-      },
-      loading: false,
-    }));
-
-    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
-    expect(getAllByText('Debit or Credit').length).toBeGreaterThan(0);
   });
 });

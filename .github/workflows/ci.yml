@@ -408,7 +408,6 @@ jobs:
     continue-on-error: true
     permissions:
       contents: read
-      issues: write
       pull-requests: write
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
@@ -420,7 +419,6 @@ jobs:
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
-            .github/scripts/e2e-risk-label.mjs
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 

@@ -76,15 +76,6 @@ describe('onUnapprovedTransaction', () => {
     expect(callbacks.autoSign).not.toHaveBeenCalled();
   });
 
-  it('skips processing when origin is MetaMask Mobile Card (MMM_CARD)', () => {
-    const callbacks = mockCallbacks();
-    const txMeta = buildSwapTxMeta({ origin: 'MetaMask Mobile Card' });
-
-    onUnapprovedTransaction(txMeta, callbacks);
-
-    expect(callbacks.autoSign).not.toHaveBeenCalled();
-  });
-
   it('calls autoSign for hardware wallet swap', () => {
     isHardwareAccountMock.mockReturnValue(true);
     const callbacks = mockCallbacks();

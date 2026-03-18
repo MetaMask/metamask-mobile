@@ -36,7 +36,6 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
 
 export interface EnterAddressParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
@@ -259,7 +258,7 @@ const EnterAddress = (): JSX.Element => {
               )}
               error={errors.addressLine1}
               returnKeyType="next"
-              testID={ENTER_ADDRESS_TEST_IDS.ADDRESS_LINE_1_INPUT}
+              testID="address-line-1-input"
               ref={addressLine1InputRef}
               autoComplete="address-line1"
               textContentType="fullStreetAddress"
@@ -277,7 +276,7 @@ const EnterAddress = (): JSX.Element => {
               )}
               error={errors.addressLine2}
               returnKeyType="next"
-              testID={ENTER_ADDRESS_TEST_IDS.ADDRESS_LINE_2_INPUT}
+              testID="address-line-2-input"
               ref={addressLine2InputRef}
               autoComplete="address-line2"
               textContentType="fullStreetAddress"
@@ -296,7 +295,7 @@ const EnterAddress = (): JSX.Element => {
                 )}
                 error={errors.city}
                 returnKeyType="next"
-                testID={ENTER_ADDRESS_TEST_IDS.CITY_INPUT}
+                testID="city-input"
                 containerStyle={styles.nameInputContainer}
                 ref={cityInputRef}
                 textContentType="addressCity"
@@ -312,7 +311,7 @@ const EnterAddress = (): JSX.Element => {
                   error={errors.state}
                   containerStyle={styles.nameInputContainer}
                   defaultValue={strings('deposit.enter_address.select_state')}
-                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                  testID="state-input"
                 />
               ) : (
                 <DepositTextField
@@ -325,7 +324,7 @@ const EnterAddress = (): JSX.Element => {
                   )}
                   error={errors.state}
                   returnKeyType="next"
-                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                  testID="state-input"
                   containerStyle={styles.nameInputContainer}
                   ref={stateInputRef}
                   textContentType="addressState"
@@ -345,7 +344,7 @@ const EnterAddress = (): JSX.Element => {
                 })}
                 error={errors.postCode}
                 returnKeyType="done"
-                testID={ENTER_ADDRESS_TEST_IDS.POSTAL_CODE_INPUT}
+                testID="postal-code-input"
                 containerStyle={styles.nameInputContainer}
                 ref={postCodeInputRef}
                 autoComplete="postal-code"
@@ -360,7 +359,7 @@ const EnterAddress = (): JSX.Element => {
                 value={selectedRegion?.name || ''}
                 error={errors.countryCode}
                 returnKeyType="done"
-                testID={ENTER_ADDRESS_TEST_IDS.COUNTRY_INPUT}
+                testID="country-input"
                 containerStyle={styles.nameInputContainer}
                 isDisabled
                 startAccessory={
@@ -381,7 +380,7 @@ const EnterAddress = (): JSX.Element => {
               width={ButtonWidthTypes.Full}
               isDisabled={loading || !!error}
               loading={loading}
-              testID={ENTER_ADDRESS_TEST_IDS.CONTINUE_BUTTON}
+              testID="address-continue-button"
             />
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>

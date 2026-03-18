@@ -597,9 +597,7 @@ describe('QuoteSelectorView', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('does not navigate back when quotes are expired and not loading', () => {
-      // When quotes expire the view keeps showing cached data (the Redux quotes
-      // are still present) so there is no reason to dismiss the selector.
+    it('navigates back when quotes are expired and not loading', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [],
         bestQuote: null,
@@ -611,7 +609,7 @@ describe('QuoteSelectorView', () => {
 
       render(<QuoteSelectorView />);
 
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
     });
 
     it('navigates back when loading and error exists', () => {

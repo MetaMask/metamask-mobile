@@ -52,12 +52,6 @@ import type { Fixture } from './types';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
-import LocalWebSocketServer from '../../websocket/server';
-import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
-import {
-  setupAccountActivityMocks,
-  resetAccountActivityMockState,
-} from '../../websocket/account-activity-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -545,7 +539,6 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
-  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
   let testError: Error | null = null;
 
   try {
@@ -580,13 +573,6 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
-
-    // Step 4.5: Start WebSocket mock servers
-    await startResourceWithRetry(
-      ResourceType.ACCOUNT_ACTIVITY_WS,
-      accountActivityWsServer,
-    );
-    await setupAccountActivityMocks(accountActivityWsServer);
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -630,9 +616,6 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
-          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
-            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
-            : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
@@ -724,15 +707,6 @@ export async function withFixtures(
         logger.error('Error during live request validation:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
       }
-    }
-
-    // Clean up WebSocket servers
-    try {
-      resetAccountActivityMockState();
-      await accountActivityWsServer.stop();
-    } catch (cleanupError) {
-      logger.error('Error during WebSocket cleanup:', cleanupError);
-      cleanupErrors.push(cleanupError as Error);
     }
 
     // Clean up the mock server

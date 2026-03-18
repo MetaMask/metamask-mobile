@@ -16,8 +16,6 @@ const EVENT_LOCATIONS = {
     'quick_convert_max_bottom_sheet_confirmation_screen',
   CUSTOM_AMOUNT_NAVBAR: 'custom_amount_navbar',
   PERCENTAGE_ROW: 'percentage_row',
-  /** CTA on full page Cash token list */
-  MOBILE_TOKEN_LIST_PAGE: 'mobile-token-list-page',
 };
 
 const MUSD_CTA_TYPES = {

@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { Animated, Easing, StyleSheet } from 'react-native';
 import Svg, { Path, LinearGradient, Stop, Defs } from 'react-native-svg';
-import { SHAPES_BACKGROUND_ANIMATION_TEST_IDS } from './ShapesBackgroundAnimation.testIds';
 
 const styles = StyleSheet.create({
   container: {
@@ -42,7 +41,7 @@ const ShapesBackgroundAnimation = ({
 
   return (
     <Animated.View
-      testID={SHAPES_BACKGROUND_ANIMATION_TEST_IDS.CONTAINER}
+      testID="shapes-background-animation"
       style={[
         styles.container,
         {

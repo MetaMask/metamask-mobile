@@ -1,7 +1,7 @@
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
-} from './analyticsDataDeletion.types';
+} from '../../core/Analytics/MetaMetrics.types';
 import {
   __resetCacheForTests,
   createDataDeletionTask,

@@ -159,7 +159,6 @@ describe('usePredictClaim', () => {
       getBalance: jest.fn(),
       previewOrder: jest.fn(),
       deposit: jest.fn(),
-      payWithAnyTokenConfirmation: jest.fn(),
       prepareWithdraw: jest.fn(),
     } as ReturnType<typeof usePredictTrading>);
 

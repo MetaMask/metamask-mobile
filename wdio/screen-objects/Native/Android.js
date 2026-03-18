@@ -1,4 +1,3 @@
-// Migrated to tests/page-objects/MMConnect/AndroidScreenHelpers.ts
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { AppwrightLocator, Device } from 'appwright';

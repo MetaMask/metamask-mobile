@@ -10,7 +10,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
+      getWidgetUrl: jest.fn(),
     },
   },
 }));
@@ -44,14 +44,14 @@ describe('useRampsQuotes', () => {
   });
 
   describe('return value structure', () => {
-    it('returns getQuotes and getBuyWidgetData functions', () => {
+    it('returns getQuotes and getWidgetUrl functions', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
       });
 
       expect(typeof result.current.getQuotes).toBe('function');
-      expect(typeof result.current.getBuyWidgetData).toBe('function');
+      expect(typeof result.current.getWidgetUrl).toBe('function');
     });
 
     it('returns data, loading, error with default values when no options', () => {
@@ -93,8 +93,8 @@ describe('useRampsQuotes', () => {
     });
   });
 
-  describe('getBuyWidgetData', () => {
-    it('calls Engine.context.RampsController.getBuyWidgetData with quote', async () => {
+  describe('getWidgetUrl', () => {
+    it('calls Engine.context.RampsController.getWidgetUrl with quote', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
@@ -110,25 +110,17 @@ describe('useRampsQuotes', () => {
         },
       } as Quote;
 
-      const mockBuyWidget = {
-        url: 'https://global.transak.com/?apiKey=test',
-        orderId: null,
-      };
       (
-        Engine.context.RampsController.getBuyWidgetData as jest.Mock
-      ).mockResolvedValue(mockBuyWidget);
+        Engine.context.RampsController.getWidgetUrl as jest.Mock
+      ).mockResolvedValue('https://global.transak.com/?apiKey=test');
 
-      let resolvedValue: Awaited<
-        ReturnType<typeof result.current.getBuyWidgetData>
-      > = null;
       await act(async () => {
-        resolvedValue = await result.current.getBuyWidgetData(testQuote);
+        await result.current.getWidgetUrl(testQuote);
       });
 
-      expect(
-        Engine.context.RampsController.getBuyWidgetData,
-      ).toHaveBeenCalledWith(testQuote);
-      expect(resolvedValue).toEqual(mockBuyWidget);
+      expect(Engine.context.RampsController.getWidgetUrl).toHaveBeenCalledWith(
+        testQuote,
+      );
     });
   });
 

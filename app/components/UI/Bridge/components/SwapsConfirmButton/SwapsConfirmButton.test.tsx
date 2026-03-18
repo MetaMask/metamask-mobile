@@ -169,6 +169,11 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
+// Mock Skeleton component to prevent animation
+jest.mock('../../../../../component-library/components/Skeleton', () => ({
+  Skeleton: () => null,
+}));
+
 jest.mock('react-native-fade-in-image', () => {
   const ReactModule = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -776,7 +781,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
+          isExpired: true,
           isLoading: false,
         }));
 
@@ -800,7 +805,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
+          isExpired: true,
           isLoading: false,
         }));
 
@@ -823,7 +828,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
+          isExpired: true,
           isLoading: false,
         }));
 
@@ -853,7 +858,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
+          isExpired: true,
           isLoading: true,
           activeQuote: null,
         }));
@@ -868,7 +873,7 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // needsNewQuote is true because the hook computed it from isExpired=true with no activeQuote
+      // needsNewQuote is true because there is no active quote
       expect(
         getByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeTruthy();
@@ -882,7 +887,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          needsNewQuote: false,
+          isExpired: true,
           isLoading: true,
           activeQuote: mockActiveQuote,
         }));
@@ -897,7 +902,7 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // needsNewQuote is false because hook suppresses it when activeQuote exists and isLoading is true
+      // needsNewQuote is false because activeQuote exists and isLoading is true
       expect(
         queryByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeNull();
@@ -908,7 +913,7 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          needsNewQuote: false,
+          isExpired: true,
           isLoading: false,
         }));
 
@@ -930,7 +935,7 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // needsNewQuote is false because the hook suppresses it when isSubmittingTx is true
+      // needsNewQuote is false because isSubmittingTx is true
       expect(
         queryByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeNull();
@@ -957,7 +962,11 @@ describe('SwapsConfirmButton', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: mockActiveQuote,
+            quoteResponse: {
+              ...mockActiveQuote,
+              aggregator: mockActiveQuote.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
             location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -1016,7 +1025,11 @@ describe('SwapsConfirmButton', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: solanaActiveQuote,
+            quoteResponse: {
+              ...solanaActiveQuote,
+              aggregator: solanaActiveQuote.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
             location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);

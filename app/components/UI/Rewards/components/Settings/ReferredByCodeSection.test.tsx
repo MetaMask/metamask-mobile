@@ -152,7 +152,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
+jest.mock('../../../../../component-library/components/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 

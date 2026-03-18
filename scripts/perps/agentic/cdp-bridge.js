@@ -392,17 +392,12 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
 // ---------------------------------------------------------------------------
 
 // Map of nested route names to their parent navigator.
-// Friendly aliases → actual route names (for developer convenience)
-const ROUTE_ALIASES = {
-  PerpsHomeView: 'PerpsMarketListView',
-};
-
 // When navigating to a nested route, we need: navigate('Parent', { screen: 'Child', params })
 // Routes not in this map are assumed to be root-level and navigated to directly.
 const NESTED_ROUTE_PARENTS = {
   // Perps
   PerpsMarketListView: 'Perps', PerpsMarketDetails: 'Perps', PerpsPositions: 'Perps',
-  PerpsTrendingView: 'Perps', PerpsWithdraw: 'Perps', PerpsTutorial: 'Perps', PerpsOrderRedirect: 'Perps',
+  PerpsTrendingView: 'Perps', PerpsWithdraw: 'Perps', PerpsTutorial: 'Perps',
   PerpsClosePosition: 'Perps', PerpsTPSL: 'Perps', PerpsAdjustMargin: 'Perps',
   PerpsOrderDetailsView: 'Perps', PerpsActivity: 'Perps', PerpsOrderBook: 'Perps',
   PerpsPnlHeroCard: 'Perps', PerpsHIP3Debug: 'Perps',
@@ -430,7 +425,7 @@ const NESTED_ROUTE_PARENTS = {
 
 const COMMANDS = {
   async navigate(client, args, { deviceName, platform } = {}) {
-    const routeName = ROUTE_ALIASES[args[0]] || args[0];
+    const routeName = args[0];
     if (!routeName) {
       throw new Error('Usage: navigate <RouteName> [params-json]');
     }
@@ -659,52 +654,6 @@ const COMMANDS = {
     })()`;
     const result = await cdpEval(client, expr);
     return { ...result, deviceName };
-  },
-
-  async 'set-input'(client, args, { deviceName } = {}) {
-    const testId = args[0];
-    const value = args.slice(1).join(' ');
-    if (!testId) {
-      throw new Error('Usage: set-input <testId> <value>');
-    }
-    // Try __AGENTIC__ bridge first, fall back to inline fiber walking
-    const expr = `(function() {
-      if (globalThis.__AGENTIC__?.setInput) return globalThis.__AGENTIC__.setInput(${JSON.stringify(testId)}, ${JSON.stringify(value)});
-      var hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
-      if (!hook) return { ok: false, error: 'No React DevTools hook' };
-      var renderers = hook.renderers;
-      if (!renderers) return { ok: false, error: 'No renderers' };
-      var getFiberRoots = hook.getFiberRoots;
-      function findByTestId(fiber) {
-        if (!fiber) return null;
-        var props = fiber.memoizedProps;
-        if (props && props.testID === ${JSON.stringify(testId)}) return fiber;
-        return findByTestId(fiber.child) || findByTestId(fiber.sibling);
-      }
-      for (var [id] of renderers) {
-        var roots = getFiberRoots ? getFiberRoots(id) : undefined;
-        if (!roots) continue;
-        var result = null;
-        roots.forEach(function(r) {
-          if (result) return;
-          var fiber = findByTestId(r.current);
-          if (!fiber) return;
-          var cur = fiber;
-          while (cur) {
-            if (cur.memoizedProps && typeof cur.memoizedProps.onChangeText === 'function') {
-              cur.memoizedProps.onChangeText(${JSON.stringify(value)});
-              result = { ok: true, testId: ${JSON.stringify(testId)}, value: ${JSON.stringify(value)} };
-              return;
-            }
-            cur = cur.return || null;
-          }
-        });
-        if (result) return result;
-      }
-      return { ok: false, error: 'No component with testID=' + ${JSON.stringify(testId)} + ' found or no onChangeText' };
-    })()`;
-    const result = await cdpEval(client, expr);
-    return { ...result, testId, value, deviceName };
   },
 
   async 'sentry-debug'(client, args, { deviceName } = {}) {
@@ -944,7 +893,6 @@ Commands:
   press-test-id <testId>               Press a component by its testID prop
   scroll-view [--test-id <id>] [--offset <n>] [--animated]
                                        Scroll a ScrollView/FlatList
-  set-input <testId> <value>           Set text input value by testID (calls onChangeText)
   sentry-debug [enable|disable]          Patch Sentry to log errors to console with [SENTRY-DEBUG] prefix
   unlock <password>                      Unlock wallet (inject password + press login button via fiber tree)
   recipe <team/name>                   Run a recipe (e.g. perps/positions)

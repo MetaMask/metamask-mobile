@@ -29,11 +29,7 @@ import {
   REWARDS_GTM_MODAL_SHOWN,
 } from '../../constants/storage';
 import { analytics } from '../../util/analytics/analytics';
-import {
-  setDataCollectionForMarketing,
-  setOsAuthEnabled,
-} from '../../actions/security';
-import { setLockTime } from '../../actions/settings';
+import { setDataCollectionForMarketing } from '../../actions/security';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
@@ -47,7 +43,6 @@ import Routes from '../../constants/navigation/Routes';
 interface FiberNode {
   child: FiberNode | null;
   sibling: FiberNode | null;
-  return: FiberNode | null;
   memoizedProps: {
     testID?: string;
     onPress?: (...args: unknown[]) => unknown;
@@ -96,15 +91,6 @@ interface AgenticBridge {
     offset?: number;
     animated?: boolean;
   };
-  setInput: (
-    testId: string,
-    value: string,
-  ) => {
-    ok: boolean;
-    testId?: string;
-    value?: string;
-    error?: string;
-  };
   switchAccount: (address: string) => {
     switched: boolean;
     id: string;
@@ -122,8 +108,6 @@ interface AgenticBridge {
       metametrics?: boolean;
       skipGtmModals?: boolean;
       skipPerpsTutorial?: boolean;
-      autoLockNever?: boolean;
-      deviceAuthEnabled?: boolean;
     };
   }) => Promise<{
     ok: boolean;
@@ -333,41 +317,6 @@ const AgenticService = {
           return { ok: false, error: String(e) };
         }
       },
-      setInput: (testId: string, value: string) => {
-        try {
-          const result: {
-            ok: boolean;
-            testId?: string;
-            value?: string;
-            error?: string;
-          } = {
-            ok: false,
-            error: `No component with testID="${testId}" found`,
-          };
-          walkFiberRoots((rootFiber) => {
-            const target = findFiberByTestId(rootFiber, testId);
-            if (!target) return false;
-            // Walk the found fiber and its parents looking for onChangeText
-            let current: FiberNode | null = target;
-            while (current) {
-              if (typeof current.memoizedProps?.onChangeText === 'function') {
-                current.memoizedProps.onChangeText(value);
-                result.ok = true;
-                result.testId = testId;
-                result.value = value;
-                result.error = undefined;
-                return true;
-              }
-              current = current.return;
-            }
-            result.error = `Component with testID="${testId}" has no onChangeText prop`;
-            return true;
-          });
-          return result;
-        } catch (e) {
-          return { ok: false, error: String(e) };
-        }
-      },
       switchAccount: (address: string) => {
         const accounts = Engine.context.AccountsController.listAccounts();
         const target = accounts.find(
@@ -450,29 +399,19 @@ const AgenticService = {
             Engine.context.PerpsController?.markTutorialCompleted();
           }
 
-          // 7. Set auto-lock to "Never" (-1) for agentic workflows
-          if (settings.autoLockNever === true) {
-            ReduxService.store.dispatch(setLockTime(-1));
-          }
-
-          // 8. Enable device authentication (biometrics/passcode bypass)
-          if (settings.deviceAuthEnabled === true) {
-            ReduxService.store.dispatch(setOsAuthEnabled(true));
-          }
-
-          // 9. Configure MetaMetrics if specified
+          // 7. Configure MetaMetrics if specified
           if (settings.metametrics === false) {
             await analytics.optOut();
           } else if (settings.metametrics === true) {
             await analytics.optIn();
           }
 
-          // 10. Navigate to wallet (same as Authentication.unlockWallet)
+          // 8. Navigate to wallet (same as Authentication.unlockWallet)
           NavigationService.navigation?.reset({
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           });
 
-          // 11. Collect all ETH accounts for the summary
+          // 9. Collect all ETH accounts for the summary
           const ethAccs = (
             Object.values(
               AccountsController.state.internalAccounts.accounts,

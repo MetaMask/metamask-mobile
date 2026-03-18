@@ -15,18 +15,6 @@ import type { Theme } from '../../../../util/theme/models';
 const createStyles = (params: { theme: Theme }) => {
   const { colors } = params.theme;
 
-  const baseInput = {
-    ...typography.sBodyMD,
-    fontWeight: typography.sBodyMD.fontWeight as '400',
-    fontFamily: getFontFamily(TextVariant.BodyMD),
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 10,
-    height: 48,
-    color: colors.text.default,
-    backgroundColor: colors.background.muted,
-  };
-
   return StyleSheet.create({
     // ---- Modal content layout ------------------------------------------------
     rpcTitleWrapper: {
@@ -41,16 +29,39 @@ const createStyles = (params: { theme: Theme }) => {
 
     // ---- RpcUrlInput still uses these for the modal form ---------------------
     input: {
-      ...baseInput,
-      borderColor: colors.border.muted,
+      ...fontStyles.normal,
+      fontWeight: fontStyles.normal.fontWeight as '400',
+      borderColor: colors.border.default,
+      borderRadius: 12,
+      borderWidth: 1,
+      padding: 10,
+      height: 48,
+      color: colors.text.default,
+      backgroundColor: colors.background.muted,
     },
     inputWithError: {
-      ...baseInput,
+      ...typography.sBodyMD,
+      fontWeight: typography.sBodyMD.fontWeight as '400',
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       borderColor: colors.error.default,
+      borderRadius: 12,
+      borderWidth: 1,
+      padding: 10,
+      height: 48,
+      color: colors.text.default,
+      backgroundColor: colors.background.muted,
     },
     inputWithFocus: {
-      ...baseInput,
-      borderColor: colors.border.default,
+      ...typography.sBodyMD,
+      fontWeight: typography.sBodyMD.fontWeight as '400',
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+      borderColor: colors.primary.default,
+      borderRadius: 12,
+      borderWidth: 1,
+      padding: 10,
+      height: 48,
+      color: colors.text.default,
+      backgroundColor: colors.background.muted,
     },
     warningText: {
       ...fontStyles.normal,

@@ -26,7 +26,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { ensureError } from '../../utils/predictErrorHandler';
@@ -72,7 +71,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
@@ -140,15 +138,15 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   ) => {
     executeGuardedAction(
       () => {
-        navigateToBuyPreview(
-          {
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
             market,
             outcome,
             outcomeToken,
             entryPoint: resolvedEntryPoint,
           },
-          { throughRoot: true },
-        );
+        });
       },
       {
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,

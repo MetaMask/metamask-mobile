@@ -11,11 +11,7 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import {
-  normalizeProviderCode,
-  RampsOrderStatus,
-} from '@metamask/ramps-controller';
-import { extractOrderCode } from '../../utils/extractOrderCode';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -36,6 +32,7 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+
 interface RampsOrderDetailsParams {
   orderId: string;
   showCloseButton?: boolean;
@@ -70,8 +67,7 @@ const styles = StyleSheet.create({
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
-  const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
-  const order = getOrderById(orderCode);
+  const order = getOrderById(params.orderId);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
 
   const [isLoading, setIsLoading] = useState(isPending);
@@ -123,7 +119,10 @@ const OrderDetails = () => {
     try {
       setError(null);
       setIsRefreshing(true);
-      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      const providerCode = (order.provider?.id ?? '').replace(
+        '/providers/',
+        '',
+      );
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -154,6 +153,10 @@ const OrderDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (!order) {
+    return <ScreenLayout />;
+  }
+
   if (isLoading) {
     return (
       <ScreenLayout>
@@ -164,10 +167,6 @@ const OrderDetails = () => {
         </ScreenLayout.Body>
       </ScreenLayout>
     );
-  }
-
-  if (!order) {
-    return <ScreenLayout />;
   }
 
   if (error) {

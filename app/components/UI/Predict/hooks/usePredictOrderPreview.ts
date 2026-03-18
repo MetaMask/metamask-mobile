@@ -19,12 +19,8 @@ interface OrderPreviewResult {
  * isLoading/isCalculating flags are used by all 3 consumers for skeleton/inline states.
  */
 export function usePredictOrderPreview(
-  params: PreviewOrderParams & {
-    autoRefreshTimeout?: number;
-    initialPreview?: OrderPreview | null;
-  },
+  params: PreviewOrderParams & { autoRefreshTimeout?: number },
 ): OrderPreviewResult {
-  // Destructure params for stable dependencies
   const {
     marketId,
     outcomeId,
@@ -68,9 +64,7 @@ export function usePredictOrderPreview(
       hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
   });
 
-  const preview = hasValidSize
-    ? (query.data ?? params.initialPreview ?? null)
-    : (params.initialPreview ?? null);
+  const preview = hasValidSize ? (query.data ?? null) : null;
   const error = query.error
     ? parseErrorMessage({
         error: query.error,
@@ -82,7 +76,6 @@ export function usePredictOrderPreview(
 
   useEffect(() => {
     if (!query.error) return;
-
     Logger.error(ensureError(query.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,

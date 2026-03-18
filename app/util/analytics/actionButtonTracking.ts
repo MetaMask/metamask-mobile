@@ -1,5 +1,8 @@
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { IMetaMetricsEvent, JsonMap } from './analytics.types';
+import {
+  IMetaMetricsEvent,
+  JsonMap,
+} from '../../core/Analytics/MetaMetrics.types';
 
 export enum ActionLocation {
   HOME = 'home',

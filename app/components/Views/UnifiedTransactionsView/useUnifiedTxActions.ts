@@ -190,6 +190,7 @@ export function useUnifiedTxActions() {
     if (params?.error) {
       return undefined;
     }
+    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
     if (
       params &&
       'gasPrice' in params &&
@@ -212,9 +213,8 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for speed up');
       }
 
-      const gasValues = getParamsToSend(params);
-
       if (isLedgerAccount) {
+        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -230,7 +230,7 @@ export function useUnifiedTxActions() {
         return;
       }
 
-      await speedUpTx(speedUpTxId, gasValues);
+      await speedUpTx(speedUpTxId, getParamsToSend(params));
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
@@ -247,9 +247,8 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for cancel');
       }
 
-      const gasValues = getParamsToSend(params);
-
       if (isLedgerAccount) {
+        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -266,7 +265,7 @@ export function useUnifiedTxActions() {
 
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
-        gasValues,
+        getParamsToSend(params),
       );
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {

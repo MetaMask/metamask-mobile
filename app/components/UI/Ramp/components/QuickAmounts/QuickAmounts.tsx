@@ -9,7 +9,6 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 
 import styleSheet from './QuickAmounts.styles';
-import { QUICK_AMOUNTS_TEST_IDS } from './QuickAmounts.testIds';
 import { useFormatters } from '../../../../hooks/useFormatters';
 
 const DEFAULT_AMOUNTS = [50, 100, 200, 400];
@@ -29,7 +28,7 @@ const QuickAmounts: React.FC<QuickAmountsProps> = ({
   amounts = DEFAULT_AMOUNTS,
   currency = 'USD',
   onAmountPress,
-  testID = QUICK_AMOUNTS_TEST_IDS.CONTAINER,
+  testID = 'quick-amounts',
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();

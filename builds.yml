@@ -98,7 +98,7 @@ _secrets: &secrets # Infrastructure
 # GH Environments vs AWS: build-production=prod signer; build-rc & build-beta=rc signer; build-uat/build-e2e/build-exp=uat signer; build-flask-prod=flask prod; build-flask-uat/build-flask-e2e=flask uat
 _signing_prod: &signing_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
-  aws_secret: 'metamask-mobile-main-prod-signer-v2'
+  aws_secret: 'metamask-mobile-main-prod-signer'
   android_keystore_path: 'release.keystore'
 _signing_rc: &signing_rc
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-rc-signer'
@@ -110,7 +110,7 @@ _signing_uat: &signing_uat
   android_keystore_path: 'internalRelease.keystore'
 _signing_flask_prod: &signing_flask_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
-  aws_secret: 'metamask-mobile-flask-prod-signer-v2'
+  aws_secret: 'metamask-mobile-flask-prod-signer'
   android_keystore_path: 'flaskRelease.keystore'
 _signing_flask_uat: &signing_flask_uat
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'

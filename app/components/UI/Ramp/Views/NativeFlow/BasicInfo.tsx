@@ -40,7 +40,6 @@ import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -340,7 +339,7 @@ const V2BasicInfo = (): JSX.Element => {
                           label: strings('deposit.basic_info.login_with_email'),
                           onPress: handleLogout,
                           labelTextVariant: TextVariant.BodyMD,
-                          testID: BASIC_INFO_TEST_IDS.LOGOUT_BUTTON,
+                          testID: 'basic-info-logout-button',
                         }
                       : undefined
                   }
@@ -358,7 +357,7 @@ const V2BasicInfo = (): JSX.Element => {
                 )}
                 error={errors.firstName}
                 returnKeyType="next"
-                testID={BASIC_INFO_TEST_IDS.FIRST_NAME_INPUT}
+                testID="first-name-input"
                 containerStyle={styles.nameInputContainer}
                 ref={firstNameInputRef}
                 autoComplete="given-name"
@@ -377,7 +376,7 @@ const V2BasicInfo = (): JSX.Element => {
                 )}
                 error={errors.lastName}
                 returnKeyType="next"
-                testID={BASIC_INFO_TEST_IDS.LAST_NAME_INPUT}
+                testID="last-name-input"
                 containerStyle={styles.nameInputContainer}
                 ref={lastNameInputRef}
                 autoComplete="family-name"
@@ -442,7 +441,7 @@ const V2BasicInfo = (): JSX.Element => {
               }}
               ref={dateInputRef}
               textFieldProps={{
-                testID: BASIC_INFO_TEST_IDS.DATE_OF_BIRTH_INPUT,
+                testID: 'date-of-birth-input',
               }}
             />
             {regionIsoCode === 'US' && (
@@ -454,7 +453,7 @@ const V2BasicInfo = (): JSX.Element => {
                     </Text>
                     <TouchableOpacity
                       onPress={handleSsnInfoPress}
-                      testID={BASIC_INFO_TEST_IDS.SSN_INFO_BUTTON}
+                      testID="ssn-info-button"
                     >
                       <Icon
                         name={IconName.Info}
@@ -469,7 +468,7 @@ const V2BasicInfo = (): JSX.Element => {
                 onChangeText={handleFieldChange('ssn')}
                 error={errors.ssn}
                 returnKeyType="done"
-                testID={BASIC_INFO_TEST_IDS.SSN_INPUT}
+                testID="ssn-input"
                 ref={ssnInputRef}
                 autoComplete="off"
                 textContentType="none"
@@ -495,7 +494,7 @@ const V2BasicInfo = (): JSX.Element => {
             width={ButtonWidthTypes.Full}
             isDisabled={loading || !!error}
             loading={loading}
-            testID={BASIC_INFO_TEST_IDS.CONTINUE_BUTTON}
+            testID="continue-button"
           />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>

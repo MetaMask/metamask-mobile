@@ -24,11 +24,9 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
 import { renderFiat } from '../../../../../util/number';
-import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
-import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import Button, {
@@ -320,21 +318,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {order.cryptoAmount != null
-            ? (formatSubscriptNotation(
-                parseFloat(String(order.cryptoAmount)),
-              ) ??
-              formatWithThreshold(
-                parseFloat(String(order.cryptoAmount)),
-                0.00001,
-                I18n.locale,
-                {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 5,
-                },
-              ))
-            : '...'}{' '}
-          {cryptoSymbol}
+          {order.cryptoAmount} {cryptoSymbol}
         </Text>
       </Box>
 

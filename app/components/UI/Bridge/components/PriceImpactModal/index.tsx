@@ -10,6 +10,7 @@ import { PriceImpactDescription } from './PriceImpactDescription';
 import { PriceImpactFooter } from './PriceImpactFooter';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
+import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 
 export const PriceImpactModal = () => {
@@ -40,6 +41,8 @@ export const PriceImpactModal = () => {
     setLoading(true);
     await confirmBridge();
   }, [confirmBridge]);
+
+  useModalCloseOnQuoteExpiry();
 
   return (
     <BottomSheet ref={sheetRef}>

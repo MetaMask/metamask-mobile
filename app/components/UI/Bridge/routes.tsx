@@ -4,6 +4,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
+import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
 import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
@@ -64,6 +65,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
       component={BlockExplorersModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}
+      component={QuoteExpiredModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}

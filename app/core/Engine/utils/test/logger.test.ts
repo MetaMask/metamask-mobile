@@ -44,7 +44,6 @@ describe('logEngineCreation', () => {
           accounts: {},
           selectedAccount: '',
         },
-        accountIdByAddress: {},
       },
     };
 
@@ -88,7 +87,6 @@ describe('logEngineCreation', () => {
           accounts: {},
           selectedAccount: '',
         },
-        accountIdByAddress: {},
       },
       KeyringController: {
         vault: 'test-vault',

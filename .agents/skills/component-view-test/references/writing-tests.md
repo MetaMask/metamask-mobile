@@ -12,7 +12,6 @@ Before writing any test, read:
 - Any existing `*.view.test.tsx` for the same component
 - The relevant preset(s) in `tests/component-view/presets/`
 - The relevant renderer(s) in `tests/component-view/renderers/`
-- If the view calls an external HTTP API: `tests/component-view/api-mocking/` and any existing `api-mocking/<feature>.ts` for that API (see navigation-mocking.md, External Service / API Mocking)
 
 ---
 

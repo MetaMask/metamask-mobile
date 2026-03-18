@@ -14,8 +14,14 @@ const styleSheet = (params: {
   const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
-      padding: 16,
-      gap: 4,
+      paddingHorizontal: 16,
+    },
+    assetWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+    },
+    stockBadge: {
+      marginLeft: 8,
     },
     priceDiff: {
       color:

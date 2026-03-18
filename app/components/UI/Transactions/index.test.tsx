@@ -79,6 +79,14 @@ jest.mock('../TransactionElement', () => ({
 }));
 
 // Mock other connected components
+jest.mock(
+  '../../Views/confirmations/legacy/components/UpdateEIP1559Tx',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
 jest.mock('../TransactionActionModal', () => ({
   __esModule: true,
   default: () => null,
@@ -2097,6 +2105,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
+    instance.renderUpdateTxEIP1559Gas = jest.fn();
     instance.toggleRetry = jest.fn();
     instance.retry = jest.fn();
 

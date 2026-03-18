@@ -1,34 +1,32 @@
-import React, { useCallback, useLayoutEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useLayoutEffect, useMemo } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import Text from '../../../component-library/components/Texts/Text';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text/Text.types';
 import {
   CommonActions,
-  RouteProp,
   useNavigation,
+  RouteProp,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { useTheme } from '../../../util/theme';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
+import createStyles from './index.styles';
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontFamily,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -45,7 +43,7 @@ interface OnboardingSuccessParamList {
 }
 
 interface OnboardingSuccessScreenProps {
-  route?: RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>;
+  route: RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>;
 }
 
 interface OnboardingSuccessProps {
@@ -59,7 +57,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 }) => {
   const navigation = useNavigation();
 
-  const tw = useTailwind();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -96,20 +95,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           // No-op: Animation completion not needed in success mode
         }}
       />
-      <Text
-        variant={TextVariant.DisplayMd}
-        fontFamily={FontFamily.Accent}
-        fontWeight={FontWeight.Regular}
-        style={tw.style('mt-6 mb-4 mx-4 text-center', {
-          fontWeight: '400',
-        })}
-      >
+      <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
         {getTitleString()}
       </Text>
     </>
   );
 
   const renderFooter = () => {
+    // Hide default settings for settings backup flow
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
       return null;
     }
@@ -118,13 +111,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       <TouchableOpacity
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        style={tw.style('py-2 items-center')}
+        style={styles.footerLink}
       >
-        <Text
-          color={TextColor.InfoDefault}
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-        >
+        <Text color={TextColor.Info} variant={TextVariant.BodyMDMedium}>
           {strings('onboarding_success.manage_default_settings')}
         </Text>
       </TouchableOpacity>
@@ -132,35 +121,25 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   return (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
-      <Box
-        twClassName="flex-1 px-4"
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+      <View
+        style={styles.container}
         testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
       >
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1"
-        >
-          {renderContent()}
-        </Box>
+        <View style={styles.animationSection}>{renderContent()}</View>
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="pb-1 gap-y-3">
+        <View style={styles.buttonSection}>
           <Button
             testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-            variant={ButtonVariant.Primary}
+            label={strings('onboarding_success.done')}
+            variant={ButtonVariants.Primary}
             onPress={handleOnDone}
             size={ButtonSize.Lg}
-            isFullWidth
-          >
-            {strings('onboarding_success.done')}
-          </Button>
+            width={ButtonWidthTypes.Full}
+          />
           {renderFooter()}
-        </Box>
-      </Box>
+        </View>
+      </View>
     </SafeAreaView>
   );
 };

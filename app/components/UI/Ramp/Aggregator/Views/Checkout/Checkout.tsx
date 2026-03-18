@@ -42,7 +42,6 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
-import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
   url: string;
@@ -202,7 +201,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
+              testID="checkout-close-button"
               onPress={handleClosePress}
             />
           }
@@ -234,7 +233,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
+              testID="checkout-close-button"
               onPress={handleClosePress}
             />
           }
@@ -273,7 +272,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
+              testID="checkout-close-button"
               onPress={handleClosePress}
             />
           }
@@ -303,7 +302,7 @@ const CheckoutWebView = () => {
           onNavigationStateChange={handleNavigationStateChange}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
-          testID={CHECKOUT_TEST_IDS.WEBVIEW}
+          testID="checkout-webview"
         />
       </BottomSheet>
     );
@@ -322,7 +321,7 @@ const CheckoutWebView = () => {
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
             iconColor={IconColor.Default}
-            testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
+            testID="checkout-close-button"
             onPress={handleClosePress}
           />
         }

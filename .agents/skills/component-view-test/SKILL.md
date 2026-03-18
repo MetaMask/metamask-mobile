@@ -56,7 +56,6 @@ tests/component-view/
 ├── mocks.ts              ← Engine + native mocks (import this first, always)
 ├── render.tsx            ← renderComponentViewScreen, renderScreenWithRoutes
 ├── stateFixture.ts       ← StateFixtureBuilder (createStateFixture)
-├── api-mocking/          ← HTTP API mocks (nock) — extensible, one file per feature
 ├── presets/              ← initialState<Feature>() builders — one file per feature area
 └── renderers/            ← render<Feature>View() functions — one file per feature area
 ```

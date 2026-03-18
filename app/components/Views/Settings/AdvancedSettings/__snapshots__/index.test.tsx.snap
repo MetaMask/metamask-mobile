@@ -323,7 +323,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Smart account requests from dapps
+              Dismiss "Switch to smart account" suggestion
             </Text>
             <View
               style={
@@ -335,7 +335,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             >
               <RCTSwitch
-                accessibilityLabel="Smart account requests from dapps"
+                accessibilityLabel="Dismiss "Switch to smart account" suggestion"
                 accessibilityRole="switch"
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
@@ -361,7 +361,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 testID="dismiss_smart_account_update"
                 thumbTintColor="#ffffff"
                 tintColor="#b4b4b566"
-                value={true}
+                value={false}
               />
             </View>
           </View>
@@ -378,7 +378,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             }
           >
-            Let dapps request smart account features for standard accounts. This won't affect accounts that are already smart accounts.
+            Turn this on to no longer see the "Switch to smart account" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.
           </Text>
         </View>
         <View

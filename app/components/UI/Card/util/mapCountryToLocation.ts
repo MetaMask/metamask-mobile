@@ -8,7 +8,7 @@ import { CardLocation } from '../types';
 export const mapCountryToLocation = (
   countryCode: string | null,
 ): CardLocation => {
-  if (countryCode?.toUpperCase() === 'US') {
+  if (countryCode === 'US') {
     return 'us';
   }
   return 'international';

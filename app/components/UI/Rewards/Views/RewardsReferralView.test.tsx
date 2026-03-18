@@ -1,33 +1,66 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import RewardsReferralView, {
-  REWARDS_REFERRAL_SAFE_AREA_TEST_ID,
-} from './RewardsReferralView';
+import { render, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import RewardsReferralView from './RewardsReferralView';
 
-const mockGoBack = jest.fn();
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+// Mock selectors
+jest.mock('../../../../selectors/rewards', () => ({
+  selectRewardsSubscriptionId: jest.fn(),
+}));
+
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+
+// Mock navigation
+const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: jest.fn(),
-    goBack: mockGoBack,
+    navigate: mockNavigate,
+    setOptions: mockSetOptions,
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((styles: string) => (typeof styles === 'string' ? {} : {})),
-  }),
-}));
+// Mock theme
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
+// Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.referral_title': 'Referrals',
+      'rewards.referral_title': 'Referral Program',
     };
     return translations[key] || key;
   }),
 }));
 
+// Mock getNavigationOptionsTitle
+jest.mock('../../Navbar', () => ({
+  getNavigationOptionsTitle: jest.fn(() => ({ title: 'Referral Program' })),
+}));
+
+// Import the mock
+import { getNavigationOptionsTitle } from '../../Navbar';
+const mockGetNavigationOptionsTitle =
+  getNavigationOptionsTitle as jest.MockedFunction<
+    typeof getNavigationOptionsTitle
+  >;
+
+// Import hook mocks - useSeasonStatus removed from component
+
+// Mock ErrorBoundary
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
   default: function MockErrorBoundary({
@@ -48,6 +81,9 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
+// Mock hooks - useSeasonStatus hook removed from component
+
+// Mock ReferralDetails component
 jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
   __esModule: true,
   default: function MockReferralDetails() {
@@ -61,110 +97,151 @@ jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
+// Mock SafeAreaView
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(
+      View,
+      { ...props, testID: 'safe-area-view' },
       children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
-
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  build: jest.fn(() => ({})),
-}));
-
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {
-    REWARDS_REFERRALS_VIEWED: 'REWARDS_REFERRALS_VIEWED',
+    );
   },
 }));
 
 describe('RewardsReferralView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Setup default useSelector mock return values
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return 'test-subscription-id';
+      }
+      return undefined;
+    });
+
+    // Setup default hook mock return values - useSeasonStatus removed
   });
 
   describe('rendering', () => {
-    it('renders without crashing', () => {
+    it('should render without crashing', () => {
+      // Act & Assert
       expect(() => render(<RewardsReferralView />)).not.toThrow();
     });
 
-    it('renders ReferralDetails component', () => {
+    it('should render ReferralDetails component', () => {
+      // Act
       const { getByTestId, getByText } = render(<RewardsReferralView />);
 
+      // Assert
       expect(getByTestId('referral-details')).toBeTruthy();
       expect(getByText('Referral Details Component')).toBeTruthy();
     });
 
-    it('wraps content in ErrorBoundary', () => {
+    it('should wrap content in ErrorBoundary', () => {
+      // Act
       const { getByTestId } = render(<RewardsReferralView />);
 
+      // Assert
       expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
     });
   });
 
-  describe('header and SafeAreaView', () => {
-    it('renders SafeAreaView wrapper with correct testID', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
+  describe('navigation', () => {
+    it('should set navigation options on mount', async () => {
+      // Act
+      render(<RewardsReferralView />);
 
-      expect(getByTestId(REWARDS_REFERRAL_SAFE_AREA_TEST_ID)).toBeOnTheScreen();
+      // Assert
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalledTimes(1);
+      });
     });
 
-    it('renders HeaderCompactStandard with referral title', () => {
-      const { getByText } = render(<RewardsReferralView />);
+    it('should call getNavigationOptionsTitle with correct parameters', async () => {
+      // Act
+      render(<RewardsReferralView />);
 
-      expect(getByText('Referrals')).toBeOnTheScreen();
+      // Assert
+      await waitFor(() => {
+        expect(mockGetNavigationOptionsTitle).toHaveBeenCalledWith(
+          'Referral Program',
+          expect.anything(), // navigation object
+          false, // back button parameter
+          expect.anything(), // colors object
+        );
+      });
     });
 
-    it('calls navigation.goBack when back button is pressed', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
-      const backButton = getByTestId('header-back-button');
+    it('should set headerTitleAlign to center in navigation options', async () => {
+      // Act
+      render(<RewardsReferralView />);
 
-      fireEvent.press(backButton);
+      // Assert
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalledWith(
+          expect.objectContaining({
+            headerTitleAlign: 'center',
+          }),
+        );
+      });
+    });
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    it('should update navigation options when colors change', async () => {
+      // Act
+      const { rerender } = render(<RewardsReferralView />);
+
+      // Clear previous calls
+      mockSetOptions.mockClear();
+      mockGetNavigationOptionsTitle.mockClear();
+
+      // Trigger re-render to simulate color change
+      rerender(<RewardsReferralView />);
+
+      // Assert
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+        expect(mockGetNavigationOptionsTitle).toHaveBeenCalled();
+      });
     });
   });
 
   describe('error boundary integration', () => {
-    it('passes correct view prop to ErrorBoundary', () => {
+    it('should pass correct view prop to ErrorBoundary', () => {
+      // Act
       const { getByTestId } = render(<RewardsReferralView />);
 
+      // Assert
       expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
+    });
+
+    it('should pass navigation prop to ErrorBoundary', () => {
+      // The navigation prop should be passed to ErrorBoundary
+      // This is verified through the mock implementation that receives the navigation prop
+
+      // Act & Assert
+      expect(() => render(<RewardsReferralView />)).not.toThrow();
     });
   });
 
   describe('component lifecycle', () => {
-    it('cleanups properly when unmounted', () => {
+    it('should cleanup properly when unmounted', () => {
+      // Act
       const { unmount } = render(<RewardsReferralView />);
 
+      // Assert
       expect(() => unmount()).not.toThrow();
     });
 
-    it('handles multiple re-renders gracefully', () => {
+    it('should handle multiple re-renders gracefully', () => {
+      // Act
       const { rerender } = render(<RewardsReferralView />);
 
+      // Assert - Multiple re-renders should not cause issues
       expect(() => {
+        rerender(<RewardsReferralView />);
         rerender(<RewardsReferralView />);
         rerender(<RewardsReferralView />);
       }).not.toThrow();
@@ -172,10 +249,20 @@ describe('RewardsReferralView', () => {
   });
 
   describe('integration with child components', () => {
-    it('renders ReferralDetails without any props', () => {
+    it('should render ReferralDetails without any props', () => {
+      // Given that ReferralDetails manages its own state through hooks
+      // and Redux selectors, it should not receive any props from the parent
+
+      // Act
       const { getByTestId } = render(<RewardsReferralView />);
 
+      // Assert
       expect(getByTestId('referral-details')).toBeTruthy();
     });
+  });
+
+  describe('hook integration', () => {
+    // useSeasonStatus hook was removed from the component
+    // No hook integration tests needed for this component
   });
 });

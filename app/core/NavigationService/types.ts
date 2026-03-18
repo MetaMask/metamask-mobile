@@ -464,6 +464,7 @@ export interface RootStackParamList extends ParamListBase {
   TransactionDetailsBlockExplorer:
     | TransactionDetailsBlockExplorerParams
     | undefined;
+  QuoteExpiredModal: undefined;
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;

@@ -12,7 +12,7 @@ import { Box } from '../../UI/Box/Box';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { Label, FontWeight } from '@metamask/design-system-react-native';
+import Label from '../../../component-library/components/Form/Label';
 import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
@@ -82,7 +82,7 @@ const MatchedAccountInfo = ({
   });
   return (
     <Box flexDirection={FlexDirection.Column}>
-      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
+      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <Box
         backgroundColor={colors.background.default}
         alignItems={AlignItems.center}
@@ -228,7 +228,7 @@ export const SnapUIAddressInput = ({
 
   return (
     <Box style={style}>
-      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
+      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
         {...props}
         ref={inputRef}

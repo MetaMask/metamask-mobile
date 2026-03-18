@@ -69,7 +69,7 @@ const MusdAggregatedRow = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
 
-  const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
+  const hasClaimableBonus = Boolean(claimableReward) && !hasPendingClaim;
 
   const handleClaimBonus = useCallback(() => {
     trackEvent(

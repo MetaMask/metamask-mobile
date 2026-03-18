@@ -62,7 +62,7 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REFERRAL_REWARDS_VIEW}
             component={ReferralRewardsView}
-            options={{ headerShown: false }}
+            options={{ headerShown: true }}
           />
           <Stack.Screen
             name={Routes.REWARDS_SETTINGS_VIEW}

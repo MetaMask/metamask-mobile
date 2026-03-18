@@ -29,15 +29,16 @@ import {
   resetOnboardingState,
   selectConsentSetId,
   selectOnboardingId,
+  selectSelectedCountry,
   setConsentSetId,
   setIsAuthenticatedCard,
+  setSelectedCountry,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
-import { CardError, type Region } from '../../types';
+import { CardError } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
-import useRegions from '../../hooks/useRegions';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
@@ -52,16 +53,10 @@ import Checkbox from '../../../../../component-library/components/Checkbox';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
+  Region,
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
-import {
-  COINME_TERMS_URL,
-  CRB_ACCOUNT_OPENING_URL,
-  CRB_PRIVACY_NOTICE_URL,
-  CRB_PRIVACY_POLICY_URL,
-  CRB_TERMS_URL,
-} from '../../constants';
 
 const VERIFICATION_POLLING_INTERVAL_MS = 3000;
 
@@ -76,7 +71,6 @@ export const AddressFields = ({
   handleStateChange,
   zipCode,
   handleZipCodeChange,
-  selectedCountry,
 }: {
   addressLine1: string;
   handleAddressLine1Change: (text: string) => void;
@@ -88,10 +82,10 @@ export const AddressFields = ({
   handleStateChange: (text: string) => void;
   zipCode: string;
   handleZipCodeChange: (text: string) => void;
-  selectedCountry: Region | null;
 }) => {
   const navigation = useNavigation();
   const { data: registrationSettings } = useRegistrationSettings();
+  const selectedCountry = useSelector(selectSelectedCountry);
 
   const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.usStates) {
@@ -231,11 +225,11 @@ const PhysicalAddress = () => {
   const dispatch = useDispatch();
   const { user, setUser, sdk } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
+  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
-  const { userCountry: selectedCountry } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -262,6 +256,20 @@ const PhysicalAddress = () => {
     [],
   );
 
+  const regions: Region[] = useMemo(() => {
+    if (!registrationSettings?.countries) {
+      return [];
+    }
+    return [...registrationSettings.countries]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((country) => ({
+        key: country.iso3166alpha2,
+        name: country.name,
+        emoji: countryCodeToFlag(country.iso3166alpha2),
+        areaCode: country.callingCode,
+      }));
+  }, [registrationSettings]);
+
   // If user data is available, set the state values
   useEffect(() => {
     if (user) {
@@ -270,13 +278,42 @@ const PhysicalAddress = () => {
       setCity(user.city || '');
       setState(user.usState || '');
       setZipCode(user.zip || '');
+      const country = regions.find(
+        (region) => region.key === user.countryOfResidence,
+      );
+      if (country) {
+        dispatch(setSelectedCountry(country));
+      }
     }
-  }, [user]);
+  }, [dispatch, regions, user]);
+
+  const selectedCountry = useMemo(
+    () =>
+      initialSelectedCountry ||
+      regions.find((region) => region.key === user?.countryOfResidence),
+    [initialSelectedCountry, regions, user?.countryOfResidence],
+  );
+
+  useEffect(() => {
+    if (!initialSelectedCountry && selectedCountry) {
+      dispatch(setSelectedCountry(selectedCountry));
+    }
+  }, [selectedCountry, dispatch, initialSelectedCountry]);
 
   const eSignConsentDisclosureUSUrl = useMemo(
     () => registrationSettings?.links?.us?.eSignConsentDisclosure || '',
     [registrationSettings?.links?.us?.eSignConsentDisclosure],
   );
+
+  const coinmeTermsUrl = 'https://coinme.com/legal/';
+
+  const crbTermsUrl =
+    'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
+  const crbAccountOpeningUrl =
+    'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf';
+  const crbPrivacyNoticeUrl =
+    'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
+  const crbPrivacyPolicyUrl = 'https://www.crossriver.com/legal/privacy-notice';
 
   const {
     registerAddress,
@@ -303,34 +340,34 @@ const PhysicalAddress = () => {
   }, [eSignConsentDisclosureUSUrl]);
 
   const openCoinmeTerms = useCallback(() => {
-    if (COINME_TERMS_URL) {
-      Linking.openURL(COINME_TERMS_URL);
+    if (coinmeTermsUrl) {
+      Linking.openURL(coinmeTermsUrl);
     }
-  }, []);
+  }, [coinmeTermsUrl]);
 
   const openCrbTerms = useCallback(() => {
-    if (CRB_TERMS_URL) {
-      Linking.openURL(CRB_TERMS_URL);
+    if (crbTermsUrl) {
+      Linking.openURL(crbTermsUrl);
     }
-  }, []);
+  }, [crbTermsUrl]);
 
   const openCrbAccountOpening = useCallback(() => {
-    if (CRB_ACCOUNT_OPENING_URL) {
-      Linking.openURL(CRB_ACCOUNT_OPENING_URL);
+    if (crbAccountOpeningUrl) {
+      Linking.openURL(crbAccountOpeningUrl);
     }
-  }, []);
+  }, [crbAccountOpeningUrl]);
 
   const openCrbPrivacyNotice = useCallback(() => {
-    if (CRB_PRIVACY_NOTICE_URL) {
-      Linking.openURL(CRB_PRIVACY_NOTICE_URL);
+    if (crbPrivacyNoticeUrl) {
+      Linking.openURL(crbPrivacyNoticeUrl);
     }
-  }, []);
+  }, [crbPrivacyNoticeUrl]);
 
   const openCrbPrivacyPolicy = useCallback(() => {
-    if (CRB_PRIVACY_POLICY_URL) {
-      Linking.openURL(CRB_PRIVACY_POLICY_URL);
+    if (crbPrivacyPolicyUrl) {
+      Linking.openURL(crbPrivacyPolicyUrl);
     }
-  }, []);
+  }, [crbPrivacyPolicyUrl]);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {
@@ -654,7 +691,6 @@ const PhysicalAddress = () => {
         handleStateChange={handleStateChange}
         zipCode={zipCode}
         handleZipCodeChange={handleZipCodeChange}
-        selectedCountry={selectedCountry}
       />
       {/* Electronic Consent (US only) */}
       {selectedCountry?.key === 'US' && (

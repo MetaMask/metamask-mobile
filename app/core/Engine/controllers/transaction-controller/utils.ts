@@ -4,7 +4,7 @@ import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
   JsonMap,
   IMetaMetricsEvent,
-} from '../../../../util/analytics/analytics.types';
+} from '../../../Analytics/MetaMetrics.types';
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
 import type {
   TransactionEventHandlerRequest,

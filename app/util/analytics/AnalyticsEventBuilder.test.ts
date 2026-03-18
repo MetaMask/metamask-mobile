@@ -2,7 +2,10 @@ import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,
 } from './AnalyticsEventBuilder';
-import type { IMetaMetricsEvent, ITrackingEvent } from './analytics.types';
+import type {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../core/Analytics/MetaMetrics.types';
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 
 describe('AnalyticsEventBuilder', () => {

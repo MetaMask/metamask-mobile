@@ -21,25 +21,22 @@ export interface UseMarketInsightsResult {
  * Hook to fetch market insights for a given asset.
  *
  * This hook reads market insights through AiDigestController, which caches
- * insights per asset identifier and fetches them from the digest service as needed.
+ * insights per CAIP-19 ID and fetches them from the digest service as needed.
  *
- * @param assetIdentifier - The asset identifier: either a CAIP-19 ID (e.g. "eip155:1/slip44:60")
- * or a perps market symbol (e.g. "ETH").
+ * @param caip19Id - The CAIP-19 asset identifier.
  * @param isEnabled - Whether market insights requests are enabled.
  * @returns Market insights report data with loading/error states
  */
 export const useMarketInsights = (
-  assetIdentifier: string | undefined | null,
+  caip19Id: string | undefined | null,
   isEnabled = false,
 ): UseMarketInsightsResult => {
   const [report, setReport] = useState<MarketInsightsReport | null>(null);
-  const [isLoading, setIsLoading] = useState(
-    Boolean(isEnabled && assetIdentifier),
-  );
+  const [isLoading, setIsLoading] = useState(Boolean(isEnabled && caip19Id));
   const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = useCallback(async () => {
-    if (!isEnabled || !assetIdentifier) {
+    if (!isEnabled || !caip19Id) {
       setReport(null);
       setError(null);
       setIsLoading(false);
@@ -51,9 +48,7 @@ export const useMarketInsights = (
 
     try {
       const data =
-        await Engine.context.AiDigestController.fetchMarketInsights(
-          assetIdentifier,
-        );
+        await Engine.context.AiDigestController.fetchMarketInsights(caip19Id);
       setReport(data as MarketInsightsReport | null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch insights');
@@ -61,7 +56,7 @@ export const useMarketInsights = (
     } finally {
       setIsLoading(false);
     }
-  }, [assetIdentifier, isEnabled]);
+  }, [caip19Id, isEnabled]);
 
   useEffect(() => {
     fetchInsights();

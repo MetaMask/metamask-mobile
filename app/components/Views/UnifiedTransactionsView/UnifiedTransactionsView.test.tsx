@@ -125,7 +125,6 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
         : null,
   };
 });
-
 jest.mock('../../UI/Transactions/RetryModal', () => 'RetryModal');
 jest.mock(
   '../../UI/Transactions/TransactionsFooter',

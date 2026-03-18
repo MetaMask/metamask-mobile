@@ -77,8 +77,6 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
-  SECURITY_TRUST_BOTTOM_SHEET_OPENED = 'Security Trust BottomSheet Opened',
-  SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN = 'Security Trust BottomSheet Action Taken',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -1472,12 +1470,6 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
-  SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
-    EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_OPENED,
-  ),
-  SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN: generateOpt(
-    EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
-  ),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done

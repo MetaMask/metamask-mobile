@@ -47,7 +47,6 @@ import PrivacySection from '../../components/PrivacySection';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { isString } from 'lodash';
 import Logger from '../../../../../../util/Logger';
-import { BANK_DETAILS_TEST_IDS } from './BankDetails.testIds';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -348,7 +347,7 @@ const BankDetails = () => {
   return (
     <ScreenLayout>
       <ScrollView
-        testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
+        testID="bank-details-refresh-control-scrollview"
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -511,7 +510,7 @@ const BankDetails = () => {
                 style={styles.button}
                 variant={ButtonVariants.Primary}
                 onPress={handleBankTransferSent}
-                testID={BANK_DETAILS_TEST_IDS.MAIN_ACTION_BUTTON}
+                testID="main-action-button"
                 label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
                 disabled={isLoadingCancelOrder}

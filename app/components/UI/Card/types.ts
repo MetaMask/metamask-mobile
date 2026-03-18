@@ -94,18 +94,6 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-/**
- * Region representation for country/region selectors (e.g. sign-up, phone, address).
- * Used by useRegions and RegionSelectorModal.
- */
-export interface Region {
-  key: string;
-  name: string;
-  emoji?: string;
-  areaCode?: string;
-  canSignUp?: boolean;
-}
-
 export type CardNetwork = 'linea' | 'solana' | 'base' | 'monad';
 
 export interface CardNetworkInfo {

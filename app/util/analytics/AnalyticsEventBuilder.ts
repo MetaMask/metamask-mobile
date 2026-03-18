@@ -1,10 +1,10 @@
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import type {
-  AnalyticsUnfilteredProperties,
   IMetaMetricsEvent,
   ITrackingEvent,
-} from './analytics.types';
+} from '../../core/Analytics/MetaMetrics.types';
 import { filterUndefinedValues } from './filterUndefinedValues';
+import type { AnalyticsUnfilteredProperties } from './analytics.types';
 
 /**
  * Analytics tracking event structure for AnalyticsController

@@ -67,18 +67,15 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
+                testID="label"
               >
                 Select date and time
               </Text>
@@ -752,18 +749,15 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
+                testID="label"
               >
                 Select date and time
               </Text>

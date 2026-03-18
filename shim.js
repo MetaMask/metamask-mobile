@@ -14,7 +14,6 @@ import {
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
-import { WS_SERVICES } from './tests/websocket/constants.ts';
 import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
@@ -305,41 +304,6 @@ if (enableApiCallLogs || isTest) {
         console.warn(
           '[XHR Patch] XMLHttpRequest not available, skipping patch',
         );
-      }
-
-      // Patch WebSocket to route production wss:// URLs to local mock servers.
-      // Each WS service gets its own mock port via WS_SERVICES config.
-      // Non-matching wss:// URLs pass through unchanged.
-      if (WS_SERVICES.length > 0 && global.WebSocket) {
-        const OriginalWebSocket = global.WebSocket;
-
-        const wsRoutes = {};
-        for (const svc of WS_SERVICES) {
-          const port = raw?.[svc.launchArgKey] ?? svc.fallbackPort;
-          wsRoutes[svc.url] = `ws://localhost:${port}`;
-        }
-
-        global.WebSocket = function (url, protocols) {
-          let targetUrl = url;
-          if (typeof url === 'string') {
-            for (const [prefix, localUrl] of Object.entries(wsRoutes)) {
-              if (url.startsWith(prefix)) {
-                targetUrl = localUrl;
-                break;
-              }
-            }
-          }
-          return protocols !== undefined
-            ? new OriginalWebSocket(targetUrl, protocols)
-            : new OriginalWebSocket(targetUrl);
-        };
-
-        Object.setPrototypeOf(global.WebSocket, OriginalWebSocket);
-        Object.assign(global.WebSocket, OriginalWebSocket);
-        global.WebSocket.prototype = OriginalWebSocket.prototype;
-
-        // eslint-disable-next-line no-console
-        console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
       }
     }
   })();

@@ -8,7 +8,6 @@ export const mockUseBridgeQuoteData = {
   quoteFetchError: null,
   isNoQuotesAvailable: false,
   isExpired: false,
-  needsNewQuote: false,
   willRefresh: false,
   formattedQuoteData: {
     networkFee: '0',

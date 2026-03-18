@@ -115,52 +115,6 @@ describe('ApproveAndPermit2', () => {
     expect(getByText('0x12345...56789')).toBeTruthy();
   });
 
-  it('formats large amounts with full precision', () => {
-    const mockUseApproveTransactionData = jest.spyOn(
-      useApproveTransactionDataModule,
-      'useApproveTransactionData',
-    );
-    mockUseApproveTransactionData.mockReturnValue({
-      approveMethod: ApproveMethod.APPROVE,
-      amount: '1000000.123456',
-      decimals: 18,
-      tokenBalance: '0',
-      tokenStandard: TokenStandard.ERC20,
-      rawAmount: '1000000.123456',
-      spender: '0x123456789',
-      isLoading: false,
-    } as ReturnType<
-      typeof useApproveTransactionDataModule.useApproveTransactionData
-    >);
-    const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
-      state: approveERC20TransactionStateMock,
-    });
-    expect(getByText('1,000,000.123456')).toBeTruthy();
-  });
-
-  it('displays Unlimited as-is without formatting', () => {
-    const mockUseApproveTransactionData = jest.spyOn(
-      useApproveTransactionDataModule,
-      'useApproveTransactionData',
-    );
-    mockUseApproveTransactionData.mockReturnValue({
-      approveMethod: ApproveMethod.APPROVE,
-      amount: 'Unlimited',
-      decimals: 18,
-      tokenBalance: '0',
-      tokenStandard: TokenStandard.ERC20,
-      rawAmount: '0',
-      spender: '0x123456789',
-      isLoading: false,
-    } as ReturnType<
-      typeof useApproveTransactionDataModule.useApproveTransactionData
-    >);
-    const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
-      state: approveERC20TransactionStateMock,
-    });
-    expect(getByText('Unlimited')).toBeTruthy();
-  });
-
   describe('revoke', () => {
     it('renders spending cap and spender for ERC20', () => {
       const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {

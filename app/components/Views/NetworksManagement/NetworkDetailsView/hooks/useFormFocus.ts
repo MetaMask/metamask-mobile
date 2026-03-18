@@ -16,7 +16,6 @@ export interface UseFormFocusReturn {
   onSymbolFocused: () => void;
   onSymbolBlur: () => void;
   onRpcUrlFocused: () => void;
-  onRpcUrlBlur: () => void;
   onChainIdFocused: () => void;
   onChainIdBlur: () => void;
 
@@ -60,10 +59,6 @@ export const useFormFocus = (): UseFormFocusReturn => {
     () => setFocus((prev) => ({ ...prev, isRpcUrlFieldFocused: true })),
     [],
   );
-  const onRpcUrlBlur = useCallback(
-    () => setFocus((prev) => ({ ...prev, isRpcUrlFieldFocused: false })),
-    [],
-  );
   const onChainIdFocused = useCallback(
     () => setFocus((prev) => ({ ...prev, isChainIdFieldFocused: true })),
     [],
@@ -93,7 +88,6 @@ export const useFormFocus = (): UseFormFocusReturn => {
     onSymbolFocused,
     onSymbolBlur,
     onRpcUrlFocused,
-    onRpcUrlBlur,
     onChainIdFocused,
     onChainIdBlur,
     jumpToRpcURL,

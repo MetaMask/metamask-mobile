@@ -19,11 +19,7 @@ export function onUnapprovedTransaction(
 ) {
   const transactionMeta = cloneDeep(transactionMetaOriginal);
 
-  if (
-    transactionMeta.origin === TransactionTypes.MMM ||
-    transactionMeta.origin === TransactionTypes.MMM_CARD
-  )
-    return;
+  if (transactionMeta.origin === TransactionTypes.MMM) return;
 
   const to = transactionMeta.txParams.to?.toLowerCase();
   const data = transactionMeta.txParams.data as string;

@@ -122,7 +122,6 @@ export const useTrendingSearch = (opts?: {
             rwaData: asset.rwaData as unknown as
               | TrendingAsset['rwaData']
               | undefined,
-            securityData: asset.securityData,
           });
         }
       });

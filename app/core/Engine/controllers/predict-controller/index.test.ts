@@ -71,7 +71,6 @@ describe('predict controller init', () => {
       pendingDeposits: {},
       pendingClaims: {},
       withdrawTransaction: null,
-      selectedPaymentToken: null,
       accountMeta: {},
     };
 

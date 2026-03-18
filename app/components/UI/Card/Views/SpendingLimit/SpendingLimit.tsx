@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -130,18 +130,14 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  const isLoadingRef = useRef(isLoading);
-  useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
-
+  // Prevent navigation while loading
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isLoadingRef.current) return;
+      if (!isLoading) return;
       e.preventDefault();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, isLoading]);
 
   // Check if a quick-select token is selected
   const isQuickSelectTokenSelected = useCallback(

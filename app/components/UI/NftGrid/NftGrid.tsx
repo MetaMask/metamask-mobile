@@ -249,10 +249,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
               />
             </Box>
           )}
-          keyExtractor={(item) =>
-            `${item.chainId}-${item.address}-${item.tokenId}`
-          }
+          keyExtractor={(_, index) => `nft-row-${index}`}
           testID={RefreshTestId}
+          decelerationRate="fast"
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}

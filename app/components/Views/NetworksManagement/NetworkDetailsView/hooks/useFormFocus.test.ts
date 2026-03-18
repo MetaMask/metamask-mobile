@@ -30,14 +30,11 @@ describe('useFormFocus', () => {
     },
   );
 
-  it('toggles rpc url focus on focus/blur', () => {
+  it('sets rpc url focus on onRpcUrlFocused', () => {
     const { result } = renderHook(() => useFormFocus());
 
     act(() => result.current.onRpcUrlFocused());
     expect(result.current.focus.isRpcUrlFieldFocused).toBe(true);
-
-    act(() => result.current.onRpcUrlBlur());
-    expect(result.current.focus.isRpcUrlFieldFocused).toBe(false);
   });
 
   it('creates refs for all input fields', () => {

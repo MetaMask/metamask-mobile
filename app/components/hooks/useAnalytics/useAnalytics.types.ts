@@ -1,12 +1,10 @@
 import {
-  type DataDeleteDate,
-  type IDeleteRegulationResponse,
-  type IDeleteRegulationStatus,
-} from '../../../util/analytics/analyticsDataDeletion.types';
-import type {
-  IMetaMetricsEvent,
-  ITrackingEvent,
-} from '../../../util/analytics/analytics.types';
+  DataDeleteDate,
+  IDeleteRegulationResponse,
+  IDeleteRegulationStatus,
+  type IMetaMetricsEvent,
+  type ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
 import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,

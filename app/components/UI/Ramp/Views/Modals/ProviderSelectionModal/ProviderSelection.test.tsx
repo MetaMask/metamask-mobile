@@ -62,11 +62,10 @@ const defaultMockController: UseRampsControllerResult = {
   paymentMethodsLoading: false,
   paymentMethodsError: null,
   getQuotes: jest.fn(),
-  getBuyWidgetData: jest.fn(),
+  getWidgetUrl: jest.fn(),
   orders: [],
   getOrderById: jest.fn(),
   addOrder: jest.fn(),
-  addPrecreatedOrder: jest.fn(),
   removeOrder: jest.fn(),
   refreshOrder: jest.fn(),
   getOrderFromCallback: jest.fn(),
@@ -252,40 +251,6 @@ describe('ProviderSelection', () => {
 
     await waitFor(() => {
       expect(getByText('Transak')).toBeOnTheScreen();
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('filters out custom-action quotes when displaying provider quote', async () => {
-    const transakQuote = createMockQuote('/providers/transak', 'Transak');
-    const customActionQuote = {
-      ...transakQuote,
-      quote: { ...transakQuote.quote, isCustomAction: true },
-    };
-
-    jest.mocked(useRampsController).mockReturnValue({
-      ...defaultMockController,
-      userRegion: mockUserRegion,
-      selectedToken: mockSelectedToken,
-      providers: mockProviders,
-      selectedProvider: mockProviders[0],
-    });
-
-    const { getByText, toJSON } = renderWithProvider(
-      mockProviders,
-      mockProviders[0],
-      {
-        quotes: {
-          success: [customActionQuote, transakQuote],
-          sorted: [],
-          error: [],
-          customActions: [],
-        },
-      },
-    );
-
-    await waitFor(() => {
-      expect(getByText('Transak')).toBeTruthy();
     });
     expect(toJSON()).toMatchSnapshot();
   });

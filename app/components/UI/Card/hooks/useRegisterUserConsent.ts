@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
+import { selectSelectedCountry } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../core/AppConstants';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { Consent, ConsentSet } from '../types';
 import { cardQueries } from '../queries';
-import { selectUserCardLocation } from '../../../../core/redux/slices/card';
 
 interface UseRegisterUserConsentState {
   isLoading: boolean;
@@ -43,7 +43,7 @@ interface UseRegisterUserConsentReturn extends UseRegisterUserConsentState {
 export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
   const { sdk } = useCardSDK();
   const queryClient = useQueryClient();
-  const location = useSelector(selectUserCardLocation);
+  const selectedCountry = useSelector(selectSelectedCountry);
   const [state, setState] = useState<UseRegisterUserConsentState>({
     isLoading: false,
     isSuccess: false,
@@ -104,7 +104,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         throw new Error('Card SDK not initialized');
       }
 
-      const policy = location === 'us' ? 'us' : 'global';
+      const policy = selectedCountry?.key === 'US' ? 'us' : 'global';
 
       try {
         // Reset state and start loading
@@ -199,7 +199,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         throw err;
       }
     },
-    [sdk, location],
+    [sdk, selectedCountry],
   );
 
   /**

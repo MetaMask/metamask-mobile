@@ -1,4 +1,3 @@
-// Migrated to tests/page-objects/MMConnect/DappConnectionModal.ts
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 
@@ -18,7 +17,9 @@ class DappConnectionModal {
             return null;
         }
 
-        return AppwrightSelectors.getElementByID(this._device, 'connect-button');
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'connect-button');
+        }
     }
 
     get updateAccountsButton() {
@@ -26,7 +27,9 @@ class DappConnectionModal {
             return null;
         }
 
-        return AppwrightSelectors.getElementByID(this._device, 'multiconnect-connect-button');
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'multiconnect-connect-button');
+        }
     }
 
     get editAccountsButton() {
@@ -36,8 +39,6 @@ class DappConnectionModal {
 
         if (AppwrightSelectors.isAndroid(this._device)) {
             return AppwrightSelectors.getElementByXpath(this._device, '//android.view.ViewGroup[@content-desc="Edit accounts"]');
-        } else {
-            return AppwrightSelectors.getElementByID(this._device, 'account-list-bottom-sheet');
         }
     }
 
@@ -105,6 +106,7 @@ class DappConnectionModal {
         if (!this._device) {
             return;
         }
+
         const element = await this.editAccountsButton;
         await AppwrightGestures.tap(element)
     }

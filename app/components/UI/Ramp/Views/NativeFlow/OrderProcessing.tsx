@@ -19,7 +19,6 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
-import { ORDER_PROCESSING_TEST_IDS } from './OrderProcessing.testIds';
 
 export interface OrderProcessingParams {
   orderId: string;
@@ -102,7 +101,7 @@ const V2OrderProcessing = () => {
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 onPress={handleMainAction}
-                testID={ORDER_PROCESSING_TEST_IDS.MAIN_ACTION_BUTTON}
+                testID="main-action-button"
                 label={
                   order.state === FIAT_ORDER_STATES.CANCELLED ||
                   order.state === FIAT_ORDER_STATES.FAILED

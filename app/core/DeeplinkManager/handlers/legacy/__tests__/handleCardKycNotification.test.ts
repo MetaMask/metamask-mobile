@@ -6,6 +6,7 @@ import Logger from '../../../../../util/Logger';
 import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
+  selectSelectedCountry,
   selectUserCardLocation,
   selectCardGeoLocation,
   selectAlwaysShowCardButton,
@@ -16,6 +17,7 @@ import {
   selectCardFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../../../../../components/UI/Card/sdk/CardSDK';
+import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
 
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -37,6 +39,7 @@ describe('handleCardKycNotification', () => {
   const mockNavigate = jest.fn();
   const mockLoggerError = Logger.error as jest.Mock;
   const mockLoggerLog = Logger.log as jest.Mock;
+  const mockMapCountryToLocation = mapCountryToLocation as jest.Mock;
 
   const mockCardFeatureFlag = {
     chains: {
@@ -68,6 +71,7 @@ describe('handleCardKycNotification', () => {
     // Default mocks - feature disabled
     (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
     (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
+    (selectSelectedCountry as unknown as jest.Mock).mockReturnValue(null);
     (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
       'international',
     );
@@ -86,6 +90,11 @@ describe('handleCardKycNotification', () => {
       getRegistrationStatus: mockGetRegistrationStatus,
       getUserDetails: mockGetUserDetails,
     }));
+
+    // Mock mapCountryToLocation
+    mockMapCountryToLocation.mockImplementation((countryCode: string | null) =>
+      countryCode === 'US' ? 'us' : 'international',
+    );
   });
 
   afterEach(() => {
@@ -270,30 +279,51 @@ describe('handleCardKycNotification', () => {
     });
 
     describe('location handling', () => {
-      it('uses US location when userCardLocation is us', async () => {
-        (selectUserCardLocation as unknown as jest.Mock).mockReturnValue('us');
+      it('uses US location when selectedCountry is US', async () => {
+        (selectSelectedCountry as unknown as jest.Mock).mockReturnValue({
+          key: 'US',
+          name: 'United States',
+        });
         mockGetRegistrationStatus.mockResolvedValue({
           verificationState: 'VERIFIED',
         });
 
         await handleCardKycNotification();
 
+        expect(mockMapCountryToLocation).toHaveBeenCalledWith('US');
         expect(CardSDK).toHaveBeenCalledWith({
           cardFeatureFlag: mockCardFeatureFlag,
           userCardLocation: 'us',
         });
       });
 
-      it('uses international location when userCardLocation is international', async () => {
-        (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
-          'international',
-        );
+      it('uses international location when selectedCountry is not US', async () => {
+        (selectSelectedCountry as unknown as jest.Mock).mockReturnValue({
+          key: 'GB',
+          name: 'United Kingdom',
+        });
         mockGetRegistrationStatus.mockResolvedValue({
           verificationState: 'VERIFIED',
         });
 
         await handleCardKycNotification();
 
+        expect(mockMapCountryToLocation).toHaveBeenCalledWith('GB');
+        expect(CardSDK).toHaveBeenCalledWith({
+          cardFeatureFlag: mockCardFeatureFlag,
+          userCardLocation: 'international',
+        });
+      });
+
+      it('uses international location when selectedCountry is null', async () => {
+        (selectSelectedCountry as unknown as jest.Mock).mockReturnValue(null);
+        mockGetRegistrationStatus.mockResolvedValue({
+          verificationState: 'VERIFIED',
+        });
+
+        await handleCardKycNotification();
+
+        expect(mockMapCountryToLocation).toHaveBeenCalledWith(null);
         expect(CardSDK).toHaveBeenCalledWith({
           cardFeatureFlag: mockCardFeatureFlag,
           userCardLocation: 'international',

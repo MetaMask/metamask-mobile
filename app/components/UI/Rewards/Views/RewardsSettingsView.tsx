@@ -44,7 +44,7 @@ const RewardsSettingsView: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_SETTINGS_SAFE_AREA_TEST_ID}
       >
@@ -52,6 +52,7 @@ const RewardsSettingsView: React.FC = () => {
           title={strings('rewards.settings.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
+          includesTopInset
         />
         <Box twClassName="py-4 flex-1 gap-4">
           {offDeviceAccounts.length > 0 && (

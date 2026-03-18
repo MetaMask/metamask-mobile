@@ -950,58 +950,6 @@ const CardHome = () => {
     [isAuthenticated, kycStatus, warning, externalWalletDetailsData],
   );
 
-  const shouldRedirectToChooseCard = useMemo(
-    () =>
-      !isLoading &&
-      !cardSetupState.isKYCPending &&
-      !isCardProvisioning &&
-      isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
-      isAuthenticated &&
-      warning === CardStateWarning.NoCard &&
-      userLocation === 'us' &&
-      !!userShippingAddress,
-    [
-      isLoading,
-      cardSetupState.isKYCPending,
-      isCardProvisioning,
-      isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
-      isAuthenticated,
-      warning,
-      userLocation,
-      userShippingAddress,
-    ],
-  );
-
-  const navigateToChooseYourCard = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.ORDER_METAL_CARD_BUTTON,
-        })
-        .build(),
-    );
-
-    navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
-      flow: 'home',
-      shippingAddress: userShippingAddress,
-      priorityToken,
-      allTokens,
-      delegationSettings,
-      externalWalletDetailsData,
-    });
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    userShippingAddress,
-    priorityToken,
-    allTokens,
-    delegationSettings,
-    externalWalletDetailsData,
-  ]);
-
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
       return (
@@ -1041,11 +989,7 @@ const CardHome = () => {
           variant={ButtonVariants.Primary}
           label={strings('card.card_home.enable_card_button_label')}
           size={ButtonSize.Lg}
-          onPress={
-            shouldRedirectToChooseCard
-              ? navigateToChooseYourCard
-              : openOnboardingDelegationAction
-          }
+          onPress={openOnboardingDelegationAction}
           width={ButtonWidthTypes.Full}
           testID={cardSetupState.setupTestId}
         />
@@ -1088,8 +1032,6 @@ const CardHome = () => {
     tw,
     openOnboardingDelegationAction,
     isCardProvisioning,
-    shouldRedirectToChooseCard,
-    navigateToChooseYourCard,
   ]);
 
   const isUserEligibleForMetalCard = useMemo(

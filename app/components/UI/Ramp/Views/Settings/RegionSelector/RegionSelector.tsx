@@ -44,7 +44,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { Country, State } from '@metamask/ramps-controller';
 import useRampsController from '../../../hooks/useRampsController';
-import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -618,10 +617,7 @@ function RegionSelector() {
 
   const stateHeaderLeft = useCallback(
     () => (
-      <HeaderBackButton
-        onPress={handleRegionBackButton}
-        testID={REGION_SELECTOR_TEST_IDS.BACK_BUTTON}
-      />
+      <HeaderBackButton onPress={handleRegionBackButton} testID="back-button" />
     ),
     [handleRegionBackButton],
   );
@@ -663,7 +659,7 @@ function RegionSelector() {
           onPressClearButton={clearSearchText}
           clearButtonProps={{
             iconName: IconName.Close,
-            testID: REGION_SELECTOR_TEST_IDS.CLEAR_BUTTON,
+            testID: 'region-selector-clear-button',
           }}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}

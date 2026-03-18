@@ -103,7 +103,6 @@ All tools work on **both iOS and Android**. Platform is auto-detected (see Secti
 
 ```
 scripts/perps/agentic/app-navigate.sh <Route> [params-json]   # navigate + auto-screenshot
-scripts/perps/agentic/app-state.sh status                       # route + selected account snapshot
 scripts/perps/agentic/app-state.sh route                        # current route + params
 scripts/perps/agentic/app-state.sh state <dot.path>            # Redux state at path
 scripts/perps/agentic/app-state.sh eval "<js-expression>"       # run JS in app context (sync)
@@ -114,10 +113,6 @@ scripts/perps/agentic/app-state.sh go-back                      # navigate back
 scripts/perps/agentic/app-state.sh accounts                     # list all accounts
 scripts/perps/agentic/app-state.sh account                      # get selected account
 scripts/perps/agentic/app-state.sh switch-account <addr>        # switch to account by address
-scripts/perps/agentic/app-state.sh press <testId>               # press component by testID
-scripts/perps/agentic/app-state.sh scroll [--test-id <id>] [--offset <n>]  # scroll a view
-scripts/perps/agentic/app-state.sh sentry-debug [enable|disable] # patch Sentry to log to console
-scripts/perps/agentic/app-state.sh unlock <password>            # unlock wallet via fiber tree
 scripts/perps/agentic/app-state.sh recipe <team/name>           # run a recipe (e.g. perps/positions)
 scripts/perps/agentic/app-state.sh recipe --list                # list all available recipes
 scripts/perps/agentic/screenshot.sh [label]                     # take screenshot, returns path
@@ -129,25 +124,12 @@ scripts/perps/agentic/reload-metro.sh                           # trigger hot-re
 **yarn shortcuts** (human-friendly aliases):
 
 ```bash
-yarn a:start            # start/attach Metro (no app launch)
-yarn a:stop             # stop Metro
-yarn a:status           # current route + account snapshot
-yarn a:reload           # hot-reload all connected apps
-yarn a:navigate         # navigate to a screen
-yarn a:ios              # boot sim → Metro → launch app → wallet setup → CDP ready
-yarn a:android          # boot device → Metro → launch app → wallet setup → CDP ready
-yarn a:setup:ios        # clean build: yarn setup → build → install → Metro → wallet
-yarn a:setup:android    # clean build: same for Android
+yarn a:start      # start/attach Metro
+yarn a:stop       # stop Metro
+yarn a:status     # current route
+yarn a:reload     # hot-reload all connected apps
+yarn a:navigate   # navigate to a screen (pass route + optional params)
 ```
-
-**Fast relaunch** (skip wallet import, ~10-15s faster — `yarn` aliases coming soon):
-
-```bash
-scripts/perps/agentic/preflight.sh --platform ios      # boot sim → Metro → launch → CDP ready
-scripts/perps/agentic/preflight.sh --platform android   # boot device → Metro → launch → CDP ready
-```
-
-> **Which command?** First time → `yarn a:setup:ios`. Daily restart → `preflight.sh --platform ios` (no wallet). Wallet corrupted → `yarn a:ios`.
 
 **Metro log**: `.agent/metro.log` — grep for errors after changes.
 
@@ -162,12 +144,6 @@ scripts/perps/agentic/
 ├── start-metro.sh         # Start Metro (or attach to existing)
 ├── stop-metro.sh          # Stop Metro background process
 ├── reload-metro.sh        # Trigger hot-reload on all connected apps
-├── preflight.sh           # Full env setup: build → Metro → CDP → wallet seed
-├── setup-wallet.sh        # Seed wallet from .agent/wallet-fixture.json via CDP
-├── unlock-wallet.sh       # Unlock wallet on lock screen
-├── interactive-start.sh   # Interactive guided setup
-├── validate-recipe.sh     # Run a recipe folder against the live app
-├── validate-myx.sh        # MYX-specific validation
 └── recipes/               # Per-team recipe files (see recipes/README.md)
     ├── perps.json          # Perps team recipes (positions, auth, balances, markets, trade-flow, etc.)
     └── README.md           # How to add recipes for your team
@@ -396,26 +372,14 @@ All routes are in `app/constants/navigation/Routes.ts`. Nested routes are handle
 
 > **Note**: Route strings don't always match component names. `PerpsMarketListView` is the **home** screen route (renders PerpsHomeView). The actual market list component is at route `PerpsTrendingView`.
 
-| Route                           | Description                                              | Params                                                                                                                         |
-| ------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `PerpsMarketListView`           | Perps home (positions, orders, watchlist)                |                                                                                                                                |
-| `PerpsTrendingView`             | Market list (all markets, full view)                     |                                                                                                                                |
-| `PerpsMarketDetails`            | Market detail view                                       | `{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}` |
-| `PerpsTradingView`              | Redirect: navigates to wallet home and selects perps tab |                                                                                                                                |
-| `PerpsPositions`                | Open positions                                           |                                                                                                                                |
-| `PerpsActivity`                 | Activity history                                         |                                                                                                                                |
-| `PerpsWithdraw`                 | Withdraw funds                                           |                                                                                                                                |
-| `PerpsTutorial`                 | Onboarding tutorial                                      |                                                                                                                                |
-| `PerpsClosePosition`            | Close a position                                         |                                                                                                                                |
-| `PerpsTPSL`                     | Take-profit / stop-loss                                  |                                                                                                                                |
-| `PerpsAdjustMargin`             | Adjust position margin                                   |                                                                                                                                |
-| `PerpsSelectModifyAction`       | Select modify action sheet                               |                                                                                                                                |
-| `PerpsSelectAdjustMarginAction` | Select adjust margin action                              |                                                                                                                                |
-| `PerpsSelectOrderType`          | Select order type                                        |                                                                                                                                |
-| `PerpsOrderDetailsView`         | Order detail view                                        |                                                                                                                                |
-| `PerpsOrderBook`                | Full order book depth view                               |                                                                                                                                |
-| `PerpsPnlHeroCard`              | PnL hero card                                            |                                                                                                                                |
-| `PerpsHIP3Debug`                | HIP3 debug view                                          |                                                                                                                                |
+| Route                 | Description                                              | Params                                                                                                                         |
+| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `PerpsMarketListView` | Perps home (positions, orders, watchlist)                |                                                                                                                                |
+| `PerpsTrendingView`   | Market list (all markets, full view)                     |                                                                                                                                |
+| `PerpsMarketDetails`  | Market detail view                                       | `{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}` |
+| `PerpsTradingView`    | Redirect: navigates to wallet home and selects perps tab |                                                                                                                                |
+| `PerpsPositions`      | Open positions                                           |                                                                                                                                |
+| `PerpsActivity`       | Activity history                                         |                                                                                                                                |
 
 All perps route constants are in `app/constants/navigation/Routes.ts` under `Routes.PERPS`. For the full list of navigable routes, check `NESTED_ROUTE_PARENTS` in `cdp-bridge.js`.
 

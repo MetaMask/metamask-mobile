@@ -12,9 +12,11 @@ import {
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
+import { Region } from '../../../../components/UI/Card/components/Onboarding/RegionSelectorModal';
 
 export interface OnboardingState {
   onboardingId: string | null;
+  selectedCountry: Region | null;
   contactVerificationId: string | null;
   consentSetId: string | null;
 }
@@ -41,6 +43,7 @@ export const initialState: CardSliceState = {
   userCardLocation: 'international',
   onboarding: {
     onboardingId: null,
+    selectedCountry: null,
     contactVerificationId: null,
     consentSetId: null,
   },
@@ -87,6 +90,9 @@ const slice = createSlice({
     setOnboardingId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.onboardingId = action.payload;
     },
+    setSelectedCountry: (state, action: PayloadAction<Region | null>) => {
+      state.onboarding.selectedCountry = action.payload;
+    },
     setContactVerificationId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.contactVerificationId = action.payload;
     },
@@ -96,6 +102,7 @@ const slice = createSlice({
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
+        selectedCountry: null,
         contactVerificationId: null,
         consentSetId: null,
       };
@@ -245,6 +252,11 @@ export const selectOnboardingId = createSelector(
   (card) => card.onboarding.onboardingId,
 );
 
+export const selectSelectedCountry = createSelector(
+  selectCardState,
+  (card) => card.onboarding.selectedCountry,
+);
+
 export const selectContactVerificationId = createSelector(
   selectCardState,
   (card) => card.onboarding.contactVerificationId,
@@ -263,6 +275,7 @@ export const {
   setIsAuthenticatedCard,
   setUserCardLocation,
   setOnboardingId,
+  setSelectedCountry,
   setContactVerificationId,
   setConsentSetId,
   resetOnboardingState,

@@ -1,10 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
-import { BigNumber } from 'bignumber.js';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
-import I18n, { strings } from '../../../../../../../locales/i18n';
-import { formatAmountMaxPrecision } from '../../../../../UI/SimulationDetails/formatAmount';
+import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -131,14 +129,6 @@ interface PillAndAddressProps {
   transactionMetadata: TransactionMeta;
 }
 
-function formatDisplayAmount(amount: string | undefined): string {
-  if (!amount) {
-    return '';
-  }
-  const value = new BigNumber(amount);
-  return value.isNaN() ? amount : formatAmountMaxPrecision(I18n.locale, value);
-}
-
 function PillAndAddress({
   amount,
   isERC20,
@@ -149,7 +139,7 @@ function PillAndAddress({
     <>
       <Pill
         testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
-        text={isERC20 ? formatDisplayAmount(amount) : `#${tokenId}`}
+        text={isERC20 ? (amount ?? '') : `#${tokenId}`}
       />
       <Address
         address={transactionMetadata?.txParams?.to as string}
