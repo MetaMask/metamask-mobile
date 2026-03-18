@@ -405,6 +405,15 @@ jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
+}));
+
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
