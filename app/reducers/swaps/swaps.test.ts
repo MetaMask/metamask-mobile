@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { cloneDeep } from 'lodash';
 import Device from '../../util/device';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as tokensControllerSelectors from '../../selectors/tokensController';
 import { FeatureFlags } from '@metamask/swaps-controller/dist/types';
 
