@@ -610,6 +610,55 @@ describe('TabsList', () => {
       );
     });
 
+    it('stale callback from previous tab does not cancel current tab load', async () => {
+      jest.useFakeTimers();
+
+      // Capture callbacks so we can fire them manually
+      let capturedCallbackA: (() => void) | null = null;
+
+      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+        (cb: () => void) => {
+          // Capture only the first callback (Tab 1); don't auto-invoke any
+          if (!capturedCallbackA) capturedCallbackA = cb;
+          return { cancel: jest.fn() };
+        },
+      );
+
+      try {
+        const { getAllByText, getByText, queryByText } = render(
+          <TabsList initialActiveIndex={0}>
+            <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+              <Text>Content 1</Text>
+            </View>
+            <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+              <Text>Content 2</Text>
+            </View>
+          </TabsList>,
+        );
+
+        // Tab 1 scheduled but not yet loaded (InteractionManager not fired)
+        expect(queryByText('Content 1')).toBeNull();
+
+        // Switch to Tab 2 before Tab 1's callback fires
+        await act(async () => {
+          fireEvent.press(getAllByText('Tab 2')[0]);
+        });
+
+        // Now fire Tab 1's stale callback — this must NOT cancel Tab 2's fallback
+        await act(async () => {
+          capturedCallbackA?.();
+        });
+
+        // Tab 2 must still load via its fallback timeout
+        await act(async () => {
+          jest.advanceTimersByTime(250);
+        });
+        expect(getByText('Content 2')).toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('uses fallback timeout if InteractionManager callback does not run', async () => {
       jest.useFakeTimers();
       (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
