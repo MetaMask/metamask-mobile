@@ -22,6 +22,7 @@ export const nftDetectionControllerInit: ControllerInitFunction<
     disabled: false,
     addNfts: nftController.addNfts.bind(nftController),
     getNftState: () => nftController.state,
+    removeNft: nftController.removeNft.bind(nftController),
   });
 
   return {
