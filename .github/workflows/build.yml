@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      ref:
+        description: 'Git ref to checkout when skip_version_bump is true. Defaults to the triggering event ref.'
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       build_name:
@@ -99,6 +104,7 @@ jobs:
   setup-dependencies:
     name: Setup Dependencies (${{ matrix.platform }})
     needs: [prepare]
+    if: ${{ always() && !failure() && !cancelled() }}
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -109,7 +115,7 @@ jobs:
       build_name: ${{ inputs.build_name }}
       use-tarball: true
       upload-artifact: true
-      artifact-name: node-modules-${{ matrix.platform }}
+      artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
 
   # Build
@@ -140,7 +146,13 @@ jobs:
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump }}
+        if: ${{ inputs.skip_version_bump && inputs.ref != '' }}
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump && inputs.ref == '' }}
         with:
           submodules: recursive
 
@@ -153,7 +165,7 @@ jobs:
       - name: Download node_modules tarball
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-${{ matrix.platform }}
+          name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
       - name: Extract tarball (preserves symlinks)
         run: |
