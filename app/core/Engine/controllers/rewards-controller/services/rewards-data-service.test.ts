@@ -4418,12 +4418,29 @@ describe('RewardsDataService', () => {
       expect(result).toEqual(mockStatusResponse);
     });
 
-    it('throws when response is not ok', async () => {
-      mockFetch.mockResolvedValue({ ok: false, status: 409 } as Response);
+    it('returns participant status when 409 response (already opted in)', async () => {
+      const mockParticipantStatus = { optedIn: true, participantCount: 10 };
+      mockFetch
+        .mockResolvedValueOnce({ ok: false, status: 409 } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockParticipantStatus),
+        } as unknown as Response);
+
+      const result = await service.optInToCampaign(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(result).toEqual(mockParticipantStatus);
+    });
+
+    it('throws when response is not ok with non-409 status', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
 
       await expect(
         service.optInToCampaign(mockSubscriptionId, mockCampaignId),
-      ).rejects.toThrow('Opt-in to campaign failed: 409');
+      ).rejects.toThrow('Opt-in to campaign failed: 500');
     });
   });
 
