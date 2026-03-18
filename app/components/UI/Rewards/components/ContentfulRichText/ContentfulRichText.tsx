@@ -59,9 +59,7 @@ interface ContentfulRichTextProps {
   testID?: string;
 }
 
-function isDocument(
-  value: unknown,
-): value is {
+function isDocument(value: unknown): value is {
   nodeType: 'document';
   data: Record<string, unknown>;
   content: RichTextNode[];
@@ -79,7 +77,11 @@ function isDocument(
 function isTextNode(
   node: RichTextNode,
 ): node is RichTextNode & { value: string; marks: RichTextMark[] } {
-  return node.nodeType === 'text';
+  return (
+    node.nodeType === 'text' &&
+    typeof node.value === 'string' &&
+    Array.isArray(node.marks)
+  );
 }
 
 /**
@@ -148,6 +150,10 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
           return <Fragment key={childKey}>{child.value}</Fragment>;
         }
         return renderMarkedText(child.value, child.marks, childKey);
+      }
+
+      if (child.nodeType === 'text' && typeof child.value === 'string') {
+        return <Fragment key={childKey}>{child.value}</Fragment>;
       }
 
       if (child.nodeType === INLINE_TYPES.HYPERLINK) {

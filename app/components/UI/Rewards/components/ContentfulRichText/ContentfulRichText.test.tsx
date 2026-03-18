@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import type { Json } from '@metamask/utils';
 import ContentfulRichText from './ContentfulRichText';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -17,38 +18,29 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
-interface RichTextNode {
-  nodeType: string;
-  data: Record<string, unknown>;
-  content?: RichTextNode[];
-  value?: string;
-  marks?: { type: string }[];
-}
+type RichTextNode = Record<string, Json>;
 
-const makeDoc = (...content: RichTextNode[]) => ({
-  nodeType: 'document' as const,
+const makeDoc = (...content: RichTextNode[]): Json => ({
+  nodeType: 'document',
   data: {},
   content,
 });
 
-const paragraph = (...children: RichTextNode[]) => ({
-  nodeType: 'paragraph' as const,
+const paragraph = (...children: RichTextNode[]): RichTextNode => ({
+  nodeType: 'paragraph',
   data: {},
   content: children,
 });
 
-const text = (
-  value: string,
-  marks: { type: string }[] = [],
-): RichTextNode => ({
-  nodeType: 'text' as const,
+const text = (value: string, marks: { type: string }[] = []): RichTextNode => ({
+  nodeType: 'text',
   value,
-  marks,
+  marks: marks as Json[],
   data: {},
 });
 
 const hyperlink = (uri: string, linkText: string): RichTextNode => ({
-  nodeType: 'hyperlink' as const,
+  nodeType: 'hyperlink',
   data: { uri },
   content: [text(linkText)],
 });
@@ -60,7 +52,7 @@ describe('ContentfulRichText', () => {
 
   it('returns null for invalid document', () => {
     const { toJSON } = render(
-      <ContentfulRichText document={null as unknown} testID="rt" />,
+      <ContentfulRichText document={null as unknown as Json} testID="rt" />,
     );
     expect(toJSON()).toBeNull();
   });
@@ -77,7 +69,7 @@ describe('ContentfulRichText', () => {
     const { getByText } = render(
       <ContentfulRichText document={doc} testID="rt" />,
     );
-    expect(getByText('Hello world')).toBeDefined();
+    expect(getByText('Hello world')).toBeOnTheScreen();
   });
 
   it('renders bold text', () => {
@@ -85,7 +77,7 @@ describe('ContentfulRichText', () => {
     const { getByText } = render(
       <ContentfulRichText document={doc} testID="rt" />,
     );
-    expect(getByText('bold text')).toBeDefined();
+    expect(getByText('bold text')).toBeOnTheScreen();
   });
 
   it('renders a hyperlink and opens in-app browser on press', () => {
@@ -116,8 +108,8 @@ describe('ContentfulRichText', () => {
     const { getByText } = render(
       <ContentfulRichText document={doc} testID="rt" />,
     );
-    expect(getByText('First paragraph')).toBeDefined();
-    expect(getByText('Second paragraph')).toBeDefined();
+    expect(getByText('First paragraph')).toBeOnTheScreen();
+    expect(getByText('Second paragraph')).toBeOnTheScreen();
   });
 
   it('renders an unordered list with bullets', () => {
@@ -140,8 +132,8 @@ describe('ContentfulRichText', () => {
     const { getByText, getAllByText } = render(
       <ContentfulRichText document={doc} testID="rt" />,
     );
-    expect(getByText('Item one')).toBeDefined();
-    expect(getByText('Item two')).toBeDefined();
+    expect(getByText('Item one')).toBeOnTheScreen();
+    expect(getByText('Item two')).toBeOnTheScreen();
     expect(getAllByText('• ').length).toBe(2);
   });
 
@@ -165,8 +157,8 @@ describe('ContentfulRichText', () => {
     const { getByText } = render(
       <ContentfulRichText document={doc} testID="rt" />,
     );
-    expect(getByText('1. ')).toBeDefined();
-    expect(getByText('2. ')).toBeDefined();
+    expect(getByText('1. ')).toBeOnTheScreen();
+    expect(getByText('2. ')).toBeOnTheScreen();
   });
 
   it('renders a heading', () => {
@@ -178,7 +170,7 @@ describe('ContentfulRichText', () => {
     const { getByText } = render(
       <ContentfulRichText document={doc} testID="rt" />,
     );
-    expect(getByText('Title')).toBeDefined();
+    expect(getByText('Title')).toBeOnTheScreen();
   });
 
   it('sets the testID on the container', () => {
@@ -186,6 +178,20 @@ describe('ContentfulRichText', () => {
     const { getByTestId } = render(
       <ContentfulRichText document={doc} testID="my-rich-text" />,
     );
-    expect(getByTestId('my-rich-text')).toBeDefined();
+    expect(getByTestId('my-rich-text')).toBeOnTheScreen();
+  });
+
+  it('renders a text node that has no marks property', () => {
+    const doc = makeDoc(
+      paragraph({
+        nodeType: 'text',
+        value: 'no marks',
+        data: {},
+      }),
+    );
+    const { getByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+    expect(getByText('no marks')).toBeOnTheScreen();
   });
 });
