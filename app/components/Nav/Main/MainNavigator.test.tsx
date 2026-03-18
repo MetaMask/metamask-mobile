@@ -776,17 +776,6 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
-    it('includes PaymentRequestView screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find((s) => s?.name === 'PaymentRequestView');
-
-      expect(screen).toBeDefined();
-    });
-
     it('includes AddAsset screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,

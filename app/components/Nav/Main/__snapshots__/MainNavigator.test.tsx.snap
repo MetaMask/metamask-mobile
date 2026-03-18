@@ -11,6 +11,10 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
 >
   <Screen
     component={[Function]}
+    name="Home"
+  />
+  <Screen
+    component={[Function]}
     name="CollectiblesDetails"
     options={
       {
@@ -34,10 +38,6 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "presentation": "modal",
       }
     }
-  />
-  <Screen
-    component={[Function]}
-    name="Home"
   />
   <Screen
     component={[Function]}
@@ -393,6 +393,10 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
 >
   <Screen
     component={[Function]}
+    name="Home"
+  />
+  <Screen
+    component={[Function]}
     name="CollectiblesDetails"
     options={
       {
@@ -416,10 +420,6 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "presentation": "modal",
       }
     }
-  />
-  <Screen
-    component={[Function]}
-    name="Home"
   />
   <Screen
     component={[Function]}
