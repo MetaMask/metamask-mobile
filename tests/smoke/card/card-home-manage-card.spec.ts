@@ -13,10 +13,7 @@ import CardHomeView from '../../page-objects/Card/CardHomeView';
 import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-// TODO: Re-enable after React Navigation v6 migration app crash is fixed
-// App crashes during login flow due to navigation changes in NavigationProvider.tsx
-// See: feat/react-navigation-v6-migration branch
-describe.skip(SmokeCard('CardHome - Manage Card'), () => {
+describe(SmokeCard('CardHome - Manage Card'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {

@@ -6,10 +6,7 @@ import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
 
-// TODO: Re-enable after React Navigation v6 migration issues are fixed
-// Tests fail due to navigation-related element visibility issues
-// See: feat/react-navigation-v6-migration branch
-describe.skip(SmokeNetworkAbstractions('Network Manager'), () => {
+describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
