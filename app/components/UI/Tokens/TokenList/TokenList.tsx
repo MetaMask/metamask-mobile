@@ -85,7 +85,11 @@ const TokenListComponent = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   useLayoutEffect(() => {
-    listRef.current?.recomputeViewableItems();
+    // Defer so FlashList has time to lay out; avoids "index out of bounds, not enough layouts"
+    const rafId = requestAnimationFrame(() => {
+      listRef.current?.recomputeViewableItems();
+    });
+    return () => cancelAnimationFrame(rafId);
   }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   // Apply maxItems limit if specified
@@ -116,15 +120,21 @@ const TokenListComponent = ({
           return;
         }
 
-        // For FlashList mode, use scrollToIndex
+        // For FlashList mode, use scrollToIndex (defer so list has laid out; avoids "index out of bounds")
         if (!isHomepageRedesignV1Enabled || isFullView) {
-          if (listRef.current) {
-            listRef.current.scrollToIndex({
-              index: tokenIndex,
-              animated: true,
-              viewPosition: 0.5, // Center the item in the viewport
-            });
-          }
+          requestAnimationFrame(() => {
+            if (
+              listRef.current &&
+              tokenIndex >= 0 &&
+              tokenIndex < displayTokenKeys.length
+            ) {
+              listRef.current.scrollToIndex({
+                index: tokenIndex,
+                animated: true,
+                viewPosition: 0.5, // Center the item in the viewport
+              });
+            }
+          });
         } else {
           // For .map() mode, emit event with index for parent ScrollView to handle
           // Approximate token row height is ~72px

@@ -45,6 +45,7 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
+import { isHardwareAccount } from '../../../../../../../util/address';
 
 const PaidByMetaMask = () => (
   <TagColored
@@ -275,7 +276,15 @@ const GasFeesDetailsRow = ({
   // This prevents the gas fee row from showing as sponsored if stx is disabled
   // by the user and 7702 is not supported in the chain.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
+  const fromAddress =
+    (transactionMetadata as TransactionMeta)?.txParams?.from ??
+    (transactionBatchesMetadata as TransactionBatchMeta)?.transactions?.[0]
+      ?.txParams?.from;
+  const isHardwareWallet = Boolean(
+    fromAddress && isHardwareAccount(fromAddress),
+  );
+  const isGasFeeSponsored =
+    isGaslessSupported && doesSentinelAllowSponsorship && !isHardwareWallet;
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({
