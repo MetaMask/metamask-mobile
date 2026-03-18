@@ -208,7 +208,6 @@ const createStyles = ({ colors }: Theme) =>
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
     },
-    },
   });
 
 interface WalletProps {
