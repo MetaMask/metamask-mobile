@@ -8036,13 +8036,12 @@
       "continue": "Continue"
     },
     "connecting": {
-      "title": "Connect your {{device}}",
+      "title": "Connecting your {{device}}...",
       "searching": "Looking for {{device}}...",
-      "tips_header": "To continue, make sure:",
+      "tips_header": "Make sure:",
       "tip_unlock": "Your {{device}} is unlocked",
       "tip_open_app": "The Ethereum app is open",
       "tip_enable_bluetooth": "Bluetooth is turned on",
-      "tip_dnd_off": "Do Not Disturb is turned off",
       "tip_bluetooth_permission": "Location and Bluetooth permission is granted",
       "tip_bluetooth_permission_v12": "Nearby devices permission is granted",
       "tip_stay_close": "Your device stays close to your phone"

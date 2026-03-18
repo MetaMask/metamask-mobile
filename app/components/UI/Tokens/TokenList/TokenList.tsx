@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useLayoutEffect,
   useRef,
   useMemo,
   useEffect,
@@ -83,10 +82,6 @@ const TokenListComponent = ({
 
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
-
-  useLayoutEffect(() => {
-    listRef.current?.recomputeViewableItems();
-  }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   // Apply maxItems limit if specified
   const displayTokenKeys = useMemo(
