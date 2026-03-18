@@ -39,8 +39,11 @@ export const usePredictBuyActions = ({
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const navigation = useNavigation();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const { onReject: onApprovalReject, onConfirm: onApprovalConfirm } =
-    useApprovalRequest();
+  const {
+    onReject: onApprovalReject,
+    onConfirm: onApprovalConfirm,
+    approvalRequest,
+  } = useApprovalRequest();
   const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
   const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const { activeOrder } = usePredictActiveOrder();
@@ -123,23 +126,23 @@ export const usePredictBuyActions = ({
 
   useEffect(() => {
     if (currentState === ActiveOrderState.REDIRECTING) {
-      if (isConfirmationRoute) {
-        PredictController.onConfirmationRedirected();
-        return;
+      if (!isConfirmationRoute) {
+        navigateToConfirmation({
+          loader: ConfirmationLoader.CustomAmount,
+          headerShown: false,
+          replace: true,
+          routeParams: {
+            market,
+            outcome,
+            outcomeToken,
+            entryPoint,
+            isConfirmationRoute: true,
+            preview: livePreview,
+          },
+        });
       }
-      navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
-        headerShown: false,
-        replace: true,
-        routeParams: {
-          market,
-          outcome,
-          outcomeToken,
-          entryPoint,
-          isConfirmationRoute: true,
-          preview: livePreview,
-        },
-      });
+
+      PredictController.startPayWithAnyTokenConfirmation();
     }
   }, [
     PredictController,
@@ -152,6 +155,16 @@ export const usePredictBuyActions = ({
     outcomeToken,
     entryPoint,
   ]);
+
+  useEffect(() => {
+    if (
+      isConfirmationRoute &&
+      currentState === ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN &&
+      approvalRequest
+    ) {
+      PredictController.onPayWithAnyTokenConfirmationReady();
+    }
+  }, [PredictController, approvalRequest, currentState, isConfirmationRoute]);
 
   useEffect(() => {
     if (

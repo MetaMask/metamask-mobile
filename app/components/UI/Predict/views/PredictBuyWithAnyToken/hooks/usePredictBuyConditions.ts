@@ -74,7 +74,9 @@ export const usePredictBuyConditions = ({
   );
 
   const isRedirecting = useMemo(
-    () => activeOrder?.state === ActiveOrderState.REDIRECTING,
+    () =>
+      activeOrder?.state === ActiveOrderState.REDIRECTING ||
+      activeOrder?.state === ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
     [activeOrder],
   );
 

@@ -51,14 +51,7 @@ export function useConfirmNavigation() {
         params.loader = ConfirmationLoader.CustomAmount;
       }
 
-      const shouldRejectPendingTransactions =
-        !!replace || params.loader === ConfirmationLoader.CustomAmount;
-
-      if (
-        shouldRejectPendingTransactions &&
-        pendingTransactions.length &&
-        !pendingParams
-      ) {
+      if (pendingTransactions.length && !pendingParams) {
         log('Rejecting pending transactions before navigating');
 
         setPendingParams(options);

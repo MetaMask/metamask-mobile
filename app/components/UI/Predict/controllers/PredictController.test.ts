@@ -3812,22 +3812,6 @@ describe('PredictController', () => {
     });
 
     it('clears error and transitions PREVIEW to REDIRECTING for external token', () => {
-      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
-        transactions: [
-          {
-            params: {
-              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
-              data: '0xa9059cbb' as `0x${string}`,
-            },
-            type: TransactionType.predictDeposit,
-          },
-        ],
-        chainId: '0x89',
-      });
-      (addTransactionBatch as jest.Mock).mockResolvedValue({
-        batchId: 'batch-pat',
-      });
-
       withController(({ controller }) => {
         controller.setActiveOrder({
           amount: 50,
@@ -3845,6 +3829,8 @@ describe('PredictController', () => {
           ActiveOrderState.REDIRECTING,
         );
         expect(controller.state.activeOrder?.error).toBeUndefined();
+        expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
       });
     });
 
@@ -4114,12 +4100,150 @@ describe('PredictController', () => {
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
-        jest
-          .spyOn(controller, 'payWithAnyTokenConfirmation')
-          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
         expect(controller.state.activeOrder).toBeNull();
 
         expect(() => controller.onDepositOrderFailed('error')).not.toThrow();
+      });
+    });
+  });
+
+  describe('startPayWithAnyTokenConfirmation', () => {
+    it('sets activeOrder state to CALLING_PAY_WITH_ANY_TOKEN', () => {
+      withController(({ controller }) => {
+        jest
+          .spyOn(controller, 'payWithAnyTokenConfirmation')
+          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
+
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+          error: 'old error',
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+        );
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('keeps activeOrder in CALLING state while waiting for approval request', async () => {
+      await withController(async ({ controller }) => {
+        jest
+          .spyOn(controller, 'payWithAnyTokenConfirmation')
+          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
+
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+        );
+      });
+    });
+
+    it('returns activeOrder to PREVIEW when confirmation batch creation fails', async () => {
+      await withController(async ({ controller }) => {
+        jest
+          .spyOn(controller, 'payWithAnyTokenConfirmation')
+          .mockRejectedValue(new Error('Deposit failed'));
+
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+        await new Promise((resolve) => setImmediate(resolve));
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'Deposit failed',
+        });
+      });
+    });
+
+    it('does nothing when activeOrder is not REDIRECTING', () => {
+      withController(({ controller }) => {
+        jest.spyOn(controller, 'payWithAnyTokenConfirmation');
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.payWithAnyTokenConfirmation).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('onPayWithAnyTokenConfirmationReady', () => {
+    it('transitions from CALLING_PAY_WITH_ANY_TOKEN to PAY_WITH_ANY_TOKEN', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.onPayWithAnyTokenConfirmationReady();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+      });
+    });
+
+    it('does nothing in other states', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+        });
+
+        controller.onPayWithAnyTokenConfirmationReady();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.REDIRECTING,
+        );
+      });
+    });
+  });
+
+  describe('onPayWithAnyTokenConfirmationFailed', () => {
+    it('resets activeOrder state to PREVIEW and stores the error', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          batchId: 'batch-123',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.onPayWithAnyTokenConfirmationFailed('Deposit failed');
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'Deposit failed',
+        });
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(() =>
+          controller.onPayWithAnyTokenConfirmationFailed('error'),
+        ).not.toThrow();
       });
     });
   });
