@@ -1031,32 +1031,39 @@ export class HyperLiquidSubscriptionService {
     // Ensure global subscriptions are established
     this.#ensureGlobalAllMidsSubscription();
 
-    // HIP-3: Establish assetCtxs subscriptions ONLY for DEXs with requested symbols
-    // Performance: Avoid unnecessary WebSocket connections for unused DEXs
-    if (includeMarketData) {
-      // Extract unique DEXs from requested symbols
-      const dexsNeeded = new Set<string | null>();
-      symbols.forEach((symbol) => {
-        const { dex } = parseAssetName(symbol);
-        dexsNeeded.add(dex);
-      });
+    // Extract unique DEXs from requested symbols
+    const dexsNeeded = new Set<string | null>();
+    symbols.forEach((symbol) => {
+      const { dex } = parseAssetName(symbol);
+      dexsNeeded.add(dex);
+    });
 
-      // Only subscribe to DEXs that have requested symbols
+    // Always ensure assetCtxs subscriptions (1 per DEX, lightweight).
+    // Provides prevDayPx for percentChange24h even without includeMarketData
+    // (e.g., prewarm after reconnection). Uses incrementRefCount: false when
+    // not explicitly requested so lifecycle is managed by component subscriptions.
+    dexsNeeded.forEach((dex) => {
+      const dexName = dex ?? '';
+      this.#ensureAssetCtxsSubscription(dexName, {
+        incrementRefCount: includeMarketData,
+      }).catch((error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.subscribeToPrices',
+          ),
+          this.#getErrorContext(
+            'subscribeToPrices.ensureAssetCtxsSubscription',
+            { dex: dexName },
+          ),
+        );
+      });
+    });
+
+    // dexAllMids and activeAssetCtx only when market data explicitly requested
+    if (includeMarketData) {
       dexsNeeded.forEach((dex) => {
         const dexName = dex ?? '';
-        this.#ensureAssetCtxsSubscription(dexName).catch((error) => {
-          this.#logErrorUnlessClearing(
-            ensureError(
-              error,
-              'HyperLiquidSubscriptionService.subscribeToPrices',
-            ),
-            this.#getErrorContext(
-              'subscribeToPrices.ensureAssetCtxsSubscription',
-              { dex: dexName },
-            ),
-          );
-        });
-
         this.#ensureDexAllMidsSubscription(dexName).catch((error) => {
           this.#logErrorUnlessClearing(
             ensureError(
@@ -1110,14 +1117,6 @@ export class HyperLiquidSubscriptionService {
 
       // Cleanup DEX-level assetCtxs subscriptions
       if (includeMarketData) {
-        // Extract unique DEXs from requested symbols
-        const dexsNeeded = new Set<string | null>();
-        symbols.forEach((symbol) => {
-          const { dex } = parseAssetName(symbol);
-          dexsNeeded.add(dex);
-        });
-
-        // Cleanup assetCtxs subscription for each DEX
         dexsNeeded.forEach((dex) => {
           const dexName = dex ?? '';
           this.#cleanupAssetCtxsSubscription(dexName);
