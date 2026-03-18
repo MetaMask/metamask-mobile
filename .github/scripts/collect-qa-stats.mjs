@@ -189,15 +189,52 @@ async function downloadArtifact(artifactName) {
 // ---------------------------------------------------------------------------
 
 /**
- * Counts skip calls in a source string.
- * Matches it.skip(, test.skip(, describe.skip( — anchored to avoid false
- * positives like result.current.skip().
+ * Counts the number of individual test cases that are skipped in a source string.
+ *
+ * Two categories:
+ *   1. Explicit: `it.skip()` / `test.skip()` outside any `describe.skip` block — 1 skipped test each.
+ *   2. Implicit: every `it()` / `test()` call (including `.skip` variants) inside a `describe.skip`
+ *      block, because the whole block is skipped by the runner.
+ *
+ * `describe.skip` blocks are extracted via brace matching so their contents are
+ * not double-counted against the explicit-skip pass.
  *
  * @param {string} source
  * @returns {number}
  */
 function countSkips(source) {
-  return (source.match(/\b(?:it|test|describe)\.skip\s*\(/g) ?? []).length;
+  // Find all describe.skip blocks using brace matching.
+  const describeBlocks = [];
+  const re = /\bdescribe\.skip\s*\(/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const braceStart = source.indexOf('{', m.index + m[0].length);
+    if (braceStart === -1) continue;
+    let depth = 1, pos = braceStart + 1;
+    while (pos < source.length && depth > 0) {
+      if (source[pos] === '{') depth++;
+      else if (source[pos] === '}') depth--;
+      pos++;
+    }
+    describeBlocks.push({ start: m.index, end: pos, content: source.slice(braceStart + 1, pos - 1) });
+  }
+
+  // Strip describe.skip regions from source (reverse order to preserve indices).
+  let outside = source;
+  for (let i = describeBlocks.length - 1; i >= 0; i--) {
+    outside = outside.slice(0, describeBlocks[i].start) + outside.slice(describeBlocks[i].end);
+  }
+
+  // Part 1: it.skip / test.skip outside describe.skip blocks.
+  const explicitSkips = (outside.match(/\b(?:it|test)\.skip\s*\(/g) ?? []).length;
+
+  // Part 2: all it() / test() (including .skip) inside describe.skip blocks.
+  const implicitSkips = describeBlocks.reduce(
+    (sum, { content }) => sum + (content.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length,
+    0,
+  );
+
+  return explicitSkips + implicitSkips;
 }
 
 /**
