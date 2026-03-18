@@ -1,0 +1,103 @@
+# Investigates a bug report using AI to find root cause, regression PRs, and scope of impact.
+# Trigger via bot command on an issue: @metamaskbot investigate
+#
+# Only runs on issues (not PRs). Checks out main since issues don't have branches.
+
+name: Investigate Bug Report
+
+on:
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  validate:
+    name: Validate commenter permissions
+    if: >-
+      ${{
+        !github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '@metamaskbot investigate')
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      IS_AUTHORIZED: ${{ steps.check-auth.outputs.IS_AUTHORIZED }}
+    steps:
+      - name: Check commenter association
+        id: check-auth
+        run: |
+          ASSOCIATION="${{ github.event.comment.author_association }}"
+          if [[ "$ASSOCIATION" == "MEMBER" || "$ASSOCIATION" == "OWNER" || "$ASSOCIATION" == "COLLABORATOR" ]]; then
+            echo "IS_AUTHORIZED=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_AUTHORIZED=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Commenter (${{ github.event.comment.user.login }}) is not authorized (association: $ASSOCIATION)"
+          fi
+
+  react-to-comment:
+    name: React to the comment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: validate
+    if: ${{ needs.validate.outputs.IS_AUTHORIZED == 'true' }}
+    steps:
+      - name: React with eyes emoji
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
+            -f content='eyes'
+        env:
+          COMMENT_ID: ${{ github.event.comment.id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+
+  investigate:
+    name: Run root cause analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: validate
+    if: ${{ needs.validate.outputs.IS_AUTHORIZED == 'true' }}
+    env:
+      E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      CI: 'true'
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install AI dependencies
+        run: |
+          npm install --no-save \
+            @anthropic-ai/sdk \
+            openai \
+            @google/generative-ai \
+            esbuild \
+            esbuild-register
+
+      - name: Run investigation
+        run: node .github/scripts/investigate-bug.mjs
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: Post analysis comment
+        if: always()
+        run: |
+          if [ -f issue_comment.md ]; then
+            gh issue comment "${ISSUE_NUMBER}" --body-file issue_comment.md
+          else
+            gh issue comment "${ISSUE_NUMBER}" --body "Investigation failed. Check the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+

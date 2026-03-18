@@ -33,6 +33,16 @@ import {
   outputAnalysis as outputSelectTagsAnalysis,
   checkHardRules as checkSelectTagsHardRules,
 } from '../modes/select-tags/handlers';
+import {
+  buildSystemPrompt as buildRootCauseSystemPrompt,
+  buildTaskPrompt as buildRootCauseTaskPrompt,
+} from '../modes/root-cause/prompt';
+import {
+  processAnalysis as processRootCauseAnalysis,
+  createConservativeResult as createRootCauseConservativeResult,
+  createEmptyResult as createRootCauseEmptyResult,
+  outputAnalysis as outputRootCauseAnalysis,
+} from '../modes/root-cause/handlers';
 
 /**
  * Mode Registry — see ModeConfig in types/index.ts for the full interface.
@@ -55,6 +65,17 @@ export const MODES: {
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
     checkHardRules: checkSelectTagsHardRules,
+  },
+  'root-cause': {
+    description:
+      'Investigate a bug report to find root cause and regression PRs',
+    finalizeToolName: 'finalize_root_cause',
+    systemPromptBuilder: buildRootCauseSystemPrompt,
+    taskPromptBuilder: buildRootCauseTaskPrompt,
+    processAnalysis: processRootCauseAnalysis,
+    createConservativeResult: createRootCauseConservativeResult,
+    createEmptyResult: createRootCauseEmptyResult,
+    outputAnalysis: outputRootCauseAnalysis,
   },
 };
 
@@ -112,6 +133,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
   const taskPrompt = modeConfig.taskPromptBuilder(
     allChangedFiles,
     criticalFiles,
+    context,
   );
 
   const tools = getToolDefinitions();
