@@ -416,7 +416,7 @@ const LedgerSelectAccount = () => {
     [ledgerPathOptions],
   );
 
-  return ledgerError || accounts.length <= 0 ? (
+  return accounts.length <= 0 ? (
     <LedgerConnect
       onConnectLedger={onConnectHardware}
       selectedDevice={selectedDevice}
