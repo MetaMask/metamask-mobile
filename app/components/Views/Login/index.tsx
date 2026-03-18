@@ -498,7 +498,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 {strings('login.unlock_button')}
               </Button>
               <TextButton
-                twClassName="my-0 self-center pt-4"
+                twClassName="my-0 self-center pt-4 text-alternative"
                 onPress={toggleWarningModal}
                 testID={LoginViewSelectors.RESET_WALLET}
                 isDisabled={loading}
