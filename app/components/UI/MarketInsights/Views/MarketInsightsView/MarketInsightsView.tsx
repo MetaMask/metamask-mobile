@@ -206,6 +206,7 @@ const MarketInsightsView: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
   const [videoEnded, setVideoEnded] = useState(false);
+  const [showLastFrame, setShowLastFrame] = useState(false);
   const lastFrameImage = useMemo(
     () =>
       isDarkMode
@@ -213,6 +214,13 @@ const MarketInsightsView: React.FC = () => {
         : MarketInsightsBackgroundLastFrameLight,
     [isDarkMode],
   );
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowLastFrame(true);
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, []);
 
   const handleVideoEnd = useCallback(() => {
     setVideoEnded(true);
@@ -525,11 +533,13 @@ const MarketInsightsView: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
-          <Image
-            source={lastFrameImage}
-            style={tw.style('absolute w-full h-full')}
-            resizeMode="cover"
-          />
+          {showLastFrame && (
+            <Image
+              source={lastFrameImage}
+              style={tw.style('absolute w-full h-full')}
+              resizeMode="cover"
+            />
+          )}
           {!videoEnded && (
             <Video
               source={backgroundVideo}
