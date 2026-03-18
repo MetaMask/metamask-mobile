@@ -170,7 +170,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [biometryChoice, setBiometryChoice] = useState(true);
 
   const promptBiometricFailedAlert = useCallback(async () => {
-    const authData = await getAuthType();
+    let authData: AuthData;
+    try {
+      authData = await getAuthType();
+    } catch (err) {
+      const msg =
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : String(err ?? 'Get auth type failed');
+      throw new Error(msg || 'Get auth type failed');
+    }
     if (
       authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
       authData.availableBiometryType
@@ -378,9 +387,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   }, []);
 
+  // Handles login/unlock errors from onRehydrateLogin and newGlobalPasswordLogin.
+  // Call chain: onRehydrateLogin/newGlobalPasswordLogin → unlockWallet() →
+  // Authentication ensures rethrown errors have a message (ensureErrorWithMessage).
   const handleLoginError = useCallback(
     async (loginError: Error) => {
-      const loginErrorMessage = loginError.message || loginError.toString();
+      const loginErrorMessage = loginError.message.trim() || loginError.name;
 
       if (route.params?.onboardingTraceCtx) {
         trace({
@@ -402,15 +414,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
-      if (isWrongPasswordError && isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'incorrect_password',
-        });
-      }
-
       if (isWrongPasswordError) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
+        }
         handlePasswordError(loginErrorMessage);
         return;
       }
@@ -514,7 +525,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      await handleLoginError(loginErr as Error);
+      const err =
+        loginErr instanceof Error ? loginErr : new Error(String(loginErr));
+      await handleLoginError(err);
     }
   }, [
     password,
@@ -563,7 +576,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      await handleLoginError(loginErr as Error);
+      const err =
+        loginErr instanceof Error ? loginErr : new Error(String(loginErr));
+      await handleLoginError(err);
     }
   }, [
     password,

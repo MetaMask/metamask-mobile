@@ -85,7 +85,28 @@ import {
 } from 'expo-local-authentication';
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
-import { containsErrorMessage } from '../../util/errorHandling';
+import {
+  containsErrorMessage,
+  getErrorMessage,
+} from '../../util/errorHandling';
+
+/**
+ * Ensures a caught value is rethrown as an Error with a non-empty message so
+ * callers (e.g. OAuthRehydration) and Sentry receive a proper message.
+ * Preserves the original error and its message when present; when the message
+ * is missing or empty, sets a descriptive message so the failure is identifiable.
+ */
+function ensureErrorWithMessage(caught: unknown, context: string): Error {
+  const message = getErrorMessage(caught);
+  if (caught instanceof Error) {
+    if (message.trim().length > 0) return caught;
+    const fallback = String(caught).trim() || 'Unknown error';
+    (caught as Error).message = `${context}: ${fallback}`;
+    return caught;
+  }
+  const raw = String(caught ?? 'Unknown error').trim();
+  return new Error(raw ? `${context}: ${raw}` : context);
+}
 
 /**
  * Holds auth data used to determine auth configuration
@@ -838,7 +859,7 @@ class AuthenticationService {
         // Track unlockWallet error as analytics.
         trackErrorAsAnalytics('Unlock Wallet Error', error.message);
       }
-      throw error;
+      throw ensureErrorWithMessage(error, 'Unlock wallet failed');
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
@@ -1195,7 +1216,7 @@ class AuthenticationService {
           });
         }
 
-        throw error;
+        throw ensureErrorWithMessage(error, 'Fetch SRPs failed');
       } finally {
         endTrace({
           name: TraceName.OnboardingFetchSrps,
@@ -1254,7 +1275,7 @@ class AuthenticationService {
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
-      throw error;
+      throw ensureErrorWithMessage(error, 'Rehydrate seed phrase failed');
     }
   };
 
