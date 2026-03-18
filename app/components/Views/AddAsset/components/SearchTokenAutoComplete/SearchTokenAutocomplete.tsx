@@ -22,13 +22,11 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -36,8 +34,8 @@ import {
   Icon,
   IconName,
   IconSize,
-  IconColor,
-} from '@metamask/design-system-react-native';
+  IconColor} from '@metamask/design-system-react-native';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
 import { CaipAssetType, Hex } from '@metamask/utils';
@@ -451,14 +449,15 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
       <Box style={tw.style('px-4 pt-6', Platform.OS !== 'android' && 'pb-4')}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('transaction.next')}
+          isFullWidth
           onPress={goToConfirmAddToken}
           isDisabled={selectedAssets.length < 1}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-        />
+        >
+          {strings('transaction.next')}
+        </Button>
       </Box>
     </Box>
   );
