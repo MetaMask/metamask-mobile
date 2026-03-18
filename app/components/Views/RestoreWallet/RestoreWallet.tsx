@@ -125,6 +125,7 @@ const RestoreWallet = () => {
           isFullWidth
           onPress={handleOnNext}
           isLoading={loading}
+          twClassName="bg-primary-default"
         >
           {strings('restore_wallet.restore_needed_action')}
         </Button>
