@@ -133,11 +133,15 @@ const mockGetVaultFromBackup = getVaultFromBackup as jest.Mock;
 const mockParseVaultValue = parseVaultValue as jest.Mock;
 
 const mockEndTrace = jest.fn();
+const mockTrace = jest.fn(async (_ctx: unknown, fn?: () => Promise<unknown>) =>
+  fn?.(),
+);
 
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
   return {
     ...actualTrace,
+    trace: (...args: Parameters<typeof mockTrace>) => mockTrace(...args),
     endTrace: (request: EndTraceRequest) => mockEndTrace(request),
   };
 });
@@ -241,38 +245,45 @@ describe('Login test suite 2', () => {
     });
 
     it('navigates to restore wallet screen when vault is corrupted and password is valid', async () => {
-      mockGetVaultFromBackup.mockResolvedValueOnce({
-        success: true,
-        vault: 'mock-vault',
-      });
-      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+      jest.useRealTimers();
 
-      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
+      try {
+        mockGetVaultFromBackup.mockResolvedValueOnce({
+          success: true,
+          vault: 'mock-vault',
+        });
+        mockParseVaultValue.mockResolvedValueOnce('mock-seed');
 
-      mockComponentAuthenticationType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-      });
+        mockUnlockWallet.mockRejectedValueOnce(new Error(VAULT_ERROR));
 
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        mockComponentAuthenticationType.mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        });
 
-      await act(async () => {
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
         fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
-      });
 
-      expect(mockReplace).toHaveBeenCalledWith(
-        Routes.VAULT_RECOVERY.RESTORE_WALLET,
-        expect.objectContaining({
-          params: {
-            previousScreen: Routes.ONBOARDING.LOGIN,
+        await waitFor(
+          () => {
+            expect(mockReplace).toHaveBeenCalledWith(
+              Routes.VAULT_RECOVERY.RESTORE_WALLET,
+              expect.objectContaining({
+                params: {
+                  previousScreen: Routes.ONBOARDING.LOGIN,
+                },
+                screen: Routes.VAULT_RECOVERY.RESTORE_WALLET,
+              }),
+            );
           },
-          screen: Routes.VAULT_RECOVERY.RESTORE_WALLET,
-        }),
-      );
-    });
+          { timeout: 10000, interval: 100 },
+        );
+      } finally {
+        jest.useFakeTimers();
+      }
+    }, 15000);
 
     it('show error for invalid password during vault corruption', async () => {
       mockGetVaultFromBackup.mockResolvedValueOnce({
@@ -281,7 +292,7 @@ describe('Login test suite 2', () => {
       });
       mockParseVaultValue.mockResolvedValueOnce(undefined);
 
-      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
+      mockUnlockWallet.mockRejectedValueOnce(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -291,6 +302,10 @@ describe('Login test suite 2', () => {
       });
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
+        for (let i = 0; i < 10; i++) {
+          jest.advanceTimersByTime(0);
+          await Promise.resolve();
+        }
       });
 
       expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();

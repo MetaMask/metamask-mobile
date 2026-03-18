@@ -1256,7 +1256,7 @@ describe('Login', () => {
       const { getByTestId } = renderWithProvider(<Login />);
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
-      expect(loginButton).toHaveProp('disabled', true);
+      expect(loginButton).toBeDisabled();
     });
 
     it('renders login button as enabled when password is entered', () => {
@@ -1266,7 +1266,7 @@ describe('Login', () => {
       fireEvent.changeText(passwordInput, 'some-password');
 
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      expect(loginButton).toHaveProp('disabled', false);
+      expect(loginButton).not.toBeDisabled();
     });
   });
 
@@ -1311,11 +1311,3 @@ describe('Login', () => {
     });
   });
 });
-
-// it('should navigate back and reset OAuth state when using other methods', async () => {
-//   mockRoute.mockReturnValue({
-//     params: {
-//       locked: false,
-//       oauthLoginSuccess: true,
-//     },
-//   });

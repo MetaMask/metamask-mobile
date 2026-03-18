@@ -1,32 +1,44 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useContext,
+} from 'react';
 import {
   Alert,
-  View,
   SafeAreaView,
   BackHandler,
   TouchableOpacity,
-  TextInput,
   Platform,
   Image,
+  StatusBar,
 } from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Text,
-  TextVariant as DSTextVariant,
-  TextColor as DSTextColor,
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  TextVariant,
   FontWeight,
+  TextField,
+  TextFieldSize,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  TextButton,
+  TextButtonSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { ThemeContext } from '../../../util/theme';
+import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   KeyboardController,
   AndroidSoftInputModes,
 } from 'react-native-keyboard-controller';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -39,7 +51,6 @@ import { DeviceAuthenticationButton } from '../../UI/DeviceAuthenticationButton'
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
-
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -55,7 +66,6 @@ import {
   TraceOperation,
   endTrace,
 } from '../../../util/trace';
-import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -75,8 +85,6 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { useStyles } from '../../../component-library/hooks/useStyles';
-import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -87,10 +95,6 @@ import useAuthentication from '../../../core/Authentication/hooks/useAuthenticat
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-
-// In android, having {} will cause the styles to update state
-// using a constant will prevent this
-const EmptyRecordConstant = {};
 
 interface LoginRouteParams {
   locked: boolean;
@@ -104,7 +108,7 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const fieldRef = useRef<TextInput>(null);
+  const fieldRef = useRef<React.ElementRef<typeof TextField> | null>(null);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -115,10 +119,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
-  const {
-    styles,
-    theme: { themeAppearance },
-  } = useStyles(stylesheet, EmptyRecordConstant);
+  const tw = useTailwind();
+  const { colors, themeAppearance } = useContext(ThemeContext);
 
   const {
     unlockWallet,
@@ -393,23 +395,46 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView
+        style={[
+          tw.style('flex-1'),
+          Platform.OS === 'android' && {
+            paddingTop: StatusBar.currentHeight ?? 0,
+          },
+        ]}
+      >
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
-          style={styles.wrapper}
-          contentContainerStyle={styles.scrollContentContainer}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('flex-1')}
           extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
           enableOnAndroid
           enableResetScrollToCoords={false}
         >
-          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
+          <Box
+            testID={LoginViewSelectors.CONTAINER}
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Start}
+            paddingHorizontal={6}
+            twClassName="flex-1 w-full pt-20"
+          >
             <Image
               source={METAMASK_NAME}
-              style={styles.metamaskName}
+              style={[
+                tw.style('w-40 h-20 self-center mt-[60px] mb-[60px]'),
+                { tintColor: colors.icon.default },
+              ]}
               resizeMode="contain"
               resizeMethod={'auto'}
             />
-            <View style={styles.field}>
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              justifyContent={BoxJustifyContent.Start}
+              gap={2}
+              marginBottom={2}
+              twClassName="w-full mt-[80px]"
+            >
               <TextField
                 placeholder={strings('login.password_placeholder')}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
@@ -433,58 +458,66 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
+                size={TextFieldSize.Lg}
               />
-            </View>
+            </Box>
 
-            <View style={styles.helperTextContainer}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              justifyContent={BoxJustifyContent.Start}
+              twClassName="self-start"
+            >
               {!!error && (
                 <HelpText
                   severity={HelpTextSeverity.Error}
-                  variant={TextVariant.BodyMD}
+                  variant={DSTextVariant.BodyMD}
                   testID={LoginViewSelectors.PASSWORD_ERROR}
                 >
                   {error}
                 </HelpText>
               )}
-            </View>
+            </Box>
 
-            <View style={styles.ctaWrapper} pointerEvents="box-none">
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full"
+              pointerEvents="box-none"
+            >
               <Button
-                variant={ButtonVariants.Primary}
-                width={ButtonWidthTypes.Full}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={unlockWithPassword}
-                label={strings('login.unlock_button')}
                 isDisabled={password.length === 0 || loading}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                loading={loading}
-                style={styles.unlockButton}
-              />
-
-              <Button
-                style={styles.goBack}
-                variant={ButtonVariants.Link}
+                isLoading={loading}
+                twClassName="mt-1"
+                isFullWidth
+              >
+                {strings('login.unlock_button')}
+              </Button>
+              <TextButton
+                twClassName="my-0 self-center pt-4"
                 onPress={toggleWarningModal}
                 testID={LoginViewSelectors.RESET_WALLET}
-                label={
-                  <Text
-                    variant={DSTextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={DSTextColor.TextAlternative}
-                  >
-                    {strings('login.forgot_password')}
-                  </Text>
-                }
                 isDisabled={loading}
-                size={ButtonSize.Lg}
-              />
-            </View>
-          </View>
+                size={TextButtonSize.BodyMd}
+                textProps={{
+                  variant: TextVariant.BodyMd,
+                  fontWeight: FontWeight.Medium,
+                  color: TextColor.TextAlternative,
+                }}
+              >
+                {strings('login.forgot_password')}
+              </TextButton>
+            </Box>
+          </Box>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
         {!isE2E && (
           <TouchableOpacity
-            style={styles.foxAnimationWrapper}
+            style={tw.style('absolute bottom-0 left-0 right-0 h-[200px]')}
             delayLongPress={10 * 1000} // 10 seconds
             onLongPress={handleDownloadStateLogs}
             activeOpacity={1}
