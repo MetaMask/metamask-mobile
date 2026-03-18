@@ -26,7 +26,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -34,7 +33,8 @@ import {
   Icon,
   IconName,
   IconSize,
-  IconColor} from '@metamask/design-system-react-native';
+  IconColor,
+} from '@metamask/design-system-react-native';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';

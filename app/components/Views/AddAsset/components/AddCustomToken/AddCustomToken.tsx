@@ -9,7 +9,10 @@ import { TextInput, Platform, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant ,
+import {
+  Box,
+  Text,
+  TextVariant,
   Button,
   ButtonVariant,
   ButtonSize,
