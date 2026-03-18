@@ -17,6 +17,7 @@ export type { TickerDataItem as MYXTicker } from '@myx-trade/sdk';
 // Position & order types from SDK
 export type { PositionType as MYXPositionType } from '@myx-trade/sdk';
 export type { HistoryOrderItem as MYXHistoryOrderItem } from '@myx-trade/sdk';
+export type { PoolOpenOrder as MYXPoolOpenOrder } from '@myx-trade/sdk';
 export type { PositionHistoryItem as MYXPositionHistoryItem } from '@myx-trade/sdk';
 export type { TradeFlowItem as MYXTradeFlowItem } from '@myx-trade/sdk';
 export type { KlineDataItemType as MYXKlineData } from '@myx-trade/sdk';

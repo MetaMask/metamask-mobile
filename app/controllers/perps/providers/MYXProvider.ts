@@ -118,6 +118,7 @@ import {
   adaptPriceFromMYX,
   adaptPositionFromMYX,
   adaptOrderFromMYX,
+  adaptPoolOpenOrderFromMYX,
   adaptOrderFillFromMYX,
   adaptAccountStateFromMYX,
   adaptCandleFromMYX,
@@ -811,7 +812,7 @@ export class MYXProvider implements PerpsProvider {
         triggerType: 0, // TriggerType.NONE
         direction,
         collateralAmount,
-        size: toMYXSize(parseFloat(params.size)),
+        size: toMYXSize(params.size),
         price: price30Dec,
         timeInForce: 0, // TimeInForce.IOC
         postOnly: false,
@@ -1049,12 +1050,13 @@ export class MYXProvider implements PerpsProvider {
 
       const rawPos = rawPositions[0];
 
-      // Determine close size — use params.size if partial, otherwise full position size
-      const closeSize = params.size
-        ? parseFloat(params.size)
-        : parseFloat(rawPos.size);
+      // Determine close size — keep as string to avoid float precision loss.
+      // parseFloat round-trips lose least-significant digits, leaving dust
+      // when the 18-decimal integer is reconstructed by toMYXSize().
+      const closeSizeStr = params.size ?? rawPos.size;
+      const closeSizeNum = parseFloat(closeSizeStr);
 
-      if (!closeSize || isNaN(closeSize)) {
+      if (!closeSizeNum || isNaN(closeSizeNum)) {
         return {
           success: false,
           error: 'Invalid close size',
@@ -1099,7 +1101,7 @@ export class MYXProvider implements PerpsProvider {
         triggerType: 0,
         direction: rawPos.direction,
         collateralAmount: '0',
-        size: toMYXSize(closeSize),
+        size: toMYXSize(closeSizeStr),
         price: toMYXContractPrice(closePrice),
         timeInForce: 0,
         postOnly: false,
@@ -1117,7 +1119,7 @@ export class MYXProvider implements PerpsProvider {
         poolId,
         positionId: rawPos.positionId,
         direction: rawPos.direction === 0 ? 'LONG' : 'SHORT',
-        closeSize,
+        closeSize: closeSizeStr,
         closePrice,
         leverage: userLeverage,
       });
@@ -1529,8 +1531,13 @@ export class MYXProvider implements PerpsProvider {
 
   async getOpenOrders(_params?: GetOrdersParams): Promise<Order[]> {
     try {
-      const allOrders = await this.getOrders();
-      return allOrders.filter((order) => order.status === 'open');
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+      const poolOpenOrders =
+        await this.#clientService.getPoolOpenOrders(address);
+      return poolOpenOrders.map((order) =>
+        adaptPoolOpenOrderFromMYX(order, this.#poolSymbolMap),
+      );
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,

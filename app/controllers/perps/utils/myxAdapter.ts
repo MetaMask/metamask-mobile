@@ -49,6 +49,7 @@ import {
 import type {
   MYXNetwork,
   MYXPoolSymbol,
+  MYXPoolOpenOrder,
   MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
@@ -429,6 +430,9 @@ export function adaptOrderFromMYX(
     case MYXOrderStatusEnum.Expired:
       status = 'canceled';
       break;
+    case MYXOrderStatusEnum.PartialFilled:
+      status = 'filled';
+      break;
     default:
       status = 'open';
   }
@@ -467,6 +471,52 @@ export function adaptOrderFromMYX(
     detailedOrderType,
     reduceOnly:
       historyOrder.operation === MYXOperationEnum.Decrease ? true : undefined,
+    providerId: 'myx',
+  };
+}
+
+/**
+ * Adapt MYX pool open order (pending limit/trigger) to MetaMask Order.
+ *
+ * PoolOpenOrder represents pending TP/SL or limit orders that can be cancelled.
+ * This is the MYX equivalent of Hyperliquid's "open orders".
+ *
+ * @param order - MYX pool open order from getPoolOpenOrders
+ * @param poolSymbolMap - Map of poolId to symbol
+ * @returns MetaMask Order object
+ */
+export function adaptPoolOpenOrderFromMYX(
+  order: MYXPoolOpenOrder,
+  poolSymbolMap: Map<string, string>,
+): Order {
+  const symbol = poolSymbolMap.get(order.poolId) ?? order.poolId;
+  const triggerPriceNum = fromMYXPrice(order.triggerPrice);
+  const sizeNum = fromMYXApiSize(order.amount);
+
+  // triggerType: 1 = TP, 2 = SL
+  const isTP = order.triggerType === 1;
+  const isTrigger = true;
+  const detailedOrderType = isTP ? 'Take Profit' : 'Stop Loss';
+
+  // PoolOpenOrder does not include direction; default to 'sell' (reduce-only).
+  // TP/SL orders are always reduce-only, closing existing positions.
+  const side: 'buy' | 'sell' = 'sell';
+
+  return {
+    orderId: String(order.orderId),
+    symbol,
+    side,
+    orderType: 'limit',
+    size: sizeNum.toString(),
+    originalSize: sizeNum.toString(),
+    price: triggerPriceNum.toString(),
+    filledSize: '0',
+    remainingSize: sizeNum.toString(),
+    status: 'open',
+    timestamp: order.txTime,
+    isTrigger,
+    detailedOrderType,
+    reduceOnly: true,
     providerId: 'myx',
   };
 }

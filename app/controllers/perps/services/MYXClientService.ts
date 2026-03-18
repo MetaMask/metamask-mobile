@@ -9,6 +9,7 @@
  */
 
 import type {
+  ChainId,
   KlineDataItemType,
   KlineResolution,
   KlineDataResponse,
@@ -32,6 +33,7 @@ import type {
   MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
+  MYXPoolOpenOrder,
   MYXPositionHistoryItem,
   MYXTradeFlowItem,
   MYXGetHistoryOrdersParams,
@@ -696,6 +698,39 @@ export class MYXClientService {
       this.#deps.logger.error(
         wrappedError,
         this.#getErrorContext('getOrderHistory'),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get pool open orders (pending limit/trigger orders only).
+   *
+   * Unlike getOrderHistory which returns all orders including filled market
+   * orders, this returns only pending orders that can be cancelled (TP/SL,
+   * limit orders). Equivalent to Hyperliquid's "open orders".
+   *
+   * @param address - User wallet address.
+   * @returns Array of pending pool open orders.
+   */
+  async getPoolOpenOrders(address: string): Promise<MYXPoolOpenOrder[]> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Getting pool open orders');
+      const accessToken = await this.#myxClient.getAccessToken();
+      const result = await this.#myxClient.api.getPoolOpenOrders(
+        accessToken ?? '',
+        address,
+        this.#chainId as ChainId,
+      );
+      return result.data ?? [];
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getPoolOpenOrders',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getPoolOpenOrders'),
       );
       throw wrappedError;
     }
