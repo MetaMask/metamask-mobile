@@ -58,5 +58,4 @@ export const ALLOWLISTED_URLS = [
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0xaa36a7',
   'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
   'https://api.hyperliquid.xyz/exchange',
-  'https://api.hyperliquid.xyz/info',
 ];
