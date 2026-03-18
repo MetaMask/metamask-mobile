@@ -65,13 +65,6 @@ function isDisabled(value: unknown): boolean {
     const obj = value as Record<string, unknown>;
     // Check for { enabled: false } pattern
     if ('enabled' in obj && obj.enabled === false) return true;
-    // Check for { minimumVersion: null, enabled: false } pattern
-    if (
-      'minimumVersion' in obj &&
-      obj.minimumVersion === null &&
-      obj.enabled === false
-    )
-      return true;
   }
   return false;
 }

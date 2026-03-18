@@ -396,7 +396,7 @@ export function getCherryPicksBetweenBuilds(
       const prMatch = message.match(/#(\d+)/);
 
       cherryPicks.push({
-        commit: commit.substring(0, 7),
+        commit,
         message,
         prNumber: prMatch ? `#${prMatch[1]}` : null,
         author,
@@ -448,7 +448,7 @@ export function getCherryPicksBetweenCommits(
       const prMatch = message.match(/#(\d+)/);
 
       cherryPicks.push({
-        commit: commit.substring(0, 7),
+        commit,
         message,
         prNumber: prMatch ? `#${prMatch[1]}` : null,
         author,
