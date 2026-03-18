@@ -516,14 +516,13 @@ const MainFlow = () => (
     initialRouteName={'Main'}
     screenOptions={{
       headerShown: false,
-      presentation: 'modal',
     }}
   >
     <Stack.Screen name={'Main'} component={ConnectedMain} />
     <Stack.Screen
       name={'ReviewModal'}
       component={ReviewModal}
-      options={{ animationEnabled: false }}
+      options={{ animationEnabled: false, presentation: 'modal' }}
     />
   </Stack.Navigator>
 );

@@ -178,9 +178,7 @@ const clearStackNavigatorOptions = {
 };
 
 const WalletModalFlow = () => (
-  <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-  >
+  <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
@@ -251,7 +249,6 @@ const WalletTabModalFlow = () => (
   <Stack.Navigator
     screenOptions={{
       ...clearStackNavigatorOptions,
-      presentation: 'modal',
       cardStyle: { backgroundColor: importedColors.white },
     }}
   >
@@ -303,7 +300,6 @@ const RewardsHome = () => (
   <Stack.Navigator
     screenOptions={{
       ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
       cardStyle: { backgroundColor: importedColors.white },
     }}
   >
@@ -311,14 +307,17 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
       component={RewardsBottomSheetModal}
+      options={{ presentation: 'transparentModal' }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET}
       component={BonusCodeBottomSheet}
+      options={{ presentation: 'transparentModal' }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
+      options={{ presentation: 'transparentModal' }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
@@ -332,6 +331,7 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
       component={EndOfSeasonClaimBottomSheet}
+      options={{ presentation: 'transparentModal' }}
     />
   </Stack.Navigator>
 );
@@ -341,7 +341,6 @@ const BrowserFlow = (props) => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
     screenOptions={{
-      presentation: 'modal',
       cardStyle: { backgroundColor: importedColors.white },
     }}
   >
@@ -353,12 +352,17 @@ const BrowserFlow = (props) => (
     <Stack.Screen
       name={Routes.BROWSER.ASSET_LOADER}
       component={AssetLoader}
-      options={{ headerShown: false, animationEnabled: false }}
+      options={{
+        headerShown: false,
+        animationEnabled: false,
+        presentation: 'modal',
+      }}
     />
     <Stack.Screen
       name={Routes.BROWSER.ASSET_VIEW}
       component={TokenDetails}
       initialParams={props.route.params}
+      options={{ presentation: 'modal' }}
     />
   </Stack.Navigator>
 );
@@ -367,7 +371,6 @@ const ExploreHome = () => (
   <Stack.Navigator
     initialRouteName={Routes.TRENDING_FEED}
     screenOptions={{
-      presentation: 'modal',
       cardStyle: { backgroundColor: importedColors.white },
     }}
   >
@@ -401,7 +404,7 @@ const NotificationsOptInStack = () => (
     <Stack.Screen
       name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
-      options={{ headerShown: false, presentation: 'modal' }}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
@@ -824,11 +827,7 @@ const HomeTabs = () => {
 
 const Webview = () => (
   <Stack.Navigator>
-    <Stack.Screen
-      name="SimpleWebview"
-      component={SimpleWebview}
-      options={{ presentation: 'modal' }}
-    />
+    <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
 
@@ -994,7 +993,6 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        presentation: 'modal',
       }}
       initialRouteName={'Home'}
     >
@@ -1002,6 +1000,7 @@ const MainNavigator = () => {
         name="CollectiblesDetails"
         component={CollectiblesDetails}
         options={{
+          presentation: 'modal',
           //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
           cardStyle: { backgroundColor: importedColors.transparent },
           cardStyleInterpolator: () => ({
@@ -1015,6 +1014,7 @@ const MainNavigator = () => {
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
         options={{
+          presentation: 'modal',
           //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
           cardStyle: { backgroundColor: importedColors.transparent },
           cardStyleInterpolator: () => ({
