@@ -6,6 +6,11 @@ name: Upload to TestFlight
 on:
   workflow_dispatch:
     inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
       environment:
         description: 'Build environment / track'
         required: true
@@ -38,6 +43,7 @@ jobs:
       build_name: main-${{ inputs.environment || 'rc' }}
       platform: ios
       skip_version_bump: false
+      source_branch: ${{ inputs.source_branch }}
     secrets: inherit
 
   testflight-upload-summary:
@@ -48,6 +54,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.source_branch }}
       - name: Display TestFlight upload summary
         run: |
           BUILD_VERSION=$(node -p "require('./package.json').version")
@@ -56,14 +63,15 @@ jobs:
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
+            echo "| **Workflow ref** | ${{ github.ref_name }} (required for AWS) |"
+            echo "| **Source branch** | ${{ inputs.source_branch }} |"
             echo "| **Build name** | main-${{ inputs.environment || 'rc' }} |"
             echo "| **Build version** | ${BUILD_VERSION} |"
             echo "| **TestFlight group** | ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }} |"
-            echo "| **Branch** | ${{ github.ref_name }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # Pulls App Store Connect API keys from AWS Secrets Manager (OIDC).
-  # AWS secret must be accessible only by this workflow when run from main.
+  # Workflow must run from main; build uses inputs.source_branch.
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [build, testflight-upload-summary]
@@ -134,7 +142,7 @@ jobs:
         run: |
           bash scripts/upload-to-testflight.sh \
             "github_actions_main-${{ inputs.environment || 'rc' }}" \
-            "${{ github.ref_name }}" \
+            "${{ inputs.source_branch }}" \
             "${{ steps.ipa.outputs.path }}" \
             "${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}"
 
