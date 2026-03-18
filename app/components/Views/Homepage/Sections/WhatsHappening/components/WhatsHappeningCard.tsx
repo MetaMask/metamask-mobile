@@ -11,31 +11,18 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
+import { formatShortDate } from '../util/formatDate';
 
 interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
   onPress?: (item: WhatsHappeningItem) => void;
 }
 
-const formatDate = (dateString: string): string | null => {
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return null;
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  } catch {
-    return null;
-  }
-};
-
 const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
   onPress,
 }) => {
-  const formattedDate = useMemo(() => formatDate(item.date), [item.date]);
+  const formattedDate = useMemo(() => formatShortDate(item.date), [item.date]);
 
   const handlePress = () => onPress?.(item);
 
