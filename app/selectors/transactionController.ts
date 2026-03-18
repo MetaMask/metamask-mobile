@@ -11,10 +11,10 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
-type MetaMaskPayToken = {
+interface MetaMaskPayToken {
   address: Hex;
   chainId: Hex;
-};
+}
 
 function getNestedTransactionTypes(
   transaction: TransactionMeta,
