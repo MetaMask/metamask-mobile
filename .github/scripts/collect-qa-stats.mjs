@@ -1,28 +1,34 @@
 #!/usr/bin/env node
 /**
  *
- * Collects QA metrics from a CI run and writes qa-stats.json, key: value format.
+ * Collects QA metrics into a qa-stats.json file, key: value format.
  * Metrics that could not be collected (missing artifacts, tests did not run)
- * are omitted from the output — they will never appear as zero.
+ * are omitted from the output, i.e., they will not appear in the output file.
  *
  * Required env vars:
  *   GITHUB_TOKEN      — GitHub Actions token for API access
- *   WORKFLOW_RUN_ID   — ID of the main CI run that produced tests artifacts
+ *   GITHUB_REPOSITORY — Repository in "owner/repo" format (set automatically in Actions)
  * 
  * How to add a new metric:
  *   1. Add a collector function that returns a plain object
  *   2. Register it in the collectors array in main()
  * 
- * The only rule: never rename existing keys. The DB key is (project, run_id, namespace, metric_key). 
+ * The only rule: never rename existing keys. The DB key used for storing the metrics is (project, run_id, namespace, metric_key). 
  * Renaming a key in the JSON creates a new series in the DB while the old name stops getting new data, 
  * which breaks the Grafana time series continuity. Adding and removing keys is fine.
- * 
+ *
+ * Artifact names used below are coupled to `name:` fields in ci.yml and run-e2e-workflow.yml —
+ * renaming either side silently drops that metric from the output.
+ *
  * Example output:
  *   {
- *     "component_view": { "tests_count": 94 },
- *     "unit":           { "tests_count": 41957 },
- *     "e2e":            { "tests_count": 420, "main_tests_count": 276, "confirmations_tests_count": 62, "flask_tests_count": 144 },
- *     "performance":    { "tests_count": 21, "login_tests_count": 11, "onboarding_tests_count": 4, "mm_connect_tests_count": 6 }
+ *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
+ *     "component_view":{ "total_tests_run": 94,    "total_tests_skipped": 0 },
+ *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
+ *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
+ *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
+ *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
+ *                        "login_tests_defined": 11, "onboarding_tests_defined": 4, "mm_connect_tests_defined": 6 }
  *   }
  */
 
@@ -31,17 +37,66 @@ import { execSync } from 'child_process';
 import { join } from 'path';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const WORKFLOW_RUN_ID = process.env.WORKFLOW_RUN_ID;
+const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
 
-if (!WORKFLOW_RUN_ID) throw new Error('Missing required WORKFLOW_RUN_ID env var');
 if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
+
+
+// ---------------------------------------------------------------------------
+// Static-scan targets
+// Update these (easy with AI) if the repository directory structure or file-naming conventions
+// change — the collectors below rely on them for skip/defined counts.
+// ---------------------------------------------------------------------------
+const SCAN_APP_DIR        = 'app';
+const SCAN_E2E_SMOKE_DIRS = ['tests/smoke'];
+const SCAN_PERFORMANCE_DIR = 'tests/performance';
+
+const PATTERN_CV_TEST_FILE   = /\.view(?:\..+)?\.test\.[jt]sx?$/;
+const PATTERN_UNIT_TEST_FILE = /\.test\.[jt]sx?$/;
+const PATTERN_E2E_SPEC_FILE  = /\.spec\.[jt]sx?$/;
+const PATTERN_PERF_SPEC_FILE = /\.spec\.js$/;
 
 
 // ---------------------------------------------------------------------------
 // GitHub artifact helpers
 // ---------------------------------------------------------------------------
 
+let _runId = null;
 let _artifactList = null;
+
+/**
+ * Fetches the ID of the latest successful CI workflow run on `main`.
+ *
+ * @returns {Promise<string>}
+ */
+async function getLatestCiRunId() {
+  const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=1`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch CI workflow runs: ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  const run = data.workflow_runs?.[0];
+  if (!run) {
+    throw new Error('No successful CI workflow runs found on main');
+  }
+
+  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, ${run.created_at})`);
+  return String(run.id);
+}
+
+async function getRunId() {
+  if (_runId) return _runId;
+  _runId = await getLatestCiRunId();
+  return _runId;
+}
 
 /**
  * Fetches (and caches) the list of artifact names for the triggering CI run.
@@ -52,11 +107,12 @@ let _artifactList = null;
 async function getArtifactList() {
   if (_artifactList) return _artifactList;
 
+  const runId = await getRunId();
   const artifacts = [];
   let page = 1;
 
   while (true) {
-    const url = `https://api.github.com/repos/MetaMask/metamask-mobile/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -89,10 +145,11 @@ async function getArtifactList() {
 async function downloadArtifact(artifactName) {
   const artifacts = await getArtifactList();
   const artifact = artifacts.find((a) => a.name === artifactName);
+  const runId = await getRunId();
 
   if (!artifact) {
     throw new Error(
-      `Artifact "${artifactName}" not found in run ${WORKFLOW_RUN_ID}`,
+      `Artifact "${artifactName}" not found in run ${runId}`,
     );
   }
 
@@ -130,6 +187,88 @@ async function downloadArtifact(artifactName) {
 // ---------------------------------------------------------------------------
 // Collectors — one async function per metric source
 // ---------------------------------------------------------------------------
+
+/**
+ * Counts the number of individual test cases that are skipped in a source string.
+ *
+ * Two categories:
+ *   1. Explicit: `it.skip()` / `test.skip()` outside any `describe.skip` block — 1 skipped test each.
+ *   2. Implicit: every `it()` / `test()` call (including `.skip` variants) inside a `describe.skip`
+ *      block, because the whole block is skipped by the runner.
+ *
+ * `describe.skip` blocks are extracted via brace matching so their contents are
+ * not double-counted against the explicit-skip pass.
+ *
+ * @param {string} source
+ * @returns {number}
+ */
+function countSkips(source) {
+  // Find all describe.skip blocks using brace matching.
+  const describeBlocks = [];
+  const re = /\bdescribe\.skip\s*\(/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const braceStart = source.indexOf('{', m.index + m[0].length);
+    if (braceStart === -1) continue;
+    let depth = 1, pos = braceStart + 1;
+    while (pos < source.length && depth > 0) {
+      if (source[pos] === '{') depth++;
+      else if (source[pos] === '}') depth--;
+      pos++;
+    }
+    describeBlocks.push({ start: m.index, end: pos, content: source.slice(braceStart + 1, pos - 1) });
+  }
+
+  // Strip describe.skip regions from source (reverse order to preserve indices).
+  let outside = source;
+  for (let i = describeBlocks.length - 1; i >= 0; i--) {
+    outside = outside.slice(0, describeBlocks[i].start) + outside.slice(describeBlocks[i].end);
+  }
+
+  // Part 1: it.skip / test.skip outside describe.skip blocks.
+  const explicitSkips = (outside.match(/\b(?:it|test)\.skip\s*\(/g) ?? []).length;
+
+  // Part 2: all it() / test() (including .skip) inside describe.skip blocks.
+  const implicitSkips = describeBlocks.reduce(
+    (sum, { content }) => sum + (content.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length,
+    0,
+  );
+
+  return explicitSkips + implicitSkips;
+}
+
+/**
+ * Counts all individual test definitions in a source string — both active and
+ * skipped. Matches it(, it.skip(, test(, test.skip(.
+ * Excludes describe() which is a grouper, not an individual test.
+ *
+ * @param {string} source
+ * @returns {number}
+ */
+function countDefinedTests(source) {
+  return (source.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length;
+}
+
+/**
+ * Recursively collects file paths under `dir` that satisfy `predicate(filename)`.
+ *
+ * @param {string} dir
+ * @param {(name: string) => boolean} predicate
+ * @returns {Promise<string[]>}
+ */
+async function walkFiles(dir, predicate) {
+  const results = [];
+  const entries = await readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...(await walkFiles(fullPath, predicate)));
+    } else if (entry.isFile() && predicate(entry.name)) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
 
 /**
  * Extracts a feature folder name from a Jest test file path.
@@ -197,12 +336,12 @@ async function collectShardCounts(artifactPattern, label, minFolderCount = 0) {
   }
 
   console.log(`[${label}] total: ${total}`);
-  const result = { tests_count: total };
+  const result = { total_tests_run: total };
   for (const [folder, count] of Object.entries(folderCounts)) {
     if (minFolderCount > 0 && count < minFolderCount) {
-      result.other_tests_count = (result.other_tests_count ?? 0) + count;
+      result.other_tests_run = (result.other_tests_run ?? 0) + count;
     } else {
-      result[`${folder}_tests_count`] = count;
+      result[`${folder}_tests_run`] = count;
     }
   }
   return result;
@@ -210,14 +349,78 @@ async function collectShardCounts(artifactPattern, label, minFolderCount = 0) {
 
 async function collectComponentViewTestCount() {
   console.log('[component-view] collecting per-suite counts from shard artifacts...');
-  return collectShardCounts(/^coverage-cv-\d+$/, 'component-view');
+  const result = await collectShardCounts(/^coverage-cv-\d+$/, 'component-view');
+  if (Object.keys(result).length === 0) return result;
+
+  const isViewTestFile = (name) => PATTERN_CV_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isViewTestFile);
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('cv-test-coverage-summary');
+    const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
+    const { lines, statements, branches, functions } = summary.total;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
+    console.log(
+      `[component-view] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
+    );
+  } catch (err) {
+    console.warn(`[component-view] coverage summary not available, skipping: ${err.message}`);
+  }
+
+  return result;
 }
 
 async function collectUnitTestCount() {
   console.log('[unit] collecting per-suite counts from shard artifacts...');
   // minFolderCount=200: buckets individual component-level folders into `other`,
   // keeping only meaningful team-level categories (bridge, perps, confirmations, etc.)
-  return collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
+  const result = await collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
+  if (Object.keys(result).length === 0) return result;
+
+  // Unit test files: *.test.{ts,tsx,js} excluding *.view[.*].test.*
+  const isUnitTestFile = (name) =>
+    PATTERN_UNIT_TEST_FILE.test(name) && !PATTERN_CV_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isUnitTestFile);
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('unit-test-coverage-summary');
+    const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
+    const { lines, statements, branches, functions } = summary.total;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
+    console.log(
+      `[unit] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
+    );
+  } catch (err) {
+    console.warn(`[unit] coverage summary not available, skipping: ${err.message}`);
+  }
+
+  return result;
 }
 
 /**
@@ -313,20 +516,34 @@ async function collectE2ECounts() {
   // Canonical unique counts (Android as source of truth — same tests run on iOS)
   // A missing key means that channel did not run; present-but-zero means it ran and found nothing.
   if (androidMain > 0 || iosMain > 0) {
-    result.main_tests_count = androidMain; // unique count
-    result.main_android_tests_count = androidMain; // platform health signal
-    result.main_ios_tests_count = iosMain; // drops to 0 if iOS infrastructure is broken
+    result.main_tests_run = androidMain; // unique count
+    result.main_android_tests_run = androidMain; // platform health signal
+    result.main_ios_tests_run = iosMain; // drops to 0 if iOS infrastructure is broken
   }
   if (androidFlask > 0 || iosFlask > 0) {
-    result.flask_tests_count = androidFlask; // unique count
-    result.flask_android_tests_count = androidFlask;
-    result.flask_ios_tests_count = iosFlask;
+    result.flask_tests_run = androidFlask; // unique count
+    result.flask_android_tests_run = androidFlask;
+    result.flask_ios_tests_run = iosFlask;
   }
-  result.tests_count = androidMain + androidFlask;
+  result.total_tests_run = androidMain + androidFlask;
 
   for (const [tag, count] of Object.entries(suiteCounts)) {
-    result[`${tag}_tests_count`] = count;
+    result[`${tag}_tests_run`] = count;
   }
+
+  // Static scan — independent of which platform/channel ran
+  const isSpecTs = (name) => PATTERN_E2E_SPEC_FILE.test(name);
+  let defined = 0, skips = 0;
+  for (const dir of SCAN_E2E_SMOKE_DIRS) {
+    const files = await walkFiles(dir, isSpecTs);
+    for (const f of files) {
+      const source = await readFile(f, 'utf8');
+      defined += countDefinedTests(source);
+      skips += countSkips(source);
+    }
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
 
   return result;
 }
@@ -342,6 +559,7 @@ async function collectPerformanceTestCounts() {
   console.log('[performance] scanning tests/performance/ for scenarios...');
 
   const categoryCounts = {};
+  let totalSkips = 0;
 
   async function scanDir(dir, category) {
     const entries = await readdir(dir, { withFileTypes: true });
@@ -350,29 +568,30 @@ async function collectPerformanceTestCounts() {
       if (entry.isDirectory()) {
         // Top-level subdirectory determines the category
         await scanDir(fullPath, category ?? entry.name);
-      } else if (entry.isFile() && entry.name.endsWith('.spec.js')) {
+      } else if (entry.isFile() && PATTERN_PERF_SPEC_FILE.test(entry.name)) {
         const source = await readFile(fullPath, 'utf8');
-        // Count test() calls, excluding test.skip()
-        const matches = source.match(/^\s*test\s*\(/gm) ?? [];
+        // Count all test() calls — including test.skip() — for total_tests_defined
+        const matches = source.match(/^\s*test(?:\.skip)?\s*\(/gm) ?? [];
         const count = matches.length;
         if (count > 0 && category) {
           const key = category.replace(/-/g, '_');
           categoryCounts[key] = (categoryCounts[key] ?? 0) + count;
         }
+        totalSkips += countSkips(source);
       }
     }
   }
 
-  await scanDir('tests/performance', null);
+  await scanDir(SCAN_PERFORMANCE_DIR, null);
 
   const total = Object.values(categoryCounts).reduce((s, n) => s + n, 0);
 
-  const result = { tests_count: total };
+  const result = { total_tests_defined: total, total_tests_skipped: totalSkips };
   for (const [cat, count] of Object.entries(categoryCounts)) {
-    result[`${cat}_tests_count`] = count;
+    result[`${cat}_tests_defined`] = count;
     console.log(`[performance] ${cat}: ${count}`);
   }
-  console.log(`[performance] total: ${total}`);
+  console.log(`[performance] total: ${total}, skips: ${totalSkips}`);
   return result;
 }
 
@@ -384,8 +603,8 @@ async function main() {
   const stats = {};
 
   const collectors = [
-    { namespace: 'component_view', collect: collectComponentViewTestCount },
     { namespace: 'unit', collect: collectUnitTestCount },
+    { namespace: 'component_view', collect: collectComponentViewTestCount },
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
   ];

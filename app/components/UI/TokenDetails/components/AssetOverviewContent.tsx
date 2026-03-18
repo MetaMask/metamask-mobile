@@ -58,7 +58,7 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType, type CaipChainId, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -154,10 +154,6 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
-    bannerWrapper: {
-      paddingHorizontal: 16,
-      marginTop: 8,
-    } as ViewStyle,
   });
 };
 
@@ -852,39 +848,42 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && readyForWithdrawalBalance && (
-              <View style={styles.bannerWrapper}>
-                <TronUnstakedBanner amount={readyForWithdrawalBalance} />
-              </View>
+              <Box paddingTop={3} paddingHorizontal={4}>
+                <TronUnstakedBanner
+                  amount={readyForWithdrawalBalance}
+                  chainId={String(token.chainId) as CaipChainId}
+                />
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && inLockPeriodBalance && (
-              <View style={styles.bannerWrapper}>
+              <Box paddingTop={3} paddingHorizontal={4}>
                 <TronUnstakingBanner amount={inLockPeriodBalance} />
-              </View>
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && stakedTrxAsset && (
-              <View style={styles.bannerWrapper}>
+              <Box paddingTop={4} paddingHorizontal={4}>
                 <TronStakingButtons asset={stakedTrxAsset} />
-              </View>
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && !stakedTrxAsset && (
-              <View style={styles.bannerWrapper}>
+              <Box paddingTop={3} paddingHorizontal={4}>
                 <TronStakingCta
                   asset={token}
                   aprText={tronApyPercent ?? undefined}
                 />
-              </View>
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
