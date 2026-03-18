@@ -277,9 +277,11 @@ const GasFeesDetailsRow = ({
   // by the user and 7702 is not supported in the chain.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
   const fromAddress =
-    (transactionMetadata as TransactionMeta)?.txParams?.from ??
-    (transactionBatchesMetadata as TransactionBatchMeta)?.transactions?.[0]
-      ?.txParams?.from;
+    (transactionMetadata as TransactionMeta | undefined)?.txParams?.from ??
+    (
+      (transactionBatchesMetadata as TransactionBatchMeta)
+        ?.transactions?.[0] as TransactionMeta | undefined
+    )?.txParams?.from;
   const isHardwareWallet = Boolean(
     fromAddress && isHardwareAccount(fromAddress),
   );

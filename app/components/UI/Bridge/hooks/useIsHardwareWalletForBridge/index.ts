@@ -12,7 +12,7 @@ export function useIsHardwareWalletForBridge(): boolean {
   const walletAddress = useSelector(selectSourceWalletAddress);
 
   return useMemo(
-    () => (walletAddress ? isHardwareAccount(walletAddress) : false),
+    () => Boolean(walletAddress && isHardwareAccount(walletAddress)),
     [walletAddress],
   );
 }

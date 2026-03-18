@@ -278,10 +278,6 @@ export function getKeyringByAddress(address: string) {
 /**
  * judge address is hardware account or not
  *
- * In __DEV__ only: set global.__FORCE_HARDWARE_WALLET_BRIDGE_TEST__ = true to treat
- * every valid address as HW for bridge/7702 testing (no gas sponsorship in UI or submit).
- * Clear with false or delete. Requires app reload after changing.
- *
  * @param {String} address - String corresponding to an address
  * @param {Array<ExtendedKeyringTypes>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
  * @returns {Boolean} - Returns a boolean
