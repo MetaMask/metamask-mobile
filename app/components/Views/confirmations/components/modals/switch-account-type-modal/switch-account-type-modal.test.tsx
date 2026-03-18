@@ -8,7 +8,7 @@ import {
   mockTransaction,
 } from '../../../../../../util/test/confirm-data-helpers';
 import { RootState } from '../../../../../../reducers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Networks7702 from '../../../hooks/7702/useEIP7702Networks';
 import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';

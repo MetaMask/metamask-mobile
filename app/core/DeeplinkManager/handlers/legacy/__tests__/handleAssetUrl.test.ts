@@ -1,7 +1,7 @@
 import { handleAssetUrl } from '../handleAssetUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseAssetMetadataModule from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { Hex } from '@metamask/utils';
 

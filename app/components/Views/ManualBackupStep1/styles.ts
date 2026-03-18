@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 

@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { AccountsList } from './AccountsList';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AccountListHooksModule from './AccountsList.hooks';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
 import {
   NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID,
@@ -14,7 +14,7 @@ import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView
 import { toFormattedAddress } from '../../../../util/address';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AccountSelectorsModule from '../../../../selectors/multichainAccounts/accounts';
 import initialRootState from '../../../../util/test/initial-root-state';
 
