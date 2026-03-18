@@ -151,15 +151,6 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
-// Snapshots selectors
-export const selectSnapshots = (state: RootState) => state.rewards.snapshots;
-
-export const selectSnapshotsLoading = (state: RootState) =>
-  state.rewards.snapshotsLoading;
-
-export const selectSnapshotsError = (state: RootState) =>
-  state.rewards.snapshotsError;
-
 // Campaigns selectors
 export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
 
@@ -168,3 +159,20 @@ export const selectCampaignsLoading = (state: RootState) =>
 
 export const selectCampaignsError = (state: RootState) =>
   state.rewards.campaignsError;
+
+// Campaign participant status selectors
+export const selectCampaignParticipantStatuses = (state: RootState) =>
+  state.rewards.campaignParticipantStatuses;
+
+export const selectCampaignParticipantStatusById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId] ?? null)
+      : null;
+
+export const selectCampaignParticipantCount =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId]
+          ?.participantCount ?? null)
+      : null;

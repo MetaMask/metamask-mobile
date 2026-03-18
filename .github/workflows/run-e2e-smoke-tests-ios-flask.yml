@@ -181,3 +181,4 @@ jobs:
         with:
           name: e2e-smoke-ios-flask-all-test-artifacts
           path: all-test-artifacts/
+          retention-days: 7
