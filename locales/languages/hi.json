@@ -119,6 +119,10 @@
       "message": "आप अपनी एसेट्स एक बर्न एड्रेस पर भेज रहे हैं। यदि आप जारी रखते हैं, तो आप अपनी एसेट्स खो देंगे।",
       "title": "एसेट्स को बर्न एड्रेस पर भेजना"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "इस ट्रांसेक्शन के लिए गैस स्पॉन्सरशिप उपलब्ध नहीं है। आपको अपने अकाउंट में कम से कम %{minBalance} %{nativeTokenSymbol} रखना होगा।",
       "title": "गैस स्पॉन्सरशिप उपलब्ध नहीं है"
@@ -689,7 +693,11 @@
     "invisible_character_error": "हमने ENS नाम में एक अदृश्य कैरेक्टर का पता लगाया है। संभावित स्कैम से बचने के लिए ENS नाम की जाँच करें।",
     "could_not_resolve_name": "नाम हल नहीं किया जा सका",
     "invalid_address": "एड्रेस ग़लत है",
-    "contractAddressError": "आप टोकन को टोकन के कॉन्ट्रैक्ट एड्रेस पर भेज रहे हैं। इससे इन टोकन को खोने की संभावना है।"
+    "contractAddressError": "आप टोकन को टोकन के कॉन्ट्रैक्ट एड्रेस पर भेज रहे हैं। इससे इन टोकन को खोने की संभावना है।",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "मैं समझता हूं",
+    "cancel": "कैंसिल करें"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -2154,6 +2162,7 @@
     "sell_position": "सैल पोज़िशन",
     "cash_out": "कैश आउट करें",
     "cash_out_info": "फ़ंड आपके उपलब्ध बैलेंस में जोड़े जाएंगे",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "{{size}} शेयरों को {{price}} पर बेचा जा रहा है",
     "cashout_info": "{{initialPrice}} पर {{outcome}} पर {{amount}}",
     "cashout_info_multiple": "{{outcomeGroupTitle}} पर {{amount}} • {{initialPrice}} पर {{outcome}}",
@@ -2338,7 +2347,9 @@
       "exchange_fee_description": "एक्सचेंज या मार्केट को दिया गया शुल्क",
       "total_incl_fees": "शुल्क सहित",
       "close": "बंद करें",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "प्रीडिक्शंस से कनेक्ट नहीं हो पाया",
@@ -3287,8 +3298,6 @@
     "blockaid_desc": "यह फीचर सक्रिय रूप से ट्रांसेक्शन और सिग्नेचर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है।",
     "security_alerts": "सुरक्षा चेतावनियाँ",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
-    "dismiss_smart_account_update_heading": "\"स्मार्ट अकाउंट पर स्विच करें\" सुझाव को खारिज करें",
-    "dismiss_smart_account_update_desc": "किसी भी अकाउंट पर \"स्मार्ट अकाउंट पर स्विच करें\" सुझाव न देखने के लिए इसे चालू करें। स्मार्ट अकाउंट से तेज़ ट्रांसेक्शन, कम नेटवर्क फ़ीस और आसानी से पेमेंट कर सकने का लाभ मिलता है।",
     "smart_transactions_opt_in_heading": "स्मार्ट ट्रांसेक्शन",
     "smart_transactions_opt_in_desc_supported_networks": "समर्थित नेटवर्क पर अधिक विश्वसनीय और सुरक्षित ट्रांसेक्शन के लिए स्मार्ट ट्रांसेक्शन चालू करें।",
     "smart_transactions_learn_more": "ज़्यादा जानें",
@@ -5921,6 +5930,7 @@
   "earn": {
     "claimable_bonus_tooltip": "mUSD रखने पर आपको मिलने वाला वार्षिक बोनस। आपका बोनस Linea पर रोज़ाना क्लेम किया जा सकता है।",
     "earn_a_percentage_bonus": "{{percentage}}% बोनस कमाएं",
+    "percentage_bonus": "{{percentage}}% बोनस",
     "claimable_bonus": "क्लेम करने योग्य बोनस",
     "claim_bonus": "बोनस क्लेम करें",
     "claim_bonus_subtitle": "बोनस {{networkName}} पर दिया जाएगा।",
@@ -6930,7 +6940,7 @@
       "upgrade_title": "मेटल में अपग्रेड करें",
       "continue_button": "जारी रखें",
       "virtual_card": {
-        "name": "ऑरेंज वर्चुअल कार्ड",
+        "name": "Virtual Card",
         "price": "मुफ्त",
         "feature_1": "Apple Pay और Google Pay के लिए वर्चुअल कार्ड",
         "feature_2": "क्रिप्टो से भुगतान करें (USDC, USDT, WETH और अन्य)",
@@ -6939,10 +6949,13 @@
       "metal_card": {
         "name": "मेटल कार्ड",
         "price": "$199/साल",
-        "feature_1": "Apple Pay व Google Pay के लिए उकेरा हुआ मेटल कार्ड और वर्चुअल कार्ड",
-        "feature_2": "हर वर्ष पहले $10,000 की खर्च राशि पर 3% कैशबैक, उसके बाद 1%",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "कोई विदेशी ट्रांसेक्शन फीस नहीं"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "अपना ऑर्डर समीक्षा करें",
@@ -7090,7 +7103,8 @@
         "ssn_label": "सोशल सिक्योरिटी नंबर",
         "ssn_description": "कार्ड जारी करने वाले के लिए ज़रूरी है। कोई क्रेडिट चेक नहीं किया जाएगा।",
         "invalid_ssn": "SSN ग़लत है",
-        "invalid_date_of_birth": "जन्मतिथि ग़लत है। आपकी आयु कम से कम 18 वर्ष होनी चाहिए"
+        "invalid_date_of_birth": "जन्मतिथि ग़लत है। आपकी आयु कम से कम 18 वर्ष होनी चाहिए",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "अपना एड्रेस जोड़ें",
@@ -7174,6 +7188,7 @@
       "enable_assets_button_label": "एसेट्स चालू करें",
       "spending_limit_warning": "आप अपनी खर्च सीमा के करीब हैं। अस्वीकृतियों से बचने के लिए अपडेट करें।",
       "logout": "लॉग आउट करें",
+      "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें",
       "logout_confirmation_title": "कार्ड से लॉग आउट करें?",
       "logout_confirmation_message": "क्या आप वाकई अपने MetaMask कार्ड अकाउंट से लॉग आउट करना चाहते हैं?",
       "logout_confirmation_cancel": "कैंसिल करें",
@@ -7727,6 +7742,18 @@
     },
     "active_boosts_title": "सक्रिय बूस्ट्स",
     "season_1": "सीज़न 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "mUSD खरीदें",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "लॉक किए हुए रिवॉर्ड्स",
       "points_needed": "{{points}} पॉइंट्स",
@@ -8006,6 +8033,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "टोकन",
       "perpetuals": "परपेचुअल्स",
       "predictions": "प्रेडिक्शंस",
