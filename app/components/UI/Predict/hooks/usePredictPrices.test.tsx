@@ -304,7 +304,7 @@ describe('usePredictPrices', () => {
         1,
       );
 
-      await act(async () => {
+      act(() => {
         jest.advanceTimersByTime(5000);
       });
 
@@ -314,7 +314,7 @@ describe('usePredictPrices', () => {
         ).toHaveBeenCalledTimes(2),
       );
 
-      await act(async () => {
+      act(() => {
         jest.advanceTimersByTime(5000);
       });
 
@@ -351,7 +351,7 @@ describe('usePredictPrices', () => {
 
       unmount();
 
-      await act(async () => {
+      act(() => {
         jest.advanceTimersByTime(10000);
       });
 
@@ -383,7 +383,7 @@ describe('usePredictPrices', () => {
         1,
       );
 
-      await act(async () => {
+      act(() => {
         jest.advanceTimersByTime(10000);
       });
 
@@ -686,7 +686,7 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockResolvedValueOnce(mockPrices);
 
-      await act(async () => {
+      act(() => {
         jest.advanceTimersByTime(5000);
       });
 
