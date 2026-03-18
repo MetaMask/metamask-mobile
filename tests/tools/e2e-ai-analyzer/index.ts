@@ -108,12 +108,16 @@ function parseArgs(args: string[]): ParsedArgs {
       case '--list-skills':
         options.listSkills = true;
         break;
-      case '--build':
-        options.buildNumber = parseInt(args[++i], 10);
+      case '--build': {
+        const val = parseInt(args[++i], 10);
+        if (!isNaN(val)) options.buildNumber = val;
         break;
-      case '--prev-build':
-        options.prevBuildNumber = parseInt(args[++i], 10);
+      }
+      case '--prev-build': {
+        const val = parseInt(args[++i], 10);
+        if (!isNaN(val)) options.prevBuildNumber = val;
         break;
+      }
       case '--from-commit':
         options.fromCommit = args[++i];
         break;
@@ -127,9 +131,11 @@ function parseArgs(args: string[]): ParsedArgs {
       case '--initial-commit':
         options.initialCommit = args[++i];
         break;
-      case '--initial-build':
-        options.initialBuildNumber = parseInt(args[++i], 10);
+      case '--initial-build': {
+        const val = parseInt(args[++i], 10);
+        if (!isNaN(val)) options.initialBuildNumber = val;
         break;
+      }
       case '--exclude-features':
       case '-ef': {
         // Comma-separated list of features to exclude
