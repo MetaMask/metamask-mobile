@@ -47,11 +47,12 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
-  selectSnapshotsLoading,
-  selectSnapshotsError,
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
+  selectCampaignParticipantStatuses,
+  selectCampaignParticipantStatusById,
+  selectCampaignParticipantCount,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
@@ -102,12 +103,12 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe('overview');
     });
 
-    it('returns snapshots tab when set', () => {
-      const mockState = { rewards: { activeTab: 'snapshots' as const } };
+    it('returns campaigns tab when set', () => {
+      const mockState = { rewards: { activeTab: 'campaigns' as const } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
-      expect(result.current).toBe('snapshots');
+      expect(result.current).toBe('campaigns');
     });
 
     it('returns activity tab when set', () => {
@@ -3120,66 +3121,6 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectSnapshotsLoading', () => {
-    it('returns false when snapshots are not loading', () => {
-      const mockState = { rewards: { snapshotsLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when snapshots are loading', () => {
-      const mockState = { rewards: { snapshotsLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(true);
-    });
-
-    describe('Direct selector calls', () => {
-      it('returns false when snapshotsLoading is false', () => {
-        const state = createMockRootState({ snapshotsLoading: false });
-        expect(selectSnapshotsLoading(state)).toBe(false);
-      });
-
-      it('returns true when snapshotsLoading is true', () => {
-        const state = createMockRootState({ snapshotsLoading: true });
-        expect(selectSnapshotsLoading(state)).toBe(true);
-      });
-    });
-  });
-
-  describe('selectSnapshotsError', () => {
-    it('returns false when there is no snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when there is a snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
-      expect(result.current).toBe(true);
-    });
-
-    describe('Direct selector calls', () => {
-      it('returns false when snapshotsError is false', () => {
-        const state = createMockRootState({ snapshotsError: false });
-        expect(selectSnapshotsError(state)).toBe(false);
-      });
-
-      it('returns true when snapshotsError is true', () => {
-        const state = createMockRootState({ snapshotsError: true });
-        expect(selectSnapshotsError(state)).toBe(true);
-      });
-    });
-  });
-
   const mockCampaign: CampaignDto = {
     id: 'campaign-1',
     type: 'ONDO_HOLDING' as CampaignType,
@@ -3189,6 +3130,7 @@ describe('Rewards selectors', () => {
     termsAndConditions: null,
     excludedRegions: [],
     statusLabel: 'Active',
+    details: null,
   };
 
   describe('selectCampaigns', () => {
@@ -3278,6 +3220,94 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({ campaignsError: true });
         expect(selectCampaignsError(state)).toBe(true);
       });
+    });
+  });
+
+  describe('selectCampaignParticipantStatuses', () => {
+    it('returns empty object when no statuses exist', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual({});
+    });
+
+    it('returns all participant statuses', () => {
+      const statuses = {
+        'campaign-1': { optedIn: true, participantCount: 42 },
+        'campaign-2': { optedIn: false, participantCount: 0 },
+      };
+      const state = createMockRootState({
+        campaignParticipantStatuses: statuses,
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual(statuses);
+    });
+  });
+
+  describe('selectCampaignParticipantStatusById', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantStatusById(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantStatusById('campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns status for a specific campaign', () => {
+      const status = { optedIn: true, participantCount: 42 };
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': status,
+        },
+      });
+      expect(selectCampaignParticipantStatusById('campaign-1')(state)).toEqual(
+        status,
+      );
+    });
+  });
+
+  describe('selectCampaignParticipantCount', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBeNull();
+    });
+
+    it('returns participantCount for a specific campaign', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(42);
+    });
+
+    it('returns 0 when participantCount is zero', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
     });
   });
 });

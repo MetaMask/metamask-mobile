@@ -115,7 +115,7 @@ jobs:
       build_name: ${{ inputs.build_name }}
       use-tarball: true
       upload-artifact: true
-      artifact-name: node-modules-${{ matrix.platform }}
+      artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
 
   # Build
@@ -165,7 +165,7 @@ jobs:
       - name: Download node_modules tarball
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-${{ matrix.platform }}
+          name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
       - name: Extract tarball (preserves symlinks)
         run: |
