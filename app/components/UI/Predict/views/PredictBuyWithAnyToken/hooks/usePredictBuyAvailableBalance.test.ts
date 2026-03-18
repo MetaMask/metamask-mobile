@@ -79,7 +79,7 @@ describe('usePredictBuyAvailableBalance', () => {
       expect(result.current.availableBalance).toBe('$0.00');
     });
 
-    it('returns "$0.00" when payToken is null and isPredictBalanceSelected is false', () => {
+    it('returns formatted Predict balance when payToken is null and isPredictBalanceSelected is false', () => {
       // Arrange
       mockIsPredictBalanceSelected = false;
       mockPayToken = null;
@@ -87,8 +87,8 @@ describe('usePredictBuyAvailableBalance', () => {
       // Act
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
-      // Assert
-      expect(result.current.availableBalance).toBe('$0.00');
+      // Assert — falls back to Predict balance when payToken is null
+      expect(result.current.availableBalance).toBe('$100.00');
     });
   });
 
