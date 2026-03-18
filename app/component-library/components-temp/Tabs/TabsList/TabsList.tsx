@@ -5,13 +5,11 @@ import React, {
   forwardRef,
   useCallback,
   useMemo,
-  useRef,
 } from 'react';
 
 import { Box } from '@metamask/design-system-react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
-import { InteractionManager } from 'react-native';
 
 import TabsBar from '../TabsBar';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
@@ -29,10 +27,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     },
     ref,
   ) => {
-    const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
-    const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
-    const interactionHandleRef = useRef<{ cancel: () => void } | null>(null);
-
     const tabs: TabItem[] = useMemo(
       () =>
         React.Children.toArray(children)
@@ -56,40 +50,65 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [children],
     );
 
-    // Cache only the actively viewed tab (no preloading of adjacent tabs)
-    // Use InteractionManager to defer content loading until after animations complete
-    useEffect(() => {
-      if (activeIndex >= 0 && activeIndex < tabs.length) {
-        if (interactionHandleRef.current) {
-          interactionHandleRef.current.cancel();
+    const getFirstEnabledIndex = useCallback(
+      () => tabs.findIndex((tab) => !tab.isDisabled),
+      [tabs],
+    );
+
+    const normalizeTabIndex = useCallback(
+      (tabIndex: number) => {
+        if (
+          tabIndex >= 0 &&
+          tabIndex < tabs.length &&
+          !tabs[tabIndex]?.isDisabled
+        ) {
+          return tabIndex;
         }
+        const firstEnabledIndex = getFirstEnabledIndex();
+        return firstEnabledIndex >= 0 ? firstEnabledIndex : -1;
+      },
+      [getFirstEnabledIndex, tabs],
+    );
 
-        const isAlreadyLoaded = loadedTabs.has(activeIndex);
+    const [activeIndex, setActiveIndex] = useState(() =>
+      normalizeTabIndex(initialActiveIndex),
+    );
+    const [loadedTabs, setLoadedTabs] = useState<Set<number>>(() => {
+      const normalizedInitialIndex = normalizeTabIndex(initialActiveIndex);
+      return normalizedInitialIndex >= 0
+        ? new Set([normalizedInitialIndex])
+        : new Set();
+    });
 
-        if (isAlreadyLoaded) {
+    const markTabLoaded = useCallback(
+      (tabIndex: number) => {
+        if (
+          tabIndex < 0 ||
+          tabIndex >= tabs.length ||
+          tabs[tabIndex]?.isDisabled
+        ) {
           return;
         }
 
-        const handle = InteractionManager.runAfterInteractions(() => {
-          setLoadedTabs((prev) => {
-            const newLoadedTabs = new Set(prev);
-            newLoadedTabs.add(activeIndex);
-            return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
-          });
+        setLoadedTabs((prev) => {
+          if (prev.has(tabIndex)) {
+            return prev;
+          }
+          const nextLoadedTabs = new Set(prev);
+          nextLoadedTabs.add(tabIndex);
+          return nextLoadedTabs;
         });
-
-        interactionHandleRef.current = handle;
-      }
-
-      return () => {
-        if (interactionHandleRef.current) {
-          interactionHandleRef.current.cancel();
-        }
-      };
-    }, [activeIndex, tabs.length, loadedTabs]);
+      },
+      [tabs],
+    );
 
     useEffect(() => {
-      const currentActiveTabKey = tabs[activeIndex]?.key;
+      const currentActiveTabKey =
+        activeIndex >= 0 && activeIndex < tabs.length
+          ? tabs[activeIndex]?.key
+          : undefined;
+
+      let nextIndex = -1;
 
       if (currentActiveTabKey && tabs.length > 0) {
         const newIndexForCurrentTab = tabs.findIndex(
@@ -97,30 +116,30 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         );
         if (
           newIndexForCurrentTab >= 0 &&
-          !tabs[newIndexForCurrentTab].isDisabled &&
-          newIndexForCurrentTab !== activeIndex
+          !tabs[newIndexForCurrentTab].isDisabled
         ) {
-          setActiveIndex(newIndexForCurrentTab);
-          return;
+          nextIndex = newIndexForCurrentTab;
         }
       }
 
-      if (
-        activeIndex >= 0 &&
-        activeIndex < tabs.length &&
-        !tabs[activeIndex]?.isDisabled
-      ) {
-        return;
+      if (nextIndex === -1) {
+        nextIndex = normalizeTabIndex(initialActiveIndex);
       }
 
-      const targetTab = tabs[initialActiveIndex];
-      if (targetTab && !targetTab.isDisabled) {
-        setActiveIndex(initialActiveIndex);
-      } else {
-        const firstEnabledIndex = tabs.findIndex((tab) => !tab.isDisabled);
-        setActiveIndex(firstEnabledIndex >= 0 ? firstEnabledIndex : -1);
+      if (nextIndex !== activeIndex) {
+        setActiveIndex(nextIndex);
       }
-    }, [initialActiveIndex, tabs, activeIndex]);
+
+      if (nextIndex >= 0) {
+        markTabLoaded(nextIndex);
+      }
+    }, [
+      activeIndex,
+      initialActiveIndex,
+      markTabLoaded,
+      normalizeTabIndex,
+      tabs,
+    ]);
 
     const handleTabPress = useCallback(
       (tabIndex: number) => {
@@ -135,13 +154,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const tabChanged = tabIndex !== activeIndex;
 
         setActiveIndex(tabIndex);
-
-        if (
-          (process.env.JEST_WORKER_ID || process.env.E2E) &&
-          !loadedTabs.has(tabIndex)
-        ) {
-          setLoadedTabs((prev) => new Set(prev).add(tabIndex));
-        }
+        markTabLoaded(tabIndex);
 
         if (onChangeTab && tabChanged) {
           onChangeTab({
@@ -150,7 +163,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           });
         }
       },
-      [activeIndex, tabs, onChangeTab, loadedTabs],
+      [activeIndex, markTabLoaded, onChangeTab, tabs],
     );
 
     const goToPreviousTab = useCallback(() => {
@@ -199,19 +212,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ref,
       () => ({
         goToTabIndex: (tabIndex: number) => {
-          if (
-            tabIndex >= 0 &&
-            tabIndex < tabs.length &&
-            !tabs[tabIndex]?.isDisabled &&
-            !loadedTabs.has(tabIndex)
-          ) {
-            setLoadedTabs((prev) => new Set(prev).add(tabIndex));
-          }
           handleTabPress(tabIndex);
         },
         getCurrentIndex: () => activeIndex,
       }),
-      [activeIndex, handleTabPress, loadedTabs, tabs],
+      [activeIndex, handleTabPress],
     );
 
     const tabBarPropsComputed = useMemo(

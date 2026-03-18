@@ -27,12 +27,14 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 
 // Track which tabs are rendered - populated by mock
 let renderedTabs: string[] = [];
-let mockShouldIgnoreGoToTabIndexCallback = false;
+let lastInitialActiveIndex: number | undefined;
 
 // Helper to get rendered tabs for assertions
 const getRenderedTabs = () => renderedTabs;
+const getLastInitialActiveIndex = () => lastInitialActiveIndex;
 const clearRenderedTabs = () => {
   renderedTabs = [];
+  lastInitialActiveIndex = undefined;
 };
 
 jest.mock('../../../component-library/components-temp/Tabs', () => {
@@ -43,10 +45,11 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
     (
       props: {
         children?: React.ReactElement[];
+        initialActiveIndex?: number;
         onChangeTab?: (params: { i: number }) => void;
         [key: string]: unknown;
       },
-      ref: React.Ref<{ goToTabIndex: (index: number) => void }>,
+      _ref: React.Ref<{ goToTabIndex: (index: number) => void }>,
     ) => {
       const children = Array.isArray(props.children) ? props.children : [];
 
@@ -63,15 +66,8 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
         });
         // Update module-level variable for test assertions
         renderedTabs = tabKeys;
-      }, [children]);
-
-      ReactActual.useImperativeHandle(ref, () => ({
-        goToTabIndex: (index: number) => {
-          if (!mockShouldIgnoreGoToTabIndexCallback) {
-            props.onChangeTab?.({ i: index });
-          }
-        },
-      }));
+        lastInitialActiveIndex = props.initialActiveIndex;
+      }, [children, props.initialActiveIndex]);
 
       return ReactActual.createElement(
         View,
@@ -267,8 +263,8 @@ describe('ActivityView', () => {
     mockIsEvmSelected = true;
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
-    mockShouldIgnoreGoToTabIndexCallback = false;
     clearRenderedTabs();
+    mockRoute.params = {};
   });
 
   it('matches snapshot', () => {
@@ -502,10 +498,9 @@ describe('ActivityView', () => {
       expect(getRenderedTabs()).not.toContain('perps');
     });
 
-    it('renders Perps transactions when redirected even if tab callback is skipped', () => {
+    it('uses Perps as initial tab when redirected to Perps transactions', () => {
       mockPerpsEnabled = true;
       mockIsEvmSelected = true;
-      mockShouldIgnoreGoToTabIndexCallback = true;
       mockRoute.params = {
         redirectToPerpsTransactions: true,
         showBackButton: true,
@@ -514,6 +509,32 @@ describe('ActivityView', () => {
       const { getByTestId } = renderComponent(mockInitialState);
 
       expect(getByTestId('perps-transactions-view')).toBeTruthy();
+      expect(getLastInitialActiveIndex()).toBe(2);
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        redirectToPerpsTransactions: false,
+      });
+    });
+  });
+
+  describe('Orders tab', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRoute.params = {};
+    });
+
+    it('renders orders list and clears redirect param when redirected to orders', () => {
+      mockRoute.params = {
+        redirectToOrders: true,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('ramp-orders-list')).toBeTruthy();
+      expect(getLastInitialActiveIndex()).toBe(1);
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        redirectToOrders: false,
+      });
     });
   });
 
