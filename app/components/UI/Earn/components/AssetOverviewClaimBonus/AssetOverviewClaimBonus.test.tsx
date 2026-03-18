@@ -157,7 +157,7 @@ describe('AssetOverviewClaimBonus', () => {
       const button = getByTestId(
         ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON,
       );
-      expect(button.props.isDisabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables claim button when hasPendingClaim is true', () => {
@@ -175,7 +175,7 @@ describe('AssetOverviewClaimBonus', () => {
       const button = getByTestId(
         ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON,
       );
-      expect(button.props.isDisabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
