@@ -23,9 +23,10 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write   # required by build.yml (update-build-version job)
   pull-requests: read
   actions: write
+  id-token: write  # required by build.yml
 
 jobs:
   decide:
