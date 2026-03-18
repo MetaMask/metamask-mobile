@@ -816,6 +816,7 @@ export class Engine {
     const accountsByChainId =
       getAccountTrackerControllerAccountsByChainId(state);
     const marketData = getTokenRatesControllerMarketData(state);
+    const currencyRates = getCurrencyRateControllerCurrencyRates(state);
 
     let totalEthFiat = 0;
     let totalEthFiat1dAgo = 0;
@@ -851,9 +852,7 @@ export class Engine {
         return;
       }
 
-      const conversionRate =
-        getCurrencyRateControllerCurrencyRates(state)?.[ticker]
-          ?.conversionRate ?? 0;
+      const conversionRate = currencyRates?.[ticker]?.conversionRate ?? 0;
 
       if (conversionRate === 0) {
         return;

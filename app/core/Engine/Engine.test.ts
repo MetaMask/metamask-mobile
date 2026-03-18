@@ -21,6 +21,7 @@ import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
+import { store } from '../../store';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -511,23 +512,29 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [chainId]: {
-                [selectedAddress]: {
-                  balance: '0',
-                  stakedBalance: '0',
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            AccountTrackerController: {
+              accountsByChainId: {
+                [chainId]: {
+                  [selectedAddress]: {
+                    balance: '0',
+                    stakedBalance: '0',
+                  },
                 },
               },
             },
           },
         },
-        null,
-      );
+      });
+
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
@@ -542,22 +549,27 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as Partial<MarketDataDetails> as MarketDataDetails,
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            TokenRatesController: {
+              marketData: {
+                [chainId]: {
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as Partial<MarketDataDetails> as MarketDataDetails,
+                },
               },
             },
           },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -597,56 +609,61 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          TokensController: {
-            allTokens: {
-              [chainId]: {
-                [selectedAddress]: tokens.map(
-                  ({ address, balance, decimals, symbol }) => ({
-                    address,
-                    balance,
-                    decimals,
-                    symbol,
-                  }),
-                ),
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            TokensController: {
+              allTokens: {
+                [chainId]: {
+                  [selectedAddress]: tokens.map(
+                    ({ address, balance, decimals, symbol }) => ({
+                      address,
+                      balance,
+                      decimals,
+                      symbol,
+                    }),
+                  ),
+                },
+              },
+              allIgnoredTokens: {},
+              allDetectedTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                [selectedAddress as Hex]: {
+                  [chainId]: {
+                    [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
+                    [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  },
+                },
               },
             },
-            allIgnoredTokens: {},
-            allDetectedTokens: {},
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [selectedAddress as Hex]: {
+            TokenRatesController: {
+              marketData: {
                 [chainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token1Address]: {
+                    price: tokens[0].price,
+                    pricePercentChange1d: tokens[0].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token2Address]: {
+                    price: tokens[1].price,
+                    pricePercentChange1d: tokens[1].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
                 },
               },
             },
           },
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token1Address]: {
-                  price: tokens[0].price,
-                  pricePercentChange1d: tokens[0].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token2Address]: {
-                  price: tokens[1].price,
-                  pricePercentChange1d: tokens[1].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-              },
-            },
-          },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -697,68 +714,74 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [chainId]: {
-                [selectedAddress]: {
-                  balance: (ethBalance * 1e18).toString(),
-                  stakedBalance: (stakedEthBalance * 1e18).toString(),
-                },
-              },
-            },
-          },
-          TokensController: {
-            allTokens: {
-              [chainId]: {
-                [selectedAddress]: tokens.map(
-                  ({ address, balance, decimals, symbol }) => ({
-                    address,
-                    balance,
-                    decimals,
-                    symbol,
-                  }),
-                ),
-              },
-            },
-            allIgnoredTokens: {},
-            allDetectedTokens: {},
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [selectedAddress as Hex]: {
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            AccountTrackerController: {
+              accountsByChainId: {
                 [chainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  [selectedAddress]: {
+                    balance: (ethBalance * 1e18).toString(),
+                    stakedBalance: (stakedEthBalance * 1e18).toString(),
+                  },
                 },
               },
             },
-          },
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token1Address]: {
-                  price: tokens[0].price,
-                  pricePercentChange1d: tokens[0].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token2Address]: {
-                  price: tokens[1].price,
-                  pricePercentChange1d: tokens[1].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
+            TokensController: {
+              allTokens: {
+                [chainId]: {
+                  [selectedAddress]: tokens.map(
+                    ({ address, balance, decimals, symbol }) => ({
+                      address,
+                      balance,
+                      decimals,
+                      symbol,
+                    }),
+                  ),
+                },
+              },
+              allIgnoredTokens: {},
+              allDetectedTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                [selectedAddress as Hex]: {
+                  [chainId]: {
+                    [token1Address]: '0x0de0b6b3a7640000',
+                    [token2Address]: '0x1bc16d674ec80000',
+                  },
+                },
+              },
+            },
+            TokenRatesController: {
+              marketData: {
+                [chainId]: {
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token1Address]: {
+                    price: tokens[0].price,
+                    pricePercentChange1d: tokens[0].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token2Address]: {
+                    price: tokens[1].price,
+                    pricePercentChange1d: tokens[1].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                },
               },
             },
           },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
+
       const ethFiat = (ethBalance + stakedEthBalance) * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {
