@@ -220,7 +220,7 @@ jobs:
             <div class=\"scenario risk-high\">
               <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-high\">CHERRY-PICK</span></h3>
               <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
-              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${s.testSteps.map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${(s.testSteps || []).map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
             </div>
             \`).join('')}
             \` : ''}
@@ -231,7 +231,7 @@ jobs:
               <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-high\">HIGH</span></h3>
               <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
               \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul></div>' : ''}
-              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${s.testSteps.map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${(s.testSteps || []).map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
               \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + esc(o) + '</li>').join('') + '</ul></div>' : ''}
             </div>
             \`).join('')}
@@ -242,7 +242,7 @@ jobs:
               <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-medium\">MEDIUM</span></h3>
               <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
               \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul></div>' : ''}
-              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${s.testSteps.map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${(s.testSteps || []).map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
               \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + esc(o) + '</li>').join('') + '</ul></div>' : ''}
             </div>
             \`).join('')}
