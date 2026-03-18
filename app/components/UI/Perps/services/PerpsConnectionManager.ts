@@ -50,6 +50,7 @@ class PerpsConnectionManagerClass {
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
   private disconnectPromise: Promise<void> | null = null;
+  private ensureConnectedPromise: Promise<void> | null = null;
   private hasPreloaded = false;
   private isPreloading = false;
   private prewarmCleanups: (() => void)[] = [];
@@ -1078,6 +1079,20 @@ class PerpsConnectionManagerClass {
    * iOS and Android regardless of how long the app was backgrounded.
    */
   async ensureConnected(): Promise<void> {
+    // Guard against concurrent calls (e.g. rapid foreground transitions)
+    if (this.ensureConnectedPromise) {
+      return this.ensureConnectedPromise;
+    }
+
+    this.ensureConnectedPromise = this.performEnsureConnected();
+    try {
+      await this.ensureConnectedPromise;
+    } finally {
+      this.ensureConnectedPromise = null;
+    }
+  }
+
+  private async performEnsureConnected(): Promise<void> {
     // Cancel grace period if still pending — we're taking over
     this.cancelGracePeriod();
 
@@ -1087,6 +1102,12 @@ class PerpsConnectionManagerClass {
     if (this.isConnected || this.isInitialized) {
       await this.performActualDisconnection({ force: true });
     }
+
+    // Reset refCount so connect() brings it to exactly 1.
+    // Without this, repeated background/foreground cycles would drift
+    // refCount upward (1→2→3…), eventually preventing grace-period
+    // disconnects from firing (they require refCount ≤ 0).
+    this.connectionRefCount = 0;
 
     // Full reconnect: init → ping → preload
     await this.connect();
