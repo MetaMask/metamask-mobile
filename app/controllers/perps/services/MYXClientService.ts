@@ -15,13 +15,12 @@ import type {
 } from '@myx-trade/sdk';
 import { MyxClient } from '@myx-trade/sdk';
 
-import { ZERO_ADDRESS } from '../constants/hyperLiquidConfig';
 import {
   MYX_PRICE_POLLING_INTERVAL_MS,
   getMYXChainId,
   getMYXHttpEndpoint,
 } from '../constants/myxConfig';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS, ZERO_ADDRESS } from '../constants/perpsConfig';
 import type { PerpsPlatformDependencies } from '../types';
 import type {
   MYXAuthConfig,
