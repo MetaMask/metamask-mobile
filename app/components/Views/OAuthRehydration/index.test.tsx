@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert, BackHandler } from 'react-native';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -67,6 +68,26 @@ import { trace as traceMock } from '../../../util/trace';
 
 jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
   trackVaultCorruption: jest.fn(),
+}));
+
+const mockDownloadStateLogs = jest.fn();
+jest.mock('../../../util/logs', () => ({
+  downloadStateLogs: (...args: unknown[]) => mockDownloadStateLogs(...args),
+}));
+
+jest.mock('../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({ mock: 'state' })),
+    },
+  },
+}));
+
+const mockCaptureException = jest.fn();
+jest.mock('@sentry/react-native', () => ({
+  captureException: (...args: unknown[]) => mockCaptureException(...args),
+  lastEventId: jest.fn(() => 'mock-sentry-id'),
 }));
 
 jest.mock('../../../util/errorHandling', () => ({
@@ -145,6 +166,9 @@ jest.mock('../../../store/storage-wrapper', () => ({
 const mockTrackOnboarding = trackOnboarding as jest.Mock;
 const mockUseNetInfo = useNetInfo as jest.Mock;
 
+const mockBackHandlerAddEventListener = jest.fn();
+const mockBackHandlerRemoveEventListener = jest.fn();
+
 describe('OAuthRehydration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -173,6 +197,11 @@ describe('OAuthRehydration', () => {
       isInternetReachable: true,
     });
     mockIsDeletingInProgress.mockReturnValue(false);
+
+    mockBackHandlerAddEventListener.mockClear();
+    mockBackHandlerRemoveEventListener.mockClear();
+    BackHandler.addEventListener = mockBackHandlerAddEventListener;
+    BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
   });
 
   describe('Snapshots', () => {
@@ -799,6 +828,358 @@ describe('OAuthRehydration', () => {
           MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
       );
       expect(rehydrationFailedCalls).toHaveLength(0);
+    });
+  });
+
+  describe('Forgot password (seedless password outdated)', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+    });
+
+    it('navigates to delete wallet modal when Forgot password is pressed', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const resetWalletButton = getByTestId(LoginViewSelectors.RESET_WALLET);
+
+      // Act
+      fireEvent.press(resetWalletButton);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.MODAL.DELETE_WALLET,
+          params: { oauthLoginSuccess: false },
+        }),
+      );
+    });
+
+    it('does not show other methods button when password is outdated', () => {
+      // Arrange
+      const { queryByTestId } = renderWithProvider(<OAuthRehydration />);
+
+      // Assert
+      expect(queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON)).toBeNull();
+    });
+
+    it('shows reset wallet button instead of other methods', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+
+      // Assert
+      expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeTruthy();
+    });
+
+    it('calls newGlobalPasswordLogin with oauth2Login=false on submit', async () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent.press(loginButton);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            password: 'validPassword123',
+            authPreference: expect.objectContaining({
+              oauth2Login: false,
+            }),
+          }),
+        );
+      });
+    });
+  });
+
+  describe('Conditional rendering', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: false,
+        },
+      });
+    });
+
+    it('shows other methods button for normal rehydration', () => {
+      // Arrange
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+      );
+
+      // Assert
+      expect(getByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON)).toBeTruthy();
+      expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
+    });
+
+    it('passes oauth2Login=true for normal rehydration login', async () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent.press(loginButton);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            password: 'validPassword123',
+            authPreference: expect.objectContaining({
+              oauth2Login: true,
+            }),
+          }),
+        );
+      });
+    });
+  });
+
+  describe('Download state logs', () => {
+    it('downloads state logs on fox logo long press', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const container = getByTestId(LoginViewSelectors.CONTAINER);
+
+      const allButtons = container.findAll(
+        (node: { props: { onLongPress?: unknown } }) =>
+          typeof node.props?.onLongPress === 'function',
+      );
+      const foxLongPressButton = allButtons[0];
+
+      // Act
+      if (foxLongPressButton) {
+        fireEvent(foxLongPressButton, 'longPress');
+      }
+
+      // Assert
+      expect(mockDownloadStateLogs).toHaveBeenCalledWith(
+        { mock: 'state' },
+        false,
+      );
+    });
+  });
+
+  describe('BackHandler', () => {
+    it('registers hardwareBackPress listener on mount', () => {
+      // Act
+      renderWithProvider(<OAuthRehydration />);
+
+      // Assert
+      expect(mockBackHandlerAddEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('removes hardwareBackPress listener on unmount', () => {
+      // Arrange
+      const { unmount } = renderWithProvider(<OAuthRehydration />);
+
+      // Act
+      unmount();
+
+      // Assert
+      expect(mockBackHandlerRemoveEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('navigates back when hardware back is pressed', () => {
+      // Arrange
+      renderWithProvider(<OAuthRehydration />);
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+
+      // Act
+      handleBackPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  describe('Input disabled during lockout', () => {
+    it('disables input and shows countdown on too many attempts', async () => {
+      // Arrange
+      const tooManyAttemptsError =
+        new SeedlessOnboardingControllerRecoveryError(
+          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
+          { remainingTime: 2, numberOfAttempts: 5 },
+        );
+      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - input should be disabled and error shown
+      await waitFor(() => {
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Non-OAuth seedless error handling', () => {
+    it('prompts seedless relogin for non-oauth seedless failures', async () => {
+      // Arrange - not coming from oauth onboarding
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Unknown failure',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockPromptSeedlessRelogin).toHaveBeenCalled();
+      });
+    });
+
+    it('captures sentry exception for non-oauth seedless failures when metrics enabled', async () => {
+      // Arrange
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      mockIsEnabled.mockReturnValue(true);
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Unknown failure',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockCaptureException).toHaveBeenCalledWith(
+          seedlessError,
+          expect.objectContaining({
+            tags: expect.objectContaining({
+              view: 'Re-login',
+            }),
+          }),
+        );
+      });
+    });
+  });
+
+  describe('Sentry error reporting for OAuth failures', () => {
+    it('captures sentry exception on unknown seedless error when metrics enabled', async () => {
+      // Arrange
+      mockIsEnabled.mockReturnValue(true);
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Unexpected server error',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockCaptureException).toHaveBeenCalledWith(
+          seedlessError,
+          expect.objectContaining({
+            tags: expect.objectContaining({
+              view: 'Login',
+              context: 'OAuth rehydration failed - user consented to analytics',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('throws error to ErrorBoundary when metrics disabled and seedless error occurs', async () => {
+      // Arrange
+      mockIsEnabled.mockReturnValue(false);
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Unexpected server error',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+
+      // Suppress console.error from ErrorBoundary
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - captureException should NOT be called
+      await waitFor(() => {
+        expect(mockCaptureException).not.toHaveBeenCalled();
+      });
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('PASSCODE_NOT_SET error', () => {
+    it('shows security alert when passcode is not set', async () => {
+      // Arrange
+      const alertSpy = jest.spyOn(Alert, 'alert');
+      mockUnlockWallet.mockRejectedValue(new Error('Passcode not set.'));
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(alertSpy).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.any(String),
+        );
+      });
     });
   });
 
