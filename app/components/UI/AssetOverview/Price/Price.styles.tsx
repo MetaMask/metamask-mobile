@@ -46,8 +46,9 @@ const styleSheet = (params: {
     timeRangeContainer: {
       paddingBottom: 16,
       flexDirection: 'column',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       gap: 16,
+      width: '100%',
       alignSelf: 'stretch',
     } as ViewStyle,
   });
