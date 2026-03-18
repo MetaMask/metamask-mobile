@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import ProcessingInfoModal from './ProcessingInfoModal';
+import ProcessingInfoModal, {
+  type ProcessingInfoModalParams,
+} from './ProcessingInfoModal';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -59,12 +61,14 @@ jest.mock('react-native-inappbrowser-reborn', () => ({
   open: jest.fn(),
 }));
 
-const mockUseParams = jest.fn(() => ({
-  providerName: 'Transak',
-  providerSupportUrl: 'https://transak.com/support',
-  statusDescription:
-    'Card purchases typically take a few minutes. You can contact support if you have questions.',
-}));
+const mockUseParams = jest.fn(
+  (): ProcessingInfoModalParams => ({
+    providerName: 'Transak',
+    providerSupportUrl: 'https://transak.com/support',
+    statusDescription:
+      'Card purchases typically take a few minutes. You can contact support if you have questions.',
+  }),
+);
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
