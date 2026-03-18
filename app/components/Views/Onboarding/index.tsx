@@ -843,24 +843,31 @@ const Onboarding = () => {
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
         >
-          <Button
-            variant={ButtonVariant.Primary}
-            isInverse
-            onPress={() => handleCtaActions('create')}
-            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-          >
-            {strings('onboarding.start_exploring_now')}
-          </Button>
+          {/*
+           * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
+           * system theme setting: the "Create" button is always dark (black bg, white text) and the
+           * "Import" button is always light (white bg, black text). This design choice ensures both
+           * buttons remain visually distinct and accessible against the purple onboarding background
+           * in all theme contexts.
+           */}
           <ThemeProvider
-            theme={
-              themeContext.themeAppearance === 'dark' ? Theme.Light : Theme.Dark
-            }
+            theme={Theme.Dark} // Keep this button in dark mode regardless of theme
           >
             <Button
               variant={ButtonVariant.Primary}
-              isInverse
+              onPress={() => handleCtaActions('create')}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {strings('onboarding.start_exploring_now')}
+            </Button>
+          </ThemeProvider>
+          <ThemeProvider
+            theme={Theme.Light} // Keep this button in light mode regardless of theme
+          >
+            <Button
+              variant={ButtonVariant.Primary}
               onPress={() => handleCtaActions('existing')}
               testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
               isFullWidth
@@ -874,12 +881,7 @@ const Onboarding = () => {
         </OnboardingAnimation>
       </Box>
     ),
-    [
-      state.startOnboardingAnimation,
-      setStartFoxAnimation,
-      handleCtaActions,
-      themeContext.themeAppearance,
-    ],
+    [state.startOnboardingAnimation, setStartFoxAnimation, handleCtaActions],
   );
 
   const handleSimpleNotification =
