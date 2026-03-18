@@ -141,6 +141,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
+      needsNewQuote: false,
       shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
@@ -296,6 +297,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: true,
       isExpired: false,
+      needsNewQuote: false,
       willRefresh: false,
       blockaidError: null,
       shouldShowPriceImpactWarning: false,
@@ -366,16 +368,26 @@ describe('useBridgeQuoteData', () => {
       state: testState,
     });
 
+    // When expired but not loading, the hook serves the last known Redux quotes
+    // as a cache so the UI can keep displaying them until the user requests a
+    // fresh fetch via "Get new quote".
     expect(result.current).toEqual({
-      activeQuote: undefined,
+      activeQuote: mockQuoteWithMetadata,
       bestQuote: mockQuoteWithMetadata,
       destTokenAmount: undefined,
-      formattedQuoteData: undefined,
+      formattedQuoteData: {
+        estimatedTime: '5 seconds',
+        networkFee: '-',
+        priceImpact: '-0.20%',
+        rate: '--',
+        slippage: '0.5%',
+      },
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       shouldShowPriceImpactWarning: false,
       isExpired: true,
+      needsNewQuote: true,
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
@@ -411,6 +423,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
+      needsNewQuote: false,
       shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
@@ -449,6 +462,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: error,
       isNoQuotesAvailable: false,
       isExpired: false,
+      needsNewQuote: false,
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
@@ -1462,7 +1476,7 @@ describe('useBridgeQuoteData', () => {
       });
     });
 
-    it('does not override activeQuote with manually selected when expired and not refreshing', () => {
+    it('keeps showing manually selected quote as activeQuote when expired and not refreshing', () => {
       const manuallySelectedQuote = {
         ...mockQuoteWithMetadata,
         quote: {
@@ -1501,8 +1515,9 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      // When expired and not refreshing and not submitting, activeQuote should be undefined
-      expect(result.current.activeQuote).toBeUndefined();
+      // When expired but not loading, the last known Redux quotes are served as
+      // a cache. The manually-selected quote is still shown (not cleared).
+      expect(result.current.activeQuote).toEqual(manuallySelectedQuote);
       expect(result.current.isExpired).toBe(true);
     });
 

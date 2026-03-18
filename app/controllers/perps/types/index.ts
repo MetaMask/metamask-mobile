@@ -403,6 +403,10 @@ export type PerpsMarketData = {
    * Multi-provider: which provider this market data comes from (injected by aggregator)
    */
   providerId?: PerpsProviderType;
+  /**
+   * Indicates this market snapshot came from the last known good cache after live fetch failure.
+   */
+  isStale?: boolean;
 };
 
 export type ToggleTestnetResult = {
@@ -1401,6 +1405,13 @@ export type PerpsTracer = {
   }): void;
 
   setMeasurement(name: string, value: number, unit: string): void;
+
+  addBreadcrumb(breadcrumb: {
+    category: string;
+    message: string;
+    level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
+    data?: Record<string, unknown>;
+  }): void;
 };
 
 // ============================================================================

@@ -40,6 +40,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 import { PredictEventValues } from '../../constants/eventNames';
+import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -93,7 +94,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
     return (
       <Box
         twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
-        testID="predict-balance-card-skeleton"
+        testID={PREDICT_BALANCE_TEST_IDS.SKELETON}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -141,7 +142,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           'bg-muted p-4 mx-4 gap-3 rounded-xl',
           isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
         )}
-        testID="predict-balance-card"
+        testID={PREDICT_BALANCE_TEST_IDS.CARD}
         onLayout={(event) => {
           const { height } = event.nativeEvent.layout;
           onLayout?.(height);

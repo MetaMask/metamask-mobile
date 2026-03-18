@@ -27,10 +27,12 @@ import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import AssetDetails from '../../Views/AssetDetails';
+import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
+import CashTokensFullView from '../../Views/CashTokensFullView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -45,8 +47,6 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import PaymentRequest from '../../UI/PaymentRequest';
-import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
@@ -113,6 +113,7 @@ import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
+import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -179,7 +180,7 @@ const WalletModalFlow = () => (
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
-      options={{ headerShown: true, animationEnabled: false }}
+      options={{ headerShown: false, animationEnabled: false }}
     />
   </Stack.Navigator>
 );
@@ -200,6 +201,10 @@ const AssetStackFlow = (props) => (
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
+    />
+    <Stack.Screen
+      name={Routes.SECURITY_TRUST}
+      component={SecurityTrustScreen}
     />
     <Stack.Screen
       name={Routes.TRANSACTION_DETAILS}
@@ -842,21 +847,6 @@ const OfflineModeView = () => (
   </Stack.Navigator>
 );
 
-const PaymentRequestView = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="PaymentRequest"
-      component={PaymentRequest}
-      options={PaymentRequest.navigationOptions}
-    />
-    <Stack.Screen
-      name="PaymentRequestSuccess"
-      component={PaymentRequestSuccess}
-      options={PaymentRequestSuccess.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
@@ -947,8 +937,13 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
-  // Get feature flag state for conditional Market Insights screen registration
+  // Get feature flag state for conditional Market Insights screen registration.
+  // The screen must be registered when either the token or perps insights flag is
+  // on — both entry points navigate to the same screen.
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const isMarketInsightsPerpsEnabled = useSelector(
+    selectMarketInsightsPerpsEnabled,
+  );
 
   return (
     <Stack.Navigator
@@ -993,6 +988,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.WALLET.DEFI_FULL_VIEW}
         component={DeFiFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
+        component={CashTokensFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen name="AddAsset" component={AddAsset} />
@@ -1050,7 +1050,6 @@ const MainNavigator = () => {
         component={NftFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
-      <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
@@ -1151,7 +1150,7 @@ const MainNavigator = () => {
           />
         </>
       )}
-      {isMarketInsightsEnabled && (
+      {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <Stack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}
           component={MarketInsightsView}

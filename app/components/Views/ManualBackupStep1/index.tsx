@@ -50,7 +50,10 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import Label from '../../../component-library/components/Form/Label';
+import {
+  Label,
+  TextColor as DSTextColor,
+} from '@metamask/design-system-react-native';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -334,7 +337,7 @@ const ManualBackupStep1 = () => {
         <View style={styles.confirmPasswordWrapper}>
           <View style={[styles.content, styles.passwordRequiredContent]}>
             <View style={styles.text}>
-              <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Label color={DSTextColor.TextDefault}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
             </View>

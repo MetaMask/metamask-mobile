@@ -1618,6 +1618,22 @@ describe('format utils', () => {
         // Assert
         expect(result).toBe('$0.5678');
       });
+
+      it('truncates to 2 decimals for prices >= 1 with extra decimal places', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(2285.013);
+
+        // Assert
+        expect(result).toBe('$2,285.01');
+      });
+
+      it('truncates to 2 decimals for prices >= 1 with 4 decimal places', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(1.2345);
+
+        // Assert
+        expect(result).toBe('$1.23');
+      });
     });
 
     describe('Zero value', () => {

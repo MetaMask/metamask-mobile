@@ -5,11 +5,15 @@ import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
+import CampaignsView from './Views/CampaignsView';
+import PreviousSeasonView from './Views/PreviousSeasonView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import { useRewardCampaigns } from './hooks/useRewardCampaigns';
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
@@ -21,6 +25,12 @@ const RewardsNavigator: React.FC = () => {
 
   // This is used to fetch season status data when the component mounts
   useSeasonStatus({ onlyForExplicitFetch: false });
+
+  // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
+  useGeoRewardsMetadata({});
+
+  // Fetch all campaigns
+  useRewardCampaigns();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
@@ -58,11 +68,21 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REFERRAL_REWARDS_VIEW}
             component={ReferralRewardsView}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_SETTINGS_VIEW}
             component={RewardsSettingsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.CAMPAIGNS_VIEW}
+            component={CampaignsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.PREVIOUS_SEASON_VIEW}
+            component={PreviousSeasonView}
             options={{ headerShown: false }}
           />
         </>
