@@ -17,7 +17,6 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
-import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../../hooks/useConfirmActions');
 
@@ -44,10 +43,6 @@ jest.mock('../../hooks/alerts/useConfirmationAlerts');
 jest.mock('../../hooks/ui/useFullScreenConfirmation');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
-}));
-jest.mock('../../../../UI/Predict/views/PredictBuyWithAnyToken', () => ({
-  __esModule: true,
-  default: () => null,
 }));
 
 const mockSetOptions = jest.fn();
@@ -173,7 +168,6 @@ describe('Confirm', () => {
       onReject: mockOnReject,
       onConfirm: jest.fn(),
     });
-    useParamsMock.mockReturnValue({});
 
     jest.mocked(useConfirmationAlerts).mockReturnValue([]);
     jest.mocked(useFullScreenConfirmation).mockReturnValue({
@@ -510,32 +504,6 @@ describe('Confirm', () => {
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerShown: true,
-      gestureEnabled: true,
-    });
-  });
-
-  it('keeps navigation header hidden for predict deposit and order confirmations', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-    const predictDepositAndOrderState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
-    predictDepositAndOrderState.engine.backgroundState.TransactionController.transactions =
-      [
-        {
-          ...predictDepositAndOrderState.engine.backgroundState
-            .TransactionController.transactions[0],
-          type: TransactionType.predictDepositAndOrder,
-        },
-      ];
-
-    renderWithProvider(<Confirm />, {
-      state: predictDepositAndOrderState,
-    });
-
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: false,
       gestureEnabled: true,
     });
   });

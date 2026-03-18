@@ -14,7 +14,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView } from 'react-native';
-import { Edge, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
@@ -30,7 +30,6 @@ import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
-import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
 import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBalance';
 import usePredictBuyBackSwipe from './hooks/usePredictBuyBackSwipe';
@@ -47,6 +46,8 @@ import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 
+const SHOW_TOKEN_SELECTION = false;
+
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -59,7 +60,6 @@ const PredictBuyWithAnyToken = () => {
     outcome,
     outcomeToken,
     entryPoint,
-    isConfirmationRoute,
     preview: initialPreview,
   } = route.params;
 
@@ -193,17 +193,8 @@ const PredictBuyWithAnyToken = () => {
     },
   });
 
-  const edges = useMemo(
-    () =>
-      isConfirmationRoute ? (['top', 'left', 'right'] as Edge[]) : undefined,
-    [isConfirmationRoute],
-  );
-
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={edges}
-    >
+    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <PredictBuyPreviewHeader
         market={market}
         outcome={outcome}
@@ -233,7 +224,9 @@ const PredictBuyWithAnyToken = () => {
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
             isPlacingOrder={isPlacingOrder}
           />
-          <PredictPayWithRow disabled={isPlacingOrder} />
+          {SHOW_TOKEN_SELECTION && (
+            <PredictPayWithRow disabled={isPlacingOrder} />
+          )}
         </Box>
       </ScrollView>
       <PredictBuyMinimumError
@@ -294,9 +287,6 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      {isConfirmationRoute && (
-        <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
-      )}
     </SafeAreaView>
   );
 };
