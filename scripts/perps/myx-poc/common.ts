@@ -4,6 +4,12 @@
  * Network toggle: NETWORK=mainnet|testnet (default: mainnet)
  */
 
+// Polyfill: viem/SDK may JSON.stringify objects containing BigInt values
+// eslint-disable-next-line no-extend-native
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
+  return this.toString();
+};
+
 import { createHash } from 'crypto';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
