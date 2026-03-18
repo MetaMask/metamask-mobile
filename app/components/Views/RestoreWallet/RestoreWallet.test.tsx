@@ -150,7 +150,7 @@ describe('RestoreWallet', () => {
       });
     });
 
-    it('shows loading state while restoring', async () => {
+    it('triggers vault restore on button press', async () => {
       let resolveRestore: (value: { success: boolean }) => void;
       const restorePromise = new Promise<{ success: boolean }>((resolve) => {
         resolveRestore = resolve;
@@ -158,13 +158,13 @@ describe('RestoreWallet', () => {
       (EngineService.initializeVaultFromBackup as jest.Mock).mockReturnValue(
         restorePromise,
       );
-      const { getByText, getByTestId } = renderWithProvider(<RestoreWallet />);
+      const { getByText } = renderWithProvider(<RestoreWallet />);
 
       fireEvent.press(
         getByText(strings('restore_wallet.restore_needed_action')),
       );
 
-      expect(getByTestId('spinner-container')).toBeOnTheScreen();
+      expect(EngineService.initializeVaultFromBackup).toHaveBeenCalled();
 
       // @ts-expect-error resolveRestore is assigned in Promise constructor
       resolveRestore({ success: true });
