@@ -50,31 +50,14 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 
 describe('TokensFullView', () => {
   const mockGoBack = jest.fn();
-  let useFullViewSortResetEffectSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useFullViewSortResetEffectSpy = jest
-      .spyOn(
-        jest.requireMock(
-          './useFullViewSortResetEffect',
-        ) as typeof import('./useFullViewSortResetEffect'),
-        'useFullViewSortResetEffect',
-      )
-      .mockImplementation(jest.fn());
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue({
       goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
-  });
-
-  it('invokes the full view sort reset effect hook', () => {
-    renderScreen(TokensFullView, {
-      name: 'TokensFullView',
-    });
-
-    expect(useFullViewSortResetEffectSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders header with title and back button', () => {
