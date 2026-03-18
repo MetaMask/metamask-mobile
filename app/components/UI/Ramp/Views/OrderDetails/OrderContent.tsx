@@ -41,6 +41,14 @@ import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow'
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
+const AMOUNT_PLACEHOLDER = '—';
+const TERMINAL_STATUSES = new Set([
+  RampsOrderStatus.Completed,
+  RampsOrderStatus.Failed,
+  RampsOrderStatus.Cancelled,
+  RampsOrderStatus.IdExpired,
+]);
+
 const localStyles = StyleSheet.create({
   badgeWrapperCenter: {
     alignSelf: 'center',
@@ -168,7 +176,12 @@ const OrderContent: React.FC<OrderContentProps> = ({
     }
   };
 
-  const isLoading = !order.fiatAmount;
+  const hasAmounts = Boolean(
+    (order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
+      (order.cryptoAmount != null && Number(order.cryptoAmount) > 0),
+  );
+  const isTerminal = TERMINAL_STATUSES.has(order.status);
+  const isLoading = !hasAmounts && !isTerminal;
 
   const handleClose = useCallback(() => {
     trackEvent(
@@ -320,7 +333,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {order.cryptoAmount != null
+          {order.cryptoAmount != null && Number(order.cryptoAmount) > 0
             ? (formatSubscriptNotation(
                 parseFloat(String(order.cryptoAmount)),
               ) ??
@@ -333,7 +346,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                   maximumFractionDigits: 5,
                 },
               ))
-            : '...'}{' '}
+            : AMOUNT_PLACEHOLDER}{' '}
           {cryptoSymbol}
         </Text>
       </Box>
@@ -463,12 +476,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-20" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.totalFeesFiat ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {hasAmounts
+              ? `${fiatDenomSymbol}${renderFiat(
+                  Number(order.totalFeesFiat ?? 0),
+                  fiatCurrencyCode,
+                  fiatDecimals,
+                )}`
+              : AMOUNT_PLACEHOLDER}
           </Text>
         )}
       </Box>
@@ -489,12 +503,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-24" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.fiatAmount ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {hasAmounts
+              ? `${fiatDenomSymbol}${renderFiat(
+                  Number(order.fiatAmount ?? 0),
+                  fiatCurrencyCode,
+                  fiatDecimals,
+                )}`
+              : AMOUNT_PLACEHOLDER}
           </Text>
         )}
       </Box>

@@ -1,8 +1,12 @@
 import Routes from '../../../../constants/navigation/Routes';
 
 export interface RampsOrderDetailsParams {
-  orderId: string;
+  orderId?: string;
   showCloseButton?: boolean;
+  /** When returning from external browser (e.g. PayPal), pass callback URL to fetch order on Order Details screen. */
+  callbackUrl?: string;
+  providerCode?: string;
+  walletAddress?: string;
 }
 
 export function createRampsOrderDetailsRoute(params: RampsOrderDetailsParams): {
@@ -29,6 +33,12 @@ export type NavigateAfterExternalBrowserOpts =
       orderCode: string;
       providerCode: string;
       walletAddress?: string;
+    }
+  | {
+      returnDestination: 'order';
+      callbackUrl: string;
+      providerCode: string;
+      walletAddress: string;
     };
 
 /**
@@ -43,6 +53,16 @@ export function getNavigateAfterExternalBrowserRoutes(
   | ReturnType<typeof createRampsOrderDetailsRoute>
 )[] {
   if (opts.returnDestination === 'order') {
+    if ('callbackUrl' in opts) {
+      return [
+        createRampsOrderDetailsRoute({
+          callbackUrl: opts.callbackUrl,
+          providerCode: opts.providerCode,
+          walletAddress: opts.walletAddress,
+          showCloseButton: true,
+        }),
+      ];
+    }
     return [
       createRampsOrderDetailsRoute({
         orderId: opts.orderCode,

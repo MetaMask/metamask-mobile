@@ -16,7 +16,6 @@ import {
   getWidgetRedirectConfig,
 } from '../../utils/buildQuoteWithRedirectUrl';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
-import { extractOrderCode } from '../../utils/extractOrderCode';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
@@ -80,6 +79,7 @@ import {
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -154,8 +154,6 @@ function BuildQuote() {
     selectedToken,
     getBuyWidgetData,
     addPrecreatedOrder,
-    addOrder,
-    getOrderFromCallback,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -588,36 +586,28 @@ function BuildQuote() {
             return;
           }
 
-          try {
-            const order = await getOrderFromCallback(
-              providerCode,
-              result.url,
-              effectiveWallet,
-            );
-
-            if (!order || isBailedOrderStatus(order.status)) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            addOrder(order);
-
-            const rawOrderId = order.providerOrderId ?? effectiveOrderId;
-            if (!rawOrderId) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            const orderCode = extractOrderCode(rawOrderId);
-            navigateAfterExternalBrowser({
-              returnDestination: 'order',
-              orderCode,
-              providerCode,
-              walletAddress: effectiveWallet || undefined,
-            });
-          } catch {
+          if (!effectiveWallet) {
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+            return;
           }
+
+          let hasOrderIdInUrl = false;
+          try {
+            const url = new URL(result.url);
+            hasOrderIdInUrl = Boolean(url.searchParams.get('orderId')?.trim());
+          } catch {
+            hasOrderIdInUrl = false;
+          }
+          if (!hasOrderIdInUrl) {
+            navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+            return;
+          }
+          navigateAfterExternalBrowser({
+            returnDestination: 'order',
+            callbackUrl: result.url,
+            providerCode,
+            walletAddress: effectiveWallet,
+          });
         } finally {
           InAppBrowser.closeAuth();
         }
@@ -662,8 +652,6 @@ function BuildQuote() {
     navigation,
     getBuyWidgetData,
     addPrecreatedOrder,
-    getOrderFromCallback,
-    addOrder,
     navigateAfterExternalBrowser,
   ]);
 

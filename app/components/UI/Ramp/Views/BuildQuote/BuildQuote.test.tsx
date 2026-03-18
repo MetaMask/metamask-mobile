@@ -430,12 +430,6 @@ describe('BuildQuote', () => {
         type: 'success',
         url: 'metamask://on-ramp/providers/moonpay?orderId=ord-123',
       });
-      mockGetOrderFromCallback.mockResolvedValue({
-        providerOrderId: 'ord-123',
-        status: 'Pending',
-        cryptoAmount: '0.05',
-        cryptoCurrency: { symbol: 'ETH' },
-      });
       mockGetBuyWidgetData.mockResolvedValue({
         url: 'https://widget.example.com/checkout',
         browser: 'IN_APP_OS_BROWSER',
@@ -451,14 +445,18 @@ describe('BuildQuote', () => {
       });
 
       await waitFor(() => {
-        expect(mockAddOrder).toHaveBeenCalled();
+        expect(mockAddOrder).not.toHaveBeenCalled();
+        expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
         expect(mockNavigationReset).toHaveBeenCalledWith({
           index: 0,
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
               params: {
-                orderId: 'ord-123',
+                callbackUrl:
+                  'metamask://on-ramp/providers/moonpay?orderId=ord-123',
+                providerCode: 'moonpay',
+                walletAddress: '0x1234567890123456789012345678901234567890',
                 showCloseButton: true,
               },
             },

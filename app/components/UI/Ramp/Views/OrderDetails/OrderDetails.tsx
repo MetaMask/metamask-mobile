@@ -16,6 +16,7 @@ import {
   RampsOrderStatus,
 } from '@metamask/ramps-controller';
 import { extractOrderCode } from '../../utils/extractOrderCode';
+import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -37,8 +38,12 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 interface RampsOrderDetailsParams {
-  orderId: string;
+  orderId?: string;
   showCloseButton?: boolean;
+  /** When returning from external browser (e.g. PayPal), fetch order from callback URL. */
+  callbackUrl?: string;
+  providerCode?: string;
+  walletAddress?: string;
 }
 
 export const createRampsOrderDetailsNavDetails =
@@ -67,14 +72,26 @@ const styles = StyleSheet.create({
   },
 });
 
+const isBailedOrderStatus = (status: RampsOrderStatus | undefined): boolean =>
+  status != null &&
+  [
+    RampsOrderStatus.Precreated,
+    RampsOrderStatus.IdExpired,
+    RampsOrderStatus.Unknown,
+  ].includes(status);
+
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
-  const { getOrderById, refreshOrder } = useRampsOrders();
+  const { getOrderById, refreshOrder, getOrderFromCallback, addOrder } =
+    useRampsOrders();
   const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
   const order = getOrderById(orderCode);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
+  const hasCallbackParams = Boolean(
+    params.callbackUrl && params.providerCode && params.walletAddress,
+  );
 
-  const [isLoading, setIsLoading] = useState(isPending);
+  const [isLoading, setIsLoading] = useState(isPending || hasCallbackParams);
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
@@ -82,6 +99,58 @@ const OrderDetails = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const hasFetchedFromCallback = useRef(false);
+
+  const handleRetryCallbackFetch = useCallback(async () => {
+    if (!params.callbackUrl || !params.providerCode || !params.walletAddress) {
+      return;
+    }
+    try {
+      setError(null);
+      setIsLoading(true);
+      const fetchedOrder = await getOrderFromCallback(
+        params.providerCode,
+        params.callbackUrl,
+        params.walletAddress,
+      );
+      if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
+        navigation.reset({
+          index: 0,
+          routes: getNavigateAfterExternalBrowserRoutes({
+            returnDestination: 'buildQuote',
+          }),
+        });
+        return;
+      }
+      addOrder(fetchedOrder);
+      navigation.setParams({
+        orderId: fetchedOrder.providerOrderId,
+        callbackUrl: undefined,
+        providerCode: undefined,
+        walletAddress: undefined,
+      });
+    } catch (fetchError) {
+      Logger.error(fetchError as Error, {
+        message:
+          'RampsOrderDetails: error fetching order from callback URL (retry)',
+        callbackUrl: params.callbackUrl,
+      });
+      setError(
+        fetchError instanceof Error && fetchError.message
+          ? fetchError.message
+          : strings('ramps_order_details.error_message'),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    params.callbackUrl,
+    params.providerCode,
+    params.walletAddress,
+    getOrderFromCallback,
+    addOrder,
+    navigation,
+  ]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -148,11 +217,80 @@ const OrderDetails = () => {
   }, [order, refreshOrder]);
 
   useEffect(() => {
-    if (isPending) {
+    if (isPending && !hasCallbackParams) {
       handleOnRefresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (
+      !hasCallbackParams ||
+      hasFetchedFromCallback.current ||
+      !params.callbackUrl ||
+      !params.providerCode ||
+      !params.walletAddress
+    ) {
+      return;
+    }
+    hasFetchedFromCallback.current = true;
+
+    const providerCode = params.providerCode;
+    const callbackUrl = params.callbackUrl;
+    const walletAddress = params.walletAddress;
+    if (!providerCode || !callbackUrl || !walletAddress) return;
+
+    const fetchFromCallback = async () => {
+      try {
+        setError(null);
+        const fetchedOrder = await getOrderFromCallback(
+          providerCode,
+          callbackUrl,
+          walletAddress,
+        );
+        if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
+          navigation.reset({
+            index: 0,
+            routes: getNavigateAfterExternalBrowserRoutes({
+              returnDestination: 'buildQuote',
+            }),
+          });
+          return;
+        }
+        addOrder(fetchedOrder);
+        navigation.setParams({
+          orderId: fetchedOrder.providerOrderId,
+          callbackUrl: undefined,
+          providerCode: undefined,
+          walletAddress: undefined,
+        });
+      } catch (fetchError) {
+        Logger.error(fetchError as Error, {
+          message: 'RampsOrderDetails: error fetching order from callback URL',
+          callbackUrl,
+        });
+        navigation.reset({
+          index: 0,
+          routes: getNavigateAfterExternalBrowserRoutes({
+            returnDestination: 'buildQuote',
+          }),
+        });
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFromCallback();
+  }, [
+    hasCallbackParams,
+    params.callbackUrl,
+    params.providerCode,
+    params.walletAddress,
+    getOrderFromCallback,
+    addOrder,
+    navigation,
+  ]);
 
   if (isLoading) {
     return (
@@ -166,11 +304,10 @@ const OrderDetails = () => {
     );
   }
 
-  if (!order) {
-    return <ScreenLayout />;
-  }
-
   if (error) {
+    const onRetry = hasCallbackParams
+      ? handleRetryCallbackFetch
+      : handleOnRefresh;
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -198,12 +335,16 @@ const OrderDetails = () => {
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               label={strings('ramps_order_details.try_again')}
-              onPress={handleOnRefresh}
+              onPress={onRetry}
             />
           </Box>
         </ScreenLayout.Body>
       </ScreenLayout>
     );
+  }
+
+  if (!order) {
+    return <ScreenLayout />;
   }
 
   return (
