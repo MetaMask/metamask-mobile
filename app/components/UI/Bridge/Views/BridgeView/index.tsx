@@ -74,7 +74,6 @@ import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { trimTrailingZeros } from '../../utils/trimTrailingZeros.ts';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength.ts';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
@@ -325,7 +324,7 @@ const BridgeView = () => {
     if (latestSourceBalance?.displayBalance) {
       const balance = latestSourceBalance.displayBalance;
       const cleaned = normalizeSourceAmountToMaxLength(
-        trimTrailingZeros(balance),
+        balance,
         MAX_INPUT_LENGTH,
       );
       resetSourceAmountCursorPosition();
