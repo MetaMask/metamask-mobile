@@ -1,8 +1,6 @@
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { RootState } from '../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import {
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectTransactions,
   selectLastWithdrawTokenByType,

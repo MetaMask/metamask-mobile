@@ -35,10 +35,10 @@ function matchesTransactionType(
   return (
     transaction.type === transactionType ||
     transaction.originalType === transactionType ||
-    Boolean(transaction.metamaskPay) &&
+    (Boolean(transaction.metamaskPay) &&
       getNestedTransactionTypes(transaction).some(
         (nestedTransactionType) => nestedTransactionType === transactionType,
-      )
+      ))
   );
 }
 
@@ -90,12 +90,14 @@ export const selectLastWithdrawTokenByType = createSelector(
       return undefined;
     }
 
-    const latestTransaction = [...transactions].reverse().find(
-      (transaction) =>
-        matchesTransactionType(transaction, transactionType) &&
-        transaction.metamaskPay?.tokenAddress &&
-        transaction.metamaskPay?.chainId,
-    );
+    const latestTransaction = [...transactions]
+      .reverse()
+      .find(
+        (transaction) =>
+          matchesTransactionType(transaction, transactionType) &&
+          transaction.metamaskPay?.tokenAddress &&
+          transaction.metamaskPay?.chainId,
+      );
 
     const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
     const chainId = latestTransaction?.metamaskPay?.chainId;

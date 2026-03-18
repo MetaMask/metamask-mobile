@@ -580,7 +580,9 @@ describe('useAutomaticTransactionPayToken', () => {
               transactions: [
                 {
                   id: transactionIdMock,
-                  nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+                  nestedTransactions: [
+                    { type: TransactionType.predictWithdraw },
+                  ],
                   status: 'unapproved',
                   time: 200,
                   txParams: { from: '0x123' },
@@ -592,7 +594,9 @@ describe('useAutomaticTransactionPayToken', () => {
                     chainId: CHAIN_ID_2_MOCK,
                     tokenAddress: TOKEN_ADDRESS_2_MOCK,
                   },
-                  nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+                  nestedTransactions: [
+                    { type: TransactionType.predictWithdraw },
+                  ],
                   status: 'confirmed',
                   time: 100,
                   txParams: { from: '0x123' },

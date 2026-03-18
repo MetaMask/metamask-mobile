@@ -175,8 +175,10 @@ function getBestToken({
   if (isWithdraw && lastWithdrawToken) {
     const lastWithdrawTokenAvailable = tokens.some(
       (token) =>
-        token.address.toLowerCase() === lastWithdrawToken.address.toLowerCase() &&
-        token.chainId?.toLowerCase() === lastWithdrawToken.chainId.toLowerCase(),
+        token.address.toLowerCase() ===
+          lastWithdrawToken.address.toLowerCase() &&
+        token.chainId?.toLowerCase() ===
+          lastWithdrawToken.chainId.toLowerCase(),
     );
 
     if (lastWithdrawTokenAvailable) {
