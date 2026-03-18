@@ -692,7 +692,7 @@ const ChoosePassword = () => {
                     onBlur={() => setIsPasswordFieldFocused(false)}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={jumpToConfirmPassword}
-                    autoComplete="password"
+                    autoComplete="password-new"
                     returnKeyType="next"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
@@ -749,7 +749,7 @@ const ChoosePassword = () => {
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
-                    autoComplete="password"
+                    autoComplete="password-new"
                     onSubmitEditing={Keyboard.dismiss}
                     returnKeyType={'done'}
                     autoCapitalize="none"
