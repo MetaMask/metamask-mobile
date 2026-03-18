@@ -140,7 +140,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { colors, themeAppearance } = useTheme();
+  const { themeAppearance } = useTheme();
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
@@ -689,7 +689,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   width: 80,
                   height: 40,
                   marginTop: 10,
-                  tintColor: colors.icon.default,
+                  tintColor: tw.color('bg-icon-default'),
                 })}
                 resizeMode="contain"
                 resizeMethod={'auto'}
@@ -750,7 +750,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   onChangeText={handlePasswordChange}
                   value={password}
                   onSubmitEditing={handleLogin}
-                  keyboardAppearance={themeAppearance || undefined}
+                  keyboardAppearance={themeAppearance}
                   isDisabled={disabledInput}
                   isError={!!error}
                 />
