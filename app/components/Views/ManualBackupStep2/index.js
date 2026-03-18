@@ -13,6 +13,14 @@ import {
   Box,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
@@ -27,14 +35,6 @@ import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CommonActions } from '@react-navigation/native';
@@ -75,12 +75,12 @@ const ManualBackupStep2 = ({
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={colors.text.default}
+          color={IconColor.IconDefault}
           style={tw.style('ml-4')}
         />
       </TouchableOpacity>
     ),
-    [colors, navigation, tw],
+    [navigation, tw],
   );
 
   const updateNavBar = useCallback(() => {
@@ -306,15 +306,15 @@ const ManualBackupStep2 = ({
     (item, index, isEmpty) => (
       <>
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           maxFontSizeMultiplier={1}
         >
           {index + 1}.
         </Text>
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Default}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextDefault}
           style={tw.style('w-[95%]')}
           maxFontSizeMultiplier={1}
         >
@@ -363,10 +363,7 @@ const ManualBackupStep2 = ({
 
   const renderGrid = useCallback(
     () => (
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="bg-muted rounded-[10px] mb-4 p-4 gap-1"
-      >
+      <Box twClassName="bg-muted rounded-[10px] mb-4 p-4 gap-1">
         <FlatList
           data={gridWords}
           numColumns={3}
@@ -399,8 +396,11 @@ const ManualBackupStep2 = ({
               onPress={() => handleWordSelect(word, i)}
             >
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={isUsed ? TextColor.Alternative : TextColor.Primary}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={
+                  isUsed ? TextColor.TextAlternative : TextColor.PrimaryDefault
+                }
                 testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
                 maxFontSizeMultiplier={1}
               >
@@ -471,29 +471,30 @@ const ManualBackupStep2 = ({
           contentContainerStyle={tw.style('flex-1')}
         >
           <Box
-            flexDirection={BoxFlexDirection.Column}
             justifyContent={BoxJustifyContent.SpaceBetween}
             twClassName="flex-1 h-full gap-y-4"
             testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
             <Box
-              flexDirection={BoxFlexDirection.Column}
               justifyContent={BoxJustifyContent.SpaceBetween}
               twClassName="flex-1 gap-y-4"
               style={{ height: windowHeight - 290 }}
             >
-              <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+              <Text
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextDefault}
+              >
                 {strings('manual_backup_step_2.action')}
               </Text>
 
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('manual_backup_step_2.info')}
               </Text>
 
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="flex-1 gap-1"
-              >
+              <Box twClassName="flex-1 gap-1">
                 {renderGrid()}
                 {renderMissingWords()}
               </Box>
