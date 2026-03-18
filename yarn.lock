@@ -8013,7 +8013,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.15.0, @metamask/controller-utils@npm:^11.16.0, @metamask/controller-utils@npm:^11.17.0, @metamask/controller-utils@npm:^11.18.0, @metamask/controller-utils@npm:^11.19.0, @metamask/controller-utils@npm:^11.3.0":
+"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.15.0, @metamask/controller-utils@npm:^11.16.0, @metamask/controller-utils@npm:^11.18.0, @metamask/controller-utils@npm:^11.19.0, @metamask/controller-utils@npm:^11.3.0":
   version: 11.19.0
   resolution: "@metamask/controller-utils@npm:11.19.0"
   dependencies:
@@ -8576,28 +8576,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^26.0.2, @metamask/gas-fee-controller@npm:^26.0.3":
-  version: 26.0.3
-  resolution: "@metamask/gas-fee-controller@npm:26.0.3"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/eth-query": "npm:^4.0.0"
-    "@metamask/ethjs-unit": "npm:^0.3.0"
-    "@metamask/network-controller": "npm:^30.0.0"
-    "@metamask/polling-controller": "npm:^16.0.3"
-    "@metamask/utils": "npm:^11.9.0"
-    "@types/bn.js": "npm:^5.1.5"
-    "@types/uuid": "npm:^8.3.0"
-    bn.js: "npm:^5.2.1"
-    uuid: "npm:^8.3.2"
-  peerDependencies:
-    "@babel/runtime": ^7.0.0
-  checksum: 10/c554094e845f93d19a81b5d0273648f0a066039e3296549eb57cd53e2a48ccb503bc261feb55d8a932d2eef7b68913d25319e91bebd53fb2ba7cbfca6ddfc8cb
-  languageName: node
-  linkType: hard
-
-"@metamask/gas-fee-controller@npm:^26.1.0":
+"@metamask/gas-fee-controller@npm:^26.0.2, @metamask/gas-fee-controller@npm:^26.0.3, @metamask/gas-fee-controller@npm:^26.1.0":
   version: 26.1.0
   resolution: "@metamask/gas-fee-controller@npm:26.1.0"
   dependencies:
@@ -9194,26 +9173,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/permission-controller@npm:^12.0.0, @metamask/permission-controller@npm:^12.1.0, @metamask/permission-controller@npm:^12.1.1, @metamask/permission-controller@npm:^12.2.0":
-  version: 12.2.0
-  resolution: "@metamask/permission-controller@npm:12.2.0"
-  dependencies:
-    "@metamask/approval-controller": "npm:^8.0.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.17.0"
-    "@metamask/json-rpc-engine": "npm:^10.2.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/rpc-errors": "npm:^7.0.2"
-    "@metamask/utils": "npm:^11.9.0"
-    "@types/deep-freeze-strict": "npm:^1.1.0"
-    deep-freeze-strict: "npm:^1.1.1"
-    immer: "npm:^9.0.6"
-    nanoid: "npm:^3.3.8"
-  checksum: 10/d15ce9b69b3f8dbed2409d2e789e800d06798e42e55ac05095f19db0feda7492a64e221865ec6ee3d41b6c809ba5467f2bdab443c2d99133df88ac624ae264b8
-  languageName: node
-  linkType: hard
-
-"@metamask/permission-controller@npm:^12.2.1":
+"@metamask/permission-controller@npm:^12.0.0, @metamask/permission-controller@npm:^12.1.0, @metamask/permission-controller@npm:^12.1.1, @metamask/permission-controller@npm:^12.2.0, @metamask/permission-controller@npm:^12.2.1":
   version: 12.2.1
   resolution: "@metamask/permission-controller@npm:12.2.1"
   dependencies:
