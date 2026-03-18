@@ -2,8 +2,8 @@ import { useSelector } from 'react-redux';
 import { selectAccountMenuEnabled } from '.';
 
 /**
- * Hook to check if the Account Menu feature is enabled.
- * Returns true if the feature is enabled AND the current version meets the minimum version requirement.
+ * Hook to check if the account menu is enabled.
+ * The account menu is permanently enabled.
  */
 export const useAccountMenuEnabled = () => {
   const isAccountMenuEnabled = useSelector(selectAccountMenuEnabled);

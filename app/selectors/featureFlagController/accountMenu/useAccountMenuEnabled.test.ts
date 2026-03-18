@@ -22,12 +22,4 @@ describe('useAccountMenuEnabled', () => {
 
     expect(result.current).toBe(true);
   });
-
-  it('returns false when account menu is disabled', () => {
-    jest.mocked(selectAccountMenuEnabled).mockReturnValue(false);
-
-    const { result } = renderHook(() => useAccountMenuEnabled());
-
-    expect(result.current).toBe(false);
-  });
 });
