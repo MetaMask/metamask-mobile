@@ -185,7 +185,7 @@ export async function setupMockRequest(
     requestRuleBuilder = server.forHead('/proxy');
   }
 
-  await requestRuleBuilder
+  const ruleBuilder = requestRuleBuilder
     ?.matching((request) => {
       const url = getDecodedProxiedURL(request.url);
 
@@ -196,18 +196,27 @@ export async function setupMockRequest(
       const matches = url.includes(String(response.url));
       return matches;
     })
-    .asPriority(priority ?? 999) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
-    .thenCallback((request) => {
-      logger.info(
-        `Mocking ${request.method} request to: ${getDecodedProxiedURL(
-          request.url,
-        )}`,
-      );
-      logger.debug(`Returning response:`, response.response);
-      return typeof response.response === 'string'
-        ? { statusCode: response.responseCode ?? 200, body: response.response }
-        : { statusCode: response.responseCode ?? 200, json: response.response };
-    });
+    .asPriority(priority ?? 999); // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
+
+  // Use thenReply/thenJson instead of thenCallback to avoid mockttp's
+  // internal body buffering (waitForCompletedRequest → streamToBuffer).
+  // When clients abort connections (e.g., bridge controller AbortController),
+  // streamToBuffer rejects with Error('Aborted'). Since CallbackHandler
+  // eagerly buffers the body BEFORE calling the callback, the rejection
+  // propagates through mockttp's internals and reaches Jest as a test failure.
+  // SimpleHandler (used by thenReply/thenJson) never reads the request body,
+  // eliminating this error source entirely.
+  if (typeof response.response === 'string') {
+    await ruleBuilder?.thenReply(
+      response.responseCode ?? 200,
+      response.response,
+    );
+  } else {
+    await ruleBuilder?.thenJson(
+      response.responseCode ?? 200,
+      response.response as object,
+    );
+  }
 }
 
 /**

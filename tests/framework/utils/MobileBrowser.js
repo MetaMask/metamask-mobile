@@ -178,7 +178,12 @@ export async function navigateToDappAndroid(device, url, dappName) {
 }
 
 export async function navigateToDappIOS(device, url, dappName) {
-  throw new Error('Not implemented');
+  MobileBrowserScreen.device = device;
+  const element = await AppwrightSelectors.getElementByNameiOS(
+    device,
+    'TabBarItemTitle',
+  );
+  await AppwrightGestures.typeText(element, `${url}\n`);
 }
 
 export async function navigateToDapp(device, url, dappName) {

@@ -113,7 +113,7 @@ describe('MusdAggregatedRow', () => {
   describe('claimable bonus threshold (min $0.01)', () => {
     it('hides Claim bonus when claimable reward is "< 0.01"', () => {
       mockUseMerklBonusClaim.mockReturnValue({
-        claimableReward: '< 0.01',
+        claimableReward: null,
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
@@ -140,7 +140,7 @@ describe('MusdAggregatedRow', () => {
 
     it('hides Claim bonus when claimable reward is below 0.01', () => {
       mockUseMerklBonusClaim.mockReturnValue({
-        claimableReward: '0.005',
+        claimableReward: null,
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
