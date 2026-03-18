@@ -51,11 +51,13 @@ const mobileFormatters: MarketDataFormatters = {
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
   assetMarketTypes?: Record<string, MarketType>,
+  perpAnnotationsMap?: Map<string, string>,
 ): PerpsMarketData[] {
   return transformMarketDataPortable(
     hyperLiquidData,
     mobileFormatters,
     assetMarketTypes,
+    perpAnnotationsMap,
   );
 }
 

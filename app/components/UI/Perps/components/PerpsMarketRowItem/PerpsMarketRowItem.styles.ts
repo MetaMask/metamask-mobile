@@ -23,6 +23,15 @@ const styleSheet = (params: { vars: { compact: boolean } }) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+      minWidth: 0,
+    },
+    /** Lets symbol text shrink and ellipsize instead of wrapping */
+    symbolNameContainer: {
+      flex: 1,
+      minWidth: 0,
+    },
+    leverageContainer: {
+      flexShrink: 0,
     },
     secondRow: {
       flexDirection: 'row',

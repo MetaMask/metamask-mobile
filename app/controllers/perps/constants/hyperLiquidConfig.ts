@@ -334,21 +334,40 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
   'xyz:MSTR': 'equity',
   'xyz:CRWV': 'equity',
   'xyz:SMSN': 'equity',
+  'xyz:SP500': 'equity',
+  'xyz:EWY': 'equity',
+  'xyz:URNM': 'equity',
+  'xyz:EWJ': 'equity',
+  'xyz:HYUNDAI': 'equity',
+  'xyz:GME': 'equity',
+  'xyz:SOFTBANK': 'equity',
+  'xyz:KIOXIA': 'equity',
+  'xyz:VIX': 'equity',
+  /** KOSPI 200 (display e.g. Korea200) */
+  'xyz:KOREA200': 'equity',
+  'xyz:KOSPI200': 'equity',
+  /** Nikkei 225 (display e.g. Japan225) */
+  'xyz:JAPAN225': 'equity',
+  'xyz:NIKKEI225': 'equity',
 
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
   'xyz:SILVER': 'commodity',
   'xyz:CL': 'commodity',
+  'xyz:BRENTOIL': 'commodity',
   'xyz:COPPER': 'commodity',
   'xyz:ALUMINIUM': 'commodity',
   'xyz:URANIUM': 'commodity',
   'xyz:USAR': 'commodity',
   'xyz:NATGAS': 'commodity',
   'xyz:PLATINUM': 'commodity',
+  'xyz:PALLADIUM': 'commodity',
 
   // xyz DEX - Forex
   'xyz:EUR': 'forex',
   'xyz:JPY': 'forex',
+  /** US Dollar Index */
+  'xyz:DXY': 'forex',
 } as const;
 
 /**

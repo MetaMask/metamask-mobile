@@ -108,7 +108,22 @@ export const shouldIncludeMarket = (
   return !blacklisted;
 };
 
-export const getPerpsDisplaySymbol = (symbol: string): string => {
+/**
+ * @param symbol - Canonical perp symbol (e.g. xyz:CL)
+ * @param displaySymbolOverride - Optional API-derived label (e.g. WTICRUDE)
+ */
+export const getPerpsDisplaySymbol = (
+  symbol: string,
+  displaySymbolOverride?: string,
+): string => {
+  if (
+    displaySymbolOverride &&
+    typeof displaySymbolOverride === 'string' &&
+    displaySymbolOverride.trim()
+  ) {
+    return displaySymbolOverride.trim();
+  }
+
   if (!symbol || typeof symbol !== 'string') {
     return symbol;
   }
@@ -230,6 +245,7 @@ export const filterMarketsByQuery = (
   return markets.filter(
     (market) =>
       market.symbol?.toLowerCase().includes(lowerQuery) ||
-      market.name?.toLowerCase().includes(lowerQuery),
+      market.name?.toLowerCase().includes(lowerQuery) ||
+      market.displaySymbol?.toLowerCase().includes(lowerQuery),
   );
 };

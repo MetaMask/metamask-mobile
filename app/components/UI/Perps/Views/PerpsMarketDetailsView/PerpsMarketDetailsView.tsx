@@ -1117,7 +1117,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const shouldShowLongShortButtonsOnly =
     shouldShowNewPositionActions && !showAddFundsCTA;
 
-  const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
+  const displayTitle = `${getPerpsDisplaySymbol(market.symbol, market.displaySymbol)}-USD`;
 
   return (
     <SafeAreaView

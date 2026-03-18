@@ -172,17 +172,20 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
  * @param hyperLiquidData - Raw data from HyperLiquid API
  * @param formatters - Injectable formatters for platform-agnostic formatting
  * @param assetMarketTypes - Optional mapping of asset symbols to market types
+ * @param perpAnnotationsMap - Optional symbol → display label from Hyperliquid annotations APIs
  * @returns Transformed market data ready for UI consumption
  */
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
   formatters: MarketDataFormatters,
   assetMarketTypes?: Record<string, MarketType>,
+  perpAnnotationsMap?: Map<string, string>,
 ): PerpsMarketData[] {
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
   return universe.map((asset, index) => {
     const symbol = asset.name;
+    const displaySymbol = perpAnnotationsMap?.get(symbol);
     const currentPrice = parseFloat(allMids[symbol]);
 
     // Find matching asset context for additional data
@@ -259,6 +262,7 @@ export function transformMarketData(
 
     return {
       symbol,
+      ...(displaySymbol ? { displaySymbol } : {}),
       name: symbol,
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)

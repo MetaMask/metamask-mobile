@@ -135,6 +135,7 @@ import {
   validateWithdrawalParams,
 } from '../utils/hyperLiquidValidation';
 import { transformMarketData } from '../utils/marketDataTransform';
+import { fetchPerpAnnotationsMap } from '../utils/perpAnnotations';
 import {
   compileMarketPattern,
   shouldIncludeMarket,
@@ -6397,6 +6398,17 @@ export class HyperLiquidProvider implements PerpsProvider {
       ),
     });
 
+    const universeSymbols = combinedUniverse.map((a) => a.name);
+    let perpAnnotationsMap: Map<string, string>;
+    try {
+      perpAnnotationsMap = await fetchPerpAnnotationsMap({
+        isTestnet: this.#clientService.isTestnetMode(),
+        universeSymbols,
+      });
+    } catch {
+      perpAnnotationsMap = new Map();
+    }
+
     // Transform to UI-friendly format using standalone utility
     const transformedMarketData = transformMarketData(
       {
@@ -6406,6 +6418,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       },
       this.#deps.marketDataFormatters,
       HIP3_ASSET_MARKET_TYPES,
+      perpAnnotationsMap,
     );
 
     return this.#cacheFreshMarketDataSnapshot(

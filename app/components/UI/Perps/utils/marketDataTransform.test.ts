@@ -402,6 +402,31 @@ describe('marketDataTransform', () => {
       expect(result[0].isHip3).toBe(false); // Main DEX is not HIP-3
       expect(result[0].isNewMarket).toBe(false); // Main DEX assets are not "new"
     });
+
+    it('sets displaySymbol from perpAnnotationsMap when present', () => {
+      const clAsset = {
+        name: 'xyz:CL',
+        maxLeverage: 20,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [clAsset],
+        assetCtxs: [createMockAssetCtx({ prevDayPx: '70' })],
+        allMids: { 'xyz:CL': '72' },
+      };
+      const perpAnnotationsMap = new Map<string, string>([
+        ['xyz:CL', 'WTICRUDE'],
+      ]);
+
+      const result = transformMarketData(
+        hyperLiquidData,
+        undefined,
+        perpAnnotationsMap,
+      );
+
+      expect(result[0].displaySymbol).toBe('WTICRUDE');
+    });
   });
 
   describe('calculateOpenInterestUSD', () => {

@@ -49,6 +49,16 @@ jest.mock('../utils/standaloneInfoClient', () => ({
   createStandaloneInfoClient: jest.fn(() => mockStandaloneInfoClient),
 }));
 
+jest.mock('../utils/perpAnnotations', () => {
+  const actual = jest.requireActual<typeof import('../utils/perpAnnotations')>(
+    '../utils/perpAnnotations',
+  );
+  return {
+    ...actual,
+    fetchPerpAnnotationsMap: jest.fn().mockResolvedValue(new Map()),
+  };
+});
+
 jest.mock('../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),

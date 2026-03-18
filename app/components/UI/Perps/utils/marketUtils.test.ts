@@ -986,6 +986,18 @@ describe('marketUtils', () => {
         expect(result).toBe('TsLa');
       });
     });
+
+    describe('displaySymbolOverride', () => {
+      it('uses displaySymbolOverride when provided', () => {
+        expect(getPerpsDisplaySymbol('xyz:CL', 'WTICRUDE')).toBe('WTICRUDE');
+      });
+
+      it('trims displaySymbolOverride', () => {
+        expect(getPerpsDisplaySymbol('xyz:CL', '  WTICRUDE  ')).toBe(
+          'WTICRUDE',
+        );
+      });
+    });
   });
 
   describe('filterMarketsByQuery', () => {
@@ -1034,6 +1046,22 @@ describe('marketUtils', () => {
       );
 
       expect(result).toEqual([mockMarkets[2]]);
+    });
+
+    it('filters markets by displaySymbol', () => {
+      const withDisplay = [
+        ...mockMarkets,
+        {
+          symbol: 'xyz:CL',
+          name: 'xyz:CL',
+          displaySymbol: 'WTICRUDE',
+        },
+      ] as PerpsMarketData[];
+
+      const result = filterMarketsByQuery(withDisplay, 'wticrude');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('xyz:CL');
     });
 
     it('returns empty array when no markets match query', () => {

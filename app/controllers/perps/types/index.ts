@@ -336,6 +336,11 @@ export type PerpsMarketData = {
    */
   symbol: string;
   /**
+   * Optional API-derived display label (e.g., WTICRUDE for xyz:CL).
+   * When set, prefer {@link getPerpsDisplaySymbol}(symbol, displaySymbol) in UI.
+   */
+  displaySymbol?: string;
+  /**
    * Full token name (e.g., 'Bitcoin', 'Ethereum')
    */
   name: string;
