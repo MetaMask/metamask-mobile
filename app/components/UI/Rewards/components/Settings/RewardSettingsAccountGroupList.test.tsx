@@ -211,6 +211,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: {
       Medium: 'medium',
     },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+    },
     ButtonVariants: {
       Primary: 'primary',
       Secondary: 'secondary',
