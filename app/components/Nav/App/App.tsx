@@ -299,7 +299,7 @@ const OnboardingNav = () => (
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-  <Stack.Navigator screenOptions={{ presentation: 'modal' }}>
+  <Stack.Navigator>
     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -307,11 +307,19 @@ const SimpleWebviewScreen = () => (
 const OnboardingRootNav = () => (
   <Stack.Navigator
     initialRouteName={Routes.ONBOARDING.NAV}
-    screenOptions={{ headerShown: false, presentation: 'modal' }}
+    screenOptions={{ headerShown: false }}
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-    <Stack.Screen name={Routes.WEBVIEW.MAIN} component={SimpleWebviewScreen} />
+    <Stack.Screen
+      name={Routes.QR_TAB_SWITCHER}
+      component={QRTabSwitcher}
+      options={{ presentation: 'modal' }}
+    />
+    <Stack.Screen
+      name={Routes.WEBVIEW.MAIN}
+      component={SimpleWebviewScreen}
+      options={{ presentation: 'modal' }}
+    />
   </Stack.Navigator>
 );
 
@@ -351,13 +359,14 @@ const AddNetworkFlow = () => {
 
 const DetectedTokensFlow = () => (
   <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={clearStackNavigatorOptions}
     initialRouteName={'DetectedTokens'}
   >
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
     <Stack.Screen
       name={'DetectedTokensConfirmation'}
       component={DetectedTokensConfirmation as ScreenComponent}
+      options={{ presentation: 'modal' }}
     />
   </Stack.Navigator>
 );
@@ -648,18 +657,22 @@ const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      presentation: 'modal',
     }}
   >
     <Stack.Screen
       name={Routes.MULTI_SRP.IMPORT}
       component={ImportNewSecretRecoveryPhrase}
     />
-    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+    <Stack.Screen
+      name={Routes.QR_TAB_SWITCHER}
+      component={QRTabSwitcher}
+      options={{ presentation: 'modal' }}
+    />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
       component={SeedphraseModal}
       options={{
+        presentation: 'modal',
         cardStyle: { backgroundColor: 'transparent' },
         cardStyleInterpolator: () => ({
           overlayStyle: {
@@ -854,7 +867,6 @@ const MultichainAddressList = () => {
       screenOptions={{
         headerShown: false,
         animationEnabled: true,
-        presentation: 'modal',
       }}
     >
       <Stack.Screen
@@ -870,9 +882,7 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator
-      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-    >
+    <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -887,7 +897,6 @@ const ModalSwitchAccountType = () => (
     screenOptions={{
       headerShown: false,
       cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
     }}
   >
     <Stack.Screen
