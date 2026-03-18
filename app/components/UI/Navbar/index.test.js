@@ -4,8 +4,6 @@ import {
   getTransactionsNavbarOptions,
   getNavigationOptionsTitle,
   getEditableOptions,
-  getPaymentRequestOptionsTitle,
-  getPaymentRequestSuccessOptionsTitle,
   getTransactionOptionsTitle,
   getApproveNavbar,
   getModalNavbarOptions,
@@ -194,51 +192,6 @@ describe('Navbar', () => {
       );
 
       expect(options.title).toBe('Contact');
-    });
-  });
-
-  describe('getPaymentRequestOptionsTitle', () => {
-    it('returns correct options', () => {
-      const options = getPaymentRequestOptionsTitle(
-        'Payment Request',
-        mockNavigation,
-        mockRoute,
-        mockThemeColors,
-      );
-
-      expect(options.headerTitleAlign).toBe('center');
-      expect(options).toHaveProperty('headerTitle');
-      expect(options).toHaveProperty('headerLeft');
-      expect(options).toHaveProperty('headerRight');
-    });
-
-    it('shows back button when dispatch is present in route params', () => {
-      const routeWithDispatch = {
-        ...mockRoute,
-        params: { dispatch: jest.fn() },
-      };
-      const options = getPaymentRequestOptionsTitle(
-        'Payment Request',
-        mockNavigation,
-        routeWithDispatch,
-        mockThemeColors,
-      );
-
-      expect(options.headerLeft).toBeDefined();
-    });
-  });
-
-  describe('getPaymentRequestSuccessOptionsTitle', () => {
-    it('returns correct options', () => {
-      const options = getPaymentRequestSuccessOptionsTitle(
-        mockNavigation,
-        mockThemeColors,
-      );
-
-      expect(options.title).toBeNull();
-      expect(options).toHaveProperty('headerLeft');
-      expect(options).toHaveProperty('headerRight');
-      expect(options).toHaveProperty('headerStyle');
     });
   });
 
