@@ -21,6 +21,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('../../hooks/useGetCampaignParticipantStatus', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('./CampaignTile.utils', () => ({
   getCampaignStatusInfo: jest.fn().mockReturnValue({
     status: 'active',

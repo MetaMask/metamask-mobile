@@ -9,8 +9,6 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
-export const REWARDS_REFERRAL_SAFE_AREA_TEST_ID = 'rewards-referral-safe-area';
-
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
