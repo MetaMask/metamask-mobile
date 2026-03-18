@@ -5,6 +5,7 @@ import NavigationService from '../NavigationService';
 import SharedDeeplinkManager, {
   DeeplinkManager,
   rewriteBranchUri,
+  isBranchDomainUrl,
 } from './DeeplinkManager';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
@@ -299,18 +300,33 @@ describe('rewriteBranchUri', () => {
     );
   });
 
-  it('returns uri unchanged when +clicked_branch_link is false', () => {
+  it('returns undefined when +clicked_branch_link is false', () => {
     const uri = 'https://metamask.app.link/swap';
     expect(
       rewriteBranchUri(uri, { '+clicked_branch_link': false } as BranchParams),
-    ).toBe(uri);
+    ).toBeUndefined();
   });
 
-  it('returns uri unchanged when $deeplink_path is missing', () => {
+  it('returns undefined when $deeplink_path is missing', () => {
     const uri = 'https://metamask.app.link/swap';
     expect(
       rewriteBranchUri(uri, { '+clicked_branch_link': true } as BranchParams),
-    ).toBe(uri);
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when uri is undefined', () => {
+    expect(
+      rewriteBranchUri(undefined, {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'swap',
+      } as BranchParams),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when params is undefined', () => {
+    expect(
+      rewriteBranchUri('https://metamask.app.link/swap', undefined),
+    ).toBeUndefined();
   });
 });
 
@@ -326,14 +342,14 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
   });
 
-  it('processes cold start deeplink when non-branch link is found', async () => {
-    const mockDeeplink = 'https://link.metamask.io/home';
+  it('does not process cold start deeplink when no rewrite is possible', async () => {
     (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
-      '+non_branch_link': mockDeeplink,
+      '~referring_link': 'https://metamask-alternate.app.link/abc123',
+      '+clicked_branch_link': false,
     });
     DeeplinkManager.start();
     await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+    expect(handleDeeplink).not.toHaveBeenCalled();
   });
 
   it('rewrites cold start Branch link using $deeplink_path from getLatestReferringParams', async () => {
@@ -348,17 +364,6 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: 'https://link.metamask.io/swap?amount=500',
     });
-  });
-
-  it('falls back to +non_branch_link on cold start when +clicked_branch_link is false', async () => {
-    const mockDeeplink = 'https://link.metamask.io/home';
-    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
-      '+clicked_branch_link': false,
-      '+non_branch_link': mockDeeplink,
-    });
-    DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
   });
 
   it('subscribes to Branch deeplink events', async () => {
@@ -438,5 +443,93 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: 'https://link.metamask.io/swap/token',
     });
+  });
+});
+
+describe('isBranchDomainUrl', () => {
+  it('returns true for metamask.app.link URLs', () => {
+    expect(isBranchDomainUrl('https://metamask.app.link/abc123')).toBe(true);
+  });
+
+  it('returns true for metamask-alternate.app.link URLs', () => {
+    expect(
+      isBranchDomainUrl('https://metamask-alternate.app.link/abc123'),
+    ).toBe(true);
+  });
+
+  it('returns false for link.metamask.io URLs', () => {
+    expect(isBranchDomainUrl('https://link.metamask.io/swap')).toBe(false);
+  });
+
+  it('returns false for link-test.metamask.io URLs', () => {
+    expect(isBranchDomainUrl('https://link-test.metamask.io/buy')).toBe(false);
+  });
+
+  it('returns false for metamask:// custom scheme', () => {
+    expect(isBranchDomainUrl('metamask://swap')).toBe(false);
+  });
+
+  it('returns false for invalid URLs', () => {
+    expect(isBranchDomainUrl('not-a-url')).toBe(false);
+  });
+});
+
+describe('DeeplinkManager.start Linking API filters Branch domain URLs', () => {
+  let mockGetInitialURL: jest.Mock;
+  let mockAddEventListener: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+
+    const { Linking } = jest.requireMock('react-native');
+    mockGetInitialURL = Linking.getInitialURL as jest.Mock;
+    mockAddEventListener = Linking.addEventListener as jest.Mock;
+  });
+
+  it('skips Branch domain URLs from Linking.getInitialURL', async () => {
+    mockGetInitialURL.mockResolvedValue('https://metamask.app.link/abc123');
+
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('processes non-Branch URLs from Linking.getInitialURL', async () => {
+    mockGetInitialURL.mockResolvedValue(
+      'https://link.metamask.io/swap?from=ETH',
+    );
+
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/swap?from=ETH',
+    });
+  });
+
+  it('skips Branch domain URLs from Linking.addEventListener', () => {
+    DeeplinkManager.start();
+
+    const urlCallback = mockAddEventListener.mock.calls.find(
+      (call: unknown[]) => call[0] === 'url',
+    )?.[1];
+    expect(urlCallback).toBeDefined();
+
+    urlCallback({ url: 'https://metamask-alternate.app.link/xyz' });
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('processes custom scheme URLs from Linking.addEventListener', () => {
+    DeeplinkManager.start();
+
+    const urlCallback = mockAddEventListener.mock.calls.find(
+      (call: unknown[]) => call[0] === 'url',
+    )?.[1];
+    expect(urlCallback).toBeDefined();
+
+    urlCallback({ url: 'metamask://buy' });
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: 'metamask://buy' });
   });
 });

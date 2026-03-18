@@ -78,9 +78,6 @@ jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
   ),
   mapSupportedActionToRoute: jest.fn(() => 'test-route'),
 }));
-jest.mock('react-native-branch', () => ({
-  getLatestReferringParams: jest.fn(),
-}));
 
 const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
   typeof QuickCrypto.webcrypto.subtle
@@ -101,6 +98,7 @@ describe('handleUniversalLink', () => {
   const instance = {
     parse: mockParse,
     navigation: mockNavigation,
+    cachedBranchParams: undefined,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -2352,13 +2350,10 @@ describe('handleUniversalLink', () => {
     });
 
     describe('Branch.io params integration', () => {
-      const branch = jest.requireMock('react-native-branch') as {
-        getLatestReferringParams: jest.Mock;
-      };
-
       beforeEach(() => {
         jest.clearAllMocks();
-        branch.getLatestReferringParams.mockClear();
+        (instance as { cachedBranchParams: unknown }).cachedBranchParams =
+          undefined;
       });
 
       it('includes branchParams in analytics context for whitelisted actions', async () => {
@@ -2366,7 +2361,8 @@ describe('handleUniversalLink', () => {
           '+clicked_branch_link': true,
           '+is_first_session': false,
         };
-        branch.getLatestReferringParams.mockResolvedValue(mockBranchParams);
+        (instance as { cachedBranchParams: unknown }).cachedBranchParams =
+          mockBranchParams;
 
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
         urlObj = {
@@ -2396,7 +2392,8 @@ describe('handleUniversalLink', () => {
           '+clicked_branch_link': true,
           '+is_first_session': true,
         };
-        branch.getLatestReferringParams.mockResolvedValue(mockBranchParams);
+        (instance as { cachedBranchParams: unknown }).cachedBranchParams =
+          mockBranchParams;
 
         mockHandleDeepLinkModalDisplay.mockImplementation(
           async (callbackParams) => {
@@ -2429,9 +2426,7 @@ describe('handleUniversalLink', () => {
         );
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io returns null', async () => {
-        branch.getLatestReferringParams.mockResolvedValue(null);
-
+      it('includes undefined branchParams in analytics context when no cached params', async () => {
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
         urlObj = {
           hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
@@ -2448,92 +2443,6 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
-      });
-
-      it('includes undefined branchParams in analytics context when Branch.io returns empty object', async () => {
-        branch.getLatestReferringParams.mockResolvedValue({});
-
-        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
-        urlObj = {
-          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-          pathname: `/${ACTIONS.WC}`,
-          href: url,
-        } as ReturnType<typeof extractURLParams>['urlObj'];
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj,
-          browserCallBack: mockBrowserCallBack,
-          url,
-          source: 'test-source',
-        });
-
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
-      });
-
-      it('includes undefined branchParams in analytics context when Branch.io fetch fails', async () => {
-        branch.getLatestReferringParams.mockRejectedValue(
-          new Error('Branch.io error'),
-        );
-
-        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
-        urlObj = {
-          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-          pathname: `/${ACTIONS.WC}`,
-          href: url,
-        } as ReturnType<typeof extractURLParams>['urlObj'];
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj,
-          browserCallBack: mockBrowserCallBack,
-          url,
-          source: 'test-source',
-        });
-
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
-      });
-
-      it('includes undefined branchParams in analytics context when Branch.io fetch times out', async () => {
-        branch.getLatestReferringParams.mockImplementation(
-          () =>
-            new Promise((resolve) => {
-              setTimeout(() => resolve({}), 1000);
-            }),
-        );
-
-        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
-        urlObj = {
-          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-          pathname: `/${ACTIONS.WC}`,
-          href: url,
-        } as ReturnType<typeof extractURLParams>['urlObj'];
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj,
-          browserCallBack: mockBrowserCallBack,
-          url,
-          source: 'test-source',
-        });
-
-        // Should still proceed with undefined branchParams
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           expect.objectContaining({
             branchParams: undefined,

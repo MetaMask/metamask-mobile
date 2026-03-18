@@ -9,6 +9,25 @@ import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 
+const BRANCH_DOMAIN_HOSTS = [
+  AppConstants.MM_UNIVERSAL_LINK_HOST,
+  AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+];
+
+/**
+ * Branch domain URLs (metamask.app.link, metamask-alternate.app.link) are handled
+ * by the Branch SDK. Returns true if the URL belongs to a Branch domain so that
+ * the Linking API can skip it and avoid duplicate processing.
+ */
+export function isBranchDomainUrl(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname;
+    return BRANCH_DOMAIN_HOSTS.includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
@@ -20,28 +39,28 @@ export function rewriteBranchUri(
   params: BranchParams | undefined,
 ): string | undefined {
   try {
-    if (!uri || !params?.['+clicked_branch_link']) return uri;
+    if (!uri || !params?.['+clicked_branch_link']) return undefined;
     const rawPath = params.$deeplink_path;
-    if (typeof rawPath !== 'string') return uri;
+    if (typeof rawPath !== 'string') return undefined;
 
     const parsed = new URL(uri);
     parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
-    // Set the pathname to the sanitized $deeplink_path
     parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
     return parsed.toString();
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
-    return uri;
+    return undefined;
   }
 }
 
 export class DeeplinkManager {
-  // singleton instance
   private static _instance: DeeplinkManager | null = null;
   public pendingDeeplink: string | null;
+  public cachedBranchParams: BranchParams | undefined;
 
   constructor() {
     this.pendingDeeplink = null;
+    this.cachedBranchParams = undefined;
   }
 
   static getInstance(): DeeplinkManager {
@@ -83,7 +102,13 @@ export class DeeplinkManager {
   }
 
   static start() {
-    DeeplinkManager.getInstance();
+    const instance = DeeplinkManager.getInstance();
+
+    const cacheBranchParams = (params: Record<string, unknown> | undefined) => {
+      if (params && typeof params === 'object' && Object.keys(params).length) {
+        instance.cachedBranchParams = params as BranchParams;
+      }
+    };
 
     const getBranchDeeplink = async (uri?: string) => {
       if (uri) {
@@ -93,20 +118,14 @@ export class DeeplinkManager {
 
       try {
         const latestParams = await branch.getLatestReferringParams();
+        cacheBranchParams(latestParams as Record<string, unknown> | undefined);
 
-        // Cold start: params may contain a resolved Branch link with $deeplink_path.
         const rewritten = rewriteBranchUri(
           latestParams?.['~referring_link'] as string | undefined,
           latestParams as Record<string, unknown> | undefined,
         );
         if (rewritten) {
           handleDeeplink({ uri: rewritten });
-          return;
-        }
-
-        const deeplink = latestParams?.['+non_branch_link'] as string;
-        if (deeplink) {
-          handleDeeplink({ uri: deeplink });
         }
       } catch (error) {
         Logger.error(error as Error, 'Error getting Branch deeplink');
@@ -135,12 +154,21 @@ export class DeeplinkManager {
       if (!url) {
         return;
       }
+      if (isBranchDomainUrl(url)) {
+        Logger.log(
+          `handleDeeplink:: skipping Branch domain URL from Linking: ${url}`,
+        );
+        return;
+      }
       Logger.log(`handleDeeplink:: got initial URL ${url}`);
       handleDeeplink({ uri: url });
     });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
+      if (isBranchDomainUrl(url)) {
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 
@@ -155,6 +183,7 @@ export class DeeplinkManager {
         const branchError = new Error(error);
         Logger.error(branchError, 'Error subscribing to branch.');
       }
+      cacheBranchParams(opts.params as Record<string, unknown> | undefined);
       const rewritten = rewriteBranchUri(
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
