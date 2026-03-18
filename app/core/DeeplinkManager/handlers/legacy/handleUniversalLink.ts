@@ -18,7 +18,6 @@ import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../../util/general';
 import handleRampUrl from './handleRampUrl';
-import handleDepositCashUrl from './handleDepositCashUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl } from './handleSwapUrl';
 import handleBrowserUrl from './handleBrowserUrl';
@@ -68,7 +67,6 @@ const SUPPORTED_ACTIONS = {
   BUY_CRYPTO: ACTIONS.BUY_CRYPTO,
   SELL: ACTIONS.SELL,
   SELL_CRYPTO: ACTIONS.SELL_CRYPTO,
-  DEPOSIT: ACTIONS.DEPOSIT,
   HOME: ACTIONS.HOME,
   ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
@@ -183,19 +181,24 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
+  const action: SUPPORTED_ACTIONS | ACTIONS.OAUTH_REDIRECT =
+    validatedUrl.pathname.split('/')[1] as
+      | SUPPORTED_ACTIONS
+      | ACTIONS.OAUTH_REDIRECT;
+
   // Skip handling deeplinks that do not have a pathname or query
+  // Skip handling oauth-login universal links (it is handled by the OAuthService)
   // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
-  if (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) {
+  if (
+    (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) ||
+    action === ACTIONS.OAUTH_REDIRECT
+  ) {
     handled();
     return;
   }
 
   let isPrivateLink = false;
   let isInvalidLink = false;
-
-  const action: SUPPORTED_ACTIONS = validatedUrl.pathname.split(
-    '/',
-  )[1] as SUPPORTED_ACTIONS;
 
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (METAMASK_SDK_ACTIONS.includes(action)) {
@@ -505,11 +508,6 @@ async function handleUniversalLink({
       });
       break;
     }
-    case SUPPORTED_ACTIONS.DEPOSIT:
-      handleDepositCashUrl({
-        depositPath: actionBasedRampPath,
-      });
-      break;
     case SUPPORTED_ACTIONS.HOME:
       navigateToHomeUrl({ homePath: actionBasedRampPath });
       return;

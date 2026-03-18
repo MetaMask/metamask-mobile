@@ -15,9 +15,9 @@ import Logger from '../../util/Logger';
 const styles = createStyles();
 
 // This is a hack to allow us to asynchronously await the creation of the WebView.
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 export let createWebView: (jobId: string) => Promise<WebViewInterface>;
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 export let removeWebView: (jobId: string) => void;
 
 interface WebViewState {

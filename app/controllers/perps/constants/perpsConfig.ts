@@ -8,6 +8,9 @@
  * UI-only constants (layout, display, navigation) live in:
  * app/components/UI/Perps/constants/perpsConfig.ts
  */
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ZERO_BALANCE = '0x0';
+
 export const PERPS_CONSTANTS = {
   FeatureFlagKey: 'perpsEnabled',
   FeatureName: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries

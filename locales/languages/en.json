@@ -6158,8 +6158,16 @@
       "errors": {
         "insufficient_balance": "You don't have enough resource balance to do this action."
       },
-      "trx_unstaking_in_progress": "Unstaking {{amount}} TRX in progress. It takes 14 days for unstaking.",
-      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
+      "unstaking_banner": {
+        "title": "Unstaking {{amount}} TRX in progress",
+        "description": "It will take 14 days for unstaking"
+      },
+      "unstaked_banner": {
+        "title": "Unstaking {{amount}} TRX complete",
+        "description": "Your unstaked TRX can now be withdrawn",
+        "button": "Withdraw",
+        "error": "Withdrawal failed"
+      }
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
@@ -7575,7 +7583,6 @@
     "main_title": "Rewards",
     "referral_title": "Referrals",
     "tab_overview_title": "Overview",
-    "tab_snapshots_title": "Snapshots",
     "tab_activity_title": "Activity",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
@@ -7629,6 +7636,9 @@
       "points_earned": "points earned",
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
+    },
+    "previous_season_view": {
+      "title": "Previous Season"
     },
     "season_status": {
       "points_earned": "Points earned"
@@ -7836,30 +7846,49 @@
     "animation": {
       "could_not_load": "Couldn't load"
     },
-    "snapshot": {
+    "campaign": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
-      "results_coming_soon": "Results coming soon",
-      "tokens_on_the_way": "Tokens on the way",
       "pill_up_next": "Up next",
-      "pill_live_now": "Live now",
-      "pill_calculating": "Calculating",
-      "pill_results_ready": "Results Ready",
-      "pill_complete": "Complete"
+      "pill_active": "Live",
+      "pill_complete": "Complete",
+      "enter_now": "Enter now",
+      "entered": "Entered",
+      "participant_count": "#{{count}}",
+      "opt_in_cta": "Opt in",
+      "opt_in_sheet_title": "Join the campaign",
+      "opt_in_sheet_description_pre_link": "By clicking 'Opt in' you agree to the MetaMask Rewards",
+      "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
+      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically."
     },
-    "snapshots_section": {
-      "title": "Snapshots",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
-      "retry_button": "Retry"
+    "campaign_mechanics": {
+      "title": "Mechanics"
     },
-    "snapshots_tab": {
+    "campaign_details": {
+      "start_date": "Starts: {{date}}",
+      "end_date": "Ends: {{date}}",
+      "opt_in": "Opt in",
+      "opting_in": "Opting in...",
+      "opted_in": "You're opted in to this campaign",
+      "opt_in_error": "Failed to opt in. Please try again.",
+      "join_campaign": "Join the campaign",
+      "checking_opt_in_status": "Checking opt in status",
+      "swap": "Swap",
+      "how_it_works": "How it works"
+    },
+    "campaigns_preview": {
+      "title": "Campaigns",
+      "coming_soon": "Coming soon",
+      "notify_me": "Notify me"
+    },
+    "campaigns_view": {
+      "title": "Campaigns",
       "active_title": "Active",
       "upcoming_title": "Upcoming",
       "previous_title": "Previous",
-      "empty_state": "No snapshots available",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "empty_state": "No campaigns available",
+      "error_title": "Unable to load campaigns",
+      "error_description": "We couldn't load the campaigns. Please try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     }
