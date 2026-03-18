@@ -6,7 +6,7 @@
  */
 
 import { ILLMProvider } from '../../providers';
-import { LLM_CONFIG } from '../../config';
+import { LLM_CONFIG, APP_CONFIG } from '../../config';
 import {
   PullRequestInfo,
   TeamSignOff,
@@ -17,9 +17,6 @@ import {
   getFilePatchesFromAPI,
   getCommitDiff,
 } from '../../utils/git-utils';
-
-// Repository for fetching diffs
-const DEFAULT_REPO = 'MetaMask/metamask-mobile';
 
 // High-impact file patterns that should include diffs
 const HIGH_IMPACT_PATTERNS = [
@@ -81,7 +78,11 @@ function getHighImpactDiffs(
   try {
     // Fetch patches for high-impact files using GitHub API (works for large PRs)
     const filenames = highImpactFiles.map((f) => f.filename);
-    const patches = getFilePatchesFromAPI(prNumber, DEFAULT_REPO, filenames);
+    const patches = getFilePatchesFromAPI(
+      prNumber,
+      APP_CONFIG.githubRepo,
+      filenames,
+    );
 
     if (patches.size === 0) {
       console.log(`   No patches returned from API`);

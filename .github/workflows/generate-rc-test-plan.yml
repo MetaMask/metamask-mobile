@@ -309,7 +309,14 @@ jobs:
             const version = '${{ steps.check-release.outputs.version }}';
             const buildNumber = '${{ steps.extract-build.outputs.build_number }}';
             const commentId = context.payload.comment.id;
-            const currentBody = context.payload.comment.body;
+
+            // Fetch latest comment body to avoid race conditions
+            const { data: comment } = await github.rest.issues.getComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId
+            });
+            const currentBody = comment.body;
 
             const baseUrl = `https://metamask.github.io/metamask-mobile/test-plans`;
             const htmlUrl = `${baseUrl}/test-plan-${version}.html`;
@@ -336,9 +343,16 @@ jobs:
           script: |
             const version = '${{ steps.check-release.outputs.version }}';
             const commentId = context.payload.comment.id;
-            const currentBody = context.payload.comment.body;
             const runId = context.runId;
             const logsUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            // Fetch latest comment body to avoid race conditions
+            const { data: comment } = await github.rest.issues.getComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId
+            });
+            const currentBody = comment.body;
 
             const failureSection = `
 
