@@ -113,7 +113,7 @@ const PredictionsSection = forwardRef<
   // !isLoading is required: isEmpty is false during loading (its formula starts
   // with !isLoading), so without this guard the hook would fire with stale
   // itemCount/isEmpty values before data arrives.
-  const willRender = isPredictEnabled && !isLoading && !isEmpty;
+  const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
 
   const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
