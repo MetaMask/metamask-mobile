@@ -185,6 +185,12 @@
     "bn.js@npm:4.11.6": "4.12.3",
     "bn.js@npm:5.2.1": "5.2.3"
   },
+  "previewBuilds": {
+    "@metamask/assets-controllers": {
+      "type": "non-breaking",
+      "previewVersion": "101.0.0-preview-152e02d"
+    }
+  },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "^2.1.7",
