@@ -213,7 +213,7 @@ module.exports = function (baseConfig) {
           getPolyfills,
         },
       ),
-      resetCache: true,
+      resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),
   );
