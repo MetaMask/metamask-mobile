@@ -29,6 +29,10 @@ describe('resolveBaanxConfig', () => {
   });
 
   describe('baseUrl', () => {
+    beforeEach(() => {
+      (getDefaultBaanxApiBaseUrlForMetaMaskEnv as jest.Mock).mockClear();
+    });
+
     it('uses BAANX_API_URL directly when set', () => {
       process.env.BAANX_API_URL = 'https://override-url';
 
