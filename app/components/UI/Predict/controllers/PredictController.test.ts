@@ -3792,6 +3792,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
           amount: 50,
+          batchId: 'batch-123',
           state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
           error: 'previous error',
         });
@@ -3805,6 +3806,7 @@ describe('PredictController', () => {
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
+        expect(controller.state.activeOrder?.batchId).toBeUndefined();
         expect(controller.state.activeOrder?.error).toBeUndefined();
       });
     });
@@ -4858,6 +4860,65 @@ describe('PredictController', () => {
         expect(controller.state.pendingDeposits[accountAddress]).toBe(
           undefined,
         );
+      });
+    });
+
+    it('preserves preview activeOrder when deposit-and-order transaction is rejected after switching back to balance', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        controller.setActiveOrder({
+          amount: 50,
+          batchId: 'batch-1',
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+      });
+    });
+
+    it('clears activeOrder when deposit-and-order transaction is rejected outside preview', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        controller.setActiveOrder({
+          amount: 50,
+          batchId: 'batch-1',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder).toBeNull();
       });
     });
 

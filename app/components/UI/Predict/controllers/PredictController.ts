@@ -2064,6 +2064,7 @@ export class PredictController extends BaseController<
       }
       this.update((state) => {
         if (state.activeOrder) {
+          delete state.activeOrder.batchId;
           state.activeOrder.state = ActiveOrderState.PREVIEW;
         }
       });
@@ -2503,7 +2504,15 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {
-      this.onOrderCancelled();
+      if (this.state.activeOrder?.state === ActiveOrderState.PREVIEW) {
+        this.update((state) => {
+          if (state.activeOrder) {
+            delete state.activeOrder.batchId;
+          }
+        });
+      } else {
+        this.onOrderCancelled();
+      }
     }
 
     if (type === 'claim' && isTerminal) {
