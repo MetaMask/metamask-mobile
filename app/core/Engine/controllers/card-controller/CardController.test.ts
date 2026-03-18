@@ -1,6 +1,19 @@
 import { Messenger } from '@metamask/messenger';
 import { CardController, defaultCardControllerState } from './CardController';
 import { type CardControllerActions, type CardControllerEvents } from './types';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+  type ICardProvider,
+  type CardAuthSession,
+  type CardAuthTokens,
+} from './provider-types';
+import { CardTokenStore } from './CardTokenStore';
+
+jest.mock('./CardTokenStore');
+jest.mock('../../../../util/Logger');
+
+const mockTokenStore = CardTokenStore as jest.Mocked<typeof CardTokenStore>;
 
 function buildMessenger() {
   return new Messenger<
@@ -10,10 +23,64 @@ function buildMessenger() {
   >({ namespace: 'CardController' });
 }
 
+function buildMockProvider(
+  overrides: Partial<ICardProvider> = {},
+): jest.Mocked<ICardProvider> {
+  return {
+    id: 'baanx',
+    capabilities: {} as ICardProvider['capabilities'],
+    initiateAuth: jest.fn(),
+    submitCredentials: jest.fn(),
+    sendOtp: jest.fn(),
+    refreshTokens: jest.fn(),
+    validateTokens: jest.fn(),
+    logout: jest.fn(),
+    getCardHomeData: jest.fn(),
+    getCardDetails: jest.fn(),
+    freezeCard: jest.fn(),
+    unfreezeCard: jest.fn(),
+    ...overrides,
+  } as jest.Mocked<ICardProvider>;
+}
+
+function buildController(
+  provider: ICardProvider,
+  stateOverrides: Partial<typeof defaultCardControllerState> = {},
+) {
+  return new CardController({
+    messenger: buildMessenger(),
+    providers: { baanx: provider },
+    state: {
+      activeProviderId: 'baanx',
+      ...stateOverrides,
+    },
+  });
+}
+
+const mockSession: CardAuthSession = {
+  id: 'session-1',
+  currentStep: { type: 'email_password' },
+  _metadata: {
+    initiateToken: 'tok',
+    location: 'international',
+    state: 's',
+    codeVerifier: 'cv',
+  },
+};
+
+const mockTokenSet: CardAuthTokens = {
+  accessToken: 'at',
+  refreshToken: 'rt',
+  accessTokenExpiresAt: Date.now() + 3_600_000,
+  refreshTokenExpiresAt: Date.now() + 86_400_000,
+  location: 'international',
+};
+
 describe('CardController', () => {
   it('initializes with default state when no state is provided', () => {
     const controller = new CardController({
       messenger: buildMessenger(),
+      providers: {},
     });
 
     expect(controller.state).toStrictEqual(defaultCardControllerState);
@@ -22,6 +89,7 @@ describe('CardController', () => {
   it('initializes with provided state merged over defaults', () => {
     const controller = new CardController({
       messenger: buildMessenger(),
+      providers: {},
       state: {
         selectedCountry: 'US',
         activeProviderId: 'baanx',
@@ -41,6 +109,7 @@ describe('CardController', () => {
   it('preserves default values for fields not in partial state', () => {
     const controller = new CardController({
       messenger: buildMessenger(),
+      providers: {},
       state: {
         selectedCountry: 'GB',
       },
@@ -56,6 +125,7 @@ describe('CardController', () => {
   it('initializes with full persisted state including providerData', () => {
     const controller = new CardController({
       messenger: buildMessenger(),
+      providers: {},
       state: {
         selectedCountry: 'US',
         activeProviderId: 'baanx',
@@ -72,6 +142,274 @@ describe('CardController', () => {
     ]);
     expect(controller.state.providerData).toStrictEqual({
       baanx: { location: 'us' },
+    });
+  });
+});
+
+describe('CardController — auth methods', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('initiateAuth', () => {
+    it('delegates to the active provider and returns the session', async () => {
+      const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      const controller = buildController(provider);
+
+      const result = await controller.initiateAuth('US');
+
+      expect(provider.initiateAuth).toHaveBeenCalledWith('US');
+      expect(result).toBe(mockSession);
+    });
+
+    it('throws CardProviderError when there is no active provider', async () => {
+      const controller = new CardController({
+        messenger: buildMessenger(),
+        providers: {},
+        state: { activeProviderId: null },
+      });
+
+      await expect(controller.initiateAuth('US')).rejects.toBeInstanceOf(
+        CardProviderError,
+      );
+    });
+  });
+
+  describe('submitCredentials', () => {
+    it('stores tokens, sets isAuthenticated and providerData on done:true', async () => {
+      const provider = buildMockProvider();
+      provider.submitCredentials.mockResolvedValue({
+        done: true,
+        tokenSet: mockTokenSet,
+      });
+      mockTokenStore.set.mockResolvedValue(true);
+      const controller = buildController(provider);
+
+      const result = await controller.submitCredentials(mockSession, {
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', mockTokenSet);
+      expect(controller.state.isAuthenticated).toBe(true);
+      expect(controller.state.providerData.baanx).toStrictEqual({
+        location: 'international',
+      });
+      expect(result.done).toBe(true);
+    });
+
+    it('still sets isAuthenticated when token store write fails', async () => {
+      const provider = buildMockProvider();
+      provider.submitCredentials.mockResolvedValue({
+        done: true,
+        tokenSet: mockTokenSet,
+      });
+      mockTokenStore.set.mockResolvedValue(false);
+      const controller = buildController(provider);
+
+      await controller.submitCredentials(mockSession, {
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.state.isAuthenticated).toBe(true);
+    });
+
+    it('does not set isAuthenticated when OTP step is required', async () => {
+      const provider = buildMockProvider();
+      provider.submitCredentials.mockResolvedValue({
+        done: false,
+        nextStep: { type: 'otp', destination: '+1555****90' },
+      });
+      const controller = buildController(provider);
+
+      const result = await controller.submitCredentials(mockSession, {
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.state.isAuthenticated).toBe(false);
+      expect(result.done).toBe(false);
+    });
+
+    it('does not set isAuthenticated when onboarding is required', async () => {
+      const provider = buildMockProvider();
+      provider.submitCredentials.mockResolvedValue({
+        done: false,
+        onboardingRequired: { sessionId: 'ob-session', phase: 'kyc' },
+      });
+      const controller = buildController(provider);
+
+      const result = await controller.submitCredentials(mockSession, {
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.state.isAuthenticated).toBe(false);
+      expect(result.onboardingRequired?.phase).toBe('kyc');
+    });
+  });
+
+  describe('sendOtp', () => {
+    it('delegates to the provider when session has otpUserId', async () => {
+      const provider = buildMockProvider();
+      (provider.sendOtp as jest.Mock).mockResolvedValue(undefined);
+      const sessionWithOtp: CardAuthSession = {
+        ...mockSession,
+        _metadata: { ...mockSession._metadata, otpUserId: 'user-42' },
+      };
+      const controller = buildController(provider);
+
+      await controller.sendOtp(sessionWithOtp);
+
+      expect(provider.sendOtp).toHaveBeenCalledWith(sessionWithOtp);
+    });
+
+    it('throws CardProviderError when session is missing otpUserId', async () => {
+      const provider = buildMockProvider();
+      const controller = buildController(provider);
+
+      await expect(controller.sendOtp(mockSession)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Unknown,
+      });
+    });
+
+    it('throws CardProviderError when provider does not support OTP', async () => {
+      const provider = buildMockProvider({ sendOtp: undefined });
+      const sessionWithOtp: CardAuthSession = {
+        ...mockSession,
+        _metadata: { ...mockSession._metadata, otpUserId: 'user-42' },
+      };
+      const controller = buildController(provider);
+
+      await expect(controller.sendOtp(sessionWithOtp)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Unknown,
+      });
+    });
+  });
+
+  describe('logout', () => {
+    it('calls provider.logout, removes tokens, sets isAuthenticated to false', async () => {
+      const provider = buildMockProvider();
+      provider.logout.mockResolvedValue(undefined);
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      mockTokenStore.remove.mockResolvedValue(true);
+      const controller = buildController(provider, { isAuthenticated: true });
+
+      await controller.logout();
+
+      expect(provider.logout).toHaveBeenCalledWith(mockTokenSet);
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+      expect(controller.state.isAuthenticated).toBe(false);
+    });
+
+    it('still clears local state when provider.logout throws', async () => {
+      const provider = buildMockProvider();
+      provider.logout.mockRejectedValue(new Error('Server error'));
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      mockTokenStore.remove.mockResolvedValue(true);
+      const controller = buildController(provider, { isAuthenticated: true });
+
+      await controller.logout();
+
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+      expect(controller.state.isAuthenticated).toBe(false);
+    });
+
+    it('skips provider.logout call when no tokens exist', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(null);
+      mockTokenStore.remove.mockResolvedValue(true);
+      const controller = buildController(provider);
+
+      await controller.logout();
+
+      expect(provider.logout).not.toHaveBeenCalled();
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+    });
+  });
+
+  describe('validateAndRefreshSession', () => {
+    it('returns isAuthenticated:false when no tokens exist', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(null);
+      const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(result).toStrictEqual({ isAuthenticated: false });
+      expect(controller.state.isAuthenticated).toBe(false);
+    });
+
+    it('returns isAuthenticated:true with location when tokens are valid', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('valid');
+      const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(result).toStrictEqual({
+        isAuthenticated: true,
+        location: 'international',
+      });
+      expect(controller.state.isAuthenticated).toBe(true);
+    });
+
+    it('refreshes tokens and returns authenticated when needs_refresh', async () => {
+      const provider = buildMockProvider();
+      const refreshedTokens: CardAuthTokens = {
+        ...mockTokenSet,
+        accessToken: 'new-at',
+      };
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('needs_refresh');
+      provider.refreshTokens.mockResolvedValue(refreshedTokens);
+      mockTokenStore.set.mockResolvedValue(true);
+      const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(provider.refreshTokens).toHaveBeenCalledWith(mockTokenSet);
+      expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', refreshedTokens);
+      expect(result).toStrictEqual({
+        isAuthenticated: true,
+        location: 'international',
+      });
+    });
+
+    it('clears tokens and returns unauthenticated when refresh fails', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('needs_refresh');
+      provider.refreshTokens.mockRejectedValue(new Error('Refresh failed'));
+      mockTokenStore.remove.mockResolvedValue(true);
+      const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+      expect(result).toStrictEqual({ isAuthenticated: false });
+      expect(controller.state.isAuthenticated).toBe(false);
+    });
+
+    it('clears tokens and returns unauthenticated when tokens are expired', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('expired');
+      mockTokenStore.remove.mockResolvedValue(true);
+      const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+      expect(result).toStrictEqual({ isAuthenticated: false });
+      expect(controller.state.isAuthenticated).toBe(false);
     });
   });
 });
