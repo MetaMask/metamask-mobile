@@ -91,7 +91,9 @@ const PerpsHomeView = () => {
   // Ensure Arbitrum network exists when user lands on the main perps screen (not on button click)
   useFocusEffect(
     useCallback(() => {
-      ensureArbitrumNetworkExists();
+      ensureArbitrumNetworkExists().catch(() => {
+        // Error already logged in usePerpsNetworkManagement
+      });
     }, [ensureArbitrumNetworkExists]),
   );
 

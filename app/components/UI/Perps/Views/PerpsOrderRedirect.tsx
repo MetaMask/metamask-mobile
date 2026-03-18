@@ -13,6 +13,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import { usePerpsNetworkManagement } from '../hooks/usePerpsNetworkManagement';
 import usePerpsToasts from '../hooks/usePerpsToasts';
 import PerpsLoader from '../components/PerpsLoader';
 import Logger from '../../../../util/Logger';
@@ -49,6 +50,7 @@ const PerpsOrderRedirect: React.FC = () => {
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const hasStartedRef = useRef(false);
@@ -64,7 +66,8 @@ const PerpsOrderRedirect: React.FC = () => {
       asset,
     });
 
-    depositWithOrder()
+    ensureArbitrumNetworkExists()
+      .then(() => depositWithOrder())
       .then(() => {
         Logger.log(
           '[PerpsOrderRedirect] depositWithOrder resolved, navigating to confirmation',
@@ -104,6 +107,7 @@ const PerpsOrderRedirect: React.FC = () => {
     asset,
     fromTokenDetails,
     assetsASSETS2493AbtestTokenDetailsLayout,
+    ensureArbitrumNetworkExists,
     depositWithOrder,
     navigation,
     showToast,
