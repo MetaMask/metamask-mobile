@@ -28,12 +28,13 @@ describe('useFullViewSortResetEffect', () => {
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
     typeof useFocusEffect
   >;
-  const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-  const mockSetTokenSortConfig =
-    Engine.context.PreferencesController
-      .setTokenSortConfig as jest.MockedFunction<
-      typeof Engine.context.PreferencesController.setTokenSortConfig
-    >;
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+  const mockSetTokenSortConfig = Engine.context.PreferencesController
+    .setTokenSortConfig as jest.MockedFunction<
+    typeof Engine.context.PreferencesController.setTokenSortConfig
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
