@@ -45,6 +45,15 @@ description: Use when spinning up test infrastructure outside of Detox withFixtu
 stop_all()  →  start_mock_server(...)  →  start_fixture_server(...)
 ```
 
+## Fixture Server Is Always Required
+
+**A fixture server must ALWAYS be running before launching the app.** The app loads its initial state from the fixture server on startup. Without it, a clean-state launch goes to onboarding (no wallet).
+
+- If the user specifies a recipe → use it: `start_fixture_server(recipe: [...])`
+- If the user does NOT mention fixtures → start with the default fixture: `start_fixture_server(recipe: [])`
+
+The default fixture provides a fully onboarded wallet with one account, ready for the login screen.
+
 ## Startup Order
 
 Resources have preconditions. Follow this order when starting multiple:
@@ -55,7 +64,8 @@ Resources have preconditions. Follow this order when starting multiple:
 3. Dapp server (if needed)           — no preconditions
 4. Mock server                       — no preconditions
 5. WebSocket server                  — no preconditions
-6. Fixture server                    — start LAST (state references ports of other resources)
+6. Fixture server (ALWAYS)           — start LAST, default recipe [] if user didn't specify
+7. Platform wiring                   — setup_android_port_forwarding() or get_ios_launch_args()
 ```
 
 Each `start_*` tool validates preconditions and returns a clear error if unmet.

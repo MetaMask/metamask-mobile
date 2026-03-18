@@ -113,40 +113,49 @@ After selecting a server, a "Developer Menu" onboarding screen may appear with a
 
 ## Launching the App
 
-**Always launch with `clearState: true`** to ensure deterministic test state. This wipes app data so every run starts fresh — no leftover sessions, cached logins, or dismissed modals.
+### Prerequisites — ALWAYS do these before launching
 
-```yaml
-- launchApp:
-    appId: io.metamask
-    clearState: true
-    clearKeychain: true # iOS only — clears stored credentials
-```
+1. **Start a fixture server** via `test-infra-mcp` (if not already running). If the user didn't specify a fixture, use the default: `start_fixture_server(recipe: [])`. The app MUST have a fixture server to load state from — without it, a clean launch goes to onboarding with no wallet.
+2. **Set up port forwarding** — `setup_android_port_forwarding()` for Android or `get_ios_launch_args()` for iOS.
+3. **Clear app data and launch with fixture port** — on Android use `adb`:
+   ```bash
+   adb shell pm clear <appId>
+   adb shell am start -n <appId>/.MainActivity --ei fixtureServerPort 12345
+   ```
+   This ensures deterministic state: app data is wiped, then the app loads fresh state from the fixture server.
 
-When using the `test-infra-mcp` fixture server, the app loads state from the fixture server on launch (via `fixtureServerPort` launch arg). With `clearState: true`, the app always starts from the fixture state, not from a previous session.
+### Wallet password
 
-**Without a fixture server**, `clearState: true` means the app starts in the onboarding flow (no wallet created).
+The password to unlock MetaMask is always **`123123123`**. Never ask the user for it.
 
 ## Common Flows
 
-### Unlock wallet (assumes fixture server loaded an onboarded state)
+### Unlock wallet
 
 ```yaml
+- extendedWaitUntil:
+    visible:
+      id: 'login-password-input'
+    timeout: 20000
 - tapOn:
     id: 'login-password-input'
-- inputText: '<PASSWORD>'
+- inputText: '123123123'
 - tapOn:
     id: 'log-in-button'
 ```
 
-### Full launch + dismiss dev screens + unlock (Android)
+### Full end-to-end launch (Android)
+
+Before running this flow, ensure:
+
+1. `stop_all()` → `start_fixture_server(recipe: [])` → `setup_android_port_forwarding()`
+2. `adb shell pm clear io.metamask && adb shell am start -n io.metamask/.MainActivity --ei fixtureServerPort 12345`
+
+Then run this Maestro flow:
 
 ```yaml
 appId: io.metamask
 ---
-- launchApp:
-    appId: io.metamask
-    clearState: true
-
 # Dismiss dev screens if present
 - runFlow:
     when:
@@ -166,11 +175,11 @@ appId: io.metamask
       - tapOn:
           id: 'fast-refresh'
 
-# Wait for login screen and unlock
+# Unlock wallet
 - extendedWaitUntil:
     visible:
       id: 'login-password-input'
-    timeout: 15000
+    timeout: 20000
 
 - tapOn:
     id: 'login-password-input'
@@ -195,16 +204,28 @@ appId: io.metamask
 
 ## Integration with test-infra-mcp
 
-When combining Maestro with the test infrastructure MCP server:
+Every Maestro test follows this sequence:
 
 ```
-1. start_mock_server(routes: [...])          # test-infra-mcp
-2. start_fixture_server(recipe: [...])       # test-infra-mcp
-3. setup_android_port_forwarding()           # test-infra-mcp (Android)
-   OR get_ios_launch_args()                  # test-infra-mcp (iOS)
-4. launch_app(appId: "io.metamask")          # maestro
-5. [dismiss dev screens if needed]           # maestro
-6. [interact with app]                       # maestro
-7. get_mock_hits("...")                      # test-infra-mcp (verify)
-8. stop_all()                                # test-infra-mcp (cleanup)
+# 1. Infrastructure (test-infra-mcp)
+stop_all()
+start_mock_server(routes: [...])                          # optional — only if mocking APIs
+start_fixture_server(recipe: [...])                       # ALWAYS — default [] if user didn't specify
+setup_android_port_forwarding()                           # Android
+  OR get_ios_launch_args()                                # iOS
+
+# 2. Launch app (adb — Android)
+adb shell pm clear io.metamask
+adb shell am start -n io.metamask/.MainActivity --ei fixtureServerPort 12345
+
+# 3. UI flow (maestro)
+[dismiss dev screens if present]
+[unlock wallet with password 123123123]
+[interact with app — the actual test]
+
+# 4. Verify & cleanup (test-infra-mcp)
+get_mock_hits("...")                                      # optional — verify API calls
+stop_all()
 ```
+
+The fixture server is **never optional** — it's what gives the app a wallet to unlock.
