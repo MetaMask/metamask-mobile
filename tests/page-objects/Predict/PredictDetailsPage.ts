@@ -167,6 +167,40 @@ class PredictDetailsPage {
     });
   }
 
+  private getOpenPositionValueButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          /Celtics[\s•\n]*83¢/,
+        ) as unknown as DetoxElement,
+      appium: () =>
+        PlaywrightMatchers.getElementByXPath(
+          `//*[ (contains(@text,'Celtics') and contains(@text,'83¢')) or (contains(@label,'Celtics') and contains(@label,'83¢')) or (contains(@name,'Celtics') and contains(@name,'83¢')) ]`,
+        ),
+    });
+  }
+
+  private getKeypadDigitButton(digit: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(digit),
+      appium: () => PlaywrightMatchers.getElementByText(digit),
+    });
+  }
+
+  private getDoneButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Done'),
+      appium: () => PlaywrightMatchers.getElementByText('Done'),
+    });
+  }
+
+  private getContinueButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Continue'),
+      appium: () => PlaywrightMatchers.getElementByText('Continue'),
+    });
+  }
+
   async waitForScreenToDisplay(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Predict market details screen',
@@ -206,12 +240,7 @@ class PredictDetailsPage {
   }
 
   async tapOpenPositionValue(): Promise<void> {
-    // Use regex to match both "Celtics\n83¢" and "Celtics • 83¢" formats
-    const celticsButton = (await Matchers.getElementByText(
-      /Celtics[\s•\n]*83¢/,
-    )) as unknown as DetoxElement;
-
-    await UnifiedGestures.waitAndTap(celticsButton, {
+    await UnifiedGestures.waitAndTap(this.getOpenPositionValueButton(), {
       description: 'Celtics outcome button',
     });
   }
@@ -220,31 +249,20 @@ class PredictDetailsPage {
     const digits = amount.split('');
 
     for (const digit of digits) {
-      const digitElement = (await Matchers.getElementByText(
-        digit,
-      )) as unknown as DetoxElement;
-      await UnifiedGestures.waitAndTap(digitElement, {
+      await UnifiedGestures.waitAndTap(this.getKeypadDigitButton(digit), {
         description: `Tap ${digit} on keypad`,
       });
     }
   }
 
   async tapDoneButton(): Promise<void> {
-    const continueButton = (await Matchers.getElementByText(
-      'Done',
-    )) as unknown as DetoxElement;
-
-    await UnifiedGestures.waitAndTap(continueButton, {
+    await UnifiedGestures.waitAndTap(this.getDoneButton(), {
       description: 'Done button',
     });
   }
 
   async tapContinueButton(): Promise<void> {
-    const continueButton = (await Matchers.getElementByText(
-      'Continue',
-    )) as unknown as DetoxElement;
-
-    await UnifiedGestures.waitAndTap(continueButton, {
+    await UnifiedGestures.waitAndTap(this.getContinueButton(), {
       description: 'Continue button',
     });
   }

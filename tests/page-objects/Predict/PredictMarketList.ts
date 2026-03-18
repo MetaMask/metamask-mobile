@@ -1,5 +1,4 @@
 import {
-  Assertions,
   Matchers,
   PlaywrightMatchers,
   UnifiedGestures,
@@ -131,7 +130,7 @@ class PredictMarketList {
     });
   }
 
-  private getCategoryTab(category: CategoryTab): EncapsulatedElementType {
+  getCategoryTab(category: CategoryTab): EncapsulatedElementType {
     const label = CATEGORY_LABELS[category];
 
     return encapsulated({
@@ -140,15 +139,26 @@ class PredictMarketList {
     });
   }
 
-  async waitForScreenToDisplay(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.container, {
-      description: 'Predict market list container',
-      timeout: 15000,
-    });
-  }
+  getMarketOutcomeButton(
+    category: CategoryTab,
+    cardIndex: number,
+    outcome: 'Yes' | 'No',
+  ): EncapsulatedElementType {
+    const parentId = getPredictMarketListSelector.marketCardByCategory(
+      category,
+      cardIndex,
+    );
 
-  async isContainerDisplayed(): Promise<void> {
-    await this.waitForScreenToDisplay();
+    return encapsulated({
+      detox: () =>
+        element(
+          by.text(outcome).withAncestor(by.id(parentId)),
+        ) as unknown as DetoxElement,
+      appium: () =>
+        PlaywrightMatchers.getElementByXPath(
+          `//*[contains(@resource-id,'${parentId}') or contains(@name,'${parentId}')]//*[(@text='${outcome}' or @content-desc='${outcome}' or @label='${outcome}' or @name='${outcome}')]`,
+        ),
+    });
   }
 
   async tapMarketCard(
@@ -170,55 +180,29 @@ class PredictMarketList {
     category: CategoryTab = 'new',
     cardIndex: number = 1,
   ): Promise<void> {
-    const parentId = getPredictMarketListSelector.marketCardByCategory(
-      category,
-      cardIndex,
+    await UnifiedGestures.waitAndTap(
+      this.getMarketOutcomeButton(category, cardIndex, 'Yes'),
+      {
+        description: `Yes option in ${category} feed index ${cardIndex}`,
+      },
     );
-
-    const yesByTextWithAncestor = element(
-      by.text('Yes').withAncestor(by.id(parentId)),
-    ) as unknown as DetoxElement;
-
-    await UnifiedGestures.waitAndTap(yesByTextWithAncestor, {
-      description: `Yes option in ${category} feed index ${cardIndex}`,
-    });
   }
 
   async tapNoBasedOnCategoryAndIndex(
     category: CategoryTab = 'new',
     cardIndex: number = 1,
   ): Promise<void> {
-    const parentId = getPredictMarketListSelector.marketCardByCategory(
-      category,
-      cardIndex,
+    await UnifiedGestures.waitAndTap(
+      this.getMarketOutcomeButton(category, cardIndex, 'No'),
+      {
+        description: `No option in ${category} feed index ${cardIndex}`,
+      },
     );
-
-    const noByTextWithAncestor = element(
-      by.text('No').withAncestor(by.id(parentId)),
-    ) as unknown as DetoxElement;
-
-    await UnifiedGestures.waitAndTap(noByTextWithAncestor, {
-      description: `No option in ${category} feed index ${cardIndex}`,
-    });
   }
 
   async tapAddFundsButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.addFundsButton, {
       description: 'Predict add funds button',
-    });
-  }
-
-  async isBalanceCardDisplayed(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.balanceCard, {
-      description: 'Predict balance card',
-      timeout: 15000,
-    });
-  }
-
-  async isAvailableBalanceDisplayed(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.availableBalanceLabel, {
-      description: 'Available balance label',
-      timeout: 15000,
     });
   }
 
