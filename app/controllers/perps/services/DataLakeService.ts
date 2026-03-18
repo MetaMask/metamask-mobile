@@ -14,7 +14,7 @@ import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 
 /** Type alias for account array from AccountTreeController */
-type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
+type AccountGroupAccounts = InternalAccount[];
 
 /**
  * DataLakeService
