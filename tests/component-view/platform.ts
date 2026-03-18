@@ -119,9 +119,14 @@ export function describeForPlatforms(
       });
       // Set scope before define() so itForPlatforms/itOnlyForPlatforms inside define
       // see the current platform and register a single it per test (not duplicate per platform).
+      const previousScope = (globalThis as Record<string, unknown>)[SCOPE_KEY];
       (globalThis as Record<string, unknown>)[SCOPE_KEY] = os;
       define({ os });
-      delete (globalThis as Record<string, unknown>)[SCOPE_KEY];
+      if (previousScope === undefined) {
+        delete (globalThis as Record<string, unknown>)[SCOPE_KEY];
+      } else {
+        (globalThis as Record<string, unknown>)[SCOPE_KEY] = previousScope;
+      }
     });
   }
 }
@@ -185,9 +190,16 @@ export function describeEach<T extends Record<string, unknown>>(
             Platform.OS = originalOS;
             delete (globalThis as Record<string, unknown>)[SCOPE_KEY];
           });
+          const previousScope = (globalThis as Record<string, unknown>)[
+            SCOPE_KEY
+          ];
           (globalThis as Record<string, unknown>)[SCOPE_KEY] = os;
           define(row);
-          delete (globalThis as Record<string, unknown>)[SCOPE_KEY];
+          if (previousScope === undefined) {
+            delete (globalThis as Record<string, unknown>)[SCOPE_KEY];
+          } else {
+            (globalThis as Record<string, unknown>)[SCOPE_KEY] = previousScope;
+          }
         });
       }
     }
