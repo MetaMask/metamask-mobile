@@ -1,6 +1,6 @@
-import { RampType } from '../types';
-import Routes from '../../../../../constants/navigation/Routes';
-import NavigationService from '../../../../../core/NavigationService';
+import { RampType } from '../Aggregator/types';
+import Routes from '../../../../constants/navigation/Routes';
+import NavigationService from '../../../../core/NavigationService';
 
 const RAMP_ACTIVITY = 'activity';
 

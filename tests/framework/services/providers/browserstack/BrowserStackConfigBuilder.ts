@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
 import type { BrowserStackConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';

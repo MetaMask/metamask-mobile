@@ -21,7 +21,7 @@ import { mockNotificationsWithMetaData } from '../__mocks__/mock_notifications';
 import { createNavigationProps } from '../../../../util/testUtils';
 import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
 import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/NotificationMenuView.testIds';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 
 const mockNavigation = createNavigationProps({});
