@@ -9,6 +9,8 @@ export enum MarketInsightsSelectorsIDs {
   SOURCES_FOOTER = 'market-insights-sources-footer',
   THUMBS_UP_BUTTON = 'market-insights-thumbs-up-button',
   THUMBS_DOWN_BUTTON = 'market-insights-thumbs-down-button',
+  LONG_BUTTON = 'market-insights-long-button',
+  SHORT_BUTTON = 'market-insights-short-button',
   SWAP_BUTTON = 'market-insights-swap-button',
   BUY_BUTTON = 'market-insights-buy-button',
   FEEDBACK_BOTTOM_SHEET = 'market-insights-feedback-bottom-sheet',

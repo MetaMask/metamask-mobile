@@ -168,16 +168,19 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
 }));
 
 const mockClaimRewards = jest.fn();
-const mockUseMerklBonusClaim = jest.fn((_asset?: unknown) => ({
-  claimableReward: null as string | null,
-  hasPendingClaim: false,
-  isClaiming: false,
-  claimRewards: mockClaimRewards,
-}));
+const mockUseMerklBonusClaim = jest.fn(
+  (_asset?: unknown, _location?: unknown, _isVisible?: unknown) => ({
+    claimableReward: null as string | null,
+    hasPendingClaim: false,
+    isClaiming: false,
+    claimRewards: mockClaimRewards,
+  }),
+);
 jest.mock(
   '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
   () => ({
-    useMerklBonusClaim: (...args: [unknown]) => mockUseMerklBonusClaim(...args),
+    useMerklBonusClaim: (...args: [unknown, unknown, unknown]) =>
+      mockUseMerklBonusClaim(...args),
   }),
 );
 
@@ -332,6 +335,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
     claimableReward?: string | null;
+    isClaiming?: boolean;
     tokenMarketData?: Record<string, Record<string, { price: number }>>;
     currencyRatesData?: Record<string, { conversionRate: number }>;
     nativeCurrency?: string;
@@ -351,6 +355,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStablecoinLendingEnabled = false,
     earnToken,
     claimableReward = null,
+    isClaiming = false,
     tokenMarketData,
     currencyRatesData,
     nativeCurrency,
@@ -367,7 +372,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward,
       hasPendingClaim: false,
-      isClaiming: false,
+      isClaiming,
       claimRewards: mockClaimRewards,
     });
 
@@ -1430,6 +1435,53 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
         ),
       ).toBeNull();
       expect(getByText('+1.50%')).toBeOnTheScreen();
+    });
+
+    it('shows Spinner instead of text when isClaiming is true', () => {
+      prepareMocks({
+        asset: claimableAsset,
+        claimableReward: '1000000000000000000',
+        isClaiming: true,
+      });
+
+      const { queryByText, UNSAFE_getByType } = renderWithProvider(
+        <TokenListItemV2
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+
+      const { Spinner } = jest.requireActual(
+        '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs',
+      );
+      expect(UNSAFE_getByType(Spinner)).toBeTruthy();
+    });
+
+    it('passes asset to useMerklBonusClaim hook', () => {
+      prepareMocks({
+        asset: claimableAsset,
+      });
+
+      renderWithProvider(
+        <TokenListItemV2
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+        claimableAsset,
+        'token_list_item',
+        true,
+      );
     });
   });
 
