@@ -59,7 +59,7 @@ import MSU_NATIVE from './msu-native.png';
 import BOB from './bob.png';
 import ROOTSTOCK from './rootstock-native.png';
 import STABLE from './stable.png';
-import STABLE_NATIVE from './stable-native.svg';
+import STABLE_NATIVE from './stable-native.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
