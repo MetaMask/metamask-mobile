@@ -46,6 +46,10 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  AccountType,
+  getSocialAccountType,
+} from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -398,7 +402,9 @@ const ChoosePassword = () => {
     if (!validation.valid) return;
 
     const provider = route.params?.provider;
-    const accountType = provider ? `metamask_${provider}` : 'metamask';
+    const accountType = provider
+      ? getSocialAccountType(provider, false)
+      : AccountType.Metamask;
     const isSocialLogin = getOauth2LoginSuccess();
 
     track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {

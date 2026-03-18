@@ -432,7 +432,9 @@ const ImportFromSecretRecoveryPhrase = ({
           parentContext: onboardingTraceCtx,
           tags: {
             is_social_login: oauthLoginSuccess,
-            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
+            account_type: oauthLoginSuccess
+              ? AccountType.SocialImport
+              : AccountType.SrpImport,
             biometrics_enabled: Boolean(biometryType),
           },
         });
@@ -467,7 +469,9 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
-          account_type: 'imported',
+          account_type: oauthLoginSuccess
+            ? AccountType.SocialImport
+            : AccountType.SrpImport,
         });
 
         fetchAccountsWithActivity();
