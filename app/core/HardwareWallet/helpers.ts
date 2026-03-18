@@ -36,22 +36,3 @@ export function getHardwareWalletTypeForAddress(
   }
   return undefined;
 }
-
-/**
- * Returns i18n keys for connection tips based on the wallet type.
- */
-export function getConnectionTipsForWalletType(
-  walletType: HardwareWalletType | null,
-): string[] {
-  switch (walletType) {
-    case HardwareWalletType.Ledger:
-      return [
-        'hardware_wallet.connecting.tip_unlock',
-        'hardware_wallet.connecting.tip_open_app',
-        'hardware_wallet.connecting.tip_enable_bluetooth',
-        'hardware_wallet.connecting.tip_dnd_off',
-      ];
-    default:
-      return [];
-  }
-}

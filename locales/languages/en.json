@@ -8022,7 +8022,7 @@
       "continue": "Continue"
     },
     "connecting": {
-      "title": "Connect your {{device}}",
+      "title": "Connecting {{device}}...",
       "searching": "Looking for {{device}}...",
       "tips_header": "To continue, make sure:",
       "tip_unlock": "Your {{device}} is unlocked",
