@@ -20,6 +20,10 @@ const MarketInsightsBackgroundVideoLight = require('../../animations/market-insi
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const MarketInsightsBackgroundVideoDark = require('../../animations/market-insights-background-dark.mp4');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const MarketInsightsBackgroundFirstFrameLight = require('../../animations/market-insights-background-light-first-frame.png');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const MarketInsightsBackgroundFirstFrameDark = require('../../animations/market-insights-background-dark-first-frame.png');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-insights-background-light-last-frame.png');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const MarketInsightsBackgroundLastFrameDark = require('../../animations/market-insights-background-dark-last-frame.png');
@@ -206,7 +210,15 @@ const MarketInsightsView: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
   const [videoEnded, setVideoEnded] = useState(false);
+  const [showFirstFrame, setShowFirstFrame] = useState(true);
   const [showLastFrame, setShowLastFrame] = useState(false);
+  const firstFrameImage = useMemo(
+    () =>
+      isDarkMode
+        ? MarketInsightsBackgroundFirstFrameDark
+        : MarketInsightsBackgroundFirstFrameLight,
+    [isDarkMode],
+  );
   const lastFrameImage = useMemo(
     () =>
       isDarkMode
@@ -224,6 +236,14 @@ const MarketInsightsView: React.FC = () => {
 
   const handleVideoEnd = useCallback(() => {
     setVideoEnded(true);
+  }, []);
+
+  const handleVideoLoad = useCallback(() => {
+    setShowFirstFrame(false);
+  }, []);
+
+  const handleVideoLoadStart = useCallback(() => {
+    setShowFirstFrame(true);
   }, []);
 
   const hasTrackedViewRef = useRef(false);
@@ -541,17 +561,28 @@ const MarketInsightsView: React.FC = () => {
             />
           )}
           {!videoEnded && (
-            <Video
-              source={backgroundVideo}
-              style={tw.style('w-full h-full')}
-              resizeMode="cover"
-              muted
-              paused={false}
-              controls={false}
-              disableFocus
-              onEnd={handleVideoEnd}
-              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-            />
+            <>
+              <Video
+                source={backgroundVideo}
+                style={tw.style('w-full h-full')}
+                resizeMode="cover"
+                muted
+                paused={false}
+                controls={false}
+                disableFocus
+                onLoadStart={handleVideoLoadStart}
+                onLoad={handleVideoLoad}
+                onEnd={handleVideoEnd}
+                testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+              />
+              {showFirstFrame && (
+                <Image
+                  source={firstFrameImage}
+                  style={tw.style('absolute w-full h-full')}
+                  resizeMode="cover"
+                />
+              )}
+            </>
           )}
         </Box>
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
