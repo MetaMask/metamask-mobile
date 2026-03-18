@@ -1684,6 +1684,22 @@ export interface RewardsControllerApplyBonusCodeAction {
 }
 
 /**
+ * Response DTO for the client version requirements endpoint.
+ */
+export interface ClientVersionRequirementDto {
+  minimumMobileVersion?: string;
+  minimumExtensionVersion?: string;
+}
+
+/**
+ * Action for fetching client version requirements
+ */
+export interface RewardsControllerGetClientVersionRequirementsAction {
+  type: 'RewardsController:getClientVersionRequirements';
+  handler: () => Promise<ClientVersionRequirementDto>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1724,7 +1740,8 @@ export type RewardsControllerActions =
   | RewardsControllerCanChangeRewardsEnvUrlAction
   | RewardsControllerSetRewardsEnvUrlAction
   | RewardsControllerGetDefaultRewardsEnvUrlAction
-  | RewardsControllerApplyBonusCodeAction;
+  | RewardsControllerApplyBonusCodeAction
+  | RewardsControllerGetClientVersionRequirementsAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

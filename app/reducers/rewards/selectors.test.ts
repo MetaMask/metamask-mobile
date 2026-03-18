@@ -53,7 +53,12 @@ import {
   selectCampaignParticipantStatuses,
   selectCampaignParticipantStatusById,
   selectCampaignParticipantCount,
+  selectIsRewardsVersionBlocked,
+  selectVersionGuardLoading,
+  selectVersionGuardError,
 } from './selectors';
+// eslint-disable-next-line import-x/no-namespace
+import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
@@ -70,6 +75,10 @@ import { RewardsState, AccountOptInBannerInfoStatus } from '.';
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.71.0'),
 }));
 
 const mockedUseSelector = useSelector as jest.MockedFunction<
@@ -3308,6 +3317,56 @@ describe('Rewards selectors', () => {
         },
       });
       expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
+    });
+  });
+
+  describe('version guard selectors', () => {
+    it('selectVersionGuardLoading returns loading state', () => {
+      const state = createMockRootState({ versionGuardLoading: true });
+      expect(selectVersionGuardLoading(state)).toBe(true);
+    });
+
+    it('selectVersionGuardError returns error state', () => {
+      const state = createMockRootState({ versionGuardError: true });
+      expect(selectVersionGuardError(state)).toBe(true);
+    });
+
+    describe('selectIsRewardsVersionBlocked', () => {
+      let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+      beforeEach(() => {
+        mockHasMinimumRequiredVersion = jest.spyOn(
+          remoteFeatureFlagModule,
+          'hasMinimumRequiredVersion',
+        );
+      });
+
+      afterEach(() => {
+        mockHasMinimumRequiredVersion?.mockRestore();
+      });
+
+      it('returns false when minimumMobileVersion is null', () => {
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: null,
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns false when current version meets minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '7.50.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns true when current version is below minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '99.0.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(true);
+      });
     });
   });
 });

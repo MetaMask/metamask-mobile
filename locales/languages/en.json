@@ -7506,6 +7506,11 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "version_guard": {
+      "title": "Update required",
+      "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
+      "update_button": "Update MetaMask"
+    },
     "season_error": {
       "error_fetching_title": "Season couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",

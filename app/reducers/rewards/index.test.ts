@@ -2134,6 +2134,9 @@ describe('rewardsReducer', () => {
         campaignsLoading: false,
         campaignsError: false,
         campaignParticipantStatuses: {},
+        versionGuardMinimumMobileVersion: null,
+        versionGuardLoading: false,
+        versionGuardError: false,
       };
       const action = resetRewardsState();
 
@@ -2238,6 +2241,9 @@ describe('rewardsReducer', () => {
         campaignsLoading: false,
         campaignsError: false,
         campaignParticipantStatuses: {},
+        versionGuardMinimumMobileVersion: null,
+        versionGuardLoading: false,
+        versionGuardError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',

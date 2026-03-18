@@ -123,6 +123,11 @@ export interface RewardsState {
 
   // Campaign participant status (keyed by campaignId)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
+
+  // Version guard state
+  versionGuardMinimumMobileVersion: string | null;
+  versionGuardLoading: boolean;
+  versionGuardError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -192,6 +197,11 @@ export const initialState: RewardsState = {
 
   // Campaign participant statuses initial state
   campaignParticipantStatuses: {},
+
+  // Version guard initial state
+  versionGuardMinimumMobileVersion: null,
+  versionGuardLoading: false,
+  versionGuardError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -470,6 +480,20 @@ const rewardsSlice = createSlice({
         action.payload.status;
     },
 
+    // Version guard reducers
+    setVersionGuardMinimumMobileVersion: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.versionGuardMinimumMobileVersion = action.payload;
+    },
+    setVersionGuardLoading: (state, action: PayloadAction<boolean>) => {
+      state.versionGuardLoading = action.payload;
+    },
+    setVersionGuardError: (state, action: PayloadAction<boolean>) => {
+      state.versionGuardError = action.payload;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -627,6 +651,10 @@ export const {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  // Version guard actions
+  setVersionGuardMinimumMobileVersion,
+  setVersionGuardLoading,
+  setVersionGuardError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

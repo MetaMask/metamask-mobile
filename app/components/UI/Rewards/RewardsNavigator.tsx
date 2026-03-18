@@ -11,15 +11,21 @@ import CampaignMechanicsView from './Views/CampaignMechanicsView';
 import PreviousSeasonView from './Views/PreviousSeasonView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
+import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation();
+
+  useRewardsVersionGuard();
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
@@ -42,12 +48,19 @@ const RewardsNavigator: React.FC = () => {
   };
 
   useEffect(() => {
+    if (isVersionBlocked) {
+      return;
+    }
     if (subscriptionId) {
       navigation.navigate(Routes.REWARDS_DASHBOARD);
     } else {
       navigation.navigate(Routes.REWARDS_ONBOARDING_FLOW);
     }
-  }, [navigation, subscriptionId]);
+  }, [navigation, subscriptionId, isVersionBlocked]);
+
+  if (isVersionBlocked) {
+    return <RewardsUpdateRequired />;
+  }
 
   return (
     <Stack.Navigator initialRouteName={getInitialRoute()}>
