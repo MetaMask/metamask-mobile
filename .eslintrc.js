@@ -420,7 +420,7 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/restrict-template-expressions': 'error',
 
-        // === Import rules (using 'import' plugin, not 'import-x') ===
+        // === Import rules ===
         'import-x/consistent-type-specifier-style': [
           'error',
           'prefer-top-level',
