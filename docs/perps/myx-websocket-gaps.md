@@ -53,6 +53,22 @@ MetaMask's perps UI requires real-time streaming for positions, orders, fills, a
 4. Are there rate limits on the REST endpoints we're polling?
 5. Can `getAccountInfo` be called without specifying a poolId (aggregate across all pools)?
 
+## Market Data Parity Status
+
+| Data Point    | Source                | Update Method         | Parity with HL     |
+| ------------- | --------------------- | --------------------- | ------------------ |
+| Volume (24h)  | Ticker `volume` field | REST polling (~5s)    | Equivalent         |
+| Funding rate  | `getBaseDetail` REST  | Cached, refreshed 60s | HL is real-time WS |
+| Open interest | `getBaseDetail` REST  | Cached, refreshed 60s | HL is real-time WS |
+| Oracle price  | Ticker `price` field  | REST polling (~5s)    | Equivalent         |
+| TP/SL orders  | Not supported by MYX  | N/A                   | Gap                |
+
+## Remaining Gaps
+
+- No WebSocket for positions/orders/account (REST-polled every 5s)
+- TP/SL (take profit / stop loss) orders not supported by MYX protocol
+- Funding rate and OI are REST-cached (60s TTL) vs HL's real-time WebSocket push
+
 ## Impact
 
 With WebSocket streaming, we could:

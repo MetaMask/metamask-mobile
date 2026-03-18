@@ -172,6 +172,20 @@ export class MYXWalletService {
         params?: unknown[];
       }) => Promise<unknown>;
     };
+    request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+    getAddresses: () => Promise<readonly `0x${string}`[]>;
+    signMessage: (args: {
+      message: string | { raw: Uint8Array };
+    }) => Promise<`0x${string}`>;
+    sendTransaction: (args: {
+      to: `0x${string}`;
+      data?: `0x${string}`;
+      value?: bigint;
+      gas?: bigint;
+      gasPrice?: bigint;
+      maxFeePerGas?: bigint;
+      maxPriorityFeePerGas?: bigint;
+    }) => Promise<`0x${string}`>;
     signTypedData: (args: {
       domain: Record<string, unknown>;
       types: Record<string, { name: string; type: string }[]>;
@@ -300,6 +314,56 @@ export class MYXWalletService {
       account: { address: evmAccount.address },
       chain: { id: chainId },
       transport,
+      // viem Client.request — SDK calls this for estimateContractGas/writeContract
+      request: transport.request,
+      // WalletClientLike interface methods
+      getAddresses: (): Promise<readonly `0x${string}`[]> =>
+        Promise.resolve([evmAccount.address as `0x${string}`]),
+      signMessage: async (): Promise<`0x${string}`> => {
+        // MYX SDK uses signTypedData for auth, not signMessage.
+        // signPersonalMessage is not in PerpsController's allowed messenger actions.
+        throw new Error(
+          'signMessage not supported — MYX auth uses signTypedData',
+        );
+      },
+      sendTransaction: async (args: {
+        to: `0x${string}`;
+        data?: `0x${string}`;
+        value?: bigint;
+        gas?: bigint;
+        gasPrice?: bigint;
+        maxFeePerGas?: bigint;
+        maxPriorityFeePerGas?: bigint;
+      }): Promise<`0x${string}`> => {
+        // Convert bigint values to hex strings for eth_sendTransaction
+        const txParams: Record<string, string> = {
+          from: evmAccount.address,
+          to: args.to,
+        };
+        if (args.data) {
+          txParams.data = args.data;
+        }
+        if (args.value !== undefined) {
+          txParams.value = `0x${args.value.toString(16)}`;
+        }
+        if (args.gas !== undefined) {
+          txParams.gas = `0x${args.gas.toString(16)}`;
+        }
+        if (args.gasPrice !== undefined) {
+          txParams.gasPrice = `0x${args.gasPrice.toString(16)}`;
+        }
+        if (args.maxFeePerGas !== undefined) {
+          txParams.maxFeePerGas = `0x${args.maxFeePerGas.toString(16)}`;
+        }
+        if (args.maxPriorityFeePerGas !== undefined) {
+          txParams.maxPriorityFeePerGas = `0x${args.maxPriorityFeePerGas.toString(16)}`;
+        }
+        const hash = await transport.request({
+          method: 'eth_sendTransaction',
+          params: [txParams],
+        });
+        return hash as `0x${string}`;
+      },
       signTypedData: async (args): Promise<string> => {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(

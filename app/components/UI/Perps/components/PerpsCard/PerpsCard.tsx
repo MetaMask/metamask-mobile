@@ -52,7 +52,7 @@ const getPositionDisplayData = (position: Position): CardDisplayData => {
   const isLong = parseFloat(position.size) > 0;
   const displaySymbol = getPerpsDisplaySymbol(position.symbol);
   const primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
-  const secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
+  const secondaryText = `${formatPositionSize(Math.abs(parseFloat(position.size)).toString())} ${displaySymbol}`;
 
   const pnlValue = parseFloat(position.unrealizedPnl);
   const valueText = formatPerpsFiat(position.positionValue, {

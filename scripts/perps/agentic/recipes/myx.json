@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "description": "MYX provider auth + authenticated address",
+    "expression": "(function(){var c=Engine.context.PerpsController;var id='myx';var p=c.providers.get(id);if(!p)return JSON.stringify({error:'no MYX provider'});return p.isReadyToTrade().then(function(r){return JSON.stringify({provider:id,ready:r.ready,authenticatedAddress:r.authenticatedAddress||null})})})()",
+    "async": true
+  },
+  "markets": {
+    "description": "MYX markets with prices (expect SGLT on testnet)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getMarketDataWithPrices().then(function(r){var myx=r.filter(function(m){return m.provider==='myx'});return JSON.stringify(myx.map(function(m){return{symbol:m.symbol,price:m.price,change24h:m.change24hPercent,volume24h:m.volume24h}}))})})()",
+    "async": true
+  },
+  "positions": {
+    "description": "Open MYX positions with PnL",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getPositions().then(function(r){var myx=r.filter(function(p){return p.provider==='myx'});return JSON.stringify(myx.map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice,unrealizedPnl:p.unrealizedPnl,margin:p.margin}}))})})()",
+    "async": true
+  },
+  "account": {
+    "description": "MYX account state (freeMargin, walletBalance, totalBalance)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getAccountState().then(function(r){return JSON.stringify(r)})})()",
+    "async": true
+  },
+  "oracle-price": {
+    "description": "Oracle price for first MYX pool",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(r){if(!r.length)return JSON.stringify({error:'no markets'});return JSON.stringify({symbol:r[0].symbol,price:r[0].price})})})()",
+    "async": true
+  },
+  "pre-trade": {
+    "description": "Snapshot: position count + account balances (before trade)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return Promise.all([c.getPositions(),c.getAccountState()]).then(function(r){var myx=r[0].filter(function(p){return p.provider==='myx'});return JSON.stringify({positionCount:myx.length,positions:myx.map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice}}),accountState:r[1]})})})()",
+    "async": true
+  },
+  "post-trade": {
+    "description": "Snapshot: position count + account balances (after trade, same shape as pre-trade)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return Promise.all([c.getPositions(),c.getAccountState()]).then(function(r){var myx=r[0].filter(function(p){return p.provider==='myx'});return JSON.stringify({positionCount:myx.length,positions:myx.map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice}}),accountState:r[1]})})})()",
+    "async": true
+  },
+  "orders": {
+    "description": "Open MYX limit/stop orders",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getOpenOrders().then(function(r){var myx=r.filter(function(o){return o.provider==='myx'});return JSON.stringify(myx)})})()",
+    "async": true
+  }
+}
