@@ -67,9 +67,6 @@ export const usePredictMarketData = ({
       }
       return allPages.reduce((total, page) => total + page.length, 0);
     },
-    retry: 3,
-    retryDelay: (attemptIndex) =>
-      Math.min(1000 * Math.pow(2, attemptIndex), 30000) + Math.random() * 1000,
     staleTime: 10_000,
   });
 
