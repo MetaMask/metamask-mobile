@@ -16,6 +16,7 @@ export enum ActiveOrderState {
   PLACE_ORDER = 'place_order',
   PLACING_ORDER = 'placing_order',
   REDIRECTING = 'redirecting',
+  CALLING_PAY_WITH_ANY_TOKEN = 'calling_pay_with_any_token',
   PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
   SUCCESS = 'success',
 }

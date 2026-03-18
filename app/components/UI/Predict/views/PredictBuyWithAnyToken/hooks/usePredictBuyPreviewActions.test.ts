@@ -15,6 +15,7 @@ const mockNavigateToConfirmation = jest.fn();
 const mockClearActiveOrder = jest.fn();
 const mockNavigateToBuyPreview = jest.fn();
 const mockResetSelectedPaymentToken = jest.fn();
+let mockApprovalRequest: { id?: string; type?: string } | undefined;
 let mockActiveOrder: {
   batchId?: string | null;
   state?: string;
@@ -43,6 +44,7 @@ jest.mock(
   () => ({
     __esModule: true,
     default: () => ({
+      approvalRequest: mockApprovalRequest,
       onConfirm: mockOnApprovalConfirm,
       onReject: mockOnApprovalReject,
     }),
@@ -79,11 +81,12 @@ const mockOnOrderError = jest.fn();
 const mockOnConfirmOrder = jest.fn();
 const mockOnOrderCancelled = jest.fn();
 const mockOnOrderSuccess = jest.fn();
-const mockOnConfirmationRedirected = jest.fn();
 const mockOnPlaceOrder = jest.fn();
 const mockOnPlaceOrderEnd = jest.fn();
 const mockOnDepositOrder = jest.fn();
 const mockOnDepositOrderFailed = jest.fn();
+const mockStartPayWithAnyTokenConfirmation = jest.fn();
+const mockOnPayWithAnyTokenConfirmationReady = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -92,13 +95,15 @@ jest.mock('../../../../../../core/Engine', () => ({
       onConfirmOrder: (...args: unknown[]) => mockOnConfirmOrder(...args),
       onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       onOrderSuccess: (...args: unknown[]) => mockOnOrderSuccess(...args),
-      onConfirmationRedirected: (...args: unknown[]) =>
-        mockOnConfirmationRedirected(...args),
       onPlaceOrder: (...args: unknown[]) => mockOnPlaceOrder(...args),
       onPlaceOrderEnd: (...args: unknown[]) => mockOnPlaceOrderEnd(...args),
       onDepositOrder: (...args: unknown[]) => mockOnDepositOrder(...args),
       onDepositOrderFailed: (...args: unknown[]) =>
         mockOnDepositOrderFailed(...args),
+      startPayWithAnyTokenConfirmation: (...args: unknown[]) =>
+        mockStartPayWithAnyTokenConfirmation(...args),
+      onPayWithAnyTokenConfirmationReady: (...args: unknown[]) =>
+        mockOnPayWithAnyTokenConfirmationReady(...args),
     },
   },
 }));
@@ -135,6 +140,8 @@ describe('usePredictBuyActions', () => {
     jest.clearAllMocks();
     mockActiveOrder = null;
     mockRouteParams = { ...defaultRouteParams };
+    mockApprovalRequest = undefined;
+    mockStartPayWithAnyTokenConfirmation.mockResolvedValue(undefined);
   });
 
   describe('handleBack', () => {
@@ -265,16 +272,29 @@ describe('usePredictBuyActions', () => {
           preview: createDefaultParams().preview,
         },
       });
+      expect(mockStartPayWithAnyTokenConfirmation).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onConfirmationRedirected on confirmation route', () => {
+    it('starts pay-with-any-token confirmation on confirmation route', () => {
       mockActiveOrder = { state: ActiveOrderState.REDIRECTING };
       mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
 
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
-      expect(mockOnConfirmationRedirected).toHaveBeenCalledTimes(1);
       expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(mockStartPayWithAnyTokenConfirmation).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks pay-with-any-token confirmation ready when approval request appears on confirmation route', () => {
+      mockActiveOrder = {
+        state: ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+      };
+      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
+      mockApprovalRequest = { id: 'approval-1', type: 'transaction' };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockOnPayWithAnyTokenConfirmationReady).toHaveBeenCalledTimes(1);
     });
   });
 

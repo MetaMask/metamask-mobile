@@ -1995,7 +1995,6 @@ export class PredictController extends BaseController<
         delete state.activeOrder.batchId;
       }
     });
-    this.payWithAnyTokenConfirmation();
   }
 
   public onOrderCancelled(): void {
@@ -2080,13 +2079,29 @@ export class PredictController extends BaseController<
           state.activeOrder.state = ActiveOrderState.REDIRECTING;
         }
       });
-      this.payWithAnyTokenConfirmation();
     }
   }
 
-  public onConfirmationRedirected(): void {
+  public startPayWithAnyTokenConfirmation(): void {
+    const activeOrder = this.state.activeOrder;
+    if (!activeOrder || activeOrder.state !== ActiveOrderState.REDIRECTING) {
+      return;
+    }
+
     this.update((state) => {
       if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN;
+      }
+    });
+
+    this.payWithAnyTokenConfirmation();
+  }
+
+  public onPayWithAnyTokenConfirmationReady(): void {
+    this.update((state) => {
+      if (
+        state.activeOrder?.state === ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN
+      ) {
         state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
       }
     });

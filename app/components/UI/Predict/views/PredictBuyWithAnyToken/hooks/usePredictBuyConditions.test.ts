@@ -310,6 +310,18 @@ describe('usePredictBuyConditions', () => {
 
       expect(result.current.isPayFeesLoading).toBe(true);
     });
+
+    it('returns true when activeOrder state is CALLING_PAY_WITH_ANY_TOKEN', () => {
+      mockActiveOrder = {
+        state: ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+      };
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isPayFeesLoading).toBe(true);
+    });
   });
 
   describe('isQuotesStale', () => {
