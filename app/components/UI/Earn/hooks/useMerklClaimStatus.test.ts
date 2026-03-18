@@ -129,6 +129,9 @@ describe('useMerklClaimStatus', () => {
       success: mockSuccessToast,
       failed: mockFailedToast,
     },
+    tronWithdrawal: {
+      failed: jest.fn().mockReturnValue(mockFailedToast),
+    },
   };
 
   const createMockEventBuilder = () => {

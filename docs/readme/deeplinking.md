@@ -884,12 +884,13 @@ describe('Dynamic signature verification', () => {
 
 ### Supported Actions
 
+The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer opens the cash deposit flow; use buy/universal on-ramp entry points instead.
+
 | Action                 | Purpose                     | Handler Function         | Notes                                           |
 | ---------------------- | --------------------------- | ------------------------ | ----------------------------------------------- |
 | `swap`                 | Token swap/bridge (CAIP-19) | `handleSwapUrl`          | Params: `from`, `to`, `amount` (CAIP-19)        |
 | `buy` / `buy-crypto`   | Buy crypto                  | `handleRampUrl`          |                                                 |
 | `sell` / `sell-crypto` | Sell crypto                 | `handleRampUrl`          |                                                 |
-| `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                 |
 | `send`                 | Send transaction            | Recursive `parse()` call |                                                 |
 | `home`                 | Navigate home               | `navigateToHomeUrl`      | Params: `previewToken`, `openNetworkSelector`   |
 | `asset`                | Asset overview              | `handleAssetUrl`         | Params: `assetId` (CAIP-19)                     |
