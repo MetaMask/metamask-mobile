@@ -7853,7 +7853,16 @@
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
-      "participant_count": "#{{count}}"
+      "entered": "Entered",
+      "participant_count": "#{{count}}",
+      "opt_in_cta": "Opt in",
+      "opt_in_sheet_title": "Join the campaign",
+      "opt_in_sheet_description_pre_link": "By clicking 'Opt in' you agree to the MetaMask Rewards",
+      "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
+      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically."
+    },
+    "campaign_mechanics": {
+      "title": "Mechanics"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",
@@ -7863,6 +7872,7 @@
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again.",
       "join_campaign": "Join the campaign",
+      "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
     },

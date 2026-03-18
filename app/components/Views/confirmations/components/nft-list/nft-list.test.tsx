@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { NftList } from './nft-list';
 import { Nft } from '../../types/token';

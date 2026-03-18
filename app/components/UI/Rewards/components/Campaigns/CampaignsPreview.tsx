@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../../../../util/theme';
 import {
   Box,
   BoxFlexDirection,
@@ -15,6 +16,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -22,6 +24,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 
 /**
  * CampaignsPreview shows a snapshot of campaigns on the dashboard:
@@ -31,7 +34,9 @@ import CampaignTile from './CampaignTile';
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { categorizedCampaigns } = useRewardCampaigns();
+  const { colors } = useTheme();
+  const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
+    useRewardCampaigns();
 
   const activeCampaign = useMemo(
     () => categorizedCampaigns.active[0] ?? null,
@@ -47,7 +52,7 @@ const CampaignsPreview: React.FC = () => {
     navigation.navigate(Routes.CAMPAIGNS_VIEW);
   }, [navigation]);
 
-  if (!activeCampaign && !upcomingCampaign) {
+  if (!isLoading && !hasError && !activeCampaign && !upcomingCampaign) {
     return null;
   }
 
@@ -60,14 +65,30 @@ const CampaignsPreview: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          twClassName="gap-2"
         >
+          {isLoading && !activeCampaign && !upcomingCampaign && (
+            <ActivityIndicator size="small" color={colors.primary.default} />
+          )}
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.campaigns_preview.title')}
           </Text>
           <Icon name={IconName.ArrowRight} size={IconSize.Md} />
         </Box>
       </Pressable>
+
+      {isLoading && !activeCampaign && !upcomingCampaign && (
+        <Skeleton style={tw.style('h-50 rounded-xl')} />
+      )}
+
+      {!isLoading && hasError && !activeCampaign && !upcomingCampaign && (
+        <RewardsErrorBanner
+          title={strings('rewards.campaigns_view.error_title')}
+          description={strings('rewards.campaigns_view.error_description')}
+          onConfirm={fetchCampaigns}
+          confirmButtonLabel={strings('rewards.campaigns_view.retry_button')}
+        />
+      )}
 
       {activeCampaign && <CampaignTile campaign={activeCampaign} />}
 
