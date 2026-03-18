@@ -28,8 +28,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  TextButton,
-  TextButtonSize,
+  Text,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { ThemeContext } from '../../../util/theme';
@@ -497,20 +496,22 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               >
                 {strings('login.unlock_button')}
               </Button>
-              <TextButton
-                twClassName="my-0 self-center pt-4 text-alternative"
-                onPress={toggleWarningModal}
+              <TouchableOpacity
                 testID={LoginViewSelectors.RESET_WALLET}
-                isDisabled={loading}
-                size={TextButtonSize.BodyMd}
-                textProps={{
-                  variant: TextVariant.BodyMd,
-                  fontWeight: FontWeight.Medium,
-                  color: TextColor.TextAlternative,
-                }}
+                onPress={toggleWarningModal}
+                disabled={loading}
+                style={tw.style('my-0 self-center pt-4')}
               >
-                {strings('login.forgot_password')}
-              </TextButton>
+                <Text
+                  twClassName="self-center"
+                  disabled={loading}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  variant={TextVariant.BodyMd}
+                >
+                  {strings('login.forgot_password')}
+                </Text>
+              </TouchableOpacity>
             </Box>
           </Box>
         </KeyboardAwareScrollView>
