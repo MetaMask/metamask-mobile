@@ -116,13 +116,33 @@ After selecting a server, a "Developer Menu" onboarding screen may appear with a
 ### Prerequisites — ALWAYS do these before launching
 
 1. **Start a fixture server** via `test-infra-mcp` (if not already running). If the user didn't specify a fixture, use the default: `start_fixture_server(recipe: [])`. The app MUST have a fixture server to load state from — without it, a clean launch goes to onboarding with no wallet.
-2. **Set up port forwarding** — `setup_android_port_forwarding()` for Android or `get_ios_launch_args()` for iOS.
-3. **Clear app data and launch with fixture port** — on Android use `adb`:
-   ```bash
-   adb shell pm clear <appId>
-   adb shell am start -n <appId>/.MainActivity --ei fixtureServerPort 12345
-   ```
-   This ensures deterministic state: app data is wiped, then the app loads fresh state from the fixture server.
+2. **Set up port forwarding** — `setup_android_port_forwarding()` for Android. iOS doesn't need port forwarding (localhost is shared).
+3. **Clear app data and launch with fixture port:**
+
+**Android:**
+
+```bash
+adb shell pm clear <appId>
+adb shell am start -n <appId>/.MainActivity --ei fixtureServerPort 12345
+```
+
+**iOS — use Maestro's `launchApp` with `clearState` and `clearKeychain`:**
+
+```yaml
+- clearKeychain
+- launchApp:
+    appId: io.metamask.MetaMask
+    clearState: true
+    clearKeychain: true
+```
+
+Then pass the fixture server port via environment or rely on the default fallback port (12345).
+
+`clearKeychain` wipes stored credentials so the app behaves like a fresh install — equivalent to `pm clear` on Android.
+
+### NEVER uninstall the app
+
+**Do NOT use `xcrun simctl uninstall`, `adb uninstall`, or any command that removes the app.** The app must remain installed at all times. Use `pm clear` (Android) or `clearState + clearKeychain` (iOS) to reset state without removing the app.
 
 ### Wallet password
 
@@ -211,15 +231,20 @@ Every Maestro test follows this sequence:
 stop_all()
 start_mock_server(routes: [...])                          # optional — only if mocking APIs
 start_fixture_server(recipe: [...])                       # ALWAYS — default [] if user didn't specify
-setup_android_port_forwarding()                           # Android
-  OR get_ios_launch_args()                                # iOS
+setup_android_port_forwarding()                           # Android only
 
-# 2. Launch app (adb — Android)
+# 2. Launch app
+# Android:
 adb shell pm clear io.metamask
 adb shell am start -n io.metamask/.MainActivity --ei fixtureServerPort 12345
+# iOS (via Maestro):
+- clearKeychain
+- launchApp: { appId: io.metamask.MetaMask, clearState: true, clearKeychain: true }
 
 # 3. UI flow (maestro)
 [dismiss dev screens if present]
+  - Android dev server: http://10.0.2.2:8081
+  - iOS dev server: http://localhost:8081
 [unlock wallet with password 123123123]
 [interact with app — the actual test]
 
@@ -229,3 +254,4 @@ stop_all()
 ```
 
 The fixture server is **never optional** — it's what gives the app a wallet to unlock.
+**Never uninstall the app** — only clear data or terminate + relaunch.
