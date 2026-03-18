@@ -1,7 +1,6 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import TokensFullView from './TokensFullView';
 import { useNavigation } from '@react-navigation/native';
-import { useFullViewSortResetEffect } from './useFullViewSortResetEffect';
 
 // Mock external dependencies that are not under test
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -48,16 +47,21 @@ jest.mock('../../UI/Tokens', () => {
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
-const mockUseFullViewSortResetEffect =
-  useFullViewSortResetEffect as jest.MockedFunction<
-    typeof useFullViewSortResetEffect
-  >;
 
 describe('TokensFullView', () => {
   const mockGoBack = jest.fn();
+  let useFullViewSortResetEffectSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    useFullViewSortResetEffectSpy = jest
+      .spyOn(
+        jest.requireMock(
+          './useFullViewSortResetEffect',
+        ) as typeof import('./useFullViewSortResetEffect'),
+        'useFullViewSortResetEffect',
+      )
+      .mockImplementation(jest.fn());
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue({
@@ -70,7 +74,7 @@ describe('TokensFullView', () => {
       name: 'TokensFullView',
     });
 
-    expect(mockUseFullViewSortResetEffect).toHaveBeenCalledTimes(1);
+    expect(useFullViewSortResetEffectSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders header with title and back button', () => {
