@@ -279,9 +279,13 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
-                  // Android only issue, for long numbers, the input field will focus on the right hand side
-                  // Force it to focus on the left hand side
+                  // Source selection is controlled so Bridge can keep the
+                  // visible caret aligned with the raw cursor used by keypad
+                  // edits. On iOS you have to use the press-and-drag magnifier
+                  // handle; Android supports direct tap placement.
                   selection={
+                    // Android only issue, for long numbers, the input field will focus on the right hand side
+                    // Force it to focus on the left hand side
                     tokenType === TokenInputAreaType.Destination
                       ? { start: 0, end: 0 }
                       : selection
