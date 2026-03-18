@@ -1,5 +1,5 @@
 import React from 'react';
-import { ViewStyle, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
@@ -28,7 +28,8 @@ const SRPList = ({
   return (
     <Box
       twClassName="py-4 px-4 bg-default m-2"
-      style={[{ maxHeight }, containerStyle as ViewStyle]}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      style={[{ maxHeight }, containerStyle] as any}
       testID={SRPListSelectorsIDs.SRP_LIST}
     >
       <FlatList
