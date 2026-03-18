@@ -139,6 +139,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 // Mock FlashList
 const mockScrollToIndex = jest.fn();
+const mockRecomputeViewableItems = jest.fn();
 jest.mock('@shopify/flash-list', () => {
   const React = jest.requireActual('react');
   const { FlatList } = jest.requireActual('react-native');
@@ -146,7 +147,7 @@ jest.mock('@shopify/flash-list', () => {
     FlashList: React.forwardRef(
       (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
         React.useImperativeHandle(ref, () => ({
-          recomputeViewableItems: jest.fn(),
+          recomputeViewableItems: mockRecomputeViewableItems,
           scrollToIndex: mockScrollToIndex,
         }));
         return React.createElement(FlatList, { ...props, ref });
@@ -409,6 +410,41 @@ describe('TokenList', () => {
     // This test ensures the component doesn't crash with different prop combinations
     expect(showRemoveMenu).not.toHaveBeenCalled();
     expect(setShowScamWarningModal).not.toHaveBeenCalled();
+  });
+
+  it('does not manually recompute viewable items when network filter changes', () => {
+    let isTokenNetworkFilterEqualCurrentNetwork = true;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+        return false;
+      }
+      if (
+        selector
+          .toString()
+          .includes('selectIsTokenNetworkFilterEqualCurrentNetwork')
+      ) {
+        return isTokenNetworkFilterEqualCurrentNetwork;
+      }
+      return selector({});
+    });
+
+    const store = mockStore(initialState);
+    const { rerender } = render(
+      <Provider store={store}>
+        <TokenList {...defaultProps} isFullView />
+      </Provider>,
+    );
+
+    expect(mockRecomputeViewableItems).not.toHaveBeenCalled();
+
+    isTokenNetworkFilterEqualCurrentNetwork = false;
+    rerender(
+      <Provider store={store}>
+        <TokenList {...defaultProps} isFullView />
+      </Provider>,
+    );
+
+    expect(mockRecomputeViewableItems).not.toHaveBeenCalled();
   });
 
   describe('Homepage Redesign V1 Features', () => {
