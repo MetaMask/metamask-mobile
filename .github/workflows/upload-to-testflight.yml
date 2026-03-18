@@ -62,12 +62,12 @@ jobs:
             echo "| **Branch** | ${{ github.ref_name }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Uses GitHub Environment "apple" for App Store Connect API secrets.
+  # Pulls App Store Connect API keys from AWS Secrets Manager (OIDC).
+  # AWS secret must be accessible only by this workflow when run from main.
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [build, testflight-upload-summary]
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    environment: apple
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -97,16 +97,38 @@ jobs:
           case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
           echo "path=$ABS" >> "$GITHUB_OUTPUT"
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch Apple API keys from AWS Secrets Manager
+        run: |
+          echo "🔐 Fetching App Store Connect API keys from Secrets Manager..."
+          secret_id="metamask-mobile-main-apple-api-keys"
+          secret_json=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "$secret_id" \
+            --query SecretString \
+            --output text)
+          for key in APP_STORE_CONNECT_API_KEY_ISSUER_ID APP_STORE_CONNECT_API_KEY_KEY_ID APP_STORE_CONNECT_API_KEY_KEY_CONTENT; do
+            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k] // empty')
+            if [ -z "$value" ]; then
+              echo "::error::Missing key in secret: $key"
+              exit 1
+            fi
+            echo "::add-mask::$value"
+            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+          done
+          echo "✅ Apple API keys loaded from AWS"
+
       - name: Setup App Store Connect API Key
         run: |
           bash scripts/setup-app-store-connect-api-key.sh \
             "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
 
       - name: Upload to TestFlight
         run: |
