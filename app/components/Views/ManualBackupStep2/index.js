@@ -1,25 +1,29 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  InteractionManager,
   Alert,
   TouchableOpacity,
-  View,
   FlatList,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
+import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
-import { seedphraseBackedUp } from '../../../actions/user';
+import { seedphraseBackedUp as seedphraseBackedUpAction } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
-import createStyles from './styles';
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -40,6 +44,8 @@ import {
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 
+const { height: windowHeight } = Dimensions.get('window');
+
 const ManualBackupStep2 = ({
   navigation,
   seedphraseBackedUp,
@@ -50,8 +56,8 @@ const ManualBackupStep2 = ({
   const backupFlow = route?.params?.backupFlow;
   const settingsBackup = route?.params?.settingsBackup;
 
+  const tw = useTailwind();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
 
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
@@ -70,22 +76,16 @@ const ManualBackupStep2 = ({
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
           color={colors.text.default}
-          style={styles.headerLeft}
+          style={tw.style('ml-4')}
         />
       </TouchableOpacity>
     ),
-    [colors, navigation, styles.headerLeft],
+    [colors, navigation, tw],
   );
+
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-        },
-        colors,
-        false,
-      ),
+      getOnboardingNavbarOptions(route, { headerLeft }, colors, false),
     );
   }, [colors, navigation, route, headerLeft]);
 
@@ -104,6 +104,7 @@ const ManualBackupStep2 = ({
   }, [route.params?.words, gridWords]);
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
+
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
@@ -188,7 +189,7 @@ const ManualBackupStep2 = ({
     setGridWords(tempGrid);
     setMissingWords(removed);
     setEmptySlots(emptySlotsIndexes);
-    const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
+    const sortedIndexes = [...emptySlotsIndexes].sort((a, b) => a - b);
     setSelectedSlot(sortedIndexes[0]);
     setUsedWordIndices(new Set());
     setWordPositionMap({});
@@ -202,25 +203,21 @@ const ManualBackupStep2 = ({
     (word, wordIndex) => {
       const updatedGrid = [...gridWords];
 
-      // Check if this specific word index is already used
       if (usedWordIndices.has(wordIndex)) {
-        // This specific word instance is already placed, find and remove it
         const positionToRemove = Object.keys(wordPositionMap).find(
           (pos) => wordPositionMap[pos] === wordIndex,
         );
 
         if (positionToRemove !== undefined) {
           const newGrid = [...updatedGrid];
-          newGrid[parseInt(positionToRemove)] = '';
+          newGrid[parseInt(positionToRemove, 10)] = '';
           setGridWords(newGrid);
-          setSelectedSlot(parseInt(positionToRemove));
+          setSelectedSlot(parseInt(positionToRemove, 10));
 
-          // Remove this word index from used indices
           const newUsedIndices = new Set(usedWordIndices);
           newUsedIndices.delete(wordIndex);
           setUsedWordIndices(newUsedIndices);
 
-          // Remove from position map
           const newPositionMap = { ...wordPositionMap };
           delete newPositionMap[positionToRemove];
           setWordPositionMap(newPositionMap);
@@ -228,24 +225,20 @@ const ManualBackupStep2 = ({
         return;
       }
 
-      // Word must be one of the missing ones
       if (!missingWords.includes(word)) return;
 
-      // Get empty slots in order
-      const emptySlotsUpdated = emptySlots
+      const emptySlotsUpdated = [...emptySlots]
         .sort((a, b) => a - b)
         .filter((idx) => updatedGrid[idx] === '');
 
-      //  If user clicked a slot manually, use it
       let targetIndex = selectedSlot;
 
-      // FINAL GUARD: Always prefer ordered empty slot
       if (
-        targetIndex === null || // no slot selected
-        updatedGrid[targetIndex] !== '' || // slot already filled
-        !emptySlotsUpdated.includes(targetIndex) // invalid slot
+        targetIndex === null ||
+        updatedGrid[targetIndex] !== '' ||
+        !emptySlotsUpdated.includes(targetIndex)
       ) {
-        targetIndex = emptySlotsUpdated[0]; // force first empty slot
+        targetIndex = emptySlotsUpdated[0];
       }
 
       if (targetIndex === undefined) return;
@@ -254,17 +247,14 @@ const ManualBackupStep2 = ({
       newGrid[targetIndex] = word;
       setGridWords(newGrid);
 
-      // Add this word index to used indices
       const newUsedIndices = new Set(usedWordIndices);
       newUsedIndices.add(wordIndex);
       setUsedWordIndices(newUsedIndices);
 
-      // Track which word index is placed in which position
       const newPositionMap = { ...wordPositionMap };
       newPositionMap[targetIndex] = wordIndex;
       setWordPositionMap(newPositionMap);
 
-      // Set focus to next empty slot in order
       const nextEmptySlot =
         emptySlotsUpdated.find((slot) => slot > targetIndex) ||
         emptySlotsUpdated[0];
@@ -285,14 +275,12 @@ const ManualBackupStep2 = ({
       if (!emptySlots.includes(index)) return;
 
       const isFilled = gridWords[index] !== '';
-
       const updated = [...gridWords];
 
       if (isFilled) {
         updated[index] = '';
         setGridWords(updated);
 
-        // Remove the word index from used indices
         const wordIndexToRemove = wordPositionMap[index];
         if (wordIndexToRemove !== undefined) {
           const newUsedIndices = new Set(usedWordIndices);
@@ -300,14 +288,13 @@ const ManualBackupStep2 = ({
           setUsedWordIndices(newUsedIndices);
         }
 
-        // Remove from position map
         const newPositionMap = { ...wordPositionMap };
         delete newPositionMap[index];
         setWordPositionMap(newPositionMap);
 
-        setSelectedSlot(index); // reselect same slot
+        setSelectedSlot(index);
       } else {
-        setSelectedSlot(index); // highlight this for next word
+        setSelectedSlot(index);
       }
     },
     [emptySlots, gridWords, wordPositionMap, usedWordIndices],
@@ -318,20 +305,24 @@ const ManualBackupStep2 = ({
   const renderGridItemText = useCallback(
     (item, index, isEmpty) => (
       <>
-        <Text style={styles.gridItemIndex} maxFontSizeMultiplier={1}>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          maxFontSizeMultiplier={1}
+        >
           {index + 1}.
         </Text>
         <Text
           variant={TextVariant.BodySM}
           color={TextColor.Default}
-          style={styles.gridItemText}
+          style={tw.style('w-[95%]')}
           maxFontSizeMultiplier={1}
         >
           {isEmpty ? item : '••••••'}
         </Text>
       </>
     ),
-    [styles.gridItemIndex, styles.gridItemText],
+    [tw],
   );
 
   const renderGridItem = useCallback(
@@ -347,14 +338,13 @@ const ManualBackupStep2 = ({
               ? `${ManualBackUpStepsSelectorsIDs.GRID_ITEM_EMPTY}-${index}`
               : `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-${index}`
           }
-          style={[
-            styles.gridItem,
-            isEmpty && styles.emptySlot,
-            isSelected && styles.selectedSlotBox,
-            {
-              width: innerWidth / 3.85,
-            },
-          ]}
+          style={tw.style(
+            'py-1 px-2 rounded-lg bg-default border border-muted flex-row items-center justify-start h-10 opacity-50',
+            Platform.OS === 'ios' ? 'gap-1 m-1' : 'gap-[3px] m-[3px]',
+            isEmpty && 'bg-default opacity-100 border-2 border-default',
+            isSelected && 'border-2 border-primary-default',
+            { width: innerWidth / 3.85 },
+          )}
           onPress={() => handleSlotPress(index)}
         >
           {renderGridItemText(item, index, isEmpty)}
@@ -367,40 +357,45 @@ const ManualBackupStep2 = ({
       innerWidth,
       renderGridItemText,
       selectedSlot,
-      styles.emptySlot,
-      styles.gridItem,
-      styles.selectedSlotBox,
+      tw,
     ],
   );
 
   const renderGrid = useCallback(
     () => (
-      <View style={[styles.seedPhraseContainer]}>
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        twClassName="bg-muted rounded-[10px] mb-4 p-4 gap-1"
+      >
         <FlatList
           data={gridWords}
           numColumns={3}
           keyExtractor={(_, index) => index.toString()}
           renderItem={renderGridItem}
         />
-      </View>
+      </Box>
     ),
-    [styles.seedPhraseContainer, gridWords, renderGridItem],
+    [gridWords, renderGridItem],
   );
 
   const renderMissingWords = useCallback(
     () => (
-      <View style={styles.missingWords}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="flex-wrap"
+      >
         {missingWords.map((word, i) => {
           const isUsed = usedWordIndices.has(i);
           return (
             <TouchableOpacity
               key={`${word}-${i}`}
               testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
-              style={[
-                styles.missingWord,
-                isUsed && styles.selectedWord,
+              style={tw.style(
+                'py-1 px-2 m-2 rounded-lg bg-default border border-primary-default flex-row items-center justify-center h-10',
+                isUsed && 'bg-alternative border-0',
                 { width: innerWidth / 3.9 },
-              ]}
+              )}
               onPress={() => handleWordSelect(word, i)}
             >
               <Text
@@ -414,17 +409,9 @@ const ManualBackupStep2 = ({
             </TouchableOpacity>
           );
         })}
-      </View>
+      </Box>
     ),
-    [
-      styles.missingWords,
-      styles.missingWord,
-      styles.selectedWord,
-      missingWords,
-      usedWordIndices,
-      innerWidth,
-      handleWordSelect,
-    ],
+    [missingWords, usedWordIndices, innerWidth, handleWordSelect, tw],
   );
 
   const validateSeedPhrase = () => {
@@ -465,8 +452,11 @@ const ManualBackupStep2 = ({
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-      <View style={[styles.container]}>
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+    >
+      <Box twClassName="flex-1 px-4">
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.continue')}
@@ -474,14 +464,24 @@ const ManualBackupStep2 = ({
           confirmDisabled={!areAllWordsPlaced}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
-          buttonContainerStyle={styles.buttonContainer}
-          contentContainerStyle={styles.actionView}
+          buttonContainerStyle={tw.style(
+            'px-0',
+            Platform.OS === 'android' && 'mb-4',
+          )}
+          contentContainerStyle={tw.style('flex-1')}
         >
-          <View
-            style={styles.wrapper}
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            justifyContent={BoxJustifyContent.SpaceBetween}
+            twClassName="flex-1 h-full gap-y-4"
             testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
-            <View style={styles.content}>
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              justifyContent={BoxJustifyContent.SpaceBetween}
+              twClassName="flex-1 gap-y-4"
+              style={{ height: windowHeight - 290 }}
+            >
               <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
                 {strings('manual_backup_step_2.action')}
               </Text>
@@ -490,41 +490,24 @@ const ManualBackupStep2 = ({
                 {strings('manual_backup_step_2.info')}
               </Text>
 
-              <View style={styles.gridContainer}>
+              <Box
+                flexDirection={BoxFlexDirection.Column}
+                twClassName="flex-1 gap-1"
+              >
                 {renderGrid()}
                 {renderMissingWords()}
-              </View>
-            </View>
-          </View>
+              </Box>
+            </Box>
+          </Box>
         </ActionView>
-      </View>
+      </Box>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 };
 
-ManualBackupStep2.propTypes = {
-  /**
-  /* navigation object required to push and pop other views
-  */
-  navigation: PropTypes.object,
-  /**
-   * The action to update the seedphrase backed up flag
-   * in the redux store
-   */
-  seedphraseBackedUp: PropTypes.func,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
-  /**
-   * Action to save onboarding event
-   */
-  saveOnboardingEvent: PropTypes.func,
-};
-
 const mapDispatchToProps = (dispatch) => ({
-  seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+  seedphraseBackedUp: () => dispatch(seedphraseBackedUpAction()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
