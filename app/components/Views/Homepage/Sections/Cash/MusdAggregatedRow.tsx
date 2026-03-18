@@ -43,21 +43,6 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constant
 import NavigationService from '../../../../../core/NavigationService';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 
-/** Minimum claimable bonus (USD) to show the "Claim bonus" CTA; below this we show "3% bonus" instead. */
-const MIN_CLAIMABLE_BONUS_USD = 0.01;
-
-/**
- * Returns true when the claimable reward string represents an amount >= MIN_CLAIMABLE_BONUS_USD.
- * useMerklRewards returns "< 0.01" for very small amounts; we do not show "Claim bonus" for those.
- */
-const isClaimableBonusAboveThreshold = (reward: string | null): boolean => {
-  if (!reward || typeof reward !== 'string') return false;
-  if (reward.startsWith('<')) return false;
-  const value = parseFloat(reward);
-  if (Number.isNaN(value)) return false;
-  return value >= MIN_CLAIMABLE_BONUS_USD;
-};
-
 /**
  * Minimal mUSD asset for useMerklBonusClaim (claim runs on Linea).
  * Only chainId and address are required for the claim flow.
@@ -80,12 +65,14 @@ const MusdAggregatedRow = () => {
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
-    useMerklBonusClaim(LINEA_MUSD_ASSET);
+    useMerklBonusClaim(
+      LINEA_MUSD_ASSET,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
 
-  const hasClaimableBonus =
-    isClaimableBonusAboveThreshold(claimableReward) && !hasPendingClaim;
+  const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
   const handleClaimBonus = useCallback(() => {
     trackEvent(
