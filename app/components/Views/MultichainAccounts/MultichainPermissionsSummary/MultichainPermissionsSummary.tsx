@@ -29,6 +29,7 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
@@ -629,7 +630,7 @@ const MultichainPermissionsSummary = ({
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
                 onPress={toggleRevokeAllPermissionsModal}
-                startIconName={IconName.Logout}
+                startIconName={DesignSystemIconName.Logout}
                 isDanger
                 size={ButtonBaseSize.Lg}
                 style={{
