@@ -183,12 +183,15 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
+  const isOauthRedirect =
+    validatedUrl.pathname.split('/')[1] === ACTIONS.OAUTH_REDIRECT;
+
   // Skip handling deeplinks that do not have a pathname or query
   // Skip handling oauth-login universal links (it is handled by the OAuthService)
   // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
   if (
     (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) ||
-    validatedUrl.pathname.split('/')[1] === ACTIONS.OAUTH_REDIRECT
+    isOauthRedirect
   ) {
     handled();
     return;
