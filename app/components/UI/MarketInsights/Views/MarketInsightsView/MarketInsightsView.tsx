@@ -525,14 +525,12 @@ const MarketInsightsView: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
-          {videoEnded ? (
-            <Image
-              source={lastFrameImage}
-              style={tw.style('w-full h-full')}
-              resizeMode="cover"
-              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-            />
-          ) : (
+          <Image
+            source={lastFrameImage}
+            style={tw.style('absolute w-full h-full')}
+            resizeMode="cover"
+          />
+          {!videoEnded && (
             <Video
               source={backgroundVideo}
               style={tw.style('w-full h-full')}
