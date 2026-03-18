@@ -226,11 +226,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         scrollEventThrottle={150}
                         style={
                           {
-                            "backgroundColor": "#ffffff",
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
-                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -653,9 +651,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             {
                               "display": "flex",
                               "flexDirection": "row",
+                              "paddingBottom": 8,
                               "paddingLeft": 16,
                               "paddingRight": 16,
-                              "paddingTop": 16,
+                              "paddingTop": 8,
                             },
                             undefined,
                           ]
@@ -1097,11 +1096,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         scrollEventThrottle={150}
                         style={
                           {
-                            "backgroundColor": "#ffffff",
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
-                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -1524,9 +1521,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             {
                               "display": "flex",
                               "flexDirection": "row",
+                              "paddingBottom": 8,
                               "paddingLeft": 16,
                               "paddingRight": 16,
-                              "paddingTop": 16,
+                              "paddingTop": 8,
                             },
                             undefined,
                           ]
@@ -2080,11 +2078,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         scrollEventThrottle={150}
                         style={
                           {
-                            "backgroundColor": "#ffffff",
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
-                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -2507,9 +2503,10 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             {
                               "display": "flex",
                               "flexDirection": "row",
+                              "paddingBottom": 8,
                               "paddingLeft": 16,
                               "paddingRight": 16,
-                              "paddingTop": 16,
+                              "paddingTop": 8,
                             },
                             undefined,
                           ]

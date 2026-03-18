@@ -278,7 +278,7 @@ const OptinMetrics = () => {
 
   const renderActionButtons = useCallback(
     () => (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-4">
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 py-2">
         <Button
           variant={ButtonVariant.Primary}
           onPress={onConfirm}
@@ -351,7 +351,7 @@ const OptinMetrics = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <ScrollView
-        style={rootStyle}
+        style={tw.style('flex-1')}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}
