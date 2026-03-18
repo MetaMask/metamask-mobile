@@ -1324,6 +1324,11 @@ export class RewardsDataService {
       subscriptionId,
     );
 
+    if (response.status === 409) {
+      // Already opted in — fetch and return current status as a graceful success
+      return this.getCampaignParticipantStatus(subscriptionId, campaignId);
+    }
+
     if (!response.ok) {
       throw new Error(`Opt-in to campaign failed: ${response.status}`);
     }
