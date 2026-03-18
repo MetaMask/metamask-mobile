@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { Linking } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -21,6 +20,9 @@ import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_ONBOARD_TERMS_URL } from '../Onboarding/constants';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import ContentfulRichText from '../ContentfulRichText/ContentfulRichText';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
@@ -35,6 +37,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
 }) => {
+  const navigation = useNavigation();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
 
   const handleOptIn = useCallback(async () => {
@@ -47,8 +50,14 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   }, [optInToCampaign, campaign.id, onClose]);
 
   const handleTermsPress = useCallback(() => {
-    Linking.openURL(REWARDS_ONBOARD_TERMS_URL);
-  }, []);
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: REWARDS_ONBOARD_TERMS_URL,
+        timestamp: Date.now(),
+      },
+    });
+  }, [navigation]);
 
   return (
     <BottomSheet shouldNavigateBack={false} onClose={onClose}>
@@ -81,25 +90,34 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           />
         </Box>
 
-        {/* Legal disclaimer with tappable link */}
+        {/* Legal disclaimer – rich text from Contentful or static fallback */}
         <Box twClassName="mb-6">
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-alternative text-center"
-            testID="campaign-opt-in-sheet-description"
-          >
-            {strings('rewards.campaign.opt_in_sheet_description_pre_link')}{' '}
+          {campaign.termsAndConditions ? (
+            <ContentfulRichText
+              document={campaign.termsAndConditions}
+              textVariant={TextVariant.BodySm}
+              bodyClassName="text-center text-alternative"
+              testID="campaign-opt-in-sheet-description"
+            />
+          ) : (
             <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary-default"
-              onPress={handleTermsPress}
-              testID="campaign-opt-in-sheet-terms-link"
+              variant={TextVariant.BodySm}
+              twClassName="text-alternative text-center"
+              testID="campaign-opt-in-sheet-description"
             >
-              {strings('rewards.campaign.opt_in_sheet_link_text')}
+              {strings('rewards.campaign.opt_in_sheet_description_pre_link')}{' '}
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-primary-default"
+                onPress={handleTermsPress}
+                testID="campaign-opt-in-sheet-terms-link"
+              >
+                {strings('rewards.campaign.opt_in_sheet_link_text')}
+              </Text>
+              {'. '}
+              {strings('rewards.campaign.opt_in_sheet_description_post_link')}
             </Text>
-            {'. '}
-            {strings('rewards.campaign.opt_in_sheet_description_post_link')}
-          </Text>
+          )}
         </Box>
 
         {optInError && (
