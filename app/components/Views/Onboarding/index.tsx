@@ -133,7 +133,7 @@ interface OnboardingRouteParams {
 
 const Onboarding = () => {
   const navigation = useNavigation();
-  const [onboardingVersion, setOnboardingVersion] = useState<string>('');
+  const onboardingVersion = `${getVersion()} (${getBuildNumber()})`;
 
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
@@ -979,10 +979,6 @@ const Onboarding = () => {
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    setOnboardingVersion(`${getVersion()} (${getBuildNumber()})`);
   }, []);
 
   useEffect(() => {
