@@ -70,6 +70,18 @@ jest.mock('../useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+jest.mock('../useIsHardwareWalletForBridge', () => ({
+  useIsHardwareWalletForBridge: jest.fn(),
+}));
+
+const { useIsHardwareWalletForBridge } = jest.requireMock(
+  '../useIsHardwareWalletForBridge',
+);
+const mockUseIsHardwareWalletForBridge =
+  useIsHardwareWalletForBridge as jest.MockedFunction<
+    typeof useIsHardwareWalletForBridge
+  >;
+
 jest.useFakeTimers();
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -107,6 +119,7 @@ describe('useBridgeQuoteRequest', () => {
     });
 
     mockUseIsInsufficientBalance.mockReturnValue(false);
+    mockUseIsHardwareWalletForBridge.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -477,6 +490,47 @@ describe('useBridgeQuoteRequest', () => {
 
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
         expect.objectContaining({
+          gasIncluded7702: false,
+        }),
+        undefined,
+      );
+    });
+  });
+
+  describe('hardware wallet accounts', () => {
+    it('forces gasIncluded and gasIncluded7702 false in quote request when account is hardware wallet', async () => {
+      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+          sourceToken: {
+            address: '0xSourceToken',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'SRC',
+          },
+          destToken: {
+            address: '0xDestToken',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'DEST',
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: false,
           gasIncluded7702: false,
         }),
         undefined,

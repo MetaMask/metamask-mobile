@@ -8,6 +8,29 @@ import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { selectAbTestContext } from '../../../core/redux/slices/bridge';
+import { isHardwareAccount } from '../../../util/address';
+
+/**
+ * For hardware wallet accounts, strip 7702/gasless from the quote so the
+ * controller never executes gas sponsorship for HW.
+ */
+function normalizeQuoteForSubmit(
+  quoteResponse: QuoteResponse & QuoteMetadata,
+  walletAddress: string,
+): QuoteResponse & QuoteMetadata {
+  if (!isHardwareAccount(walletAddress)) {
+    return quoteResponse;
+  }
+  return {
+    ...quoteResponse,
+    quote: {
+      ...quoteResponse.quote,
+      gasIncluded7702: false,
+      gasIncluded: false,
+      gasSponsored: false,
+    },
+  };
+}
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
@@ -33,10 +56,15 @@ export default function useSubmitBridgeTx() {
       throw new Error('Wallet address is not set');
     }
 
+    const normalizedQuote = normalizeQuoteForSubmit(
+      quoteResponse,
+      walletAddress,
+    );
+
     // check whether quoteResponse is an intent transaction
-    if (quoteResponse.quote.intent) {
+    if (normalizedQuote.quote.intent) {
       return Engine.context.BridgeStatusController.submitIntent({
-        quoteResponse,
+        quoteResponse: normalizedQuote,
         accountAddress: walletAddress,
         location,
         abTests,
@@ -45,8 +73,8 @@ export default function useSubmitBridgeTx() {
     return Engine.context.BridgeStatusController.submitTx(
       walletAddress,
       {
-        ...quoteResponse,
-        approval: quoteResponse.approval ?? undefined,
+        ...normalizedQuote,
+        approval: normalizedQuote.approval ?? undefined,
       },
       stxEnabled,
       undefined, // quotesReceivedContext

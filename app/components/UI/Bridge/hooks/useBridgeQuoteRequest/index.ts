@@ -23,6 +23,7 @@ import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
+import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 import { BigNumber } from 'ethers';
 
 export const DEBOUNCE_WAIT = 300;
@@ -78,6 +79,11 @@ export const useBridgeQuoteRequest = (
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
   );
+  const isHardwareWallet = useIsHardwareWalletForBridge();
+
+  // Hardware wallet accounts must not request 7702/gasless quotes
+  const effectiveGasIncluded = !isHardwareWallet && gasIncluded;
+  const effectiveGasIncluded7702 = !isHardwareWallet && gasIncluded7702;
 
   /**
    * Updates quote parameters in the bridge controller
@@ -110,8 +116,8 @@ export const useBridgeQuoteRequest = (
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
       destWalletAddress: destAddress ?? walletAddress,
-      gasIncluded,
-      gasIncluded7702,
+      gasIncluded: effectiveGasIncluded,
+      gasIncluded7702: effectiveGasIncluded7702,
       insufficientBal,
     };
 
@@ -128,8 +134,8 @@ export const useBridgeQuoteRequest = (
     walletAddress,
     destAddress,
     context,
-    gasIncluded,
-    gasIncluded7702,
+    effectiveGasIncluded,
+    effectiveGasIncluded7702,
     insufficientBal,
   ]);
 

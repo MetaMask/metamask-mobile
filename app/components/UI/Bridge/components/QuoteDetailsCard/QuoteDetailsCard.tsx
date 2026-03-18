@@ -42,6 +42,7 @@ import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
+import { useIsHardwareWalletForBridge } from '../../hooks/useIsHardwareWalletForBridge';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -107,6 +108,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     return native?.symbol ?? sourceToken?.symbol ?? '';
   }, [sourceToken?.chainId, sourceToken?.symbol]);
 
+  const isHardwareWallet = useIsHardwareWalletForBridge();
   const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
     quoteGasSponsored: activeQuote?.quote?.gasSponsored ?? false,
     hasInsufficientBalance,
@@ -141,7 +143,10 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     });
   };
 
-  const isGasless = isGaslessQuote(activeQuote?.quote);
+  // Hardware wallet: never show gasless/sponsored UI; always show normal gas fee
+  const effectiveGasIncluded =
+    !isHardwareWallet && isGaslessQuote(activeQuote?.quote);
+  const isGasless = effectiveGasIncluded;
 
   const formattedMinToTokenAmount = formatMinimumReceived(
     activeQuote?.minToTokenAmount?.amount || '0',

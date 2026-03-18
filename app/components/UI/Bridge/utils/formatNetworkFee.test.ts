@@ -413,4 +413,47 @@ describe('formatNetworkFee', () => {
       expect(mockFormatFiat).not.toHaveBeenCalled();
     });
   });
+
+  describe('treatAsNotGasless (e.g. hardware wallet)', () => {
+    it('skips gasless branch and uses totalNetworkFee when treatAsNotGasless is true', () => {
+      mockIsGaslessQuote.mockReturnValue(true);
+      mockIsNumberValue.mockImplementation(
+        (value) => value === '0.01' || value === '10.00',
+      );
+      mockFormatFiat.mockReturnValue('$10.00');
+
+      const quote = {
+        quote: { gasIncluded7702: true },
+        includedTxFees: { amount: '0.002', valueInCurrency: '5.00' },
+        totalNetworkFee: { amount: '0.01', valueInCurrency: '10.00' },
+      } as unknown as QuoteResponse & QuoteMetadata;
+
+      const result = formatNetworkFee('USD', quote, {
+        treatAsNotGasless: true,
+      });
+
+      expect(result).toBe('$10.00');
+      expect(mockFormatFiat).toHaveBeenCalledWith(
+        new BigNumber('10.00'),
+        'USD',
+      );
+    });
+
+    it('returns normal fee for HW even when quote would be gasless', () => {
+      mockIsGaslessQuote.mockReturnValue(true);
+      mockIsNumberValue.mockReturnValue(true);
+      mockFormatFiat.mockReturnValue('$12.00');
+
+      const quote = {
+        quote: { gasIncluded7702: true },
+        totalNetworkFee: { amount: '0.015', valueInCurrency: '12.00' },
+      } as unknown as QuoteResponse & QuoteMetadata;
+
+      const result = formatNetworkFee('USD', quote, {
+        treatAsNotGasless: true,
+      });
+
+      expect(result).toBe('$12.00');
+    });
+  });
 });
