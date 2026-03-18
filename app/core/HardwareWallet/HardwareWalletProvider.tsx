@@ -12,6 +12,7 @@ import {
 } from './hooks';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { HARDWARE_WALLET_CONNECTION_FLOW } from './analytics';
 
 interface HardwareWalletProviderProps {
   children: ReactNode;
@@ -88,6 +89,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   });
 
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
+  const operationTypeRef = useRef<'transaction' | 'message' | null>(null);
 
   const showHardwareWalletError = useCallback(
     (error: unknown) => {
@@ -104,6 +106,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         operationType,
       );
       awaitingConfirmationRejectRef.current = onReject ?? null;
+      operationTypeRef.current = operationType;
 
       updateConnectionState({
         status: ConnectionStatus.AwaitingConfirmation,
@@ -117,6 +120,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const hideAwaitingConfirmation = useCallback(() => {
     DevLogger.log('[HardwareWallet] hideAwaitingConfirmation');
     awaitingConfirmationRejectRef.current = null;
+    operationTypeRef.current = null;
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [updateConnectionState]);
 
@@ -127,6 +131,9 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     awaitingConfirmationRejectRef.current?.();
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
+
+  const analyticsFlow =
+    operationTypeRef.current ?? HARDWARE_WALLET_CONNECTION_FLOW;
 
   const contextValue = useMemo(
     () => ({
@@ -167,6 +174,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         onClose={closeFlow}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
+        analyticsFlow={analyticsFlow}
       />
     </HardwareWalletContext.Provider>
   );

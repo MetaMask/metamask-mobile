@@ -23,6 +23,7 @@ import {
 } from './contents';
 import { DiscoveredDevice, type DeviceSelectionState } from '../../types';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import { useHardwareWalletAnalytics } from '../../analytics';
 
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
   'hardware-wallet-bottom-sheet';
@@ -52,6 +53,8 @@ export interface HardwareWalletBottomSheetProps {
   onConnectionSuccess?: () => void;
   /** Callback when user cancels during awaiting confirmation state */
   onAwaitingConfirmationCancel?: () => void;
+  /** Derived flow label for analytics (e.g. 'connection', 'transaction', 'message') */
+  analyticsFlow?: string;
 }
 
 /**
@@ -79,13 +82,27 @@ export const HardwareWalletBottomSheet: React.FC<
   successAutoDismissMs = 1000,
   onConnectionSuccess,
   onAwaitingConfirmationCancel,
+  analyticsFlow = 'connection',
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const deviceModelRef = useRef<string | null>(null);
 
   const { devices, selectedDevice, isScanning } = deviceSelection;
+
+  // Persist the device model name across the flow
+  if (selectedDevice?.name && selectedDevice.name !== deviceModelRef.current) {
+    deviceModelRef.current = selectedDevice.name;
+  }
+
+  const { trackPrimaryButtonClicked } = useHardwareWalletAnalytics({
+    connectionState,
+    walletType,
+    flow: analyticsFlow,
+    deviceModel: deviceModelRef.current,
+  });
 
   const shouldShow = useMemo(() => {
     switch (connectionState.status) {
@@ -123,12 +140,14 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [onAwaitingConfirmationCancel]);
 
   const handleErrorContinue = useCallback(async () => {
+    trackPrimaryButtonClicked();
     await retryEnsureDeviceReady();
-  }, [retryEnsureDeviceReady]);
+  }, [retryEnsureDeviceReady, trackPrimaryButtonClicked]);
 
   const handleErrorDismiss = useCallback(() => {
+    trackPrimaryButtonClicked();
     onClose();
-  }, [onClose]);
+  }, [onClose, trackPrimaryButtonClicked]);
 
   const handleSuccessDismiss = useCallback(() => {
     onConnectionSuccess?.();
