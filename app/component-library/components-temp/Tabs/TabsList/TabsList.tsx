@@ -80,9 +80,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const [loadedTabs, setLoadedTabs] = useState<Set<number>>(() => new Set());
     const loadedTabsRef = useRef<Set<number>>(new Set());
     const scheduledTabsRef = useRef<Set<number>>(new Set());
-    const interactionHandlesRef = useRef<Map<number, { cancel: () => void }>>(
-      new Map(),
-    );
+    const interactionHandlesRef = useRef<
+      Map<number, { cancel?: () => void } | undefined>
+    >(new Map());
     const fallbackTimeoutsRef = useRef<
       Map<number, ReturnType<typeof setTimeout>>
     >(new Map());
@@ -112,7 +112,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const clearScheduledTabLoad = useCallback((tabIndex: number) => {
       const interactionHandle = interactionHandlesRef.current.get(tabIndex);
       if (interactionHandle) {
-        interactionHandle.cancel();
+        interactionHandle.cancel?.();
         interactionHandlesRef.current.delete(tabIndex);
       }
 
@@ -202,7 +202,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
     useEffect(
       () => () => {
-        interactionHandlesRef.current.forEach((handle) => handle.cancel());
+        interactionHandlesRef.current.forEach((handle) => handle?.cancel?.());
         interactionHandlesRef.current.clear();
 
         fallbackTimeoutsRef.current.forEach((timeoutId) =>
