@@ -48,15 +48,6 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-jest.mock('../../UI/OnboardingProgress', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return ({ currentStep, steps }: { currentStep: number; steps: string[] }) => (
-    <View testID="onboarding-progress">
-      <Text>{`Step ${currentStep} of ${steps.length}`}</Text>
-    </View>
-  );
-});
-
 jest.mock('../OnboardingSuccess', () => ({
   OnboardingSuccessComponent: ({
     onDone,
@@ -198,26 +189,6 @@ describe('ManualBackupStep3', () => {
 
       await waitFor(() => {
         expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders OnboardingProgress when steps are provided', async () => {
-      const { getByTestId, getByText } = renderComponent();
-
-      await waitFor(() => {
-        expect(getByTestId('onboarding-progress')).toBeOnTheScreen();
-        expect(getByText('Step 4 of 3')).toBeOnTheScreen();
-      });
-    });
-
-    it('does not render OnboardingProgress when steps are not provided', async () => {
-      const props = createProps({
-        route: { params: {} },
-      });
-      const { queryByTestId } = renderComponent(props);
-
-      await waitFor(() => {
-        expect(queryByTestId('onboarding-progress')).toBeNull();
       });
     });
 

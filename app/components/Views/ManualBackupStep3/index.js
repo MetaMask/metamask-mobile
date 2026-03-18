@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
@@ -30,8 +29,6 @@ export const ManualBackupStep3 = ({
   const theme = useTheme();
   const colors = theme.colors || mockTheme.colors;
 
-  const steps = route.params?.steps;
-  const currentStep = 4;
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
 
@@ -109,11 +106,6 @@ export const ManualBackupStep3 = ({
   return (
     <Box twClassName="flex-1 bg-default mt-4">
       <Confetti />
-      {steps ? (
-        <Box twClassName="px-5">
-          <OnboardingProgress currentStep={currentStep} steps={steps} />
-        </Box>
-      ) : null}
       <OnboardingSuccessComponent onDone={done} backedUpSRP />
       {Device.isAndroid() && (
         <AndroidBackHandler customBackPress={navigation.pop} />
