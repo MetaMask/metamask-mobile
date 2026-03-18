@@ -22,6 +22,7 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { mockNetworkState } from '../../../../../util/test/network';
 import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
@@ -53,6 +54,10 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
     assetUrl: null,
     error: null,
   }),
+}));
+
+jest.mock('../../hooks/usePerpsMeasurement', () => ({
+  usePerpsMeasurement: jest.fn(),
 }));
 
 const mockInitialState: DeepPartial<RootState> = {
@@ -131,6 +136,9 @@ describe('PerpsTransactionsView', () => {
     >;
   const mockUsePerpsEventTracking =
     usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
+  const mockUsePerpsMeasurement = usePerpsMeasurement as jest.MockedFunction<
+    typeof usePerpsMeasurement
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -172,6 +180,8 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsEventTracking.mockReturnValue({
       track: jest.fn(),
     });
+
+    mockUsePerpsMeasurement.mockImplementation(() => undefined);
   });
 
   it('should render with filter tabs', () => {
@@ -219,6 +229,56 @@ describe('PerpsTransactionsView', () => {
     });
 
     expect(mockRefetchTransactions).not.toHaveBeenCalled();
+  });
+
+  it('renders lightweight hidden state when tab is not visible even if connection is loading', () => {
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: false,
+      isConnecting: true,
+      isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
+    });
+
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
+      isLoading: true,
+      error: null,
+      refetch: mockRefetchTransactions,
+    });
+
+    const component = renderWithProvider(
+      <PerpsTransactionsView isVisible={false} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(component.queryByText('Trades')).toBeNull();
+    expect(
+      component.queryByTestId('perps-transactions-loading-skeleton'),
+    ).toBeNull();
+    expect(
+      component.queryByText(
+        'No trades transactions yet. Your trading history will appear here',
+      ),
+    ).toBeNull();
+  });
+
+  it('tracks measurement as not-ready while hidden', () => {
+    renderWithProvider(<PerpsTransactionsView isVisible={false} />, {
+      state: mockInitialState,
+    });
+
+    expect(mockUsePerpsMeasurement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conditions: [false],
+        resetConditions: [],
+      }),
+    );
   });
 
   it('should not load transactions when not connected', () => {
