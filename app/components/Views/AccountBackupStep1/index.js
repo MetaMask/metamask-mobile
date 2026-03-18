@@ -1,6 +1,12 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
-import { ScrollView, BackHandler, Image, Platform, StatusBar } from 'react-native';
+import {
+  ScrollView,
+  BackHandler,
+  Image,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -54,22 +60,16 @@ const AccountBackupStep1 = (props) => {
 
   const navigation = useNavigation();
 
-  useEffect(
-    () => {
-      if (Engine.hasFunds()) setHasFunds(true);
+  useEffect(() => {
+    if (Engine.hasFunds()) setHasFunds(true);
 
-      const hardwareBackPress = () => true;
-      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+    const hardwareBackPress = () => true;
+    BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
 
-      return () => {
-        BackHandler.removeEventListener(
-          'hardwareBackPress',
-          hardwareBackPress,
-        );
-      };
-    },
-    [],
-  );
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+    };
+  }, []);
 
   const goNext = () => {
     navigation.navigate('ManualBackupStep1', {
@@ -151,7 +151,10 @@ const AccountBackupStep1 = (props) => {
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <Box twClassName="flex-1 px-4">
-          <DSText variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <DSText
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+          >
             {strings('manual_backup_step_1.steps', {
               currentStep: 2,
               totalSteps: 3,
