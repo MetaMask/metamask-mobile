@@ -55,9 +55,7 @@ const ProtectYourWalletModal = ({
   const protectWalletModalVisible = useSelector(
     (state: RootState) => state.user.protectWalletModalVisible,
   );
-  const passwordSet = useSelector(
-    (state: RootState) => state.user.passwordSet,
-  );
+  const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -150,10 +148,7 @@ const ProtectYourWalletModal = ({
           </TouchableOpacity>
         </Box>
 
-        <Box
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-3 mt-[30px]"
-        >
+        <Box alignItems={BoxAlignItems.Center} twClassName="mb-3 mt-[30px]">
           <Image
             source={protectWalletImage}
             style={{
