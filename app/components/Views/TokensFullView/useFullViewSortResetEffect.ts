@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { DEFAULT_TOKEN_SORT_CONFIG } from '../../UI/Tokens/util/sortAssets';
@@ -12,17 +11,20 @@ export const useFullViewSortResetEffect = () => {
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
+  const shouldResetTokenSortConfigRef = useRef(isHomepageSectionsV1Enabled);
 
-  useFocusEffect(
-    useCallback(
-      () => () => {
-        if (isHomepageSectionsV1Enabled) {
-          Engine.context.PreferencesController.setTokenSortConfig(
-            DEFAULT_TOKEN_SORT_CONFIG,
-          );
-        }
-      },
-      [isHomepageSectionsV1Enabled],
-    ),
+  useEffect(() => {
+    shouldResetTokenSortConfigRef.current = isHomepageSectionsV1Enabled;
+  }, [isHomepageSectionsV1Enabled]);
+
+  useEffect(
+    () => () => {
+      if (shouldResetTokenSortConfigRef.current) {
+        Engine.context.PreferencesController.setTokenSortConfig(
+          DEFAULT_TOKEN_SORT_CONFIG,
+        );
+      }
+    },
+    [],
   );
 };
