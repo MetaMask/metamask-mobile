@@ -135,7 +135,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
                 {
                   wallet_setup_type: 'import',
                   new_wallet: false,
-                  account_type: 'imported',
+                  account_type: 'srp_import',
                 },
               ),
             'Wallet Setup Completed event properties do not match expected values',
