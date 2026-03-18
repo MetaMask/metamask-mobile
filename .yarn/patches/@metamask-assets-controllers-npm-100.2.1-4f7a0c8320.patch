@@ -1,0 +1,363 @@
+diff --git a/dist/NftDetectionController.cjs b/dist/NftDetectionController.cjs
+index c793f3444083da95082efaa8a3161263c196a36e..b7083f44a4835288563841e542786048f6f1b408 100644
+--- a/dist/NftDetectionController.cjs
++++ b/dist/NftDetectionController.cjs
+@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _NftDetectionController_instances, _NftDetectionController_disabled, _NftDetectionController_addNfts, _NftDetectionController_getNftState, _NftDetectionController_inProcessNftFetchingUpdates, _NftDetectionController_onPreferencesControllerStateChange, _NftDetectionController_getOwnerNftApi, _NftDetectionController_getOwnerNfts;
++var _NftDetectionController_instances, _NftDetectionController_disabled, _NftDetectionController_addNfts, _NftDetectionController_removeNft, _NftDetectionController_getNftState, _NftDetectionController_inProcessNftFetchingUpdates, _NftDetectionController_onPreferencesControllerStateChange, _NftDetectionController_getOwnerNftApi, _NftDetectionController_getOwnerNfts;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.NftDetectionController = exports.BlockaidResultType = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+@@ -18,19 +18,6 @@ const controller_utils_1 = require("@metamask/controller-utils");
+ const utils_1 = require("@metamask/utils");
+ const constants_1 = require("./constants.cjs");
+ const controllerName = 'NftDetectionController';
+-/**
+- * Set of supported networks for NFT detection.
+- */
+-const supportedNftDetectionNetworks = new Set([
+-    '0x1', // Mainnet
+-    '0x38', // BSC
+-    '0x89', // Polygon
+-    '0xa86a', // Avalanche
+-    '0xe708', // Linea Mainnet
+-    '0x2105', // Base
+-    '0x531', // Sei
+-    '0x8f', // Monad
+-]);
+ var BlockaidResultType;
+ (function (BlockaidResultType) {
+     BlockaidResultType["Benign"] = "Benign";
+@@ -49,9 +36,10 @@ class NftDetectionController extends base_controller_1.BaseController {
+      * @param options.messenger - A reference to the messaging system.
+      * @param options.disabled - Represents previous value of useNftDetection. Used to detect changes of useNftDetection. Default value is true.
+      * @param options.addNfts - Add multiple NFTs.
++     * @param options.removeNft - Remove a single NFT.
+      * @param options.getNftState - Gets the current state of the Assets controller.
+      */
+-    constructor({ messenger, disabled = false, addNfts, getNftState, }) {
++    constructor({ messenger, disabled = false, addNfts, removeNft, getNftState, }) {
+         super({
+             name: controllerName,
+             messenger,
+@@ -61,12 +49,14 @@ class NftDetectionController extends base_controller_1.BaseController {
+         _NftDetectionController_instances.add(this);
+         _NftDetectionController_disabled.set(this, void 0);
+         _NftDetectionController_addNfts.set(this, void 0);
++        _NftDetectionController_removeNft.set(this, void 0);
+         _NftDetectionController_getNftState.set(this, void 0);
+         _NftDetectionController_inProcessNftFetchingUpdates.set(this, void 0);
+         __classPrivateFieldSet(this, _NftDetectionController_disabled, disabled, "f");
+         __classPrivateFieldSet(this, _NftDetectionController_inProcessNftFetchingUpdates, {}, "f");
+         __classPrivateFieldSet(this, _NftDetectionController_getNftState, getNftState, "f");
+         __classPrivateFieldSet(this, _NftDetectionController_addNfts, addNfts, "f");
++        __classPrivateFieldSet(this, _NftDetectionController_removeNft, removeNft, "f");
+         this.messenger.subscribe('PreferencesController:stateChange', __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_onPreferencesControllerStateChange).bind(this));
+     }
+     /**
+@@ -95,10 +85,8 @@ class NftDetectionController extends base_controller_1.BaseController {
+     async detectNfts(chainIds, options) {
+         const userAddress = options?.userAddress ??
+             this.messenger.call('AccountsController:getSelectedAccount').address;
+-        // filter out unsupported chainIds
+-        const supportedChainIds = chainIds.filter((chainId) => supportedNftDetectionNetworks.has(chainId));
+         /* istanbul ignore if */
+-        if (supportedChainIds.length === 0 || __classPrivateFieldGet(this, _NftDetectionController_disabled, "f")) {
++        if (chainIds.length === 0 || __classPrivateFieldGet(this, _NftDetectionController_disabled, "f")) {
+             return;
+         }
+         /* istanbul ignore else */
+@@ -122,11 +110,36 @@ class NftDetectionController extends base_controller_1.BaseController {
+         let resultNftApi;
+         try {
+             do {
+-                resultNftApi = await __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_getOwnerNfts).call(this, userAddress, supportedChainIds, next);
++                resultNftApi = await __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_getOwnerNfts).call(this, userAddress, chainIds, next);
+                 apiNfts = resultNftApi.tokens.filter((elm) => elm.token.isSpam === false &&
+                     (elm.blockaidResult?.result_type
+                         ? elm.blockaidResult?.result_type === BlockaidResultType.Benign
+                         : true));
++                // Remove NFTs that the API now marks as spam but are still in state
++                const spamNfts = resultNftApi.tokens.filter((elm) => elm.token.isSpam === true);
++                for (const { token } of spamNfts) {
++                    const { contract, tokenId, chainId } = token;
++                    if (!chainId) {
++                        continue;
++                    }
++                    const hexChainId = (0, controller_utils_1.toHex)(chainId);
++                    const { allNfts } = __classPrivateFieldGet(this, _NftDetectionController_getNftState, "f").call(this);
++                    const nftsForChain = allNfts[userAddress]?.[hexChainId] ?? [];
++                    const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(contract);
++                    const existsInState = nftsForChain.some((nft) => nft.address.toLowerCase() === checksumAddress.toLowerCase() &&
++                        nft.tokenId === tokenId);
++                    if (existsInState) {
++                        try {
++                            const networkClientId = this.messenger.call('NetworkController:findNetworkClientIdByChainId', hexChainId);
++                            __classPrivateFieldGet(this, _NftDetectionController_removeNft, "f").call(this, contract, tokenId, networkClientId, {
++                                userAddress,
++                            });
++                        }
++                        catch {
++                            // Network may not be configured; skip this NFT
++                        }
++                    }
++                }
+                 // Proceed to add NFTs
+                 const nftsToAdd = apiNfts
+                     .map((nft) => {
+@@ -172,7 +185,7 @@ class NftDetectionController extends base_controller_1.BaseController {
+     }
+ }
+ exports.NftDetectionController = NftDetectionController;
+-_NftDetectionController_disabled = new WeakMap(), _NftDetectionController_addNfts = new WeakMap(), _NftDetectionController_getNftState = new WeakMap(), _NftDetectionController_inProcessNftFetchingUpdates = new WeakMap(), _NftDetectionController_instances = new WeakSet(), _NftDetectionController_onPreferencesControllerStateChange = function _NftDetectionController_onPreferencesControllerStateChange({ useNftDetection, }) {
++_NftDetectionController_disabled = new WeakMap(), _NftDetectionController_addNfts = new WeakMap(), _NftDetectionController_removeNft = new WeakMap(), _NftDetectionController_getNftState = new WeakMap(), _NftDetectionController_inProcessNftFetchingUpdates = new WeakMap(), _NftDetectionController_instances = new WeakSet(), _NftDetectionController_onPreferencesControllerStateChange = function _NftDetectionController_onPreferencesControllerStateChange({ useNftDetection, }) {
+     if (!useNftDetection !== __classPrivateFieldGet(this, _NftDetectionController_disabled, "f")) {
+         __classPrivateFieldSet(this, _NftDetectionController_disabled, !useNftDetection, "f");
+     }
+@@ -183,8 +196,16 @@ _NftDetectionController_disabled = new WeakMap(), _NftDetectionController_addNft
+ }, _NftDetectionController_getOwnerNfts = async function _NftDetectionController_getOwnerNfts(address, chainIds, cursor) {
+     // Convert hex chainId to number
+     const convertedChainIds = chainIds.map((chainId) => (0, controller_utils_1.convertHexToDecimal)(chainId).toString());
++    const filteredChainIds = convertedChainIds.filter((chainId) => chainId !== '0');
++    // Avoid making the API call for non-EVM chains
++    if (filteredChainIds.length === 0) {
++        return {
++            tokens: [],
++            continuation: null,
++        };
++    }
+     const url = __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_getOwnerNftApi).call(this, {
+-        chainIds: convertedChainIds,
++        chainIds: filteredChainIds,
+         address,
+         next: cursor,
+     });
+diff --git a/dist/NftDetectionController.d.cts b/dist/NftDetectionController.d.cts
+index e8b2eca7f5a4c0bd99a20edb9a4eb7d3f04931a5..c6dc53fa63f5f0b92ecbfd97c61de9b676f0a6d4 100644
+--- a/dist/NftDetectionController.d.cts
++++ b/dist/NftDetectionController.d.cts
+@@ -1,5 +1,5 @@
+ import type { AccountsControllerGetSelectedAccountAction } from "@metamask/accounts-controller";
+-import type { AddApprovalRequest } from "@metamask/approval-controller";
++import type { ApprovalControllerAddRequestAction } from "@metamask/approval-controller";
+ import { BaseController } from "@metamask/base-controller";
+ import type { ControllerGetStateAction, ControllerStateChangeEvent } from "@metamask/base-controller";
+ import type { Messenger } from "@metamask/messenger";
+@@ -11,7 +11,7 @@ import type { NftController, NftControllerState } from "./NftController.cjs";
+ import type { NetworkControllerFindNetworkClientIdByChainIdAction } from "../../network-controller/src/NetworkController.cjs";
+ declare const controllerName = "NftDetectionController";
+ export type NFTDetectionControllerState = Record<never, never>;
+-export type AllowedActions = ControllerGetStateAction<typeof controllerName, NFTDetectionControllerState> | AddApprovalRequest | NetworkControllerGetStateAction | NetworkControllerGetNetworkClientByIdAction | PreferencesControllerGetStateAction | AccountsControllerGetSelectedAccountAction | NetworkControllerFindNetworkClientIdByChainIdAction;
++export type AllowedActions = ControllerGetStateAction<typeof controllerName, NFTDetectionControllerState> | ApprovalControllerAddRequestAction | NetworkControllerGetStateAction | NetworkControllerGetNetworkClientByIdAction | PreferencesControllerGetStateAction | AccountsControllerGetSelectedAccountAction | NetworkControllerFindNetworkClientIdByChainIdAction;
+ export type AllowedEvents = ControllerStateChangeEvent<typeof controllerName, NFTDetectionControllerState> | PreferencesControllerStateChangeEvent | NetworkControllerStateChangeEvent;
+ export type NftDetectionControllerMessenger = Messenger<typeof controllerName, AllowedActions, AllowedEvents>;
+ /**
+@@ -118,7 +118,7 @@ export type ApiNftCreator = {
+ };
+ export type ReservoirResponse = {
+     tokens: TokensResponse[];
+-    continuation?: string;
++    continuation?: string | null;
+ };
+ export type TokensResponse = {
+     token: TokenResponse;
+@@ -344,12 +344,14 @@ export declare class NftDetectionController extends BaseController<typeof contro
+      * @param options.messenger - A reference to the messaging system.
+      * @param options.disabled - Represents previous value of useNftDetection. Used to detect changes of useNftDetection. Default value is true.
+      * @param options.addNfts - Add multiple NFTs.
++     * @param options.removeNft - Remove a single NFT.
+      * @param options.getNftState - Gets the current state of the Assets controller.
+      */
+-    constructor({ messenger, disabled, addNfts, getNftState, }: {
++    constructor({ messenger, disabled, addNfts, removeNft, getNftState, }: {
+         messenger: NftDetectionControllerMessenger;
+         disabled: boolean;
+         addNfts: NftController['addNfts'];
++        removeNft: NftController['removeNft'];
+         getNftState: () => NftControllerState;
+     });
+     /**
+diff --git a/dist/NftDetectionController.d.mts b/dist/NftDetectionController.d.mts
+index 3cd190c92bbbc79295afcdf0aeea4bff14d1acd4..780e34db7cb43dbbac3a037f5f63ee4815bb379d 100644
+--- a/dist/NftDetectionController.d.mts
++++ b/dist/NftDetectionController.d.mts
+@@ -1,5 +1,5 @@
+ import type { AccountsControllerGetSelectedAccountAction } from "@metamask/accounts-controller";
+-import type { AddApprovalRequest } from "@metamask/approval-controller";
++import type { ApprovalControllerAddRequestAction } from "@metamask/approval-controller";
+ import { BaseController } from "@metamask/base-controller";
+ import type { ControllerGetStateAction, ControllerStateChangeEvent } from "@metamask/base-controller";
+ import type { Messenger } from "@metamask/messenger";
+@@ -11,7 +11,7 @@ import type { NftController, NftControllerState } from "./NftController.mjs";
+ import type { NetworkControllerFindNetworkClientIdByChainIdAction } from "../../network-controller/src/NetworkController.mjs";
+ declare const controllerName = "NftDetectionController";
+ export type NFTDetectionControllerState = Record<never, never>;
+-export type AllowedActions = ControllerGetStateAction<typeof controllerName, NFTDetectionControllerState> | AddApprovalRequest | NetworkControllerGetStateAction | NetworkControllerGetNetworkClientByIdAction | PreferencesControllerGetStateAction | AccountsControllerGetSelectedAccountAction | NetworkControllerFindNetworkClientIdByChainIdAction;
++export type AllowedActions = ControllerGetStateAction<typeof controllerName, NFTDetectionControllerState> | ApprovalControllerAddRequestAction | NetworkControllerGetStateAction | NetworkControllerGetNetworkClientByIdAction | PreferencesControllerGetStateAction | AccountsControllerGetSelectedAccountAction | NetworkControllerFindNetworkClientIdByChainIdAction;
+ export type AllowedEvents = ControllerStateChangeEvent<typeof controllerName, NFTDetectionControllerState> | PreferencesControllerStateChangeEvent | NetworkControllerStateChangeEvent;
+ export type NftDetectionControllerMessenger = Messenger<typeof controllerName, AllowedActions, AllowedEvents>;
+ /**
+@@ -118,7 +118,7 @@ export type ApiNftCreator = {
+ };
+ export type ReservoirResponse = {
+     tokens: TokensResponse[];
+-    continuation?: string;
++    continuation?: string | null;
+ };
+ export type TokensResponse = {
+     token: TokenResponse;
+@@ -344,12 +344,14 @@ export declare class NftDetectionController extends BaseController<typeof contro
+      * @param options.messenger - A reference to the messaging system.
+      * @param options.disabled - Represents previous value of useNftDetection. Used to detect changes of useNftDetection. Default value is true.
+      * @param options.addNfts - Add multiple NFTs.
++     * @param options.removeNft - Remove a single NFT.
+      * @param options.getNftState - Gets the current state of the Assets controller.
+      */
+-    constructor({ messenger, disabled, addNfts, getNftState, }: {
++    constructor({ messenger, disabled, addNfts, removeNft, getNftState, }: {
+         messenger: NftDetectionControllerMessenger;
+         disabled: boolean;
+         addNfts: NftController['addNfts'];
++        removeNft: NftController['removeNft'];
+         getNftState: () => NftControllerState;
+     });
+     /**
+diff --git a/dist/NftDetectionController.mjs b/dist/NftDetectionController.mjs
+index 60176ed3b63bd28cabe248cf391f5565b6c9c014..04493e296f06af51b0aeba4acdf527f8c57360aa 100644
+--- a/dist/NftDetectionController.mjs
++++ b/dist/NftDetectionController.mjs
+@@ -9,25 +9,12 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _NftDetectionController_instances, _NftDetectionController_disabled, _NftDetectionController_addNfts, _NftDetectionController_getNftState, _NftDetectionController_inProcessNftFetchingUpdates, _NftDetectionController_onPreferencesControllerStateChange, _NftDetectionController_getOwnerNftApi, _NftDetectionController_getOwnerNfts;
++var _NftDetectionController_instances, _NftDetectionController_disabled, _NftDetectionController_addNfts, _NftDetectionController_removeNft, _NftDetectionController_getNftState, _NftDetectionController_inProcessNftFetchingUpdates, _NftDetectionController_onPreferencesControllerStateChange, _NftDetectionController_getOwnerNftApi, _NftDetectionController_getOwnerNfts;
+ import { BaseController } from "@metamask/base-controller";
+-import { toChecksumHexAddress, ChainId, NFT_API_BASE_URL, NFT_API_VERSION, convertHexToDecimal, handleFetch } from "@metamask/controller-utils";
++import { toChecksumHexAddress, ChainId, NFT_API_BASE_URL, NFT_API_VERSION, convertHexToDecimal, handleFetch, toHex } from "@metamask/controller-utils";
+ import { createDeferredPromise } from "@metamask/utils";
+ import { Source } from "./constants.mjs";
+ const controllerName = 'NftDetectionController';
+-/**
+- * Set of supported networks for NFT detection.
+- */
+-const supportedNftDetectionNetworks = new Set([
+-    '0x1', // Mainnet
+-    '0x38', // BSC
+-    '0x89', // Polygon
+-    '0xa86a', // Avalanche
+-    '0xe708', // Linea Mainnet
+-    '0x2105', // Base
+-    '0x531', // Sei
+-    '0x8f', // Monad
+-]);
+ export var BlockaidResultType;
+ (function (BlockaidResultType) {
+     BlockaidResultType["Benign"] = "Benign";
+@@ -46,9 +33,10 @@ export class NftDetectionController extends BaseController {
+      * @param options.messenger - A reference to the messaging system.
+      * @param options.disabled - Represents previous value of useNftDetection. Used to detect changes of useNftDetection. Default value is true.
+      * @param options.addNfts - Add multiple NFTs.
++     * @param options.removeNft - Remove a single NFT.
+      * @param options.getNftState - Gets the current state of the Assets controller.
+      */
+-    constructor({ messenger, disabled = false, addNfts, getNftState, }) {
++    constructor({ messenger, disabled = false, addNfts, removeNft, getNftState, }) {
+         super({
+             name: controllerName,
+             messenger,
+@@ -58,12 +46,14 @@ export class NftDetectionController extends BaseController {
+         _NftDetectionController_instances.add(this);
+         _NftDetectionController_disabled.set(this, void 0);
+         _NftDetectionController_addNfts.set(this, void 0);
++        _NftDetectionController_removeNft.set(this, void 0);
+         _NftDetectionController_getNftState.set(this, void 0);
+         _NftDetectionController_inProcessNftFetchingUpdates.set(this, void 0);
+         __classPrivateFieldSet(this, _NftDetectionController_disabled, disabled, "f");
+         __classPrivateFieldSet(this, _NftDetectionController_inProcessNftFetchingUpdates, {}, "f");
+         __classPrivateFieldSet(this, _NftDetectionController_getNftState, getNftState, "f");
+         __classPrivateFieldSet(this, _NftDetectionController_addNfts, addNfts, "f");
++        __classPrivateFieldSet(this, _NftDetectionController_removeNft, removeNft, "f");
+         this.messenger.subscribe('PreferencesController:stateChange', __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_onPreferencesControllerStateChange).bind(this));
+     }
+     /**
+@@ -92,10 +82,8 @@ export class NftDetectionController extends BaseController {
+     async detectNfts(chainIds, options) {
+         const userAddress = options?.userAddress ??
+             this.messenger.call('AccountsController:getSelectedAccount').address;
+-        // filter out unsupported chainIds
+-        const supportedChainIds = chainIds.filter((chainId) => supportedNftDetectionNetworks.has(chainId));
+         /* istanbul ignore if */
+-        if (supportedChainIds.length === 0 || __classPrivateFieldGet(this, _NftDetectionController_disabled, "f")) {
++        if (chainIds.length === 0 || __classPrivateFieldGet(this, _NftDetectionController_disabled, "f")) {
+             return;
+         }
+         /* istanbul ignore else */
+@@ -119,11 +107,36 @@ export class NftDetectionController extends BaseController {
+         let resultNftApi;
+         try {
+             do {
+-                resultNftApi = await __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_getOwnerNfts).call(this, userAddress, supportedChainIds, next);
++                resultNftApi = await __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_getOwnerNfts).call(this, userAddress, chainIds, next);
+                 apiNfts = resultNftApi.tokens.filter((elm) => elm.token.isSpam === false &&
+                     (elm.blockaidResult?.result_type
+                         ? elm.blockaidResult?.result_type === BlockaidResultType.Benign
+                         : true));
++                // Remove NFTs that the API now marks as spam but are still in state
++                const spamNfts = resultNftApi.tokens.filter((elm) => elm.token.isSpam === true);
++                for (const { token } of spamNfts) {
++                    const { contract, tokenId, chainId } = token;
++                    if (!chainId) {
++                        continue;
++                    }
++                    const hexChainId = toHex(chainId);
++                    const { allNfts } = __classPrivateFieldGet(this, _NftDetectionController_getNftState, "f").call(this);
++                    const nftsForChain = allNfts[userAddress]?.[hexChainId] ?? [];
++                    const checksumAddress = toChecksumHexAddress(contract);
++                    const existsInState = nftsForChain.some((nft) => nft.address.toLowerCase() === checksumAddress.toLowerCase() &&
++                        nft.tokenId === tokenId);
++                    if (existsInState) {
++                        try {
++                            const networkClientId = this.messenger.call('NetworkController:findNetworkClientIdByChainId', hexChainId);
++                            __classPrivateFieldGet(this, _NftDetectionController_removeNft, "f").call(this, contract, tokenId, networkClientId, {
++                                userAddress,
++                            });
++                        }
++                        catch {
++                            // Network may not be configured; skip this NFT
++                        }
++                    }
++                }
+                 // Proceed to add NFTs
+                 const nftsToAdd = apiNfts
+                     .map((nft) => {
+@@ -168,7 +181,7 @@ export class NftDetectionController extends BaseController {
+         }
+     }
+ }
+-_NftDetectionController_disabled = new WeakMap(), _NftDetectionController_addNfts = new WeakMap(), _NftDetectionController_getNftState = new WeakMap(), _NftDetectionController_inProcessNftFetchingUpdates = new WeakMap(), _NftDetectionController_instances = new WeakSet(), _NftDetectionController_onPreferencesControllerStateChange = function _NftDetectionController_onPreferencesControllerStateChange({ useNftDetection, }) {
++_NftDetectionController_disabled = new WeakMap(), _NftDetectionController_addNfts = new WeakMap(), _NftDetectionController_removeNft = new WeakMap(), _NftDetectionController_getNftState = new WeakMap(), _NftDetectionController_inProcessNftFetchingUpdates = new WeakMap(), _NftDetectionController_instances = new WeakSet(), _NftDetectionController_onPreferencesControllerStateChange = function _NftDetectionController_onPreferencesControllerStateChange({ useNftDetection, }) {
+     if (!useNftDetection !== __classPrivateFieldGet(this, _NftDetectionController_disabled, "f")) {
+         __classPrivateFieldSet(this, _NftDetectionController_disabled, !useNftDetection, "f");
+     }
+@@ -179,8 +192,16 @@ _NftDetectionController_disabled = new WeakMap(), _NftDetectionController_addNft
+ }, _NftDetectionController_getOwnerNfts = async function _NftDetectionController_getOwnerNfts(address, chainIds, cursor) {
+     // Convert hex chainId to number
+     const convertedChainIds = chainIds.map((chainId) => convertHexToDecimal(chainId).toString());
++    const filteredChainIds = convertedChainIds.filter((chainId) => chainId !== '0');
++    // Avoid making the API call for non-EVM chains
++    if (filteredChainIds.length === 0) {
++        return {
++            tokens: [],
++            continuation: null,
++        };
++    }
+     const url = __classPrivateFieldGet(this, _NftDetectionController_instances, "m", _NftDetectionController_getOwnerNftApi).call(this, {
+-        chainIds: convertedChainIds,
++        chainIds: filteredChainIds,
+         address,
+         next: cursor,
+     });

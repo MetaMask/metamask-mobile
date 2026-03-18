@@ -7723,7 +7723,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^100.2.0, @metamask/assets-controllers@npm:^100.2.1":
+"@metamask/assets-controllers@npm:100.2.1":
   version: 100.2.1
   resolution: "@metamask/assets-controllers@npm:100.2.1"
   dependencies:
@@ -7779,9 +7779,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^101.0.0":
-  version: 101.0.0
-  resolution: "@metamask/assets-controllers@npm:101.0.0"
+"@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A100.2.1#~/.yarn/patches/@metamask-assets-controllers-npm-100.2.1-4f7a0c8320.patch":
+  version: 100.2.1
+  resolution: "@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A100.2.1#~/.yarn/patches/@metamask-assets-controllers-npm-100.2.1-4f7a0c8320.patch::version=100.2.1&hash=19a521"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7792,7 +7792,7 @@ __metadata:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/account-tree-controller": "npm:^5.0.1"
     "@metamask/accounts-controller": "npm:^37.0.0"
-    "@metamask/approval-controller": "npm:^9.0.0"
+    "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/contract-metadata": "npm:^2.4.0"
     "@metamask/controller-utils": "npm:^11.19.0"
@@ -7804,9 +7804,9 @@ __metadata:
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/multichain-account-service": "npm:^7.1.0"
     "@metamask/network-controller": "npm:^30.0.0"
-    "@metamask/network-enablement-controller": "npm:^5.0.0"
-    "@metamask/permission-controller": "npm:^12.2.1"
-    "@metamask/phishing-controller": "npm:^17.0.0"
+    "@metamask/network-enablement-controller": "npm:^4.2.0"
+    "@metamask/permission-controller": "npm:^12.2.0"
+    "@metamask/phishing-controller": "npm:^16.3.0"
     "@metamask/polling-controller": "npm:^16.0.3"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/profile-sync-controller": "npm:^28.0.0"
@@ -7815,7 +7815,7 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^10.3.0"
     "@metamask/snaps-utils": "npm:^11.7.0"
     "@metamask/storage-service": "npm:^1.0.0"
-    "@metamask/transaction-controller": "npm:^63.0.0"
+    "@metamask/transaction-controller": "npm:^62.21.0"
     "@metamask/utils": "npm:^11.9.0"
     "@types/bn.js": "npm:^5.1.5"
     "@types/uuid": "npm:^8.3.0"
@@ -7831,7 +7831,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/8ef31a94c5666aafb93b8ace0fbc2b8de642f03b798e2a7d3d25df924d3548da8a251fc240e09d5cd89cf8bfd67b2344567b49a130d158fe132a1a63d363019a
+  checksum: 10/7f59974ddce2c2d33fc4e125135dd3784ce1e355ea080cdcf1d9f362a6e6fa5e0fcd125db2108b4c9fce6ecf39a3cc8ca5b501dafb347a1caee4f249a2b29673
   languageName: node
   linkType: hard
 
@@ -9209,23 +9209,6 @@ __metadata:
     fastest-levenshtein: "npm:^1.0.16"
     punycode: "npm:^2.1.1"
   checksum: 10/a2c38aa69c5158d4bec2b1e37af449e7f9f67f24d151dcf4b6cd7e5a65567236b360488d91f4efde4898703de39eed5cc79e0c36369bf96dbedfed05daf41ecc
-  languageName: node
-  linkType: hard
-
-"@metamask/phishing-controller@npm:^17.0.0":
-  version: 17.0.0
-  resolution: "@metamask/phishing-controller@npm:17.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^63.0.0"
-    "@noble/hashes": "npm:^1.8.0"
-    "@types/punycode": "npm:^2.1.0"
-    ethereum-cryptography: "npm:^2.1.2"
-    fastest-levenshtein: "npm:^1.0.16"
-    punycode: "npm:^2.1.1"
-  checksum: 10/a1917ad63feb5c6287b7a191f78750d6455239909b0df5d07a965279638ccccb67de73d2f3cbe5596252e14b394565978bb86aa52e0adf388059d031531d0e93
   languageName: node
   linkType: hard
 
@@ -35450,7 +35433,7 @@ __metadata:
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/assets-controller": "npm:^2.0.0"
-    "@metamask/assets-controllers": "npm:^100.2.0"
+    "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A100.2.1#~/.yarn/patches/@metamask-assets-controllers-npm-100.2.1-4f7a0c8320.patch"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.10.0"
