@@ -463,36 +463,34 @@ const Onboarding = () => {
             });
           }
         }
-      } else if (!createWallet) {
-        if (result.existingUser) {
-          trace({
-            name: TraceName.OnboardingExistingSocialLogin,
-            op: TraceOperation.OnboardingUserJourney,
-            tags: getTraceTags(store.getState()),
-            parentContext: onboardingTraceCtx.current,
-          });
-          isIOS
-            ? navigation.navigate(
-                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-                {
-                  [PREVIOUS_SCREEN]: ONBOARDING,
-                  oauthLoginSuccess: true,
-                  onboardingTraceCtx: onboardingTraceCtx.current,
-                },
-              )
-            : navigation.navigate('Rehydrate', {
+      } else if (result.existingUser) {
+        trace({
+          name: TraceName.OnboardingExistingSocialLogin,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: getTraceTags(store.getState()),
+          parentContext: onboardingTraceCtx.current,
+        });
+        isIOS
+          ? navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+              {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: onboardingTraceCtx.current,
-              });
-        } else {
-          navigation.navigate('AccountNotFound', {
-            accountName: result.accountName,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: onboardingTraceCtx.current,
-            provider,
-          });
-        }
+              },
+            )
+          : navigation.navigate('Rehydrate', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+              onboardingTraceCtx: onboardingTraceCtx.current,
+            });
+      } else {
+        navigation.navigate('AccountNotFound', {
+          accountName: result.accountName,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: onboardingTraceCtx.current,
+          provider,
+        });
       }
     },
     [navigation, track, dispatch],
