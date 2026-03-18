@@ -22,9 +22,11 @@ import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIco
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
 import {
+  selectIsMusdConversionFlowEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -70,7 +72,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { addCurrencySymbol } from '../../../../../util/number';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -147,6 +149,8 @@ interface TokenListItemV2Props {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  // Whether this item is currently visible in the viewport.
+  isVisible?: boolean;
 }
 
 export const TokenListItemV2 = React.memo(
@@ -158,6 +162,7 @@ export const TokenListItemV2 = React.memo(
     showPercentageChange = true,
     isFullView = false,
     shouldShowTokenListItemCta,
+    isVisible = true,
   }: TokenListItemV2Props) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -211,6 +216,11 @@ export const TokenListItemV2 = React.memo(
       selectMusdQuickConvertEnabledFlag,
     );
 
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
+
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
@@ -223,7 +233,11 @@ export const TokenListItemV2 = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    const merklClaimData = useMerklBonusClaim(asset);
+    const merklClaimData = useMerklBonusClaim(
+      asset,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+      isVisible,
+    );
     const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
     const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
@@ -420,6 +434,22 @@ export const TokenListItemV2 = React.memo(
         };
       }
 
+      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
+      if (
+        isMusdConversionFlowEnabled &&
+        isMusdGeoEligible &&
+        asset &&
+        isMusdToken(asset.address)
+      ) {
+        return {
+          text: strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: CLTextColor.Success,
+          onPress: undefined,
+        };
+      }
+
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -462,12 +492,15 @@ export const TokenListItemV2 = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
+      isMusdConversionFlowEnabled,
+      isMusdGeoEligible,
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
+      asset,
       handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
@@ -605,7 +638,7 @@ export const TokenListItemV2 = React.memo(
                   asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
                   hideFiatForTestnet
                     ? CLTextVariant.BodySM
-                    : CLTextVariant.BodyMDBold
+                    : CLTextVariant.BodyMDMedium
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
@@ -636,11 +669,9 @@ export const TokenListItemV2 = React.memo(
                       twClassName="uppercase"
                     >
                       {tokenPriceInFiat && !hideFiatForScamWarning
-                        ? addCurrencySymbol(
+                        ? formatPriceWithSubscriptNotation(
                             tokenPriceInFiat,
                             currentCurrency,
-                            true,
-                            true,
                           )
                         : '-'}
                       {' \u2022 '}

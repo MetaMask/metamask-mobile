@@ -41,7 +41,6 @@ const createStyles = (colors: Colors, insets: EdgeInsets) =>
       resizeMode: 'contain',
       width: Device.getDeviceWidth() * 0.6,
       height: 64,
-      overflow: 'visible',
     },
     connectLedgerText: {
       ...(fontStyles.normal as TextStyle),

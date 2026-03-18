@@ -72,7 +72,7 @@ export function useRampsProviders(): UseRampsProvidersResult {
   );
 
   useEffect(() => {
-    if (providers.length > 0 && !selectedProvider) {
+    if (providers && providers.length > 0 && !selectedProvider) {
       setSelectedProvider(
         determinePreferredProvider(completedOrders, providers),
       );

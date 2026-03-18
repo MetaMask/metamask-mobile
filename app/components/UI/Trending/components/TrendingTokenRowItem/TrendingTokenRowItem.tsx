@@ -163,6 +163,7 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isFromTrending: true,
     source: TokenDetailsSource.Trending,
     rwaData: token.rwaData,
+    securityData: token.securityData,
   };
 };
 
