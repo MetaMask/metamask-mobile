@@ -41,6 +41,8 @@ export function PredictPayWithRow({
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
+  const showPredictBalance = isPredictBalanceSelected || !payToken;
+
   const handlePress = useCallback(() => {
     if (!canEdit) return;
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
@@ -49,13 +51,13 @@ export function PredictPayWithRow({
   }, [canEdit, navigation]);
 
   const label = strings('confirm.label.pay_with');
-  const displaySymbol = isPredictBalanceSelected
+  const displaySymbol = showPredictBalance
     ? 'Predict balance'
     : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
-  const tokenIconAddress = isPredictBalanceSelected
+  const tokenIconAddress = showPredictBalance
     ? POLYGON_USDCE.address
     : (payToken?.address as Hex | undefined);
-  const tokenIconChainId = isPredictBalanceSelected
+  const tokenIconChainId = showPredictBalance
     ? PREDICT_BALANCE_CHAIN_ID
     : (payToken?.chainId as Hex | undefined);
 
