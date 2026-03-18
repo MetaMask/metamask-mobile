@@ -636,6 +636,7 @@ describe('OAuthRehydration', () => {
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
       // Assert
+      expect(loginButton.props.accessibilityState.busy).toBe(true);
       expect(loginButton.props.accessibilityState.disabled).toBe(true);
     });
 
