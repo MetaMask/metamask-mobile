@@ -8,7 +8,7 @@ import {
   sendViewOverrides,
 } from '../../../../../../tests/component-view/presets/send';
 import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
-import { describeForPlatforms } from '../../../../../../app/util/test/platform';
+import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenStandard } from '../../types/token';
 import {
