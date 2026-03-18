@@ -12,6 +12,7 @@ import {
   Pressable,
   Animated,
   Image,
+  InteractionManager,
   useColorScheme,
 } from 'react-native';
 import Video from 'react-native-video';
@@ -19,6 +20,8 @@ import Video from 'react-native-video';
 const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const MarketInsightsBackgroundVideoDark = require('../../animations/market-insights-background-dark.mp4');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const MarketInsightsBackgroundFirstFrameLight = require('../../animations/market-insights-background-light-first-frame.png');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-insights-background-light-last-frame.png');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
@@ -205,8 +208,16 @@ const MarketInsightsView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
+  const [canMountVideo, setCanMountVideo] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
-  const [showLastFrame, setShowLastFrame] = useState(false);
+  const firstFrameImage = useMemo(
+    () =>
+      isDarkMode
+        ? MarketInsightsBackgroundLastFrameDark
+        : MarketInsightsBackgroundFirstFrameLight,
+    [isDarkMode],
+  );
   const lastFrameImage = useMemo(
     () =>
       isDarkMode
@@ -215,11 +226,14 @@ const MarketInsightsView: React.FC = () => {
     [isDarkMode],
   );
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setShowLastFrame(true);
-    }, 100);
-    return () => clearTimeout(timeout);
+  const handlePosterLoaded = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      setCanMountVideo(true);
+    });
+  }, []);
+
+  const handleVideoReady = useCallback(() => {
+    setVideoReady(true);
   }, []);
 
   const handleVideoEnd = useCallback(() => {
@@ -532,15 +546,11 @@ const MarketInsightsView: React.FC = () => {
         contentContainerStyle={tw.style('pb-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
-          {showLastFrame && (
-            <Image
-              source={lastFrameImage}
-              style={tw.style('absolute w-full h-full')}
-              resizeMode="cover"
-            />
-          )}
-          {!videoEnded && (
+        <Box
+          twClassName="w-full bg-background-default"
+          style={{ aspectRatio: 786 / 340 }}
+        >
+          {canMountVideo && !videoEnded && (
             <Video
               source={backgroundVideo}
               style={tw.style('w-full h-full')}
@@ -549,8 +559,24 @@ const MarketInsightsView: React.FC = () => {
               paused={false}
               controls={false}
               disableFocus
+              onReadyForDisplay={handleVideoReady}
               onEnd={handleVideoEnd}
               testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+            />
+          )}
+          {!videoReady && !videoEnded && (
+            <Image
+              source={firstFrameImage}
+              style={tw.style('absolute w-full h-full')}
+              resizeMode="cover"
+              onLoad={handlePosterLoaded}
+            />
+          )}
+          {videoEnded && (
+            <Image
+              source={lastFrameImage}
+              style={tw.style('absolute w-full h-full')}
+              resizeMode="cover"
             />
           )}
         </Box>
