@@ -659,7 +659,7 @@ export default class MockServerE2E implements Resource {
       .slice() as ((...args: unknown[]) => void)[];
     process.removeAllListeners('uncaughtException');
 
-    this._abortExceptionHandler = (error: unknown) => {
+    this._abortExceptionHandler = (error: unknown, origin: unknown) => {
       if (MockServerE2E._isMockttpAbortError(error)) {
         this._abortSuppressCount++;
         logger.debug(
@@ -675,7 +675,7 @@ export default class MockServerE2E implements Resource {
       let firstError: unknown;
       for (const handler of this._originalExceptionHandlers) {
         try {
-          handler(error);
+          handler(error, origin);
         } catch (err) {
           if (firstError === undefined) {
             firstError = err;
