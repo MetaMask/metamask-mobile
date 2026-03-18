@@ -37,16 +37,25 @@ description: Use when spinning up test infrastructure outside of Detox withFixtu
 | `list_recipes`                                                | Show available FixtureBuilder recipes                        | —            |
 | `get_server_url` / `get_mock_hits`                            | Query running resources                                      | —            |
 
+## Fresh Instances (CRITICAL)
+
+**Always `stop_all()` before starting new resources.** Every test run must begin with a clean slate — no leftover routes, state, or connections from a previous run. When the user asks to "start a mock server" or "spin up infrastructure", kill all existing resources first, then start fresh.
+
+```
+stop_all()  →  start_mock_server(...)  →  start_fixture_server(...)
+```
+
 ## Startup Order
 
 Resources have preconditions. Follow this order when starting multiple:
 
 ```
-1. Local node (if needed)     — no preconditions
-2. Dapp server (if needed)    — no preconditions
-3. Mock server                — no preconditions
-4. WebSocket server           — no preconditions
-5. Fixture server             — start LAST (state references ports of other resources)
+1. stop_all()                        — always first, kill previous resources
+2. Local node (if needed)            — no preconditions
+3. Dapp server (if needed)           — no preconditions
+4. Mock server                       — no preconditions
+5. WebSocket server                  — no preconditions
+6. Fixture server                    — start LAST (state references ports of other resources)
 ```
 
 Each `start_*` tool validates preconditions and returns a clear error if unmet.

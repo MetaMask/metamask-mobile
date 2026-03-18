@@ -111,13 +111,26 @@ After selecting a server, a "Developer Menu" onboarding screen may appear with a
 
 **Always confirm with the user which build they're using** if unclear. The appId determines which app gets launched, stopped, and cleared. Using the wrong one will silently launch a different app or fail.
 
-## Common Flows
+## Launching the App
 
-### Unlock wallet
+**Always launch with `clearState: true`** to ensure deterministic test state. This wipes app data so every run starts fresh — no leftover sessions, cached logins, or dismissed modals.
 
 ```yaml
-appId: io.metamask
----
+- launchApp:
+    appId: io.metamask
+    clearState: true
+    clearKeychain: true # iOS only — clears stored credentials
+```
+
+When using the `test-infra-mcp` fixture server, the app loads state from the fixture server on launch (via `fixtureServerPort` launch arg). With `clearState: true`, the app always starts from the fixture state, not from a previous session.
+
+**Without a fixture server**, `clearState: true` means the app starts in the onboarding flow (no wallet created).
+
+## Common Flows
+
+### Unlock wallet (assumes fixture server loaded an onboarded state)
+
+```yaml
 - tapOn:
     id: 'login-password-input'
 - inputText: '<PASSWORD>'
@@ -132,7 +145,7 @@ appId: io.metamask
 ---
 - launchApp:
     appId: io.metamask
-    clearState: false
+    clearState: true
 
 # Dismiss dev screens if present
 - runFlow:
@@ -157,7 +170,7 @@ appId: io.metamask
 - extendedWaitUntil:
     visible:
       id: 'login-password-input'
-    timeout: 10000
+    timeout: 15000
 
 - tapOn:
     id: 'login-password-input'
