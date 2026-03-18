@@ -9,8 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.70.0]
 
+### Uncategorized
+
+- chore: Stable sync release 7.69.0 (#27441)
+- Revert "chore: sync stable into release/7.69.0 (#27432)" (#27432)
+- Revert "chore: sync stable into release/7.69.0 (#27432)
+- chore: sync stable into release/7.69.0 (#27355)
+- chore: sync stable to main for version 7.68.0 (#27094)
+- chore: sync stable into release/7.68.0 (#27282)
+- Added ability for dev build to use builds.yml as source of truth (#27036)
+- Null ## **Related issues** (#26529)
+- Null - minor UI fix (#26892)
+- chore: update node-version-file in push-eas-update.yml (#26844)
+- Separated yarn install from build job in build.yml (#26369)
+- Bump RemoteFeatureFlagController (#26680)
+
 ### Added
 
+- Added Upload to TestFlight GHA workflow (#27167)
+- Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the (#27277)
+  token selection screen.
+- Use LD flags to consume price impact threshold (#27196)
+- Handle aggregated balance new home page (#27172)
+- Added OTA Summary in the workflow (#26957)
+- Bump `@metamask-assets-controllers` to `^100.1.0` (#26987)
 - Add auth header to bridge getToken calls (#26191)
 - Add a Contact Support button on CardHome (#27421)
 - Added an mUSD bonus calculator to the Rewards tab (#27398)
