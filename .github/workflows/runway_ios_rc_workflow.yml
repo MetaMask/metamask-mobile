@@ -23,10 +23,10 @@ on:
         type: string
 
 permissions:
-  contents: write   # required by build.yml (update-build-version job)
+  contents: write # required by build.yml (update-build-version job)
   pull-requests: read
   actions: write
-  id-token: write  # required by build.yml
+  id-token: write # required by build.yml
 
 jobs:
   decide:
@@ -72,9 +72,10 @@ jobs:
         id: decide
         run: |
           set -e
-          # Version from package.json (e.g. 7.71.0)
+          # Version from package.json (e.g. 7.70.0) → base ref for OTA workflow is always v{VERSION}
           VERSION=$(node -p "require('./package.json').version")
           RELEASE_TAG="v${VERSION}"
+          echo "base_ref=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
 
           # Extract OTA_VERSION from line 9 (format: export const OTA_VERSION: string = 'vX.Y.Z';)
           extract_ota() { sed -n '9p' "$1" | sed "s/.*'\\([^']*\\)'.*/\1/"; }
@@ -83,17 +84,15 @@ jobs:
           CURRENT_OTA=$(extract_ota app/constants/ota.ts)
           echo "ota_version=${CURRENT_OTA}" >> "$GITHUB_OUTPUT"
 
-          # Resolve base ref for comparison and for OTA workflow (fingerprint comparison)
-          # Prefer release tag; when tag does not exist (e.g. release branch before tag is cut), use main
+          # Ref to compare against for detecting bump: use release tag if it exists, else main
           if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
-            BASE_REF="$RELEASE_TAG"
-            BASE_OTA=$(git show "${BASE_REF}:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
+            COMPARE_REF="$RELEASE_TAG"
+            BASE_OTA=$(git show "${COMPARE_REF}:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
           else
-            BASE_REF="main"
+            COMPARE_REF="main"
             BASE_OTA=$(git show "origin/main:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
-            echo "Release tag ${RELEASE_TAG} not found; comparing OTA_VERSION to ${BASE_REF}"
+            echo "Release tag ${RELEASE_TAG} not found; comparing OTA_VERSION to ${COMPARE_REF} to detect bump"
           fi
-          echo "base_ref=${BASE_REF}" >> "$GITHUB_OUTPUT"
 
           if [[ -n "$BASE_OTA" && "$CURRENT_OTA" != "$BASE_OTA" ]]; then
             echo "ota_bump=true" >> "$GITHUB_OUTPUT"
