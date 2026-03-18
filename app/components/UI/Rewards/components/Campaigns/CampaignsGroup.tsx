@@ -23,11 +23,9 @@ const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
   displayPreviousSeason = false,
 }) => {
   const seasonName = useSelector(selectSeasonName);
-  if (campaigns.length === 0 && !displayPreviousSeason) {
-    return null;
-  }
+  const showPreviousSeason = displayPreviousSeason && !!seasonName;
 
-  if (displayPreviousSeason && !seasonName) {
+  if (campaigns.length === 0 && !showPreviousSeason) {
     return null;
   }
 
@@ -39,7 +37,7 @@ const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
       {campaigns.map((campaign) => (
         <CampaignTile key={campaign.id} campaign={campaign} />
       ))}
-      {displayPreviousSeason && <PreviousSeasonTile />}
+      {showPreviousSeason && <PreviousSeasonTile />}
     </Box>
   );
 };
