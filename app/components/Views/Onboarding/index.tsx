@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useMemo,
   useRef,
   useCallback,
   useContext,
@@ -133,7 +134,10 @@ interface OnboardingRouteParams {
 
 const Onboarding = () => {
   const navigation = useNavigation();
-  const onboardingVersion = `${getVersion()} (${getBuildNumber()})`;
+  const onboardingVersion = useMemo(
+    () => `${getVersion()} (${getBuildNumber()})`,
+    [],
+  );
 
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
