@@ -325,7 +325,7 @@ describe('PredictionsSection', () => {
       expect(toJSON()).toBeNull();
     });
 
-    it('does not render error state while still loading', () => {
+    it('renders loading state instead of returning null while data is still loading', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: true,
@@ -333,13 +333,11 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       });
 
-      renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
-      expect(
-        screen.queryByText('Unable to load predictions'),
-      ).not.toBeOnTheScreen();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
