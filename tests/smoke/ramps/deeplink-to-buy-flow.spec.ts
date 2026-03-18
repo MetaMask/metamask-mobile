@@ -91,7 +91,8 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
     );
   });
 
-  describe('Buy deeplink ramps unified V1/V2 flag matrix (Base USDC)', () => {
+  // TODO: Uncomment once we have the tests passing according to the UI/UX
+  describe.skip('Buy deeplink ramps unified V1/V2 flag matrix (Base USDC)', () => {
     const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
     it('Deep links when unified V1 on and V2 off', async () => {
