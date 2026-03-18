@@ -13,7 +13,6 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
-import { usePerpsNetworkManagement } from '../hooks/usePerpsNetworkManagement';
 import usePerpsToasts from '../hooks/usePerpsToasts';
 import PerpsLoader from '../components/PerpsLoader';
 import Logger from '../../../../util/Logger';
@@ -30,9 +29,8 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
  * A redirect screen that handles navigation from Token Details to the Perps order confirmation.
  * This screen:
  * 1. Waits for the WebSocket connection to be established (via PerpsConnectionProvider)
- * 2. Ensures Arbitrum network exists (adds it if missing, same as in-Perps deposit flow)
- * 3. Calls depositWithOrder() to create the pending transaction
- * 4. Navigates to the confirmation screen with the transaction ready
+ * 2. Calls depositWithOrder() to create the pending transaction (Arbitrum network check is handled internally by the hook)
+ * 3. Navigates to the confirmation screen with the transaction ready
  *
  * This is necessary because Token Details is outside the Perps stack, so the WebSocket
  * is not initialized there. By navigating to this screen first, we ensure the WebSocket
@@ -50,7 +48,6 @@ const PerpsOrderRedirect: React.FC = () => {
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const hasStartedRef = useRef(false);
@@ -66,8 +63,7 @@ const PerpsOrderRedirect: React.FC = () => {
       asset,
     });
 
-    ensureArbitrumNetworkExists()
-      .then(() => depositWithOrder())
+    depositWithOrder()
       .then(() => {
         Logger.log(
           '[PerpsOrderRedirect] depositWithOrder resolved, navigating to confirmation',
@@ -107,7 +103,6 @@ const PerpsOrderRedirect: React.FC = () => {
     asset,
     fromTokenDetails,
     assetsASSETS2493AbtestTokenDetailsLayout,
-    ensureArbitrumNetworkExists,
     depositWithOrder,
     navigation,
     showToast,
