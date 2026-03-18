@@ -9,13 +9,15 @@ import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
+import { assert } from '@metamask/utils';
+import Logger from '../../util/Logger';
 
 const styles = createStyles();
 
 // This is a hack to allow us to asynchronously await the creation of the WebView.
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 export let createWebView: (jobId: string) => Promise<WebViewInterface>;
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 export let removeWebView: (jobId: string) => void;
 
 interface WebViewState {
@@ -45,7 +47,11 @@ export class SnapsExecutionWebView extends Component {
       const onWebViewLoad = () => {
         const api = {
           injectJavaScript: (js: string) => {
-            this.webViews[jobId]?.ref?.injectJavaScript(js);
+            assert(
+              this.webViews[jobId]?.ref,
+              'Snaps execution webview reference not found.',
+            );
+            this.webViews[jobId].ref?.injectJavaScript(js);
           },
           registerMessageListener: (
             listener: (event: PostMessageEvent) => void,
@@ -67,9 +73,13 @@ export class SnapsExecutionWebView extends Component {
 
       const onWebViewMessage = (data: WebViewMessageEvent) => {
         if (this.webViews[jobId]?.listener) {
-          this.webViews[jobId].listener?.(
-            data.nativeEvent as unknown as PostMessageEvent,
-          );
+          try {
+            this.webViews[jobId].listener?.(
+              data.nativeEvent as unknown as PostMessageEvent,
+            );
+          } catch (error) {
+            Logger.log('Snaps execution webview failure:', error);
+          }
         }
       };
 

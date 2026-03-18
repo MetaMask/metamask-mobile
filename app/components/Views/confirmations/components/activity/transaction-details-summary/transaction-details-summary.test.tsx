@@ -43,6 +43,14 @@ jest.mock('./default-summary-line', () => ({
   },
 }));
 
+jest.mock('./source-hash-summary-line', () => ({
+  SourceHashSummaryLine: () => {
+    const ReactNative = require('react-native');
+
+    return <ReactNative.Text>SourceHashSummaryLine</ReactNative.Text>;
+  },
+}));
+
 function render({
   transactions,
 }: {
@@ -189,6 +197,68 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(getAllByText('DefaultSummaryLine')).toHaveLength(2);
+  });
+
+  it('renders SourceHashSummaryLine when sourceHash exists and no deposit transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+        chainId: '0x1',
+        type: TransactionType.perpsDeposit,
+        metamaskPay: {
+          sourceHash: '0xabc',
+          tokenAddress: '0x123',
+          chainId: '0x1',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render({
+      transactions: [
+        {
+          id: transactionIdMock,
+          chainId: '0x1',
+          type: TransactionType.perpsDeposit,
+        },
+      ],
+    });
+
+    expect(getByText('SourceHashSummaryLine')).toBeDefined();
+  });
+
+  it('does not render SourceHashSummaryLine when deposit transactions exist', () => {
+    const depositId = 'deposit-id';
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+        chainId: '0x1',
+        type: TransactionType.perpsDeposit,
+        requiredTransactionIds: [depositId],
+        metamaskPay: {
+          sourceHash: '0xabc',
+          tokenAddress: '0x123',
+          chainId: '0x1',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { queryByText } = render({
+      transactions: [
+        {
+          id: depositId,
+          chainId: '0x1',
+          type: TransactionType.relayDeposit,
+        },
+        {
+          id: transactionIdMock,
+          chainId: '0x1',
+          type: TransactionType.perpsDeposit,
+        },
+      ],
+    });
+
+    expect(queryByText('SourceHashSummaryLine')).toBeNull();
   });
 
   it('skips non-relay child transactions for mUSD conversion parent', () => {
