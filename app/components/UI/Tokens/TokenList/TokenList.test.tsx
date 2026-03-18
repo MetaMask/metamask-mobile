@@ -504,7 +504,7 @@ describe('TokenList', () => {
       DeviceEventEmitter.removeAllListeners('scrollToTokenIndex');
     });
 
-    it('scrolls to token using FlashList scrollToIndex when token is found and using FlashList mode', () => {
+    it('scrolls to token using FlashList scrollToIndex when token is found and using FlashList mode', async () => {
       // Set up for FlashList mode (homepage redesign disabled)
       mockUseSelector.mockImplementation((selector) => {
         if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
@@ -515,13 +515,21 @@ describe('TokenList', () => {
 
       renderComponent({ isFullView: true });
 
-      // Emit scroll-to-token event
+      // Emit scroll-to-token event (handler schedules requestAnimationFrame)
       act(() => {
         DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
           address: '0x123',
           chainId: '0x1',
         });
       });
+
+      // Flush requestAnimationFrame so scrollToIndex is invoked
+      await act(
+        async () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          ),
+      );
 
       expect(mockScrollToIndex).toHaveBeenCalledWith({
         index: 0,
@@ -530,7 +538,7 @@ describe('TokenList', () => {
       });
     });
 
-    it('scrolls to correct index when token is not first in list', () => {
+    it('scrolls to correct index when token is not first in list', async () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
           return false;
@@ -546,6 +554,13 @@ describe('TokenList', () => {
           chainId: '0x1',
         });
       });
+
+      await act(
+        async () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          ),
+      );
 
       expect(mockScrollToIndex).toHaveBeenCalledWith({
         index: 1,
@@ -653,7 +668,7 @@ describe('TokenList', () => {
       });
     });
 
-    it('matches token address case-insensitively', () => {
+    it('matches token address case-insensitively', async () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
           return false;
@@ -669,6 +684,13 @@ describe('TokenList', () => {
           chainId: '0x1',
         });
       });
+
+      await act(
+        async () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          ),
+      );
 
       expect(mockScrollToIndex).toHaveBeenCalledWith({
         index: 0,

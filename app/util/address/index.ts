@@ -267,10 +267,7 @@ export function getKeyringByAddress(address: string) {
     return undefined;
   }
   const { KeyringController } = Engine.context;
-  const keyrings = KeyringController?.state?.keyrings;
-  if (!keyrings) {
-    return undefined;
-  }
+  const { keyrings } = KeyringController.state;
   return keyrings.find((keyring) =>
     keyring.accounts
       .map((account) => toFormattedAddress(account))
