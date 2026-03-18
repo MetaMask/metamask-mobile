@@ -45,10 +45,10 @@ describe('IPFSGatewaySettings', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<IPFSGatewaySettings />, {
+    const component = renderWithProvider(<IPFSGatewaySettings />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders IPFS gateway toggle switch', () => {

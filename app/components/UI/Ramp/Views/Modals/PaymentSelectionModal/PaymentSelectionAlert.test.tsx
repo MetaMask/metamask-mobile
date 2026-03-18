@@ -5,19 +5,19 @@ import { BannerAlertSeverity } from '../../../../../../component-library/compone
 
 describe('PaymentSelectionAlert', () => {
   it('matches snapshot with default severity', () => {
-    const { toJSON } = render(
+    const component = render(
       <PaymentSelectionAlert message="Something went wrong." />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('matches snapshot with warning severity', () => {
-    const { toJSON } = render(
+    const component = render(
       <PaymentSelectionAlert
         message="No payment methods are available."
         severity={BannerAlertSeverity.Warning}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

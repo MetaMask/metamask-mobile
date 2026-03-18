@@ -27,13 +27,13 @@ describe('NetworkImageComponent', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <NetworkImageComponent
         isAllNetworksEnabled={false}
         allNetworksEnabled={{}}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders multiple avatars when isAllNetworksEnabled is true', () => {

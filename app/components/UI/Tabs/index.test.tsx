@@ -144,7 +144,7 @@ describe('Tabs', () => {
 
   describe('rendering', () => {
     it('renders tabs component with multiple tabs', () => {
-      const { toJSON } = renderWithProvider(
+      const component = renderWithProvider(
         <Tabs
           tabs={mockTabs}
           activeTab={1}
@@ -156,7 +156,7 @@ describe('Tabs', () => {
         { state: mockInitialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders no tabs message when tabs array is empty', () => {
@@ -182,7 +182,7 @@ describe('Tabs', () => {
         { id: 1, url: 'https://example.com', image: 'image1' },
       ];
 
-      const { toJSON } = renderWithProvider(
+      const component = renderWithProvider(
         <Tabs
           tabs={singleTab}
           activeTab={1}
@@ -194,7 +194,7 @@ describe('Tabs', () => {
         { state: mockInitialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders top bar with back and add buttons', () => {

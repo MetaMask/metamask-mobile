@@ -125,7 +125,7 @@ describe('Main', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<Main />, {
+    const component = renderWithProvider(<Main />, {
       state: {
         ...initialRootState,
         user: {
@@ -134,11 +134,11 @@ describe('Main', () => {
         },
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should render correctly with isConnectionRemoved true', () => {
-    const { toJSON } = renderWithProvider(<Main />, {
+    const component = renderWithProvider(<Main />, {
       state: {
         ...initialRootState,
         user: {
@@ -147,6 +147,6 @@ describe('Main', () => {
         },
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -21,9 +21,9 @@ describe('EarnMaintenanceBanner', () => {
     });
 
   it('renders banner and maintenance message', () => {
-    const { toJSON } = renderBanner();
+    const component = renderBanner();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
     expect(
       strings('earn.service_interruption_banner.maintenance_message'),
     ).toBeDefined();

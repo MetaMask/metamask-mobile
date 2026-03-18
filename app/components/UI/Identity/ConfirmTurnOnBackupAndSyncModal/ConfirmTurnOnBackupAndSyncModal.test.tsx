@@ -69,12 +69,12 @@ jest.mock('@react-navigation/native', () => {
 
 describe('ConfirmTurnOnBackupAndSyncModal', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('enables basic functionality, then backup and sync', async () => {

@@ -10,7 +10,7 @@ describe('LoginWithBiometricsSwitch', () => {
   const handleUpdate = (_biometricsEnabled: boolean) => {};
   it('should render correctly', () => {
     const store = mockStore({ security: { allowLoginWithRememberMe: false } });
-    const { toJSON } = render(
+    const component = render(
       <Provider store={store}>
         <LoginOptionsSwitch
           shouldRenderBiometricOption={BIOMETRY_TYPE.FACE}
@@ -20,12 +20,12 @@ describe('LoginWithBiometricsSwitch', () => {
         />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should return empty object when shouldRenderBiometricOption is undefined and allowLoginWithRememberMe is false in settings', () => {
     const store = mockStore({ security: { allowLoginWithRememberMe: false } });
-    const { toJSON } = render(
+    const component = render(
       <Provider store={store}>
         <LoginOptionsSwitch
           onUpdateBiometryChoice={handleUpdate}
@@ -35,6 +35,6 @@ describe('LoginWithBiometricsSwitch', () => {
         />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

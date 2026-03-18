@@ -4,7 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('AnimatedSpinner', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<AnimatedSpinner />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(<AnimatedSpinner />);
+    expect(component).toMatchSnapshot();
   });
 });

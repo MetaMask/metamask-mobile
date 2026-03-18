@@ -147,8 +147,8 @@ describe('V2OtpCode', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2OtpCode />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithTheme(<V2OtpCode />);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders the OTP input and submit button', () => {

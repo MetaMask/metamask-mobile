@@ -25,9 +25,9 @@ describe('OpenETHAppStep', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <OpenETHAppStep onReject={jest.fn()} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

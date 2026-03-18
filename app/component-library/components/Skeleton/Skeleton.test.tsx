@@ -27,8 +27,8 @@ describe('Skeleton', () => {
   });
 
   it('should match snapshot', () => {
-    const { toJSON } = render(<Skeleton />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<Skeleton />);
+    expect(component).toMatchSnapshot();
   });
 
   it('should render with custom alignSelf style', () => {

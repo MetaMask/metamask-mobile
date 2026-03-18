@@ -197,7 +197,7 @@ describe('Browser - Tab Operations', () => {
         { id: 2, url: 'https://test.com', image: '', isArchived: false },
       ];
 
-      const { toJSON } = renderWithProvider(
+      const component = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
           <NavigationContainer independent>
             <Stack.Navigator>
@@ -221,7 +221,7 @@ describe('Browser - Tab Operations', () => {
         { state: mockInitialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('navigates away when closing tabs view with zero tabs', async () => {

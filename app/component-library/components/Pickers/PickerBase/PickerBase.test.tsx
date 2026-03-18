@@ -9,12 +9,12 @@ import { IconName, IconSize } from '../../Icons/Icon';
 
 describe('PickerBase', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <PickerBase onPress={jest.fn()}>
         <Text>Test Content</Text>
       </PickerBase>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should call onPress when pressed', () => {

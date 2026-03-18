@@ -4,11 +4,11 @@ import GasEducationCarousel from '.';
 
 describe('GasEducationCarousel', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <GasEducationCarousel
         navigation={{ getParam: () => false, setOptions: () => null }}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

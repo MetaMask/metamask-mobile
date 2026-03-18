@@ -118,11 +118,11 @@ describe('UnstakeConfirmationView', () => {
       },
     };
 
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <UnstakeConfirmationView {...props} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -188,12 +188,12 @@ describe('MetaMetricsAndDataCollectionSection', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
+    const component = renderScreen(
       MetaMetricsAndDataCollectionSection,
       { name: 'MetaMetricsAndDataCollectionSection' },
       { state: initialStateMarketingFalse },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   describe('MetaMetrics section', () => {

@@ -151,14 +151,14 @@ describe('LedgerConfirmationModal', () => {
   };
 
   it('render matches latest snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <LedgerConfirmationModal
         onConfirmation={jest.fn()}
         onRejection={jest.fn()}
         deviceId={'test'}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('logs HARDWARE_WALLET_ERROR event when the ledger error occurs', async () => {

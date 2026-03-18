@@ -4,7 +4,7 @@ import FadeView from './';
 
 describe('FadeView', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<FadeView visible />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<FadeView visible />);
+    expect(component).toMatchSnapshot();
   });
 });

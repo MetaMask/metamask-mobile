@@ -36,8 +36,8 @@ describe('MaxInputModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderMaxInputModal();
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderMaxInputModal();
+    expect(component).toMatchSnapshot();
   });
 
   it('calls handleMaxPress when "Use max" button is pressed', () => {

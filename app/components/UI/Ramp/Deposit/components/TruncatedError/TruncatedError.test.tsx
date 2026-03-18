@@ -18,17 +18,17 @@ describe('TruncatedError', () => {
 
   describe('Basic rendering', () => {
     it('renders correctly and matches snapshot', () => {
-      const { toJSON } = render(
+      const component = render(
         <TruncatedError error="This is a test error message" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders with custom maxLines prop', () => {
-      const { toJSON } = render(
+      const component = render(
         <TruncatedError error="This is a test error message" maxLines={3} />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 
@@ -67,15 +67,16 @@ describe('TruncatedError', () => {
           ],
         },
       };
-      const { queryByText, getByText, toJSON } = render(
+      const component = render(
         <TruncatedError error={longError} maxLines={2} />,
       );
+      const { queryByText, getByText } = component;
       const textComponent = getByText(longError);
       act(() => {
         fireEvent(textComponent, 'onTextLayout', mockEvent);
       });
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
       expect(queryByText('See more')).toBeDefined();
     });
   });

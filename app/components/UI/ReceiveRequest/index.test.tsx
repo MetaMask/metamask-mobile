@@ -117,12 +117,12 @@ describe('ReceiveRequest', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
+    const component = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders QR code with correct properties', () => {
@@ -159,12 +159,12 @@ describe('ReceiveRequest', () => {
     state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
       '0x1'
     ].nativeCurrency = 'DIFF';
-    const { toJSON } = renderScreen(
+    const component = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
       { state },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('render without buy matches snapshot', () => {
@@ -172,12 +172,12 @@ describe('ReceiveRequest', () => {
       ...initialState,
       fiatOrders: undefined,
     };
-    const { toJSON } = renderScreen(
+    const component = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
       { state },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders request payment button when EVM network is selected', () => {

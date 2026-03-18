@@ -78,10 +78,10 @@ describe('NetworkConnectMultiSelector', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <NetworkConnectMultiSelector {...defaultProps} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('disables the select all button when loading', () => {

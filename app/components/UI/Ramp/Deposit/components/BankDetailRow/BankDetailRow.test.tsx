@@ -18,15 +18,15 @@ describe('BankDetailRow', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = render(<BankDetailRow {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<BankDetailRow {...defaultProps} />);
+    expect(component).toMatchSnapshot();
   });
 
   it('render matches snapshot with different values', () => {
-    const { toJSON } = render(
+    const component = render(
       <BankDetailRow label="Bank Name" value="Chase Bank" />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('copies value to clipboard when copy button is pressed', () => {

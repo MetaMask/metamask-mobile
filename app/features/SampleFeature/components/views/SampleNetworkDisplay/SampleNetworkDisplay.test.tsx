@@ -17,12 +17,12 @@ describe('SampleNetworkDisplay', () => {
    * @test
    */
   it('matches rendered snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <SampleNetworkDisplay
         name={'My test network'}
         imageSource={networkImage}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

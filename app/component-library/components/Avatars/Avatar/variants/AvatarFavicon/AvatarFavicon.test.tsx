@@ -18,8 +18,8 @@ describe('AvatarFavicon', () => {
   });
 
   it('should match the snapshot', () => {
-    const { toJSON } = render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+    expect(component).toMatchSnapshot();
   });
 
   it('should render favicon with remote image', () => {
@@ -44,18 +44,19 @@ describe('AvatarFavicon', () => {
       text: () => '<svg />',
     });
 
-    const { getByTestId, toJSON } = render(
+    const component = render(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
       />,
     );
+    const { getByTestId } = component;
 
     await waitFor(() =>
       expect(getByTestId(AVATARFAVICON_IMAGE_SVG_TESTID)).toBeDefined(),
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should render fallback', () => {
@@ -67,7 +68,7 @@ describe('AvatarFavicon', () => {
   });
 
   it('should render fallback when svg has error', () => {
-    const { toJSON } = render(
+    const component = render(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
@@ -77,6 +78,6 @@ describe('AvatarFavicon', () => {
     // Simulate onError on Image component
     fireEvent(prevImageComponent, 'error', new Error('ERROR!'));
     expect(screen.getByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

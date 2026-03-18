@@ -26,9 +26,9 @@ jest.mock(
 
 describe('LendingMaxWithdrawalModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<LendingMaxWithdrawalModal />);
+    const component = render(<LendingMaxWithdrawalModal />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should handle close action', () => {

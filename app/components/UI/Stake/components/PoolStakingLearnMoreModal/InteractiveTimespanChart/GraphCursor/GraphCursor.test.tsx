@@ -22,8 +22,8 @@ describe('GraphCursor', () => {
       color: MOCK_COLOR,
     };
 
-    const { toJSON } = renderWithProvider(<GraphCursor {...props} />);
+    const component = renderWithProvider(<GraphCursor {...props} />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

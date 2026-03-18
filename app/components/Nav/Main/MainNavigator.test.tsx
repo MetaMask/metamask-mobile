@@ -26,12 +26,12 @@ describe('MainNavigator', () => {
   it('matches rendered snapshot', () => {
     // Given the initial app state
     // When rendering the MainNavigator
-    const { toJSON } = renderWithProvider(<MainNavigator />, {
+    const component = renderWithProvider(<MainNavigator />, {
       state: initialRootState,
     });
 
     // Then it should match the expected navigation structure
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   describe('Tab Bar Visibility', () => {
@@ -47,12 +47,12 @@ describe('MainNavigator', () => {
       };
 
       // When rendering the MainNavigator
-      const { toJSON } = renderWithProvider(<MainNavigator />, {
+      const component = renderWithProvider(<MainNavigator />, {
         state: stateWithBrowserActive,
       });
 
       // Then the tab bar should be hidden (returns null in renderTabBar)
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('shows tab bar when not in browser', () => {
@@ -67,12 +67,12 @@ describe('MainNavigator', () => {
       };
 
       // When rendering the MainNavigator
-      const { toJSON } = renderWithProvider(<MainNavigator />, {
+      const component = renderWithProvider(<MainNavigator />, {
         state: stateWithWalletActive,
       });
 
       // Then the tab bar should be visible
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 

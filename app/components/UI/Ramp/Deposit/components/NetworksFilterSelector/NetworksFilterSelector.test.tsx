@@ -21,7 +21,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('renders correctly when networkFilter is null', () => {
-    const { toJSON, getByText } = render(
+    const component = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={null}
@@ -29,8 +29,9 @@ describe('NetworksFilterSelector', () => {
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
     );
+    const { getByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     const selectAllButton = getByText('Select all');
     fireEvent.press(selectAllButton);
@@ -39,7 +40,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('renders correctly when networkFilter is the same as uniqueNetworks', () => {
-    const { toJSON, getByText } = render(
+    const component = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={networks}
@@ -47,8 +48,9 @@ describe('NetworksFilterSelector', () => {
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
     );
+    const { getByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     const deselectAllButton = getByText('Deselect all');
     fireEvent.press(deselectAllButton);
@@ -58,7 +60,7 @@ describe('NetworksFilterSelector', () => {
 
   it('renders correctly when networkFilter is a subset of uniqueNetworks', () => {
     const subsetNetworkFilter: CaipChainId[] = ['eip155:1', 'eip155:59144'];
-    const { toJSON, getByText } = render(
+    const component = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={subsetNetworkFilter}
@@ -66,8 +68,9 @@ describe('NetworksFilterSelector', () => {
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
     );
+    const { getByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     const ethereumCheckbox = getByText('Ethereum');
     fireEvent.press(ethereumCheckbox);

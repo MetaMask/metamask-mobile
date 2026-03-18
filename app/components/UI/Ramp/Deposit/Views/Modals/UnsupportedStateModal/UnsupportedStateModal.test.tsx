@@ -110,8 +110,8 @@ describe('UnsupportedStateModal', () => {
       selectedRegion: mockSelectedRegion,
     });
 
-    const { toJSON } = render(UnsupportedStateModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(UnsupportedStateModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('handles try another option button press correctly', () => {

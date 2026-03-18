@@ -132,8 +132,8 @@ describe('ContactForm', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderContactForm();
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderContactForm();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders in add mode by default', async () => {

@@ -56,11 +56,12 @@ describe('PoolStakingLearnMoreModal', () => {
   });
 
   it('render matches snapshot', async () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+    const component = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <PoolStakingLearnMoreModal />
       </SafeAreaProvider>,
     );
+    const { getByTestId } = component;
 
     const chartContainer = getByTestId(
       INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
@@ -69,6 +70,6 @@ describe('PoolStakingLearnMoreModal', () => {
 
     fireLayoutEvent(areaChart);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

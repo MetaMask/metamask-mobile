@@ -5,7 +5,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 
 describe('CustomNotificationsRow', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <CustomNotificationsRow
         title={'Title'}
         icon={IconName.Sparkle}
@@ -13,6 +13,6 @@ describe('CustomNotificationsRow', () => {
         toggleCustomNotificationsEnabled={() => jest.fn()}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

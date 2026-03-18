@@ -69,30 +69,30 @@ describe('RegionSelectorModal Component', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const component = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('render matches snapshot when searching for a country', () => {
-    const { getByPlaceholderText, toJSON } =
-      renderWithProvider(RegionSelectorModal);
+    const component = renderWithProvider(RegionSelectorModal);
+    const { getByPlaceholderText } = component;
 
     fireEvent.changeText(getByPlaceholderText('Search by country'), 'Germany');
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('render matches snapshot when search has no results', () => {
-    const { getByPlaceholderText, toJSON } =
-      renderWithProvider(RegionSelectorModal);
+    const component = renderWithProvider(RegionSelectorModal);
+    const { getByPlaceholderText } = component;
 
     fireEvent.changeText(
       getByPlaceholderText('Search by country'),
       'Nonexistent Country',
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('calls setSelectedRegion when a supported region is selected', () => {
@@ -120,8 +120,8 @@ describe('RegionSelectorModal Component', () => {
   });
 
   it('sorts recommended regions to the top when no search is active', () => {
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(RegionSelectorModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('tracks RAMPS_REGION_SELECTED event when a supported region is selected', () => {
@@ -154,9 +154,9 @@ describe('RegionSelectorModal Component', () => {
       onRegionSelect: undefined,
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const component = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('handles empty regions array from navigation params', () => {
@@ -164,9 +164,9 @@ describe('RegionSelectorModal Component', () => {
       regions: [],
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const component = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('calls onRegionSelect callback when provided and region is selected', () => {
@@ -228,9 +228,9 @@ describe('RegionSelectorModal Component', () => {
       allRegionsSelectable: true,
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const component = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('render matches snapshot with custom selectedRegion', () => {
@@ -242,9 +242,9 @@ describe('RegionSelectorModal Component', () => {
       selectedRegion: germanyRegion,
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const component = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('allows selection of unsupported regions when allRegionsSelectable is true', () => {

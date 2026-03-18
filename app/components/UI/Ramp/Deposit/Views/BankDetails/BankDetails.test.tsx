@@ -150,18 +150,18 @@ describe('BankDetails Component', () => {
   });
 
   it('render matches snapshot', async () => {
-    const { toJSON } = render(BankDetails);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(BankDetails);
+    expect(component).toMatchSnapshot();
   });
 
   it('render matches snapshot with bank info shown', async () => {
-    const { toJSON } = render(BankDetails);
+    const component = render(BankDetails);
 
     await act(async () => {
       fireEvent.press(screen.getByText('Show bank information'));
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('calls confirmPayment when bank transfer sent button is pressed', async () => {

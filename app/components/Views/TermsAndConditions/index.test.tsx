@@ -4,9 +4,9 @@ import TermsAndConditions from './';
 
 describe('TermsAndConditions', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <TermsAndConditions action="import" />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

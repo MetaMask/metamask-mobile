@@ -29,11 +29,11 @@ describe('DepositReceiveSection', () => {
   };
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <DepositReceiveSection {...defaultProps} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

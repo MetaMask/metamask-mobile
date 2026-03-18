@@ -25,7 +25,7 @@ describe('SsnInfoModal Component', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(SsnInfoModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(SsnInfoModal);
+    expect(component).toMatchSnapshot();
   });
 });

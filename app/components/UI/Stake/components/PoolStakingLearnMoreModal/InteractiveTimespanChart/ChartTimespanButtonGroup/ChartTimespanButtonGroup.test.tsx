@@ -14,11 +14,11 @@ describe('ChartTimespanButtonGroup', () => {
       onPress: noop,
     };
 
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <ChartTimespanButtonGroup {...props} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('updates active timespan button onPress', async () => {

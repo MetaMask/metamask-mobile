@@ -162,16 +162,16 @@ const renderComponent = (props = {}) =>
 
 describe('PaymentRequest', () => {
   it('renders correctly', async () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with network picker when feature flag is enabled', async () => {
-    const { toJSON } = renderComponent({
+    const component = renderComponent({
       chainId: '0x1',
       networkImageSource: ethLogo,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('displays the correct title for asset selection', async () => {

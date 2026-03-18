@@ -94,11 +94,11 @@ describe('CollectibleModal', () => {
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
-    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+    const component = renderWithProvider(<CollectibleModal />, {
       state: mockInitialState,
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders the correct token name and ID', async () => {

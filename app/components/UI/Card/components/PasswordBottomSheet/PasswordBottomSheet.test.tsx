@@ -110,9 +110,9 @@ describe('PasswordBottomSheet', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const { toJSON } = setupComponent();
+    const component = setupComponent();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('displays title and default description text', () => {

@@ -12,8 +12,8 @@ import { INPUT_TEST_ID } from '../../../../component-library/components/Form/Tex
 
 describe('SRP -> Input', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<Input />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<Input />);
+    expect(component).toMatchSnapshot();
   });
   it('should render Input with the correct TextVariant', () => {
     render(<Input textVariant={TextVariant.HeadingSM} />);

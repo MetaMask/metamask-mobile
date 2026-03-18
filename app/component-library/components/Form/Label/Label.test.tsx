@@ -12,8 +12,8 @@ import {
 
 describe('Label', () => {
   it('should render default settings correctly', () => {
-    const { toJSON } = render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
+    expect(component).toMatchSnapshot();
   });
   it('should render Label', () => {
     render(<Label>{SAMPLE_LABEL_TEXT}</Label>);

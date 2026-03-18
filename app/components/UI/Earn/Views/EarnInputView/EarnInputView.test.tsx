@@ -475,8 +475,8 @@ describe('EarnInputView', () => {
   const renderComponent = () => render(EarnInputView);
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent();
+    expect(component).toMatchSnapshot();
   });
 
   describe('when erc20 token is selected', () => {
@@ -749,9 +749,10 @@ describe('EarnInputView', () => {
 
   describe('when values are entered in the keypad', () => {
     it('updates ETH and fiat values', async () => {
-      const { toJSON, getByText } = renderComponent();
+      const component = renderComponent();
+      const { getByText } = component;
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
 
       await act(async () => {
         fireEvent.press(getByText('2'));

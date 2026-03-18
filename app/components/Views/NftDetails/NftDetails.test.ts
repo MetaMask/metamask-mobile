@@ -198,13 +198,13 @@ describe('NftDetails', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderScreen(
+    const component = renderScreen(
       QrScanner,
       { name: 'NftDetails' },
       { state: initialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('tracks NFT Details Opened event with mobile-nft-list source', () => {

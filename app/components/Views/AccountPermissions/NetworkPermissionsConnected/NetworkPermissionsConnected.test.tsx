@@ -90,7 +90,7 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('NetworkPermissionsConnected', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <NetworkPermissionsConnected
         onSetPermissionsScreen={jest.fn()}
         onDismissSheet={jest.fn()}
@@ -100,6 +100,6 @@ describe('NetworkPermissionsConnected', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

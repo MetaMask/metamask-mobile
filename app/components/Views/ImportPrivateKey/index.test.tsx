@@ -87,12 +87,12 @@ describe('ImportPrivateKey', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
+    const component = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('displays SRP warning description when user has no social auth connection', () => {

@@ -42,7 +42,7 @@ describe('DepositPhoneField', () => {
   });
 
   it('renders correctly with default props', () => {
-    const { toJSON } = render(
+    const component = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -51,11 +51,11 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with error message', () => {
-    const { toJSON } = render(
+    const component = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -65,11 +65,11 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with value', () => {
-    const { toJSON } = render(
+    const component = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -78,7 +78,7 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with different region', () => {
@@ -87,13 +87,13 @@ describe('DepositPhoneField', () => {
       setSelectedRegion: mockSetSelectedRegion,
     });
 
-    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
+    const component = render(<DepositPhoneField {...defaultProps} />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly after input change', () => {
-    const { getByTestId, toJSON } = render(
+    const component = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -101,22 +101,24 @@ describe('DepositPhoneField', () => {
         regions={[]}
       />,
     );
+    const { getByTestId } = component;
 
     const input = getByTestId('deposit-phone-field-test-id');
     fireEvent.changeText(input, '5551234567');
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly after flag button press', () => {
-    const { getByRole, toJSON } = render(
+    const component = render(
       <DepositPhoneField {...defaultProps} />,
     );
+    const { getByRole } = component;
 
     const flagButton = getByRole('button');
     fireEvent.press(flagButton);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('opens region selector modal when flag is pressed', () => {
@@ -157,9 +159,10 @@ describe('DepositPhoneField', () => {
       }
     });
 
-    const { getByRole, toJSON } = render(
+    const component = render(
       <DepositPhoneField {...defaultProps} regions={testRegions} />,
     );
+    const { getByRole } = component;
 
     const flagButton = getByRole('button');
     fireEvent.press(flagButton);
@@ -170,12 +173,12 @@ describe('DepositPhoneField', () => {
       }
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with onSubmitEditing callback', () => {
     const mockOnSubmitEditing = jest.fn();
-    const { toJSON } = render(
+    const component = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -185,7 +188,7 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with unsupported region', () => {
@@ -194,13 +197,13 @@ describe('DepositPhoneField', () => {
       setSelectedRegion: mockSetSelectedRegion,
     });
 
-    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
+    const component = render(<DepositPhoneField {...defaultProps} />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with long phone number', () => {
-    const { toJSON } = render(
+    const component = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -209,11 +212,11 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with special characters in phone number', () => {
-    const { toJSON } = render(
+    const component = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -222,7 +225,7 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   describe('undefined region handling', () => {

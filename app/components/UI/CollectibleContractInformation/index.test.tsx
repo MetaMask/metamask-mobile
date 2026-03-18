@@ -35,7 +35,7 @@ describe('CollectibleContractInformation', () => {
   const mockRunAfterInteractions =
     InteractionManager.runAfterInteractions as jest.Mock;
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <CollectibleContractInformation
@@ -50,7 +50,7 @@ describe('CollectibleContractInformation', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should call onClose when title text is pressed', () => {

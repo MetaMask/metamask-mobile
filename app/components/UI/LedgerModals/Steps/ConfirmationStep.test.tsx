@@ -27,7 +27,7 @@ function createWrapper({ onRejectMock = jest.fn() } = {}) {
 
 describe('ConfirmationStep', () => {
   it('renders correctly', () => {
-    const { toJSON } = createWrapper();
-    expect(toJSON()).toMatchSnapshot();
+    const component = createWrapper();
+    expect(component).toMatchSnapshot();
   });
 });

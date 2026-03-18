@@ -6,7 +6,7 @@ import EditGasFeeLegacy from './';
 
 describe('EditGasFeeLegacy', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <ThemeContext.Provider value={mockTheme}>
         <EditGasFeeLegacy
           gasFee={{
@@ -19,6 +19,6 @@ describe('EditGasFeeLegacy', () => {
         />
       </ThemeContext.Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

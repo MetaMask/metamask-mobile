@@ -29,13 +29,13 @@ describe('ActionListItem', () => {
 
   describe('Rendering', () => {
     it('should render correctly with basic props', () => {
-      const { toJSON } = render(
+      const component = render(
         <ActionListItem
           {...SAMPLE_ACTIONLISTITEM_PROPS}
           onPress={mockOnPress}
         />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('should render with string label', () => {

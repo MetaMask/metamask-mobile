@@ -310,7 +310,7 @@ describe('AccountConnect', () => {
         Caip25EndowmentPermissionName,
       );
     });
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -333,11 +333,11 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with request including chains and accounts', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -359,11 +359,11 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly with request including only chains', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -385,7 +385,7 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly when merging existing CAIP-25 permissions', () => {
@@ -409,7 +409,7 @@ describe('AccountConnect', () => {
       'eip155:10': { accounts: [`eip155:10:${mockAddress2}`] },
     });
 
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -427,7 +427,7 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   describe('AccountConnectMultiSelector handlers', () => {

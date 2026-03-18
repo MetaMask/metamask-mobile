@@ -34,12 +34,12 @@ jest.mock('../../hooks/useSampleNetwork/useSampleNetwork', () => ({
 
 describe('SamplePetNames', () => {
   it('matches rendered snapshot', async () => {
-    const { toJSON } = renderWithProvider(<SamplePetNames />, {
+    const component = renderWithProvider(<SamplePetNames />, {
       state: initialRootState,
     });
 
     await waitFor(() => {
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 });

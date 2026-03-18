@@ -11,8 +11,8 @@ import {
 
 describe('BadgeWrapper', () => {
   it('should render BadgeWrapper correctly', () => {
-    const { toJSON } = render(<BadgeWrapper {...SAMPLE_BADGEWRAPPER_PROPS} />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<BadgeWrapper {...SAMPLE_BADGEWRAPPER_PROPS} />);
+    expect(component).toMatchSnapshot();
     expect(screen.getByTestId(BADGE_WRAPPER_BADGE_TEST_ID)).toBeDefined();
   });
 });

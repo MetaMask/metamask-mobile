@@ -87,15 +87,16 @@ const renderGraph = (
 
 describe('InteractiveTimespanChart', () => {
   it('render matches snapshot', () => {
-    const { toJSON } = renderGraph('object');
+    const component = renderGraph('object');
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('supports dataPoints as number[]', () => {
-    const { toJSON, getByText } = renderGraph('number');
+    const component = renderGraph('number');
+    const { getByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     // Timespan buttons rendering
     buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
@@ -106,9 +107,10 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('supports dataPoints as object[]', () => {
-    const { toJSON, getByText } = renderGraph('object');
+    const component = renderGraph('object');
+    const { getByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     // Timespan buttons rendering
     buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
@@ -119,12 +121,13 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('renders no title or subtitle when defaultTitle, defaultSubtitle, titleAccessor, and subtitleAccessor are not defined', () => {
-    const { toJSON, getByText, queryByText } = renderGraph('object', {
+    const component = renderGraph('object', {
       defaultTitle: '',
       defaultSubtitle: '',
     });
+    const { getByText, queryByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     // Timespan buttons rendering
     buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
@@ -135,11 +138,12 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('renders only the title when subtitle props are not defined', () => {
-    const { toJSON, getByText, queryByText } = renderGraph('object', {
+    const component = renderGraph('object', {
       defaultSubtitle: '',
     });
+    const { getByText, queryByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     // Timespan buttons rendering
     buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
@@ -150,11 +154,12 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('renders only the subtitle when title props are not defined', () => {
-    const { toJSON, getByText, queryByText } = renderGraph('object', {
+    const component = renderGraph('object', {
       defaultTitle: '',
     });
+    const { getByText, queryByText } = component;
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     // Timespan buttons rendering
     buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());

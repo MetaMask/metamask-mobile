@@ -15,12 +15,12 @@ import { WidthType } from './ListItemColumn.types';
 
 describe('ListItemColumn', () => {
   it('should render snapshot correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <ListItemColumn>
         <View />
       </ListItemColumn>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
   it('should render component correctly', () => {
     render(

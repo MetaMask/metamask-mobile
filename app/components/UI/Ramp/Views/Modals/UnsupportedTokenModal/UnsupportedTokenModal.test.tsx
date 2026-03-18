@@ -51,9 +51,9 @@ describe('UnsupportedTokenModal', () => {
   });
 
   it('renders the modal with correct title and description', () => {
-    const { toJSON } = render(UnsupportedTokenModal);
+    const component = render(UnsupportedTokenModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('closes the modal when the close button is pressed', () => {

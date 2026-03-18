@@ -331,14 +331,14 @@ const renderComponent = (state: any = {}) =>
 describe('Network Selector', () => {
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent(initialState);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly when network UI redesign is enabled', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent(initialState);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly when network UI redesign is enabled and calls setNetworkClientIdForDomain', async () => {

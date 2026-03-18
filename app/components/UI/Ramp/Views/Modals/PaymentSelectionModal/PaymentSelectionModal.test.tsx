@@ -198,8 +198,8 @@ describe('PaymentSelectionModal', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(PaymentSelectionModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('displays header with "Pay with" text', () => {
@@ -306,8 +306,8 @@ describe('PaymentSelectionModal', () => {
       selectedToken: null,
     };
     mockUseRampsController.mockImplementation(() => loadingState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(PaymentSelectionModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('matches snapshot when payment methods fail to load', () => {
@@ -318,8 +318,8 @@ describe('PaymentSelectionModal', () => {
       selectedPaymentMethod: null,
     };
     mockUseRampsController.mockImplementation(() => errorState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(PaymentSelectionModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('matches snapshot when no payment methods are available', () => {
@@ -329,8 +329,8 @@ describe('PaymentSelectionModal', () => {
       selectedPaymentMethod: null,
     };
     mockUseRampsController.mockImplementation(() => emptyState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(PaymentSelectionModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('passes correct quote fetch params to useRampsQuotes', () => {

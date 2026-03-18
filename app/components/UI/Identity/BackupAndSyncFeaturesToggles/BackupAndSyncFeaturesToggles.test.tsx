@@ -68,10 +68,10 @@ describe('BackupAndSyncToggle', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<BackupAndSyncFeaturesToggles />, {
+    const component = renderWithProvider(<BackupAndSyncFeaturesToggles />, {
       state: MOCK_STORE_STATE,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('tracks toggle event when toggling the switch', async () => {

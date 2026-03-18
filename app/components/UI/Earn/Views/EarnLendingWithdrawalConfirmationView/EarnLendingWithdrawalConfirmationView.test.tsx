@@ -221,7 +221,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
         state: mockInitialState,
@@ -254,7 +254,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1

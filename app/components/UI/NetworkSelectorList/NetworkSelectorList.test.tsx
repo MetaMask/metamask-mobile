@@ -36,13 +36,13 @@ describe('NetworkSelectorList', () => {
   });
 
   it('renders correctly with default props', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <NetworkSelectorList
         networks={mockNetworks}
         onSelectNetwork={mockOnSelectNetwork}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders all networks in the list', () => {

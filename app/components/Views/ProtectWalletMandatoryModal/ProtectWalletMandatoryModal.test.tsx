@@ -85,19 +85,19 @@ describe('ProtectWalletMandatoryModal', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<ProtectWalletMandatoryModal />, {
+    const component = renderWithProvider(<ProtectWalletMandatoryModal />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders correctly on iPhoneX', () => {
     mockIsIphoneX.mockReturnValue(true);
 
-    const { toJSON } = renderWithProvider(<ProtectWalletMandatoryModal />, {
+    const component = renderWithProvider(<ProtectWalletMandatoryModal />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('tracks metrics event after interactions when securing wallet', () => {

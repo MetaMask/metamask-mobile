@@ -100,11 +100,11 @@ describe('AccountOverview', () => {
       balanceFiat: 1604.2,
       label: 'Account 1',
     };
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <AccountOverview account={account} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('tracks WALLET_COPIED_ADDRESS when address is pressed', async () => {

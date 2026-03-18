@@ -50,7 +50,7 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
@@ -61,7 +61,7 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('handles cancel button press', () => {

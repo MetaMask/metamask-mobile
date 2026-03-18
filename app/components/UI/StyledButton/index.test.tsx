@@ -20,23 +20,23 @@ describe('StyledButton', () => {
 
   buttonTypes.forEach((type) => {
     it(`should render correctly on iOS the button with type ${type}`, () => {
-      const { toJSON } = render(
+      const component = render(
         <ThemeContext.Provider value={mockTheme}>
           <StyledButtonIOS type={type} />
         </ThemeContext.Provider>,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 
   buttonTypes.forEach((type) => {
     it(`should render correctly on Android the button with type ${type}`, () => {
-      const { toJSON } = render(
+      const component = render(
         <ThemeContext.Provider value={mockTheme}>
           <StyledButtonAndroid type={type} />
         </ThemeContext.Provider>,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 });

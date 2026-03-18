@@ -165,8 +165,8 @@ describe('V2BasicInfo', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithTheme(<V2BasicInfo />);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders the form fields', () => {
@@ -403,8 +403,8 @@ describe('V2BasicInfo', () => {
       regionCode: 'gb',
     };
 
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithTheme(<V2BasicInfo />);
+    expect(component).toMatchSnapshot();
   });
 
   it('disables continue button while loading', async () => {
@@ -453,8 +453,8 @@ describe('V2BasicInfo', () => {
       regionCode: 'gb',
     };
 
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithTheme(<V2BasicInfo />);
+    expect(component).toMatchSnapshot();
   });
 
   it('shows validation errors when fields are empty', async () => {

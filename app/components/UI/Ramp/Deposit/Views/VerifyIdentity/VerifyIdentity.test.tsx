@@ -69,8 +69,8 @@ describe('VerifyIdentity Component', () => {
   });
 
   it('renders verify identity screen with all content', () => {
-    const { toJSON } = render(VerifyIdentity);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(VerifyIdentity);
+    expect(component).toMatchSnapshot();
   });
 
   it('calls setOptions when the component mounts', () => {

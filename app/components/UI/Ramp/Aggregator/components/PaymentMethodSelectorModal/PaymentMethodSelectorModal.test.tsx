@@ -81,8 +81,8 @@ describe('PaymentMethodSelectorModal', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = render(PaymentMethodSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(PaymentMethodSelectorModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders without disclaimer when selected payment method has none', () => {
@@ -91,8 +91,8 @@ describe('PaymentMethodSelectorModal', () => {
       selectedPaymentMethodId: 'payment-method-2',
     };
 
-    const { toJSON } = render(PaymentMethodSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(PaymentMethodSelectorModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders for sell flow', () => {
@@ -106,8 +106,8 @@ describe('PaymentMethodSelectorModal', () => {
       isBuy: false,
     };
 
-    const { toJSON } = render(PaymentMethodSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(PaymentMethodSelectorModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('tracks OFFRAMP_PAYMENT_METHOD_SELECTED event when payment method is selected in sell flow', () => {

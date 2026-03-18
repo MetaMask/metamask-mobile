@@ -10,11 +10,12 @@ describe('AccountTag', () => {
       accountName: 'Sample Contract',
     };
 
-    const { getByText, toJSON } = renderWithProvider(<AccountTag {...props} />);
+    const component = renderWithProvider(<AccountTag {...props} />);
+    const { getByText } = component;
 
     expect(getByText(props.accountName as string)).toBeDefined();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it("render matches snapshot when name prop isn't defined", () => {
@@ -22,10 +23,11 @@ describe('AccountTag', () => {
       accountAddress: '0x1',
     };
 
-    const { getByText, toJSON } = renderWithProvider(<AccountTag {...props} />);
+    const component = renderWithProvider(<AccountTag {...props} />);
+    const { getByText } = component;
 
     expect(getByText(props.accountAddress)).toBeDefined();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -103,12 +103,13 @@ describe('EditAccountName', () => {
     mockAccountsControllerSetAccountName.mockClear();
   });
   it('should render correctly', () => {
-    const { getByText, toJSON } = renderComponent(mockInitialState);
+    const component = renderComponent(mockInitialState);
+    const { getByText } = component;
     expect(getByText('Cancel')).toBeDefined();
     expect(getByText('Save')).toBeDefined();
     expect(getByText('Name')).toBeDefined();
     expect(getByText('Address')).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should enable the save button when text input changes', () => {

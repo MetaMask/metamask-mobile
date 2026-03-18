@@ -138,8 +138,9 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    const { toJSON, getByText } = renderComponent({ state: initialState });
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent({ state: initialState });
+    const { getByText } = component;
+    expect(component).toMatchSnapshot();
     const nonceText = getByText('Nonce');
     expect(nonceText).toBeDefined();
     const totalAmountText = getByText('Total amount');
@@ -154,7 +155,7 @@ describe('TransactionDetails', () => {
       l1Fee: '0x1',
     });
 
-    const { toJSON } = renderComponent({
+    const component = renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -178,14 +179,14 @@ describe('TransactionDetails', () => {
         multiLayerL1FeeTotal: '0x1',
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
   it('should render correctly for multi-layer fee network with no l1 fee', () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x0',
     });
-    const { toJSON } = renderComponent({
+    const component = renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -209,7 +210,7 @@ describe('TransactionDetails', () => {
         multiLayerL1FeeTotal: '0x1',
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   const arrangeBlockExplorerTest = () => {

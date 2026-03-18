@@ -65,10 +65,10 @@ describe('ApprovalTooltip', () => {
   });
 
   it('renders correctly with given props', () => {
-    const { toJSON } = renderScreen(() => <ApprovalText {...defaultProps} />, {
+    const component = renderScreen(() => <ApprovalText {...defaultProps} />, {
       name: Routes.BRIDGE.ROOT,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('displays info button with correct accessibility properties', () => {

@@ -81,7 +81,7 @@ describe('CustomAction Component', () => {
   });
 
   it('shows loading indicator when isLoading is true', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <CustomAction
         customAction={mockCustomAction}
         showInfo={jest.fn()}
@@ -90,7 +90,7 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('displays previously used provider tag', () => {

@@ -78,10 +78,10 @@ describe('QuickAmounts', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(
+    const component = renderWithTheme(
       <QuickAmounts onAmountPress={mockOnAmountPress} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

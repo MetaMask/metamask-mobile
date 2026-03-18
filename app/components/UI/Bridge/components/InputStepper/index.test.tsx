@@ -67,43 +67,43 @@ describe('InputStepper', () => {
     });
 
     it('renders correct style when value character length is less or equal to 10', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} value="1234567890" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders correct style when value character length is less or equal to 15', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} value="123456789012345" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders correct style when value character length is less or equal to 20', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} value="12345678901234567890" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders correct style when value character length is less or equal to 25', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} value="1234567890123456789012345" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders correct style when value character length is more than 25', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} value="12345678901234567890123456" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders custom placeholder if provided', () => {
@@ -139,17 +139,17 @@ describe('InputStepper', () => {
     });
 
     it('renders correct style of minus button when enabled', () => {
-      const { toJSON } = render(<InputStepper {...defaultProps} value="50" />);
+      const component = render(<InputStepper {...defaultProps} value="50" />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders correct style of minus button when disabled', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} value="0" minAmount={0} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 
@@ -176,17 +176,17 @@ describe('InputStepper', () => {
     });
 
     it('renders correct style of plus button when enabled', () => {
-      const { toJSON } = render(<InputStepper {...defaultProps} value="50" />);
+      const component = render(<InputStepper {...defaultProps} value="50" />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders correct style of plus button when disabled', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} value="100" maxAmount={100} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 
@@ -203,13 +203,13 @@ describe('InputStepper', () => {
         },
       };
 
-      const { toJSON } = render(
+      const component = render(
         <InputStepper {...defaultProps} description={description} />,
       );
 
       // Since InputStepperDescriptionRow is mocked to return null,
       // we verify the component renders without it in the snapshot
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 
@@ -296,7 +296,7 @@ describe('InputStepper', () => {
 
   describe('complete component snapshot', () => {
     it('renders complete component correctly', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper
           {...defaultProps}
           value="42.5"
@@ -305,11 +305,11 @@ describe('InputStepper', () => {
         />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders with description', () => {
-      const { toJSON } = render(
+      const component = render(
         <InputStepper
           {...defaultProps}
           value="42.5"
@@ -320,7 +320,7 @@ describe('InputStepper', () => {
         />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 });

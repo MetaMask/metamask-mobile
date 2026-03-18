@@ -10,19 +10,20 @@ describe('SegmentedControl', () => {
   // Single-select mode tests
   describe('Single-select mode', () => {
     it('renders correctly with default selection', () => {
-      const { toJSON, getAllByRole } = render(
+      const component = render(
         <SegmentedControl
           options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
           selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
           onValueChange={jest.fn()}
         />,
       );
+      const { getAllByRole } = component;
 
       // Renders all options
       expect(getAllByRole('button')).toHaveLength(
         SAMPLE_SEGMENTEDCONTROL_OPTIONS.length,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('calls onValueChange when an option is pressed', () => {
@@ -77,7 +78,7 @@ describe('SegmentedControl', () => {
         SAMPLE_SEGMENTEDCONTROL_OPTIONS[2].value,
       ];
 
-      const { toJSON, getAllByRole } = render(
+      const component = render(
         <SegmentedControl
           options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
           selectedValues={selectedValues}
@@ -85,12 +86,13 @@ describe('SegmentedControl', () => {
           onValueChange={jest.fn()}
         />,
       );
+      const { getAllByRole } = component;
 
       // Renders all options
       expect(getAllByRole('button')).toHaveLength(
         SAMPLE_SEGMENTEDCONTROL_OPTIONS.length,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('adds value to selection when unselected option is pressed', () => {

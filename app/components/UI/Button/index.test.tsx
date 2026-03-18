@@ -4,7 +4,7 @@ import Button from './';
 
 describe('Button', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<Button />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<Button />);
+    expect(component).toMatchSnapshot();
   });
 });

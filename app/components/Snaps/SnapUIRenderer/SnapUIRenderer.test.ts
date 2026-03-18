@@ -36,23 +36,24 @@ describe('SnapUIRenderer', () => {
   });
 
   it('renders loading state', () => {
-    const { toJSON } = renderInterface(null);
+    const component = renderInterface(null);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders basic UI', () => {
-    const { toJSON, getByText, getRenderCount } = renderInterface(
+    const component = renderInterface(
       Box({ children: Text({ children: 'Hello world!' }) }),
     );
+    const { getByText, getRenderCount } = component;
 
     expect(getByText('Hello world!')).toBeDefined();
     expect(getRenderCount()).toBe(1);
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders footers', () => {
-    const { toJSON, getByText } = renderInterface(
+    const component = renderInterface(
       Container({
         children: [
           Box({ children: Text({ children: 'Hello world!' }) }),
@@ -61,26 +62,28 @@ describe('SnapUIRenderer', () => {
       }),
       { useFooter: true },
     );
+    const { getByText } = component;
 
     expect(getByText('Foo')).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('adds a footer if required', () => {
-    const { toJSON, getByText } = renderInterface(
+    const component = renderInterface(
       Container({
         children: Box({ children: Text({ children: 'Hello world!' }) }),
       }),
       { useFooter: true },
     );
+    const { getByText } = component;
 
     expect(getByText('Close')).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('supports the onCancel prop', () => {
     const onCancel = jest.fn();
-    const { toJSON, getByText } = renderInterface(
+    const component = renderInterface(
       Container({
         children: [
           Box({ children: Text({ children: 'Hello world!' }) }),
@@ -89,19 +92,21 @@ describe('SnapUIRenderer', () => {
       }),
       { useFooter: true, onCancel },
     );
+    const { getByText } = component;
 
     const button = getByText('Cancel');
     expect(button).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
 
     fireEvent.press(button);
     expect(onCancel).toHaveBeenCalled();
   });
 
   it('supports interactive inputs', () => {
-    const { toJSON, getByTestId } = renderInterface(
+    const component = renderInterface(
       Box({ children: Input({ name: 'input' }) }),
     );
+    const { getByTestId } = component;
 
     const input = getByTestId('input-snap-ui-input');
     fireEvent.changeText(input, 'a');
@@ -128,27 +133,28 @@ describe('SnapUIRenderer', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('prefills interactive inputs with existing state', () => {
-    const { toJSON, getByTestId } = renderInterface(
+    const component = renderInterface(
       Box({ children: Input({ name: 'input' }) }),
       { state: { input: 'bar' } },
     );
+    const { getByTestId } = component;
 
     const input = getByTestId('input-snap-ui-input');
     expect(input).toBeDefined();
     expect(input.props.value).toStrictEqual('bar');
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('re-renders when the interface changes', () => {
-    const { toJSON, getByTestId, updateInterface, getRenderCount } =
-      renderInterface(
+    const component = renderInterface(
         Box({ children: Input({ name: 'input', type: 'number' }) }),
       );
+    const { getByTestId, updateInterface, getRenderCount } = component;
 
     const inputs = getByTestId('input-snap-ui-input');
     expect(inputs).toBeTruthy();
@@ -167,12 +173,12 @@ describe('SnapUIRenderer', () => {
 
     expect(getRenderCount()).toBe(2);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('re-syncs state when the interface changes', () => {
-    const { toJSON, getByTestId, getRenderCount, updateInterface } =
-      renderInterface(Box({ children: Input({ name: 'input' }) }));
+    const component = renderInterface(Box({ children: Input({ name: 'input' }) }));
+    const { getByTestId, getRenderCount, updateInterface } = component;
 
     updateInterface(
       Box({ children: [Input({ name: 'input' }), Input({ name: 'input2' })] }),
@@ -186,11 +192,11 @@ describe('SnapUIRenderer', () => {
     expect(input2AfterRerender.props.value).toStrictEqual('foo');
     expect(getRenderCount()).toBe(2);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('supports fields with multiple components', () => {
-    const { toJSON } = renderInterface(
+    const component = renderInterface(
       Box({
         children: Form({
           name: 'form',
@@ -212,11 +218,11 @@ describe('SnapUIRenderer', () => {
       }),
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders complex nested components', () => {
-    const { toJSON, getRenderCount } = renderInterface(
+    const component = renderInterface(
       Container({
         children: [
           Box({
@@ -243,9 +249,10 @@ describe('SnapUIRenderer', () => {
       }),
       { useFooter: true },
     );
+    const { getRenderCount } = component;
 
     expect(getRenderCount()).toBe(1);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -14,18 +14,18 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 
 describe('image component', () => {
   it('renders an SVG image', () => {
-    const { toJSON } = renderInterface(
+    const component = renderInterface(
       Image({
         src: '<svg />',
         borderRadius: 'full',
       }),
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders an external image', () => {
-    const { toJSON } = renderInterface(
+    const component = renderInterface(
       Image({
         src: 'https://metamask.io/fox.png',
         borderRadius: 'full',
@@ -34,6 +34,6 @@ describe('image component', () => {
       }),
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

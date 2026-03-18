@@ -39,7 +39,7 @@ describe('TabsList', () => {
     const tabs = ['Tab 1', 'Tab 2', 'Tab 3'];
 
     // Act
-    const { toJSON } = render(
+    const component = render(
       <TabsList>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
@@ -50,7 +50,7 @@ describe('TabsList', () => {
     );
 
     // Assert
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('displays correct initial tab content with on-demand loading', async () => {
@@ -268,10 +268,10 @@ describe('TabsList', () => {
 
   it('handles empty children gracefully', () => {
     // Act
-    const { toJSON } = render(<TabsList>{[]}</TabsList>);
+    const component = render(<TabsList>{[]}</TabsList>);
 
     // Assert
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders with initial page set to specific index', () => {
@@ -305,7 +305,7 @@ describe('TabsList', () => {
     const tabs = ['Tab 1', 'Tab 2'];
 
     // Act
-    const { toJSON } = render(
+    const component = render(
       <TabsList twClassName="bg-background-alternative" padding={4}>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
@@ -316,7 +316,7 @@ describe('TabsList', () => {
     );
 
     // Assert - Box should receive the props and render correctly
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('handles all tabs disabled by setting activeIndex to -1', () => {
@@ -668,7 +668,7 @@ describe('TabsList', () => {
       const nonReactElementChild = 'Plain text';
 
       // Act
-      const { toJSON } = render(
+      const component = render(
         <TabsList>
           <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
@@ -678,7 +678,7 @@ describe('TabsList', () => {
       );
 
       // Assert - Component handles non-React elements gracefully
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('uses initialActiveIndex when it points to an enabled tab', () => {

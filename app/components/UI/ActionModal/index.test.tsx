@@ -4,7 +4,7 @@ import ActionModal from './';
 
 describe('ActionModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<ActionModal />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<ActionModal />);
+    expect(component).toMatchSnapshot();
   });
 });

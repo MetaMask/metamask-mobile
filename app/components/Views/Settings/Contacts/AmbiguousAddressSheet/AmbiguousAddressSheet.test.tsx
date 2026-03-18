@@ -4,9 +4,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 describe('AmbiguousAddressSheet', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderScreen(AmbiguousAddressSheet, {
+    const component = renderScreen(AmbiguousAddressSheet, {
       name: Routes.SHEET.AMBIGUOUS_ADDRESS,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -263,7 +263,7 @@ describe('AggregatedPercentageCrossChains', () => {
   };
 
   it('should match snapshot', () => {
-    const { toJSON } = render(
+    const component = render(
       <Provider store={store}>
         <AggregatedPercentageCrossChains
           privacyMode={false}
@@ -283,7 +283,7 @@ describe('AggregatedPercentageCrossChains', () => {
       </Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should return positive amount change if market data is all positive', () => {

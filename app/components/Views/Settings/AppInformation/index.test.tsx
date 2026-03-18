@@ -76,15 +76,16 @@ describe('AppInformation', () => {
   });
 
   it('renders correctly with snapshot', async () => {
-    const { toJSON, getByText } = renderScreen(
+    const component = renderScreen(
       AppInformation,
       { name: 'AppInformation', options: { headerShown: false } },
       { state: MOCK_STATE },
     );
+    const { getByText } = component;
     await waitFor(() => {
       expect(getByText('MetaMask v7.0.0 (1000)')).toBeTruthy();
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders the container with correct testID', () => {

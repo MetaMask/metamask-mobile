@@ -81,8 +81,8 @@ const renderComponent = (
 
 describe('AddressElement', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent(initialState);
+    expect(component).toMatchSnapshot();
   });
 
   it('should render the address', () => {

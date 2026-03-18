@@ -259,10 +259,10 @@ describe('RpcSelectionModal', () => {
   });
 
   it('should render correctly when visible', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <RpcSelectionModal {...defaultProps} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should not render when not visible', () => {

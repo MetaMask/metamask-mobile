@@ -63,7 +63,7 @@ jest.mock('@react-navigation/compat', () => ({
 describe('NavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <NavbarTitle title={title} />,
       {
         state: {
@@ -71,7 +71,7 @@ describe('NavbarTitle', () => {
         },
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('tracks NETWORK_SELECTOR_PRESSED when pressed and network is not disabled', () => {

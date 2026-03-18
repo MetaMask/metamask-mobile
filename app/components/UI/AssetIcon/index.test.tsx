@@ -43,9 +43,9 @@ const mockInitialState = {
 
 describe('AssetIcon', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<AssetIcon logo={sampleLogo} />, {
+    const component = renderWithProvider(<AssetIcon logo={sampleLogo} />, {
       state: mockInitialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

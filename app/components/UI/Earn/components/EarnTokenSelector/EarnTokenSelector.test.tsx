@@ -67,13 +67,13 @@ describe('EarnTokenSelector', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <EarnTokenSelector {...mockProps} />,
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('displays token symbol and APR', () => {

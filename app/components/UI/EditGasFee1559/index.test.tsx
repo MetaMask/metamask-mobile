@@ -5,7 +5,7 @@ import EditGasFee1559 from './';
 
 describe('EditGasFee1559', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <EditGasFee1559
         gasFee={{
           maxWaitTimeEstimate: 150000,
@@ -19,6 +19,6 @@ describe('EditGasFee1559', () => {
         view={''}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -82,20 +82,20 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
 
   describe('Component props handling', () => {
     it('render matches snapshot when enabled = false, isSRP = true, hasNavigation = true', () => {
-      const { toJSON } = render(
+      const component = render(
         <ScreenshotDeterrent enabled={false} isSRP hasNavigation />,
       );
       // expect to be snapshot
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
       expect(PreventScreenshot.forbid).toHaveBeenCalled();
       expect(mockUseMetrics.trackEvent).toHaveBeenCalled();
     });
 
     it('render matches snapshot when enabled = true, isSRP = true, hasNavigation = true', () => {
-      const { toJSON } = render(
+      const component = render(
         <ScreenshotDeterrent enabled isSRP hasNavigation />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
       expect(PreventScreenshot.forbid).toHaveBeenCalled();
       expect(mockUseMetrics.trackEvent).toHaveBeenCalled();
     });

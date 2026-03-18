@@ -267,9 +267,9 @@ describe('ActivityView', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderComponent(mockInitialState);
+    const component = renderComponent(mockInitialState);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   describe('Network Manager Integration', () => {

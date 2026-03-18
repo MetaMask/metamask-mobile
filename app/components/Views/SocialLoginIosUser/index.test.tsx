@@ -50,14 +50,14 @@ describe('SocialLoginIosUser', () => {
     });
 
     it('renders match snapshot', () => {
-      const { toJSON } = renderWithProvider(<SocialLoginIosUser type="new" />);
-      expect(toJSON()).toMatchSnapshot();
+      const component = renderWithProvider(<SocialLoginIosUser type="new" />);
+      expect(component).toMatchSnapshot();
     });
 
     it('renders match snapshot with medium device', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { toJSON } = renderWithProvider(<SocialLoginIosUser type="new" />);
-      expect(toJSON()).toMatchSnapshot();
+      const component = renderWithProvider(<SocialLoginIosUser type="new" />);
+      expect(component).toMatchSnapshot();
     });
 
     it('renders title and button with correct text', () => {
@@ -100,18 +100,18 @@ describe('SocialLoginIosUser', () => {
     });
 
     it('renders match snapshot', () => {
-      const { toJSON } = renderWithProvider(
+      const component = renderWithProvider(
         <SocialLoginIosUser type="existing" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders match snapshot with medium device', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { toJSON } = renderWithProvider(
+      const component = renderWithProvider(
         <SocialLoginIosUser type="existing" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('renders title and button with correct text', () => {

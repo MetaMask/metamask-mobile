@@ -40,15 +40,16 @@ describe('CardButton Component', () => {
   });
 
   it('renders and matches snapshot', () => {
-    const { toJSON, getByTestId } = renderWithProvider(() => (
+    const component = renderWithProvider(() => (
       <CardButton
         onPress={mockOnPress}
         touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
       />
     ));
+    const { getByTestId } = component;
 
     expect(getByTestId(WalletViewSelectorsIDs.CARD_BUTTON)).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('calls onPress when button is pressed', () => {

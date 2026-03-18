@@ -48,7 +48,7 @@ describe('Stake Modals With Stake Sdk Provider', () => {
       .spyOn(useStakeContextHook, 'useStakeContext')
       .mockReturnValue(MOCK_POOL_STAKING_SDK);
 
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <StakeSDKProvider>
         <MockComponent />
       </StakeSDKProvider>,
@@ -57,7 +57,7 @@ describe('Stake Modals With Stake Sdk Provider', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
     expect(useStakeContextSpy).toHaveBeenCalled();
   });
 });

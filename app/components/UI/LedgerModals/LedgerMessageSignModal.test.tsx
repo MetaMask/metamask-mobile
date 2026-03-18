@@ -8,11 +8,11 @@ const initialState = {
 
 describe('LedgerMessageSignModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderScreen(
+    const component = renderScreen(
       LedgerMessageSignModal,
       { name: 'LederMessageSignModal' },
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

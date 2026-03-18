@@ -111,7 +111,7 @@ describe('ClaimBanner', () => {
   });
 
   it('render matches snapshot', async () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
         asset={MOCK_ETH_MAINNET_ASSET}
@@ -119,7 +119,7 @@ describe('ClaimBanner', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('claim button switches to mainnet on press if on unsupported chain', async () => {

@@ -531,9 +531,9 @@ describe('BuildQuote', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<BuildQuote />);
+    const component = renderWithTheme(<BuildQuote />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   describe('Continue button', () => {
@@ -548,14 +548,15 @@ describe('BuildQuote', () => {
       };
       mockQuotesError = 'Network error';
 
-      const { toJSON, getByText } = renderWithTheme(<BuildQuote />);
+      const component = renderWithTheme(<BuildQuote />);
+      const { getByText } = component;
 
       await act(async () => {
         await flushPromises();
       });
 
       expect(getByText('Network error')).toBeOnTheScreen();
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
 
     it('disables continue button when no quote is selected', async () => {

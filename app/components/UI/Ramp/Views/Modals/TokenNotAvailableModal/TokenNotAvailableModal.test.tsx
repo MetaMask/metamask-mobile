@@ -107,9 +107,9 @@ describe('TokenNotAvailableModal', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = render(TokenNotAvailableModal);
+    const component = render(TokenNotAvailableModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('navigates to token selection when Change token is pressed', () => {
@@ -151,8 +151,8 @@ describe('TokenNotAvailableModal', () => {
     mockSelectedProvider = null;
     mockSelectedToken = null;
 
-    const { toJSON } = render(TokenNotAvailableModal);
+    const component = render(TokenNotAvailableModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -171,7 +171,7 @@ describe('TokenSelectModal', () => {
   });
 
   it('renders the modal with token list', () => {
-    const { toJSON } = render(TokenSelectModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(TokenSelectModal);
+    expect(component).toMatchSnapshot();
   });
 });

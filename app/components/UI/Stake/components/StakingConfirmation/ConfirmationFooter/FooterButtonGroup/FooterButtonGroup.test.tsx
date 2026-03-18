@@ -159,15 +159,16 @@ describe('FooterButtonGroup', () => {
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <FooterButtonGroup {...props} />,
       { state: mockInitialState },
     );
+    const { getByText } = component;
 
     expect(getByText(strings('stake.cancel'))).toBeDefined();
     expect(getByText(strings('stake.continue'))).toBeDefined();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('navigates to Asset page when cancel is pressed', async () => {
@@ -177,10 +178,11 @@ describe('FooterButtonGroup', () => {
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <FooterButtonGroup {...props} />,
       { state: mockInitialState },
     );
+    const { getByText } = component;
 
     await act(async () => {
       fireEvent.press(getByText(strings('stake.cancel')));
@@ -188,7 +190,7 @@ describe('FooterButtonGroup', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('attempts stake transaction on continue click', async () => {
@@ -201,17 +203,18 @@ describe('FooterButtonGroup', () => {
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <FooterButtonGroup {...props} />,
       { state: mockInitialState },
     );
+    const { getByText } = component;
 
     await act(async () => {
       fireEvent.press(getByText(strings('stake.continue')));
     });
 
     expect(mockAttemptDepositTransaction).toHaveBeenCalled();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('attempts unstake transaction on continue click', async () => {
@@ -224,17 +227,18 @@ describe('FooterButtonGroup', () => {
       action: FooterButtonGroupActions.UNSTAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <FooterButtonGroup {...props} />,
       { state: mockInitialState },
     );
+    const { getByText } = component;
 
     await act(async () => {
       fireEvent.press(getByText(strings('stake.continue')));
     });
 
     expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('handles transaction error correctly', async () => {

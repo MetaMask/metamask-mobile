@@ -48,25 +48,25 @@ describe('FlowLoaderModal', () => {
     mockApprovalFlow(APPROVAL_FLOW_MOCK);
     mockApprovalRequest(undefined);
 
-    const { toJSON } = render(
+    const component = render(
       <ThemeContext.Provider value={mockTheme}>
         <FlowLoaderModal />
       </ThemeContext.Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('returns null if no approval flow', () => {
     mockApprovalFlow(undefined);
     mockApprovalRequest(undefined);
 
-    const { toJSON } = render(
+    const component = render(
       <ThemeContext.Provider value={mockTheme}>
         <FlowLoaderModal />
       </ThemeContext.Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('returns null if approval request', () => {
@@ -75,11 +75,11 @@ describe('FlowLoaderModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.CONNECT_ACCOUNTS } as any);
 
-    const { toJSON } = render(
+    const component = render(
       <ThemeContext.Provider value={mockTheme}>
         <FlowLoaderModal />
       </ThemeContext.Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

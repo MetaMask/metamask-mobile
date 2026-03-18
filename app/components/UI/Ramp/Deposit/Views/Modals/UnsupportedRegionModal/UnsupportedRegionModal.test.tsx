@@ -95,8 +95,8 @@ describe('UnsupportedRegionModal', () => {
       },
     });
 
-    const { toJSON } = render(UnsupportedRegionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(UnsupportedRegionModal);
+    expect(component).toMatchSnapshot();
   });
 
   it('closes parent navigator and navigates to buy screen when Buy Crypto button is pressed', () => {
@@ -160,8 +160,8 @@ describe('UnsupportedRegionModal', () => {
       selectedRegion: null,
     });
 
-    const { toJSON } = render(UnsupportedRegionModal);
+    const component = render(UnsupportedRegionModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -118,7 +118,7 @@ describe('TabBar', () => {
   };
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <TabBar
         state={state as TabNavigationState<ParamListBase>}
         descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
@@ -126,7 +126,7 @@ describe('TabBar', () => {
       />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('navigates to the correct screen when a tab is pressed and account menu is disabled', () => {

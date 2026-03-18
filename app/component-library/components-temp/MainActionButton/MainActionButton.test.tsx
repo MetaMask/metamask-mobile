@@ -11,7 +11,7 @@ import { MAINACTIONBUTTON_TEST_ID } from './MainActionButton.constants';
 
 describe('MainActionButton', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <MainActionButton
         iconName={IconName.Add}
         label="Test Button"
@@ -19,7 +19,7 @@ describe('MainActionButton', () => {
         testID={MAINACTIONBUTTON_TEST_ID}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should render with custom label', () => {

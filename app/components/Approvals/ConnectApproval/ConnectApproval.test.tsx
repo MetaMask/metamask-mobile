@@ -85,16 +85,16 @@ describe('ConnectApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
+    const component = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('sets isVisible to false if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
+    expect(component).toMatchSnapshot();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -102,7 +102,7 @@ describe('ConnectApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
+    expect(component).toMatchSnapshot();
   });
 });

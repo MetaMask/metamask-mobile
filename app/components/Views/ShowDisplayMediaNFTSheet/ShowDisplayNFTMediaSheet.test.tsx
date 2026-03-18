@@ -54,7 +54,7 @@ describe('ShowNftSheet', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <Stack.Navigator>
         <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
           {() => <ShowDisplayNFTMediaSheet />}
@@ -65,7 +65,7 @@ describe('ShowNftSheet', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('setDisplayNftMedia to true on confirm', () => {

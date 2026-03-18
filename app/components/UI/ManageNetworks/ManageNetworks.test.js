@@ -32,10 +32,10 @@ describe('ManageNetworks', () => {
     useSelector.mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <ManageNetworks navigation={useNavigation()} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it.each([

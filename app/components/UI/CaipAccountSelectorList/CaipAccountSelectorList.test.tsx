@@ -288,13 +288,13 @@ describe('CaipAccountSelectorList', () => {
   });
 
   it('renders correctly', async () => {
-    const { toJSON } = renderComponent(initialState);
-    await waitFor(() => expect(toJSON()).toMatchSnapshot());
+    const component = renderComponent(initialState);
+    await waitFor(() => expect(component).toMatchSnapshot());
   });
 
   it('renders all accounts with balances', async () => {
-    const { queryByTestId, getAllByTestId, toJSON } =
-      renderComponent(initialState);
+    const component = renderComponent(initialState);
+    const { queryByTestId, getAllByTestId } = component;
 
     await waitFor(async () => {
       const businessAccountItem = await queryByTestId(
@@ -319,15 +319,16 @@ describe('CaipAccountSelectorList', () => {
       const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(2);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 
   it('renders all accounts with right accessory', async () => {
-    const { getAllByTestId, toJSON } = renderComponent(
+    const component = renderComponent(
       initialState,
       CaipAccountSelectorListRightAccessoryUseAccounts,
     );
+    const { getAllByTestId } = component;
 
     await waitFor(() => {
       const rightAccessories = getAllByTestId(RIGHT_ACCESSORY_TEST_ID);
@@ -337,7 +338,7 @@ describe('CaipAccountSelectorList', () => {
       expect(rightAccessories[0].props.children).toContain(BUSINESS_ACCOUNT);
       expect(rightAccessories[1].props.children).toContain(PERSONAL_ACCOUNT);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
   it('renders correct account names', async () => {
@@ -1184,8 +1185,8 @@ describe('CaipAccountSelectorList', () => {
   });
 
   it('renders network icons for accounts with transaction activity', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent(initialState);
+    expect(component).toMatchSnapshot();
   });
 
   it('render the correct amount of network icons for accounts with transaction activity', () => {

@@ -141,7 +141,7 @@ describe('QuickActionButtons', () => {
   });
 
   it('preserves button keys when provided', () => {
-    const { toJSON } = render(
+    const component = render(
       <QuickActionButtons>
         <QuickActionButton key="first" onPress={mockOnPress1}>
           Button 1
@@ -152,7 +152,7 @@ describe('QuickActionButtons', () => {
       </QuickActionButtons>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('applies rowWrapperProps to row containers', () => {

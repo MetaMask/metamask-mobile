@@ -381,18 +381,19 @@ describe('Login', () => {
   });
 
   it('renders matching snapshot', () => {
-    const { toJSON } = renderWithProvider(<Login />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(<Login />);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders matching snapshot when password input is focused', () => {
-    const { getByTestId, toJSON } = renderWithProvider(<Login />);
+    const component = renderWithProvider(<Login />);
+    const { getByTestId } = component;
 
     fireEvent.changeText(
       getByTestId(LoginViewSelectors.PASSWORD_INPUT),
       'password',
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('calls trace function for AuthenticateUser during non-OAuth login', async () => {

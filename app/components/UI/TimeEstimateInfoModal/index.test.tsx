@@ -4,9 +4,9 @@ import TimeEstimateInfoModal from './';
 
 describe('TimeEstimateInfoModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <TimeEstimateInfoModal timeEstimateId={'medium'} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

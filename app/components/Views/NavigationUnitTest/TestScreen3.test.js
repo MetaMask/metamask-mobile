@@ -4,7 +4,7 @@ import { render } from '@testing-library/react-native';
 
 describe('NavigationUnitTest', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<NavigationUnitTest />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<NavigationUnitTest />);
+    expect(component).toMatchSnapshot();
   });
 });

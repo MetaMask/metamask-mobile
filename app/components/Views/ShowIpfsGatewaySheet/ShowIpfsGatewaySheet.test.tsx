@@ -16,7 +16,7 @@ const Stack = createStackNavigator();
 
 describe('ShowIpfsGatewaySheet', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <Stack.Navigator>
         <Stack.Screen name={Routes.SHEET.SHOW_IPFS}>
           {() => <ShowIpfsGatewaySheet />}
@@ -27,6 +27,6 @@ describe('ShowIpfsGatewaySheet', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

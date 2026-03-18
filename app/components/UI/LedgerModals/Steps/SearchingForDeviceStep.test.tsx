@@ -83,13 +83,13 @@ describe('SearchingForDeviceStep', () => {
 
   it('matches snapshot for Android 12+', () => {
     (getSystemVersion as jest.Mock).mockReturnValue('13');
-    const { toJSON } = renderWithProvider(<SearchingForDeviceStep />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(<SearchingForDeviceStep />);
+    expect(component).toMatchSnapshot();
   });
 
   it('matches snapshot for Android < 12', () => {
     (getSystemVersion as jest.Mock).mockReturnValue('11');
-    const { toJSON } = renderWithProvider(<SearchingForDeviceStep />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithProvider(<SearchingForDeviceStep />);
+    expect(component).toMatchSnapshot();
   });
 });

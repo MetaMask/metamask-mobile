@@ -33,7 +33,7 @@ describe('NotificationBadge', () => {
   };
 
   it('should renders correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <Provider store={store}>
         <NotificationBadge
           {...commonProps}
@@ -41,7 +41,7 @@ describe('NotificationBadge', () => {
         />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('should renders NetworkMainAssetLogo for ETH notification types', () => {

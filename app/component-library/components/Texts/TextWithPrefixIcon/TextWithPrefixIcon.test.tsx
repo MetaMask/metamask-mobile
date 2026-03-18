@@ -21,7 +21,7 @@ const sampleIconProps: IconProps = {
 
 describe('TextWithPrefixIcon - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <TextWithPrefixIcon
         variant={TextVariant.BodyMD}
         iconProps={sampleIconProps}
@@ -29,7 +29,7 @@ describe('TextWithPrefixIcon - Snapshot', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });
 

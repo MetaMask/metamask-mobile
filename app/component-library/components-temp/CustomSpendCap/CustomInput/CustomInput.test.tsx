@@ -30,8 +30,8 @@ describe('CustomInput', () => {
   const renderComponent = () => render(<CustomInput {...props} />);
 
   it('should render correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent();
+    expect(component).toMatchSnapshot();
   });
 
   it('should call setMaxSelected when max button is pressed', () => {

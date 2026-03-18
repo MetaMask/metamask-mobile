@@ -49,9 +49,9 @@ const initialState = {
 
 describe('InfoNetworkModal', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<InfoNetworkModal />, {
+    const component = renderWithProvider(<InfoNetworkModal />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

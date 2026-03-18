@@ -24,7 +24,7 @@ describe('SnapUIInput', () => {
   });
 
   it('renders with initial value', () => {
-    const { getByTestId, toJSON } = renderInterface(
+    const component = renderInterface(
       Box({
         children: Input({
           name: 'testInput',
@@ -32,11 +32,12 @@ describe('SnapUIInput', () => {
       }),
       { state: { testInput: 'initial value' } },
     );
+    const { getByTestId } = component;
 
     const input = getByTestId('testInput-snap-ui-input');
 
     expect(input.props.value).toBe('initial value');
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('handles input changes', () => {
@@ -115,7 +116,7 @@ describe('SnapUIInput', () => {
   });
 
   it('handles disabled input', () => {
-    const { getByTestId, toJSON } = renderInterface(
+    const component = renderInterface(
       Box({
         children: Input({
           name: 'testInput',
@@ -123,10 +124,11 @@ describe('SnapUIInput', () => {
         }),
       }),
     );
+    const { getByTestId } = component;
 
     const input = getByTestId('testInput-snap-ui-input');
     expect(input).toHaveProp('editable', false);
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('updates value when initialValue changes', () => {

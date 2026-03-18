@@ -18,9 +18,9 @@ describe('ManualBackupStep3', () => {
   it('should render correctly', () => {
     const mockRoute = { params: { steps: [] } };
     const mockNavigation = { goBack: jest.fn(), navigate: jest.fn(), setOptions: jest.fn() };
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <ManualBackupStep3 route={mockRoute} navigation={mockNavigation} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

@@ -14,11 +14,11 @@ import {
 
 describe('PickerNetwork', () => {
   it('renders correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <PickerNetwork {...SAMPLE_PICKERNETWORK_PROPS} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
   it('does not render Icon when onPress is not passed', () => {
     const { queryByTestId } = render(

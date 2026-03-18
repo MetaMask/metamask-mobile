@@ -4,7 +4,7 @@ import LockScreen from './';
 
 describe('LockScreen', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<LockScreen />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(<LockScreen />);
+    expect(component).toMatchSnapshot();
   });
 });

@@ -55,13 +55,13 @@ describe('CardScreenshotDeterrent', () => {
 
   describe('rendering', () => {
     it('renders without crashing', () => {
-      const { toJSON } = render(<CardScreenshotDeterrent enabled={false} />);
-      expect(toJSON()).toMatchSnapshot();
+      const component = render(<CardScreenshotDeterrent enabled={false} />);
+      expect(component).toMatchSnapshot();
     });
 
     it('renders an empty View', () => {
-      const { toJSON } = render(<CardScreenshotDeterrent enabled />);
-      expect(toJSON()).toMatchSnapshot();
+      const component = render(<CardScreenshotDeterrent enabled />);
+      expect(component).toMatchSnapshot();
     });
   });
 

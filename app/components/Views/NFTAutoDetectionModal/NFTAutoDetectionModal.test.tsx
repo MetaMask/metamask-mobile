@@ -68,8 +68,8 @@ describe('NFT Auto detection modal', () => {
     jest.clearAllMocks();
   });
   it('render matches snapshot', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderComponent(initialState);
+    expect(component).toMatchSnapshot();
   });
 
   it('calls setUseNftDetection and setDisplayNftMedia when clicking on allow button with nftDisplayMedia initially off', () => {

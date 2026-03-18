@@ -18,11 +18,11 @@ describe('TextFieldSearch', () => {
   });
 
   it('renders default settings correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders TextFieldSearch component', () => {

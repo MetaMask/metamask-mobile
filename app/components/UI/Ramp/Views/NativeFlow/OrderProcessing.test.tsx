@@ -84,8 +84,8 @@ describe('V2OrderProcessing', () => {
 
   it('matches snapshot when order is null (loading)', () => {
     mockOrder = null;
-    const { toJSON } = renderWithTheme(<V2OrderProcessing />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithTheme(<V2OrderProcessing />);
+    expect(component).toMatchSnapshot();
   });
 
   it('renders loader when order is not available', () => {
@@ -100,8 +100,8 @@ describe('V2OrderProcessing', () => {
       state: FIAT_ORDER_STATES.PENDING,
       data: {},
     };
-    const { toJSON } = renderWithTheme(<V2OrderProcessing />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithTheme(<V2OrderProcessing />);
+    expect(component).toMatchSnapshot();
   });
 
   it('navigates home when main button is pressed for pending order', () => {

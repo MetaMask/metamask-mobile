@@ -46,7 +46,7 @@ const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <NotificationsSettings
         navigation={
           {
@@ -59,6 +59,6 @@ describe('NotificationsSettings', () => {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

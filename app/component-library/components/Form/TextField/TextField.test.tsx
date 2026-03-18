@@ -13,9 +13,9 @@ import {
 
 describe('TextField', () => {
   it('renders default settings correctly', () => {
-    const { toJSON } = render(<TextField />);
+    const component = render(<TextField />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('renders TextField component', () => {
@@ -37,9 +37,9 @@ describe('TextField', () => {
   });
 
   it('renders as single line by default', () => {
-    const { toJSON } = render(<TextField />);
+    const component = render(<TextField />);
 
     // Verify single line rendering via snapshot
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

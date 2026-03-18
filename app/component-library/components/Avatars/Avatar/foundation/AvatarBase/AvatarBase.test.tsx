@@ -9,11 +9,11 @@ import { SAMPLE_AVATARBASE_IMAGESOURCE } from './AvatarBase.constants';
 
 describe('AvatarBase', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const component = render(
       <AvatarBase>
         <Image source={SAMPLE_AVATARBASE_IMAGESOURCE} />
       </AvatarBase>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });

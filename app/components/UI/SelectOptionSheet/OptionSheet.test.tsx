@@ -98,8 +98,8 @@ describe('OptionSheet', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = render(OptionsSheet);
-    expect(toJSON()).toMatchSnapshot();
+    const component = render(OptionsSheet);
+    expect(component).toMatchSnapshot();
   });
 
   it('shows all available options', () => {

@@ -65,8 +65,8 @@ describe('V2VerifyIdentity', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2VerifyIdentity />);
-    expect(toJSON()).toMatchSnapshot();
+    const component = renderWithTheme(<V2VerifyIdentity />);
+    expect(component).toMatchSnapshot();
   });
 
   it('navigates to enter email when submit button is pressed', async () => {

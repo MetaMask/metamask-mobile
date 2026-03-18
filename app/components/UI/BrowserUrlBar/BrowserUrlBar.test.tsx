@@ -96,20 +96,20 @@ describe('BrowserUrlBar', () => {
   });
 
   it('render matches snapshot when focused', () => {
-    const { toJSON } = renderWithProvider(<BrowserUrlBar {...defaultProps} />, {
+    const component = renderWithProvider(<BrowserUrlBar {...defaultProps} />, {
       state: mockInitialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('render matches snapshot when not focused', () => {
-    const { toJSON } = renderWithProvider(
+    const component = renderWithProvider(
       <BrowserUrlBar {...propsWithoutUrlBarFocused} />,
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 
   it('calls onChangeText when text input changes', () => {

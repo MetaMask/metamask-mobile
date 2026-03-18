@@ -30,9 +30,9 @@ describe('UpsellBanner', () => {
         ...baseProps,
       };
 
-      const { toJSON } = renderWithProvider(<UpsellBanner {...props} />);
+      const component = renderWithProvider(<UpsellBanner {...props} />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 
@@ -44,9 +44,9 @@ describe('UpsellBanner', () => {
         ...baseProps,
       };
 
-      const { toJSON } = renderWithProvider(<UpsellBanner {...props} />);
+      const component = renderWithProvider(<UpsellBanner {...props} />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(component).toMatchSnapshot();
     });
   });
 });

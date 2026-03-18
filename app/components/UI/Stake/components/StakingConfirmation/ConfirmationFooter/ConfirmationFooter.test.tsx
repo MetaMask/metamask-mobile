@@ -46,10 +46,10 @@ describe('ConfirmationFooter', () => {
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { toJSON } = renderWithProvider(<ConfirmationFooter {...props} />, {
+    const component = renderWithProvider(<ConfirmationFooter {...props} />, {
       state: mockInitialState,
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(component).toMatchSnapshot();
   });
 });
