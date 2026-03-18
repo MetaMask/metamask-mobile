@@ -350,7 +350,7 @@ export function adaptPositionFromMYX(
     liquidationPrice = liqPrice.toString();
   }
 
-  const roe = collateralNum > 0 ? (pnl / collateralNum) * 100 : 0;
+  const roe = collateralNum > 0 ? pnl / collateralNum : 0;
 
   return {
     symbol,
@@ -476,11 +476,11 @@ export function adaptOrderFromMYX(
 // ============================================================================
 
 /**
- * Parse MYX getAccountInfo tuple response.
+ * Parse MYX getAccountInfo response.
  *
- * getAccountInfo returns a 7-element array (tuple) from the on-chain Account contract.
- * Indices: [0] freeAmount, [1] walletBalance, [2] reservedAmount,
- * [3] orderHoldInUSD, [4] totalCollateral, [5] lockedRealizedPnl, [6] unrealizedPnl
+ * SDK <1.0: 7-element array (tuple) [freeAmount, walletBalance, ...]
+ * SDK 1.0.2+: keyed object with freeMargin, walletBalance, freeBaseAmount,
+ * baseProfit, quoteProfit, reservedAmount, releaseTime
  *
  * @param data - Raw response data (array or object)
  * @returns Parsed account fields as strings
@@ -520,14 +520,16 @@ function parseAccountTuple(data: unknown): {
 
   if (data && typeof data === 'object') {
     const obj = data as Record<string, unknown>;
+    // SDK 1.0.2 renamed freeAmount → freeMargin and unrealizedPnl → quoteProfit;
+    // support both field names for compatibility
     return {
-      freeAmount: str(obj.freeAmount),
+      freeAmount: str(obj.freeMargin ?? obj.freeAmount),
       walletBalance: str(obj.walletBalance),
       reservedAmount: str(obj.reservedAmount),
       orderHoldInUSD: str(obj.orderHoldInUSD),
       totalCollateral: str(obj.totalCollateral),
       lockedRealizedPnl: str(obj.lockedRealizedPnl),
-      unrealizedPnl: str(obj.unrealizedPnl),
+      unrealizedPnl: str(obj.unrealizedPnl ?? obj.quoteProfit),
     };
   }
 
@@ -546,11 +548,13 @@ function parseAccountTuple(data: unknown): {
  *
  * @param accountInfo - Raw account info from MYX SDK (7-element tuple or keyed object)
  * @param network - 'mainnet' or 'testnet' (for collateral decimal scaling)
+ * @param positions - Active positions for weighted ROE calculation
  * @returns MetaMask AccountState
  */
 export function adaptAccountStateFromMYX(
   accountInfo: unknown,
   network: MYXNetwork = 'mainnet',
+  positions?: Position[],
 ): AccountState {
   const acct = parseAccountTuple(accountInfo);
 
@@ -563,12 +567,29 @@ export function adaptAccountStateFromMYX(
   const totalBalance = freeAmount + walletBal + reservedAmount + unrealizedPnl;
   const marginUsed = reservedAmount;
 
+  // Compute weighted-average ROE from positions (same pattern as hyperLiquidAdapter)
+  let returnOnEquity = '0';
+  if (positions && positions.length > 0) {
+    const { weightedRoe, totalMargin } = positions.reduce(
+      (acc, pos) => {
+        const roe = parseFloat(pos.returnOnEquity || '0');
+        const margin = parseFloat(pos.marginUsed || '0');
+        acc.weightedRoe += roe * margin;
+        acc.totalMargin += margin;
+        return acc;
+      },
+      { weightedRoe: 0, totalMargin: 0 },
+    );
+    returnOnEquity =
+      totalMargin > 0 ? ((weightedRoe / totalMargin) * 100).toString() : '0';
+  }
+
   return {
     availableBalance: availableBalance.toString(),
     totalBalance: totalBalance.toString(),
     marginUsed: marginUsed.toString(),
     unrealizedPnl: unrealizedPnl.toString(),
-    returnOnEquity: '0',
+    returnOnEquity,
   };
 }
 

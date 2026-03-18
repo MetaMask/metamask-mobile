@@ -1,12 +1,12 @@
 /**
  * MYXWalletService
  *
- * Provides ethers v6 Signer and viem WalletClient adapters for the MYX SDK.
+ * Provides SignerLike and WalletClientLike adapters for the MYX SDK.
  * Routes signing operations through MetaMask's KeyringController via messenger.
  *
- * The MYX SDK requires:
- * - ethers.Signer (v6) for on-chain transaction signing
- * - viem WalletClient for wallet interactions
+ * The MYX SDK (1.0.2+) accepts:
+ * - SignerLike (ethers v5/v6 Signer, ISigner, or WalletClientLike) for auth
+ * - WalletClientLike for on-chain transactions via transport
  * - getAccessToken callback for API auth
  *
  * This service creates lightweight adapter objects that satisfy these interfaces
@@ -75,11 +75,9 @@ export class MYXWalletService {
   }
 
   /**
-   * Create an ethers v6 Signer-like object for the MYX SDK.
-   * The MYX SDK uses ethers v6 internally (bundled in its own node_modules).
-   * We return a plain object that satisfies the SDK's usage pattern:
-   * - getAddress(): returns the user's address
-   * - signTypedData(): delegates to MetaMask keyring
+   * Create a SignerLike adapter for the MYX SDK.
+   * Returns a plain object matching the MinimalSignerLike shape
+   * (getAddress + signTypedData) that the SDK normalizes internally.
    *
    * @returns Signer-like adapter object for the MYX SDK.
    */

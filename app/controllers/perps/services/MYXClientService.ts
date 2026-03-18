@@ -13,6 +13,8 @@ import type {
   KlineResolution,
   KlineDataResponse,
   PlaceOrderParams,
+  PositionTpSlOrderParams,
+  SignerLike,
 } from '@myx-trade/sdk';
 import { MyxClient } from '@myx-trade/sdk';
 
@@ -414,12 +416,12 @@ export class MYXClientService {
    * Authenticate the MYX client with signer and access token.
    * Uses promise dedup to prevent concurrent auth attempts.
    *
-   * @param signer - ethers v6 Signer-like object
-   * @param walletClient - viem WalletClient-like object
+   * @param signer - SignerLike adapter (ethers v5/v6 Signer or ISigner)
+   * @param walletClient - viem WalletClient-compatible adapter
    * @param address - User wallet address for token generation
    */
   async authenticate(
-    signer: unknown,
+    signer: SignerLike,
     walletClient: unknown,
     address: string,
   ): Promise<void> {
@@ -442,7 +444,7 @@ export class MYXClientService {
   }
 
   async #doAuthenticate(
-    signer: unknown,
+    signer: SignerLike,
     walletClient: unknown,
     address: string,
   ): Promise<void> {
@@ -478,13 +480,13 @@ export class MYXClientService {
         }
       };
 
-      // Call SDK auth with signer, walletClient, and getAccessToken
+      // Call SDK auth with signer, walletClient, and getAccessToken.
+      // walletClient is our adapter satisfying viem WalletClient shape at runtime;
+      // SDK types expect viem's WalletClient which we can't import without adding viem.
       this.#myxClient.auth({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        signer: signer as any,
+        signer,
         getAccessToken,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        walletClient: walletClient as any,
+        walletClient: walletClient as never,
       });
 
       this.#authenticatedAddress = address.toLowerCase();
@@ -810,10 +812,14 @@ export class MYXClientService {
   ): Promise<{ code: number; data: MYXTradeFlowItem[] }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting trade flow');
-      const result = await this.#myxClient.account.getTradeFlow(
-        params,
+      // SDK 1.0.2: getTradeFlow moved from Account to Api, requires accessToken in params.
+      // Access it via api namespace; cast params since our type doesn't include accessToken.
+      const accessToken = await this.#myxClient.getAccessToken();
+      const result = await this.#myxClient.api.getTradeFlow({
+        ...params,
+        accessToken: accessToken ?? '',
         address,
-      );
+      });
       return result as { code: number; data: MYXTradeFlowItem[] };
     } catch (caughtError) {
       const wrappedError = ensureError(
@@ -943,6 +949,47 @@ export class MYXClientService {
       this.#deps.logger.error(
         wrappedError,
         this.#getErrorContext('getGlobalId', { poolId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get base detail for a pool (funding rate, open interest, volume).
+   *
+   * @param poolId - Pool identifier.
+   * @returns Base detail including fundingRate, longPosition, shortPosition, volume.
+   */
+  async getBaseDetail(poolId: string): Promise<{
+    fundingRate: string;
+    longPosition: number;
+    shortPosition: number;
+    volume: string;
+  }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Fetching base detail', {
+        poolId,
+      });
+
+      const result = await this.#myxClient.markets.getBaseDetail({
+        chainId: this.#chainId as never,
+        poolId,
+      });
+
+      return {
+        fundingRate: result.fundingRate ?? '0',
+        longPosition: result.longPosition ?? 0,
+        shortPosition: result.shortPosition ?? 0,
+        volume: result.volume ?? '0',
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getBaseDetail',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getBaseDetail', { poolId }),
       );
       throw wrappedError;
     }
@@ -1115,6 +1162,153 @@ export class MYXClientService {
   }
 
   /**
+   * Get oracle price for a pool.
+   *
+   * @param poolId - Pool identifier.
+   * @returns Oracle price data including price, publishTime, oracleType.
+   */
+  async getOraclePrice(
+    poolId: string,
+  ): Promise<{ poolId: string; price: string; publishTime: number }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Fetching oracle price', {
+        poolId,
+      });
+
+      const result = await this.#myxClient.utils.getOraclePrice(
+        poolId,
+        this.#chainId,
+      );
+
+      return {
+        poolId: result.poolId,
+        price: result.price,
+        publishTime: result.publishTime,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getOraclePrice',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getOraclePrice', { poolId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Create a TP/SL order for an existing position.
+   *
+   * @param params - SDK PositionTpSlOrderParams
+   * @returns SDK response with code, message, and optional transaction data.
+   */
+  async createPositionTpSlOrder(
+    params: PositionTpSlOrderParams,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Creating position TP/SL order',
+        { poolId: params.poolId, positionId: params.positionId },
+      );
+
+      const result =
+        await this.#myxClient.order.createPositionTpSlOrder(params);
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.createPositionTpSlOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('createPositionTpSlOrder', {
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Adjust collateral (margin) for an existing position.
+   *
+   * @param params - Adjust collateral parameters.
+   * @param params.poolId - Pool identifier.
+   * @param params.positionId - Position identifier.
+   * @param params.adjustAmount - Amount to adjust (positive = add, negative = remove).
+   * @param params.quoteToken - Quote token address.
+   * @param params.chainId - Numeric chain ID.
+   * @param params.address - User wallet address.
+   * @returns SDK response with code, message, and optional hash.
+   */
+  async adjustCollateral(params: {
+    poolId: string;
+    positionId: string;
+    adjustAmount: string;
+    quoteToken: string;
+    chainId: number;
+    address: string;
+  }): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Adjusting collateral', {
+        poolId: params.poolId,
+        positionId: params.positionId,
+      });
+
+      const result = await this.#myxClient.position.adjustCollateral(params);
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.adjustCollateral',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('adjustCollateral', {
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Cancel multiple orders at once.
+   *
+   * @param orderIds - Array of order IDs to cancel.
+   * @param chainId - Numeric chain ID.
+   * @returns SDK response with code and message.
+   */
+  async cancelOrders(
+    orderIds: string[],
+    chainId: number,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Cancelling orders', {
+        count: orderIds.length,
+      });
+
+      const result = await this.#myxClient.order.cancelOrders(
+        orderIds,
+        chainId as never,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.cancelOrders',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('cancelOrders', { count: orderIds.length }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
    * Get market detail for a pool (includes marketId needed for order creation).
    *
    * @param poolId - Pool identifier.
@@ -1193,9 +1387,10 @@ export class MYXClientService {
         chainId ?? this.#chainId,
       );
 
-      if (result.code !== 0 || !result.data) {
+      if (result.code !== 0) {
+        const errorMessage = 'message' in result ? result.message : 'unknown';
         throw new Error(
-          `Fee rate API error: code=${result.code} message=${result.message ?? 'unknown'}`,
+          `Fee rate API error: code=${result.code} message=${errorMessage}`,
         );
       }
 

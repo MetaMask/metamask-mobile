@@ -64,6 +64,8 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
     baseTokenIcon: '',
     baseToken: '0xbase',
     quoteToken: '0xquote',
+    baseDecimals: 18,
+    quoteDecimals: 18,
     ...overrides,
   };
 }
@@ -251,6 +253,7 @@ describe('myxAdapter', () => {
       overrides: Partial<MYXPositionType> = {},
     ): MYXPositionType {
       return {
+        chainId: 56,
         poolId: '0xpool1',
         positionId: 'pos-1',
         direction: MYXDirection.LONG,
@@ -262,6 +265,15 @@ describe('myxAdapter', () => {
         riskTier: 0,
         collateralAmount: '5000',
         txTime: 1700000000,
+        broker: '0xbroker',
+        userLeverage: 1,
+        baseSymbol: 'BTC',
+        quoteSymbol: 'USDT',
+        earlyClosePrice: '0',
+        tradingFee: '0',
+        tokenId: null,
+        freeAmount: '0',
+        lockedAmount: '0',
         ...overrides,
       };
     }
@@ -302,6 +314,15 @@ describe('myxAdapter', () => {
       );
 
       expect(result.leverage.value).toBe(1);
+    });
+
+    it('returns ROE as a decimal (not percentage) matching HyperLiquid format', () => {
+      // Long position: entry=50000, markPrice=55000, size=1, collateral=5000
+      // PnL = (55000 - 50000) * 1 = 5000
+      // ROE = 5000 / 5000 = 1.0 (i.e., 100% as decimal)
+      const result = adaptPositionFromMYX(makePosition(), poolSymbolMap, 55000);
+
+      expect(Number(result.returnOnEquity)).toBe(1);
     });
   });
 
@@ -510,6 +531,45 @@ describe('myxAdapter', () => {
       const result = adaptAccountStateFromMYX(null, 'testnet');
 
       expect(Number(result.availableBalance)).toBe(0);
+    });
+
+    it('computes weighted ROE from positions', () => {
+      const accountTuple = [
+        toUsdc(100),
+        toUsdc(400),
+        toUsdc(200),
+        '0',
+        toUsdc(300),
+        '0',
+        toUsdc(50),
+      ];
+
+      const positions = [
+        {
+          returnOnEquity: '0.1', // 10% as decimal
+          marginUsed: '100',
+        },
+        {
+          returnOnEquity: '0.2', // 20% as decimal
+          marginUsed: '200',
+        },
+      ];
+
+      const result = adaptAccountStateFromMYX(
+        accountTuple,
+        'testnet',
+        positions as never,
+      );
+
+      // Weighted ROE = (0.1*100 + 0.2*200) / (100+200) * 100 = (10+40)/300 * 100 = 16.67%
+      expect(Number(result.returnOnEquity)).toBeCloseTo(16.67, 1);
+    });
+
+    it('returns ROE 0 when no positions', () => {
+      const accountTuple = [toUsdc(100), toUsdc(400), '0', '0', '0', '0', '0'];
+      const result = adaptAccountStateFromMYX(accountTuple, 'testnet', []);
+
+      expect(result.returnOnEquity).toBe('0');
     });
   });
 

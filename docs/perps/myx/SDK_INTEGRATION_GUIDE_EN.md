@@ -1,5 +1,28 @@
 # MYX Trade SDK Integration Guide
 
+## Enum
+
+### MarketPoolState
+
+```typescript
+enum MarketPoolState {
+  Cook = 0, // Market created
+  Primed = 1, // Fee charged, waiting for oracle initialization
+  Trench = 2, // Trading enabled
+  PreBench = 3, // Pending delisting
+  Bench = 4, // Delisted
+}
+```
+
+### OracleType
+
+```typescript
+export enum OracleType {
+  Chainlink = 1,
+  Pyth,
+}
+```
+
 ## Overview
 
 MYX Trade SDK is a TypeScript/JavaScript SDK for derivatives trading. It provides order placement, position management, market data, subscriptions, account management, seamless wallet, and LP operations.
@@ -18,21 +41,22 @@ pnpm add @myx-trade/sdk
 
 ### Initialize SDK Client
 
+Use viem's `WalletClient` (no ethers required):
+
 ```typescript
 import { MyxClient } from '@myx-trade/sdk';
-import { BrowserProvider } from 'ethers';
 
-const provider = new BrowserProvider(walletClient.transport);
-const signer = await provider.getSigner();
-
+// e.g. walletClient from wagmi's useWalletClient()
 const myxClient = new MyxClient({
   chainId: 421614, // Testnet chain ID
-  signer,
+  walletClient, // viem WalletClient, or pass signer (any SignerLike-compatible object)
   brokerAddress: BROKER_ADDRESS, // Get from MYX team
   isTestnet: true, // true for testnet, false for beta
   isBetaMode: false, // true for beta environment
 });
 ```
+
+You can also pass a `signer` (ethers v5/v6 Signer or compatible) instead of `walletClient`; the SDK will adapt it.
 
 ### SDK Authentication and Access Token
 
@@ -67,8 +91,10 @@ The callback should request an access token from the following API.
 **Signature Generation:**
 
 ```typescript
+import { SHA256, Hex } from 'crypto-es';
+
 const payload = `${appId}&${timestamp}&${expireTime}&${allowAccount}&${secret}`;
-const signature = CryptoJS.SHA256(payload).toString(CryptoJS.enc.Hex);
+const signature = SHA256(payload).toString(Hex);
 ```
 
 **Expected Return Value of getAccessToken:**
@@ -89,7 +115,7 @@ The `getAccessToken` callback must return an object in the following format:
 **Example Usage:**
 
 ```typescript
-import CryptoJS from 'crypto-js';
+import { SHA256, Hex } from 'crypto-es';
 
 const getAccessToken = async () => {
   const appId = 'YOUR_APP_ID';
@@ -100,7 +126,7 @@ const getAccessToken = async () => {
 
   // Generate signature
   const payload = `${appId}&${timestamp}&${expireTime}&${allowAccount}&${secret}`;
-  const signature = CryptoJS.SHA256(payload).toString(CryptoJS.enc.Hex);
+  const signature = SHA256(payload).toString(Hex);
 
   // Request access token
   const response = await fetch(
@@ -110,8 +136,39 @@ const getAccessToken = async () => {
   return await response.json();
 };
 
-// Authenticate the SDK
-await myxClient.auth(signer, walletClient, getAccessToken);
+// Authenticate the SDK (pass an object with signer, walletClient, getAccessToken)
+await myxClient.auth({ signer, walletClient, getAccessToken });
+```
+
+## Types
+
+The SDK also exports some TypeScript types to help you constrain parameters in your business code.
+
+### Signer types (used by `auth`)
+
+- `ISigner`: The SDK's generic signer interface. It must at least provide `getAddress`, `signMessage`, and `sendTransaction`. `signTypedData` is optional (needed for EIP-712 permit/forwarder flows).
+- `SignerLike`: The union type accepted by `auth({ signer })` (`ISigner` or compatible shapes).
+
+### Address & order-parameter types
+
+- `address`: EOA address input in the form of `0x${string}`.
+- `PlaceOrderParams`: Parameter interface for `myxClient.order.createIncreaseOrder` / `createDecreaseOrder`.
+- `PositionTpSlOrderParams`: Parameter interface for `myxClient.order.createPositionTpSlOrder` (TP/SL).
+
+### Example
+
+```ts
+import type { PlaceOrderParams, ISigner, SignerLike } from '@myx-trade/sdk';
+
+const userAddress = '0x1234...abcd' as `0x${string}`;
+
+const incParams: PlaceOrderParams = {
+  chainId: 421614,
+  address: userAddress,
+  poolId: '0xpool...',
+  positionId: '0',
+  // Fill the rest fields according to your concrete order type
+} as PlaceOrderParams;
 ```
 
 ### Update Client Chain
@@ -128,7 +185,7 @@ myxClient.updateClientChainId(newChainId, NEW_BROKER_ADDRESS);
 Create an increase position order (open or add to position).
 
 ```typescript
-import { OrderType, TriggerType, Direction } from '@myx-trade/sdk';
+import { OrderType, TriggerType, Direction, TimeInForce } from '@myx-trade/sdk';
 
 const result = await myxClient.order.createIncreaseOrder(
   {
@@ -142,6 +199,7 @@ const result = await myxClient.order.createIncreaseOrder(
     collateralAmount: '1000000000', // in quote token decimals
     size: '1000000000000000000', // position size
     price: '3000000000000000000000000000000000', // 30 decimals
+    timeInForce: TimeInForce.IOC,
     postOnly: false,
     slippagePct: '100', // in bps
     executionFeeToken: quoteTokenAddress, // Quote token address (e.g., USDC)
@@ -151,7 +209,8 @@ const result = await myxClient.order.createIncreaseOrder(
     slSize: '0', // optional stop loss size
     slPrice: '0', // optional stop loss price
   },
-  tradingFee,
+  tradingFee, // Trading fee (string)
+  marketId, // Market ID, used for network fee etc.
 );
 ```
 
@@ -171,6 +230,7 @@ const result = await myxClient.order.createDecreaseOrder({
   collateralAmount: '0',
   size: '500000000000000000',
   price: '3000000000000000000000000000000000',
+  timeInForce: TimeInForce.IOC,
   postOnly: false,
   slippagePct: '100',
   executionFeeToken: quoteTokenAddress,
@@ -217,6 +277,7 @@ await myxClient.order.createPositionTpSlOrder({
   slPrice: '2800000000000000000000000000000000',
   slTriggerType: TriggerType.LTE,
   executionFeeToken: quoteTokenAddress,
+  slippagePct: '100', // in bps
 });
 ```
 
@@ -240,6 +301,8 @@ await myxClient.order.updateOrderTpSl(
   quoteTokenAddress,
   chainId,
   userAddress,
+  marketId, // Market ID
+  true, // Optional: whether this is a TpSl order, default undefined
 );
 ```
 
@@ -287,7 +350,6 @@ const result = await myxClient.order.getOrderHistory(
   {
     chainId: 421614,
     poolId: poolId, // optional filter by pool
-    page: 1,
     limit: 20,
   },
   userAddress,
@@ -317,7 +379,6 @@ const result = await myxClient.position.getPositionHistory(
   {
     chainId: 421614,
     poolId: poolId, // optional filter by pool
-    page: 1,
     limit: 20,
   },
   userAddress,
@@ -387,10 +448,7 @@ const result = await myxClient.utils.getUserTradingFeeRate(
 Get the network execution fee for orders.
 
 ```typescript
-const networkFee = await myxClient.utils.getNetworkFee(
-  quoteTokenAddress,
-  chainId,
-);
+const networkFee = await myxClient.utils.getNetworkFee(marketId, chainId);
 ```
 
 ### getOraclePrice
@@ -435,21 +493,18 @@ const errorMsg = myxClient.utils.formatErrorMessage(error);
 
 ### getGasPriceByRatio
 
-Get gas price with configured ratio.
+Get gas price with configured ratio (uses current client chainId).
 
 ```typescript
-const gasPrice = await myxClient.utils.getGasPriceByRatio(chainId);
+const gasPrice = await myxClient.utils.getGasPriceByRatio();
 ```
 
 ### getGasLimitByRatio
 
-Get gas limit with configured ratio.
+Get gas limit by configured ratio from estimated gas.
 
 ```typescript
-const gasLimit = await myxClient.utils.getGasLimitByRatio(
-  chainId,
-  BigInt(100000),
-);
+const gasLimit = await myxClient.utils.getGasLimitByRatio(BigInt(100000));
 ```
 
 ## Module: Markets
@@ -633,8 +688,8 @@ Get account trade flow history.
 const result = await myxClient.account.getTradeFlow(
   {
     chainId: chainId,
-    page: 1,
     limit: 20,
+    poolId: poolId, // optional
   },
   userAddress,
 );
@@ -1822,7 +1877,7 @@ await myxClient.seamless.startSeamlessMode({ open: true });
   "dependencies": {
     "@myx-trade/sdk": "latest",
     "ethers": "^6.x.x",
-    "crypto-js": "^4.x.x"
+    "crypto-es": "^3.x.x"
   }
 }
 ```

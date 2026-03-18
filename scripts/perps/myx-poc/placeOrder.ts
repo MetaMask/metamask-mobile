@@ -90,6 +90,7 @@ async function main() {
 
   // Get fee rate
   const feeResult = await client.utils.getUserTradingFeeRate(0, 0, config.chainId);
+  if (feeResult.code !== 0) throw new Error(`Fee rate API error: ${feeResult.message}`);
   const takerFeeRate = BigInt(feeResult.data?.takerFeeRate || '1000');
   console.log(`Taker fee rate: ${takerFeeRate}`);
 

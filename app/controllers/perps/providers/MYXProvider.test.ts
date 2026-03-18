@@ -84,6 +84,8 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
     baseTokenIcon: '',
     baseToken: '0xbase',
     quoteToken: '0xquote',
+    baseDecimals: 18,
+    quoteDecimals: 18,
     ...overrides,
   };
 }
@@ -510,17 +512,13 @@ describe('MYXProvider', () => {
       });
     });
 
-    it('cancelOrders returns zero counts', async () => {
-      const result = await provider.cancelOrders(
-        {} as Parameters<typeof provider.cancelOrders>[0],
-      );
+    it('cancelOrders returns failure without messenger', async () => {
+      const result = await provider.cancelOrders([
+        { orderId: 'o1', symbol: 'RHEA' },
+      ]);
 
-      expect(result).toEqual({
-        success: false,
-        successCount: 0,
-        failureCount: 0,
-        results: [],
-      });
+      expect(result.success).toBe(false);
+      expect(result.failureCount).toBe(1);
     });
 
     it('closePosition returns failure', async () => {
@@ -547,27 +545,23 @@ describe('MYXProvider', () => {
       });
     });
 
-    it('updatePositionTPSL returns failure', async () => {
-      const result = await provider.updatePositionTPSL(
-        {} as Parameters<typeof provider.updatePositionTPSL>[0],
-      );
-
-      expect(result).toEqual({
-        success: false,
-        error: 'MYX trading not yet supported',
+    it('updatePositionTPSL returns failure without messenger', async () => {
+      const result = await provider.updatePositionTPSL({
+        symbol: 'RHEA',
       });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('messenger');
     });
 
-    it('updateMargin returns failure', async () => {
+    it('updateMargin returns failure without messenger', async () => {
       const result = await provider.updateMargin({
         symbol: 'RHEA',
         amount: '100',
       });
 
-      expect(result).toEqual({
-        success: false,
-        error: 'MYX trading not yet supported',
-      });
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('messenger');
     });
 
     it('withdraw returns failure', async () => {

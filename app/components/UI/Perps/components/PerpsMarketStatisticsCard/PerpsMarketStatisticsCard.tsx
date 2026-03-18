@@ -113,6 +113,14 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     ],
   );
 
+  // Oracle price: prefer live stream markPrice, fall back to stats markPrice
+  const oracleRawPrice = liveOraclePrice ?? marketStats.markPrice;
+  const oraclePriceDisplay = oracleRawPrice
+    ? formatPerpsFiat(parseFloat(oracleRawPrice), {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      })
+    : '-';
+
   return (
     <View style={styles.container}>
       {/* Header with title with DEX badge */}
@@ -254,11 +262,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           }}
           value={{
             label: {
-              text: liveOraclePrice
-                ? formatPerpsFiat(parseFloat(liveOraclePrice), {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })
-                : '-',
+              text: oraclePriceDisplay,
               variant: TextVariant.BodyMD,
               color: TextColor.Default,
             },

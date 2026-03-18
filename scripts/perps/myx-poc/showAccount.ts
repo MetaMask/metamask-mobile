@@ -77,8 +77,9 @@ async function main() {
   // Global balances — fetch from any active pool (values are the same across all pools)
   const firstPool = chainPools.find((p) => activePoolIds.has(p.poolId)) || chainPools[0];
   const globalInfo = await client.account.getAccountInfo(config.chainId, ADDRESS, firstPool.poolId);
+  if (globalInfo.code !== 0) throw new Error(`Account info error: code=${globalInfo.code}`);
   // getAccountInfo returns { data: any } — SDK does not type the tuple
-  const globalAcct = parseAccountTuple(globalInfo.data as string[]);
+  const globalAcct = parseAccountTuple(globalInfo.data as unknown as string[]);
   const walletBalanceRaw = globalAcct.walletBalance;
   const freeMarginRaw = globalAcct.freeAmount;
   const availableMarginRaw = (BigInt(freeMarginRaw) + BigInt(walletBalanceRaw)).toString();
@@ -100,7 +101,7 @@ async function main() {
     const name = pool.baseSymbol || pool.poolId.slice(0, 10);
     try {
       const info = await client.account.getAccountInfo(config.chainId, ADDRESS, pool.poolId);
-      if (!info?.data || !Array.isArray(info.data)) continue;
+      if (info.code !== 0 || !info.data || !Array.isArray(info.data)) continue;
 
       const acct = parseAccountTuple(info.data as string[]);
 

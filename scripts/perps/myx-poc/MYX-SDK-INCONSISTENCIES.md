@@ -22,21 +22,13 @@ interface AccountTuple {
 
 **Source**: `index.d.ts:2019` — `getAccountInfo(...): Promise<{ code: number; data: any }>`
 
-### `PositionType` missing runtime fields
+### `PositionType` — RESOLVED in SDK 1.0.2
 
-The SDK's `PositionType` only has: `poolId`, `positionId`, `direction`, `entryPrice`, `fundingRateIndex`, `size`, `riskTier`, `collateralAmount`, `txTime`.
+~~The SDK's `PositionType` was missing runtime fields.~~
 
-The API actually returns these additional fields (confirmed at runtime):
+SDK 1.0.2 now includes all fields: `chainId`, `userLeverage`, `baseSymbol`, `quoteSymbol`, `tradingFee`, `freeAmount`, `lockedAmount`, `broker`, `earlyClosePrice`, `tokenId`.
 
-| Field | Type | Present in SDK type? |
-|-------|------|---------------------|
-| `userLeverage` | `number` | No |
-| `baseSymbol` | `string` | No |
-| `quoteSymbol` | `string` | No |
-| `tradingFee` | `string` | No |
-| `freeAmount` | `string` | No |
-| `lockedAmount` | `string` | No |
-| `broker` | `string` | No |
+The `PositionData` extension in `common.ts` is no longer needed for new code — use `PositionType` directly.
 | `earlyClosePrice` | `string` | No |
 | `tokenId` | `string \| null` | No |
 

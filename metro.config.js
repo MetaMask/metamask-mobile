@@ -184,20 +184,6 @@ module.exports = function (baseConfig) {
               };
             }
           }
-          // MYX SDK bundles ethers v6 but Metro resolves bare "ethers" to the
-          // project's ethers v5. Force the SDK's imports to its nested v6.
-          if (
-            moduleName === 'ethers' &&
-            context.originModulePath?.includes('@myx-trade/sdk')
-          ) {
-            return {
-              filePath: path.resolve(
-                __dirname,
-                'node_modules/@myx-trade/sdk/node_modules/ethers/lib.esm/index.js',
-              ),
-              type: 'sourceFile',
-            };
-          }
           return context.resolveRequest(context, moduleName, platform);
         },
       },

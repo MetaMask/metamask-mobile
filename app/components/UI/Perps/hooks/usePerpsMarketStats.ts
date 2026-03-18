@@ -4,6 +4,7 @@ import {
   CandlePeriod,
   TimeDuration,
   calculate24hHighLow,
+  PERPS_CONSTANTS,
   type PriceUpdate,
 } from '@metamask/perps-controller';
 import {
@@ -21,6 +22,7 @@ interface MarketStats {
   volume24h: string;
   openInterest: string;
   fundingRate: string;
+  markPrice?: string;
   currentPrice?: number;
   isLoading: boolean;
 }
@@ -29,6 +31,7 @@ interface MarketDataUpdate {
   funding?: number;
   openInterest?: number;
   volume24h?: number;
+  markPrice?: string;
 }
 
 /**
@@ -69,7 +72,8 @@ export const usePerpsMarketStats = (
           if (
             prev.funding === update.funding &&
             prev.openInterest === update.openInterest &&
-            prev.volume24h === update.volume24h
+            prev.volume24h === update.volume24h &&
+            prev.markPrice === update.markPrice
           ) {
             return prev; // Return same reference if no change
           }
@@ -78,6 +82,7 @@ export const usePerpsMarketStats = (
             funding: update.funding,
             openInterest: update.openInterest,
             volume24h: update.volume24h,
+            markPrice: update.markPrice,
           };
         });
 
@@ -133,13 +138,14 @@ export const usePerpsMarketStats = (
         ? `$${formatLargeNumber(marketData.volume24h, {
             ranges: LARGE_NUMBER_RANGES_DETAILED,
           })}`
-        : '$0.00',
+        : PERPS_CONSTANTS.FallbackDataDisplay,
       openInterest: marketData.openInterest
         ? `$${formatLargeNumber(marketData.openInterest, {
             ranges: LARGE_NUMBER_RANGES_DETAILED,
           })}`
-        : '$0.00',
+        : PERPS_CONSTANTS.FallbackDataDisplay,
       fundingRate: formatFundingRate(marketData.funding),
+      markPrice: marketData.markPrice,
       currentPrice: fallbackPrice,
       isLoading: !candleData,
     };

@@ -1,10 +1,18 @@
 import type { PerpsPlatformDependencies } from '@metamask/perps-controller';
+import type { SignerLike } from '@myx-trade/sdk';
 
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { MYX_PRICE_POLLING_INTERVAL_MS } from '../constants/myxConfig';
 import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
 
 import { MYXClientService } from './MYXClientService';
+
+/** Minimal mock that satisfies SignerLike for test authenticate() calls */
+const mockSignerLike = {
+  getAddress: () => Promise.resolve('0xuser'),
+  signMessage: () => Promise.resolve('0xsig'),
+  sendTransaction: () => Promise.resolve({ hash: '0xtx' }),
+} as SignerLike;
 
 // ============================================================================
 // Mock @myx-trade/sdk
@@ -55,9 +63,12 @@ jest.mock('@myx-trade/sdk', () => ({
     account: {
       getAccountInfo: mockGetAccountInfo,
       getWalletQuoteTokenBalance: mockGetWalletQuoteTokenBalance,
+    },
+    api: {
       getTradeFlow: mockGetTradeFlow,
     },
     auth: mockAuth,
+    getAccessToken: jest.fn().mockResolvedValue('mock-token'),
   })),
 }));
 
@@ -75,6 +86,8 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
     baseTokenIcon: '',
     baseToken: '0xbase',
     quoteToken: '0xquote',
+    baseDecimals: 18,
+    quoteDecimals: 18,
     ...overrides,
   };
 }
@@ -760,7 +773,11 @@ describe('MYXClientService', () => {
       );
 
       expect(result).toEqual(mockResult);
-      expect(mockGetTradeFlow).toHaveBeenCalledWith(params, '0xuser');
+      expect(mockGetTradeFlow).toHaveBeenCalledWith({
+        ...params,
+        accessToken: 'mock-token',
+        address: '0xuser',
+      });
     });
 
     it('wraps and rethrows errors', async () => {
@@ -949,7 +966,7 @@ describe('MYXClientService', () => {
 
     it('returns true after successful authentication', async () => {
       // authenticate() calls myxClient.auth() synchronously, then sets #authenticated
-      await service.authenticate({}, {}, '0xuser');
+      await service.authenticate(mockSignerLike, {}, '0xuser');
 
       expect(service.isAuthenticated()).toBe(true);
     });
@@ -961,26 +978,26 @@ describe('MYXClientService', () => {
     });
 
     it('returns true for the authenticated address', async () => {
-      await service.authenticate({}, {}, '0xuser');
+      await service.authenticate(mockSignerLike, {}, '0xuser');
 
       expect(service.isAuthenticatedForAddress('0xuser')).toBe(true);
     });
 
     it('returns true regardless of address casing', async () => {
-      await service.authenticate({}, {}, '0xUser');
+      await service.authenticate(mockSignerLike, {}, '0xUser');
 
       expect(service.isAuthenticatedForAddress('0xuser')).toBe(true);
       expect(service.isAuthenticatedForAddress('0xUSER')).toBe(true);
     });
 
     it('returns false for a different address', async () => {
-      await service.authenticate({}, {}, '0xuser');
+      await service.authenticate(mockSignerLike, {}, '0xuser');
 
       expect(service.isAuthenticatedForAddress('0xother')).toBe(false);
     });
 
     it('returns false after disconnect', async () => {
-      await service.authenticate({}, {}, '0xuser');
+      await service.authenticate(mockSignerLike, {}, '0xuser');
       service.disconnect();
 
       expect(service.isAuthenticatedForAddress('0xuser')).toBe(false);
@@ -993,14 +1010,13 @@ describe('MYXClientService', () => {
 
   describe('authenticate', () => {
     it('calls SDK auth with signer, getAccessToken, and walletClient', async () => {
-      const signer = { signMessage: jest.fn() };
       const walletClient = {};
 
-      await service.authenticate(signer, walletClient, '0xuser');
+      await service.authenticate(mockSignerLike, walletClient, '0xuser');
 
       expect(mockAuth).toHaveBeenCalledWith(
         expect.objectContaining({
-          signer,
+          signer: mockSignerLike,
           walletClient,
           getAccessToken: expect.any(Function),
         }),
@@ -1008,10 +1024,10 @@ describe('MYXClientService', () => {
     });
 
     it('skips if already authenticated', async () => {
-      await service.authenticate({}, {}, '0xuser');
+      await service.authenticate(mockSignerLike, {}, '0xuser');
       mockAuth.mockClear();
 
-      await service.authenticate({}, {}, '0xuser');
+      await service.authenticate(mockSignerLike, {}, '0xuser');
 
       expect(mockAuth).not.toHaveBeenCalled();
     });
@@ -1026,8 +1042,8 @@ describe('MYXClientService', () => {
           }),
       );
 
-      const p1 = service.authenticate({}, {}, '0xuser');
-      const p2 = service.authenticate({}, {}, '0xuser');
+      const p1 = service.authenticate(mockSignerLike, {}, '0xuser');
+      const p2 = service.authenticate(mockSignerLike, {}, '0xuser');
 
       resolveAuth();
       await Promise.all([p1, p2]);
@@ -1041,9 +1057,9 @@ describe('MYXClientService', () => {
         throw new Error('Auth failed');
       });
 
-      await expect(service.authenticate({}, {}, '0xuser')).rejects.toThrow(
-        'Auth failed',
-      );
+      await expect(
+        service.authenticate(mockSignerLike, {}, '0xuser'),
+      ).rejects.toThrow('Auth failed');
       expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });

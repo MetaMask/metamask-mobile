@@ -17,6 +17,7 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
+import { formatPositionSize } from './formatUtils';
 import { formatOrderLabel } from './orderUtils';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
@@ -349,7 +350,7 @@ export function transformFillsToTransactions(
       type: 'trade',
       category: isOpened || isBuy ? 'position_open' : 'position_close',
       title,
-      subtitle: `${size} ${getPerpsDisplaySymbol(symbol)}`,
+      subtitle: `${formatPositionSize(size)} ${getPerpsDisplaySymbol(symbol)}`,
       timestamp,
       asset: symbol,
       fill: {
