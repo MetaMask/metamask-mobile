@@ -352,7 +352,7 @@ async function main() {
       '💡 Tip: Make sure you have uncommitted changes or are on a branch with commits',
     );
     const analysis = MODES[mode].createEmptyResult();
-    MODES[mode].outputAnalysis(analysis);
+    (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
     return;
   }
 
@@ -418,7 +418,7 @@ async function main() {
     console.error(`   ${LLM_CONFIG.providers.openai.envKey}`);
     console.error(`   ${LLM_CONFIG.providers.google.envKey}`);
     const fallbackAnalysis = MODES[mode].createConservativeResult();
-    MODES[mode].outputAnalysis(fallbackAnalysis);
+    (MODES[mode].outputAnalysis as (a: unknown) => void)(fallbackAnalysis);
     return;
   }
 
@@ -751,7 +751,7 @@ async function main() {
       );
 
       // Success - output results and exit
-      MODES[mode].outputAnalysis(analysis);
+      (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
       return;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -770,7 +770,7 @@ async function main() {
   }
 
   const fallbackAnalysis = MODES[mode].createConservativeResult();
-  MODES[mode].outputAnalysis(fallbackAnalysis);
+  (MODES[mode].outputAnalysis as (a: unknown) => void)(fallbackAnalysis);
 }
 
 main().catch((error) => {
