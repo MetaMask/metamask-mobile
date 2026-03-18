@@ -149,7 +149,28 @@ describe('useRampNavigation', () => {
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
-      it('does not navigate to BuildQuote when assetId is not provided', () => {
+      it('navigates to TokenSelection when no assetId and V1 is disabled (matches handleRampUrl deeplink)', () => {
+        // V2 on, V1 off (default in this describe): must go to TokenSelection like handleRampUrl, not legacy
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          undefined,
+        ] as const;
+        mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+          mockNavDetails,
+        );
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy();
+
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+        expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      it('navigates to TokenSelection when no assetId and V1 is also enabled', () => {
         mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
