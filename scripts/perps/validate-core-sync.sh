@@ -336,13 +336,13 @@ step_eslint_fix() {
   fi
 
   progress "  ├─ Running --fix"
-  yarn eslint 'packages/perps-controller/src/**/*.ts' --fix || true
+  yarn eslint packages/perps-controller/src/ --ext .ts --fix || true
 
   progress "  ├─ Running --suppress-all"
-  yarn eslint 'packages/perps-controller/src/**/*.ts' --suppress-all || true
+  yarn eslint packages/perps-controller/src/ --ext .ts --suppress-all || true
 
   progress "  └─ Running --prune-suppressions"
-  yarn eslint 'packages/perps-controller/src/**/*.ts' --prune-suppressions || true
+  yarn eslint packages/perps-controller/src/ --ext .ts --prune-suppressions || true
 
   # Count suppressions
   if [[ -f "$supp_file" ]]; then
@@ -378,7 +378,7 @@ step_lint() {
   cd "$CORE_PATH"
   # No workspace-level lint script exists; run eslint directly to verify
   # all violations are either fixed or suppressed (exit 0 = clean).
-  yarn eslint 'packages/perps-controller/src/**/*.ts'
+  yarn eslint packages/perps-controller/src/ --ext .ts
   cd "$MOBILE_ROOT"
 }
 

@@ -1405,13 +1405,6 @@ export type PerpsTracer = {
   }): void;
 
   setMeasurement(name: string, value: number, unit: string): void;
-
-  addBreadcrumb(breadcrumb: {
-    category: string;
-    message: string;
-    level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
-    data?: Record<string, unknown>;
-  }): void;
 };
 
 // ============================================================================

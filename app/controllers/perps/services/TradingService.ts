@@ -1,3 +1,4 @@
+import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
@@ -369,7 +370,7 @@ export class TradingService {
         : 'perps_balance';
 
     try {
-      this.#deps.tracer.addBreadcrumb({
+      addBreadcrumb({
         category: 'perps',
         message: 'Order execution started',
         level: 'info',
