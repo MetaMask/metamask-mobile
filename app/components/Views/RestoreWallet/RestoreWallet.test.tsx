@@ -93,6 +93,12 @@ describe('RestoreWallet', () => {
       const imageElement = UNSAFE_getByType(Image);
       expect(imageElement).toBeTruthy();
     });
+
+    it('renders component tree correctly', () => {
+      const { toJSON } = renderWithProvider(<RestoreWallet />);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 
   describe('analytics tracking', () => {
