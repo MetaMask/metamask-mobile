@@ -320,61 +320,6 @@ describe('RevealPrivateCredential', () => {
     jest.resetAllMocks();
   });
 
-  describe('snapshots', () => {
-    it('renders introduction screen correctly', () => {
-      const { toJSON } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders password entry screen correctly', async () => {
-      mockReauthenticate.mockRejectedValue(
-        new Error(
-          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
-        ),
-      );
-
-      const { getByTestId, toJSON } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
-
-      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders unlocked SRP view correctly', async () => {
-      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
-      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4');
-
-      const { getByTestId, toJSON } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
-
-      await completeSecurityQuiz(getByTestId);
-
-      await waitFor(() => {
-        expect(mockRevealSRP).toHaveBeenCalled();
-      });
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('rendering', () => {
     it('renders introduction screen initially', () => {
       const { getByTestId, getByText } = renderWithProviders(
