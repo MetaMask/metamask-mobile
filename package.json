@@ -209,7 +209,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^2.3.0",
-    "@metamask/assets-controllers": "^101.0.0",
+    "@metamask/assets-controllers": "^101.0.1",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.10.0",
     "@metamask/bridge-controller": "^69.1.1",
