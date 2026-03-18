@@ -37,10 +37,13 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   useEffect(() => {
     // End the trace started by the parent (AssetOverviewContent) to measure
     // how long it takes for the entry card to mount after navigation.
-    endTrace({
-      name: TraceName.MarketInsightsEntryCardLoad,
-      id: caip19Id,
-    });
+    // caip19Id is only provided when the parent started a matching trace.
+    if (caip19Id) {
+      endTrace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        id: caip19Id,
+      });
+    }
   }, [caip19Id]);
 
   return (

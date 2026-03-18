@@ -7,7 +7,7 @@ import {
   clearTrendingApiMocks,
   mockTrendingTokensData,
   mockBnbChainToken,
-} from '../../../../tests/component-view/mocks/trendingApiMocks';
+} from '../../../../tests/component-view/api-mocking/trending';
 import {
   fireEvent,
   waitFor,
@@ -79,31 +79,35 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     clearTrendingApiMocks();
   });
 
-  it('renders Explore screen wrapped in SafeAreaView', async () => {
-    const { getByTestId } = renderTrendingViewWithRoutes();
+  it('Explore screen shows safe area, header and title and user can open trending full view', async () => {
+    const { getByTestId, getByText } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
       ).toBeOnTheScreen();
-    });
-  });
-
-  it('renders HeaderRoot on Explore screen', async () => {
-    const { getByTestId } = renderTrendingViewWithRoutes();
-
-    await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
       ).toBeOnTheScreen();
+      expect(getByText('Explore')).toBeOnTheScreen();
     });
-  });
-
-  it('renders Explore title on Explore screen', async () => {
-    const { getByText } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
-      expect(getByText('Explore')).toBeOnTheScreen();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+    });
+
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
+    await actButtonPress(viewAllButton);
+
+    await waitFor(() => {
+      const header = getByTestId(
+        TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
+      );
+      expect(header).toHaveTextContent('Trending tokens');
     });
   });
 
@@ -145,11 +149,15 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    const viewAllButton = getByTestId('section-header-view-all-tokens');
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
     await actButtonPress(viewAllButton);
 
     await waitFor(() => {
-      const header = getByTestId('trending-tokens-header');
+      const header = getByTestId(
+        TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
+      );
       expect(header).toHaveTextContent('Trending tokens');
     });
 
@@ -184,16 +192,20 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    const searchButton = getByTestId('explore-view-search-button');
+    const searchButton = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON,
+    );
     await actButtonPress(searchButton);
 
-    const searchInput = await findByTestId('explore-view-search-input');
+    const searchInput = await findByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT,
+    );
     expect(searchInput).toBeOnTheScreen();
 
     await userEvent.type(searchInput, 'ethereum');
 
     const searchResultsList = await findByTestId(
-      'trending-search-results-list',
+      TrendingViewSelectorsIDs.TRENDING_SEARCH_RESULTS_LIST,
     );
 
     await assertTrendingTokenRowsVisibility({
@@ -238,11 +250,15 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    const viewAllButton = getByTestId('section-header-view-all-tokens');
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
     await actButtonPress(viewAllButton);
 
     await waitFor(() => {
-      expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER),
+      ).toBeOnTheScreen();
     });
 
     await assertTrendingTokenRowsVisibility({
@@ -255,11 +271,15 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       missing: [{ id: TRENDING_BNB_ID }],
     });
 
-    const networkButton = getByTestId('all-networks-button');
+    const networkButton = getByTestId(
+      TrendingViewSelectorsIDs.ALL_NETWORKS_BUTTON,
+    );
     await actButtonPress(networkButton);
 
     await waitFor(() => {
-      expect(getByTestId('close-button')).toBeOnTheScreen();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     const bnbNetworkOption = await findByText('BNB Chain');
@@ -288,17 +308,25 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    const viewAllButton = getByTestId('section-header-view-all-tokens');
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
     await actButtonPress(viewAllButton);
 
     await waitFor(() => {
-      expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER),
+      ).toBeOnTheScreen();
     });
 
-    const searchToggle = getByTestId('trending-tokens-header-search-toggle');
+    const searchToggle = getByTestId(
+      TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER_SEARCH_TOGGLE,
+    );
     await actButtonPress(searchToggle);
 
-    const searchInput = await findByTestId('trending-tokens-header-search-bar');
+    const searchInput = await findByTestId(
+      TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER_SEARCH_BAR,
+    );
     expect(searchInput).toBeOnTheScreen();
 
     await userEvent.type(searchInput, 'ethereum');
