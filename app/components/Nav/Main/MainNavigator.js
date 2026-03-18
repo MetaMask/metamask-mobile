@@ -996,6 +996,7 @@ const MainNavigator = () => {
       }}
       initialRouteName={'Home'}
     >
+      <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen
         name="CollectiblesDetails"
         component={CollectiblesDetails}
@@ -1024,7 +1025,6 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
