@@ -27,6 +27,7 @@ import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import AssetDetails from '../../Views/AssetDetails';
+import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
@@ -114,6 +115,7 @@ import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
+import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -201,6 +203,10 @@ const AssetStackFlow = (props) => (
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
+    />
+    <Stack.Screen
+      name={Routes.SECURITY_TRUST}
+      component={SecurityTrustScreen}
     />
     <Stack.Screen
       name={Routes.TRANSACTION_DETAILS}
@@ -948,8 +954,13 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
-  // Get feature flag state for conditional Market Insights screen registration
+  // Get feature flag state for conditional Market Insights screen registration.
+  // The screen must be registered when either the token or perps insights flag is
+  // on — both entry points navigate to the same screen.
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const isMarketInsightsPerpsEnabled = useSelector(
+    selectMarketInsightsPerpsEnabled,
+  );
 
   return (
     <Stack.Navigator
@@ -1157,7 +1168,7 @@ const MainNavigator = () => {
           />
         </>
       )}
-      {isMarketInsightsEnabled && (
+      {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <Stack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}
           component={MarketInsightsView}
