@@ -15,6 +15,84 @@ const BRANCH_DOMAIN_HOSTS = [
 ];
 
 /**
+ * Strips Branch Deepview query params from a URL to recover the original
+ * short link. The Deepview page appends __branch_*, sig, sig_params, and
+ * _referrer params that can confuse the Branch SDK's link resolution.
+ */
+export function stripBranchDeepviewParams(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const paramsToStrip = [
+      '__branch_flow_type',
+      '__branch_flow_id',
+      '__branch_mobile_deepview_type',
+      'sig',
+      'sig_params',
+      '_referrer',
+    ];
+    for (const p of paramsToStrip) {
+      parsed.searchParams.delete(p);
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * When the Branch SDK fails to resolve a short link (returns +non_branch_link),
+ * fetch the short link URL directly and follow redirects. Branch's server will
+ * redirect to the destination URL (e.g. https://link.metamask.io/buy) which
+ * contains the routable path. If the redirect lands on a MetaMask host, use it.
+ * Otherwise, try to extract $deeplink_path from the HTML response body.
+ */
+export async function resolveBranchShortLink(
+  shortLinkUrl: string,
+): Promise<string | undefined> {
+  try {
+    const cleanUrl = stripBranchDeepviewParams(shortLinkUrl);
+
+    const response = await fetch(cleanUrl, {
+      redirect: 'follow',
+      headers: { 'User-Agent': 'MetaMask-Mobile/1.0 (deep-link-resolver)' },
+    });
+
+    const finalUrl = response.url;
+
+    try {
+      const finalHostname = new URL(finalUrl).hostname;
+      if (
+        finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+        finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+      ) {
+        return finalUrl;
+      }
+    } catch {
+      // ignore URL parse errors on finalUrl
+    }
+
+    const body = await response.text();
+
+    const deepLinkPathMatch =
+      body.match(/\$deeplink_path['":\s]+['"]([^'"]+)['"]/) ??
+      body.match(/deeplink_path['":\s]+['"]([^'"]+)['"]/);
+
+    if (deepLinkPathMatch?.[1]) {
+      const path = deepLinkPathMatch[1];
+      return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
+    }
+
+    return undefined;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      `Error resolving Branch short link: ${shortLinkUrl}`,
+    );
+    return undefined;
+  }
+}
+
+/**
  * Branch domain URLs (metamask.app.link, metamask-alternate.app.link) are handled
  * by the Branch SDK. Returns true if the URL belongs to a Branch domain so that
  * the Linking API can skip it and avoid duplicate processing.
@@ -126,6 +204,16 @@ export class DeeplinkManager {
         );
         if (rewritten) {
           handleDeeplink({ uri: rewritten });
+        } else {
+          const nonBranchLink = latestParams?.['+non_branch_link'] as
+            | string
+            | undefined;
+          if (nonBranchLink && isBranchDomainUrl(nonBranchLink)) {
+            const resolved = await resolveBranchShortLink(nonBranchLink);
+            if (resolved) {
+              handleDeeplink({ uri: resolved });
+            }
+          }
         }
       } catch (error) {
         Logger.error(error as Error, 'Error getting Branch deeplink');
@@ -155,12 +243,8 @@ export class DeeplinkManager {
         return;
       }
       if (isBranchDomainUrl(url)) {
-        Logger.log(
-          `handleDeeplink:: skipping Branch domain URL from Linking: ${url}`,
-        );
         return;
       }
-      Logger.log(`handleDeeplink:: got initial URL ${url}`);
       handleDeeplink({ uri: url });
     });
 
@@ -188,7 +272,22 @@ export class DeeplinkManager {
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
       );
-      getBranchDeeplink(rewritten ?? opts.uri);
+
+      if (rewritten) {
+        getBranchDeeplink(rewritten);
+      } else if (opts.uri && !isBranchDomainUrl(opts.uri)) {
+        getBranchDeeplink(opts.uri);
+      } else if (
+        opts.uri &&
+        isBranchDomainUrl(opts.uri) &&
+        opts.params?.['+non_branch_link']
+      ) {
+        resolveBranchShortLink(opts.uri).then((resolved) => {
+          if (resolved) {
+            getBranchDeeplink(resolved);
+          }
+        });
+      }
     });
   }
 }
