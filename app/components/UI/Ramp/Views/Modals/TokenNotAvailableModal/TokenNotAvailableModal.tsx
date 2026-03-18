@@ -1,19 +1,18 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -26,6 +25,7 @@ import { useRampsController } from '../../../hooks/useRampsController';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -49,13 +49,33 @@ function TokenNotAvailableModal() {
   const tokenName = selectedToken?.name ?? '';
   const providerName = selectedProvider?.name ?? '';
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
   const handleChangeToken = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CHANGE_TOKEN_BUTTON_CLICKED)
+        .addProperties({
+          current_provider: selectedProvider?.name,
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
         screen: Routes.RAMP.TOKEN_SELECTION,
       });
     });
-  }, [navigation]);
+  }, [navigation, selectedProvider?.name, trackEvent, createEventBuilder]);
 
   const handleChangeProvider = useCallback(() => {
     trackEvent(
@@ -84,27 +104,45 @@ function TokenNotAvailableModal() {
   ]);
 
   const handleClose = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackEvent, createEventBuilder]);
+
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (!hasPendingAction) {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION,
+        });
+      }
+    },
+    [navigation],
+  );
 
   return (
     <BottomSheet
       ref={sheetRef}
       shouldNavigateBack
-      isInteractable={false}
-      testID="token-unavailable-for-provider-modal"
+      onClose={handleDismiss}
+      testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
     >
-      <BottomSheetHeader
+      <HeaderCompactStandard
+        title={strings('fiat_on_ramp.token_unavailable_modal.title')}
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
-      >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp.token_unavailable_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+        closeButtonProps={{
+          testID: TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
+      />
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('fiat_on_ramp.token_unavailable_modal.description', {
             token: tokenName,
             provider: providerName,
@@ -115,25 +153,25 @@ function TokenNotAvailableModal() {
       <View style={styles.footer}>
         <View style={styles.footerButton}>
           <Button
-            size={ButtonSize.Lg}
+            size={ButtonBaseSize.Lg}
             onPress={handleChangeToken}
-            label={strings('fiat_on_ramp.token_unavailable_modal.change_token')}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
-            testID="token-unavailable-change-token-button"
-          />
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_TOKEN_BUTTON}
+          >
+            {strings('fiat_on_ramp.token_unavailable_modal.change_token')}
+          </Button>
         </View>
         <View style={styles.footerButton}>
           <Button
-            size={ButtonSize.Lg}
+            size={ButtonBaseSize.Lg}
             onPress={handleChangeProvider}
-            label={strings(
-              'fiat_on_ramp.token_unavailable_modal.change_provider',
-            )}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            testID="token-unavailable-change-provider-button"
-          />
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_PROVIDER_BUTTON}
+          >
+            {strings('fiat_on_ramp.token_unavailable_modal.change_provider')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

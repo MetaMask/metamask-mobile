@@ -8,6 +8,7 @@ import { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 
 const mockShowToast = jest.fn();
 const mockSubscribe = jest.fn();
+const mockTrack = jest.fn();
 
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
@@ -48,6 +49,24 @@ jest.mock('@metamask/perps-controller', () => ({
   PERPS_CONSTANTS: {
     DepositTakingLongerToastDelayMs: 100,
   },
+  PERPS_EVENT_PROPERTY: {
+    SCREEN_TYPE: 'screen_type',
+    INTERACTION_TYPE: 'interaction_type',
+  },
+  PERPS_EVENT_VALUE: {
+    SCREEN_TYPE: {
+      CANCEL_TRADE_WITH_TOKEN_TOAST: 'cancel_trade_with_token_toast',
+    },
+    INTERACTION_TYPE: {
+      CANCEL_TRADE_WITH_TOKEN: 'cancel_trade_with_token',
+    },
+  },
+}));
+
+jest.mock('./usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({
+    track: mockTrack,
+  }),
 }));
 
 describe('usePerpsOrderDepositTracking', () => {
@@ -188,6 +207,13 @@ describe('usePerpsOrderDepositTracking', () => {
       closeButtonOptions?.closeButtonOptions?.onPress?.();
     });
 
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'Perp UI Interaction' }),
+      expect.objectContaining({
+        interaction_type: 'cancel_trade_with_token',
+      }),
+    );
+
     const statusUpdatedHandler = handlers.statusUpdated;
     expect(statusUpdatedHandler).toBeDefined();
     act(() => {
@@ -259,6 +285,13 @@ describe('usePerpsOrderDepositTracking', () => {
     act(() => {
       jest.advanceTimersByTime(100);
     });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'Perp Screen Viewed' }),
+      expect.objectContaining({
+        screen_type: 'cancel_trade_with_token_toast',
+      }),
+    );
 
     expect(mockShowToast).toHaveBeenCalled();
     expect(mockShowToast.mock.calls[0][0]).toMatchObject({

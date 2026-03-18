@@ -55,6 +55,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getActiveProvider: jest.fn(),
+      getActiveProviderOrNull: jest.fn(),
     },
   },
 }));
@@ -836,9 +837,9 @@ describe('usePerpsHomeData', () => {
 
       renderHook(() => usePerpsHomeData());
 
-      // getActiveProvider should NOT be called when not connected
+      // getActiveProviderOrNull should NOT be called when not connected
       expect(
-        Engine.context.PerpsController.getActiveProvider,
+        Engine.context.PerpsController.getActiveProviderOrNull,
       ).not.toHaveBeenCalled();
     });
 
@@ -852,7 +853,7 @@ describe('usePerpsHomeData', () => {
       ];
       const mockGetOrderFills = jest.fn().mockResolvedValue(mockFillsFromRest);
       (
-        Engine.context.PerpsController.getActiveProvider as jest.Mock
+        Engine.context.PerpsController.getActiveProviderOrNull as jest.Mock
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
@@ -872,7 +873,7 @@ describe('usePerpsHomeData', () => {
       });
 
       expect(
-        Engine.context.PerpsController.getActiveProvider,
+        Engine.context.PerpsController.getActiveProviderOrNull,
       ).toHaveBeenCalled();
       expect(mockGetOrderFills).toHaveBeenCalledWith({
         aggregateByTime: false,

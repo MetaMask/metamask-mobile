@@ -255,7 +255,8 @@ Business logic services instantiated with platform dependencies:
 
 React context providers:
 
-- **PerpsConnectionProvider** - Connection state and methods for UI
+- **PerpsAlwaysOnProvider** - Top-level always-on lifecycle manager (mounted at Wallet root); single caller of connect/disconnect on the PerpsConnectionManager singleton
+- **PerpsConnectionProvider** - Connection state and methods for UI; all instances use `manageLifecycle={false}` — lifecycle is delegated to PerpsAlwaysOnProvider
 - **PerpsStreamManager** - WebSocket stream management with caching
 - **PerpsOrderContext** - Order form context
 
@@ -648,6 +649,14 @@ Migrated from per-component subscriptions to shared streams:
 - Old: `usePerpsPrices` (deprecated)
 - New: `useLivePrices` with component-level throttling
 - 90% reduction in WebSocket connections
+
+### Always-On Connection Architecture (Mar 2026)
+
+Migrated from per-section `PerpsConnectionProvider` lifecycle management to a single top-level `PerpsAlwaysOnProvider`:
+
+- **Old**: Multiple `PerpsConnectionProvider` instances in Homepage, PerpsTabView, ActivityView, TrendingView, ExploreSearchScreen, and UrlAutocomplete each called `connect()`/`disconnect()`. Reference-count edge cases caused intermittent bugs (positions not showing, 24h values missing) after long app backgrounding.
+- **New**: Single `PerpsAlwaysOnProvider` at `Wallet/index.tsx` owns the entire lifecycle. All `PerpsConnectionProvider` instances use `manageLifecycle={false}` — they provide React context only.
+- **Result**: `connectionRefCount` in `PerpsConnectionManager` stays exactly 1; no more reference-count races. Skeleton correctly shows on reconnect via `isConnecting` flag ORed into loading states in `usePerpsHomeData`.
 
 ## Additional Resources
 

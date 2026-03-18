@@ -767,6 +767,20 @@ describe('PerpsStreamManager', () => {
       cleanupPrewarmSpy.mockRestore();
     });
 
+    it('notifies order subscriber with null when clearCache is called (account switch)', () => {
+      const callback = jest.fn();
+      testStreamManager.orders.subscribe({ callback, throttleMs: 0 });
+      testStreamManager.orders.clearCache();
+      expect(callback).toHaveBeenLastCalledWith(null);
+    });
+
+    it('notifies position subscriber with null when clearCache is called (account switch)', () => {
+      const callback = jest.fn();
+      testStreamManager.positions.subscribe({ callback, throttleMs: 0 });
+      testStreamManager.positions.clearCache();
+      expect(callback).toHaveBeenLastCalledWith(null);
+    });
+
     it('cleans up prewarm subscription when clearing account cache', () => {
       // Mock the cleanupPrewarm method to verify it's called
       const cleanupPrewarmSpy = jest.spyOn(
@@ -1032,9 +1046,10 @@ describe('PerpsStreamManager', () => {
         await Promise.resolve();
       });
 
-      // Now subscribeToPrices should have been called
+      // Now subscribeToPrices should have been called without includeMarketData
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP', 'ETH-PERP'],
+        includeMarketData: false,
         callback: expect.any(Function),
       });
 
@@ -1223,6 +1238,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['ETH-PERP'],
+        includeMarketData: false,
         callback: expect.any(Function),
       });
 
@@ -1583,10 +1599,9 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('clears cache when clearCache() is called', async () => {
+    it('skips subscriber notification when clearCache is called with skipNotify=true', async () => {
       const callback = jest.fn();
 
-      // First subscription to populate cache
       const unsubscribe = testStreamManager.marketData.subscribe({
         callback,
         throttleMs: 0,
@@ -1596,13 +1611,58 @@ describe('PerpsStreamManager', () => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
       });
 
-      // Clear cache
+      const callCountBeforeClear = callback.mock.calls.length;
+
+      testStreamManager.marketData.clearCache(true);
+
+      expect(callback).toHaveBeenCalledTimes(callCountBeforeClear);
+
+      unsubscribe();
+    });
+
+    it('notifies subscribers with [] when clearCache is called without skipNotify', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
       testStreamManager.marketData.clearCache();
 
-      // Should notify with empty array
       expect(callback).toHaveBeenLastCalledWith([]);
 
       unsubscribe();
+    });
+
+    it('clears pending throttle timers on skipNotify clearCache without notifying', async () => {
+      jest.useRealTimers();
+      const callback = jest.fn();
+      mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 5000,
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+      mockGetMarketDataWithPrices.mockResolvedValueOnce([mockMarketData[0]]);
+      testStreamManager.marketData.refresh();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const callCountBeforeClear = callback.mock.calls.length;
+      testStreamManager.marketData.clearCache(true);
+
+      expect(callback).toHaveBeenCalledTimes(callCountBeforeClear);
+      unsubscribe();
+      jest.useFakeTimers();
     });
 
     it('handles fetch errors gracefully', async () => {

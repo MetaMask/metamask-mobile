@@ -228,7 +228,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                     "justifyContent": "center",
                     "opacity": 1,
                     "paddingHorizontal": 4,
-                    "paddingVertical": 16,
+                    "paddingVertical": 12,
                   },
                   false,
                 ]
@@ -1578,7 +1578,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                     "justifyContent": "center",
                     "opacity": 1,
                     "paddingHorizontal": 4,
-                    "paddingVertical": 16,
+                    "paddingVertical": 12,
                   },
                   false,
                 ]

@@ -7,6 +7,7 @@ import {
   ATTEMPTS_MAX_DEFAULT,
   SLIPPAGE_DEFAULT,
   BUFFER_SUBSEQUENT_DEFAULT,
+  STX_DISABLED_DEFAULT,
   selectNonZeroUnusedApprovalsAllowList,
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
@@ -119,6 +120,25 @@ describe('MetaMask Pay Feature Flags', () => {
       };
 
     expect(selectMetaMaskPayFlags(state).slippage).toEqual(0.123);
+  });
+
+  it('returns default stxDisabled if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).stxDisabled).toEqual(
+      STX_DISABLED_DEFAULT,
+    );
+  });
+
+  it('returns stxDisabled from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          stxDisabled: true,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).stxDisabled).toEqual(true);
   });
 });
 
@@ -352,6 +372,40 @@ describe('selectMetaMaskPayTokensFlags (confirmations_pay_tokens)', () => {
     const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
 
     expect(result.preferredTokens).toEqual({ default: [], overrides: {} });
+  });
+
+  it('returns default empty blockedTokens when confirmations_pay_tokens is missing', () => {
+    const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
+
+    expect(result.blockedTokens).toEqual({
+      default: { chainIds: [], tokens: [] },
+      overrides: {},
+    });
+  });
+
+  it('returns blockedTokens with overrides from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_tokens: {
+          blockedTokens: {
+            default: { chainIds: ['0xa4b1'], tokens: [] },
+            overrides: {
+              perpsDeposit: {
+                chainIds: [],
+                tokens: [{ address: '0xabc', chainId: '0x1' }],
+              },
+            },
+          },
+        },
+      };
+
+    const result = selectMetaMaskPayTokensFlags(state);
+    expect(result.blockedTokens.default.chainIds).toEqual(['0xa4b1']);
+    expect(result.blockedTokens.overrides.perpsDeposit).toEqual({
+      chainIds: [],
+      tokens: [{ address: '0xabc', chainId: '0x1' }],
+    });
   });
 
   it('returns default minimumRequiredTokenBalance of 0 when not in feature flags', () => {

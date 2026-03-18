@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -55,15 +55,19 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
   const mockGoBack = jest.mocked(NavigationService.navigation.goBack);
 
   let appStateHandler: ((nextAppState: AppStateStatus) => void) | undefined;
-  let removeSubscriptionMock: jest.Mock;
+  let linkingUrlHandler: ((event: { url: string }) => void) | undefined;
+  let removeAppStateSubscription: jest.Mock;
+  let removeLinkingSubscription: jest.Mock;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     mockSelectUnapprovedMusdConversions.mockReturnValue([]);
 
-    removeSubscriptionMock = jest.fn();
+    removeAppStateSubscription = jest.fn();
+    removeLinkingSubscription = jest.fn();
     appStateHandler = undefined;
+    linkingUrlHandler = undefined;
 
     (AppState as unknown as { currentState: AppStateStatus }).currentState =
       'active';
@@ -73,9 +77,16 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
       .mockImplementation((_, handler) => {
         appStateHandler = handler as (nextAppState: AppStateStatus) => void;
         return {
-          remove: removeSubscriptionMock,
+          remove: removeAppStateSubscription,
         } as unknown as ReturnType<typeof AppState.addEventListener>;
       });
+
+    jest.spyOn(Linking, 'addEventListener').mockImplementation((_, handler) => {
+      linkingUrlHandler = handler as (event: { url: string }) => void;
+      return {
+        remove: removeLinkingSubscription,
+      } as unknown as ReturnType<typeof Linking.addEventListener>;
+    });
 
     mockGetCurrentRoute.mockReturnValue(undefined as never);
 
@@ -92,167 +103,365 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
     jest.restoreAllMocks();
   });
 
-  it('registers app state listener and removes it on unmount', () => {
-    const { unmount } = renderHook(() =>
-      useMusdConversionStaleApprovalCleanup(),
-    );
+  const simulateDeeplinkWhileBackgrounded = () => {
+    linkingUrlHandler?.({ url: 'metamask://some-deeplink' });
+  };
 
-    expect(AppState.addEventListener).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function),
-    );
+  describe('listener lifecycle', () => {
+    it('registers AppState and Linking listeners and removes both on unmount', () => {
+      const { unmount } = renderHook(() =>
+        useMusdConversionStaleApprovalCleanup(),
+      );
 
-    unmount();
+      expect(AppState.addEventListener).toHaveBeenCalledWith(
+        'change',
+        expect.any(Function),
+      );
+      expect(Linking.addEventListener).toHaveBeenCalledWith(
+        'url',
+        expect.any(Function),
+      );
 
-    expect(removeSubscriptionMock).toHaveBeenCalledTimes(1);
+      unmount();
+
+      expect(removeAppStateSubscription).toHaveBeenCalledTimes(1);
+      expect(removeLinkingSubscription).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('rejects stale pending approvals when app returns to active', () => {
-    mockSelectUnapprovedMusdConversions.mockReturnValue([
-      { id: 'tx-1' } as never,
-    ]);
+  describe('standard stale cleanup (not on confirmation screen)', () => {
+    it('rejects stale pending approvals when app returns to active from background', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
 
-    renderHook(() => useMusdConversionStaleApprovalCleanup());
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
 
-    act(() => {
-      appStateHandler?.('background');
-      appStateHandler?.('active');
-    });
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
 
-    expect(mockLoggerLog).toHaveBeenCalledWith(
-      '[mUSD Conversion] Rejecting stale pending approvals on foreground',
-      {
-        count: 1,
-        transactionIds: ['tx-1'],
-      },
-    );
-    expect(mockRejectPendingApproval).toHaveBeenCalledTimes(1);
-    expect(mockRejectPendingApproval).toHaveBeenCalledWith(
-      'tx-1',
-      expect.objectContaining({
-        data: expect.objectContaining({
-          cause: 'useMusdConversionStaleApprovalCleanup',
-          transactionId: 'tx-1',
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Rejecting stale pending approvals on foreground',
+        {
+          count: 1,
+          transactionIds: ['tx-1'],
+        },
+      );
+      expect(mockRejectPendingApproval).toHaveBeenCalledTimes(1);
+      expect(mockRejectPendingApproval).toHaveBeenCalledWith(
+        'tx-1',
+        expect.objectContaining({
+          data: expect.objectContaining({
+            cause: 'useMusdConversionStaleApprovalCleanup',
+            transactionId: 'tx-1',
+          }),
         }),
-      }),
-      {
-        ignoreMissing: true,
-        logErrors: false,
-      },
-    );
-  });
-
-  it('does not reject approvals on inactive to active transition', () => {
-    mockSelectUnapprovedMusdConversions.mockReturnValue([
-      { id: 'tx-1' } as never,
-    ]);
-
-    renderHook(() => useMusdConversionStaleApprovalCleanup());
-
-    act(() => {
-      appStateHandler?.('inactive');
-      appStateHandler?.('active');
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
+      );
     });
 
-    expect(mockLoggerLog).not.toHaveBeenCalled();
-    expect(mockRejectPendingApproval).not.toHaveBeenCalled();
-  });
+    it('does not reject approvals on inactive to active transition', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
 
-  it('does not reject approvals when there are no stale pending approvals', () => {
-    mockSelectUnapprovedMusdConversions.mockReturnValue([]);
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
 
-    renderHook(() => useMusdConversionStaleApprovalCleanup());
+      act(() => {
+        appStateHandler?.('inactive');
+        appStateHandler?.('active');
+      });
 
-    act(() => {
-      appStateHandler?.('background');
-      appStateHandler?.('active');
+      expect(mockLoggerLog).not.toHaveBeenCalled();
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
     });
 
-    expect(mockLoggerLog).not.toHaveBeenCalled();
-    expect(mockRejectPendingApproval).not.toHaveBeenCalled();
-  });
+    it('does not reject approvals when there are no stale pending approvals', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([]);
 
-  it('uses latest pending approvals after rerender', () => {
-    mockSelectUnapprovedMusdConversions
-      .mockReturnValueOnce([])
-      .mockReturnValue([{ id: 'tx-latest' } as never]);
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
 
-    const { rerender } = renderHook(() =>
-      useMusdConversionStaleApprovalCleanup(),
-    );
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
 
-    rerender({});
-
-    act(() => {
-      appStateHandler?.('background');
-      appStateHandler?.('active');
+      expect(mockLoggerLog).not.toHaveBeenCalled();
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
     });
 
-    expect(mockRejectPendingApproval).toHaveBeenCalledWith(
-      'tx-latest',
-      expect.any(Object),
-      {
-        ignoreMissing: true,
-        logErrors: false,
-      },
-    );
+    it('uses latest pending approvals after rerender', () => {
+      mockSelectUnapprovedMusdConversions
+        .mockReturnValueOnce([])
+        .mockReturnValue([{ id: 'tx-latest' } as never]);
+
+      const { rerender } = renderHook(() =>
+        useMusdConversionStaleApprovalCleanup(),
+      );
+
+      rerender({});
+
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      expect(mockRejectPendingApproval).toHaveBeenCalledWith(
+        'tx-latest',
+        expect.any(Object),
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
+      );
+    });
   });
 
-  it('navigates back when confirmation screen is focused after rejecting stale approvals', () => {
-    mockSelectUnapprovedMusdConversions.mockReturnValue([
-      { id: 'tx-1' } as never,
-    ]);
-    mockGetCurrentRoute.mockReturnValue({
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    } as never);
+  describe('navigation after rejection', () => {
+    it('navigates back when confirmation screen is focused after rejecting stale approvals', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      } as never);
 
-    renderHook(() => useMusdConversionStaleApprovalCleanup());
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
 
-    act(() => {
-      appStateHandler?.('background');
-      appStateHandler?.('active');
+      act(() => {
+        appStateHandler?.('background');
+        simulateDeeplinkWhileBackgrounded();
+        appStateHandler?.('active');
+      });
+
+      jest.runAllTimers();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    jest.runAllTimers();
+    it('does not navigate back when a different screen is focused after rejection', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: 'SomeOtherScreen',
+      } as never);
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      jest.runAllTimers();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate back when no stale approvals exist', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      } as never);
+
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      jest.runAllTimers();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
   });
 
-  it('does not navigate back when a different screen is focused', () => {
-    mockSelectUnapprovedMusdConversions.mockReturnValue([
-      { id: 'tx-1' } as never,
-    ]);
-    mockGetCurrentRoute.mockReturnValue({
-      name: 'SomeOtherScreen',
-    } as never);
+  describe('screen-aware guard (on confirmation screen without deeplink)', () => {
+    it('skips cleanup when on REDESIGNED_CONFIRMATIONS and no deeplink received', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      } as never);
 
-    renderHook(() => useMusdConversionStaleApprovalCleanup());
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
 
-    act(() => {
-      appStateHandler?.('background');
-      appStateHandler?.('active');
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Skipping stale approval cleanup — user is in active confirmation flow',
+      );
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
     });
 
-    jest.runAllTimers();
+    it('skips cleanup when on TOOLTIP_MODAL and no deeplink received', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.SHEET.TOOLTIP_MODAL,
+      } as never);
 
-    expect(mockGoBack).not.toHaveBeenCalled();
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Skipping stale approval cleanup — user is in active confirmation flow',
+      );
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+    });
   });
 
-  it('does not navigate back when no stale approvals exist', () => {
-    mockSelectUnapprovedMusdConversions.mockReturnValue([]);
-    mockGetCurrentRoute.mockReturnValue({
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    } as never);
+  describe('deeplink detection (on confirmation screen with deeplink)', () => {
+    it('rejects approvals when on confirmation screen and deeplink received while backgrounded', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      } as never);
 
-    renderHook(() => useMusdConversionStaleApprovalCleanup());
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
 
-    act(() => {
-      appStateHandler?.('background');
-      appStateHandler?.('active');
+      act(() => {
+        appStateHandler?.('background');
+        simulateDeeplinkWhileBackgrounded();
+        appStateHandler?.('active');
+      });
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Incoming deeplink detected while on confirmation screen — rejecting stale approvals',
+      );
+      expect(mockRejectPendingApproval).toHaveBeenCalledTimes(1);
+      expect(mockRejectPendingApproval).toHaveBeenCalledWith(
+        'tx-1',
+        expect.objectContaining({
+          data: expect.objectContaining({
+            cause: 'useMusdConversionStaleApprovalCleanup',
+            transactionId: 'tx-1',
+          }),
+        }),
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
+      );
     });
 
-    jest.runAllTimers();
+    it('rejects approvals when on tooltip modal and deeplink received while backgrounded', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.SHEET.TOOLTIP_MODAL,
+      } as never);
 
-    expect(mockGoBack).not.toHaveBeenCalled();
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+      act(() => {
+        appStateHandler?.('background');
+        simulateDeeplinkWhileBackgrounded();
+        appStateHandler?.('active');
+      });
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Incoming deeplink detected while on confirmation screen — rejecting stale approvals',
+      );
+      expect(mockRejectPendingApproval).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets the deeplink flag after processing so subsequent returns from browser are not affected', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      } as never);
+
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+      act(() => {
+        appStateHandler?.('background');
+        simulateDeeplinkWhileBackgrounded();
+        appStateHandler?.('active');
+      });
+
+      expect(mockRejectPendingApproval).toHaveBeenCalledTimes(1);
+      mockRejectPendingApproval.mockClear();
+      mockLoggerLog.mockClear();
+
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Skipping stale approval cleanup — user is in active confirmation flow',
+      );
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+    });
+
+    it('does not set deeplink flag when Linking url event fires while app is not backgrounded', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      } as never);
+
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+      act(() => {
+        linkingUrlHandler?.({ url: 'metamask://some-deeplink' });
+      });
+
+      act(() => {
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Skipping stale approval cleanup — user is in active confirmation flow',
+      );
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+    });
+
+    it('resets deeplink flag when app enters background', () => {
+      mockSelectUnapprovedMusdConversions.mockReturnValue([
+        { id: 'tx-1' } as never,
+      ]);
+      mockGetCurrentRoute.mockReturnValue({
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      } as never);
+
+      renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+      act(() => {
+        appStateHandler?.('background');
+        simulateDeeplinkWhileBackgrounded();
+        appStateHandler?.('background');
+        appStateHandler?.('active');
+      });
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        '[mUSD Conversion] Skipping stale approval cleanup — user is in active confirmation flow',
+      );
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+    });
   });
 });

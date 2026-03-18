@@ -21,22 +21,25 @@ export interface UseMarketInsightsResult {
  * Hook to fetch market insights for a given asset.
  *
  * This hook reads market insights through AiDigestController, which caches
- * insights per CAIP-19 ID and fetches them from the digest service as needed.
+ * insights per asset identifier and fetches them from the digest service as needed.
  *
- * @param caip19Id - The CAIP-19 asset identifier.
+ * @param assetIdentifier - The asset identifier: either a CAIP-19 ID (e.g. "eip155:1/slip44:60")
+ * or a perps market symbol (e.g. "ETH").
  * @param isEnabled - Whether market insights requests are enabled.
  * @returns Market insights report data with loading/error states
  */
 export const useMarketInsights = (
-  caip19Id: string | undefined | null,
+  assetIdentifier: string | undefined | null,
   isEnabled = false,
 ): UseMarketInsightsResult => {
   const [report, setReport] = useState<MarketInsightsReport | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(
+    Boolean(isEnabled && assetIdentifier),
+  );
   const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = useCallback(async () => {
-    if (!isEnabled || !caip19Id) {
+    if (!isEnabled || !assetIdentifier) {
       setReport(null);
       setError(null);
       setIsLoading(false);
@@ -48,7 +51,9 @@ export const useMarketInsights = (
 
     try {
       const data =
-        await Engine.context.AiDigestController.fetchMarketInsights(caip19Id);
+        await Engine.context.AiDigestController.fetchMarketInsights(
+          assetIdentifier,
+        );
       setReport(data as MarketInsightsReport | null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch insights');
@@ -56,7 +61,7 @@ export const useMarketInsights = (
     } finally {
       setIsLoading(false);
     }
-  }, [caip19Id, isEnabled]);
+  }, [assetIdentifier, isEnabled]);
 
   useEffect(() => {
     fetchInsights();

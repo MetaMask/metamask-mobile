@@ -5,7 +5,7 @@ import {
   BoxJustifyContent,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 
 const ROWS: readonly (readonly [string, string])[] = [

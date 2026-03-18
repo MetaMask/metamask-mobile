@@ -103,7 +103,7 @@ export const usePerpsHomeData = ({
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
-        const provider = controller?.getActiveProvider();
+        const provider = controller?.getActiveProviderOrNull();
         if (!provider) {
           return;
         }
