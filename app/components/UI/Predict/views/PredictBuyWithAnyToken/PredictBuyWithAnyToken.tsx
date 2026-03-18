@@ -231,6 +231,7 @@ const PredictBuyWithAnyToken = () => {
             availableBalanceDisplay={availableBalance}
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
+            isPlacingOrder={isPlacingOrder}
           />
           <PredictPayWithRow disabled={isPlacingOrder} />
         </Box>
