@@ -520,9 +520,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           },
         );
 
-        // Subscribe to all market prices
+        // WARNING: Do NOT set includeMarketData: true here. It triggers
+        // per-symbol activeAssetCtx subscriptions (N symbols × N DEXs = N²
+        // WebSocket connections). assetCtxs (1 per DEX) is always established
+        // by the subscription service regardless of this flag.
         const unsub = controller.subscribeToPrices({
           symbols: this.allMarketSymbols,
+          includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
@@ -590,8 +594,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   }
 }
 
-// Specific channel for orders
-class OrderStreamChannel extends StreamChannel<Order[]> {
+// Specific channel for orders (null = cleared on account switch; hooks show skeleton until next update)
+class OrderStreamChannel extends StreamChannel<Order[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
@@ -664,8 +668,8 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     return getPreloadedData<Order[]>('cachedOrders');
   }
 
-  protected getClearedData(): Order[] {
-    return [];
+  protected getClearedData(): Order[] | null {
+    return null;
   }
 
   /**
@@ -718,8 +722,8 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 }
 
-// Specific channel for positions
-class PositionStreamChannel extends StreamChannel<Position[]> {
+// Specific channel for positions (null = cleared on account switch; hooks show skeleton until next update)
+class PositionStreamChannel extends StreamChannel<Position[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
@@ -796,8 +800,8 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     return getPreloadedData<Position[]>('cachedPositions');
   }
 
-  protected getClearedData(): Position[] {
-    return [];
+  protected getClearedData(): Position[] | null {
+    return null;
   }
 
   /**
@@ -1523,25 +1527,30 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   }
 
   /**
-   * Clear cache and reset fetch time
+   * Clear cache and reset fetch time.
+   *
+   * @param skipNotify - When true, subscribers keep their current data (used on
+   * account switches where market data is global and stays valid). When false
+   * (default), subscribers are notified with `[]` and their throttle state is
+   * reset so the next fetch result is delivered immediately.
    */
-  public clearCache(): void {
-    // Clear the cache
+  public clearCache(skipNotify = false): void {
     this.cache.clear();
     this.lastFetchTime = 0;
     this.fetchPromise = null;
     this.cachedProviderId = null;
 
-    // Notify subscribers with empty array (no market data) instead of null (loading)
     this.subscribers.forEach((subscriber) => {
-      // Clear any pending updates and timers
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-      // Send empty array to indicate "no market data" rather than "loading"
-      subscriber.callback([]);
+
+      if (!skipNotify) {
+        subscriber.hasReceivedFirstUpdate = false;
+        subscriber.callback([]);
+      }
     });
   }
 }

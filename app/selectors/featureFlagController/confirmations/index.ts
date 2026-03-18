@@ -9,6 +9,7 @@ export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
 export const PAY_FIAT_ENABLED_DEFAULT = false;
 export const SLIPPAGE_DEFAULT = 0.005;
+export const STX_DISABLED_DEFAULT = false;
 
 export interface PreferredToken {
   address: string;
@@ -21,16 +22,33 @@ export interface PreferredTokensConfig {
   overrides: Record<string, PreferredToken[]>;
 }
 
+export interface BlockedTokenEntry {
+  address: string;
+  chainId: string;
+}
+
+export interface BlockedTokensListConfig {
+  chainIds: string[];
+  tokens: BlockedTokenEntry[];
+}
+
+export interface BlockedTokensConfig {
+  default: BlockedTokensListConfig;
+  overrides: Record<string, BlockedTokensListConfig>;
+}
+
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
+  stxDisabled: boolean;
 }
 
 export interface MetaMaskPayTokensFlags {
   preferredTokens: PreferredTokensConfig;
+  blockedTokens: BlockedTokensConfig;
   minimumRequiredTokenBalance: number;
 }
 
@@ -82,12 +100,16 @@ export const selectMetaMaskPayFlags = createSelector(
 
     const slippage = (metaMaskPayFlags?.slippage as number) ?? SLIPPAGE_DEFAULT;
 
+    const stxDisabled =
+      (metaMaskPayFlags?.stxDisabled as boolean) ?? STX_DISABLED_DEFAULT;
+
     return {
       attemptsMax,
       bufferInitial,
       bufferStep,
       bufferSubsequent,
       slippage,
+      stxDisabled,
     };
   },
 );
@@ -100,6 +122,10 @@ export const selectMetaMaskPayTokensFlags = createSelector(
       | Record<string, Json | PreferredTokensConfig>
       | undefined;
 
+    const rawBlockedTokens = payTokenFlags?.blockedTokens as
+      | BlockedTokensConfig
+      | undefined;
+
     return {
       preferredTokens: {
         default:
@@ -108,6 +134,13 @@ export const selectMetaMaskPayTokensFlags = createSelector(
         overrides:
           ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
             ?.overrides as Record<string, PreferredToken[]>) ?? {},
+      },
+      blockedTokens: {
+        default: {
+          chainIds: rawBlockedTokens?.default?.chainIds ?? [],
+          tokens: rawBlockedTokens?.default?.tokens ?? [],
+        },
+        overrides: rawBlockedTokens?.overrides ?? {},
       },
       minimumRequiredTokenBalance:
         (payTokenFlags?.minimumRequiredTokenBalance as number) ?? 0,

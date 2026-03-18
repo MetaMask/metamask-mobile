@@ -21,8 +21,8 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
-  type SnapshotDto,
   type CampaignDto,
+  type CampaignParticipantStatusDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -93,14 +93,14 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
-// Snapshots cache threshold
-const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
-
 // Off-device subscription accounts cache threshold
 const OFF_DEVICE_SUBSCRIPTION_ACCOUNTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaigns cache threshold
 const CAMPAIGNS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign participant status cache threshold
+const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -169,12 +169,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshots: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   offDeviceSubscriptionAccounts: {
     includeInStateLogs: true,
     persist: true,
@@ -182,6 +176,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   campaigns: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  campaignParticipantStatus: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -214,9 +214,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  snapshots: {},
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
+  campaignParticipantStatus: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -313,7 +313,6 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isSnapshotsEnabled: () => boolean;
   #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
@@ -467,7 +466,6 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isSnapshotsEnabled,
     isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
@@ -475,7 +473,6 @@ export class RewardsController extends BaseController<
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isSnapshotsEnabled?: () => boolean;
     isCampaignsEnabled?: () => boolean;
   }) {
     super({
@@ -491,7 +488,6 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
     this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
@@ -587,16 +583,20 @@ export class RewardsController extends BaseController<
       this.getUnlockedRewards.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getSnapshots',
-      this.getSnapshots.bind(this),
-    );
-    this.messenger.registerActionHandler(
       'RewardsController:getOffDeviceSubscriptionAccounts',
       this.getOffDeviceSubscriptionAccounts.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:getCampaigns',
       this.getCampaigns.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:optInToCampaign',
+      this.optInToCampaign.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getCampaignParticipantStatus',
+      this.getCampaignParticipantStatus.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -2667,9 +2667,8 @@ export class RewardsController extends BaseController<
         'RewardsController: Fetching geo location for rewards metadata',
       );
 
-      // Get geo location from data service
       const geoLocation = await this.messenger.call(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
 
       // Check if the location is supported (not in blocked regions)
@@ -3284,60 +3283,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get snapshots for a season with caching
-   * @param seasonId - The season ID
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<SnapshotDto[]> - The snapshots data
-   */
-  async getSnapshots(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return [];
-    }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
-    }
-    const result = await wrapWithCache<SnapshotDto[]>({
-      key: seasonId,
-      ttl: SNAPSHOTS_CACHE_THRESHOLD_MS,
-      readCache: (key) => {
-        const cachedSnapshots = this.state.snapshots[key] || undefined;
-        if (!cachedSnapshots) return;
-        return {
-          payload: cachedSnapshots.snapshots,
-          lastFetched: cachedSnapshots.lastFetched,
-        };
-      },
-      fetchFresh: async () =>
-        this.#withAuthRetry(async () => {
-          Logger.log(
-            'RewardsController: Fetching fresh snapshots data via API call for seasonId',
-            seasonId,
-          );
-          const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshots',
-            seasonId,
-            subscriptionId,
-          )) as SnapshotDto[];
-          return response || [];
-        }, subscriptionId),
-      writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
-          state.snapshots[key] = {
-            snapshots: payload,
-            lastFetched: Date.now(),
-          };
-        });
-      },
-    });
-
-    return result;
-  }
-
-  /**
    * Get CAIP-10 encoded accounts linked to a subscription with caching
    * @param subscriptionId - The subscription ID for authentication
    * @returns Promise<string[]> - Array of CAIP-10 account strings
@@ -3474,6 +3419,91 @@ export class RewardsController extends BaseController<
       },
     });
 
+    return result;
+  }
+
+  /**
+   * Opt a subscription into a campaign.
+   * @param campaignId - The campaign ID to opt into.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The participant status after opting in.
+   */
+  async optInToCampaign(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+      return { optedIn: false, participantCount: 0 };
+    }
+    const result = await this.#withAuthRetry(async () => {
+      Logger.log('RewardsController: Opting into campaign', campaignId);
+      return (await this.messenger.call(
+        'RewardsDataService:optInToCampaign',
+        subscriptionId,
+        campaignId,
+      )) as CampaignParticipantStatusDto;
+    }, subscriptionId);
+    // Invalidate the participant status cache so the next fetch gets fresh data
+    const key = `${subscriptionId}:${campaignId}`;
+    this.update((state: RewardsControllerState) => {
+      delete state.campaignParticipantStatus[key];
+    });
+    this.messenger.publish('RewardsController:campaignOptedIn', {
+      campaignId,
+      subscriptionId,
+    });
+    return result;
+  }
+
+  /**
+   * Get the campaign participant status, cached for 5 minutes.
+   * @param campaignId - The campaign ID to check status for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The participant status.
+   */
+  async getCampaignParticipantStatus(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+      return { optedIn: false, participantCount: 0 };
+    }
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<CampaignParticipantStatusDto>({
+      key,
+      ttl: CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.campaignParticipantStatus[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            optedIn: cached.optedIn,
+            participantCount: cached.participantCount,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign participant status via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getCampaignParticipantStatus',
+            subscriptionId,
+            campaignId,
+          )) as CampaignParticipantStatusDto;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state: RewardsControllerState) => {
+          state.campaignParticipantStatus[k] = {
+            optedIn: payload.optedIn,
+            participantCount: payload.participantCount,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
     return result;
   }
 

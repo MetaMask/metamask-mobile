@@ -726,7 +726,7 @@ jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.
 // Components that trigger analytics (trackView/trackEvent) cause the queue to call
 // whenEngineReady(), which uses setTimeout and can run after tests finish.
-jest.mock('../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

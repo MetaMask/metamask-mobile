@@ -139,6 +139,13 @@ describe('NonHardwareAdapter', () => {
     });
   });
 
+  describe('ensurePermissions', () => {
+    it('returns true', async () => {
+      const result = await adapter.ensurePermissions();
+      expect(result).toBe(true);
+    });
+  });
+
   describe('isTransportAvailable', () => {
     it('returns true', async () => {
       const result = await adapter.isTransportAvailable();

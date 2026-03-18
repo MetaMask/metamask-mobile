@@ -4,9 +4,10 @@ import React, {
   useRef,
   useMemo,
   useEffect,
+  useState,
 } from 'react';
 import { DeviceEventEmitter, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList, FlashListRef, ViewToken } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -46,7 +47,7 @@ interface TokenListProps {
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
   showPercentageChange?: boolean;
-  setShowScamWarningModal: () => void;
+  setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
 }
@@ -150,6 +151,24 @@ const TokenListComponent = ({
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation, trackEvent, createEventBuilder]);
 
+  const getTokenKey = useCallback(
+    (item: FlashListAssetKey): string =>
+      `${item.address}-${item.chainId}-${item.isStaked ? 'staked' : 'unstaked'}`,
+    [],
+  );
+
+  // Track which items are currently visible in the viewport.
+  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken<FlashListAssetKey>[] }) => {
+      setVisibleKeys(
+        new Set(viewableItems.map(({ item }) => getTokenKey(item))),
+      );
+    },
+    [getTokenKey],
+  );
+
   const renderTokenListItem = useCallback(
     ({ item }: { item: FlashListAssetKey }) => (
       <ListItemComponent
@@ -160,6 +179,7 @@ const TokenListComponent = ({
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
         shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+        isVisible={visibleKeys.has(getTokenKey(item))}
       />
     ),
     [
@@ -170,6 +190,8 @@ const TokenListComponent = ({
       showPercentageChange,
       isFullView,
       shouldShowTokenListItemCta,
+      visibleKeys,
+      getTokenKey,
     ],
   );
 
@@ -181,7 +203,7 @@ const TokenListComponent = ({
       >
         {displayTokenKeys.map((item, index) => (
           <ListItemComponent
-            key={`${item.address}-${item.chainId}-${item.isStaked ? 'staked' : 'unstaked'}-${index}`}
+            key={`${getTokenKey(item)}-${index}`}
             assetKey={item}
             showRemoveMenu={showRemoveMenu}
             setShowScamWarningModal={setShowScamWarningModal}
@@ -189,6 +211,7 @@ const TokenListComponent = ({
             showPercentageChange={showPercentageChange}
             isFullView={isFullView}
             shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+            isVisible
           />
         ))}
         {shouldShowViewAllButton && (
@@ -214,11 +237,9 @@ const TokenListComponent = ({
             itemVisiblePercentThreshold: 50,
             minimumViewTime: 1000,
           }}
+          onViewableItemsChanged={handleViewableItemsChanged}
           renderItem={renderTokenListItem}
-          keyExtractor={(item, idx) => {
-            const staked = item.isStaked ? 'staked' : 'unstaked';
-            return `${item.address}-${item.chainId}-${staked}-${idx}`;
-          }}
+          keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}
@@ -227,7 +248,7 @@ const TokenListComponent = ({
               onRefresh={onRefresh}
             />
           }
-          extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+          extraData={{ isTokenNetworkFilterEqualCurrentNetwork, visibleKeys }}
           contentContainerStyle={!isFullView ? undefined : tw`px-4`}
         />
       </Box>

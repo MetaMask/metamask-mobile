@@ -20,7 +20,6 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   LineaTokenRewardDto,
-  SnapshotDto,
   CampaignDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -30,7 +29,6 @@ import {
 } from '../utils/rewards-api-url';
 import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
-import { successfulFetch } from '@metamask/controller-utils';
 
 // Mock dependencies
 jest.mock('../utils/multi-subscription-token-vault');
@@ -45,9 +43,6 @@ jest.mock('../../../../AppConstants', () => ({
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.50.1'),
 }));
-jest.mock('@metamask/controller-utils', () => ({
-  successfulFetch: jest.fn(),
-}));
 jest.mock('../utils/rewards-api-url', () => ({
   ...jest.requireActual('../utils/rewards-api-url'),
   canChangeRewardsEnvUrl: jest.fn(),
@@ -56,9 +51,6 @@ jest.mock('../utils/rewards-api-url', () => ({
 
 const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
   typeof getSubscriptionToken
->;
-const mockSuccessfulFetch = successfulFetch as jest.MockedFunction<
-  typeof successfulFetch
 >;
 const mockCanChangeRewardsEnv = canChangeRewardsEnvUrl as jest.MockedFunction<
   typeof canChangeRewardsEnvUrl
@@ -145,10 +137,6 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -1186,11 +1174,6 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
       await expect(
         service.getUnlockedRewards('season-1', 'sub-1'),
-      ).rejects.toBeInstanceOf(AuthorizationFailedError);
-
-      mockFetch.mockResolvedValue(mockResponse);
-      await expect(
-        service.getSnapshots('season-1', 'sub-1'),
       ).rejects.toBeInstanceOf(AuthorizationFailedError);
 
       mockFetch.mockResolvedValue(mockResponse);
@@ -2470,115 +2453,6 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
-    });
-  });
-
-  describe('fetchGeoLocation', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should successfully fetch geolocation using PROD URL', async () => {
-      // Arrange
-      const mockLocation = 'US';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
-      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-    });
-
-    it('should always use PROD geolocation URL regardless of environment', async () => {
-      // Arrange
-      const mockLocation = 'UK';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
-      // Always uses PROD URL, not DEV
-      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-    });
-
-    it('should return UNKNOWN when geolocation request fails', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: false,
-        status: 500,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return UNKNOWN when network error occurs', async () => {
-      // Arrange
-      mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return UNKNOWN when response text parsing fails', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockRejectedValue(new Error('Parse error')),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return location string from response', async () => {
-      // Arrange
-      const mockLocation = 'UK';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
     });
   });
 
@@ -4340,178 +4214,6 @@ describe('RewardsDataService', () => {
     });
   });
 
-  describe('getSnapshots', () => {
-    const mockSeasonId = 'season-123';
-    const mockSubscriptionId = 'sub-456';
-    const mockToken = 'test-bearer-token';
-
-    const mockSnapshotsResponse: SnapshotDto[] = [
-      {
-        id: '01974010-377f-7553-a365-0c33c8130980',
-        seasonId: mockSeasonId,
-        name: 'Monad Airdrop',
-        description: 'Earn Monad tokens by participating in the airdrop',
-        tokenSymbol: 'MONAD',
-        tokenAmount: '50000000000000000000000',
-        tokenChainId: '1',
-        tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-        receivingBlockchain: 'Ethereum',
-        opensAt: '2025-03-01T00:00:00.000Z',
-        closesAt: '2025-03-15T00:00:00.000Z',
-        calculatedAt: '2025-03-16T00:00:00.000Z',
-        distributedAt: '2025-03-20T00:00:00.000Z',
-        backgroundImage: {
-          lightModeUrl: 'https://example.com/light.png',
-          darkModeUrl: 'https://example.com/dark.png',
-        },
-      },
-      {
-        id: '02985121-488g-8664-b476-1d44d9241091',
-        seasonId: mockSeasonId,
-        name: 'ETH Rewards',
-        tokenSymbol: 'ETH',
-        tokenAmount: '1000000000000000000',
-        tokenChainId: '1',
-        backgroundImage: {
-          lightModeUrl: 'https://example.com/light.png',
-          darkModeUrl: 'https://example.com/dark.png',
-        },
-        receivingBlockchain: 'Ethereum',
-        opensAt: '2025-04-01T00:00:00.000Z',
-        closesAt: '2025-04-15T00:00:00.000Z',
-      },
-    ];
-
-    beforeEach(() => {
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockSnapshotsResponse),
-      } as unknown as Response;
-      mockGetSubscriptionToken.mockResolvedValue({
-        success: true,
-        token: mockToken,
-      });
-      mockFetch.mockResolvedValue(mockResponse);
-    });
-
-    it('should successfully get snapshots', async () => {
-      // Act
-      const result = await service.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      // Assert
-      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/v1/seasons/${mockSeasonId}/snapshots`,
-        expect.objectContaining({
-          method: 'GET',
-          headers: expect.objectContaining({
-            'Accept-Language': 'en-US',
-            'Content-Type': 'application/json',
-            'rewards-client-id': 'mobile-7.50.1',
-          }),
-          credentials: 'omit',
-        }),
-      );
-      expect(result).toEqual(mockSnapshotsResponse);
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('01974010-377f-7553-a365-0c33c8130980');
-      expect(result[0].name).toBe('Monad Airdrop');
-      expect(result[1].name).toBe('ETH Rewards');
-    });
-
-    it('should handle empty snapshots array', async () => {
-      // Arrange
-      const emptyResponse: SnapshotDto[] = [];
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue(emptyResponse),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await service.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      // Assert
-      expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
-    });
-
-    it('should throw error when response is not ok', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: false,
-        status: 404,
-      } as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      // Act & Assert
-      await expect(
-        service.getSnapshots(mockSeasonId, mockSubscriptionId),
-      ).rejects.toThrow('Get snapshots failed: 404');
-    });
-
-    it('should throw error when response is 500', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: false,
-        status: 500,
-      } as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      // Act & Assert
-      await expect(
-        service.getSnapshots(mockSeasonId, mockSubscriptionId),
-      ).rejects.toThrow('Get snapshots failed: 500');
-    });
-
-    it('should throw error when fetch fails', async () => {
-      // Arrange
-      const fetchError = new Error('Network error');
-      mockFetch.mockRejectedValue(fetchError);
-
-      // Act & Assert
-      await expect(
-        service.getSnapshots(mockSeasonId, mockSubscriptionId),
-      ).rejects.toThrow('Network error');
-    });
-
-    it('should handle different season IDs correctly', async () => {
-      // Arrange
-      const differentSeasonId = 'current-season';
-
-      // Act
-      await service.getSnapshots(differentSeasonId, mockSubscriptionId);
-
-      // Assert
-      expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/v1/seasons/${differentSeasonId}/snapshots`,
-        expect.any(Object),
-      );
-    });
-
-    it('should include subscription token in authentication', async () => {
-      // Act
-      await service.getSnapshots(mockSeasonId, mockSubscriptionId);
-
-      // Assert
-      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'rewards-client-id': 'mobile-7.50.1',
-          }),
-        }),
-      );
-    });
-  });
-
   describe('getSubscriptionAccounts', () => {
     const mockSubscriptionId = 'sub-456';
     const mockToken = 'test-bearer-token';
@@ -4620,6 +4322,7 @@ describe('RewardsDataService', () => {
         termsAndConditions: null,
         excludedRegions: [],
         statusLabel: 'Active',
+        details: null,
       },
     ];
 
@@ -4677,6 +4380,97 @@ describe('RewardsDataService', () => {
       await expect(service.getCampaigns(mockSubscriptionId)).rejects.toThrow(
         'Get campaigns failed: 401',
       );
+    });
+  });
+
+  describe('optInToCampaign', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: true, participantCount: 42 };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with POST and returns status', async () => {
+      const result = await service.optInToCampaign(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/wr/campaigns/${mockCampaignId}/opt-in`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 409 } as Response);
+
+      await expect(
+        service.optInToCampaign(mockSubscriptionId, mockCampaignId),
+      ).rejects.toThrow('Opt-in to campaign failed: 409');
+    });
+  });
+
+  describe('getCampaignParticipantStatus', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: false, participantCount: 0 };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with GET and returns status', async () => {
+      const result = await service.getCampaignParticipantStatus(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/campaigns/${mockCampaignId}/status`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getCampaignParticipantStatus(
+          mockSubscriptionId,
+          mockCampaignId,
+        ),
+      ).rejects.toThrow('Get campaign participant status failed: 404');
     });
   });
 });

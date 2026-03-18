@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
@@ -23,6 +24,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -34,6 +36,12 @@ export const createProcessingInfoModalNavigationDetails =
   createNavigationDetails<ProcessingInfoModalParams>(
     Routes.RAMP.MODALS.PROCESSING_INFO,
   );
+
+const styles = StyleSheet.create({
+  centeredText: {
+    textAlign: 'center',
+  },
+});
 
 function ProcessingInfoModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -94,16 +102,22 @@ function ProcessingInfoModal() {
       ref={sheetRef}
       shouldNavigateBack
       isInteractable={false}
-      testID="processing-info-modal"
+      testID={PROCESSING_INFO_MODAL_TEST_IDS.MODAL}
     >
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'processing-info-modal-close-button' }}
+        closeButtonProps={{
+          testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
       />
 
       {statusDescription && (
         <Box twClassName="px-6 pb-4">
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.centeredText}
+          >
             {statusDescription}
           </Text>
         </Box>

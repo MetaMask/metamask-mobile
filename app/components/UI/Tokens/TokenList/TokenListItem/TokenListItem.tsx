@@ -26,9 +26,11 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import {
+  selectIsMusdConversionFlowEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -102,11 +104,12 @@ const createStyles = (colors: Colors) =>
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
-  setShowScamWarningModal: (arg: boolean) => void;
+  setShowScamWarningModal: (chainId: string | null) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  isVisible?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -118,6 +121,7 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
     shouldShowTokenListItemCta,
+    isVisible = true,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -146,6 +150,11 @@ export const TokenListItem = React.memo(
       selectMusdQuickConvertEnabledFlag,
     );
 
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
+
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
@@ -158,7 +167,11 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    const merklClaimData = useMerklBonusClaim(asset);
+    const merklClaimData = useMerklBonusClaim(
+      asset,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+      isVisible,
+    );
     const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
     const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
@@ -294,6 +307,22 @@ export const TokenListItem = React.memo(
         };
       }
 
+      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
+      if (
+        isMusdConversionFlowEnabled &&
+        isMusdGeoEligible &&
+        asset &&
+        isMusdToken(asset.address)
+      ) {
+        return {
+          text: strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: TextColor.Success,
+          onPress: undefined,
+        };
+      }
+
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -336,6 +365,9 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
+      asset,
+      isMusdConversionFlowEnabled,
+      isMusdGeoEligible,
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
