@@ -12,6 +12,12 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
+      requestBody: { type: 'meta' },
+      responseCode: 200,
+      response: {},
+    },
+    {
+      urlEndpoint: hyperliquidInfoEndpoint,
       requestBody: { type: 'perpDexs' },
       responseCode: 200,
       response: {},
