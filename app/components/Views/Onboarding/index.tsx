@@ -843,16 +843,22 @@ const Onboarding = () => {
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
         >
-          <Button
-            variant={ButtonVariant.Primary}
-            isInverse
-            onPress={() => handleCtaActions('create')}
-            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+          <ThemeProvider
+            theme={
+              themeContext.themeAppearance === 'dark' ? Theme.Light : Theme.Dark
+            }
           >
-            {strings('onboarding.start_exploring_now')}
-          </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              isInverse
+              onPress={() => handleCtaActions('create')}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {strings('onboarding.start_exploring_now')}
+            </Button>
+          </ThemeProvider>
           <ThemeProvider
             theme={
               themeContext.themeAppearance === 'dark' ? Theme.Light : Theme.Dark
