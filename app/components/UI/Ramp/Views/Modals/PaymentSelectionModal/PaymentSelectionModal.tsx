@@ -28,6 +28,7 @@ import {
 import PaymentMethodListItem from './PaymentMethodListItem';
 import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
+import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testIds';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
@@ -250,6 +251,9 @@ function PaymentSelectionModal() {
           <HeaderCompactStandard
             title={strings('fiat_on_ramp.pay_with')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
+            closeButtonProps={{
+              testID: PAYMENT_SELECTION_MODAL_TEST_IDS.HEADER_CLOSE_BUTTON,
+            }}
           />
           {renderListContent()}
         </View>

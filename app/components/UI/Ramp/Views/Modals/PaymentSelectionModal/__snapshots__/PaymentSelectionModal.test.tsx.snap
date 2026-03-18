@@ -450,7 +450,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                     },
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="payment-selection-modal-header-close"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -1343,7 +1343,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                     },
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="payment-selection-modal-header-close"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -1962,7 +1962,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                     },
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="payment-selection-modal-header-close"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -4361,7 +4361,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                     },
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="payment-selection-modal-header-close"
                               >
                                 <SvgMock
                                   fill="currentColor"
