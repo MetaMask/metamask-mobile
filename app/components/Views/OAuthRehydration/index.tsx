@@ -6,12 +6,9 @@ import React, {
   useCallback,
 } from 'react';
 import {
-  View,
   SafeAreaView,
   Image,
   BackHandler,
-  TouchableOpacity,
-  TextInput,
   Platform,
   Alert,
   StatusBar,
@@ -74,12 +71,14 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
+  Box,
   Label,
   FontWeight,
   TextColor as DSTextColor,
   Text,
   TextVariant,
   TextButton,
+  ButtonBase,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -111,7 +110,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
-  const fieldRef = useRef<TextInput>(null);
+  const fieldRef = useRef<React.ElementRef<typeof TextField> | null>(null);
 
   const route =
     useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
@@ -677,13 +676,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
           enableResetScrollToCoords={false}
         >
-          <View
+          <Box
             testID={LoginViewSelectors.CONTAINER}
             style={tw.style('flex-1 w-full items-center px-6', {
               justifyContent: 'flex-start',
             })}
           >
-            <View style={tw.style('w-full items-center', { marginTop: 10 })}>
+            <Box style={tw.style('w-full items-center', { marginTop: 10 })}>
               <Image
                 source={METAMASK_NAME}
                 style={tw.style('self-center', {
@@ -696,15 +695,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 resizeMethod={'auto'}
               />
 
-              <TouchableOpacity
-                style={tw.style('self-center justify-center', {
-                  width: Device.isIos() ? 175 : 150,
-                  height: Device.isIos() ? 175 : 150,
-                  marginTop: 48,
-                })}
+              <ButtonBase
+                style={tw.style(
+                  'self-center justify-center bg-transparent px-0 min-w-0',
+                  {
+                    borderRadius: 0,
+                    width: Device.isIos() ? 175 : 150,
+                    height: Device.isIos() ? 175 : 150,
+                    marginTop: 48,
+                  },
+                )}
                 delayLongPress={10 * 1000}
                 onLongPress={handleDownloadStateLogs}
-                activeOpacity={1}
               >
                 <Image
                   source={FOX_LOGO}
@@ -714,7 +716,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   })}
                   resizeMethod={'auto'}
                 />
-              </TouchableOpacity>
+              </ButtonBase>
 
               <Text
                 variant={TextVariant.DisplayMd}
@@ -725,7 +727,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 {strings('login.title')}
               </Text>
 
-              <View
+              <Box
                 style={tw.style('w-full flex-col', {
                   rowGap: 8,
                   justifyContent: 'flex-start',
@@ -752,9 +754,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   isDisabled={disabledInput}
                   isError={!!error}
                 />
-              </View>
+              </Box>
 
-              <View
+              <Box
                 style={tw.style(
                   'self-start flex-row items-start justify-start',
                   {
@@ -770,9 +772,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                     {error}
                   </HelpText>
                 )}
-              </View>
+              </Box>
 
-              <View
+              <Box
                 style={tw.style('w-full flex-col items-center', {
                   gap: Platform.select({
                     ios: 0,
@@ -794,7 +796,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 >
                   {strings('login.unlock_button')}
                 </Button>
-              </View>
+              </Box>
 
               {isSeedlessPasswordOutdated ? (
                 <TextButton
@@ -810,24 +812,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   {strings('login.forgot_password')}
                 </TextButton>
               ) : (
-                <View style={tw.style('items-center', { marginTop: 32 })}>
-                  <TouchableOpacity
+                <Box style={tw.style('items-center', { marginTop: 32 })}>
+                  <TextButton
                     onPress={handleUseOtherMethod}
-                    disabled={finalLoading}
+                    isDisabled={finalLoading}
                     testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                    textProps={{
+                      twClassName: DSTextColor.PrimaryDefault,
+                    }}
                   >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                      color={DSTextColor.PrimaryDefault}
-                    >
-                      {strings('login.other_methods')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                    {strings('login.other_methods')}
+                  </TextButton>
+                </Box>
               )}
-            </View>
-          </View>
+            </Box>
+          </Box>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
       </SafeAreaView>

@@ -4,7 +4,9 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for default OAuth 
 <RCTSafeAreaView
   style={
     {
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
       "paddingTop": 0,
     }
   }
@@ -13,7 +15,9 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for default OAuth 
     automaticallyAdjustContentInsets={false}
     contentContainerStyle={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     contentInset={
@@ -49,7 +53,9 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for default OAuth 
     showsVerticalScrollIndicator={true}
     style={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     update={[Function]}
@@ -58,24 +64,36 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for default OAuth 
     <View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "column",
-            "justifyContent": "flex-start",
-            "paddingHorizontal": 24,
-            "width": "100%",
-          }
+          [
+            {
+              "display": "flex",
+            },
+            {
+              "alignItems": "center",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "justifyContent": "flex-start",
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "width": "100%",
+            },
+          ]
         }
         testID="login"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "marginTop": 10,
-              "width": "100%",
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "marginTop": 10,
+                "width": "100%",
+              },
+            ]
           }
         >
           <Image
@@ -92,44 +110,109 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for default OAuth 
               }
             }
           />
-          <TouchableOpacity
-            activeOpacity={1}
-            delayLongPress={10000}
-            onLongPress={[Function]}
-            style={
+          <View
+            accessibilityRole="button"
+            accessibilityState={
               {
-                "alignSelf": "center",
-                "height": 175,
-                "justifyContent": "center",
-                "marginTop": 48,
-                "width": 175,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-          >
-            <Image
-              resizeMethod="auto"
-              source="metamask-name"
-              style={
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                },
                 {
                   "alignSelf": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 0,
                   "height": 175,
+                  "justifyContent": "center",
+                  "marginTop": 48,
+                  "minWidth": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
                   "width": 175,
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
+            }
+          >
+            <View
+              style={{}}
+            >
+              <Image
+                resizeMethod="auto"
+                source="metamask-name"
+                style={
+                  {
+                    "alignSelf": "center",
+                    "height": 175,
+                    "width": 175,
+                  }
                 }
-              }
-            />
-          </TouchableOpacity>
+              />
+            </View>
+          </View>
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-                "marginVertical": 24,
-                "textAlign": "center",
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 32,
+                  "fontWeight": 700,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                {
+                  "marginVertical": 24,
+                  "textAlign": "center",
+                },
+              ]
             }
             testID="login-title"
           >
@@ -137,12 +220,17 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for default OAuth 
           </Text>
           <View
             style={
-              {
-                "flexDirection": "column",
-                "justifyContent": "flex-start",
-                "rowGap": 8,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
+                  "rowGap": 8,
+                  "width": "100%",
+                },
+              ]
             }
           >
             <Text
@@ -255,95 +343,223 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for default OAuth 
           </View>
           <View
             style={
-              {
-                "alignItems": "flex-start",
-                "alignSelf": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "rowGap": 2,
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "alignItems": "flex-start",
+                  "alignSelf": "flex-start",
+                  "flexDirection": "row",
+                  "justifyContent": "flex-start",
+                  "rowGap": 2,
+                },
+              ]
             }
           />
           <View
             style={
-              {
-                "alignItems": "center",
-                "flexDirection": "column",
-                "gap": 0,
-                "marginTop": 16,
-                "width": "100%",
-              }
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              disabled={true}
-              loading={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              [
+                {
+                  "display": "flex",
+                },
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#131416",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "flexDirection": "column",
+                  "gap": 0,
+                  "marginTop": 16,
+                  "width": "100%",
+                },
+              ]
+            }
+          >
+            <View
+              accessibilityLabel="Unlock"
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": true,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 0.5,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="log-in-button"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                    undefined,
+                  ]
                 }
               >
                 Unlock
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "marginTop": 32,
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "alignItems": "center",
+                  "marginTop": 32,
+                },
+              ]
             }
           >
-            <TouchableOpacity
-              disabled={false}
-              onPress={[Function]}
-              testID="other-methods-button"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
+            <Text
+              accessibilityRole="text"
+              style={
+                [
                   {
-                    "color": "#4459ff",
-                    "fontFamily": "Geist-Medium",
+                    "color": "#131416",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <View
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
                   }
                 }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "translateY": 4,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "flexDirection": "row",
+                      "opacity": 1,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="other-methods-button"
               >
-                Use a different login method
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    [
+                      {
+                        "color": "#4459ff",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "textDecorationLine": "none",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Use a different login method
+                </Text>
+              </View>
+            </Text>
           </View>
         </View>
       </View>
@@ -370,7 +586,9 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
 <RCTSafeAreaView
   style={
     {
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
       "paddingTop": 0,
     }
   }
@@ -379,7 +597,9 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
     automaticallyAdjustContentInsets={false}
     contentContainerStyle={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     contentInset={
@@ -415,7 +635,9 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
     showsVerticalScrollIndicator={true}
     style={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     update={[Function]}
@@ -424,24 +646,36 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
     <View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "column",
-            "justifyContent": "flex-start",
-            "paddingHorizontal": 24,
-            "width": "100%",
-          }
+          [
+            {
+              "display": "flex",
+            },
+            {
+              "alignItems": "center",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "justifyContent": "flex-start",
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "width": "100%",
+            },
+          ]
         }
         testID="login"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "marginTop": 10,
-              "width": "100%",
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "marginTop": 10,
+                "width": "100%",
+              },
+            ]
           }
         >
           <Image
@@ -458,44 +692,109 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
               }
             }
           />
-          <TouchableOpacity
-            activeOpacity={1}
-            delayLongPress={10000}
-            onLongPress={[Function]}
-            style={
+          <View
+            accessibilityRole="button"
+            accessibilityState={
               {
-                "alignSelf": "center",
-                "height": 175,
-                "justifyContent": "center",
-                "marginTop": 48,
-                "width": 175,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-          >
-            <Image
-              resizeMethod="auto"
-              source="metamask-name"
-              style={
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                },
                 {
                   "alignSelf": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 0,
                   "height": 175,
+                  "justifyContent": "center",
+                  "marginTop": 48,
+                  "minWidth": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
                   "width": 175,
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
+            }
+          >
+            <View
+              style={{}}
+            >
+              <Image
+                resizeMethod="auto"
+                source="metamask-name"
+                style={
+                  {
+                    "alignSelf": "center",
+                    "height": 175,
+                    "width": 175,
+                  }
                 }
-              }
-            />
-          </TouchableOpacity>
+              />
+            </View>
+          </View>
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-                "marginVertical": 24,
-                "textAlign": "center",
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 32,
+                  "fontWeight": 700,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                {
+                  "marginVertical": 24,
+                  "textAlign": "center",
+                },
+              ]
             }
             testID="login-title"
           >
@@ -503,12 +802,17 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
           </Text>
           <View
             style={
-              {
-                "flexDirection": "column",
-                "justifyContent": "flex-start",
-                "rowGap": 8,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
+                  "rowGap": 8,
+                  "width": "100%",
+                },
+              ]
             }
           >
             <Text
@@ -621,13 +925,18 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
           </View>
           <View
             style={
-              {
-                "alignItems": "flex-start",
-                "alignSelf": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "rowGap": 2,
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "alignItems": "flex-start",
+                  "alignSelf": "flex-start",
+                  "flexDirection": "row",
+                  "justifyContent": "flex-start",
+                  "rowGap": 2,
+                },
+              ]
             }
           >
             <Text
@@ -636,9 +945,9 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
                 {
                   "color": "#ca3542",
                   "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
+                  "fontSize": 14,
                   "letterSpacing": 0,
-                  "lineHeight": 24,
+                  "lineHeight": 22,
                 }
               }
               testID="invalid-password-error"
@@ -648,95 +957,197 @@ exports[`OAuthRehydration Snapshots renders matching snapshot for outdated seedl
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flexDirection": "column",
-                "gap": 0,
-                "marginTop": 16,
-                "width": "100%",
-              }
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              disabled={true}
-              loading={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              [
+                {
+                  "display": "flex",
+                },
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#131416",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "flexDirection": "column",
+                  "gap": 0,
+                  "marginTop": 16,
+                  "width": "100%",
+                },
+              ]
+            }
+          >
+            <View
+              accessibilityLabel="Unlock"
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": true,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 0.5,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="log-in-button"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                    undefined,
+                  ]
                 }
               >
                 Unlock
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          <Text
+            accessibilityRole="text"
             style={
-              {
-                "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "marginVertical": 14,
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="reset-wallet-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
+              [
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Medium",
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              accessibilityRole="link"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
               }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "translateY": 4,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "flexDirection": "row",
+                    "opacity": 1,
+                  },
+                  {
+                    "alignSelf": "center",
+                    "marginVertical": 14,
+                  },
+                ]
+              }
+              testID="reset-wallet-button"
             >
-              Forgot password?
-            </Text>
-          </TouchableOpacity>
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#66676a",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "textDecorationLine": "none",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Forgot password?
+              </Text>
+            </View>
+          </Text>
         </View>
       </View>
     </View>
