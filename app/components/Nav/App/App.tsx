@@ -163,12 +163,12 @@ const clearStackNavigatorOptions = {
   headerShown: false,
   cardStyle: {
     backgroundColor: 'transparent',
-    cardStyleInterpolator: () => ({
-      overlayStyle: {
-        opacity: 0,
-      },
-    }),
   },
+  cardStyleInterpolator: () => ({
+    overlayStyle: {
+      opacity: 0,
+    },
+  }),
   animationEnabled: false,
 };
 
