@@ -157,7 +157,6 @@ export const SwapsConfirmButton = ({
     if (
       Number.isFinite(priceImpact) &&
       priceImpact >=
-        // @ts-expect-error TODO: remove comment after changes to core are published.
         (bridgeFeatureFlags?.priceImpactThreshold?.error ??
           AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
     ) {
