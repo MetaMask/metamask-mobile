@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   overrides: [
     {

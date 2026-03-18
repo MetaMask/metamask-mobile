@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react-hooks';
 import { renderHookWithProvider } from '../../../test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as actions from '../../../../actions/identity';
 import { useSignIn } from './useSignIn';
 
