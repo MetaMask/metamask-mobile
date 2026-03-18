@@ -122,6 +122,7 @@ const RestoreWallet = () => {
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
+          isFullWidth
           onPress={handleOnNext}
           isLoading={loading}
         >
