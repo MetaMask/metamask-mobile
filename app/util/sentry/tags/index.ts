@@ -53,7 +53,7 @@ export function getTraceTags(state: RootState) {
 
   try {
     const allTokens = getTokensControllerAllTokens(state);
-    if (allTokens) {
+    if (allTokens && Object.keys(allTokens).length > 0) {
       tags['wallet.token_count'] = selectAllTokensFlat(state)?.length;
     }
   } catch (_) {
