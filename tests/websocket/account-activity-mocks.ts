@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-shadow, import/no-extraneous-dependencies
+// eslint-disable-next-line @typescript-eslint/no-shadow, import-x/no-extraneous-dependencies
 import { WebSocket } from 'ws';
 import type LocalWebSocketServer from './server.ts';
 import { createLogger, LogLevel } from '../framework/logger.ts';
