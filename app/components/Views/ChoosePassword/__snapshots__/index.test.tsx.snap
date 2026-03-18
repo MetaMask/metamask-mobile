@@ -234,7 +234,7 @@ exports[`ChoosePassword renders correctly 1`] = `
               >
                 <TextInput
                   autoCapitalize="none"
-                  autoComplete="password"
+                  autoComplete="password-new"
                   autoFocus={true}
                   editable={true}
                   keyboardAppearance="light"
@@ -405,7 +405,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                 <TextInput
                   accessibilityLabel="create-password-second-input-field"
                   autoCapitalize="none"
-                  autoComplete="password"
+                  autoComplete="password-new"
                   autoFocus={false}
                   editable={false}
                   keyboardAppearance="light"
