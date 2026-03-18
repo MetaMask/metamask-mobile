@@ -4,7 +4,7 @@ import {
 } from '@react-navigation/native';
 import { renderHook } from '@testing-library/react-hooks';
 import useNotificationHandler from './index';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotifications from './useStartupNotificationsEffect';
 
 describe('useNotificationHandler', () => {

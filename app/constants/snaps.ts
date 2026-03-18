@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import type { SupportedCurve } from '@metamask/key-tree';
 
 export type SnapsDerivationPathType = ['m', ...string[]];

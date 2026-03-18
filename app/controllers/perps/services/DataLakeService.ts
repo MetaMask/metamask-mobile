@@ -1,14 +1,14 @@
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { v4 as uuidv4 } from 'uuid';
 
+import type { ServiceContext } from './ServiceContext';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DATA_LAKE_API_CONFIG,
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
 import { PerpsTraceNames, PerpsTraceOperations } from '../types';
-import type { PerpsPlatformDependencies, PerpsInternalAccount } from '../types';
-import type { ServiceContext } from './ServiceContext';
+import type { PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';

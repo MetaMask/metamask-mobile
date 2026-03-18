@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
+import StyledButton from '../StyledButton'; // eslint-disable-line  import-x/no-unresolved
 import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';

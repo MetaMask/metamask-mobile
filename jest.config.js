@@ -94,5 +94,5 @@ const config = {
   cache: false,
 };
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 module.exports = config;

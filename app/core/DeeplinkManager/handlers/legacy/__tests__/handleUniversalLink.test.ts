@@ -16,7 +16,7 @@ import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
 jest.mock('../handleMetaMaskDeeplink');
@@ -1702,7 +1702,7 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('skips handling deeplinks without pathname and query params', () => {
+  describe('skips handling deeplinks that should exit early', () => {
     // Link cases to test for skipping handling
     const testLinkCases = [
       {
@@ -1732,6 +1732,14 @@ describe('handleUniversalLink', () => {
       {
         link: 'metamask://action?query=value',
         shouldSkip: false,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.OAUTH_REDIRECT}`,
+        shouldSkip: true,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.OAUTH_REDIRECT}?code=test-code&state=test-state`,
+        shouldSkip: true,
       },
     ];
 
