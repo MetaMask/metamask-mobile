@@ -615,13 +615,17 @@ exports[`ProviderSelection filters out custom-action quotes when displaying prov
                                       <Text
                                         accessibilityRole="text"
                                         style={
-                                          {
-                                            "color": "#66676a",
-                                            "fontFamily": "Geist-Regular",
-                                            "fontSize": 14,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
-                                          }
+                                          [
+                                            {
+                                              "color": "#66676a",
+                                              "fontFamily": "Geist-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         $98.00
@@ -3076,13 +3080,17 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 14,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": 400,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               Failed to load quotes
