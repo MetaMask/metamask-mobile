@@ -392,21 +392,21 @@ const PerpsTransactionsView: React.FC = () => {
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(() =>
-    // Show loading for connection/data fetch states and focus-refresh with no cached rows.
-     (
+  const isInitialLoading = useMemo(
+    () =>
+      // Show loading for connection/data fetch states and focus-refresh with no cached rows.
       isConnecting ||
       transactionsLoading ||
       (!isConnected && flatListData.length === 0) ||
-      (isFocusRefreshing && flatListData.length === 0)
-    )
-  , [
-    isConnecting,
-    transactionsLoading,
-    isConnected,
-    isFocusRefreshing,
-    flatListData.length,
-  ]);
+      (isFocusRefreshing && flatListData.length === 0),
+    [
+      isConnecting,
+      transactionsLoading,
+      isConnected,
+      isFocusRefreshing,
+      flatListData.length,
+    ],
+  );
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
   // Only measures once per session (no reset on refresh/tab switch)
