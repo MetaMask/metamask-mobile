@@ -4,7 +4,6 @@
  * Portable: no mobile-specific imports.
  * Formatters are injected via MarketDataFormatters interface.
  */
-import { parseAssetName } from './hyperLiquidAdapter';
 import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type {
@@ -12,6 +11,7 @@ import type {
   MarketType,
   MarketDataFormatters,
 } from '../types';
+import { parseAssetName } from './hyperLiquidAdapter';
 import type {
   AllMidsResponse,
   PerpsUniverse,

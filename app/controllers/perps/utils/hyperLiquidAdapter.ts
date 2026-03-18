@@ -1,9 +1,5 @@
 import { Hex, isHexString } from '@metamask/utils';
 
-import {
-  countSignificantFigures,
-  roundToSignificantFigures,
-} from './significantFigures';
 import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import type {
@@ -15,6 +11,10 @@ import type {
   RawLedgerUpdate,
   UserHistoryItem,
 } from '../types';
+import {
+  countSignificantFigures,
+  roundToSignificantFigures,
+} from './significantFigures';
 import type {
   AssetPosition,
   FrontendOrder,
