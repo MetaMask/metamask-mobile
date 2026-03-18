@@ -159,12 +159,9 @@ describe('ImportPrivateKey', () => {
     expect(learnMoreText).toBeOnTheScreen();
     fireEvent.press(learnMoreText);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
-        title: strings('drawer.metamask_support'),
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('SimpleWebview', {
+      url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
+      title: strings('drawer.metamask_support'),
     });
   });
 
@@ -180,12 +177,9 @@ describe('ImportPrivateKey', () => {
 
     fireEvent.press(learnMoreText);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
-        title: strings('drawer.metamask_support'),
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('SimpleWebview', {
+      url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
+      title: strings('drawer.metamask_support'),
     });
   });
 
@@ -256,9 +250,7 @@ describe('ImportPrivateKey', () => {
         expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(
           '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
         );
-        expect(mockNavigate).toHaveBeenCalledWith('ImportPrivateKeyView', {
-          screen: 'ImportPrivateKeySuccess',
-        });
+        expect(mockNavigate).toHaveBeenCalledWith('ImportPrivateKeySuccess');
         expect(mockFetchAccountsWithActivity).toHaveBeenCalled();
       });
     });

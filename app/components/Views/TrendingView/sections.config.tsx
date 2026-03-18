@@ -210,11 +210,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     title: strings('trending.perps'),
     icon: { source: 'design-system', name: DSIconName.Candlestick },
     viewAllAction: (navigation) => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: {
-          defaultMarketTypeFilter: 'all',
-        },
+      navigation.navigate(Routes.PERPS.MARKET_LIST, {
+        defaultMarketTypeFilter: 'all',
       });
     },
     RowItem: ({ item, index: _index, navigation }) => (
@@ -222,11 +219,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         market={item as PerpsMarketData}
         onPress={() => {
           (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
-            Routes.PERPS.ROOT,
-            {
-              screen: Routes.PERPS.MARKET_DETAILS,
-              params: { market: item as PerpsMarketData },
-            },
+            Routes.PERPS.MARKET_DETAILS,
+            { market: item as PerpsMarketData },
           );
         }}
         showBadge={false}
@@ -294,9 +288,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     title: strings('wallet.predict'),
     icon: { source: 'design-system', name: DSIconName.Speedometer },
     viewAllAction: (navigation) => {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-      });
+      navigation.navigate(Routes.PREDICT.MARKET_LIST);
     },
     RowItem: ({ item, index: _index }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />

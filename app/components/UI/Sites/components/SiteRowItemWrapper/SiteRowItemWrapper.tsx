@@ -12,13 +12,10 @@ const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
   navigation,
 }) => {
   const handlePress = () => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: site.url,
-        timestamp: Date.now(),
-        fromTrending: true,
-      },
+    navigation.navigate(Routes.BROWSER.VIEW, {
+      newTabUrl: site.url,
+      timestamp: Date.now(),
+      fromTrending: true,
     });
   };
 
