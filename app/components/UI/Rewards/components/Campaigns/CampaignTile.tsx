@@ -36,7 +36,6 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
 
   useGetCampaignParticipantStatus(campaign.id);
 
-  const navigation = useNavigation();
   const participantCount = useSelector(
     selectCampaignParticipantCount(campaign.id),
   );
