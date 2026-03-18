@@ -1,0 +1,48 @@
+diff --git a/dist/TokenBalancesController.cjs b/dist/TokenBalancesController.cjs
+index 8df3058aea9bd28aaabe1d09f8c3b38fa5949600..39468505fed9c6776a193917fed0cea73de65c23 100644
+--- a/dist/TokenBalancesController.cjs
++++ b/dist/TokenBalancesController.cjs
+@@ -805,18 +805,30 @@ async function _TokenBalancesController_importUntrackedTokens(balances) {
+     if (!changes.length) {
+         return;
+     }
+-    const chainConfigs = {};
+-    for (const [chainId, status] of changes) {
+-        const hexChainId = (0, exports.caipChainIdToHex)(chainId);
+-        chainConfigs[hexChainId] =
+-            status === 'down'
+-                ? { interval: __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f") }
+-                : { interval: __classPrivateFieldGet(this, _TokenBalancesController_websocketActivePollingInterval, "f") };
+-    }
+-    const jitterDelay = Math.random() * __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f");
+-    setTimeout(() => {
+-        this.updateChainPollingConfigs(chainConfigs, { immediateUpdate: true });
+-    }, jitterDelay);
++    try {
++        const chainConfigs = {};
++        for (const [chainId, status] of changes) {
++            if ((0, utils_1.isCaipChainId)(chainId) &&
++                (0, utils_1.parseCaipChainId)(chainId).namespace !== 'eip155') {
++                continue;
++            }
++            const hexChainId = (0, exports.caipChainIdToHex)(chainId);
++            chainConfigs[hexChainId] =
++                status === 'down'
++                    ? { interval: __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f") }
++                    : { interval: __classPrivateFieldGet(this, _TokenBalancesController_websocketActivePollingInterval, "f") };
++        }
++        if (Object.keys(chainConfigs).length === 0) {
++            return;
++        }
++        const jitterDelay = Math.random() * __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f");
++        setTimeout(() => {
++            this.updateChainPollingConfigs(chainConfigs, { immediateUpdate: true });
++        }, jitterDelay);
++    }
++    catch (error) {
++        console.warn('Error processing accumulated status changes:', error);
++    }
+ };
+ exports.default = TokenBalancesController;
+ //# sourceMappingURL=TokenBalancesController.cjs.map
+\ No newline at end of file
