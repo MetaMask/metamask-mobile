@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { BluetoothInterface } from './useBluetoothDevices';
 import {
@@ -31,6 +31,7 @@ interface UseLedgerBluetoothHook {
   isAppLaunchConfirmationNeeded: boolean;
   ledgerLogicToRun: (func: LedgerLogicToRunType) => Promise<void>;
   error?: LedgerCommunicationErrors;
+  clearError: () => void;
   cleanupBluetoothConnection: () => void;
 }
 
@@ -119,6 +120,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
   const workflowSteps = useRef<(() => Promise<void>)[]>([]);
   const isReconnecting = useRef(false);
   const [ledgerError, setLedgerError] = useState<LedgerCommunicationErrors>();
+  const clearError = useCallback(() => setLedgerError(undefined), []);
 
   const resetConnectionState = () => {
     restartConnectionState.current.restartCount = 0;
@@ -295,6 +297,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
       await processLedgerWorkflow();
     },
     error: ledgerError,
+    clearError,
     cleanupBluetoothConnection: resetConnectionState,
   };
 }

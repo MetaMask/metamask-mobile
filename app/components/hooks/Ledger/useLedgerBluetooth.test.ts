@@ -314,6 +314,29 @@ describe('useLedgerBluetooth', () => {
         expect(result.current.error).toBeDefined();
       });
     });
+
+    it('clears error when clearError is called', async () => {
+      mockIsEthAppNotOpenErrorMessage.mockReturnValue(false);
+
+      const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+      await act(async () => {
+        result.current.ledgerLogicToRun(jest.fn());
+        await flushPromises();
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe(
+          LedgerCommunicationErrors.UnknownError,
+        );
+      });
+
+      act(() => {
+        result.current.clearError();
+      });
+
+      expect(result.current.error).toBeUndefined();
+    });
   });
 
   describe('LedgerCommunicationErrors enum coverage', () => {
@@ -360,6 +383,7 @@ describe('useLedgerBluetooth', () => {
       expect(result.current).toHaveProperty('isAppLaunchConfirmationNeeded');
       expect(result.current).toHaveProperty('ledgerLogicToRun');
       expect(result.current).toHaveProperty('error');
+      expect(result.current).toHaveProperty('clearError');
       expect(result.current).toHaveProperty('cleanupBluetoothConnection');
     });
 
@@ -382,6 +406,12 @@ describe('useLedgerBluetooth', () => {
       // This test documents the current behavior
       expect(typeof result.current.ledgerLogicToRun).toBe('function');
       expect(typeof result.current.cleanupBluetoothConnection).toBe('function');
+    });
+
+    it('clearError returns a function', () => {
+      const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+      expect(typeof result.current.clearError).toBe('function');
     });
   });
 

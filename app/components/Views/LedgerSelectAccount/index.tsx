@@ -48,7 +48,10 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
-import { isEthAppNotOpenErrorMessage } from '../../../core/Ledger/ledgerErrors';
+import {
+  LedgerCommunicationErrors,
+  isEthAppNotOpenErrorMessage,
+} from '../../../core/Ledger/ledgerErrors';
 
 /**
  * Check if error message indicates ETH app is not open and return user-friendly message
@@ -58,6 +61,22 @@ const getDisplayErrorMessage = (errorMessage: string): string => {
     return strings('ledger.eth_app_not_open_message');
   }
   return errorMessage;
+};
+
+const getLedgerErrorDisplayMessage = (
+  error: LedgerCommunicationErrors,
+): string => {
+  switch (error) {
+    case LedgerCommunicationErrors.EthAppNotOpen:
+    case LedgerCommunicationErrors.FailedToOpenApp:
+      return strings('ledger.eth_app_not_open_message');
+    case LedgerCommunicationErrors.LedgerDisconnected:
+      return strings('ledger.ledger_disconnected_error');
+    case LedgerCommunicationErrors.LedgerIsLocked:
+      return strings('ledger.ledger_is_locked');
+    default:
+      return strings('ledger.unspecified_error_during_connect');
+  }
 };
 
 interface OptionType {
@@ -113,6 +132,7 @@ const LedgerSelectAccount = () => {
     isAppLaunchConfirmationNeeded,
     ledgerLogicToRun,
     error: ledgerError,
+    clearError: clearLedgerError,
   } = useLedgerBluetooth(selectedDevice?.id);
 
   const ledgerLogicToRunRef = useRef(ledgerLogicToRun);
@@ -161,8 +181,12 @@ const LedgerSelectAccount = () => {
   useEffect(() => {
     if (ledgerError) {
       setBlockingModalVisible(false);
+      if (accounts.length > 0) {
+        setErrorMsg(getLedgerErrorDisplayMessage(ledgerError));
+        clearLedgerError();
+      }
     }
-  }, [ledgerError]);
+  }, [ledgerError, accounts.length, clearLedgerError]);
 
   const showLoadingModal = () => {
     setErrorMsg(null);
@@ -461,7 +485,11 @@ const LedgerSelectAccount = () => {
         isLoadingAction
         onAnimationCompleted={onAnimationCompleted}
       >
-        <Text style={styles.text}>{strings('common.please_wait')}</Text>
+        <Text style={styles.text}>
+          {isAppLaunchConfirmationNeeded
+            ? strings('ledger.open_eth_app')
+            : strings('common.please_wait')}
+        </Text>
       </BlockingActionModal>
     </>
   );
