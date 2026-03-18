@@ -58,7 +58,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       } else if (nextState === 'active') {
         // Small delay to allow system to stabilize after background
         reconnectTimer = setTimeout(() => {
-          PerpsConnectionManager.connect().catch((err) => {
+          PerpsConnectionManager.ensureConnected().catch((err) => {
             Logger.error(ensureError(err, 'PerpsAlwaysOnProvider.reconnect'), {
               tags: { feature: PERPS_CONSTANTS.FeatureName },
               context: {
