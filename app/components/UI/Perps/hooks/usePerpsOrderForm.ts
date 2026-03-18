@@ -318,16 +318,13 @@ export function usePerpsOrderForm(
   };
 
   // Handle percentage-based amount selection (respects custom token amount when set).
-  // At 100% (percentage === 1) use maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
+  // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
       if (balanceForMax === 0) return;
-      const newAmount =
-        percentage >= 1
-          ? Math.floor(maxPossibleAmount).toString()
-          : Math.floor(
-              balanceForMax * orderForm.leverage * percentage,
-            ).toString();
+      const raw = balanceForMax * orderForm.leverage * percentage;
+      const clamped = Math.min(raw, maxPossibleAmount);
+      const newAmount = Math.floor(clamped).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
     [balanceForMax, orderForm.leverage, maxPossibleAmount],

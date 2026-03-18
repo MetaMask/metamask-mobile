@@ -723,6 +723,27 @@ describe('usePerpsOrderForm', () => {
       );
     });
 
+    it('should clamp near-100% amounts to maxPossibleAmount', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlePercentageAmount(0.999);
+      });
+
+      const at999 = Number(result.current.orderForm.amount);
+
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const at100 = Number(result.current.orderForm.amount);
+
+      expect(at999).toBeLessThanOrEqual(at100);
+      expect(at100).toBe(result.current.maxPossibleAmount);
+    });
+
     it('should not update amount when balance is 0', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
