@@ -64,17 +64,24 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
+  const tokenSupportedByProvider = selectedProvider?.supportedCryptoCurrencies
+    ? selectedProvider.supportedCryptoCurrencies[
+        selectedToken?.assetId ?? ''
+      ] === true
+    : true;
+
   const queryEnabled = Boolean(
     userRegion?.regionCode &&
-      userRegion.country.currency &&
+      userRegion?.country?.currency &&
       selectedToken?.assetId &&
-      selectedProvider?.id,
+      selectedProvider?.id &&
+      tokenSupportedByProvider,
   );
 
   const paymentMethodsQuery = useQuery({
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
-      fiat: userRegion?.country.currency ?? '',
+      fiat: userRegion?.country?.currency ?? '',
       assetId: selectedToken?.assetId ?? '',
       providerId: selectedProvider?.id ?? '',
     }),

@@ -38,7 +38,8 @@ export function useRampsQuotes(
   );
 
   const getBuyWidgetData = useCallback((quote: Quote) => {
-    const ramps = Engine.context.RampsController as typeof Engine.context.RampsController & {
+    const ramps = Engine.context
+      .RampsController as typeof Engine.context.RampsController & {
       getBuyWidgetData: (q: Quote) => Promise<BuyWidget | null>;
     };
     return ramps.getBuyWidgetData(quote);

@@ -83,11 +83,18 @@ jest.mock('../../components/QuickAmounts', () => {
 });
 
 jest.mock('@react-navigation/native', () => {
+  const ReactActual = jest.requireActual('react');
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
     useNavigation: jest.fn(),
     useIsFocused: jest.fn(() => true),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = callback();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [callback]);
+    },
   };
 });
 
