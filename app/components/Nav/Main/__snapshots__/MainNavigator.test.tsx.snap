@@ -6,7 +6,6 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   screenOptions={
     {
       "headerShown": false,
-      "presentation": "modal",
     }
   }
 >
@@ -19,6 +18,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -31,6 +31,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -391,7 +392,6 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   screenOptions={
     {
       "headerShown": false,
-      "presentation": "modal",
     }
   }
 >
@@ -404,6 +404,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -416,6 +417,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -776,7 +778,6 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   screenOptions={
     {
       "headerShown": false,
-      "presentation": "modal",
     }
   }
 >
@@ -789,6 +790,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -801,6 +803,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
