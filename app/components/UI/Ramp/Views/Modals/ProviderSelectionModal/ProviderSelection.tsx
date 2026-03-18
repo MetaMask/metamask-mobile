@@ -274,7 +274,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           accessible
         >
           <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {provider.name}
             </Text>
             {tag ? (

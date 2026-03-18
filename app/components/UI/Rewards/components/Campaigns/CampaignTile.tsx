@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   Box,
   BoxFlexDirection,
@@ -33,17 +35,22 @@ interface CampaignTileProps {
 const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
+  const navigation = useNavigation();
 
-  useGetCampaignParticipantStatus(campaign.id);
+  const { status: participantStatus } = useGetCampaignParticipantStatus(
+    campaign.id,
+  );
 
   const participantCount = useSelector(
     selectCampaignParticipantCount(campaign.id),
   );
 
-  const { status, statusLabel, dateLabel, dateLabelIcon } = useMemo(
-    () => getCampaignStatusInfo(campaign),
-    [campaign],
-  );
+  const {
+    status: campaignStatus,
+    statusLabel,
+    dateLabel,
+    dateLabelIcon,
+  } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
   const backgroundImageUrl =
     colorScheme === 'dark'
@@ -51,7 +58,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
       : campaign.details?.image?.lightModeUrl;
 
   const handlePress = () => {
-    // TODO: Implement campaign details screen
+    navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaignId: campaign.id });
   };
 
   return (
@@ -104,17 +111,28 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
                 twClassName="gap-1"
                 testID="campaign-tile-status-label"
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={
-                    colorScheme === 'dark'
-                      ? TextColor.SuccessDefault
-                      : TextColor.OverlayInverse
-                  }
-                  fontWeight={FontWeight.Medium}
-                >
-                  {statusLabel}
-                </Text>
+                {participantStatus?.optedIn === true ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.SuccessDefault}
+                    fontWeight={FontWeight.Medium}
+                    testID="campaign-tile-entered-label"
+                  >
+                    {strings('rewards.campaign.entered')}
+                  </Text>
+                ) : (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={
+                      colorScheme === 'dark'
+                        ? TextColor.SuccessDefault
+                        : TextColor.OverlayInverse
+                    }
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {statusLabel}
+                  </Text>
+                )}
                 {participantCount != null ? (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
@@ -137,7 +155,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
                       })}
                     </Text>
                   </Box>
-                ) : status === 'active' ? (
+                ) : campaignStatus === 'active' &&
+                  participantStatus?.optedIn !== true ? (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
