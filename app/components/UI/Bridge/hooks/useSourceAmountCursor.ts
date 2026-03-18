@@ -40,9 +40,8 @@ export const useSourceAmountCursor = ({
 }: UseSourceAmountCursorParams): UseSourceAmountCursorResult => {
   // The cursor is stored against the raw amount string, not the formatted
   // display string, so keypad edits can be applied deterministically.
-  const [sourceAmountCursorPosition, setSourceAmountCursorPosition] = useState<
-    number | undefined
-  >();
+  const [rawSourceAmountCursorPosition, setRawSourceAmountCursorPosition] =
+    useState<number | undefined>();
 
   const rawSourceAmount = sourceAmount || '0';
   const formattedSourceAmount =
@@ -51,31 +50,31 @@ export const useSourceAmountCursor = ({
       : rawSourceAmount;
 
   const sourceSelection = useMemo(() => {
-    if (typeof sourceAmountCursorPosition !== 'number') {
+    if (typeof rawSourceAmountCursorPosition !== 'number') {
       return undefined;
     }
 
     const formattedSourceCursorPosition = mapRawCursorToFormatted({
       rawValue: rawSourceAmount,
       formattedValue: formattedSourceAmount,
-      rawCursorIndex: sourceAmountCursorPosition,
+      rawCursorIndex: rawSourceAmountCursorPosition,
     });
 
     return {
       start: formattedSourceCursorPosition,
       end: formattedSourceCursorPosition,
     };
-  }, [formattedSourceAmount, rawSourceAmount, sourceAmountCursorPosition]);
+  }, [formattedSourceAmount, rawSourceAmount, rawSourceAmountCursorPosition]);
 
   useEffect(() => {
-    if (typeof sourceAmountCursorPosition !== 'number') {
+    if (typeof rawSourceAmountCursorPosition !== 'number') {
       return;
     }
 
-    if (sourceAmountCursorPosition > rawSourceAmount.length) {
-      setSourceAmountCursorPosition(rawSourceAmount.length);
+    if (rawSourceAmountCursorPosition > rawSourceAmount.length) {
+      setRawSourceAmountCursorPosition(rawSourceAmount.length);
     }
-  }, [rawSourceAmount.length, sourceAmountCursorPosition]);
+  }, [rawSourceAmount.length, rawSourceAmountCursorPosition]);
 
   const handleSourceSelectionChange = useCallback(
     (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
@@ -86,17 +85,17 @@ export const useSourceAmountCursor = ({
         formattedValue: formattedSourceAmount,
         formattedCursorIndex: event.nativeEvent.selection.start,
       });
-      setSourceAmountCursorPosition(rawCursorIndex);
+      setRawSourceAmountCursorPosition(rawCursorIndex);
     },
     [formattedSourceAmount, rawSourceAmount],
   );
 
   const handleKeypadChange = useCallback(
     ({ pressedKey, value }: KeypadChangeData) => {
-      if (typeof sourceAmountCursorPosition !== 'number') {
+      if (typeof rawSourceAmountCursorPosition !== 'number') {
         // Preserve the shared keypad's existing append/delete behavior until
         // the user explicitly places the cursor in the amount field.
-        setSourceAmountCursorPosition(undefined);
+        setRawSourceAmountCursorPosition(undefined);
         if (value.length < maxInputLength) {
           onSourceAmountChange(value || undefined);
         }
@@ -108,7 +107,7 @@ export const useSourceAmountCursor = ({
       const updatedAmount = applyKeyAtCursor({
         currentValue: rawSourceAmount,
         pressedKey,
-        cursorPosition: sourceAmountCursorPosition,
+        cursorPosition: rawSourceAmountCursorPosition,
         decimals: sourceTokenDecimals ?? Infinity,
       });
 
@@ -116,20 +115,20 @@ export const useSourceAmountCursor = ({
         return;
       }
 
-      setSourceAmountCursorPosition(updatedAmount.cursorPosition);
+      setRawSourceAmountCursorPosition(updatedAmount.cursorPosition);
       onSourceAmountChange(updatedAmount.value || undefined);
     },
     [
       maxInputLength,
       onSourceAmountChange,
       rawSourceAmount,
-      sourceAmountCursorPosition,
+      rawSourceAmountCursorPosition,
       sourceTokenDecimals,
     ],
   );
 
   const resetSourceAmountCursorPosition = useCallback(
-    () => setSourceAmountCursorPosition(undefined),
+    () => setRawSourceAmountCursorPosition(undefined),
     [],
   );
 
