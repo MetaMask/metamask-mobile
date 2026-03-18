@@ -185,7 +185,9 @@
     "@metamask/accounts-controller": "37.0.0",
     "@metamask/core-backend": "^5.0.0",
     "bn.js@npm:4.11.6": "4.12.3",
-    "bn.js@npm:5.2.1": "5.2.3"
+    "bn.js@npm:5.2.1": "5.2.3",
+    "@metamask/assets-controllers@npm:^100.2.1": "patch:@metamask/assets-controllers@npm%3A100.2.1#~/.yarn/patches/@metamask-assets-controllers-npm-100.2.1-4f7a0c8320.patch",
+    "@metamask/assets-controllers@npm:^101.0.0": "patch:@metamask/assets-controllers@npm%3A100.2.1#~/.yarn/patches/@metamask-assets-controllers-npm-100.2.1-4f7a0c8320.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -211,7 +213,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^8.0.0",
     "@metamask/assets-controller": "^2.0.0",
-    "@metamask/assets-controllers": "^100.2.0",
+    "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A100.2.1#~/.yarn/patches/@metamask-assets-controllers-npm-100.2.1-4f7a0c8320.patch",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.10.0",
     "@metamask/bridge-controller": "^69.1.1",

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import CampaignTile from './CampaignTile';
 import {
@@ -8,9 +8,29 @@ import {
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatusInfo } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
+import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
+import Routes from '../../../../../constants/navigation/Routes';
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn().mockReturnValue({
+    navigate: (...args: unknown[]) => mockNavigate(...args),
+  }),
+}));
+
+jest.mock('../../hooks/useGetCampaignParticipantStatus', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseGetCampaignParticipantStatus =
+  useGetCampaignParticipantStatus as jest.MockedFunction<
+    typeof useGetCampaignParticipantStatus
+  >;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -43,6 +63,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'rewards.campaign.enter_now': 'Enter now',
+      'rewards.campaign.entered': 'Entered',
       'rewards.campaign.participant_count': `#${params?.count ?? ''}`,
     };
     return translations[key] || key;
@@ -77,6 +98,15 @@ function setupParticipantCount(count: number | null) {
   });
 }
 
+function setupParticipantStatus(optedIn: boolean) {
+  mockUseGetCampaignParticipantStatus.mockReturnValue({
+    status: { optedIn, participantCount: 0 },
+    isLoading: false,
+    hasError: false,
+    refetch: jest.fn(),
+  });
+}
+
 describe('CampaignTile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -87,6 +117,12 @@ describe('CampaignTile', () => {
       dateLabelIcon: 'Clock',
     });
     setupParticipantCount(null);
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
   });
 
   it('renders campaign name via campaign-tile-name testID', () => {
@@ -240,6 +276,64 @@ describe('CampaignTile', () => {
         '#5,000',
       );
       expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
+    });
+  });
+
+  describe('entered label', () => {
+    it('shows "Entered" label when participant is opted in', () => {
+      setupParticipantStatus(true);
+      const campaign = createTestCampaign();
+
+      const { getByTestId, queryByTestId } = render(
+        <CampaignTile campaign={campaign} />,
+      );
+
+      expect(getByTestId('campaign-tile-entered-label')).toHaveTextContent(
+        'Entered',
+      );
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
+    });
+
+    it('shows status label when participant is not opted in', () => {
+      setupParticipantStatus(false);
+      const campaign = createTestCampaign();
+
+      const { queryByTestId, getByTestId } = render(
+        <CampaignTile campaign={campaign} />,
+      );
+
+      expect(queryByTestId('campaign-tile-entered-label')).toBeNull();
+      expect(getByTestId('campaign-tile-status-label')).toHaveTextContent(
+        /Active/,
+      );
+    });
+
+    it('shows "Entered" label alongside participant count when opted in', () => {
+      setupParticipantStatus(true);
+      setupParticipantCount(42);
+      const campaign = createTestCampaign();
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+
+      expect(getByTestId('campaign-tile-entered-label')).toHaveTextContent(
+        'Entered',
+      );
+      expect(getByTestId('campaign-tile-participant-count')).toHaveTextContent(
+        '#42',
+      );
+    });
+  });
+
+  describe('navigation', () => {
+    it('navigates to campaign details when the tile is pressed', () => {
+      const campaign = createTestCampaign({ id: 'camp-42' });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-42'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGN_DETAILS, {
+        campaignId: 'camp-42',
+      });
     });
   });
 });
