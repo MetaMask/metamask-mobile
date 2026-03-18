@@ -23,6 +23,7 @@ import {
   MYX_MIN_ORDER_SIZE_BUFFER,
   MYX_MINIMUM_ORDER_SIZE_USD,
 } from '../constants/myxConfig';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import type {
   AccountState,
   CandleStick,
@@ -101,12 +102,11 @@ export function adaptMarketFromMYX(
   // Extract base symbol from pool data
   const symbol = pool.baseSymbol || extractSymbolFromPoolId(pool.poolId);
 
-  // MYX uses fixed 18 decimals for sizes
-  const szDecimals = 18;
-
+  // MYX has no exchange-defined size step (unlike HyperLiquid).
+  // Use the app-wide fallback which caps at 6 decimals per perps-rules-decimals.md.
   return {
     name: symbol,
-    szDecimals,
+    szDecimals: DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     maxLeverage: MYX_MAX_LEVERAGE,
     marginTableId: 0, // MYX doesn't use margin tables like HyperLiquid
     minimumOrderSize: Math.round(

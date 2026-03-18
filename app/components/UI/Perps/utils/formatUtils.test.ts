@@ -863,7 +863,7 @@ describe('formatUtils', () => {
         expect(formatPositionSize(5.0, 1)).toBe('5');
       });
 
-      it('should format with 0 decimals (szDecimals=0)', () => {
+      it('formats with 0 decimals (szDecimals=0)', () => {
         expect(formatPositionSize(44.567, 0)).toBe('45');
         expect(formatPositionSize(1000.999, 0)).toBe('1001');
         expect(formatPositionSize(5.0, 0)).toBe('5');
