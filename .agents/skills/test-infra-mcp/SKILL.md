@@ -142,6 +142,15 @@ Recipes accept either strings (no args) or `{ method, args }` objects:
 
 The `metamaskMobilePath` defaults to `/Users/cferreira/Developer/MetaMask/metamask-mobile` — override only if your repo is elsewhere.
 
+## App IDs
+
+When launching the app (e.g., via Maestro), use the correct appId:
+
+| Build | Android             | iOS                          |
+| ----- | ------------------- | ---------------------------- |
+| Main  | `io.metamask`       | `io.metamask.MetaMask`       |
+| Flask | `io.metamask.flask` | `io.metamask.MetaMask-Flask` |
+
 ## Platform Wiring
 
 After starting resources, the app needs to know where they are:
