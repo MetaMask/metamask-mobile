@@ -113,7 +113,7 @@ const SRPListItem = ({
         <Box
           flexDirection={BoxFlexDirection.Column}
           justifyContent={BoxJustifyContent.Center}
-          alignItems={BoxAlignItems.FlexStart}
+          alignItems={BoxAlignItems.Start}
           twClassName="shrink w-full"
         >
           <Box>
