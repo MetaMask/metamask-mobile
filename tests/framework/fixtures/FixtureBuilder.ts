@@ -6,6 +6,7 @@ import {
   getDappUrlForFixture,
 } from './FixtureUtils.ts';
 import { encodeStorageKey } from '../../../app/core/Engine/utils/storage-service-utils';
+import { STORAGE_KEY_PREFIX } from '@metamask/storage-service';
 import { merge } from 'lodash';
 import defaultFixture from './json/default-fixture.json';
 import onboardingFixture from './json/onboarding-fixture.json';
@@ -1875,7 +1876,7 @@ class FixtureBuilder {
         `withStorageService: value for key "${key}" is not JSON-serializable (got ${typeof value})`,
       );
     }
-    const fullKey = `storageService:${encodeStorageKey(namespace)}:${encodeStorageKey(key)}`;
+    const fullKey = `${STORAGE_KEY_PREFIX}${encodeStorageKey(namespace)}:${encodeStorageKey(key)}`;
     this.fixture.filesystemStorage[fullKey] = serialized;
     return this;
   }
