@@ -20,7 +20,6 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
   selectSeasonId,
-  selectSeasonEndDate,
   selectOptinAllowedForGeo,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -56,7 +55,6 @@ const RewardsDashboard: React.FC = () => {
     selectHideUnlinkedAccountsBanner,
   );
   const seasonId = useSelector(selectSeasonId);
-  const seasonEndDate = useSelector(selectSeasonEndDate);
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
   const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
@@ -131,14 +129,9 @@ const RewardsDashboard: React.FC = () => {
   // Evaluate showPreviousSeasonSummary when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      const shouldShow = Boolean(
-        seasonId &&
-          seasonEndDate &&
-          new Date(seasonEndDate).getTime() < Date.now() &&
-          !isCampaignsEnabled,
-      );
+      const shouldShow = Boolean(seasonId && !isCampaignsEnabled);
       setShowPreviousSeasonSummary(shouldShow);
-    }, [seasonId, seasonEndDate, isCampaignsEnabled]),
+    }, [seasonId, isCampaignsEnabled]),
   );
 
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)

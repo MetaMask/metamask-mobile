@@ -20,6 +20,7 @@ import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards
 import { getCampaignStatusInfo } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
+import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 
 interface CampaignTileProps {
   campaign: CampaignDto;
@@ -32,6 +33,9 @@ interface CampaignTileProps {
 const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
+
+  useGetCampaignParticipantStatus(campaign.id);
+
   const participantCount = useSelector(
     selectCampaignParticipantCount(campaign.id),
   );
