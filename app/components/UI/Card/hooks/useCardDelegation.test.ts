@@ -933,7 +933,7 @@ describe('useCardDelegation', () => {
       expect(signedMessage).toContain('\nExpiration Time:');
     });
 
-    it('generates single-line message for Solana network', async () => {
+    it('generates SIWE message for Solana network', async () => {
       const mockToken = createMockToken();
       const mockSolanaAddress = 'SolanaAddress123ABC';
       const mockAccountId = 'solana-account-uuid-123';
@@ -1000,14 +1000,16 @@ describe('useCardDelegation', () => {
         'metamask.app.link wants you to sign in with your Solana account:',
       );
       expect(message).toContain(`Nonce: ${mockNonce}`);
+      expect(message).toContain('Chain ID: 1');
+      expect(message).toContain('URI: https://metamask.app.link');
+      expect(message).toContain('Version: 1');
+      expect(message).toContain('Issued At:');
 
-      // Verify single-line format for Solana (no newlines in message structure)
-      expect(message).not.toContain('\nURI:');
-      expect(message).not.toContain('\nVersion:');
-      expect(message).not.toContain('\nChain ID:');
-      expect(message).toContain(' URI: ');
-      expect(message).toContain(' Version: ');
-      expect(message).toContain(' Chain ID: ');
+      // Verify multi-line format (same structure as EVM, but without Expiration Time)
+      expect(message).toContain('\nURI:');
+      expect(message).toContain('\nVersion:');
+      expect(message).toContain('\nChain ID:');
+      expect(message).not.toContain('Expiration Time:');
     });
 
     it('extracts chain ID from token caipChainId', async () => {
