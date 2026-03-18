@@ -67,7 +67,7 @@ graph TD
 
 - Call `connect()` on mount (when `isPerpsEnabled`)
 - Call `disconnect()` when app goes to background (triggers 20s grace period in Manager)
-- Call `connect()` when app returns to foreground (with `ReconnectionDelayAndroidMs` stabilization delay)
+- Call `ensureConnected()` when app returns to foreground (forces disconnect + fresh reconnect after stabilization delay)
 - Call `disconnect()` on unmount
 
 **Does NOT**:
@@ -362,13 +362,14 @@ The stream hooks used by PerpsHomeView gracefully handle the not-yet-connected s
 
 ### Manager Layer Methods
 
-| Method                      | Signature                                       | Purpose                                         |
-| --------------------------- | ----------------------------------------------- | ----------------------------------------------- |
-| `connect()`                 | `() => Promise<void>`                           | Initialize connection if first provider         |
-| `disconnect()`              | `() => Promise<void>`                           | Disconnect if last provider (with grace period) |
-| `reconnectWithNewContext()` | `(options?: ReconnectOptions) => Promise<void>` | Coordinate full reconnection                    |
-| `getConnectionState()`      | `() => ConnectionState`                         | Get current connection state (for polling)      |
-| `resetError()`              | `() => void`                                    | Clear error state                               |
+| Method                      | Signature                                       | Purpose                                               |
+| --------------------------- | ----------------------------------------------- | ----------------------------------------------------- |
+| `connect()`                 | `() => Promise<void>`                           | Initialize connection if first provider               |
+| `disconnect()`              | `() => Promise<void>`                           | Disconnect if last provider (with grace period)       |
+| `ensureConnected()`         | `() => Promise<void>`                           | Foreground return: force disconnect + fresh reconnect |
+| `reconnectWithNewContext()` | `(options?: ReconnectOptions) => Promise<void>` | Coordinate full reconnection                          |
+| `getConnectionState()`      | `() => ConnectionState`                         | Get current connection state (for polling)            |
+| `resetError()`              | `() => void`                                    | Clear error state                                     |
 
 ### Controller Layer Methods
 
@@ -518,7 +519,7 @@ The Manager's `pendingReconnectPromise` ensures only one reconnection happens at
 | Account switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Clears caches immediately before reconnection |
 | Network switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Same as account switch                        |
 | App background    | `disconnect()`              | -                 | PerpsAlwaysOnProvider → Manager            | Grace period (20s) before actual disconnect   |
-| App foreground    | `connect()`                 | -                 | PerpsAlwaysOnProvider → Manager            | ReconnectionDelayAndroidMs stabilization      |
+| App foreground    | `ensureConnected()`         | -                 | PerpsAlwaysOnProvider → Manager            | Forces disconnect + reconnect after delay     |
 
 ---
 
