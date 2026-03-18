@@ -153,6 +153,9 @@ class TabBarComponent {
         await UnifiedGestures.waitAndTap(this.tabBarWalletButton, {
           timeout: 2000,
         });
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          timeout: 500,
+        });
       },
       {
         // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
