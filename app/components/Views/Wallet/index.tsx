@@ -1107,7 +1107,6 @@ const Wallet = ({
     }
   }, [isHomepageSectionsV1Enabled]);
 
-
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
