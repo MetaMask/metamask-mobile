@@ -21,7 +21,6 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
-import { useSendTokens } from '../send/useSendTokens';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 
 jest.mock('./useTransactionPayToken');
@@ -29,7 +28,6 @@ jest.mock('../../../../../util/address');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
-jest.mock('../send/useSendTokens');
 jest.mock('./useWithdrawTokenFilter');
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
@@ -89,7 +87,6 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionPayAvailableTokensMock = jest.mocked(
     useTransactionPayAvailableTokens,
   );
-  const useSendTokensMock = jest.mocked(useSendTokens);
   const useWithdrawTokenFilterMock = jest.mocked(useWithdrawTokenFilter);
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
   const useTransactionPayRequiredTokensMock = jest.mocked(
@@ -119,7 +116,6 @@ describe('useAutomaticTransactionPayToken', () => {
     ]);
 
     isHardwareAccountMock.mockReturnValue(false);
-    useSendTokensMock.mockReturnValue([]);
     useWithdrawTokenFilterMock.mockReturnValue((tokens) => tokens);
 
     selectMetaMaskPayTokensFlagsMock.mockReturnValue({
@@ -610,23 +606,22 @@ describe('useAutomaticTransactionPayToken', () => {
     );
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [] as AssetType[],
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          balance: '1',
+          chainId: CHAIN_ID_2_MOCK,
+          symbol: 'BNB',
+        },
+        {
+          address: PREFERRED_TOKEN_ADDRESS_MOCK,
+          balance: '1',
+          chainId: PREFERRED_CHAIN_ID_MOCK,
+          symbol: 'MUSD',
+        },
+      ] as AssetType[],
       hasTokens: true,
     });
-    useSendTokensMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_2_MOCK,
-        balance: '1',
-        chainId: CHAIN_ID_2_MOCK,
-        symbol: 'BNB',
-      },
-      {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK,
-        balance: '1',
-        chainId: PREFERRED_CHAIN_ID_MOCK,
-        symbol: 'MUSD',
-      },
-    ] as AssetType[]);
     selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: {
         default: [],
