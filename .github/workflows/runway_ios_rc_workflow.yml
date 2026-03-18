@@ -144,4 +144,5 @@ jobs:
       build_name: main-rc
       platform: ios
       skip_version_bump: false
+      ref: ${{ inputs.ref || github.ref_name }}
     secrets: inherit

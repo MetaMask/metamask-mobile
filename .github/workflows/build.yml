@@ -14,7 +14,7 @@ on:
         type: boolean
         default: false
       ref:
-        description: 'Git ref to checkout when skip_version_bump is true. Defaults to the triggering event ref.'
+        description: 'Git ref (branch) to run the build against. Used as base-branch for version bump and for checkout when skip_version_bump is true. Defaults to the triggering event ref.'
         required: false
         type: string
         default: ''
@@ -60,7 +60,7 @@ jobs:
       contents: write
       id-token: write
     with:
-      base-branch: ${{ github.ref_name }}
+      base-branch: ${{ inputs.ref || github.ref_name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
