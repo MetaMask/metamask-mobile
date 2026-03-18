@@ -148,6 +148,10 @@ const ActivityView = () => {
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
 
+  const handleChangeTab = useCallback(({ i }) => {
+    setActiveTabIndex(i);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       const nextParams = {};
@@ -200,7 +204,7 @@ const ActivityView = () => {
         <Box twClassName="flex-1 gap-4">
           <TabsList
             initialActiveIndex={initialTabIndex}
-            onChangeTab={({ i }) => setActiveTabIndex(i)}
+            onChangeTab={handleChangeTab}
             tabsListContentTwClassName="px-0 pb-3"
             testID={ActivitiesViewSelectorsIDs.TABS_CONTAINER}
           >

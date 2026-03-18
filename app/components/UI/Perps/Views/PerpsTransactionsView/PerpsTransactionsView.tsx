@@ -45,6 +45,15 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+const EMPTY_TRANSACTIONS: PerpsTransaction[] = [];
+const EMPTY_LIST_ITEMS: ListItem[] = [];
+const EMPTY_GROUPED_TRANSACTIONS: Record<FilterTab, TransactionSection[]> = {
+  Trades: [],
+  Orders: [],
+  Funding: [],
+  Deposits: [],
+};
+
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
   isVisible = true,
 }) => {
@@ -83,6 +92,11 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
     skipInitialFetch: !isConnected || !isVisible,
     accountId,
   });
+
+  const transactionsForRender = useMemo(
+    () => (isVisible ? allTransactions : EMPTY_TRANSACTIONS),
+    [allTransactions, isVisible],
+  );
 
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
@@ -134,30 +148,34 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
 
   // Filter transactions by type from the single source of truth
   const fillTransactions = useMemo(
-    () => allTransactions.filter((tx) => tx.type === 'trade'),
-    [allTransactions],
+    () => transactionsForRender.filter((tx) => tx.type === 'trade'),
+    [transactionsForRender],
   );
 
   const orderTransactions = useMemo(
-    () => allTransactions.filter((tx) => tx.type === 'order'),
-    [allTransactions],
+    () => transactionsForRender.filter((tx) => tx.type === 'order'),
+    [transactionsForRender],
   );
 
   const fundingTransactions = useMemo(
-    () => allTransactions.filter((tx) => tx.type === 'funding'),
-    [allTransactions],
+    () => transactionsForRender.filter((tx) => tx.type === 'funding'),
+    [transactionsForRender],
   );
 
   const depositWithdrawalTransactions = useMemo(
     () =>
-      allTransactions.filter(
+      transactionsForRender.filter(
         (tx) => tx.type === 'deposit' || tx.type === 'withdrawal',
       ),
-    [allTransactions],
+    [transactionsForRender],
   );
 
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(() => {
+    if (!isVisible) {
+      return EMPTY_GROUPED_TRANSACTIONS;
+    }
+
     const grouped = {
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
@@ -167,6 +185,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
 
     return grouped;
   }, [
+    isVisible,
     fillTransactions,
     orderTransactions,
     fundingTransactions,
@@ -175,9 +194,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
   ]);
 
   const flatListData = useMemo(() => {
+    if (!isVisible) {
+      return EMPTY_LIST_ITEMS;
+    }
     const currentGrouped = allGroupedTransactions[activeFilter] || [];
     return flattenGroupedTransactions(currentGrouped, activeFilter);
-  }, [allGroupedTransactions, activeFilter]);
+  }, [activeFilter, allGroupedTransactions, isVisible]);
 
   // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 
@@ -395,38 +417,48 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(
-    () =>
-      // Show loading for connection/data fetch states and focus-refresh with no cached rows.
+  const isInitialLoading = useMemo(() => {
+    if (!isVisible) {
+      return false;
+    }
+
+    // Show loading for connection/data fetch states and focus-refresh with no cached rows.
+    return (
       isConnecting ||
       transactionsLoading ||
       (!isConnected && flatListData.length === 0) ||
-      (isFocusRefreshing && flatListData.length === 0),
-    [
-      isConnecting,
-      transactionsLoading,
-      isConnected,
-      isFocusRefreshing,
-      flatListData.length,
-    ],
-  );
+      (isFocusRefreshing && flatListData.length === 0)
+    );
+  }, [
+    isVisible,
+    isConnecting,
+    transactionsLoading,
+    isConnected,
+    isFocusRefreshing,
+    flatListData.length,
+  ]);
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
   // Only measures once per session (no reset on refresh/tab switch)
   usePerpsMeasurement({
     traceName: TraceName.PerpsTransactionsView,
-    conditions: [!isInitialLoading],
+    conditions: [isVisible && !isInitialLoading],
     resetConditions: [], // Prevent automatic reset on subsequent loads
   });
 
   // Determine if we should show empty state (only after loading is complete and no data)
   const shouldShowEmptyState = useMemo(() => {
+    if (!isVisible) return false;
     if (isInitialLoading) return false;
     if (!isConnected) return false;
 
     // Show empty state only if loading is complete and we have no data
     return flatListData.length === 0;
-  }, [isInitialLoading, isConnected, flatListData.length]);
+  }, [isVisible, isInitialLoading, isConnected, flatListData.length]);
+
+  if (!isVisible) {
+    return <View style={styles.container} />;
+  }
 
   // Show loading skeleton during initial load
   if (isInitialLoading) {

@@ -514,7 +514,7 @@ describe('TabsList', () => {
   });
 
   describe('Content Loading', () => {
-    it('loads active tab content immediately without InteractionManager', () => {
+    it('loads active tab content via InteractionManager scheduling', () => {
       // Act
       const { getByText } = render(
         <TabsList initialActiveIndex={0}>
@@ -529,7 +529,7 @@ describe('TabsList', () => {
 
       // Assert
       expect(getByText('Content 1')).toBeOnTheScreen();
-      expect(InteractionManager.runAfterInteractions).not.toHaveBeenCalled();
+      expect(InteractionManager.runAfterInteractions).toHaveBeenCalled();
     });
 
     it('defers loading of inactive tabs until switched to', () => {
@@ -549,7 +549,7 @@ describe('TabsList', () => {
       expect(queryByText('Content 2')).toBeNull();
     });
 
-    it('switches quickly without scheduling interaction work', async () => {
+    it('switches quickly while keeping loads scheduled and stable', async () => {
       // Arrange
       const { getAllByText } = render(
         <TabsList initialActiveIndex={0}>
@@ -572,12 +572,13 @@ describe('TabsList', () => {
       });
 
       // Assert
-      expect(InteractionManager.runAfterInteractions).not.toHaveBeenCalled();
+      expect(InteractionManager.runAfterInteractions).toHaveBeenCalled();
     });
 
-    it('loads already-loaded tabs immediately', async () => {
+    it('does not re-schedule loading for already-loaded tabs', async () => {
       // Arrange
-
+      const mockRunAfterInteractions =
+        InteractionManager.runAfterInteractions as jest.Mock;
       const { getAllByText, getByText } = render(
         <TabsList initialActiveIndex={0}>
           <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
@@ -594,6 +595,9 @@ describe('TabsList', () => {
         fireEvent.press(getAllByText('Tab 2')[0]);
       });
 
+      const callCountAfterFirstLoad =
+        mockRunAfterInteractions.mock.calls.length;
+
       // Act - Switch back to Tab 1 (already loaded)
       await act(async () => {
         fireEvent.press(getAllByText('Tab 1')[0]);
@@ -601,7 +605,93 @@ describe('TabsList', () => {
 
       // Assert
       expect(getByText('Content 1')).toBeOnTheScreen();
-      expect(InteractionManager.runAfterInteractions).not.toHaveBeenCalled();
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(
+        callCountAfterFirstLoad,
+      );
+    });
+
+    it('uses fallback timeout if InteractionManager callback does not run', async () => {
+      jest.useFakeTimers();
+      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+        () => ({ cancel: jest.fn() }),
+      );
+
+      try {
+        const { getAllByText, getByText, queryByText } = render(
+          <TabsList initialActiveIndex={0}>
+            <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+              <Text>Content 1</Text>
+            </View>
+            <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+              <Text>Content 2</Text>
+            </View>
+          </TabsList>,
+        );
+
+        expect(queryByText('Content 1')).toBeNull();
+        expect(queryByText('Content 2')).toBeNull();
+
+        await act(async () => {
+          jest.advanceTimersByTime(250);
+        });
+        expect(getByText('Content 1')).toBeOnTheScreen();
+
+        await act(async () => {
+          fireEvent.press(getAllByText('Tab 2')[0]);
+        });
+        expect(queryByText('Content 2')).toBeNull();
+
+        await act(async () => {
+          jest.advanceTimersByTime(250);
+        });
+        expect(getByText('Content 2')).toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not lose scheduled load across a rerender', async () => {
+      jest.useFakeTimers();
+      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+        () => ({ cancel: jest.fn() }),
+      );
+
+      try {
+        const renderTabs = () => (
+          <TabsList initialActiveIndex={0}>
+            <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+              <Text>Content 1</Text>
+            </View>
+            <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+              <Text>Content 2</Text>
+            </View>
+          </TabsList>
+        );
+
+        const { getAllByText, getByText, queryByText, rerender } =
+          render(renderTabs());
+
+        expect(queryByText('Content 1')).toBeNull();
+
+        await act(async () => {
+          jest.advanceTimersByTime(250);
+        });
+        expect(getByText('Content 1')).toBeOnTheScreen();
+
+        await act(async () => {
+          fireEvent.press(getAllByText('Tab 2')[0]);
+        });
+        expect(queryByText('Content 2')).toBeNull();
+
+        rerender(renderTabs());
+
+        await act(async () => {
+          jest.advanceTimersByTime(250);
+        });
+        expect(getByText('Content 2')).toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 

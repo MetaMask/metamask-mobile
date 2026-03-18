@@ -5,14 +5,18 @@ import React, {
   forwardRef,
   useCallback,
   useMemo,
+  useRef,
 } from 'react';
 
 import { Box } from '@metamask/design-system-react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
+import { InteractionManager } from 'react-native';
 
 import TabsBar from '../TabsBar';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
+
+const TAB_LOAD_FALLBACK_TIMEOUT_MS = 250;
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
@@ -73,12 +77,15 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const [activeIndex, setActiveIndex] = useState(() =>
       normalizeTabIndex(initialActiveIndex),
     );
-    const [loadedTabs, setLoadedTabs] = useState<Set<number>>(() => {
-      const normalizedInitialIndex = normalizeTabIndex(initialActiveIndex);
-      return normalizedInitialIndex >= 0
-        ? new Set([normalizedInitialIndex])
-        : new Set();
-    });
+    const [loadedTabs, setLoadedTabs] = useState<Set<number>>(() => new Set());
+    const loadedTabsRef = useRef<Set<number>>(new Set());
+    const scheduledTabsRef = useRef<Set<number>>(new Set());
+    const interactionHandlesRef = useRef<Map<number, { cancel: () => void }>>(
+      new Map(),
+    );
+    const fallbackTimeoutsRef = useRef<
+      Map<number, ReturnType<typeof setTimeout>>
+    >(new Map());
 
     const markTabLoaded = useCallback(
       (tabIndex: number) => {
@@ -101,6 +108,58 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       },
       [tabs],
     );
+
+    const clearScheduledTabLoad = useCallback((tabIndex: number) => {
+      const interactionHandle = interactionHandlesRef.current.get(tabIndex);
+      if (interactionHandle) {
+        interactionHandle.cancel();
+        interactionHandlesRef.current.delete(tabIndex);
+      }
+
+      const fallbackTimeout = fallbackTimeoutsRef.current.get(tabIndex);
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout);
+        fallbackTimeoutsRef.current.delete(tabIndex);
+      }
+
+      scheduledTabsRef.current.delete(tabIndex);
+    }, []);
+
+    const scheduleTabLoad = useCallback(
+      (tabIndex: number) => {
+        if (
+          tabIndex < 0 ||
+          tabIndex >= tabs.length ||
+          tabs[tabIndex]?.isDisabled ||
+          loadedTabsRef.current.has(tabIndex) ||
+          scheduledTabsRef.current.has(tabIndex)
+        ) {
+          return;
+        }
+
+        scheduledTabsRef.current.add(tabIndex);
+
+        const completeTabLoad = () => {
+          markTabLoaded(tabIndex);
+          clearScheduledTabLoad(tabIndex);
+        };
+
+        const interactionHandle =
+          InteractionManager.runAfterInteractions(completeTabLoad);
+        interactionHandlesRef.current.set(tabIndex, interactionHandle);
+
+        const fallbackTimeout = setTimeout(
+          completeTabLoad,
+          TAB_LOAD_FALLBACK_TIMEOUT_MS,
+        );
+        fallbackTimeoutsRef.current.set(tabIndex, fallbackTimeout);
+      },
+      [clearScheduledTabLoad, markTabLoaded, tabs],
+    );
+
+    useEffect(() => {
+      loadedTabsRef.current = loadedTabs;
+    }, [loadedTabs]);
 
     useEffect(() => {
       const currentActiveTabKey =
@@ -131,15 +190,30 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
 
       if (nextIndex >= 0) {
-        markTabLoaded(nextIndex);
+        scheduleTabLoad(nextIndex);
       }
     }, [
       activeIndex,
       initialActiveIndex,
-      markTabLoaded,
       normalizeTabIndex,
+      scheduleTabLoad,
       tabs,
     ]);
+
+    useEffect(
+      () => () => {
+        interactionHandlesRef.current.forEach((handle) => handle.cancel());
+        interactionHandlesRef.current.clear();
+
+        fallbackTimeoutsRef.current.forEach((timeoutId) =>
+          clearTimeout(timeoutId),
+        );
+        fallbackTimeoutsRef.current.clear();
+
+        scheduledTabsRef.current.clear();
+      },
+      [],
+    );
 
     const handleTabPress = useCallback(
       (tabIndex: number) => {
@@ -154,7 +228,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const tabChanged = tabIndex !== activeIndex;
 
         setActiveIndex(tabIndex);
-        markTabLoaded(tabIndex);
+        scheduleTabLoad(tabIndex);
 
         if (onChangeTab && tabChanged) {
           onChangeTab({
@@ -163,7 +237,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           });
         }
       },
-      [activeIndex, markTabLoaded, onChangeTab, tabs],
+      [activeIndex, onChangeTab, scheduleTabLoad, tabs],
     );
 
     const goToPreviousTab = useCallback(() => {
