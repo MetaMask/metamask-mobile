@@ -67,6 +67,13 @@ describe('useCardAuth', () => {
     });
   });
 
+  it('exposes getErrorMessage for displaying auth errors', () => {
+    const { result } = renderHook(() => useCardAuth());
+
+    expect(result.current.getErrorMessage).toBeDefined();
+    expect(typeof result.current.getErrorMessage).toBe('function');
+  });
+
   describe('initiate', () => {
     it('calls controller.initiateAuth', async () => {
       mockController.initiateAuth.mockResolvedValue(undefined);
@@ -149,6 +156,23 @@ describe('useCardAuth', () => {
         done: false,
         onboardingRequired: { sessionId: 'ob-1', phase: 'kyc' },
       });
+      const { result } = renderHook(() => useCardAuth());
+
+      await act(async () => {
+        await result.current.submit.mutateAsync({
+          type: 'email_password',
+          email: 'a@b.com',
+          password: 'p',
+        });
+      });
+
+      expect(result.current.currentStep).toStrictEqual({
+        type: 'email_password',
+      });
+    });
+
+    it('resets currentStep when done:false without nextStep or onboardingRequired', async () => {
+      mockController.submitCredentials.mockResolvedValue({ done: false });
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {

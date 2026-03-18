@@ -6,6 +6,7 @@ import {
   CardAuthStep,
   CardCredentials,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import { getCardProviderErrorMessage } from '../util/getCardProviderErrorMessage';
 
 function getController() {
   const controller = Engine.context?.CardController;
@@ -39,6 +40,9 @@ export const useCardAuth = () => {
         }
       } else if (result.nextStep) {
         setCurrentStep(result.nextStep);
+      } else {
+        // Controller cleared session (done:false without nextStep/onboardingRequired)
+        setCurrentStep(LOGIN_STEP);
       }
     },
     retry: false,
@@ -66,5 +70,6 @@ export const useCardAuth = () => {
     submit,
     stepAction,
     logout,
+    getErrorMessage: getCardProviderErrorMessage,
   };
 };
