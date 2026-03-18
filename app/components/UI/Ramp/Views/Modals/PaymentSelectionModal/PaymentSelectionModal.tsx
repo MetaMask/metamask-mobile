@@ -7,16 +7,16 @@ import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
@@ -247,15 +247,10 @@ function PaymentSelectionModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="px-4 py-3"
-          >
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('fiat_on_ramp.pay_with')}
-            </Text>
-          </Box>
+          <HeaderCompactStandard
+            title={strings('fiat_on_ramp.pay_with')}
+            onClose={() => sheetRef.current?.onCloseBottomSheet()}
+          />
           {renderListContent()}
         </View>
         {selectedProvider ? (
@@ -264,16 +259,19 @@ function PaymentSelectionModal() {
             justifyContent={BoxJustifyContent.Center}
             style={styles.footer}
           >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {strings('fiat_on_ramp.buying_via', {
                 providerName: selectedProvider.name,
               })}{' '}
               <Text
-                variant={TextVariant.BodySM}
+                variant={TextVariant.BodySm}
                 color={
                   paymentMethodsError
-                    ? TextColor.Alternative
-                    : TextColor.Primary
+                    ? TextColor.TextAlternative
+                    : TextColor.PrimaryDefault
                 }
                 onPress={
                   paymentMethodsError ? undefined : handleChangeProviderPress
