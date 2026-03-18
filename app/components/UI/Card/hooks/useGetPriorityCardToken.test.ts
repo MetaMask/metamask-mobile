@@ -75,9 +75,6 @@ jest.mock('../../../../util/trace', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     TokensController: {
-      state: {
-        allTokens: {},
-      },
       addToken: jest.fn(),
     },
     NetworkController: {
@@ -1093,10 +1090,24 @@ describe('useGetPriorityCardToken', () => {
     ];
 
     let mockTokensController: {
-      state: { allTokens: Record<string, Record<string, unknown[]>> };
       addToken: jest.Mock;
     };
     let mockNetworkController: { findNetworkClientIdByChainId: jest.Mock };
+
+    const mockAccountSelector = (scope: string) => {
+      if (scope === 'eip155:0') {
+        return {
+          address: mockAddress,
+          id: 'test-account-id',
+          type: 'eip155:eoa' as const,
+          options: {},
+          metadata: {},
+          methods: [],
+          scopes: [],
+        };
+      }
+      return undefined;
+    };
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1105,33 +1116,12 @@ describe('useGetPriorityCardToken', () => {
 
       mockSelectIsAuthenticatedCard.mockReturnValue(false);
 
-      const mockAccountSelector = (scope: string) => {
-        if (scope === 'eip155:0') {
-          return {
-            address: mockAddress,
-            id: 'test-account-id',
-            type: 'eip155:eoa' as const,
-            options: {},
-            metadata: {},
-            methods: [],
-            scopes: [],
-          };
-        }
-        return undefined;
-      };
       mockSelectSelectedInternalAccountByScope.mockReturnValue(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockAccountSelector as any,
       );
 
       mockTokensController = {
-        state: {
-          allTokens: {
-            [CHAIN_IDS.LINEA_MAINNET]: {
-              [mockAddress.toLowerCase()]: STATIC_EMPTY_TOKEN_LIST,
-            },
-          },
-        },
         addToken: jest.fn().mockResolvedValue(undefined),
       };
 
@@ -1156,8 +1146,7 @@ describe('useGetPriorityCardToken', () => {
         allTokensWithAllowances: [STATIC_PRIORITY_TOKEN],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockUseSelector.mockImplementation((selector: any) => {
+      mockUseSelector.mockImplementation((selector) => {
         if (selector === selectAllTokenBalances) {
           return STATIC_TOKEN_BALANCES;
         }
@@ -1179,6 +1168,13 @@ describe('useGetPriorityCardToken', () => {
                 backgroundState: {
                   TokenBalancesController: {
                     tokenBalances: STATIC_TOKEN_BALANCES,
+                  },
+                  TokensController: {
+                    allTokens: {
+                      [CHAIN_IDS.LINEA_MAINNET]: {
+                        [mockAddress.toLowerCase()]: STATIC_EMPTY_TOKEN_LIST,
+                      },
+                    },
                   },
                 },
               },
@@ -1224,15 +1220,49 @@ describe('useGetPriorityCardToken', () => {
       const addTokenMock = jest.fn().mockResolvedValue(undefined);
 
       mockEngine.context.TokensController = {
-        state: {
-          allTokens: {
-            '0xe708': {
-              [mockAddress.toLowerCase()]: STATIC_EXISTING_TOKEN_LIST,
-            },
-          },
-        },
         addToken: addTokenMock,
       };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAllTokenBalances) {
+          return STATIC_TOKEN_BALANCES;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return mockAccountSelector;
+        }
+        if (selector === selectIsAuthenticatedCard) {
+          return false;
+        }
+
+        if (typeof selector === 'function') {
+          try {
+            return selector({
+              card: {
+                cardholderAccounts: [],
+                isLoaded: true,
+              },
+              engine: {
+                backgroundState: {
+                  TokenBalancesController: {
+                    tokenBalances: STATIC_TOKEN_BALANCES,
+                  },
+                  TokensController: {
+                    allTokens: {
+                      [CHAIN_IDS.LINEA_MAINNET]: {
+                        [mockAddress.toLowerCase()]: STATIC_EXISTING_TOKEN_LIST,
+                      },
+                    },
+                  },
+                },
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as unknown as any);
+          } catch (_e) {
+            return null;
+          }
+        }
+        return null;
+      });
 
       const { result } = renderHook(() => useGetPriorityCardToken());
 
