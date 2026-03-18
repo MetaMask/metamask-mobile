@@ -2861,14 +2861,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  mobileUxAccountMenu: {
-    name: 'mobileUxAccountMenu',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   mobileUxNetworkManagement: {
     name: 'mobileUxNetworkManagement',
     type: FeatureFlagType.Remote,
