@@ -41,11 +41,10 @@ const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mo
 
 if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 
-const WORKFLOW_RUN_ID = "23242979306";
 
 // ---------------------------------------------------------------------------
 // Static-scan targets
-// Update these if the repository directory structure or file-naming conventions
+// Update these (easy with AI) if the repository directory structure or file-naming conventions
 // change — the collectors below rely on them for skip/defined counts.
 // ---------------------------------------------------------------------------
 const SCAN_APP_DIR        = 'app';
@@ -113,8 +112,7 @@ async function getArtifactList() {
   let page = 1;
 
   while (true) {
-    // const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
-    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -334,12 +332,12 @@ async function collectComponentViewTestCount() {
     const destDir = await downloadArtifact('cv-test-coverage-summary');
     const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
     const { lines, statements, branches, functions } = summary.total;
-    result.line_coverage = Math.round(lines.pct * 10) / 10;
-    result.statement_coverage = Math.round(statements.pct * 10) / 10;
-    result.branch_coverage = Math.round(branches.pct * 10) / 10;
-    result.function_coverage = Math.round(functions.pct * 10) / 10;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
     console.log(
-      `[component-view] coverage — line: ${result.line_coverage}%, stmt: ${result.statement_coverage}%, branch: ${result.branch_coverage}%, fn: ${result.function_coverage}%`,
+      `[component-view] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
     );
   } catch (err) {
     console.warn(`[component-view] coverage summary not available, skipping: ${err.message}`);
@@ -374,12 +372,12 @@ async function collectUnitTestCount() {
     const destDir = await downloadArtifact('unit-test-coverage-summary');
     const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
     const { lines, statements, branches, functions } = summary.total;
-    result.line_coverage = Math.round(lines.pct * 10) / 10;
-    result.statement_coverage = Math.round(statements.pct * 10) / 10;
-    result.branch_coverage = Math.round(branches.pct * 10) / 10;
-    result.function_coverage = Math.round(functions.pct * 10) / 10;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
     console.log(
-      `[unit] coverage — line: ${result.line_coverage}%, stmt: ${result.statement_coverage}%, branch: ${result.branch_coverage}%, fn: ${result.function_coverage}%`,
+      `[unit] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
     );
   } catch (err) {
     console.warn(`[unit] coverage summary not available, skipping: ${err.message}`);
