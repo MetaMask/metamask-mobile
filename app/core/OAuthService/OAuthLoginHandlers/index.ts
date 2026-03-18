@@ -7,7 +7,6 @@ import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallb
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import {
   AuthServerUrl,
-  AppRedirectUri,
   IosGID,
   IosGoogleRedirectUri,
   AndroidGoogleWebGID,
@@ -33,7 +32,6 @@ export function createLoginHandler(
 ): BaseLoginHandler {
   if (
     !AuthServerUrl ||
-    !AppRedirectUri ||
     !IosGID ||
     !IosGoogleRedirectUri ||
     !AndroidGoogleWebGID ||
@@ -81,7 +79,7 @@ export function createLoginHandler(
         case AuthConnection.Apple:
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
-            appRedirectUri: AppRedirectUri,
+            appRedirectUri: AndroidGoogleRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });

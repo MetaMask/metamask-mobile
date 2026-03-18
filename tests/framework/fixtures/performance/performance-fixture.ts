@@ -1,5 +1,9 @@
 import { test as base } from 'appwright';
-import { PerformanceTracker } from '../../../reporters/PerformanceTracker.js';
+import {
+  PerformanceTracker,
+  type MetricsOutput,
+} from '../../../reporters/PerformanceTracker';
+import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
 import {
   QualityGatesValidator,
   markQualityGateFailure,
@@ -7,6 +11,7 @@ import {
   getTestId,
 } from '../../quality-gates';
 import { getTeamInfoFromTags } from '../../utils/teams';
+import { IsDisplayedParams, PlaywrightElement } from '../../PlaywrightAdapter';
 
 interface PerformanceFixtures {
   performanceTracker: PerformanceTracker;
@@ -56,10 +61,9 @@ export const test = base.extend<PerformanceFixtures>({
     }
 
     // Always try to attach performance metrics, even if test failed
+    let metrics: MetricsOutput | null = null;
     try {
-      const metrics = (await performanceTracker.attachToTest(
-        testInfo,
-      )) as unknown as { steps: unknown[]; total: number };
+      metrics = await performanceTracker.attachToTest(testInfo);
       console.log(
         `✅ Performance metrics attached: ${
           metrics.steps.length
@@ -70,6 +74,30 @@ export const test = base.extend<PerformanceFixtures>({
         '❌ Failed to attach performance metrics:',
         (error as Error).message,
       );
+    }
+
+    if (metrics) {
+      try {
+        const sentToSentry = await publishPerformanceScenarioToSentry({
+          metrics,
+          testTitle: testInfo.title,
+          projectName: testInfo.project?.name ?? 'unknown',
+          testFilePath: testInfo.file,
+          tags: testTags,
+          status: testInfo.status,
+          retry: testInfo.retry,
+          workerIndex: testInfo.workerIndex,
+        });
+
+        if (sentToSentry) {
+          console.log(`📡 Scenario "${testInfo.title}" sent to Sentry`);
+        }
+      } catch (error) {
+        console.error(
+          `❌ Failed to publish scenario "${testInfo.title}" to Sentry:`,
+          (error as Error).message,
+        );
+      }
     }
 
     // Validate quality gates if any timer has thresholds defined
@@ -129,5 +157,27 @@ export const test = base.extend<PerformanceFixtures>({
     } else {
       console.log('⚠️ No session ID found - video URL cannot be retrieved');
     }
+  },
+});
+
+/**
+ * Extend the test expect with a toBeVisible matcher.
+ * @param locator - The locator to check.
+ * @param options - The options to pass to the isVisible method.
+ * @returns The result of the isVisible method.
+ */
+export const expect = test.expect.extend({
+  toBeVisible: async (elem: PlaywrightElement, options?: IsDisplayedParams) => {
+    const isVisible = await elem.isVisible(options);
+    return {
+      message: () =>
+        isVisible
+          ? `Expected element NOT to be visible, but it was found on the screen`
+          : `Element was not found on the screen`,
+      pass: isVisible,
+      name: 'toBeVisible',
+      expected: true,
+      actual: isVisible,
+    };
   },
 });

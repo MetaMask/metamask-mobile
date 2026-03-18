@@ -1,13 +1,13 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Actions from '../../../actions/notification/helpers';
 import {
   createMockNotificationEthReceived,
   createMockNotificationEthSent,
 } from '../../../components/UI/Notification/__mocks__/mock_notifications';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Selectors from '../../../selectors/notifications';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import {
@@ -18,12 +18,20 @@ import {
   useMarkNotificationAsRead,
   useResetNotifications,
 } from './useNotifications';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UsePushNotifications from './usePushNotifications';
 
 jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
+
+jest.mock('./usePushNotifications', () => ({
+  usePushNotificationsToggle: jest.fn(),
+}));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe('useNotifications - useListNotifications()', () => {
   const arrangeMocks = () => {
@@ -76,7 +84,7 @@ describe('useNotifications - useEnableNotifications()', () => {
   const arrangeMocks = () => {
     const mockTogglePushNotification = jest.fn().mockResolvedValue(true);
     const mockUsePushNotificationsToggle = jest
-      .spyOn(UsePushNotifications, 'usePushNotificationsToggle')
+      .mocked(UsePushNotifications.usePushNotificationsToggle)
       .mockReturnValue({
         data: true,
         loading: false,
@@ -138,7 +146,7 @@ describe('useNotifications - useDisableNotifications()', () => {
   const arrangeMocks = () => {
     const mockTogglePushNotification = jest.fn().mockResolvedValue(true);
     const mockUsePushNotificationsToggle = jest
-      .spyOn(UsePushNotifications, 'usePushNotificationsToggle')
+      .mocked(UsePushNotifications.usePushNotificationsToggle)
       .mockReturnValue({
         data: true,
         loading: false,

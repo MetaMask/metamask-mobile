@@ -19,7 +19,6 @@ export const getIsSwapsAssetAllowed = ({
     const isChainAllowed = isBridgeAllowed(asset.chainId);
     isSwapsAssetAllowed = isChainAllowed;
   } else {
-    // show Swaps CTA for EVM assets as tokens on Trending list will not be in SwapsController.swapsTokens
     isSwapsAssetAllowed = true;
   }
 

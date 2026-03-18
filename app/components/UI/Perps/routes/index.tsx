@@ -269,7 +269,6 @@ const PerpsScreenStack = () => {
               title: strings('perps.home.markets'),
               showBalanceActions: false,
               showBottomNav: false,
-              defaultSearchVisible: false,
             }}
           />
 

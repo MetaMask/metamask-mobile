@@ -4,6 +4,7 @@ import {
 } from '../../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import Utilities from '../../../framework/Utilities';
 
 class RevealSecretRecoveryPhrase {
   get container(): DetoxElement {
@@ -71,11 +72,44 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
+  get confirmButton(): DetoxElement {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+    );
+  }
+
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {
+    // Wait for password screen to be ready (e.g. after navigation or quiz on iOS/Android CI)
+    await Utilities.waitForElementToBeVisible(
+      this.passwordInputToRevealCredential,
+      15000,
+    );
     await Gestures.typeText(this.passwordInputToRevealCredential, password, {
       hideKeyboard: true,
       elemDescription: 'Password input to reveal credential',
     });
+  }
+
+  async tapConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Confirm button to reveal credential',
+    });
+  }
+
+  /**
+   * Check if the component is already unlocked (blur overlay / "Tap to reveal" visible).
+   * Waits up to 3s so we can detect transition after keyboard submit (onSubmitEditing → tryUnlock).
+   */
+  async isUnlocked(): Promise<boolean> {
+    try {
+      await Utilities.waitForElementToBeVisible(
+        this.revealSecretRecoveryPhraseButton,
+        3000,
+      );
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async tapToReveal(): Promise<void> {

@@ -28,7 +28,7 @@ exports[`GraphTooltip render matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,

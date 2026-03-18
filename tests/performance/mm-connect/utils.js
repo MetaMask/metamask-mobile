@@ -1,9 +1,12 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { expect } from 'appwright';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 import { login } from '../../framework/utils/Flows.js';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants.ts';
 
@@ -104,32 +107,82 @@ export function cleanupAdbReverse(port) {
   }
 }
 
-// Path from metamask-mobile root to the playground release APK in the sibling connect-monorepo
-const PLAYGROUND_APK_RELATIVE =
-  '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk';
+// Candidate paths for the playground release APK, checked in priority order:
+// 1. Explicitly set via RN_PLAYGROUND_APK_PATH env var
+// 2. Downloaded by scripts/fetch-rn-playground-apk.sh
+// 3. Locally built in sibling connect-monorepo
+const PLAYGROUND_APK_CANDIDATES = [
+  process.env.RN_PLAYGROUND_APK_PATH,
+  './tmp/rn-playground.apk',
+  '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk',
+].filter(Boolean);
+
+/**
+ * Resolve the playground APK path from the candidate list.
+ * @returns {string} Absolute path to the APK
+ * @throws {Error} If no candidate exists on disk
+ */
+function resolvePlaygroundApkPath() {
+  for (const candidate of PLAYGROUND_APK_CANDIDATES) {
+    const resolved = path.resolve(process.cwd(), candidate);
+    if (fs.existsSync(resolved)) {
+      return resolved;
+    }
+  }
+
+  throw new Error(
+    'Playground release APK not found. Checked:\n' +
+      PLAYGROUND_APK_CANDIDATES.map(
+        (p) => `  - ${path.resolve(process.cwd(), p)}`,
+      ).join('\n') +
+      '\n\nTo fix this, either:\n' +
+      '  1. Run: ./scripts/fetch-rn-playground-apk.sh\n' +
+      '     (downloads the latest APK from connect-monorepo GitHub Releases)\n' +
+      '  2. Build locally:\n' +
+      '     cd connect-monorepo && yarn install && yarn build\n' +
+      '     cd playground/react-native-playground && npx expo prebuild --platform android\n' +
+      '     cd android && ./gradlew assembleRelease\n' +
+      '  3. Set RN_PLAYGROUND_APK_PATH to the APK location\n\n' +
+      'See tests/performance/mm-connect/README.md for full setup instructions.',
+  );
+}
+
+/**
+ * Wait for the wallet to be visible, then cycle the app twice to ensure all
+ * account groups (including Solana) are created and syncing completes.
+ * Must be called from native context after login.
+ * @param {import('appwright').Device} device - Appwright device
+ */
+export async function ensureAccountGroupsFinishedLoading(device) {
+  await WalletMainScreen.isMainWalletViewVisible();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+  await AccountListComponent.waitForSyncingToComplete();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+}
 
 /**
  * Ensure the React Native playground release APK is installed on the
  * connected emulator. Uninstalls any existing version first, then installs
  * the pre-built release APK so the device always has a clean copy.
  *
- * The APK must be built manually before running the test — see
- * tests/performance/mm-connect/README.md for instructions.
+ * The APK is resolved from (in priority order):
+ *   1. RN_PLAYGROUND_APK_PATH env var
+ *   2. ./tmp/rn-playground.apk (downloaded via fetch-rn-playground-apk.sh)
+ *   3. Sibling connect-monorepo local build
  *
- * @throws {Error} If the APK file has not been built or adb install fails.
+ * @throws {Error} If the APK file is not found or adb install fails.
  */
 export function ensurePlaygroundInstalled() {
-  const apkPath = path.resolve(process.cwd(), PLAYGROUND_APK_RELATIVE);
-  if (!fs.existsSync(apkPath)) {
-    throw new Error(
-      `Playground release APK not found at ${apkPath}.\n` +
-        'Build it first:\n' +
-        '  cd connect-monorepo && yarn install && yarn build\n' +
-        '  cd playground/react-native-playground && npx expo prebuild --platform android\n' +
-        '  cd android && ./gradlew assembleRelease\n\n' +
-        'See tests/performance/mm-connect/README.md for full setup instructions.',
-    );
-  }
+  const apkPath = resolvePlaygroundApkPath();
+  console.log(`Resolved playground APK path: ${apkPath}`);
 
   // Uninstall any existing version (debug or release) to guarantee a clean state
   try {

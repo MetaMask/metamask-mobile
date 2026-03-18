@@ -36,7 +36,7 @@ import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
@@ -51,6 +51,7 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/Icon.types';
+import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
 
 interface ModalState {
   showPopularNetworkModal: boolean;
@@ -94,7 +95,7 @@ const NetworkMultiSelector = ({
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);
@@ -439,6 +440,13 @@ const NetworkMultiSelector = ({
     ],
   );
 
+  const renderBalancePerChain = useCallback(
+    (caipChainId: CaipChainId) => (
+      <AccountGroupBalancePerChain caipChainId={caipChainId} />
+    ),
+    [],
+  );
+
   return (
     <ScrollView
       style={styles.bodyContainer}
@@ -450,6 +458,7 @@ const NetworkMultiSelector = ({
         networks={networksToUse}
         selectedChainIds={selectedChainIds}
         onSelectNetwork={onSelectNetwork}
+        renderRightAccessory={renderBalancePerChain}
         additionalNetworksComponent={additionalNetworksComponent}
         selectAllNetworksComponent={selectAllNetworksComponent}
         areAllNetworksSelected={areAllNetworksSelectedCombined}

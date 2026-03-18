@@ -1,3 +1,4 @@
+// Migrated to tests/page-objects/MMConnect/RNPlaygroundDapp.ts
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { PLAYGROUND_PACKAGE_ID } from '../../tests/framework/Constants.ts';
@@ -67,6 +68,46 @@ class RNPlaygroundDapp {
 
   get errorSection() {
     return this._getByTestId('app-section-error');
+  }
+
+  get connectLegacyButton() {
+    return this._getByTestId('app-btn-connect-legacy');
+  }
+
+  // ============================================================
+  // LEGACY EVM CARD SELECTORS
+  // ============================================================
+
+  get legacyEvmCard() {
+    return this._getByTestId('legacy-evm-card');
+  }
+
+  get legacyEvmChainIdValue() {
+    return this._getByTestId('legacy-evm-chain-id-value');
+  }
+
+  get legacyEvmAccountsValue() {
+    return this._getByTestId('legacy-evm-accounts-value');
+  }
+
+  get legacyEvmActiveAccount() {
+    return this._getByTestId('legacy-evm-active-account');
+  }
+
+  get legacyEvmResponseText() {
+    return this._getByTestId('legacy-evm-response-text');
+  }
+
+  get legacyEvmBtnPersonalSign() {
+    return this._getByTestId('legacy-evm-btn-personal-sign');
+  }
+
+  get legacyEvmBtnSendTransaction() {
+    return this._getByTestId('legacy-evm-btn-send-transaction');
+  }
+
+  get legacyEvmBtnSwitchPolygon() {
+    return this._getByTestId('legacy-evm-btn-switch-polygon');
   }
 
   // ============================================================
@@ -172,6 +213,18 @@ class RNPlaygroundDapp {
     await AppwrightGestures.tap(elem);
   }
 
+  async tapConnectLegacy() {
+    if (!this._device) return;
+    const elem = await this.connectLegacyButton;
+    await AppwrightGestures.tap(elem);
+  }
+
+  async tapLegacyEvmButton(buttonPromise) {
+    if (!this._device) return;
+    const elem = await buttonPromise;
+    await AppwrightGestures.tap(elem);
+  }
+
   async tapDisconnect() {
     if (!this._device) return;
     const elem = await this.disconnectButton;
@@ -273,6 +326,36 @@ class RNPlaygroundDapp {
     if (!this._device) return;
     const code = await this.getResultCode(scope, method, index);
     await expect(code).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async assertLegacyEvmConnected(timeoutMs = 15000) {
+    if (!this._device) return;
+    const card = await this.legacyEvmCard;
+    await expect(card).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async assertLegacyEvmHasAccounts(timeoutMs = 10000) {
+    if (!this._device) return;
+    const accounts = await this.legacyEvmAccountsValue;
+    await expect(accounts).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async assertLegacyEvmActiveAccount(timeoutMs = 10000) {
+    if (!this._device) return;
+    const activeAcct = await this.legacyEvmActiveAccount;
+    await expect(activeAcct).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async getLegacyEvmChainId() {
+    if (!this._device) return null;
+    const chainIdElem = await this.legacyEvmChainIdValue;
+    return await chainIdElem.getText();
+  }
+
+  async getLegacyEvmResponseText() {
+    if (!this._device) return null;
+    const resp = await this.legacyEvmResponseText;
+    return await resp.getText();
   }
 
   /**

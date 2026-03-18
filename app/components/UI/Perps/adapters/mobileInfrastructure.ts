@@ -11,11 +11,16 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import { trace, endTrace, TraceName } from '../../../../util/trace';
-import { setMeasurement } from '@sentry/react-native';
+import {
+  setMeasurement,
+  addBreadcrumb,
+  type SeverityLevel,
+} from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import {
+  PERPS_CONSTANTS,
   type PerpsPlatformDependencies,
   type PerpsMetrics,
   type PerpsTraceName,
@@ -166,8 +171,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           extras?: Record<string, unknown>;
         },
       ): void {
-        // Logger.error expects (error, context) format
-        Logger.error(error, options?.context ?? options);
+        Logger.error(error, {
+          ...options,
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            ...options?.tags,
+          },
+        });
       },
     },
     debugLogger: {
@@ -211,18 +221,18 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       setMeasurement(name: string, value: number, unit: string): void {
         setMeasurement(name, value, unit);
       },
+      addBreadcrumb(breadcrumb: {
+        category: string;
+        message: string;
+        level: SeverityLevel;
+        data?: Record<string, unknown>;
+      }): void {
+        addBreadcrumb(breadcrumb);
+      },
     },
 
     // === Platform Services ===
     streamManager: createStreamManagerAdapter(),
-
-    // === Rewards ===
-    rewards: {
-      getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
-        Engine.context.RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        ),
-    },
 
     // === Feature Flags ===
     featureFlags: {
@@ -236,6 +246,17 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
+
+    // === Rewards (DI — no RewardsController in Core yet) ===
+    rewards: {
+      getPerpsDiscountForAccount(
+        caipAccountId: `${string}:${string}:${string}`,
+      ) {
+        return Engine.context.RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+        );
+      },
+    },
   };
 }
 

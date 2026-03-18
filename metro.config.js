@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -10,9 +10,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const os = require('node:os');
 
 const parsedArgs = parseArgs({
@@ -26,13 +26,13 @@ const parsedArgs = parseArgs({
 });
 
 const getPolyfills = () => [
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
 ];
 
 // We should replace path for react-native-fs
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
@@ -98,6 +98,29 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // @ecies/ciphers uses package.json "exports" subpaths that Metro
+          // can't resolve without unstable_enablePackageExports. Map them to
+          // the react-native condition targets manually.
+          // Note: require.resolve can't be used here because the package's
+          // "exports" field blocks direct dist/ access.
+          if (moduleName === '@ecies/ciphers/aes') {
+            return {
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/aes/noble.js',
+              ),
+              type: 'sourceFile',
+            };
+          }
+          if (moduleName === '@ecies/ciphers/chacha') {
+            return {
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/chacha/noble.js',
+              ),
+              type: 'sourceFile',
+            };
+          }
           // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
           if (
             moduleName === 'axios' ||
@@ -190,7 +213,7 @@ module.exports = function (baseConfig) {
           getPolyfills,
         },
       ),
-      resetCache: true,
+      resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),
   );

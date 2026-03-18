@@ -1,20 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  BoxFlexDirection,
-  BoxAlignItems,
-} from '@metamask/design-system-react-native';
-import { SectionId, SECTIONS_CONFIG } from '../../sections.config';
 import { useNavigation } from '@react-navigation/native';
+import { SectionId, SECTIONS_CONFIG } from '../../sections.config';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 
 export interface SectionHeaderProps {
   sectionId: SectionId;
@@ -27,33 +14,18 @@ export interface SectionHeaderProps {
  * This component is part of the centralized section management system that ensures
  * consistency between QuickActions buttons and section "View All" buttons.
  */
-const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
-  const tw = useTailwind();
+const TrendingSectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
   const navigation = useNavigation();
   const sectionConfig = SECTIONS_CONFIG[sectionId];
 
   return (
-    <TouchableOpacity
+    <SectionHeader
       testID={`section-header-view-all-${sectionId}`}
-      style={tw.style('flex-row items-center mb-2')}
+      title={sectionConfig.title}
       onPress={() => sectionConfig.viewAllAction(navigation)}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-      >
-        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-          {sectionConfig.title}
-        </Text>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
-      </Box>
-    </TouchableOpacity>
+      twClassName="px-0 mb-2"
+    />
   );
 };
 
-export default SectionHeader;
+export default TrendingSectionHeader;

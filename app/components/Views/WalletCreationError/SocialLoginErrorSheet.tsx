@@ -1,7 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, Image, Linking, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Text, {
   TextVariant,
   TextColor,
@@ -24,29 +26,59 @@ import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
 import styleSheet from './SocialLoginErrorSheet.styles';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const FOX_LOGO = require('../../../images/branding/fox.png');
 
 interface SocialLoginErrorSheetProps {
   error?: Error;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  // Track screen viewed event
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED)
+        .addProperties({
+          flow_type: 'social_login',
+          error_name: error?.name || 'Unknown',
+          error_message: error?.message || 'No message',
+        })
+        .build(),
+    );
+  }, [error, trackEvent, createEventBuilder]);
 
   const handleTryAgain = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED)
+        .addProperties({
+          flow_type: 'social_login',
+        })
+        .build(),
+    );
+
     // Delete wallet
     await Authentication.deleteWallet();
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const handleContactSupport = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SUPPORT_CLICKED,
+      )
+        .addProperties({
+          flow_type: 'social_login',
+        })
+        .build(),
+    );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, []);
+  }, [trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.container}>

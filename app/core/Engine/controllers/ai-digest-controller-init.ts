@@ -19,7 +19,7 @@ export const aiDigestControllerInit: ControllerInitFunction<
   AiDigestControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
   const digestService = new AiDigestService({
-    baseUrl: AppConstants.TERMINAL_API_URL,
+    baseUrl: AppConstants.DIGEST_API_URL,
   });
 
   const controller = new AiDigestController({

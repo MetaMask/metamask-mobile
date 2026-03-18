@@ -4,12 +4,13 @@ This directory contains Appwright-based E2E tests for MetaMask Connect flows.
 
 ## Test Files
 
-| File                            | Description                                                 |
-| ------------------------------- | ----------------------------------------------------------- |
-| `connection-evm.spec.js`        | Legacy EVM connection via Browser Playground in Chrome      |
-| `connection-multichain.spec.js` | Multichain API connection via Browser Playground in Chrome  |
-| `connection-wagmi.spec.js`      | Wagmi connector via Browser Playground in Chrome            |
-| `multichain-rn-connect.spec.js` | **Multichain + Solana via the React Native Playground APK** |
+| File                            | Description                                                   |
+| ------------------------------- | ------------------------------------------------------------- |
+| `connection-evm.spec.js`        | Legacy EVM connection via Browser Playground in Chrome        |
+| `connection-multichain.spec.js` | Multichain API connection via Browser Playground in Chrome    |
+| `connection-wagmi.spec.js`      | Wagmi connector via Browser Playground in Chrome              |
+| `multichain-rn-connect.spec.js` | **Multichain + Solana via the React Native Playground APK**   |
+| `legacy-evm-rn-connect.spec.js` | **Legacy EVM connection via the React Native Playground APK** |
 
 ## React Native Playground Setup
 
@@ -37,16 +38,45 @@ Documents/MetaMask/          # or wherever you keep these repos
         └── react-native-playground/
 ```
 
-### Build the Playground APK
+### Get the Playground APK
 
-You must build the release APK **manually** before running the test, and
-**rebuild** whenever you change the playground source code. The release variant
-is required because the debug variant expects a Metro dev server at runtime.
+The playground APK is published as a GitHub Release asset with every
+connect-monorepo release. You can download it automatically or build locally.
 
-#### First-time setup
+#### Option A — Download from GitHub Releases (recommended)
 
-Run all five steps below from your terminal. Each command is self-contained
-(no implicit working directory from a previous step).
+```bash
+# From the metamask-mobile root
+./scripts/fetch-rn-playground-apk.sh
+```
+
+This downloads the latest `rn-playground-<version>.apk` to `./tmp/rn-playground.apk`.
+The test's `beforeAll` hook automatically finds APKs in this location.
+
+To pin a specific version:
+
+```bash
+./scripts/fetch-rn-playground-apk.sh --version 17.0.0
+```
+
+Or set the environment variable:
+
+```bash
+export RN_PLAYGROUND_APK_VERSION=17.0.0
+./scripts/fetch-rn-playground-apk.sh
+```
+
+You can also point to any APK directly:
+
+```bash
+export RN_PLAYGROUND_APK_PATH=/path/to/your/playground.apk
+```
+
+#### Option B — Build locally
+
+Use this when you need to test local changes to the playground or its
+dependencies. The release variant is required because the debug variant
+expects a Metro dev server at runtime.
 
 **Step 1 — Install monorepo dependencies:**
 
@@ -123,6 +153,22 @@ yarn build
 
 Then run `./gradlew assembleRelease` as above.
 
+### CI / BrowserStack
+
+In CI, the playground APK is fetched from GitHub Releases and uploaded to
+BrowserStack before test execution. The relevant environment variables are:
+
+| Variable                         | Description                                     |
+| -------------------------------- | ----------------------------------------------- |
+| `RN_PLAYGROUND_APK_VERSION`      | Pin to a specific connect-monorepo release      |
+| `RN_PLAYGROUND_APK_PATH`         | Override APK path (skips download)              |
+| `BROWSERSTACK_RN_PLAYGROUND_URL` | BrowserStack `bs://` URL for the playground APK |
+
+The Appwright BrowserStack provider (via the patched `appwright` package) reads
+`BROWSERSTACK_RN_PLAYGROUND_URL` from the environment and passes it as
+`otherApps` in `bstack:options`, telling BrowserStack to pre-install the
+playground APK alongside the MetaMask wallet on the test device.
+
 ### Automatic Install on Each Test Run
 
 The test's `beforeAll` hook automatically **uninstalls** any existing version
@@ -156,10 +202,16 @@ Then run:
 yarn run-appwright:mm-connect-android-local
 ```
 
-Or run only the RN playground spec:
+Or run individual RN playground specs:
 
 ```bash
+# Multichain + Solana test
 npx appwright test tests/performance/mm-connect/multichain-rn-connect.spec.js \
+  --project mm-connect-android-local \
+  --config tests/appwright.config.ts
+
+# Legacy EVM test
+npx appwright test tests/performance/mm-connect/legacy-evm-rn-connect.spec.js \
   --project mm-connect-android-local \
   --config tests/appwright.config.ts
 ```
@@ -183,6 +235,25 @@ MetaMask Connect flow:
 4. **Session termination** — disconnects via the Multichain SDK
    (`sdk.disconnect()`, the equivalent of `wallet_revokeSession`) and verifies
    the session is fully terminated on both the dApp and wallet sides.
+
+The `legacy-evm-rn-connect` test validates the Legacy EVM connection flow:
+
+1. **accountsChanged propagation** — connects via the Legacy EVM SDK and
+   verifies the dapp receives accounts and displays the active account.
+
+2. **personal_sign** — sends a personal_sign request, approves it in the
+   wallet, and verifies the signature is returned to the dapp.
+
+3. **eth_sendTransaction (cancel)** — sends a transaction request, cancels it
+   in the wallet (to avoid spending funds), and verifies the dapp handles the
+   rejection.
+
+4. **Chain switching from the dapp** — calls `wallet_switchEthereumChain` to
+   switch to Polygon from the dapp side and verifies the chain ID updates.
+
+5. **Chain switching from the wallet** — switches to Ethereum Mainnet in the
+   wallet's network picker and verifies the dapp receives the `chainChanged`
+   event.
 
 ### How It Works
 

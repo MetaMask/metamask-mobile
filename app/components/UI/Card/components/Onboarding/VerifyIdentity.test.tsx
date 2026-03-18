@@ -5,9 +5,11 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import VeriffSdk from '@veriff/react-native-sdk';
+import { mockTheme } from '../../../../../util/theme';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
+import useRegions from '../../hooks/useRegions';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -42,6 +44,8 @@ jest.mock('../../../../../util/Logger', () => ({
 
 // Mock useStartVerification hook
 jest.mock('../../hooks/useStartVerification');
+
+jest.mock('../../hooks/useRegions');
 
 // Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
@@ -272,6 +276,10 @@ describe('VerifyIdentity Component', () => {
       error: null,
     });
 
+    (useRegions as jest.Mock).mockReturnValue({
+      userCountry: { key: 'US', name: 'United States', emoji: '🇺🇸' },
+    });
+
     (VeriffSdk.launchVeriff as jest.Mock).mockResolvedValue({
       status: VeriffSdk.statusDone,
     });
@@ -463,8 +471,8 @@ describe('VerifyIdentity Component', () => {
             success: expect.any(String),
             buttonRadius: 12,
             // Camera overlay colors are static — always dark + white text
-            cameraOverlay: '#121314',
-            onCameraOverlay: '#ffffff',
+            cameraOverlay: mockTheme.brandColors.grey900,
+            onCameraOverlay: mockTheme.brandColors.grey000,
           }),
         });
       });
@@ -685,6 +693,9 @@ describe('VerifyIdentity Component', () => {
 
     it('uses correct i18n keys for terms text', () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: { key: 'CA', name: 'Canada', emoji: '🇨🇦' },
+      });
 
       render(
         <Provider store={store}>

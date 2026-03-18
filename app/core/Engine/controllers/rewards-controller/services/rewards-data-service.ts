@@ -25,11 +25,11 @@ import type {
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
-  SnapshotDto,
+  CampaignDto,
+  CampaignParticipantStatusDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
-import { successfulFetch } from '@metamask/controller-utils';
 import {
   canChangeRewardsEnvUrl,
   getDefaultRewardsApiBaseUrlForMetaMaskEnv,
@@ -83,12 +83,6 @@ const SERVICE_NAME = 'RewardsDataService';
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
-// Geolocation URLs for different environments
-const GEOLOCATION_URLS = {
-  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-};
-
 // Auth endpoint action types
 
 export interface RewardsDataServiceLoginAction {
@@ -133,11 +127,6 @@ export interface RewardsDataServiceGetSeasonStatusAction {
 export interface RewardsDataServiceGetReferralDetailsAction {
   type: `${typeof SERVICE_NAME}:getReferralDetails`;
   handler: RewardsDataService['getReferralDetails'];
-}
-
-export interface RewardsDataServiceFetchGeoLocationAction {
-  type: `${typeof SERVICE_NAME}:fetchGeoLocation`;
-  handler: RewardsDataService['fetchGeoLocation'];
 }
 
 export interface RewardsDataServiceValidateReferralCodeAction {
@@ -205,9 +194,24 @@ export interface RewardsDataServiceApplyBonusCodeAction {
   handler: RewardsDataService['applyBonusCode'];
 }
 
-export interface RewardsDataServiceGetSnapshotsAction {
-  type: `${typeof SERVICE_NAME}:getSnapshots`;
-  handler: RewardsDataService['getSnapshots'];
+export interface RewardsDataServiceGetSubscriptionAccountsAction {
+  type: `${typeof SERVICE_NAME}:getSubscriptionAccounts`;
+  handler: RewardsDataService['getSubscriptionAccounts'];
+}
+
+export interface RewardsDataServiceGetCampaignsAction {
+  type: `${typeof SERVICE_NAME}:getCampaigns`;
+  handler: RewardsDataService['getCampaigns'];
+}
+
+export interface RewardsDataServiceOptInToCampaignAction {
+  type: `${typeof SERVICE_NAME}:optInToCampaign`;
+  handler: RewardsDataService['optInToCampaign'];
+}
+
+export interface RewardsDataServiceGetCampaignParticipantStatusAction {
+  type: `${typeof SERVICE_NAME}:getCampaignParticipantStatus`;
+  handler: RewardsDataService['getCampaignParticipantStatus'];
 }
 
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
@@ -234,13 +238,13 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
@@ -252,14 +256,16 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSubscriptionAccountsAction
+  | RewardsDataServiceGetCampaignsAction
+  | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetCampaignParticipantStatusAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -339,10 +345,6 @@ export class RewardsDataService {
       this.getReferralDetails.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:fetchGeoLocation`,
-      this.fetchGeoLocation.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateReferralCode`,
       this.validateReferralCode.bind(this),
     );
@@ -395,8 +397,20 @@ export class RewardsDataService {
       this.applyBonusCode.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshots`,
-      this.getSnapshots.bind(this),
+      `${SERVICE_NAME}:getSubscriptionAccounts`,
+      this.getSubscriptionAccounts.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaigns`,
+      this.getCampaigns.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optInToCampaign`,
+      this.optInToCampaign.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaignParticipantStatus`,
+      this.getCampaignParticipantStatus.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -526,6 +540,13 @@ export class RewardsDataService {
       });
 
       clearTimeout(timeoutId);
+
+      if (response.status === 403 && subscriptionId) {
+        throw new AuthorizationFailedError(
+          `Authorization failed: ${response.status}`,
+        );
+      }
+
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
@@ -787,11 +808,6 @@ export class RewardsDataService {
 
     if (!response.ok) {
       const errorData = await response.json();
-      if (errorData?.message?.includes('Rewards authorization failed')) {
-        throw new AuthorizationFailedError(
-          'Rewards authorization failed. Please login and try again.',
-        );
-      }
 
       if (errorData?.message?.includes('Season not found')) {
         throw new SeasonNotFoundError(
@@ -835,28 +851,6 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data as SubscriptionSeasonReferralDetailsDto;
-  }
-
-  /**
-   * Fetch geolocation information from MetaMask's geolocation service.
-   * Returns location in Country or Country-Region format (e.g., 'US', 'CA-ON', 'FR').
-   * @returns Promise<string> - The geolocation string or 'UNKNOWN' on failure.
-   */
-  async fetchGeoLocation(): Promise<string> {
-    let location = 'UNKNOWN';
-
-    try {
-      const response = await successfulFetch(GEOLOCATION_URLS.PROD);
-
-      if (!response.ok) {
-        return location;
-      }
-      location = await response?.text();
-      return location;
-    } catch (e) {
-      Logger.log('RewardsDataService: Failed to fetch geoloaction', e);
-      return location;
-    }
   }
 
   /**
@@ -1268,17 +1262,13 @@ export class RewardsDataService {
   }
 
   /**
-   * Get snapshots for a specific season.
-   * @param seasonId - The ID of the season to get snapshots for.
+   * Get CAIP-10 encoded account addresses linked to the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
-   * @returns The list of snapshots for the season.
+   * @returns Array of CAIP-10 account strings (up to 1000).
    */
-  async getSnapshots(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
+  async getSubscriptionAccounts(subscriptionId: string): Promise<string[]> {
     const response = await this.makeRequest(
-      `/v1/seasons/${seasonId}/snapshots`,
+      `/subscriptions/accounts`,
       {
         method: 'GET',
       },
@@ -1286,9 +1276,88 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get snapshots failed: ${response.status}`);
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+      throw new Error(`Get subscription accounts failed: ${response.status}`);
     }
 
-    return (await response.json()) as SnapshotDto[];
+    return (await response.json()) as string[];
+  }
+
+  /**
+   * Get all available campaigns.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The list of available campaigns.
+   */
+  async getCampaigns(subscriptionId: string): Promise<CampaignDto[]> {
+    const response = await this.makeRequest(
+      '/campaigns',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaigns failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignDto[];
+  }
+
+  /**
+   * Opt a subscription into a campaign.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param campaignId - The campaign ID to opt into.
+   * @returns The participant status after opting in.
+   */
+  async optInToCampaign(
+    subscriptionId: string,
+    campaignId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    const response = await this.makeRequest(
+      `/wr/campaigns/${campaignId}/opt-in`,
+      { method: 'POST' },
+      subscriptionId,
+    );
+
+    if (response.status === 409) {
+      // Already opted in — fetch and return current status as a graceful success
+      return this.getCampaignParticipantStatus(subscriptionId, campaignId);
+    }
+
+    if (!response.ok) {
+      throw new Error(`Opt-in to campaign failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get the campaign participant status for a subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param campaignId - The campaign ID to check status for.
+   * @returns The participant status.
+   */
+  async getCampaignParticipantStatus(
+    subscriptionId: string,
+    campaignId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    const response = await this.makeRequest(
+      `/campaigns/${campaignId}/status`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign participant status failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as CampaignParticipantStatusDto;
   }
 }

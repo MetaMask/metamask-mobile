@@ -3,10 +3,10 @@ import TimerHelper from '../../framework/TimerHelper';
 
 import { login } from '../../framework/utils/Flows.js';
 import {
-  launchMobileBrowser,
+  switchToMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
-  switchToMobileBrowser,
+  launchMobileBrowser,
 } from '../../framework/utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
@@ -24,6 +24,7 @@ import {
   cleanupAdbReverse,
   waitForDappServerReady,
   unlockIfLockScreenVisible,
+  ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -110,6 +111,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
+    await ensureAccountGroupsFinishedLoading(device);
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });

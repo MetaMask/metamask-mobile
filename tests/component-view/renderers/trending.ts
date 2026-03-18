@@ -7,7 +7,8 @@ import Routes from '../../../app/constants/navigation/Routes';
 import { ExploreFeed } from '../../../app/components/Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import AssetDetails from '../../../app/components/Views/AssetDetails';
-import TrendingTokensFullView from '../../../app/components/Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
+import TrendingTokensFullView from '../../../app/components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import RWATokensFullView from '../../../app/components/UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { initialStateTrending } from '../presets/trending';
 
 interface RenderTrendingViewOptions {
@@ -43,6 +44,10 @@ export function renderTrendingViewWithRoutes(
         name: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
         Component:
           TrendingTokensFullView as unknown as React.ComponentType<unknown>,
+      },
+      {
+        name: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+        Component: RWATokensFullView as unknown as React.ComponentType<unknown>,
       },
     ],
     { state },

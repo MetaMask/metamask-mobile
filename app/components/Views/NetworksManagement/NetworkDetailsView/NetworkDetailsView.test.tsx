@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
+import { IconColor } from '../../../../component-library/components/Icons/Icon';
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import NetworkDetailsView from './NetworkDetailsView';
 
@@ -144,6 +145,7 @@ const createMockFormHook = (overrides: Record<string, unknown> = {}) => ({
   onSymbolFocused: jest.fn(),
   onSymbolBlur: jest.fn(),
   onRpcUrlFocused: jest.fn(),
+  onRpcUrlBlur: jest.fn(),
   onChainIdFocused: jest.fn(),
   onChainIdBlur: jest.fn(),
   jumpToRpcURL: jest.fn(),
@@ -690,6 +692,19 @@ describe('NetworkDetailsView', () => {
       expect(val.validateName).toHaveBeenCalled();
     });
 
+    it('triggers RPC focus cleanup on RPC URL blur', () => {
+      const formReturn = createMockFormHook();
+      mockFormHook.mockReturnValue(formReturn);
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      fireEvent(
+        getByTestId(NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT),
+        'blur',
+      );
+      expect(formReturn.onRpcUrlBlur).toHaveBeenCalled();
+    });
+
     it('triggers handleValidateSymbol on symbol field blur', () => {
       const val = createMockValidation();
       mockValidation.mockReturnValue(val);
@@ -746,6 +761,25 @@ describe('NetworkDetailsView', () => {
       expect(
         getByText(strings('app_settings.network_delete')),
       ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `${strings('app_settings.delete')} TestNet ${strings(
+            'app_settings.network',
+          )}`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders header trash icon using default icon color', () => {
+      mockFormHook.mockReturnValue(editForm());
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      const trashIcon = getByTestId(
+        NetworkDetailsViewSelectorsIDs.CONTAINER,
+      ).findAllByProps({ name: 'Trash' })[0];
+
+      expect(trashIcon.props.color).toBe(IconColor.Default);
     });
 
     it('calls operations.removeNetwork on confirm delete', () => {
@@ -764,6 +798,34 @@ describe('NetworkDetailsView', () => {
       fireEvent.press(getByTestId('networks-settings-delete-confirm-button'));
 
       expect(ops.removeNetwork).toHaveBeenCalledWith('0x2a');
+    });
+
+    it('does not show trash icon when editing non-deletable network (e.g. Ethereum mainnet)', () => {
+      const mainnetEditForm = createMockFormHook({
+        addMode: false,
+        nickname: 'Ethereum',
+        chainId: '0x1',
+        ticker: 'ETH',
+        rpcUrl: 'https://mainnet.infura.io/v3/key',
+        rpcName: 'Infura',
+        rpcUrls: [
+          {
+            url: 'https://mainnet.infura.io/v3/key',
+            name: 'Infura',
+            type: 'infura',
+          },
+        ],
+        blockExplorerUrl: 'https://etherscan.io',
+        blockExplorerUrls: ['https://etherscan.io'],
+        editable: true,
+      });
+      mockFormHook.mockReturnValue(mainnetEditForm);
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      const container = getByTestId(NetworkDetailsViewSelectorsIDs.CONTAINER);
+      const trashIcons = container.findAllByProps({ name: 'Trash' });
+      expect(trashIcons).toHaveLength(0);
     });
   });
 
