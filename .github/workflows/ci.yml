@@ -190,6 +190,7 @@ jobs:
         with:
           name: ios-bundle
           path: ios/main.jsbundle
+          retention-days: 7
 
   ship-js-bundle-size-check:
     runs-on: ubuntu-latest
@@ -262,6 +263,7 @@ jobs:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
+          retention-days: 7
       - name: Require clean working directory
         shell: bash
         run: |
@@ -336,28 +338,33 @@ jobs:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-stats
           path: ./cv-test-stats.json
           if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: unit-test-stats
           path: ./unit-test-stats.json
           if-no-files-found: error
-      - name: Generate CV test HTML coverage report
+          retention-days: 7
+      - name: Generate CV test coverage report
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-summary
           path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
+          retention-days: 7
       - name: Generate unit test coverage summary
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
       - uses: actions/upload-artifact@v4
@@ -365,6 +372,7 @@ jobs:
           name: unit-test-coverage-summary
           path: ./tests/coverage-unit-lcov/coverage-summary.json
           if-no-files-found: error
+          retention-days: 7
       - name: Require clean working directory
         shell: bash
         run: |
@@ -416,6 +424,7 @@ jobs:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
+          retention-days: 7
 
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml

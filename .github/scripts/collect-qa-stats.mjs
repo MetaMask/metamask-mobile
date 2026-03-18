@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  *
- * Collects QA metrics from a CI run and writes qa-stats.json, key: value format.
+ * Collects QA metrics into a qa-stats.json file, key: value format.
  * Metrics that could not be collected (missing artifacts, tests did not run)
- * are omitted from the output — they will never appear as zero.
+ * are omitted from the output, i.e., they will not appear in the output file.
  *
  * Required env vars:
  *   GITHUB_TOKEN      — GitHub Actions token for API access
@@ -13,10 +13,13 @@
  *   1. Add a collector function that returns a plain object
  *   2. Register it in the collectors array in main()
  * 
- * The only rule: never rename existing keys. The DB key is (project, run_id, namespace, metric_key). 
+ * The only rule: never rename existing keys. The DB key used for storing the metrics is (project, run_id, namespace, metric_key). 
  * Renaming a key in the JSON creates a new series in the DB while the old name stops getting new data, 
  * which breaks the Grafana time series continuity. Adding and removing keys is fine.
- * 
+ *
+ * Artifact names used below are coupled to `name:` fields in ci.yml and run-e2e-workflow.yml —
+ * renaming either side silently drops that metric from the output.
+ *
  * Example output:
  *   {
  *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
@@ -36,9 +39,23 @@ import { join } from 'path';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
 
-const WORKFLOW_RUN_ID = "23209543808";
-
 if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
+
+const WORKFLOW_RUN_ID = "23242979306";
+
+// ---------------------------------------------------------------------------
+// Static-scan targets
+// Update these if the repository directory structure or file-naming conventions
+// change — the collectors below rely on them for skip/defined counts.
+// ---------------------------------------------------------------------------
+const SCAN_APP_DIR        = 'app';
+const SCAN_E2E_SMOKE_DIRS = ['tests/smoke'];
+const SCAN_PERFORMANCE_DIR = 'tests/performance';
+
+const PATTERN_CV_TEST_FILE   = /\.view(?:\..+)?\.test\.[jt]sx?$/;
+const PATTERN_UNIT_TEST_FILE = /\.test\.[jt]sx?$/;
+const PATTERN_E2E_SPEC_FILE  = /\.spec\.[jt]sx?$/;
+const PATTERN_PERF_SPEC_FILE = /\.spec\.js$/;
 
 
 // ---------------------------------------------------------------------------
@@ -300,8 +317,8 @@ async function collectComponentViewTestCount() {
   const result = await collectShardCounts(/^coverage-cv-\d+$/, 'component-view');
   if (Object.keys(result).length === 0) return result;
 
-  const isViewTestFile = (name) => /\.view(?:\..+)?\.test\.[jt]sx?$/.test(name);
-  const files = await walkFiles('app', isViewTestFile);
+  const isViewTestFile = (name) => PATTERN_CV_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isViewTestFile);
   let defined = 0, skips = 0;
   for (const f of files) {
     const source = await readFile(f, 'utf8');
@@ -340,8 +357,8 @@ async function collectUnitTestCount() {
 
   // Unit test files: *.test.{ts,tsx,js} excluding *.view[.*].test.*
   const isUnitTestFile = (name) =>
-    /\.test\.[jt]sx?$/.test(name) && !/\.view(?:\..+)?\.test\.[jt]sx?$/.test(name);
-  const files = await walkFiles('app', isUnitTestFile);
+    PATTERN_UNIT_TEST_FILE.test(name) && !PATTERN_CV_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isUnitTestFile);
   let defined = 0, skips = 0;
   for (const f of files) {
     const source = await readFile(f, 'utf8');
@@ -480,9 +497,9 @@ async function collectE2ECounts() {
   }
 
   // Static scan — independent of which platform/channel ran
-  const isSpecTs = (name) => /\.spec\.[jt]sx?$/.test(name);
+  const isSpecTs = (name) => PATTERN_E2E_SPEC_FILE.test(name);
   let defined = 0, skips = 0;
-  for (const dir of ['tests/smoke']) {
+  for (const dir of SCAN_E2E_SMOKE_DIRS) {
     const files = await walkFiles(dir, isSpecTs);
     for (const f of files) {
       const source = await readFile(f, 'utf8');
@@ -516,7 +533,7 @@ async function collectPerformanceTestCounts() {
       if (entry.isDirectory()) {
         // Top-level subdirectory determines the category
         await scanDir(fullPath, category ?? entry.name);
-      } else if (entry.isFile() && entry.name.endsWith('.spec.js')) {
+      } else if (entry.isFile() && PATTERN_PERF_SPEC_FILE.test(entry.name)) {
         const source = await readFile(fullPath, 'utf8');
         // Count all test() calls — including test.skip() — for total_tests_defined
         const matches = source.match(/^\s*test(?:\.skip)?\s*\(/gm) ?? [];
@@ -530,7 +547,7 @@ async function collectPerformanceTestCounts() {
     }
   }
 
-  await scanDir('tests/performance', null);
+  await scanDir(SCAN_PERFORMANCE_DIR, null);
 
   const total = Object.values(categoryCounts).reduce((s, n) => s + n, 0);
 
