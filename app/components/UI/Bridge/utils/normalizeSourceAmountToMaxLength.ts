@@ -18,19 +18,18 @@ export const normalizeSourceAmountToMaxLength = (
   }
 
   const integerPart = normalizedValue.slice(0, decimalIndex);
-  const maxAllowedLength = maxInputLength;
 
   // If the integer part alone is already too long, keep the full value rather
   // than silently changing its magnitude.
-  if (integerPart.length > maxAllowedLength) {
+  if (integerPart.length > maxInputLength) {
     return normalizedValue;
   }
 
-  if (integerPart.length === maxAllowedLength) {
+  if (integerPart.length === maxInputLength) {
     return integerPart;
   }
 
-  const maxDecimalLength = maxAllowedLength - integerPart.length - 1;
+  const maxDecimalLength = maxInputLength - integerPart.length - 1;
   if (maxDecimalLength <= 0) {
     return integerPart;
   }
