@@ -264,7 +264,7 @@ const ActivityView = () => {
               >
                 <PerpsConnectionProvider>
                   <PerpsStreamProvider>
-                    <PerpsTransactionsView isVisible={isPerpsTabActive} />
+                    {isPerpsTabActive ? <PerpsTransactionsView /> : null}
                   </PerpsStreamProvider>
                 </PerpsConnectionProvider>
               </View>

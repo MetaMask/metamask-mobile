@@ -217,65 +217,14 @@ describe('PerpsTransactionsView', () => {
     });
   });
 
-  it('skips initial fetch and focus refresh when tab is not visible', async () => {
-    renderWithProvider(<PerpsTransactionsView isVisible={false} />, {
-      state: mockInitialState,
-    });
-
-    await waitFor(() => {
-      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
-        skipInitialFetch: true,
-      });
-    });
-
-    expect(mockRefetchTransactions).not.toHaveBeenCalled();
-  });
-
-  it('renders lightweight hidden state when tab is not visible even if connection is loading', () => {
-    mockUsePerpsConnection.mockReturnValue({
-      isConnected: false,
-      isConnecting: true,
-      isInitialized: true,
-      error: null,
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      resetError: jest.fn(),
-      reconnectWithNewContext: jest.fn(),
-    });
-
-    mockUsePerpsTransactionHistory.mockReturnValue({
-      transactions: [],
-      isLoading: true,
-      error: null,
-      refetch: mockRefetchTransactions,
-    });
-
-    const component = renderWithProvider(
-      <PerpsTransactionsView isVisible={false} />,
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(component.queryByText('Trades')).toBeNull();
-    expect(
-      component.queryByTestId('perps-transactions-loading-skeleton'),
-    ).toBeNull();
-    expect(
-      component.queryByText(
-        'No trades transactions yet. Your trading history will appear here',
-      ),
-    ).toBeNull();
-  });
-
-  it('tracks measurement as not-ready while hidden', () => {
-    renderWithProvider(<PerpsTransactionsView isVisible={false} />, {
+  it('tracks measurement as ready when initial loading is complete', () => {
+    renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
     expect(mockUsePerpsMeasurement).toHaveBeenCalledWith(
       expect.objectContaining({
-        conditions: [false],
+        conditions: [true],
         resetConditions: [],
       }),
     );

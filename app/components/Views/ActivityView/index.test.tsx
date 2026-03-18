@@ -473,10 +473,10 @@ describe('ActivityView', () => {
       mockPerpsEnabled = true;
       mockIsEvmSelected = true;
 
-      const { getByTestId } = renderComponent(mockInitialState);
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
 
       expect(getByTestId('tab-perps')).toBeTruthy();
-      expect(getByTestId('perps-transactions-view')).toBeTruthy();
+      expect(queryByTestId('perps-transactions-view')).toBeNull();
       expect(getRenderedTabs()).toContain('perps');
     });
 

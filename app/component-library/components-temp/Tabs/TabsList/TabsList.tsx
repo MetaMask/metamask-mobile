@@ -78,14 +78,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       normalizeTabIndex(initialActiveIndex),
     );
     const [loadedTabs, setLoadedTabs] = useState<Set<number>>(() => new Set());
-    const loadedTabsRef = useRef<Set<number>>(new Set());
-    const scheduledTabsRef = useRef<Set<number>>(new Set());
-    const interactionHandlesRef = useRef<
-      Map<number, { cancel?: () => void } | undefined>
-    >(new Map());
-    const fallbackTimeoutsRef = useRef<
-      Map<number, ReturnType<typeof setTimeout>>
-    >(new Map());
+    const interactionHandleRef = useRef<{ cancel?: () => void } | undefined>(
+      undefined,
+    );
+    const fallbackTimeoutRef = useRef<
+      ReturnType<typeof setTimeout> | undefined
+    >(undefined);
 
     const markTabLoaded = useCallback(
       (tabIndex: number) => {
@@ -109,20 +107,16 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [tabs],
     );
 
-    const clearScheduledTabLoad = useCallback((tabIndex: number) => {
-      const interactionHandle = interactionHandlesRef.current.get(tabIndex);
-      if (interactionHandle) {
-        interactionHandle.cancel?.();
-        interactionHandlesRef.current.delete(tabIndex);
+    const cancelScheduledTabLoad = useCallback(() => {
+      if (interactionHandleRef.current) {
+        interactionHandleRef.current.cancel?.();
+        interactionHandleRef.current = undefined;
       }
 
-      const fallbackTimeout = fallbackTimeoutsRef.current.get(tabIndex);
-      if (fallbackTimeout) {
-        clearTimeout(fallbackTimeout);
-        fallbackTimeoutsRef.current.delete(tabIndex);
+      if (fallbackTimeoutRef.current) {
+        clearTimeout(fallbackTimeoutRef.current);
+        fallbackTimeoutRef.current = undefined;
       }
-
-      scheduledTabsRef.current.delete(tabIndex);
     }, []);
 
     const scheduleTabLoad = useCallback(
@@ -131,35 +125,28 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           tabIndex < 0 ||
           tabIndex >= tabs.length ||
           tabs[tabIndex]?.isDisabled ||
-          loadedTabsRef.current.has(tabIndex) ||
-          scheduledTabsRef.current.has(tabIndex)
+          loadedTabs.has(tabIndex)
         ) {
           return;
         }
 
-        scheduledTabsRef.current.add(tabIndex);
+        cancelScheduledTabLoad();
 
         const completeTabLoad = () => {
           markTabLoaded(tabIndex);
-          clearScheduledTabLoad(tabIndex);
+          cancelScheduledTabLoad();
         };
 
-        const interactionHandle =
+        interactionHandleRef.current =
           InteractionManager.runAfterInteractions(completeTabLoad);
-        interactionHandlesRef.current.set(tabIndex, interactionHandle);
 
-        const fallbackTimeout = setTimeout(
+        fallbackTimeoutRef.current = setTimeout(
           completeTabLoad,
           TAB_LOAD_FALLBACK_TIMEOUT_MS,
         );
-        fallbackTimeoutsRef.current.set(tabIndex, fallbackTimeout);
       },
-      [clearScheduledTabLoad, markTabLoaded, tabs],
+      [cancelScheduledTabLoad, loadedTabs, markTabLoaded, tabs],
     );
-
-    useEffect(() => {
-      loadedTabsRef.current = loadedTabs;
-    }, [loadedTabs]);
 
     useEffect(() => {
       const currentActiveTabKey =
@@ -202,17 +189,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
     useEffect(
       () => () => {
-        interactionHandlesRef.current.forEach((handle) => handle?.cancel?.());
-        interactionHandlesRef.current.clear();
-
-        fallbackTimeoutsRef.current.forEach((timeoutId) =>
-          clearTimeout(timeoutId),
-        );
-        fallbackTimeoutsRef.current.clear();
-
-        scheduledTabsRef.current.clear();
+        cancelScheduledTabLoad();
       },
-      [],
+      [cancelScheduledTabLoad],
     );
 
     const handleTabPress = useCallback(

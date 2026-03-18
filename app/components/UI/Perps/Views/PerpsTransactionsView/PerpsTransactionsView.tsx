@@ -36,7 +36,6 @@ import {
   FilterTab,
   ListItem,
   PerpsTransaction,
-  PerpsTransactionsViewProps,
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
@@ -45,18 +44,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const EMPTY_TRANSACTIONS: PerpsTransaction[] = [];
-const EMPTY_LIST_ITEMS: ListItem[] = [];
-const EMPTY_GROUPED_TRANSACTIONS: Record<FilterTab, TransactionSection[]> = {
-  Trades: [],
-  Orders: [],
-  Funding: [],
-  Deposits: [],
-};
-
-const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
-  isVisible = true,
-}) => {
+const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -89,14 +77,9 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
     isLoading: transactionsLoading,
     refetch: refreshTransactions,
   } = usePerpsTransactionHistory({
-    skipInitialFetch: !isConnected || !isVisible,
+    skipInitialFetch: !isConnected,
     accountId,
   });
-
-  const transactionsForRender = useMemo(
-    () => (isVisible ? allTransactions : EMPTY_TRANSACTIONS),
-    [allTransactions, isVisible],
-  );
 
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
@@ -148,34 +131,30 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
 
   // Filter transactions by type from the single source of truth
   const fillTransactions = useMemo(
-    () => transactionsForRender.filter((tx) => tx.type === 'trade'),
-    [transactionsForRender],
+    () => allTransactions.filter((tx) => tx.type === 'trade'),
+    [allTransactions],
   );
 
   const orderTransactions = useMemo(
-    () => transactionsForRender.filter((tx) => tx.type === 'order'),
-    [transactionsForRender],
+    () => allTransactions.filter((tx) => tx.type === 'order'),
+    [allTransactions],
   );
 
   const fundingTransactions = useMemo(
-    () => transactionsForRender.filter((tx) => tx.type === 'funding'),
-    [transactionsForRender],
+    () => allTransactions.filter((tx) => tx.type === 'funding'),
+    [allTransactions],
   );
 
   const depositWithdrawalTransactions = useMemo(
     () =>
-      transactionsForRender.filter(
+      allTransactions.filter(
         (tx) => tx.type === 'deposit' || tx.type === 'withdrawal',
       ),
-    [transactionsForRender],
+    [allTransactions],
   );
 
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(() => {
-    if (!isVisible) {
-      return EMPTY_GROUPED_TRANSACTIONS;
-    }
-
     const grouped = {
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
@@ -185,7 +164,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
 
     return grouped;
   }, [
-    isVisible,
     fillTransactions,
     orderTransactions,
     fundingTransactions,
@@ -194,17 +172,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
   ]);
 
   const flatListData = useMemo(() => {
-    if (!isVisible) {
-      return EMPTY_LIST_ITEMS;
-    }
     const currentGrouped = allGroupedTransactions[activeFilter] || [];
     return flattenGroupedTransactions(currentGrouped, activeFilter);
-  }, [activeFilter, allGroupedTransactions, isVisible]);
+  }, [activeFilter, allGroupedTransactions]);
 
   // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 
   const onRefresh = useCallback(async () => {
-    if (!isConnected || !isVisible) {
+    if (!isConnected) {
       return;
     }
     setRefreshing(true);
@@ -216,11 +191,11 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [isConnected, isVisible, refreshTransactions]);
+  }, [isConnected, refreshTransactions]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!isConnected || !isVisible) {
+      if (!isConnected) {
         setIsFocusRefreshing(false);
         return;
       }
@@ -245,7 +220,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
       return () => {
         isMounted = false;
       };
-    }, [isConnected, isVisible, refreshTransactions]),
+    }, [isConnected, refreshTransactions]),
   );
 
   const renderFilterTab = useCallback(
@@ -417,20 +392,15 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(() => {
-    if (!isVisible) {
-      return false;
-    }
-
+  const isInitialLoading = useMemo(() =>
     // Show loading for connection/data fetch states and focus-refresh with no cached rows.
-    return (
+     (
       isConnecting ||
       transactionsLoading ||
       (!isConnected && flatListData.length === 0) ||
       (isFocusRefreshing && flatListData.length === 0)
-    );
-  }, [
-    isVisible,
+    )
+  , [
     isConnecting,
     transactionsLoading,
     isConnected,
@@ -442,23 +412,18 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = ({
   // Only measures once per session (no reset on refresh/tab switch)
   usePerpsMeasurement({
     traceName: TraceName.PerpsTransactionsView,
-    conditions: [isVisible && !isInitialLoading],
+    conditions: [!isInitialLoading],
     resetConditions: [], // Prevent automatic reset on subsequent loads
   });
 
   // Determine if we should show empty state (only after loading is complete and no data)
   const shouldShowEmptyState = useMemo(() => {
-    if (!isVisible) return false;
     if (isInitialLoading) return false;
     if (!isConnected) return false;
 
     // Show empty state only if loading is complete and we have no data
     return flatListData.length === 0;
-  }, [isVisible, isInitialLoading, isConnected, flatListData.length]);
-
-  if (!isVisible) {
-    return <View style={styles.container} />;
-  }
+  }, [isInitialLoading, isConnected, flatListData.length]);
 
   // Show loading skeleton during initial load
   if (isInitialLoading) {

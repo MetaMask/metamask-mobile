@@ -99,10 +99,6 @@ export type ListItem =
 
 export type FilterTab = 'Trades' | 'Orders' | 'Funding' | 'Deposits';
 
-export interface PerpsTransactionsViewProps {
-  isVisible?: boolean;
-}
-
 export type PerpsPositionTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,
   'PerpsPositionTransaction'
