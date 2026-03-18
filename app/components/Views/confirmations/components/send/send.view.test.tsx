@@ -49,7 +49,7 @@ describeForPlatforms('Send', () => {
         { name: Routes.SEND.DEFAULT },
         [],
         { state },
-        { asset: tronAsset },
+        { screen: Routes.SEND.AMOUNT, params: { asset: tronAsset } },
       );
 
       expect(
@@ -114,7 +114,7 @@ describeForPlatforms('Send', () => {
         { name: Routes.SEND.DEFAULT },
         [],
         { state },
-        { asset: solanaAsset, screen: Routes.SEND.RECIPIENT },
+        { screen: Routes.SEND.RECIPIENT, params: { asset: solanaAsset } },
       );
 
       expect(
@@ -157,7 +157,7 @@ describeForPlatforms('Send', () => {
           { name: Routes.SEND.DEFAULT },
           [],
           { state },
-          { asset: erc721Asset },
+          { screen: Routes.SEND.AMOUNT, params: { asset: erc721Asset } },
         );
 
       expect(
@@ -283,7 +283,15 @@ describeForPlatforms('Send', () => {
         [],
         { state },
         {
-          asset: { chainId: '0x1', symbol: 'ETH', decimals: 18, balance: '1' },
+          screen: Routes.SEND.AMOUNT,
+          params: {
+            asset: {
+              chainId: '0x1',
+              symbol: 'ETH',
+              decimals: 18,
+              balance: '1',
+            },
+          },
         },
       );
 
