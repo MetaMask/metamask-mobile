@@ -29,6 +29,7 @@ const mockGetMarketDetail = jest.fn();
 const mockSubscribeKline = jest.fn();
 const mockUnsubscribeKline = jest.fn();
 const mockAuth = jest.fn();
+const mockGetAccessToken = jest.fn().mockResolvedValue('mock-token');
 
 jest.mock('@myx-trade/sdk', () => ({
   MyxClient: jest.fn(() => ({
@@ -55,9 +56,12 @@ jest.mock('@myx-trade/sdk', () => ({
     account: {
       getAccountInfo: mockGetAccountInfo,
       getWalletQuoteTokenBalance: mockGetWalletQuoteTokenBalance,
+    },
+    api: {
       getTradeFlow: mockGetTradeFlow,
     },
     auth: mockAuth,
+    getAccessToken: mockGetAccessToken,
   })),
 }));
 
@@ -75,6 +79,8 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
     baseTokenIcon: '',
     baseToken: '0xbase',
     quoteToken: '0xquote',
+    baseDecimals: 18,
+    quoteDecimals: 6,
     ...overrides,
   };
 }
@@ -749,7 +755,7 @@ describe('MYXClientService', () => {
   });
 
   describe('getTradeFlow', () => {
-    it('delegates to SDK with params and address', async () => {
+    it('delegates to SDK api namespace with accessToken', async () => {
       const params = { limit: 50 };
       const mockResult = { code: 9200, data: [] };
       mockGetTradeFlow.mockResolvedValueOnce(mockResult);
@@ -760,7 +766,12 @@ describe('MYXClientService', () => {
       );
 
       expect(result).toEqual(mockResult);
-      expect(mockGetTradeFlow).toHaveBeenCalledWith(params, '0xuser');
+      expect(mockGetAccessToken).toHaveBeenCalled();
+      expect(mockGetTradeFlow).toHaveBeenCalledWith({
+        ...params,
+        accessToken: 'mock-token',
+        address: '0xuser',
+      });
     });
 
     it('wraps and rethrows errors', async () => {

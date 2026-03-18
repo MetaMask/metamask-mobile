@@ -10,6 +10,10 @@ const mockMarkets = {
 class MyxClient {
   constructor() {
     this.markets = mockMarkets;
+    this.api = {
+      getTradeFlow: jest.fn().mockResolvedValue({ code: 9200, data: [] }),
+    };
+    this.getAccessToken = jest.fn().mockResolvedValue('mock-token');
   }
 }
 

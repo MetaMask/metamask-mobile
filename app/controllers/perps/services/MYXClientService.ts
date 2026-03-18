@@ -544,7 +544,7 @@ export class MYXClientService {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const expireTime = timestamp + 86400; // 24 hours
+    const expireTime = 86400; // Duration in seconds — server computes expireAt = timestamp + expireTime
     const signString = `${appId}&${timestamp}&${expireTime}&${address}&${apiSecret}`;
     const signature = await this.#sha256Hex(signString);
 
@@ -809,10 +809,13 @@ export class MYXClientService {
   ): Promise<{ code: number; data: MYXTradeFlowItem[] }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting trade flow');
-      const result = await this.#myxClient.account.getTradeFlow(
-        params,
+      // SDK 1.0.2: getTradeFlow moved from account to api namespace, requires accessToken
+      const accessToken = await this.#myxClient.getAccessToken();
+      const result = await this.#myxClient.api.getTradeFlow({
+        ...params,
+        accessToken: accessToken ?? '',
         address,
-      );
+      });
       return result as { code: number; data: MYXTradeFlowItem[] };
     } catch (caughtError) {
       const wrappedError = ensureError(

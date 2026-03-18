@@ -119,14 +119,16 @@ describe('MYXWalletService', () => {
       expect(() => service.createEthersSigner()).toThrow('NO_ACCOUNT_SELECTED');
     });
 
-    it('getAddress() returns current account address', async () => {
+    it('getAddress() returns current account address synchronously', () => {
       const signer = service.createEthersSigner();
-      const address = await signer.getAddress();
+      const address = signer.getAddress();
 
       expect(address).toBe(mockEvmAccount.address);
+      // Verify it returns a string, not a Promise
+      expect(typeof address).toBe('string');
     });
 
-    it('getAddress() throws when account disappears', async () => {
+    it('getAddress() throws when account disappears', () => {
       const signer = service.createEthersSigner();
 
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
@@ -138,7 +140,7 @@ describe('MYXWalletService', () => {
         return undefined;
       });
 
-      await expect(signer.getAddress()).rejects.toThrow('NO_ACCOUNT_SELECTED');
+      expect(() => signer.getAddress()).toThrow('NO_ACCOUNT_SELECTED');
     });
 
     it('signTypedData() calls messenger with correct params and returns signature', async () => {

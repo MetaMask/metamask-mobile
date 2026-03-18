@@ -75,7 +75,7 @@ export class MYXWalletService {
    * @returns Signer-like adapter object for the MYX SDK.
    */
   public createEthersSigner(): {
-    getAddress: () => Promise<string>;
+    getAddress: () => string;
     signTypedData: (
       domain: Record<string, unknown>,
       types: Record<string, { name: string; type: string }[]>,
@@ -93,7 +93,8 @@ export class MYXWalletService {
     }
 
     return {
-      getAddress: async (): Promise<string> => {
+      // Synchronous: the MYX SDK calls signer.getAddress() without await
+      getAddress: (): string => {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(
             'AccountTreeController:getAccountsFromSelectedAccountGroup',

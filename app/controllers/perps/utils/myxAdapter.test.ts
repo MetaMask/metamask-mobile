@@ -66,6 +66,8 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
     baseTokenIcon: '',
     baseToken: '0xbase',
     quoteToken: '0xquote',
+    baseDecimals: 18,
+    quoteDecimals: 6,
     ...overrides,
   };
 }
@@ -253,6 +255,7 @@ describe('myxAdapter', () => {
       overrides: Partial<MYXPositionType> = {},
     ): MYXPositionType {
       return {
+        chainId: 56,
         poolId: '0xpool1',
         positionId: 'pos-1',
         direction: MYXDirection.LONG,
@@ -268,6 +271,15 @@ describe('myxAdapter', () => {
           .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
           .toFixed(0),
         txTime: 1700000000,
+        broker: '0xbroker',
+        userLeverage: 10,
+        baseSymbol: 'BTC',
+        quoteSymbol: 'USDT',
+        earlyClosePrice: '0',
+        tradingFee: '0',
+        tokenId: null,
+        freeAmount: '0',
+        lockedAmount: '0',
         ...overrides,
       };
     }
@@ -324,7 +336,7 @@ describe('myxAdapter', () => {
         poolId: '0xpool1',
         orderId: 42,
         txTime: 1700000000,
-        txHash: 0xabc as unknown as number,
+        txHash: '0xabc',
         orderType: MYXOrderTypeEnum.Market,
         operation: MYXOperationEnum.Increase,
         triggerType: 0 as MYXHistoryOrderItem['triggerType'],
@@ -463,10 +475,10 @@ describe('myxAdapter', () => {
   describe('adaptAccountStateFromMYX', () => {
     it('computes balances from account info and wallet balance', () => {
       const accountInfo = {
-        totalCollateral: new BigNumber(1000)
+        freeMargin: new BigNumber(1000)
           .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
           .toFixed(0),
-        unrealizedPnl: new BigNumber(50)
+        quoteProfit: new BigNumber(50)
           .times(new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS))
           .toFixed(0),
       };
@@ -512,7 +524,7 @@ describe('myxAdapter', () => {
         poolId: '0xpool1',
         orderId: 99,
         txTime: 1700000000,
-        txHash: 0xdef as unknown as number,
+        txHash: '0xdef',
         orderType: MYXOrderTypeEnum.Market,
         operation: MYXOperationEnum.Increase,
         triggerType: 0 as MYXHistoryOrderItem['triggerType'],
