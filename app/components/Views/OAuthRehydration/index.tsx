@@ -82,8 +82,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -753,6 +753,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   keyboardAppearance={themeAppearance}
                   isDisabled={disabledInput}
                   isError={!!error}
+                  style={tw.style('h-12 bg-background-muted')}
                 />
               </Box>
 
