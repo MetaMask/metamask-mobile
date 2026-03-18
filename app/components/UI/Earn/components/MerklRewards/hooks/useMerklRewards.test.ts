@@ -6,6 +6,7 @@ import {
   useMerklRewards,
 } from './useMerklRewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -48,6 +49,16 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    }),
+  }),
 }));
 
 // Mock fetch globally
@@ -155,6 +166,9 @@ describe('useMerklRewards', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
+      if (selector === selectNetworkConfigurationByChainId) {
+        return { name: 'Ethereum Mainnet' };
+      }
       return undefined;
     });
   });
@@ -197,6 +211,9 @@ describe('useMerklRewards', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
+      }
+      if (selector === selectNetworkConfigurationByChainId) {
+        return { name: 'Ethereum Mainnet' };
       }
       return undefined;
     });
