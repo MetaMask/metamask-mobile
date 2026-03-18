@@ -50,7 +50,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import { TraceName } from '../../../../../util/trace';
+import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -122,6 +122,11 @@ import {
   selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
 } from '../../selectors/featureFlags';
+import {
+  MarketInsightsEntryCard,
+  useMarketInsights,
+} from '../../../MarketInsights';
+import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import {
   createSelectIsWatchlistMarket,
   selectPerpsEligibility,
@@ -221,6 +226,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Feature flag for Order Book visibility
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
+
+  // Feature flag for Market Insights in Perps
+  const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
+  const { report: perpsInsightsReport, timeAgo: perpsInsightsTimeAgo } =
+    useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
 
   // Check if current market is in watchlist
   const selectIsWatchlist = useMemo(
@@ -396,7 +406,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [candleData, selectedCandlePeriod, visibleCandleCount]);
 
   // Check if user has an existing position for this market
-  // Also provides positionOpenedTimestamp for stop loss prompt timing
   const {
     isLoading: isLoadingPosition,
     existingPosition,
@@ -1005,6 +1014,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     handleBannerDismissComplete();
   }, [handleBannerDismissComplete]);
 
+  // Handler for market insights card tap - navigates to full market insights view
+  const handleMarketInsightsPress = useCallback(() => {
+    if (!market?.symbol) return;
+    trace({
+      name: TraceName.MarketInsightsViewLoad,
+      op: TraceOperation.MarketInsightsLoad,
+    });
+    navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
+      assetSymbol: market.symbol,
+      assetIdentifier: market.symbol,
+      isPerps: true,
+    });
+  }, [market?.symbol, navigation]);
+
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
     (order: (typeof displayOrders)[number]) => {
@@ -1298,6 +1321,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               ))}
             </View>
           )}
+
+          {/* Market Insights Section - shown when perps insights flag is enabled and a report is available */}
+          {isPerpsInsightsEnabled && perpsInsightsReport && market?.symbol ? (
+            <MarketInsightsEntryCard
+              report={perpsInsightsReport}
+              timeAgo={perpsInsightsTimeAgo}
+              onPress={handleMarketInsightsPress}
+            />
+          ) : null}
 
           {/* Statistics Section - Always shown */}
           <View style={styles.section}>
