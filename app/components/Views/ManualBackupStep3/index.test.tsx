@@ -312,7 +312,7 @@ describe('ManualBackupStep3', () => {
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(SEED_PHRASE_HINTS);
       });
 
-      expect(getByTestId('hint-input').props.value).toBeUndefined();
+      expect(getByTestId('hint-input').props.value).toBe('');
     });
 
     it('leaves hint input empty when storage has no manualBackup key', async () => {
@@ -325,7 +325,7 @@ describe('ManualBackupStep3', () => {
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(SEED_PHRASE_HINTS);
       });
 
-      expect(getByTestId('hint-input').props.value).toBeUndefined();
+      expect(getByTestId('hint-input').props.value).toBe('');
     });
   });
 

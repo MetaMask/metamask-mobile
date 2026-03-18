@@ -1,7 +1,8 @@
-import React, { PureComponent } from 'react';
-import { Alert, BackHandler, View, StyleSheet, Keyboard } from 'react-native';
+/* eslint-disable react/prop-types */
+import React, { useEffect, useState, useCallback } from 'react';
+import { Alert, BackHandler, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
+import { Box } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -13,105 +14,75 @@ import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useTheme, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
-    mainWrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      marginTop: 16,
-    },
-    onBoardingWrapper: {
-      paddingHorizontal: 20,
-    },
-  });
-
 const hardwareBackPress = () => ({});
 const HARDWARE_BACK_PRESS = 'hardwareBackPress';
 
-/**
- * View that's shown during the last step of
- * the backup seed phrase flow
- */
-class ManualBackupStep3 extends PureComponent {
-  constructor(props) {
-    super(props);
-    this.steps = props.route.params?.steps;
-  }
+export const ManualBackupStep3 = ({
+  navigation,
+  route,
+  saveOnboardingEvent,
+}) => {
+  const theme = useTheme();
+  const colors = theme.colors || mockTheme.colors;
 
-  state = {
-    currentStep: 4,
-    showHint: false,
-    hintText: '',
-  };
+  const steps = route.params?.steps;
+  const currentStep = 4;
+  const [showHint, setShowHint] = useState(false);
+  const [hintText, setHintText] = useState('');
 
-  static propTypes = {
-    /**
-    /* navigation object required to push and pop other views
-    */
-    navigation: PropTypes.object,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-    /**
-     * Action to save onboarding event
-     */
-    saveOnboardingEvent: PropTypes.func,
-  };
-
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+  const updateNavBar = useCallback(() => {
     navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  };
+  }, [navigation, colors]);
 
-  componentWillUnmount = () => {
-    BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
-  };
+  useEffect(() => {
+    updateNavBar();
+  }, [updateNavBar]);
 
-  componentDidMount = async () => {
-    this.updateNavBar();
-    const currentSeedphraseHints =
-      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
-    const parsedHints =
-      currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
-    const manualBackup = parsedHints?.manualBackup;
-    this.setState({
-      hintText: manualBackup,
-    });
+  useEffect(() => {
+    const loadHints = async () => {
+      const currentSeedphraseHints =
+        await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+      const parsedHints =
+        currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
+      const manualBackup = parsedHints?.manualBackup;
+      setHintText(manualBackup || '');
+    };
+    loadHints();
+
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
-  };
+    return () => {
+      BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+    };
+  }, []);
 
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
+  const toggleHint = useCallback(() => {
+    setShowHint((prev) => !prev);
+  }, []);
 
-  toggleHint = () => {
-    this.setState((state) => ({ showHint: !state.showHint }));
-  };
+  const isHintSeedPhrase = useCallback(
+    (text) => {
+      const seedWords = route.params?.words;
+      if (seedWords) {
+        const lower = (s) => String(s).toLowerCase();
+        return lower(text) === lower(seedWords.join(' '));
+      }
+      return false;
+    },
+    [route.params?.words],
+  );
 
-  isHintSeedPhrase = (hintText) => {
-    const words = this.props.route.params?.words;
-    if (words) {
-      const lower = (string) => String(string).toLowerCase();
-      return lower(hintText) === lower(words.join(' '));
-    }
-    return false;
-  };
-
-  saveHint = async () => {
-    const { hintText } = this.state;
+  const saveHint = useCallback(async () => {
     if (!hintText) return;
-    if (this.isHintSeedPhrase(hintText)) {
+    if (isHintSeedPhrase(hintText)) {
       Alert.alert('Error!', strings('manual_backup_step_3.no_seedphrase'));
       return;
     }
-    this.toggleHint();
+    toggleHint();
     const currentSeedphraseHints =
       await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints = JSON.parse(currentSeedphraseHints);
@@ -123,56 +94,41 @@ class ManualBackupStep3 extends PureComponent {
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       ).build(),
-      this.props.saveOnboardingEvent,
+      saveOnboardingEvent,
     );
-  };
+  }, [hintText, isHintSeedPhrase, toggleHint, saveOnboardingEvent]);
 
-  done = async () => {
-    this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-  };
+  const done = useCallback(() => {
+    navigation.reset({ routes: [{ name: 'HomeNav' }] });
+  }, [navigation]);
 
-  handleChangeText = (text) => this.setState({ hintText: text });
+  const handleChangeText = useCallback((text) => {
+    setHintText(text);
+  }, []);
 
-  renderHint = () => {
-    const { showHint, hintText } = this.state;
-    return (
+  return (
+    <Box twClassName="flex-1 bg-default mt-4">
+      <Confetti />
+      {steps ? (
+        <Box twClassName="px-5">
+          <OnboardingProgress currentStep={currentStep} steps={steps} />
+        </Box>
+      ) : null}
+      <OnboardingSuccessComponent onDone={done} backedUpSRP />
+      {Device.isAndroid() && (
+        <AndroidBackHandler customBackPress={navigation.pop} />
+      )}
       <HintModal
-        onConfirm={this.saveHint}
-        onCancel={this.toggleHint}
+        onConfirm={saveHint}
+        onCancel={toggleHint}
         modalVisible={showHint}
         onRequestClose={Keyboard.dismiss}
         value={hintText}
-        onChangeText={this.handleChangeText}
+        onChangeText={handleChangeText}
       />
-    );
-  };
-
-  render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    return (
-      <View style={styles.mainWrapper}>
-        <Confetti />
-        {this.steps ? (
-          <View style={styles.onBoardingWrapper}>
-            <OnboardingProgress
-              currentStep={this.state.currentStep}
-              steps={this.steps}
-            />
-          </View>
-        ) : null}
-        <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
-        {Device.isAndroid() && (
-          <AndroidBackHandler customBackPress={this.props.navigation.pop} />
-        )}
-        {this.renderHint()}
-      </View>
-    );
-  }
-}
-
-ManualBackupStep3.contextType = ThemeContext;
+    </Box>
+  );
+};
 
 const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
