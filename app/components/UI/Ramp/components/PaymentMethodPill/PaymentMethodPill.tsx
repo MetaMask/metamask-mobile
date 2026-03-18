@@ -17,6 +17,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 
 import styleSheet from './PaymentMethodPill.styles';
+import { PAYMENT_METHOD_PILL_TEST_IDS } from './PaymentMethodPill.testIds';
 
 export interface PaymentMethodPillProps {
   /** Payment method label (e.g., "Debit card") */
@@ -33,7 +34,7 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   label,
   onPress,
   isLoading = false,
-  testID = 'payment-method-pill',
+  testID = PAYMENT_METHOD_PILL_TEST_IDS.CONTAINER,
 }) => {
   const { styles } = useStyles(styleSheet);
 

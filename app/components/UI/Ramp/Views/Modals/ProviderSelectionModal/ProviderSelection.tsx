@@ -235,14 +235,19 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       }
 
       const { provider } = item;
+      const isCustomActionQuote = (q: Quote) =>
+        Boolean((q.quote as { isCustomAction?: boolean })?.isCustomAction);
       const matchedQuote =
         quotes?.success?.find(
           (q) =>
             q.provider === provider.id &&
             (!selectedPaymentMethod ||
-              q.quote?.paymentMethod === selectedPaymentMethod.id),
+              q.quote?.paymentMethod === selectedPaymentMethod.id) &&
+            !isCustomActionQuote(q),
         ) ??
-        quotes?.success?.find((q) => q.provider === provider.id) ??
+        quotes?.success?.find(
+          (q) => q.provider === provider.id && !isCustomActionQuote(q),
+        ) ??
         null;
       const amountOut = matchedQuote?.quote?.amountOut;
       const cryptoAmount =

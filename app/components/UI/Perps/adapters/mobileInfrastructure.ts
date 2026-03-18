@@ -16,6 +16,7 @@ import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import {
+  PERPS_CONSTANTS,
   type PerpsPlatformDependencies,
   type PerpsMetrics,
   type PerpsTraceName,
@@ -166,8 +167,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           extras?: Record<string, unknown>;
         },
       ): void {
-        // Logger.error expects (error, context) format
-        Logger.error(error, options?.context ?? options);
+        Logger.error(error, {
+          ...options,
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            ...options?.tags,
+          },
+        });
       },
     },
     debugLogger: {

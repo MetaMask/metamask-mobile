@@ -93,13 +93,15 @@ jest.mock(
 
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
-  return function MockSkeletonPlaceholder({
+  const MockSkeletonPlaceholder = ({
     children,
   }: {
     children: React.ReactNode;
-  }) {
-    return <View testID="skeleton-placeholder">{children}</View>;
-  };
+  }) => <View testID="skeleton-placeholder">{children}</View>;
+  MockSkeletonPlaceholder.Item = (props: Record<string, unknown>) => (
+    <View {...props} />
+  );
+  return MockSkeletonPlaceholder;
 });
 
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({

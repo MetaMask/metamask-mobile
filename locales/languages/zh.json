@@ -119,6 +119,10 @@
       "message": "您正在将资产发送至销毁地址。若继续操作，您将损失该笔资产。",
       "title": "正在向销毁地址发送资产"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "本次交易无法使用燃料赞助。您的账户中需要至少保留 %{minBalance} %{nativeTokenSymbol}。",
       "title": "燃料赞助不可用"
@@ -689,7 +693,11 @@
     "invisible_character_error": "我们检测到 ENS 名称中包含不可见字符。请仔细检查该 ENS 名称，谨防潜在欺诈风险。",
     "could_not_resolve_name": "无法解析名称",
     "invalid_address": "地址无效",
-    "contractAddressError": "您正在向代币的合约地址发送代币。这可能导致这些代币丢失。"
+    "contractAddressError": "您正在向代币的合约地址发送代币。这可能导致这些代币丢失。",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "我理解",
+    "cancel": "取消"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -2154,6 +2162,7 @@
     "sell_position": "卖出仓位",
     "cash_out": "提现",
     "cash_out_info": "资金将存入您的可用余额",
+    "buy_preview_outcome_at_price": "{{outcome}} 价格为 {{price}}",
     "at_price_per_share": "以 {{price}} 卖出 {{size}} 股票",
     "cashout_info": "针对 {{outcome}}，以 {{initialPrice}} 的价格下注 {{amount}}",
     "cashout_info_multiple": "针对 {{outcomeGroupTitle}} • {{outcome}}，以 {{initialPrice}} 的价格下注 {{amount}}",
@@ -2338,7 +2347,9 @@
       "exchange_fee_description": "支付给交易所或市场的费用",
       "total_incl_fees": "包含费用",
       "close": "关闭",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "无法连接预测市场",
@@ -3287,8 +3298,6 @@
     "blockaid_desc": "此功能通过主动审查交易和签名请求向您发出恶意活动提醒。",
     "security_alerts": "安全警报",
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
-    "dismiss_smart_account_update_heading": "关闭“切换到智能账户”建议",
-    "dismiss_smart_account_update_desc": "启用此选项后，所有账户将不再显示“切换到智能账户”建议。智能账户可实现更快的交易、更低的网络费用，并为这些账户提供更灵活的支付方式。",
     "smart_transactions_opt_in_heading": "智能交易",
     "smart_transactions_opt_in_desc_supported_networks": "开启智能交易，以便在支持网络上实现更加安全可靠的交易。",
     "smart_transactions_learn_more": "了解详情",
@@ -5921,6 +5930,7 @@
   "earn": {
     "claimable_bonus_tooltip": "您因持有 mUSD 而获得的年化奖励。您可以在 Linea 上每日领取奖励。",
     "earn_a_percentage_bonus": "获得 {{percentage}}% 的奖励",
+    "percentage_bonus": "{{percentage}}% 奖励",
     "claimable_bonus": "可领取奖励",
     "claim_bonus": "领取奖励",
     "claim_bonus_subtitle": "奖励将在 {{networkName}} 上发放。",
@@ -6930,7 +6940,7 @@
       "upgrade_title": "升级至金属卡",
       "continue_button": "继续",
       "virtual_card": {
-        "name": "Orange 虚拟卡",
+        "name": "Virtual Card",
         "price": "免费",
         "feature_1": "用于 Apple Pay 和 Google Pay 的虚拟卡",
         "feature_2": "使用加密货币支付（支持 USDC、USDT、WETH 等代币）",
@@ -6939,10 +6949,13 @@
       "metal_card": {
         "name": "金属卡",
         "price": "199美元/年",
-        "feature_1": "雕刻金属卡以及用于 Apple Pay 和 Google Pay 的虚拟卡",
-        "feature_2": "每年首 1 万美元消费享 3% 返现，超额部分享 1% 返现",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "无外币交易费用"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "查看您的订单",
@@ -7090,7 +7103,8 @@
         "ssn_label": "社会安全号码",
         "ssn_description": "此为发卡机构的要求。不会进行信用检查。",
         "invalid_ssn": "社会安全号码无效",
-        "invalid_date_of_birth": "出生日期无效。您必须年满 18 周岁"
+        "invalid_date_of_birth": "出生日期无效。您必须年满 18 周岁",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "填写您的地址",
@@ -7174,6 +7188,7 @@
       "enable_assets_button_label": "启用资产",
       "spending_limit_warning": "您已接近消费限额。请及时更新以避免交易被拒。",
       "logout": "退出登录",
+      "contact_support": "联系支持团队",
       "logout_confirmation_title": "确定要退出卡账户吗？",
       "logout_confirmation_message": "确定要退出您的 MetaMask 卡账户吗？",
       "logout_confirmation_cancel": "取消",
@@ -7727,6 +7742,18 @@
     },
     "active_boosts_title": "活跃加成",
     "season_1": "第 1 季",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "购买 mUSD",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "锁定的奖励",
       "points_needed": "{{points}} 积分",
@@ -8006,6 +8033,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "代币",
       "perpetuals": "永续合约",
       "predictions": "预测",
