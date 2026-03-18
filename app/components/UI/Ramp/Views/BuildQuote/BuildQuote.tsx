@@ -204,6 +204,13 @@ function BuildQuote() {
       return false;
     }
 
+    if (
+      selectedProvider.supportedCryptoCurrencies &&
+      !selectedProvider.supportedCryptoCurrencies[effectiveAssetId]
+    ) {
+      return true;
+    }
+
     // Only determine unavailability after payment methods have fully settled.
     // This prevents the modal from flashing during loading/idle/error states
     // (e.g. after a provider change while the new query is still in flight).
@@ -217,14 +224,6 @@ function BuildQuote() {
     // (payment methods API is more authoritative than supportedCryptoCurrencies)
     if (paymentMethods.length > 0) {
       return false;
-    }
-
-    // Provider explicitly doesn't support this token
-    if (
-      selectedProvider.supportedCryptoCurrencies &&
-      !selectedProvider.supportedCryptoCurrencies[effectiveAssetId]
-    ) {
-      return true;
     }
 
     // Payment methods loaded but empty
