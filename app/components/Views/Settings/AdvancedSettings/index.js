@@ -381,13 +381,15 @@ class AdvancedSettings extends PureComponent {
 
             <SettingsRow
               heading={strings(
-                'app_settings.dismiss_smart_account_update_heading',
+                'app_settings.smart_account_dapp_requests_heading',
               )}
               description={strings(
-                'app_settings.dismiss_smart_account_update_desc',
+                'app_settings.smart_account_dapp_requests_desc',
               )}
-              value={dismissSmartAccountSuggestionEnabled}
-              onValueChange={this.toggleDismissSmartAccountSuggestionEnabled}
+              value={!dismissSmartAccountSuggestionEnabled}
+              onValueChange={(val) =>
+                this.toggleDismissSmartAccountSuggestionEnabled(!val)
+              }
               testId={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
               styles={styles}
             />

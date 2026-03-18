@@ -38,6 +38,7 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
+import { OTP_CODE_TEST_IDS } from './OtpCode.testIds';
 
 export interface OtpCodeParams {
   email: string;
@@ -285,14 +286,14 @@ const OtpCode = () => {
               variant={TextVariant.BodyMD}
               color={TextColor.Primary}
               onPress={handlePaste}
-              testID="otp-code-paste-button"
+              testID={OTP_CODE_TEST_IDS.PASTE_BUTTON}
             >
               {strings('deposit.otp_code.paste')}
             </Text>
           </Box>
 
           <CodeField
-            testID="otp-code-input"
+            testID={OTP_CODE_TEST_IDS.INPUT}
             ref={inputRef as React.RefObject<TextInput>}
             {...props}
             value={value}
@@ -361,7 +362,7 @@ const OtpCode = () => {
             width={ButtonWidthTypes.Full}
             loading={isLoading}
             isDisabled={isLoading || value.length !== CELL_COUNT}
-            testID="otp-code-submit-button"
+            testID={OTP_CODE_TEST_IDS.SUBMIT_BUTTON}
           />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
