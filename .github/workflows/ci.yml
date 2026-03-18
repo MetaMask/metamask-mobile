@@ -272,6 +272,8 @@ jobs:
             echo "No changes detected"
           fi
 
+  # We need to merge both unit and component view tests into a single coverage report so the PR coverage
+  # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
     needs: [unit-tests, component-view-tests]
@@ -321,6 +323,11 @@ jobs:
             [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
           done
 
+          mkdir -p tests/coverage-unit-merged
+          for file in ./tests/coverage/coverage-unit-*/coverage-unit-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-unit-merged/
+          done
+
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
@@ -350,6 +357,13 @@ jobs:
         with:
           name: cv-test-coverage-summary
           path: ./tests/coverage-cv-lcov/coverage-summary.json
+          if-no-files-found: error
+      - name: Generate unit test coverage summary
+        run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage-summary
+          path: ./tests/coverage-unit-lcov/coverage-summary.json
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash

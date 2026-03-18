@@ -36,6 +36,8 @@ import { join } from 'path';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
 
+const WORKFLOW_RUN_ID = "23209543808";
+
 if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 
 
@@ -94,7 +96,8 @@ async function getArtifactList() {
   let page = 1;
 
   while (true) {
-    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
+    // const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -314,10 +317,10 @@ async function collectComponentViewTestCount() {
     const destDir = await downloadArtifact('cv-test-coverage-summary');
     const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
     const { lines, statements, branches, functions } = summary.total;
-    result.line_coverage = Math.round(lines.pct);
-    result.statement_coverage = Math.round(statements.pct);
-    result.branch_coverage = Math.round(branches.pct);
-    result.function_coverage = Math.round(functions.pct);
+    result.line_coverage = Math.round(lines.pct * 10) / 10;
+    result.statement_coverage = Math.round(statements.pct * 10) / 10;
+    result.branch_coverage = Math.round(branches.pct * 10) / 10;
+    result.function_coverage = Math.round(functions.pct * 10) / 10;
     console.log(
       `[component-view] coverage — line: ${result.line_coverage}%, stmt: ${result.statement_coverage}%, branch: ${result.branch_coverage}%, fn: ${result.function_coverage}%`,
     );
@@ -347,6 +350,24 @@ async function collectUnitTestCount() {
   }
   result.total_tests_defined = defined;
   result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('unit-test-coverage-summary');
+    const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
+    const { lines, statements, branches, functions } = summary.total;
+    result.line_coverage = Math.round(lines.pct * 10) / 10;
+    result.statement_coverage = Math.round(statements.pct * 10) / 10;
+    result.branch_coverage = Math.round(branches.pct * 10) / 10;
+    result.function_coverage = Math.round(functions.pct * 10) / 10;
+    console.log(
+      `[unit] coverage — line: ${result.line_coverage}%, stmt: ${result.statement_coverage}%, branch: ${result.branch_coverage}%, fn: ${result.function_coverage}%`,
+    );
+  } catch (err) {
+    console.warn(`[unit] coverage summary not available, skipping: ${err.message}`);
+  }
+
   return result;
 }
 
@@ -461,7 +482,7 @@ async function collectE2ECounts() {
   // Static scan — independent of which platform/channel ran
   const isSpecTs = (name) => /\.spec\.[jt]sx?$/.test(name);
   let defined = 0, skips = 0;
-  for (const dir of ['tests/regression', 'tests/smoke']) {
+  for (const dir of ['tests/smoke']) {
     const files = await walkFiles(dir, isSpecTs);
     for (const f of files) {
       const source = await readFile(f, 'utf8');
