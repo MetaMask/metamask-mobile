@@ -62,43 +62,56 @@ export const applyKeyAtCursor = ({
 }): { value: string; cursorPosition: number } => {
   const normalizedCurrentValue = currentValue || '0';
   // Defensive bound in case UI selection and amount length momentarily drift.
-  const boundedCursor = clamp(cursorPosition, 0, normalizedCurrentValue.length);
+  const boundedCursorPosition = clamp(
+    cursorPosition,
+    0,
+    normalizedCurrentValue.length,
+  );
 
   if (pressedKey === Keys.Initial) {
     return { value: '0', cursorPosition: 0 };
   }
 
   if (pressedKey === Keys.Back) {
-    if (normalizedCurrentValue === '0' || boundedCursor === 0) {
-      return { value: normalizedCurrentValue, cursorPosition: boundedCursor };
+    if (normalizedCurrentValue === '0' || boundedCursorPosition === 0) {
+      return {
+        value: normalizedCurrentValue,
+        cursorPosition: boundedCursorPosition,
+      };
     }
 
     const nextValue =
-      normalizedCurrentValue.slice(0, boundedCursor - 1) +
-      normalizedCurrentValue.slice(boundedCursor);
+      normalizedCurrentValue.slice(0, boundedCursorPosition - 1) +
+      normalizedCurrentValue.slice(boundedCursorPosition);
 
     if (!nextValue) {
       return { value: '0', cursorPosition: 0 };
     }
 
-    return normalizeValue(nextValue, boundedCursor - 1);
+    return normalizeValue(nextValue, boundedCursorPosition - 1);
   }
 
   if (pressedKey === Keys.Period) {
     if (decimals === 0 || normalizedCurrentValue.includes('.')) {
-      return { value: normalizedCurrentValue, cursorPosition: boundedCursor };
+      return {
+        value: normalizedCurrentValue,
+        cursorPosition: boundedCursorPosition,
+      };
     }
 
     const insertedValue =
-      normalizedCurrentValue.slice(0, boundedCursor) +
+      normalizedCurrentValue.slice(0, boundedCursorPosition) +
       '.' +
-      normalizedCurrentValue.slice(boundedCursor);
+      normalizedCurrentValue.slice(boundedCursorPosition);
 
-    return normalizeValue(insertedValue, boundedCursor + 1);
+    return normalizeValue(insertedValue, boundedCursorPosition + 1);
   }
 
   if (!regex.hasOneDigit.test(pressedKey)) {
-    return { value: normalizedCurrentValue, cursorPosition: boundedCursor };
+    return {
+      value: normalizedCurrentValue,
+      cursorPosition: boundedCursorPosition,
+    };
   }
 
   // Preserve existing keypad behavior for replacing the initial zero.
@@ -107,17 +120,20 @@ export const applyKeyAtCursor = ({
   }
 
   const insertedValue =
-    normalizedCurrentValue.slice(0, boundedCursor) +
+    normalizedCurrentValue.slice(0, boundedCursorPosition) +
     pressedKey +
-    normalizedCurrentValue.slice(boundedCursor);
+    normalizedCurrentValue.slice(boundedCursorPosition);
 
   if (decimals > 0) {
     const [, decimalPart = ''] = insertedValue.split('.');
     // Reject edits that would exceed the token's supported fractional precision.
     if (decimalPart.length > decimals) {
-      return { value: normalizedCurrentValue, cursorPosition: boundedCursor };
+      return {
+        value: normalizedCurrentValue,
+        cursorPosition: boundedCursorPosition,
+      };
     }
   }
 
-  return normalizeValue(insertedValue, boundedCursor + 1);
+  return normalizeValue(insertedValue, boundedCursorPosition + 1);
 };
