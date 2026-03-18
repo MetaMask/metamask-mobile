@@ -1,6 +1,7 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import TokensFullView from './TokensFullView';
 import { useNavigation } from '@react-navigation/native';
+import { useFullViewSortResetEffect } from './useFullViewSortResetEffect';
 
 // Mock external dependencies that are not under test
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -14,6 +15,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('./useFullViewSortResetEffect', () => ({
+  useFullViewSortResetEffect: jest.fn(),
 }));
 
 // Mock AssetPollingProvider to avoid Engine/controller polling setup
@@ -43,6 +48,10 @@ jest.mock('../../UI/Tokens', () => {
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
+const mockUseFullViewSortResetEffect =
+  useFullViewSortResetEffect as jest.MockedFunction<
+    typeof useFullViewSortResetEffect
+  >;
 
 describe('TokensFullView', () => {
   const mockGoBack = jest.fn();
@@ -54,6 +63,14 @@ describe('TokensFullView', () => {
     mockUseNavigation.mockReturnValue({
       goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
+  });
+
+  it('invokes the full view sort reset effect hook', () => {
+    renderScreen(TokensFullView, {
+      name: 'TokensFullView',
+    });
+
+    expect(mockUseFullViewSortResetEffect).toHaveBeenCalledTimes(1);
   });
 
   it('renders header with title and back button', () => {

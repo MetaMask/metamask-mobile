@@ -1,6 +1,7 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import DeFiFullView from './DeFiFullView';
 import { useNavigation } from '@react-navigation/native';
+import { useFullViewSortResetEffect } from '../TokensFullView/useFullViewSortResetEffect';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
@@ -13,6 +14,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../TokensFullView/useFullViewSortResetEffect', () => ({
+  useFullViewSortResetEffect: jest.fn(),
 }));
 
 jest.mock('../../UI/DeFiPositions/DeFiPositionsList', () => {
@@ -31,6 +36,10 @@ jest.mock('../../UI/DeFiPositions/DeFiPositionsList', () => {
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
+const mockUseFullViewSortResetEffect =
+  useFullViewSortResetEffect as jest.MockedFunction<
+    typeof useFullViewSortResetEffect
+  >;
 
 describe('DeFiFullView', () => {
   const mockGoBack = jest.fn();
@@ -41,6 +50,14 @@ describe('DeFiFullView', () => {
     mockUseNavigation.mockReturnValue({
       goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
+  });
+
+  it('invokes the full view sort reset effect hook', () => {
+    renderScreen(DeFiFullView, {
+      name: 'DeFiFullView',
+    });
+
+    expect(mockUseFullViewSortResetEffect).toHaveBeenCalledTimes(1);
   });
 
   it('renders header with title and back button', () => {
