@@ -3,7 +3,7 @@ import {
   type NativeSyntheticEvent,
   type TextInputSelectionChangeEventData,
 } from 'react-native';
-import { type KeypadChangeData } from '../../../Base/Keypad';
+import { Keys, type KeypadChangeData } from '../../../Base/Keypad';
 import { formatAmountWithLocaleSeparators } from '../utils/formatAmountWithLocaleSeparators';
 import { applyKeyAtCursor } from '../utils/applyKeyAtCursor';
 import {
@@ -31,6 +31,9 @@ interface UseSourceAmountCursorResult {
   handleKeypadChange: ({ pressedKey, value }: KeypadChangeData) => void;
   resetSourceAmountCursorPosition: () => void;
 }
+
+const isDestructiveKey = (pressedKey: Keys) =>
+  pressedKey === Keys.Back || pressedKey === Keys.Initial;
 
 export const useSourceAmountCursor = ({
   sourceAmount,
@@ -96,7 +99,7 @@ export const useSourceAmountCursor = ({
         // Preserve the shared keypad's existing append/delete behavior until
         // the user explicitly places the cursor in the amount field.
         setRawSourceAmountCursorPosition(undefined);
-        if (value.length < maxInputLength) {
+        if (isDestructiveKey(pressedKey) || value.length <= maxInputLength) {
           onSourceAmountChange(value || undefined);
         }
         return;
@@ -111,7 +114,10 @@ export const useSourceAmountCursor = ({
         decimals: sourceTokenDecimals ?? Infinity,
       });
 
-      if (updatedAmount.value.length >= maxInputLength) {
+      if (
+        !isDestructiveKey(pressedKey) &&
+        updatedAmount.value.length > maxInputLength
+      ) {
         return;
       }
 

@@ -107,7 +107,7 @@ describe('useSourceAmountCursor', () => {
     expect(result.current.sourceSelection).toBeUndefined();
   });
 
-  it('enforces max input length', () => {
+  it('allows keypad edits up to max input length', () => {
     const onSourceAmountChange = jest.fn();
 
     const { result } = renderHook(() =>
@@ -127,6 +127,56 @@ describe('useSourceAmountCursor', () => {
       });
     });
 
+    expect(onSourceAmountChange).toHaveBeenCalledWith('12345');
+  });
+
+  it('blocks insertions beyond max input length', () => {
+    const onSourceAmountChange = jest.fn();
+
+    const { result } = renderHook(() =>
+      useSourceAmountCursor({
+        sourceAmount: '12345',
+        sourceTokenDecimals: 18,
+        maxInputLength: 5,
+        onSourceAmountChange,
+      }),
+    );
+
+    act(() => {
+      result.current.handleKeypadChange({
+        value: '123456',
+        valueAsNumber: 123456,
+        pressedKey: Keys.Digit6,
+      });
+    });
+
     expect(onSourceAmountChange).not.toHaveBeenCalled();
+  });
+
+  it('allows deleting an over-limit value back down to the max input length', () => {
+    const onSourceAmountChange = jest.fn();
+
+    const { result } = renderHook(() =>
+      useSourceAmountCursor({
+        sourceAmount: '123456',
+        sourceTokenDecimals: 18,
+        maxInputLength: 5,
+        onSourceAmountChange,
+      }),
+    );
+
+    act(() => {
+      result.current.handleSourceSelectionChange(createSelectionEvent(1));
+    });
+
+    act(() => {
+      result.current.handleKeypadChange({
+        value: '12345',
+        valueAsNumber: 12345,
+        pressedKey: Keys.Back,
+      });
+    });
+
+    expect(onSourceAmountChange).toHaveBeenCalledWith('23456');
   });
 });

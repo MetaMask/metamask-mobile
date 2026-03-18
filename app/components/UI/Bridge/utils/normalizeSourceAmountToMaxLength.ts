@@ -6,9 +6,9 @@ export const normalizeSourceAmountToMaxLength = (
 ): string => {
   const normalizedValue = trimTrailingZeros(value);
 
-  // Cursor-aware keypad edits only accept values whose raw length is strictly
-  // below maxInputLength, so programmatic updates should satisfy the same rule.
-  if (normalizedValue.length < maxInputLength) {
+  // Keep programmatic updates aligned with keypad edits, which now allow raw
+  // values up to and including maxInputLength.
+  if (normalizedValue.length <= maxInputLength) {
     return normalizedValue;
   }
 
@@ -18,7 +18,7 @@ export const normalizeSourceAmountToMaxLength = (
   }
 
   const integerPart = normalizedValue.slice(0, decimalIndex);
-  const maxAllowedLength = maxInputLength - 1;
+  const maxAllowedLength = maxInputLength;
 
   // If the integer part alone is already too long, keep the full value rather
   // than silently changing its magnitude.
