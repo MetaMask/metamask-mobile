@@ -787,13 +787,7 @@ export class Engine {
     totalNativeTokenBalance: string;
     ticker: string;
   } => {
-    const {
-      // CurrencyRateController,
-      AccountsController,
-      // TokenBalancesController,
-      // TokensController,
-      NetworkController,
-    } = this.context;
+    const { AccountsController, NetworkController } = this.context;
 
     const selectedInternalAccount =
       account ??

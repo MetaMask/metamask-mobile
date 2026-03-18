@@ -18,6 +18,7 @@ export function getTransactionPayControllerMessenger(
     RootMessenger
   >({
     namespace: 'TransactionPayController',
+    parent: rootMessenger,
   });
 
   rootMessenger.delegate({
