@@ -52,22 +52,22 @@ jobs:
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       YARN_ENABLE_GLOBAL_CACHE: 'true'
       MM_POOLED_STAKING_ENABLED: 'true'
-      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
-      FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-      SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-      SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-      SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-      MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-      MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
-      GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-      GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: 'lorem-ipsum-announcements-access-token'
+      FEATURES_ANNOUNCEMENTS_SPACE_ID: 'lorem-ipsum-announcements-space-id'
+      SEGMENT_WRITE_KEY_QA: 'lorem-ipsum-segment-write-key-qa'
+      SEGMENT_PROXY_URL_QA: 'lorem-ipsum-segment-proxy-url-qa'
+      SEGMENT_DELETE_API_SOURCE_ID_QA: 'lorem-ipsum-segment-delete-api-source-id-qa'
+      SEGMENT_REGULATIONS_ENDPOINT_QA: 'lorem-ipsum-segment-regulations-endpoint-qa'
+      MM_SENTRY_DSN_TEST: 'lorem-ipsum-sentry-dsn-test'
+      MM_SENTRY_AUTH_TOKEN: 'lorem-ipsum-sentry-auth-token'
+      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: 'lorem-ipsum-ios-google-client-id-uat'
+      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: 'lorem-ipsum-ios-google-redirect-uri-uat'
+      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: 'lorem-ipsum-android-apple-client-id-uat'
+      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: 'lorem-ipsum-android-google-client-id-uat'
+      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: 'lorem-ipsum-android-google-server-client-id-uat'
+      GOOGLE_SERVICES_B64_IOS: 'lorem-ipsum-google-services-b64-ios'
+      GOOGLE_SERVICES_B64_ANDROID: 'lorem-ipsum-google-services-b64-android'
+      MM_INFURA_PROJECT_ID: 'lorem-ipsum-infura-project-id'
       MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
     steps:
