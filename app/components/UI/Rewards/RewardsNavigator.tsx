@@ -6,15 +6,15 @@ import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import CampaignsView from './Views/CampaignsView';
-import PreviousSeasonView from './Views/PreviousSeasonView';
 import CampaignDetailsView from './Views/CampaignDetailsView';
+import CampaignMechanicsView from './Views/CampaignMechanicsView';
+import PreviousSeasonView from './Views/PreviousSeasonView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
-import { useRewardCampaigns } from './hooks/useRewardCampaigns';
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
@@ -29,9 +29,6 @@ const RewardsNavigator: React.FC = () => {
 
   // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
   useGeoRewardsMetadata({});
-
-  // Fetch all campaigns
-  useRewardCampaigns();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
@@ -87,8 +84,13 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.PREVIOUS_SEASON_VIEW}
-            component={PreviousSeasonView}
+            name={Routes.CAMPAIGN_DETAILS}
+            component={CampaignDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.CAMPAIGN_MECHANICS}
+            component={CampaignMechanicsView}
             options={{ headerShown: false }}
           />
         </>
