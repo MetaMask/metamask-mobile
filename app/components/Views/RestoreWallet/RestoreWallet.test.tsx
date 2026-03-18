@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ActivityIndicator } from 'react-native';
+import { Image } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import RestoreWallet from './RestoreWallet';
 import Routes from '../../../constants/navigation/Routes';
@@ -150,7 +150,7 @@ describe('RestoreWallet', () => {
       });
     });
 
-    it('shows loading indicator while restoring', async () => {
+    it('shows loading state while restoring', async () => {
       let resolveRestore: (value: { success: boolean }) => void;
       const restorePromise = new Promise<{ success: boolean }>((resolve) => {
         resolveRestore = resolve;
@@ -158,15 +158,13 @@ describe('RestoreWallet', () => {
       (EngineService.initializeVaultFromBackup as jest.Mock).mockReturnValue(
         restorePromise,
       );
-      const { getByText, UNSAFE_getByType } = renderWithProvider(
-        <RestoreWallet />,
-      );
+      const { getByText, getByTestId } = renderWithProvider(<RestoreWallet />);
 
       fireEvent.press(
         getByText(strings('restore_wallet.restore_needed_action')),
       );
 
-      expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+      expect(getByTestId('spinner-container')).toBeOnTheScreen();
 
       // @ts-expect-error resolveRestore is assigned in Promise constructor
       resolveRestore({ success: true });
