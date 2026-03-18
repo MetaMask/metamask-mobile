@@ -8043,7 +8043,7 @@
       "nearby_permission_denied": "Nearby devices permission is required",
       "bluetooth_off": "Please turn on Bluetooth to connect to your device",
       "bluetooth_scan_failed": "Failed to scan for devices. Please try again",
-      "bluetooth_connection_failed": "Enable Bluetooth on your device to continue",
+      "bluetooth_connection_failed": "The connection to your device failed. Please try again",
       "not_supported": "This operation is not supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },

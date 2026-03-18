@@ -32,7 +32,7 @@ jest.mock('../UI/nft', () => {
       onPress: (asset: Nft) => void;
     }) => (
       <Pressable
-        testID={`nft-${asset.name || asset.tokenId}`}
+        testID={`nft-${asset.name || asset.collectionName || 'NFT'}-${asset.tokenId}`}
         onPress={() => onPress(asset)}
       >
         <Text>{asset.name || asset.tokenId}</Text>
@@ -95,22 +95,22 @@ describe('NftList', () => {
     it('renders nfts when provided', () => {
       const { getByTestId } = render(<NftList nfts={mockNfts} />);
 
-      expect(getByTestId('nft-Cool NFT #1')).toBeOnTheScreen();
-      expect(getByTestId('nft-Awesome NFT #2')).toBeOnTheScreen();
+      expect(getByTestId('nft-Cool NFT #1-1')).toBeOnTheScreen();
+      expect(getByTestId('nft-Awesome NFT #2-2')).toBeOnTheScreen();
     });
 
     it('renders empty list when no nfts provided', () => {
       const { queryByTestId } = render(<NftList nfts={[]} />);
 
-      expect(queryByTestId('nft-Cool NFT #1')).toBeNull();
-      expect(queryByTestId('nft-Awesome NFT #2')).toBeNull();
+      expect(queryByTestId('nft-Cool NFT #1-1')).toBeNull();
+      expect(queryByTestId('nft-Awesome NFT #2-2')).toBeNull();
     });
 
     it('renders single nft correctly', () => {
       const singleNft = [mockNfts[0]];
       const { getByTestId } = render(<NftList nfts={singleNft} />);
 
-      expect(getByTestId('nft-Cool NFT #1')).toBeOnTheScreen();
+      expect(getByTestId('nft-Cool NFT #1-1')).toBeOnTheScreen();
     });
   });
 
@@ -118,7 +118,7 @@ describe('NftList', () => {
     it('calls updateAsset and navigates to recipient screen when ERC721 nft is pressed', () => {
       const { getByTestId } = render(<NftList nfts={mockNfts} />);
 
-      fireEvent.press(getByTestId('nft-Cool NFT #1'));
+      fireEvent.press(getByTestId('nft-Cool NFT #1-1'));
 
       expect(mockUpdateAsset).toHaveBeenCalledWith(mockNfts[0]);
       expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.RECIPIENT);
@@ -134,14 +134,14 @@ describe('NftList', () => {
 
       const { getByTestId } = render(<NftList nfts={mockNfts} />);
 
-      fireEvent.press(getByTestId('nft-Cool NFT #1'));
+      fireEvent.press(getByTestId('nft-Cool NFT #1-1'));
       expect(mockUpdateTo).toHaveBeenCalledWith('');
     });
 
     it('calls updateAsset and navigates to amount screen when ERC1155 nft is pressed', () => {
       const { getByTestId } = render(<NftList nfts={mockNfts} />);
 
-      fireEvent.press(getByTestId('nft-Awesome NFT #2'));
+      fireEvent.press(getByTestId('nft-Awesome NFT #2-2'));
 
       expect(mockUpdateAsset).toHaveBeenCalledWith(mockNfts[1]);
       expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
@@ -158,7 +158,7 @@ describe('NftList', () => {
 
       const { getByTestId } = render(<NftList nfts={mockNfts} />);
 
-      fireEvent.press(getByTestId('nft-Cool NFT #1'));
+      fireEvent.press(getByTestId('nft-Cool NFT #1-1'));
 
       expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockNfts[0], '0');
     });
@@ -174,7 +174,7 @@ describe('NftList', () => {
 
       const { getByTestId } = render(<NftList nfts={mockNfts} />);
 
-      fireEvent.press(getByTestId('nft-Awesome NFT #2'));
+      fireEvent.press(getByTestId('nft-Awesome NFT #2-2'));
 
       expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockNfts[1], '1');
     });
@@ -184,10 +184,10 @@ describe('NftList', () => {
     it('shows only first 5 nfts initially', () => {
       const { queryByTestId } = render(<NftList nfts={manyNfts} />);
 
-      expect(queryByTestId('nft-NFT 0')).toBeOnTheScreen();
-      expect(queryByTestId('nft-NFT 4')).toBeOnTheScreen();
-      expect(queryByTestId('nft-NFT 5')).toBeNull();
-      expect(queryByTestId('nft-NFT 11')).toBeNull();
+      expect(queryByTestId('nft-NFT 0-0')).toBeOnTheScreen();
+      expect(queryByTestId('nft-NFT 4-4')).toBeOnTheScreen();
+      expect(queryByTestId('nft-NFT 5-5')).toBeNull();
+      expect(queryByTestId('nft-NFT 11-11')).toBeNull();
     });
 
     it('shows "Show more NFTs" button when there are more than 5 nfts', () => {
@@ -205,12 +205,12 @@ describe('NftList', () => {
     it('shows more nfts when "Show more NFTs" is pressed', () => {
       const { getByText, queryByTestId } = render(<NftList nfts={manyNfts} />);
 
-      expect(queryByTestId('nft-NFT 5')).toBeNull();
+      expect(queryByTestId('nft-NFT 5-5')).toBeNull();
 
       fireEvent.press(getByText('Show more NFTs'));
 
-      expect(queryByTestId('nft-NFT 5')).toBeOnTheScreen();
-      expect(queryByTestId('nft-NFT 9')).toBeOnTheScreen();
+      expect(queryByTestId('nft-NFT 5-5')).toBeOnTheScreen();
+      expect(queryByTestId('nft-NFT 9-9')).toBeOnTheScreen();
     });
 
     it('hides "Show more NFTs" button when all nfts are visible', () => {
@@ -236,13 +236,13 @@ describe('NftList', () => {
 
       fireEvent.press(getByText('Show more NFTs'));
 
-      expect(queryByTestId('nft-NFT 9')).toBeOnTheScreen();
-      expect(queryByTestId('nft-NFT 10')).toBeNull();
+      expect(queryByTestId('nft-NFT 9-9')).toBeOnTheScreen();
+      expect(queryByTestId('nft-NFT 10-10')).toBeNull();
 
       fireEvent.press(getByText('Show more NFTs'));
 
-      expect(queryByTestId('nft-NFT 14')).toBeOnTheScreen();
-      expect(queryByTestId('nft-NFT 15')).toBeNull();
+      expect(queryByTestId('nft-NFT 14-14')).toBeOnTheScreen();
+      expect(queryByTestId('nft-NFT 15-15')).toBeNull();
     });
   });
 });

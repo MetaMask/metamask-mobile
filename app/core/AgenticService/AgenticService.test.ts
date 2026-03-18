@@ -106,6 +106,16 @@ jest.mock('../NavigationService', () => ({
 jest.mock('../../constants/navigation/Routes', () => ({
   ONBOARDING: { HOME_NAV: 'HomeNav' },
 }));
+jest.mock('../SecureKeychain', () => ({
+  setGenericPassword: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock('../../constants/userProperties', () => ({
+  __esModule: true,
+  default: { DEVICE_AUTHENTICATION: 'device_authentication' },
+}));
+jest.mock('../SDKConnect/utils/DevLogger', () => ({
+  log: jest.fn(),
+}));
 
 const MockEngine = jest.mocked(Engine);
 
