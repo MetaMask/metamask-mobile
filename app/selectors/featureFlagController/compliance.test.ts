@@ -1,26 +1,20 @@
 import { selectComplianceEnabled } from './compliance';
 import { FeatureFlagNames } from '../../constants/featureFlags';
-// eslint-disable-next-line import/no-namespace
-import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
+import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
-describe('selectComplianceEnabled', () => {
-  let mockHasMinimumRequiredVersion: jest.SpyInstance;
+jest.mock('../../util/remoteFeatureFlag', () => ({
+  ...jest.requireActual('../../util/remoteFeatureFlag'),
+  hasMinimumRequiredVersion: jest.fn(),
+}));
 
+describe('selectComplianceEnabled', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHasMinimumRequiredVersion = jest.spyOn(
-      remoteFeatureFlagModule,
-      'hasMinimumRequiredVersion',
-    );
-    mockHasMinimumRequiredVersion.mockReturnValue(true);
-  });
-
-  afterEach(() => {
-    mockHasMinimumRequiredVersion?.mockRestore();
+    jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
   });
 
   it('returns true when remote flag is valid and enabled', () => {
@@ -46,7 +40,7 @@ describe('selectComplianceEnabled', () => {
   });
 
   it('returns false when version check fails', () => {
-    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    jest.mocked(hasMinimumRequiredVersion).mockReturnValue(false);
 
     const result = selectComplianceEnabled.resultFunc({
       [FeatureFlagNames.complianceEnabled]: {
