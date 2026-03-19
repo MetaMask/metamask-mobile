@@ -16,6 +16,7 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, View } from 'react-native';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Animated from 'react-native-reanimated';
 import {
   CandlePeriod,
@@ -1116,6 +1117,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     shouldShowNewPositionActions && showAddFundsCTA;
   const shouldShowLongShortButtonsOnly =
     shouldShowNewPositionActions && !showAddFundsCTA;
+
+  // PR-27669 reproduction marker
+  if (hasLongShortButtons && !existingPosition) {
+    DevLogger.log('[PR-27669] BUG_MARKER: Long/Short buttons shown without position confirmation', { hasLongShortButtons, existingPosition: !!existingPosition, isLoadingPosition });
+  }
 
   const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
 
