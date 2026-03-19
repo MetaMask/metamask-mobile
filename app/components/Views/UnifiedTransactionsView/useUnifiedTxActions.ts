@@ -290,7 +290,7 @@ export function useUnifiedTxActions() {
   );
 
   const cancelUnsignedQRTransaction = async (tx: TransactionMeta) => {
-    await Engine.context.ApprovalController.reject(
+    await Engine.context.ApprovalController.rejectRequest(
       tx.id,
       providerErrors.userRejectedRequest(),
     );
