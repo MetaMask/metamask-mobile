@@ -274,8 +274,7 @@ const GasFeesDetailsRow = ({
 
   // Gasless support (including HW check) is centralized in useIsGaslessSupported.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const isGasFeeSponsored =
-    isGaslessSupported && doesSentinelAllowSponsorship;
+  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({

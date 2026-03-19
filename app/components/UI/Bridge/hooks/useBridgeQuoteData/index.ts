@@ -14,7 +14,10 @@ import {
   setSelectedQuoteRequestId,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
-import { areAddressesEqual, isHardwareAccount } from '../../../../../util/address';
+import {
+  areAddressesEqual,
+  isHardwareAccount,
+} from '../../../../../util/address';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
@@ -52,12 +55,23 @@ export const useBridgeQuoteData = ({
   const rawQuotes = useSelector(selectBridgeQuotes);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
   const quotes = useMemo(() => {
-    if (!rawQuotes || !sourceWalletAddress || !isHardwareAccount(sourceWalletAddress)) {
+    if (
+      !rawQuotes ||
+      !sourceWalletAddress ||
+      !isHardwareAccount(sourceWalletAddress)
+    ) {
       return rawQuotes;
     }
-    const stripGasSponsored = <T extends { quote: Record<string, unknown> }>(item: T): T => ({
+    const stripGasSponsored = <T extends { quote: Record<string, unknown> }>(
+      item: T,
+    ): T => ({
       ...item,
-      quote: { ...item.quote, gasIncluded7702: false, gasIncluded: false, gasSponsored: false },
+      quote: {
+        ...item.quote,
+        gasIncluded7702: false,
+        gasIncluded: false,
+        gasSponsored: false,
+      },
     });
     return {
       ...rawQuotes,
