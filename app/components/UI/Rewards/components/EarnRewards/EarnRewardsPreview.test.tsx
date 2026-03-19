@@ -49,11 +49,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../images/musd-icon-no-background-2x.png',
-  () => 'musd-img',
-);
-jest.mock('../../../../../images/stacked-cards.png', () => 'card-img');
+jest.mock('../../../../../images/rewards/earn-musd.png', () => 'musd-img');
+jest.mock('../../../../../images/rewards/earn-card.png', () => 'card-img');
 
 import {
   selectOptinAllowedForGeo,
