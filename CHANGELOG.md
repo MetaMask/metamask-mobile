@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Uncategorized
 
 - chore: Stable sync release 7.69.0 (#27441)
-- Revert "chore: sync stable into release/7.69.0 (#27432)" (#27432)
+- Revert "chore: sync stable into release/7.69.0" (#27432)
 - Revert "chore: sync stable into release/7.69.0 (#27432)
 - chore: sync stable into release/7.69.0 (#27355)
 - chore: sync stable to main for version 7.68.0 (#27094)
