@@ -1,7 +1,7 @@
-/* eslint-disable react/prop-types */
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { PureComponent } from 'react';
 import { Alert, BackHandler, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import { Box } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -13,7 +13,7 @@ import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useTheme, mockTheme } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -21,65 +21,79 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 const hardwareBackPress = () => ({});
 const HARDWARE_BACK_PRESS = 'hardwareBackPress';
 
-export const ManualBackupStep3 = ({
-  navigation,
-  route,
-  saveOnboardingEvent,
-}) => {
-  const theme = useTheme();
-  const colors = theme.colors || mockTheme.colors;
+/**
+ * View that's shown during the last step of
+ * the backup seed phrase flow
+ */
+class ManualBackupStep3 extends PureComponent {
+  state = {
+    showHint: false,
+    hintText: '',
+  };
 
-  const [showHint, setShowHint] = useState(false);
-  const [hintText, setHintText] = useState('');
+  static propTypes = {
+    /**
+     * Navigation object required to push and pop other views
+     */
+    navigation: PropTypes.object,
+    /**
+     * Object that represents the current route info like params passed to it
+     */
+    route: PropTypes.object,
+    /**
+     * Action to save onboarding event
+     */
+    saveOnboardingEvent: PropTypes.func,
+  };
 
-  const updateNavBar = useCallback(() => {
+  updateNavBar = () => {
+    const { navigation } = this.props;
+    const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  }, [navigation, colors]);
+  };
 
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+  componentWillUnmount = () => {
+    BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+  };
 
-  useEffect(() => {
-    const loadHints = async () => {
-      const currentSeedphraseHints =
-        await StorageWrapper.getItem(SEED_PHRASE_HINTS);
-      const parsedHints =
-        currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
-      const manualBackup = parsedHints?.manualBackup;
-      setHintText(manualBackup || '');
-    };
-    loadHints();
-
+  componentDidMount = async () => {
+    this.updateNavBar();
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+    const parsedHints =
+      currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
+    const manualBackup = parsedHints?.manualBackup;
+    this.setState({
+      hintText: manualBackup,
+    });
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
-    return () => {
-      BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
-    };
-  }, []);
+  };
 
-  const toggleHint = useCallback(() => {
-    setShowHint((prev) => !prev);
-  }, []);
+  componentDidUpdate = () => {
+    this.updateNavBar();
+  };
 
-  const isHintSeedPhrase = useCallback(
-    (text) => {
-      const seedWords = route.params?.words;
-      if (seedWords) {
-        const lower = (s) => String(s).toLowerCase();
-        return lower(text) === lower(seedWords.join(' '));
-      }
-      return false;
-    },
-    [route.params?.words],
-  );
+  toggleHint = () => {
+    this.setState((state) => ({ showHint: !state.showHint }));
+  };
 
-  const saveHint = useCallback(async () => {
+  isHintSeedPhrase = (hintText) => {
+    const words = this.props.route.params?.words;
+    if (words) {
+      const lower = (string) => String(string).toLowerCase();
+      return lower(hintText) === lower(words.join(' '));
+    }
+    return false;
+  };
+
+  saveHint = async () => {
+    const { hintText } = this.state;
     if (!hintText) return;
-    if (isHintSeedPhrase(hintText)) {
+    if (this.isHintSeedPhrase(hintText)) {
       Alert.alert('Error!', strings('manual_backup_step_3.no_seedphrase'));
       return;
     }
-    toggleHint();
+    this.toggleHint();
     const currentSeedphraseHints =
       await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints = JSON.parse(currentSeedphraseHints);
@@ -91,36 +105,45 @@ export const ManualBackupStep3 = ({
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       ).build(),
-      saveOnboardingEvent,
+      this.props.saveOnboardingEvent,
     );
-  }, [hintText, isHintSeedPhrase, toggleHint, saveOnboardingEvent]);
+  };
 
-  const done = useCallback(() => {
-    navigation.reset({ routes: [{ name: 'HomeNav' }] });
-  }, [navigation]);
+  done = async () => {
+    this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+  };
 
-  const handleChangeText = useCallback((text) => {
-    setHintText(text);
-  }, []);
+  handleChangeText = (text) => this.setState({ hintText: text });
 
-  return (
-    <Box twClassName="flex-1 bg-default mt-4">
-      <Confetti />
-      <OnboardingSuccessComponent onDone={done} backedUpSRP />
-      {Device.isAndroid() && (
-        <AndroidBackHandler customBackPress={navigation.pop} />
-      )}
+  renderHint = () => {
+    const { showHint, hintText } = this.state;
+    return (
       <HintModal
-        onConfirm={saveHint}
-        onCancel={toggleHint}
+        onConfirm={this.saveHint}
+        onCancel={this.toggleHint}
         modalVisible={showHint}
         onRequestClose={Keyboard.dismiss}
         value={hintText}
-        onChangeText={handleChangeText}
+        onChangeText={this.handleChangeText}
       />
-    </Box>
-  );
-};
+    );
+  };
+
+  render() {
+    return (
+      <Box twClassName="flex-1 bg-default mt-4">
+        <Confetti />
+        <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
+        {Device.isAndroid() && (
+          <AndroidBackHandler customBackPress={this.props.navigation.pop} />
+        )}
+        {this.renderHint()}
+      </Box>
+    );
+  }
+}
+
+ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
