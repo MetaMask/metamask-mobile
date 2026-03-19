@@ -5083,6 +5083,19 @@ export class HyperLiquidProvider implements PerpsProvider {
         count: rawFills?.length ?? 0,
       });
 
+      // Start fetching historical orders in parallel with fill transformation.
+      // The fills API does not return order type, so we cross-reference
+      // with historical orders to enable TP/SL pill rendering in activity.
+      const historicalOrdersPromise = infoClient
+        .historicalOrders({ user: userAddress })
+        .catch((enrichError: unknown) => {
+          this.#deps.debugLogger.log(
+            'Warning: failed to enrich fills with order types:',
+            enrichError,
+          );
+          return null;
+        });
+
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
         // Perps only, no Spots
@@ -5113,15 +5126,11 @@ export class HyperLiquidProvider implements PerpsProvider {
         return acc;
       }, []);
 
-      // Enrich fills with detailedOrderType from historical orders.
-      // The fills API does not return order type, so we cross-reference
-      // with historical orders to enable TP/SL pill rendering in activity.
-      try {
-        const rawOrders = await infoClient.historicalOrders({
-          user: userAddress,
-        });
+      // Enrich fills with detailedOrderType from historical orders
+      const rawOrders = await historicalOrdersPromise;
+      if (rawOrders) {
         const orderTypeByOid = new Map<string, string>();
-        for (const rawOrder of rawOrders || []) {
+        for (const rawOrder of rawOrders) {
           const oid = rawOrder.order.oid?.toString() || '';
           if (rawOrder.order.orderType && !orderTypeByOid.has(oid)) {
             orderTypeByOid.set(oid, rawOrder.order.orderType);
@@ -5133,11 +5142,6 @@ export class HyperLiquidProvider implements PerpsProvider {
             fill.detailedOrderType = orderType;
           }
         }
-      } catch (enrichError) {
-        this.#deps.debugLogger.log(
-          'Warning: failed to enrich fills with order types:',
-          enrichError,
-        );
       }
 
       return fills;
