@@ -350,7 +350,6 @@ if (enableApiCallLogs || isTest) {
       // writable export. The re-export getter reads from the source, so
       // all consumers (including bridge-controller) pick up the patched fn.
       try {
-        // eslint-disable-next-line import/no-unresolved
         const fetchSourceModule = require('expo/src/winter/fetch/fetch');
         const originalExpoFetch = fetchSourceModule.fetch;
         fetchSourceModule.fetch = (url, options) => {
