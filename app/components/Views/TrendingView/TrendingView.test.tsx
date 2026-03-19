@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,16 +43,22 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
 const Stack = createStackNavigator();
 
 const TrendingView: React.FC = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
-  </Stack.Navigator>
+  <QueryClientProvider client={queryClient}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
+    </Stack.Navigator>
+  </QueryClientProvider>
 );
 
 jest.mock('../../../components/hooks/useMetrics', () => ({

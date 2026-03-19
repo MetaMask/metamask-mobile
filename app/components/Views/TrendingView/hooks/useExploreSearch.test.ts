@@ -78,6 +78,7 @@ jest.mock('../../../UI/Perps/hooks/usePerpsMarkets', () => ({
 jest.mock('../../../UI/Predict/hooks/usePredictMarketData', () => ({
   usePredictMarketData: () => ({
     marketData: mockPredictionsData,
+    isLoading: mockPredictionsLoading,
     isFetching: mockPredictionsLoading,
     refetch: jest.fn(),
   }),
