@@ -29,6 +29,7 @@ tests/component-view/
 ├── mocks.ts              ← Engine + native mocks (import this first, always)
 ├── render.tsx            ← renderComponentViewScreen, renderScreenWithRoutes
 ├── stateFixture.ts       ← StateFixtureBuilder, createStateFixture, deepMerge
+├── platform.ts           ← describeForPlatforms, itForPlatforms, itEach, describeEach (per OS + array tables)
 ├── api-mocking/          ← HTTP API mocks (nock) — one file per feature, extensible
 ├── presets/              ← initialState<Feature>() builders — one file per feature
 └── renderers/            ← render<Feature>View() functions — one file per feature
@@ -109,6 +110,7 @@ For run-by-name, watch mode, or other options, see the skill’s [references/ref
 - Presets: [presets/](presets/)
 - Renderers: [renderers/](renderers/)
 - State fixture: [stateFixture.ts](stateFixture.ts)
+- Platform + itEach/describeEach: [platform.ts](platform.ts)
 
 ## Before working
 
