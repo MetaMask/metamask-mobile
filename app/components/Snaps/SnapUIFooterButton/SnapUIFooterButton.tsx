@@ -3,22 +3,23 @@ import { ButtonType, SnapId, UserInputEventType } from '@metamask/snaps-sdk';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { IconSize } from '../../../component-library/components/Icons/Icon';
 import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button/Button.types';
+} from '@metamask/design-system-react-native';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SnapIcon } from '../SnapIcon/SnapIcon';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
 import { selectSnaps } from '../../../selectors/snaps/snapController';
-import { DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT } from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
 import {
   FlexDirection,
   JustifyContent,
   AlignItems,
 } from '../../UI/Box/box.types';
 import { DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT } from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
-import Button from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.styles';
 import { ButtonProps } from '@metamask/snaps-sdk/jsx';
@@ -35,7 +36,7 @@ const localStyles = StyleSheet.create({
 
 interface SnapUIFooterButtonProps {
   name?: string;
-  variant?: ButtonVariants;
+  variant?: ButtonVariant;
   isSnapAction?: boolean;
   onCancel?: () => void;
   type: ButtonType;
@@ -54,7 +55,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   disabled = false,
   loading = false,
   isSnapAction = false,
-  variant = ButtonVariants.Primary,
+  variant = ButtonVariant.Primary,
   snapVariant,
   testID,
   type,
@@ -101,8 +102,8 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   const handlePress = isSnapAction ? handleSnapAction : onCancel!;
 
   const brandedButtonVariant = isSnapAction
-    ? ButtonVariants.Primary
-    : ButtonVariants.Secondary;
+    ? ButtonVariant.Primary
+    : ButtonVariant.Secondary;
 
   const buttonVariant = hideSnapBranding ? variant : brandedButtonVariant;
 
@@ -116,7 +117,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
         <View style={localStyles.snapActionContainer}>
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
           <Text
-            variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
+            variant={TextVariant.BodyMDMedium}
             color={theme.colors.primary.inverse}
           >
             {children}
@@ -126,9 +127,9 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
     }
     return (
       <Text
-        variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
+        variant={TextVariant.BodyMDMedium}
         color={
-          variant === ButtonVariants.Primary
+          variant === ButtonVariant.Primary
             ? theme.colors.primary.inverse
             : theme.colors.text.default
         }
@@ -144,11 +145,12 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       variant={buttonVariant}
       onPress={handlePress}
       isDisabled={disabled}
-      label={buttonLabel()}
       size={ButtonSize.Lg}
       style={customButtonStyles.button}
       isDanger={snapVariant === 'destructive'}
       testID={testID ?? `${name}-snap-footer-button`}
-    />
+    >
+      {buttonLabel()}
+    </Button>
   );
 };

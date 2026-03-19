@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import { Label, FontWeight } from '@metamask/design-system-react-native';
+import {
+  Label,
+  FontWeight,
+  ButtonBase,
+  IconName,
+} from '@metamask/design-system-react-native';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import { Box } from '../../UI/Box/Box';
 import { FlexDirection } from '../../UI/Box/box.types';
-import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../hooks/useStyles';
 import stylesheet from './SnapUISelector.styles';
 import { View, ScrollView, ViewStyle } from 'react-native';
@@ -62,13 +64,14 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
 
   return (
     <ButtonBase
-      label={buttonContent}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       onPress={handlePress}
       style={styles.modalButton}
       isDisabled={disabled}
       testID="snap-ui-renderer__selector-item"
-    />
+    >
+      {buttonContent}
+    </ButtonBase>
   );
 };
 
@@ -140,14 +143,15 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
       <Box style={style} flexDirection={FlexDirection.Column}>
         {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
         <ButtonBase
-          width={ButtonWidthTypes.Full}
-          label={inlineButtonLabel}
+          isFullWidth
           isDisabled={disabled}
           endIconName={IconName.ArrowDown}
           onPress={handleModalOpen}
           style={styles.button}
           testID={testID}
-        />
+        >
+          {inlineButtonLabel}
+        </ButtonBase>
         {error && (
           <HelpText severity={HelpTextSeverity.Error} style={styles.helpText}>
             {error}

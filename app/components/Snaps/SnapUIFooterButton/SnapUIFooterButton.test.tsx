@@ -1,7 +1,7 @@
 import React from 'react';
 import { ButtonType } from '@metamask/snaps-sdk';
 import { render, screen } from '@testing-library/react-native';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button/Button.types';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import { SnapUIFooterButton } from './SnapUIFooterButton';
 import { ActivityIndicator } from 'react-native';
 
@@ -36,7 +36,7 @@ describe('SnapUIFooterButton', () => {
     type: ButtonType.Submit,
     snapVariant: 'primary' as const,
     onPress: jest.fn(),
-    variant: ButtonVariants.Primary,
+    variant: ButtonVariant.Primary,
     accessibilityLabel: 'Test Button',
   };
 
