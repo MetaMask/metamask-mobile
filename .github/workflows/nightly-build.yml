@@ -108,10 +108,10 @@ jobs:
           working-directory: ios
           bundler-cache: true
 
-      - name: Download iOS build artifact
+      - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-exp
+          name: ios-ipa-main-exp
 
       - name: Find IPA path
         id: ipa
@@ -168,10 +168,10 @@ jobs:
           working-directory: ios
           bundler-cache: true
 
-      - name: Download iOS build artifact
+      - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-rc
+          name: ios-ipa-main-rc
 
       - name: Find IPA path
         id: ipa
