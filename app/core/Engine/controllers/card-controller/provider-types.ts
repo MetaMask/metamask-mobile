@@ -275,7 +275,7 @@ export interface ICardProvider {
     session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult>;
-  sendOtp?(session: CardAuthSession): Promise<void>;
+  executeStepAction?(session: CardAuthSession): Promise<void>;
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
   logout(tokens: CardAuthTokens): Promise<void>;
