@@ -77,6 +77,8 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  SECURITY_TRUST_BOTTOM_SHEET_OPENED = 'Security Trust BottomSheet Opened',
+  SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN = 'Security Trust BottomSheet Action Taken',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -644,6 +646,7 @@ enum EVENT_NAME {
   MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED = 'mUSD Fullscreen Announcement Button Clicked',
   MUSD_CONVERSION_STATUS_UPDATED = 'mUSD Conversion Status Updated',
   MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
+  MUSD_CLAIM_BONUS_CTA_DISPLAYED = 'mUSD Claim Bonus CTA Displayed',
   MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
   MUSD_QUICK_CONVERT_SCREEN_VIEWED = 'mUSD Quick Convert Screen Viewed',
   MUSD_BONUS_TERMS_OF_USE_PRESSED = 'mUSD Bonus Terms of Use Pressed',
@@ -1482,6 +1485,12 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
+    EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_OPENED,
+  ),
+  SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN: generateOpt(
+    EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
+  ),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1681,6 +1690,9 @@ const events = {
   ),
   MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+  ),
+  MUSD_CLAIM_BONUS_CTA_DISPLAYED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_CTA_DISPLAYED,
   ),
   MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,

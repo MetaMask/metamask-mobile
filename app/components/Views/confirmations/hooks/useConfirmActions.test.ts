@@ -8,7 +8,7 @@ import {
   stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useConfirmActions } from './useConfirmActions';

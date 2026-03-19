@@ -109,6 +109,7 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  isVisible?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -120,6 +121,7 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
     shouldShowTokenListItemCta,
+    isVisible = true,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -165,7 +167,11 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    const merklClaimData = useMerklBonusClaim(asset);
+    const merklClaimData = useMerklBonusClaim(
+      asset,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+      isVisible,
+    );
     const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
     const hasClaimableBonus = !!claimableReward && !hasPendingClaim;

@@ -277,7 +277,9 @@ jobs:
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
       GIT_BRANCH: ${{ github.ref_name }}
-      RAMP_INTERNAL_BUILD: 'false'
+      RAMP_DEV_BUILD: ${{ secrets.RAMP_DEV_BUILD || 'false' }}
+      RAMP_INTERNAL_BUILD: ${{ secrets.RAMP_INTERNAL_BUILD || 'false' }}
+      RAMPS_ENVIRONMENT: ${{ secrets.RAMPS_ENVIRONMENT || 'production' }}
       MM_MUSD_CONVERSION_FLOW_ENABLED: 'false'
       MM_NETWORK_UI_REDESIGN_ENABLED: 'false'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'

@@ -287,17 +287,17 @@ describe('WaysToEarn', () => {
       expect(getByText('10 points per $100')).toBeOnTheScreen();
     });
 
-    it('renders an empty list when no ways to earn exist', () => {
+    it('renders nothing when no ways to earn exist', () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
       mockUseSelector.mockReturnValue([]);
 
       // Act
-      const { getByText, queryByText } = render(<WaysToEarn />);
+      const { queryByText } = render(<WaysToEarn />);
 
       // Assert
-      expect(getByText('Ways to earn')).toBeOnTheScreen();
+      expect(queryByText('Ways to earn')).toBeNull();
       expect(queryByText('Swap')).toBeNull();
     });
   });

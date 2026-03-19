@@ -25,7 +25,6 @@ import type {
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
-  SnapshotDto,
   CampaignDto,
   CampaignParticipantStatusDto,
 } from '../types';
@@ -195,11 +194,6 @@ export interface RewardsDataServiceApplyBonusCodeAction {
   handler: RewardsDataService['applyBonusCode'];
 }
 
-export interface RewardsDataServiceGetSnapshotsAction {
-  type: `${typeof SERVICE_NAME}:getSnapshots`;
-  handler: RewardsDataService['getSnapshots'];
-}
-
 export interface RewardsDataServiceGetSubscriptionAccountsAction {
   type: `${typeof SERVICE_NAME}:getSubscriptionAccounts`;
   handler: RewardsDataService['getSubscriptionAccounts'];
@@ -262,7 +256,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -402,10 +395,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:applyBonusCode`,
       this.applyBonusCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshots`,
-      this.getSnapshots.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSubscriptionAccounts`,
@@ -1273,31 +1262,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Get snapshots for a specific season.
-   * @param seasonId - The ID of the season to get snapshots for.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The list of snapshots for the season.
-   */
-  async getSnapshots(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
-    const response = await this.makeRequest(
-      `/v1/seasons/${seasonId}/snapshots`,
-      {
-        method: 'GET',
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get snapshots failed: ${response.status}`);
-    }
-
-    return (await response.json()) as SnapshotDto[];
-  }
-
-  /**
    * Get CAIP-10 encoded account addresses linked to the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns Array of CAIP-10 account strings (up to 1000).
@@ -1359,6 +1323,11 @@ export class RewardsDataService {
       { method: 'POST' },
       subscriptionId,
     );
+
+    if (response.status === 409) {
+      // Already opted in — fetch and return current status as a graceful success
+      return this.getCampaignParticipantStatus(subscriptionId, campaignId);
+    }
 
     if (!response.ok) {
       throw new Error(`Opt-in to campaign failed: ${response.status}`);
