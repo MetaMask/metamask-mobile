@@ -8,6 +8,7 @@ import SharedDeeplinkManager, {
   isBranchDomainUrl,
   stripBranchDeepviewParams,
   resolveBranchShortLink,
+  extractBranchUrlFromDeepview,
 } from './DeeplinkManager';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
@@ -605,6 +606,67 @@ describe('resolveBranchShortLink', () => {
     expect(result).toBe('https://link-test.metamask.io/swap');
   });
 
+  it('extracts +url from link_click_id in Deepview HTML before falling back to $deeplink_path', async () => {
+    const b64 =
+      'eyIrdXJsIjoiaHR0cHM6Ly9saW5rLm1ldGFtYXNrLmlvL2J1eSIsIiRkZWVwbGlua19wYXRoIjoib3BlbiJ9';
+    const deepviewHtml = `<html><head>
+      <meta property="al:ios:url" content="metamask://open?_branch_referrer&#x3D;H4sI&amp;link_click_id&#x3D;link-12345-${b64}">
+    </head><body><script>"$deeplink_path": "open"</script></body></html>`;
+
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/DudG79nFJ0b',
+      text: jest.fn().mockResolvedValue(deepviewHtml),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/DudG79nFJ0b?__branch_flow_type=viewapp&chainId=59144&address=0xABC&amount=25&_referrer=twitter',
+    );
+
+    expect(result).toBe(
+      'https://link.metamask.io/buy?chainId=59144&address=0xABC&amount=25',
+    );
+  });
+
+  it('merges query params from original URL onto +url from link_click_id', async () => {
+    const b64 =
+      'eyIrdXJsIjoiaHR0cHM6Ly9saW5rLm1ldGFtYXNrLmlvL3RyZW5kaW5nIiwiJGRlZXBsaW5rX3BhdGgiOiJ0cmVuZGluZyJ9';
+    const deepviewHtml = `<html><head>
+      <meta property="al:ios:url" content="metamask://trending?link_click_id&#x3D;link-99-${b64}">
+    </head><body></body></html>`;
+
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/1WkF6GmE40b',
+      text: jest.fn().mockResolvedValue(deepviewHtml),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/1WkF6GmE40b?utm_source=twitter&utm_medium=social',
+    );
+
+    expect(result).toBe(
+      'https://link.metamask.io/trending?utm_source=twitter&utm_medium=social',
+    );
+  });
+
+  it('returns +url without merge when original URL has no extra params', async () => {
+    const b64 =
+      'eyIrdXJsIjoiaHR0cHM6Ly9saW5rLm1ldGFtYXNrLmlvL2J1eSIsIiRkZWVwbGlua19wYXRoIjoib3BlbiJ9';
+    const deepviewHtml = `<html><head>
+      <meta property="al:ios:url" content="metamask://open?link_click_id&#x3D;link-1-${b64}">
+    </head><body></body></html>`;
+
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc',
+      text: jest.fn().mockResolvedValue(deepviewHtml),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc',
+    );
+
+    expect(result).toBe('https://link.metamask.io/buy');
+  });
+
   it('extracts $deeplink_path from HTML body when redirect does not land on MetaMask host', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       url: 'https://metamask-alternate.app.link/abc123',
@@ -910,6 +972,85 @@ describe('DeeplinkManager.start Branch error and +non_branch_link handling', () 
         expect.stringContaining('Error getting Branch deeplink'),
       );
     });
+  });
+});
+
+describe('extractBranchUrlFromDeepview', () => {
+  const buildDeepviewHtml = (linkClickId: string) =>
+    `<html><head>
+      <meta property="al:ios:url" content="metamask://open?_branch_referrer&#x3D;H4sIAAAA&amp;link_click_id&#x3D;${linkClickId}">
+    </head><body></body></html>`;
+
+  it('extracts +url from valid link_click_id base64 JSON (trending link)', () => {
+    const b64 =
+      'eyIrdXJsIjoiaHR0cHM6Ly9saW5rLm1ldGFtYXNrLmlvL3RyZW5kaW5nIiwiJGRlZXBsaW5rX3BhdGgiOiJ0cmVuZGluZyJ9';
+    const html = buildDeepviewHtml(`link-12345-${b64}`);
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBe('https://link.metamask.io/trending');
+  });
+
+  it('extracts +url from valid link_click_id base64 JSON (buy link)', () => {
+    const b64 =
+      'eyIrdXJsIjoiaHR0cHM6Ly9saW5rLm1ldGFtYXNrLmlvL2J1eSIsIiRkZWVwbGlua19wYXRoIjoib3BlbiJ9';
+    const html = buildDeepviewHtml(`link-9876543-${b64}`);
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBe('https://link.metamask.io/buy');
+  });
+
+  it('returns undefined when al:ios:url meta tag is missing', () => {
+    const html = '<html><head></head><body></body></html>';
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when link_click_id param is missing', () => {
+    const html = `<html><head>
+      <meta property="al:ios:url" content="metamask://open?_branch_referrer&#x3D;H4sIAAAA">
+    </head><body></body></html>`;
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when base64 payload is malformed', () => {
+    const html = buildDeepviewHtml('link-12345-!!!invalid-base64!!!');
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when JSON does not contain +url', () => {
+    const b64 = 'eyIkZGVlcGxpbmtfcGF0aCI6InN3YXAifQ';
+    const html = buildDeepviewHtml(`link-12345-${b64}`);
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when +url hostname is not a MetaMask host', () => {
+    const b64 = 'eyIrdXJsIjoiaHR0cHM6Ly9ldmlsLmNvbS9waGlzaCJ9';
+    const html = buildDeepviewHtml(`link-12345-${b64}`);
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when link_click_id format does not match link-{digits}-{base64}', () => {
+    const html = buildDeepviewHtml('malformed-id-without-digits');
+
+    const result = extractBranchUrlFromDeepview(html);
+
+    expect(result).toBeUndefined();
   });
 });
 

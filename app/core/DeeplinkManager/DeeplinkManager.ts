@@ -80,11 +80,59 @@ function extractDeepviewPath(html: string): string | undefined {
 }
 
 /**
+ * Extracts the original deep link URL from Branch Deepview HTML by decoding the
+ * `link_click_id` parameter embedded in the `al:ios:url` meta tag. The
+ * `link_click_id` value has the format `link-{digits}-{base64_json}`, where the
+ * base64 JSON payload contains `+url` — the full original URL configured in the
+ * Branch dashboard for this link.
+ */
+export function extractBranchUrlFromDeepview(html: string): string | undefined {
+  const metaMatch = html.match(
+    /<meta\s+property="al:ios:url"\s+content="([^"]+)"/,
+  );
+  if (!metaMatch?.[1]) return undefined;
+
+  const content = metaMatch[1].replace(/&#x3D;/g, '=').replace(/&amp;/g, '&');
+
+  const linkClickIdMatch = content.match(/link_click_id=([^&]+)/);
+  if (!linkClickIdMatch?.[1]) return undefined;
+
+  const linkClickId = decodeURIComponent(linkClickIdMatch[1]);
+  const b64Match = linkClickId.match(/^link-\d+-(.+)/);
+  if (!b64Match?.[1]) return undefined;
+
+  try {
+    let b64 = b64Match[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padding = (4 - (b64.length % 4)) % 4;
+    b64 += '='.repeat(padding);
+
+    const data = JSON.parse(atob(b64));
+    const url = data['+url'];
+    if (typeof url !== 'string') return undefined;
+
+    const parsed = new URL(url);
+    if (
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+    ) {
+      return url;
+    }
+  } catch {
+    // base64 decode or JSON parse failure
+  }
+
+  return undefined;
+}
+
+/**
  * When the Branch SDK fails to resolve a short link (returns +non_branch_link),
- * fetch the short link URL directly and follow redirects. Branch's server will
- * redirect to the destination URL (e.g. https://link.metamask.io/buy) which
- * contains the routable path. If the redirect lands on a MetaMask host, use it.
- * Otherwise, try to extract $deeplink_path from the HTML response body.
+ * fetch the short link URL directly and follow redirects. Resolution order:
+ *
+ * 1. If the redirect lands on a MetaMask host, use it directly.
+ * 2. Decode `link_click_id` from the Deepview HTML `al:ios:url` meta tag to get
+ * the full `+url`, then merge query params from the original Branch URL.
+ * 3. Fall back to `$deeplink_path` regex extraction from the HTML body.
+ * 4. Fall back to `extractDeepviewPath` for CTA button/window.top.location.
  */
 export async function resolveBranchShortLink(
   shortLinkUrl: string,
@@ -97,7 +145,9 @@ export async function resolveBranchShortLink(
 
     const response = await fetch(cleanUrl, {
       redirect: 'follow',
-      headers: { 'User-Agent': 'MetaMask-Mobile/1.0 (deep-link-resolver)' },
+      headers: {
+        'User-Agent': 'facebookexternalhit/1.1 (MetaMask-LinkResolver)',
+      },
       signal: controller.signal,
     });
 
@@ -118,6 +168,22 @@ export async function resolveBranchShortLink(
     }
 
     const body = await response.text();
+
+    const branchUrl = extractBranchUrlFromDeepview(body);
+    if (branchUrl) {
+      try {
+        const cleanParsed = new URL(cleanUrl);
+        const branchParsed = new URL(branchUrl);
+        cleanParsed.searchParams.forEach((value, key) => {
+          if (!branchParsed.searchParams.has(key)) {
+            branchParsed.searchParams.set(key, value);
+          }
+        });
+        return branchParsed.toString();
+      } catch {
+        return branchUrl;
+      }
+    }
 
     const deepLinkPathMatch =
       body.match(/\$deeplink_path['":\s]+['"]([^'"]+)['"]/) ??
