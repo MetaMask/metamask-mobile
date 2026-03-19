@@ -9,8 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.70.0]
 
+### Uncategorized
+
+- Revert "chore: Stable sync release 7.70.0 (#27672)
+- chore: sync stable to main for version 7.68.0 (#27094)
+- Added ability for dev build to use builds.yml as source of truth (#27036)
+
 ### Added
 
+- Added Upload to TestFlight GHA workflow (#27167)
+- Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the (#27277)
+  token selection screen.
+- Use LD flags to consume price impact threshold (#27196)
+- Handle aggregated balance new home page (#27172)
 - Add auth header to bridge getToken calls (#26191)
 - Add a Contact Support button on CardHome (#27421)
 - Added an mUSD bonus calculator to the Rewards tab (#27398)
@@ -53,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Ledger connect screen image being cut off on iOS after using the keyboard. (#27665)
 - Fixed a bug where tapping perpetuals items on the homepage did not show the tutorial for first-time users (#27423)
 - Fixed UI styling on perps, explore and predictions (#26890)
 - Fixed missing mUSD icon when viewing token details from the Cash section empty state (#27442)
@@ -11023,7 +11035,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...HEAD
-[7.70.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.70.0
+[7.70.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...v7.70.0
 [7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.3...v7.69.0
 [7.68.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.68.3
