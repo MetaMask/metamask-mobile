@@ -132,8 +132,8 @@ class ManualBackupStep3 extends PureComponent {
   render() {
     return (
       <Box twClassName="flex-1 bg-default mt-4">
-        <Confetti />
         <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
+        <Confetti />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}
