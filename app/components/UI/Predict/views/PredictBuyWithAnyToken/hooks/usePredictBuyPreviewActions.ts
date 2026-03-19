@@ -1,11 +1,5 @@
-import {
-  RouteProp,
-  StackActions,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../../types/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StackActions, useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import {
   ActiveOrderState,
@@ -14,8 +8,8 @@ import {
 } from '../../../types';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import Engine from '../../../../../../core/Engine';
+import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;
@@ -27,25 +21,17 @@ interface UsePredictBuyActionsParams {
 }
 
 export const usePredictBuyActions = ({
-  preview: livePreview,
+  preview,
   analyticsProperties,
   placeOrder,
   setIsConfirming,
 }: UsePredictBuyActionsParams) => {
-  const route =
-    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const navigation = useNavigation();
   const { onReject: onApprovalReject, onConfirm: onApprovalConfirm } =
     useApprovalRequest();
-  const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
-  const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const { activeOrder } = usePredictActiveOrder();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
-
-  const batchId = useMemo(() => activeOrder?.batchId, [activeOrder?.batchId]);
-
-  const { preview: previewFromRoute } = route.params;
 
   const onApprovalRejectRef = useRef(onApprovalReject);
   onApprovalRejectRef.current = onApprovalReject;
@@ -77,22 +63,17 @@ export const usePredictBuyActions = ({
   }, [PredictController]);
 
   const handlePlaceOrder = useCallback(async () => {
+    if (!preview) {
+      PredictController.onOrderError({
+        errorMessage: String(PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE),
+      });
+      return;
+    }
+
+    const previewToUse =
+      PredictController.getAndClearDepositPreview() ?? preview;
+
     PredictController.onPlaceOrder();
-    if (!livePreview && !previewFromRoute) {
-      throw new Error('Preview is required');
-    }
-
-    const isFromPayWithAnyToken = batchId && !isPreviewFromRouteUsed;
-    const previewToUse = isFromPayWithAnyToken ? previewFromRoute : livePreview;
-
-    if (!previewToUse) {
-      throw new Error('Preview is required');
-    }
-
-    if (isFromPayWithAnyToken) {
-      resetSelectedPaymentToken();
-      setIsPreviewFromRouteUsed(true);
-    }
 
     const orderResult = await placeOrder({
       analyticsProperties,
@@ -105,16 +86,7 @@ export const usePredictBuyActions = ({
     }
 
     PredictController.onOrderSuccess();
-  }, [
-    PredictController,
-    livePreview,
-    previewFromRoute,
-    batchId,
-    isPreviewFromRouteUsed,
-    placeOrder,
-    analyticsProperties,
-    resetSelectedPaymentToken,
-  ]);
+  }, [preview, PredictController, placeOrder, analyticsProperties]);
 
   const handlePlaceOrderRef = useRef(handlePlaceOrder);
   handlePlaceOrderRef.current = handlePlaceOrder;
@@ -146,20 +118,28 @@ export const usePredictBuyActions = ({
 
   useEffect(() => {
     if (currentState === ActiveOrderState.DEPOSIT) {
-      PredictController.onDepositOrder();
+      if (!preview) {
+        PredictController.onOrderError({
+          errorMessage: String(PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE),
+        });
+        return;
+      }
+      PredictController.onDepositOrder(preview);
       onApprovalConfirm({
         deleteAfterResult: true,
         waitForResult: true,
         handleErrors: false,
       });
     }
-  }, [PredictController, currentState, onApprovalConfirm]);
+  }, [PredictController, currentState, onApprovalConfirm, preview]);
 
   useEffect(() => {
     if (currentState === ActiveOrderState.PLACE_ORDER) {
-      handlePlaceOrderRef.current();
+      handlePlaceOrderRef.current().catch(() => {
+        PredictController.onOrderError();
+      });
     }
-  }, [currentState]);
+  }, [currentState, PredictController]);
 
   return {
     handleBack,

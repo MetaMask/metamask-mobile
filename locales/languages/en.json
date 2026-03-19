@@ -2376,7 +2376,8 @@
       "unknown_error": "An unknown error occurred",
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
-      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
+      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now.",
+      "preview_not_available": "No preview available"
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",

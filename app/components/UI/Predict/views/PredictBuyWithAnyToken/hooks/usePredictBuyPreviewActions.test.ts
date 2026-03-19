@@ -14,7 +14,6 @@ const mockOnApprovalConfirm = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockClearActiveOrder = jest.fn();
 const mockNavigateToBuyPreview = jest.fn();
-const mockResetSelectedPaymentToken = jest.fn();
 let mockApprovalRequest: { id?: string; type?: string } | undefined;
 let mockActiveOrder: {
   batchId?: string | null;
@@ -67,12 +66,6 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/usePredictPaymentToken', () => ({
-  usePredictPaymentToken: () => ({
-    resetSelectedPaymentToken: mockResetSelectedPaymentToken,
-  }),
-}));
-
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -87,6 +80,8 @@ const mockOnDepositOrder = jest.fn();
 const mockOnDepositOrderFailed = jest.fn();
 const mockStartPayWithAnyTokenConfirmation = jest.fn();
 const mockOnPayWithAnyTokenConfirmationReady = jest.fn();
+const mockGetAndClearDepositPreview = jest.fn();
+const mockPayWithAnyTokenConfirmation = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -104,6 +99,10 @@ jest.mock('../../../../../../core/Engine', () => ({
         mockStartPayWithAnyTokenConfirmation(...args),
       onPayWithAnyTokenConfirmationReady: (...args: unknown[]) =>
         mockOnPayWithAnyTokenConfirmationReady(...args),
+      getAndClearDepositPreview: (...args: unknown[]) =>
+        mockGetAndClearDepositPreview(...args),
+      payWithAnyTokenConfirmation: (...args: unknown[]) =>
+        mockPayWithAnyTokenConfirmation(...args),
     },
   },
 }));
@@ -142,10 +141,12 @@ describe('usePredictBuyActions', () => {
     mockRouteParams = { ...defaultRouteParams };
     mockApprovalRequest = undefined;
     mockStartPayWithAnyTokenConfirmation.mockResolvedValue(undefined);
+    mockGetAndClearDepositPreview.mockReturnValue(null);
+    mockPayWithAnyTokenConfirmation.mockResolvedValue(undefined);
   });
 
   describe('handleBack', () => {
-    it('calls onOrderEnd on PredictController', () => {
+    it('calls onOrderCancelled on PredictController', () => {
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -157,7 +158,7 @@ describe('usePredictBuyActions', () => {
       expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
 
-    it('rejects pending approval when in PAY_WITH_ANY_TOKEN state', () => {
+    it('calls onOrderCancelled when in PAY_WITH_ANY_TOKEN state', () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -167,11 +168,10 @@ describe('usePredictBuyActions', () => {
         result.current.handleBack();
       });
 
-      expect(mockOnApprovalReject).toHaveBeenCalledTimes(1);
       expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
 
-    it('does not reject approval when in PREVIEW state', () => {
+    it('calls onOrderCancelled when in PREVIEW state', () => {
       mockActiveOrder = { state: ActiveOrderState.PREVIEW };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -181,7 +181,6 @@ describe('usePredictBuyActions', () => {
         result.current.handleBack();
       });
 
-      expect(mockOnApprovalReject).not.toHaveBeenCalled();
       expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
   });
@@ -213,8 +212,8 @@ describe('usePredictBuyActions', () => {
       expect(mockSetIsConfirming).toHaveBeenCalledWith(true);
     });
 
-    it('delegates to PredictController.onConfirmOrder with isDeposit false when not confirmation route', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
+    it('delegates to PredictController.onConfirmOrder with isDeposit false when state is PREVIEW', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -226,8 +225,8 @@ describe('usePredictBuyActions', () => {
       expect(mockOnConfirmOrder).toHaveBeenCalledWith({ isDeposit: false });
     });
 
-    it('delegates to PredictController.onConfirmOrder with isDeposit true when confirmation route', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
+    it('delegates to PredictController.onConfirmOrder with isDeposit true when state is PAY_WITH_ANY_TOKEN', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -240,7 +239,7 @@ describe('usePredictBuyActions', () => {
     });
 
     it('does not call placeOrder directly from handleConfirm', async () => {
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: false };
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -250,51 +249,6 @@ describe('usePredictBuyActions', () => {
       });
 
       expect(mockPlaceOrder).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('redirect effect', () => {
-    it('preserves entryPoint when redirecting to confirmation', () => {
-      mockActiveOrder = { state: ActiveOrderState.REDIRECTING };
-
-      renderHook(() => usePredictBuyActions(createDefaultParams()));
-
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        loader: 'customAmount',
-        headerShown: false,
-        replace: true,
-        routeParams: {
-          market: defaultRouteParams.market,
-          outcome: defaultRouteParams.outcome,
-          outcomeToken: defaultRouteParams.outcomeToken,
-          entryPoint: defaultRouteParams.entryPoint,
-          isConfirmationRoute: true,
-          preview: createDefaultParams().preview,
-        },
-      });
-      expect(mockStartPayWithAnyTokenConfirmation).toHaveBeenCalledTimes(1);
-    });
-
-    it('starts pay-with-any-token confirmation on confirmation route', () => {
-      mockActiveOrder = { state: ActiveOrderState.REDIRECTING };
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
-
-      renderHook(() => usePredictBuyActions(createDefaultParams()));
-
-      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
-      expect(mockStartPayWithAnyTokenConfirmation).toHaveBeenCalledTimes(1);
-    });
-
-    it('marks pay-with-any-token confirmation ready when approval request appears on confirmation route', () => {
-      mockActiveOrder = {
-        state: ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
-      };
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
-      mockApprovalRequest = { id: 'approval-1', type: 'transaction' };
-
-      renderHook(() => usePredictBuyActions(createDefaultParams()));
-
-      expect(mockOnPayWithAnyTokenConfirmationReady).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -348,24 +302,13 @@ describe('usePredictBuyActions', () => {
   });
 
   describe('deposit confirmation effect', () => {
-    it('calls onDepositOrder, navigates to buy preview and confirms approval', () => {
+    it('calls onDepositOrder with live preview and confirms approval', () => {
       mockActiveOrder = { state: ActiveOrderState.DEPOSIT };
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
 
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
-      expect(mockOnDepositOrder).toHaveBeenCalledTimes(1);
-      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
-        {
-          market: defaultRouteParams.market,
-          outcome: defaultRouteParams.outcome,
-          outcomeToken: defaultRouteParams.outcomeToken,
-          animationEnabled: false,
-          entryPoint: defaultRouteParams.entryPoint,
-          isConfirming: true,
-          preview: { ...createDefaultParams().preview },
-        },
-        { replace: true },
+      expect(mockOnDepositOrder).toHaveBeenCalledWith(
+        createDefaultParams().preview,
       );
       expect(mockOnApprovalConfirm).toHaveBeenCalledWith({
         deleteAfterResult: true,
@@ -373,24 +316,16 @@ describe('usePredictBuyActions', () => {
         handleErrors: false,
       });
     });
-
-    it('throws error in DEPOSIT state on confirmation route without preview', () => {
-      mockActiveOrder = { state: ActiveOrderState.DEPOSIT };
-      mockRouteParams = { ...defaultRouteParams, isConfirmationRoute: true };
-
-      const params = createDefaultParams();
-      params.preview = null;
-
-      expect(() => renderHook(() => usePredictBuyActions(params))).toThrow(
-        'Preview is required',
-      );
-    });
   });
 
   describe('place order effect', () => {
-    it('calls placeOrder when state is PLACE_ORDER', async () => {
+    it('calls placeOrder with livePreview when no deposit preview is stored', async () => {
       mockActiveOrder = { state: ActiveOrderState.PLACE_ORDER };
-      mockPlaceOrder.mockResolvedValue({ status: 'deposit_required' });
+      mockGetAndClearDepositPreview.mockReturnValue(null);
+      mockPlaceOrder.mockResolvedValue({
+        status: 'success',
+        result: {} as never,
+      });
 
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
@@ -402,7 +337,57 @@ describe('usePredictBuyActions', () => {
       });
 
       expect(mockOnPlaceOrder).toHaveBeenCalledTimes(1);
-      expect(mockOnOrderError).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls placeOrder with deposit preview when available', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PLACE_ORDER };
+      const depositPreview = {
+        ...createDefaultParams().preview,
+        timestamp: 999,
+      } as OrderPreview;
+      mockGetAndClearDepositPreview.mockReturnValue(depositPreview);
+      mockPlaceOrder.mockResolvedValue({
+        status: 'success',
+        result: {} as never,
+      });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      await waitFor(() => {
+        expect(mockPlaceOrder).toHaveBeenCalledWith({
+          analyticsProperties: { marketId: 'market-1' },
+          preview: depositPreview,
+        });
+      });
+
+      expect(mockOnPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onOrderError when no preview is available', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PLACE_ORDER };
+      mockGetAndClearDepositPreview.mockReturnValue(null);
+      const params = createDefaultParams();
+      params.preview = null;
+
+      renderHook(() => usePredictBuyActions(params));
+
+      await waitFor(() => {
+        expect(mockOnOrderError).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('calls onOrderError when placeOrder rejects', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PLACE_ORDER };
+      mockGetAndClearDepositPreview.mockReturnValue(null);
+      mockPlaceOrder.mockRejectedValue(new Error('network error'));
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      await waitFor(() => {
+        expect(mockOnOrderError).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

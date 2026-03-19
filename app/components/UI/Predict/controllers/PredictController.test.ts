@@ -4040,6 +4040,74 @@ describe('PredictController', () => {
     });
   });
 
+  describe('onDepositOrder', () => {
+    it('sets activeOrder state to DEPOSITING', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.DEPOSIT,
+        });
+
+        controller.onDepositOrder();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.DEPOSITING,
+        );
+      });
+    });
+
+    it('stores preview when provided', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.DEPOSIT,
+        });
+        const preview = { marketId: 'm1', side: Side.BUY } as OrderPreview;
+
+        controller.onDepositOrder(preview);
+
+        expect(controller.getAndClearDepositPreview()).toEqual(preview);
+      });
+    });
+
+    it('does not overwrite preview when called without one', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.DEPOSIT,
+        });
+
+        controller.onDepositOrder();
+
+        expect(controller.getAndClearDepositPreview()).toBeNull();
+      });
+    });
+  });
+
+  describe('getAndClearDepositPreview', () => {
+    it('returns stored preview and clears it', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.DEPOSIT,
+        });
+        const preview = { marketId: 'm1', side: Side.BUY } as OrderPreview;
+        controller.onDepositOrder(preview);
+
+        const result = controller.getAndClearDepositPreview();
+
+        expect(result).toEqual(preview);
+        expect(controller.getAndClearDepositPreview()).toBeNull();
+      });
+    });
+
+    it('returns null when no preview was stored', () => {
+      withController(({ controller }) => {
+        expect(controller.getAndClearDepositPreview()).toBeNull();
+      });
+    });
+  });
+
   describe('onDepositOrderFailed', () => {
     it('sets activeOrder state to REDIRECTING', () => {
       withController(({ controller }) => {

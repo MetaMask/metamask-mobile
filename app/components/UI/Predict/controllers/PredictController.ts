@@ -366,6 +366,14 @@ export class PredictController extends BaseController<
 > {
   private provider: PolymarketProvider;
 
+  /**
+   * Transient preview snapshot captured at deposit time.
+   * Used when placing the order after a pay-with-any-token deposit
+   * so the order uses the prices the user saw when confirming.
+   * Cleared after use (success or error), so retries fall back to the live preview.
+   */
+  private depositPreview: OrderPreview | null = null;
+
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
       name: 'PredictController',
@@ -1970,12 +1978,21 @@ export class PredictController extends BaseController<
     });
   }
 
-  public onDepositOrder(): void {
+  public onDepositOrder(preview?: OrderPreview): void {
+    if (preview) {
+      this.depositPreview = preview;
+    }
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.DEPOSITING;
       }
     });
+  }
+
+  public getAndClearDepositPreview(): OrderPreview | null {
+    const preview = this.depositPreview;
+    this.depositPreview = null;
+    return preview;
   }
 
   public onDepositOrderSuccess(): void {
@@ -2002,10 +2019,11 @@ export class PredictController extends BaseController<
     this.setSelectedPaymentToken(null);
   }
 
-  public onOrderError(): void {
+  public onOrderError(params?: { errorMessage: string }): void {
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.PREVIEW;
+        state.activeOrder.error = params?.errorMessage;
       }
     });
     this.setSelectedPaymentToken(null);
@@ -2073,13 +2091,11 @@ export class PredictController extends BaseController<
       if (isBalanceToken) {
         return;
       }
-      if (activeOrder.batchId) {
-        this.update((state) => {
-          if (state.activeOrder) {
-            state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
-          }
-        });
-      }
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
+        }
+      });
     }
   }
 
