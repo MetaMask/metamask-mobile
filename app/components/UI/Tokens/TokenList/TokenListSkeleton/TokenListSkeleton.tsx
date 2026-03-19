@@ -23,7 +23,11 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const TokenListSkeleton = () => {
+interface TokenListSkeletonProps {
+  count?: number;
+}
+
+const TokenListSkeleton = ({ count = 10 }: TokenListSkeletonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -33,7 +37,7 @@ const TokenListSkeleton = () => {
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}
       >
-        {Array.from({ length: 10 }, (_, index) => (
+        {Array.from({ length: count }, (_, index) => (
           <View key={index} style={styles.skeletonItem}>
             {/* Token icon skeleton */}
             <SkeletonPlaceholder.Item

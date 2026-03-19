@@ -19,6 +19,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { ELIGIBILITY_FAILED_MODAL_TEST_IDS } from './EligibilityFailedModal.testIds';
 
 const SUPPORT_URL = 'https://support.metamask.io';
 
@@ -47,11 +48,13 @@ function EligibilityFailedModal() {
       ref={sheetRef}
       shouldNavigateBack
       isInteractable={false}
-      testID="eligibility-failed-modal"
+      testID={ELIGIBILITY_FAILED_MODAL_TEST_IDS.MODAL}
     >
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
+        closeButtonProps={{
+          testID: ELIGIBILITY_FAILED_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
       >
         <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}

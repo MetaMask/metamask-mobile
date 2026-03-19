@@ -18,7 +18,7 @@ jest.mock('../../../../UI/Earn/hooks/useMusdBalance', () => ({
 }));
 
 const mockUseMerklBonusClaim = jest.fn(() => ({
-  claimableReward: { amount: '10' } as { amount: string } | null,
+  claimableReward: '10' as string | null,
   hasPendingClaim: false,
   claimRewards: mockClaimRewards,
   isClaiming: false,
@@ -49,7 +49,7 @@ describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: { amount: '10' },
+      claimableReward: '10',
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: false,
@@ -84,7 +84,7 @@ describe('MusdAggregatedRow', () => {
 
   it('shows Spinner when isClaiming is true', () => {
     mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: { amount: '10' },
+      claimableReward: '10',
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: true,
@@ -108,5 +108,61 @@ describe('MusdAggregatedRow', () => {
 
     expect(screen.queryByText('Claim bonus')).toBeNull();
     expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+  });
+
+  describe('claimable bonus threshold (min $0.01)', () => {
+    it('hides Claim bonus when claimable reward is "< 0.01"', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: null,
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.queryByText('Claim bonus')).toBeNull();
+      expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+    });
+
+    it('shows Claim bonus when claimable reward is exactly 0.01', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: '0.01',
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.getByText('Claim bonus')).toBeOnTheScreen();
+    });
+
+    it('hides Claim bonus when claimable reward is below 0.01', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: null,
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.queryByText('Claim bonus')).toBeNull();
+      expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+    });
+
+    it('shows Claim bonus when claimable reward is above 0.01', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: '0.02',
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.getByText('Claim bonus')).toBeOnTheScreen();
+    });
   });
 });

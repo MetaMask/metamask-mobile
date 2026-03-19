@@ -597,8 +597,8 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "fontWeight": 500,
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             },
@@ -679,8 +679,8 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "fontWeight": 500,
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             },

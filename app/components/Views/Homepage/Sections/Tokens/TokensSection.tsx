@@ -36,6 +36,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
+import TokenListSkeleton from '../../../../UI/Tokens/TokenList/TokenListSkeleton/TokenListSkeleton';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import useHomeViewedEvent, {
   HomeSectionNames,
@@ -179,7 +180,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
 
-    useHomeViewedEvent({
+    const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
       isLoading: false,
       sectionName: HomeSectionNames.TOKENS,
@@ -199,7 +200,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }, [refresh]);
 
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={handleViewAllTokens} />
           {showTokensError ? (
@@ -218,17 +219,22 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
             </SectionRow>
           ) : (
             <SectionRow>
-              {displayTokenKeys.map((tokenKey, index) => (
-                <ListItemComponent
-                  key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
-                  assetKey={tokenKey}
-                  showRemoveMenu={showRemoveMenu}
-                  setShowScamWarningModal={setShowScamWarningModal}
-                  privacyMode={privacyMode}
-                  showPercentageChange
-                  shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                />
-              ))}
+              {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
+                <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
+              ) : (
+                displayTokenKeys.map((tokenKey, index) => (
+                  <ListItemComponent
+                    key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
+                    assetKey={tokenKey}
+                    showRemoveMenu={showRemoveMenu}
+                    setShowScamWarningModal={setShowScamWarningModal}
+                    privacyMode={privacyMode}
+                    showPercentageChange
+                    shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+                    isVisible
+                  />
+                ))
+              )}
             </SectionRow>
           )}
         </Box>
