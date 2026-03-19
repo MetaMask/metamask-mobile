@@ -6,6 +6,8 @@ import SharedDeeplinkManager, {
   DeeplinkManager,
   rewriteBranchUri,
   isBranchDomainUrl,
+  stripBranchDeepviewParams,
+  resolveBranchShortLink,
 } from './DeeplinkManager';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
@@ -16,6 +18,7 @@ import { store } from '../../store';
 import { RootState } from '../../reducers';
 import branch from 'react-native-branch';
 import AppConstants from '../AppConstants';
+import Logger from '../../util/Logger';
 
 jest.mock('./handlers/legacy/handleApproveUrl');
 jest.mock('./handlers/legacy/handleEthereumUrl');
@@ -30,6 +33,13 @@ jest.mock('./handlers/legacy/handleRewardsUrl');
 jest.mock('./handlers/legacy/handleDeeplink');
 jest.mock('./handlers/legacy/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
+jest.mock('../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
+}));
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
@@ -333,6 +343,7 @@ describe('rewriteBranchUri', () => {
 describe('DeeplinkManager.start Branch deeplink handling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
   });
 
   it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {
@@ -531,5 +542,330 @@ describe('DeeplinkManager.start Linking API filters Branch domain URLs', () => {
 
     urlCallback({ url: 'metamask://buy' });
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: 'metamask://buy' });
+  });
+});
+
+describe('stripBranchDeepviewParams', () => {
+  it('removes Branch Deepview query params from URL', () => {
+    const url =
+      'https://metamask-alternate.app.link/1WkF6GmE40b?__branch_flow_type=viewapp&__branch_flow_id=123&__branch_mobile_deepview_type=1&sig=abc&sig_params=foo&_referrer=twitter&utm_source=twitter';
+
+    const result = stripBranchDeepviewParams(url);
+
+    expect(result).toBe(
+      'https://metamask-alternate.app.link/1WkF6GmE40b?utm_source=twitter',
+    );
+  });
+
+  it('returns URL unchanged when no Deepview params are present', () => {
+    const url = 'https://metamask-alternate.app.link/abc?utm_source=slack';
+
+    const result = stripBranchDeepviewParams(url);
+
+    expect(result).toBe(url);
+  });
+
+  it('returns original string for invalid URLs', () => {
+    const result = stripBranchDeepviewParams('not-a-url');
+
+    expect(result).toBe('not-a-url');
+  });
+});
+
+describe('resolveBranchShortLink', () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('returns final URL when redirect lands on link.metamask.io', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://link.metamask.io/buy',
+      text: jest.fn().mockResolvedValue(''),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/buy');
+  });
+
+  it('returns final URL when redirect lands on link-test.metamask.io', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://link-test.metamask.io/swap',
+      text: jest.fn().mockResolvedValue(''),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link-test.metamask.io/swap');
+  });
+
+  it('extracts $deeplink_path from HTML body when redirect does not land on MetaMask host', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest
+        .fn()
+        .mockResolvedValue(
+          '<script>var data = {"$deeplink_path": "swap"};</script>',
+        ),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/swap');
+  });
+
+  it('extracts deeplink_path without $ prefix from HTML body', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest
+        .fn()
+        .mockResolvedValue(
+          '<script>var data = {"deeplink_path": "buy"};</script>',
+        ),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/buy');
+  });
+
+  it('strips leading slash from extracted deeplink_path', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest
+        .fn()
+        .mockResolvedValue('<script>"$deeplink_path": "/perps"</script>'),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/perps');
+  });
+
+  it('returns undefined when no deeplink_path found in response', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest.fn().mockResolvedValue('<html><body>No data</body></html>'),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined and logs error when fetch throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it('strips Deepview params before fetching', async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      url: 'https://link.metamask.io/buy',
+      text: jest.fn().mockResolvedValue(''),
+    });
+    global.fetch = mockFetch;
+
+    await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123?__branch_flow_type=viewapp&_referrer=twitter',
+    );
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://metamask-alternate.app.link/abc123',
+      expect.objectContaining({ redirect: 'follow' }),
+    );
+  });
+
+  it('handles invalid finalUrl gracefully', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'not-a-valid-url',
+      text: jest.fn().mockResolvedValue('"$deeplink_path": "swap"'),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/swap');
+  });
+});
+
+describe('DeeplinkManager.start Branch error and +non_branch_link handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+    const { Linking } = jest.requireMock('react-native');
+    (Linking.getInitialURL as jest.Mock).mockResolvedValue(null);
+  });
+
+  it('logs error when branch.subscribe receives an error', async () => {
+    const mockedLogger = jest.mocked(Logger);
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({ error: 'Branch init failed', uri: undefined, params: {} });
+
+    expect(mockedLogger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'Error subscribing to branch.',
+    );
+  });
+
+  it('resolves +non_branch_link on Branch domain via resolveBranchShortLink in subscribe', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://link.metamask.io/buy',
+      text: jest.fn().mockResolvedValue(''),
+    });
+
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({
+      uri: 'https://metamask-alternate.app.link/1WkF6GmE40b',
+      params: {
+        '+clicked_branch_link': false,
+        '+non_branch_link': 'https://metamask-alternate.app.link/1WkF6GmE40b',
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/buy',
+    });
+
+    global.fetch = originalFetch;
+  });
+
+  it('does not call handleDeeplink when resolveBranchShortLink returns undefined in subscribe', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/1WkF6GmE40b',
+      text: jest.fn().mockResolvedValue('<html>no data</html>'),
+    });
+
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({
+      uri: 'https://metamask-alternate.app.link/1WkF6GmE40b',
+      params: {
+        '+clicked_branch_link': false,
+        '+non_branch_link': 'https://metamask-alternate.app.link/1WkF6GmE40b',
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(handleDeeplink).not.toHaveBeenCalled();
+
+    global.fetch = originalFetch;
+  });
+
+  it('resolves +non_branch_link on Branch domain via resolveBranchShortLink on cold start', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://link.metamask.io/swap',
+      text: jest.fn().mockResolvedValue(''),
+    });
+
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': false,
+      '+non_branch_link': 'https://metamask-alternate.app.link/1WkF6GmE40b',
+    });
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: 'https://link.metamask.io/swap',
+      });
+    });
+
+    global.fetch = originalFetch;
+  });
+
+  it('caches Branch params and clears them when empty', async () => {
+    DeeplinkManager.start();
+    const instance = DeeplinkManager.getInstance();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    await new Promise((resolve) => setImmediate(resolve));
+
+    callback({
+      uri: 'https://link.metamask.io/buy',
+      params: {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'buy',
+        '~campaign': 'test',
+      },
+    });
+
+    expect(instance.cachedBranchParams).toBeDefined();
+    expect(instance.cachedBranchParams?.['~campaign']).toBe('test');
+
+    callback({
+      uri: 'https://link.metamask.io/home',
+      params: undefined,
+    });
+
+    expect(instance.cachedBranchParams).toBeUndefined();
+  });
+
+  it('logs error when getLatestReferringParams throws on cold start', async () => {
+    const mockedLogger = jest.mocked(Logger);
+    (branch.getLatestReferringParams as jest.Mock).mockRejectedValue(
+      new Error('Branch SDK error'),
+    );
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(mockedLogger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error getting Branch deeplink',
+      );
+    });
+  });
+});
+
+describe('rewriteBranchUri error handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns undefined and logs error for malformed URI', () => {
+    const mockedLogger = jest.mocked(Logger);
+
+    const result = rewriteBranchUri(':::invalid-url', {
+      '+clicked_branch_link': true,
+      $deeplink_path: 'swap',
+    } as BranchParams);
+
+    expect(result).toBeUndefined();
+    expect(mockedLogger.error).toHaveBeenCalledTimes(1);
+    const [errorArg, msgArg] = mockedLogger.error.mock.calls[0];
+    expect(errorArg).toBeDefined();
+    expect(errorArg.message).toBeDefined();
+    expect(msgArg).toContain('Error rewriting Branch URI');
   });
 });

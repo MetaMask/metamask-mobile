@@ -290,7 +290,8 @@ export class DeeplinkManager {
         isBranchDomainUrl(opts.uri) &&
         opts.params?.['+non_branch_link']
       ) {
-        resolveBranchShortLink(opts.uri).then((resolved) => {
+        const nonBranchLink = opts.params['+non_branch_link'] as string;
+        resolveBranchShortLink(nonBranchLink).then((resolved) => {
           if (resolved) {
             getBranchDeeplink(resolved);
           }
