@@ -1913,7 +1913,7 @@ describe('getRpcMethodMiddlewareHooks', () => {
   });
 
   describe('hasApprovalRequestsForOrigin', () => {
-    it('should call ApprovalController.has with correct origin', () => {
+    it('should call ApprovalController.hasRequest with correct origin', () => {
       hooks.hasApprovalRequestsForOrigin();
 
       expect(
