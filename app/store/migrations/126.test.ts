@@ -91,7 +91,7 @@ describe('Migration #126 - Update default search engine to Brave', () => {
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('updates the search engine from DuckDuckGo to Brave', async () => {
+  it('does not change the search engine if it is already DuckDuckGo', async () => {
     const oldState = {
       engine: {
         backgroundState: {},
@@ -101,7 +101,12 @@ describe('Migration #126 - Update default search engine to Brave', () => {
       },
     };
 
-    const expectedState = {
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(oldState);
+  });
+
+  it('does not change the search engine if it is already Brave', async () => {
+    const oldState = {
       engine: {
         backgroundState: {},
       },
@@ -111,6 +116,6 @@ describe('Migration #126 - Update default search engine to Brave', () => {
     };
 
     const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
+    expect(migratedState).toStrictEqual(oldState);
   });
 });

@@ -25,7 +25,9 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  state.settings.searchEngine = 'Brave';
+  if (state.settings.searchEngine === 'Google') {
+    state.settings.searchEngine = 'Brave';
+  }
 
   return state;
 }
