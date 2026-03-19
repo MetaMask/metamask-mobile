@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useCallback } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -24,13 +24,17 @@ export const usePredictMarketData = ({
   pageSize?: number;
   customQueryParams?: string;
 } = {}) => {
+  const queryClient = useQueryClient();
+
+  const queryKey = predictQueries.markets.keys.list({
+    category,
+    q,
+    pageSize,
+    customQueryParams,
+  });
+
   const queryResult = useInfiniteQuery({
-    queryKey: predictQueries.markets.keys.list({
-      category,
-      q,
-      pageSize,
-      customQueryParams,
-    }),
+    queryKey,
     queryFn: async ({ pageParam = 0 }) => {
       DevLogger.log(
         'Fetching market data for category:',
@@ -111,6 +115,12 @@ export const usePredictMarketData = ({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Use resetQueries instead of refetch to avoid re-fetching all loaded pages.
+  // resetQueries drops cached pages and fetches only the first page.
+  const refetch = useCallback(async () => {
+    await queryClient.resetQueries({ queryKey });
+  }, [queryClient, queryKey]);
+
   return {
     marketData,
     isLoading: queryResult.isLoading,
@@ -118,7 +128,7 @@ export const usePredictMarketData = ({
     isFetchingMore: isFetchingNextPage,
     error: queryResult.error,
     hasMore: hasNextPage ?? false,
-    refetch: queryResult.refetch,
+    refetch,
     fetchMore,
   };
 };
