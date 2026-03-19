@@ -2,7 +2,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-
+import Assertions from '../../framework/Assertions';
 import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
@@ -12,11 +12,17 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_USDC_BALANCE_MOCKS,
+  POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import PredictBalance from '../../page-objects/Predict/PredictBalance';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
+import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -28,10 +34,11 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer); // needed to load the withdraw/deposit/claim screen
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings for claim flow
+  await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);
 };
 
 describe(SmokeTrade('Predictions'), () => {
-  it('should withdraw positions', async () => {
+  it('withdraws from Predict balance and verifies activity', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -40,9 +47,36 @@ describe(SmokeTrade('Predictions'), () => {
       },
       async () => {
         await loginToApp();
+
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
-        // TODO: Add withdraw flow
+
+        await Assertions.expectElementToBeVisible(PredictMarketList.container, {
+          description: 'Predict market list container should be visible',
+        });
+        await PredictBalance.expectBalanceCardVisible();
+        await PredictBalance.tapWithdraw();
+
+        await device.disableSynchronization();
+        await TransactionPayConfirmation.tapKeyboardAmount('5');
+        await TransactionPayConfirmation.tapKeyboardContinueButton();
+        await FooterActions.tapConfirmButton();
+
+        await Assertions.expectElementToBeVisible(PredictMarketList.container, {
+          description:
+            'Predict market list should be visible after withdraw confirmation',
+        });
+        await device.enableSynchronization();
+
+        await TabBarComponent.tapActivity();
+        await ActivitiesView.tapOnPredictionsTab();
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.predictWithdraw,
+          {
+            description:
+              'Predictions withdraw activity entry should be visible',
+          },
+        );
       },
     );
   });
