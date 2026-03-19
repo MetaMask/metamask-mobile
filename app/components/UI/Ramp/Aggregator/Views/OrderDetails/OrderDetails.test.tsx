@@ -318,9 +318,7 @@ describe('OrderDetails', () => {
       }),
     ).toBeTruthy();
 
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockGoToAggregator).toHaveBeenCalledWith();
@@ -340,9 +338,7 @@ describe('OrderDetails', () => {
       }),
     ).toBeTruthy();
 
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockGoToSell).toHaveBeenCalledWith();
@@ -459,9 +455,7 @@ describe('OrderDetails', () => {
     await waitFor(() => render(OrderDetails, [createdOrder]));
     expect(screen.toJSON()).toMatchSnapshot();
 
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
 
     expect(processFiatOrder).toHaveBeenCalledWith(
       createdOrder,
@@ -530,9 +524,7 @@ describe('OrderDetails', () => {
 
     render(OrderDetails, [testOrder as FiatOrder]);
 
-    await act(async () => {
-      fireEvent.press(screen.getByText('Contact support'));
-    });
+    fireEvent.press(screen.getByText('Contact support'));
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_EXTERNAL_LINK_CLICKED',
       {
@@ -542,9 +534,7 @@ describe('OrderDetails', () => {
       },
     );
 
-    await act(async () => {
-      fireEvent.press(screen.getByText('View order status on Test Provider'));
-    });
+    fireEvent.press(screen.getByText('View order status on Test Provider'));
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_EXTERNAL_LINK_CLICKED',
       {

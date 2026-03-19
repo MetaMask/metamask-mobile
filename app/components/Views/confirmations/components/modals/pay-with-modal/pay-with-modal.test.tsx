@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor , act } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { PayWithModal } from './pay-with-modal';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
@@ -285,9 +285,7 @@ describe('PayWithModal', () => {
     it('sets pay asset', async () => {
       const { getByText } = render();
 
-      await act(async () => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(getByText('Test Token 1'));
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
         address: TOKENS_MOCK[1].address,
@@ -308,9 +306,7 @@ describe('PayWithModal', () => {
 
       const { getByText } = render();
 
-      await act(async () => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(getByText('Test Token 1'));
 
       expect(onPerpsPaymentTokenChangeMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -400,9 +396,7 @@ describe('PayWithModal', () => {
 
       const { getByText } = render();
 
-      await act(async () => {
-        fireEvent.press(getByText('Zero Token'));
-      });
+      fireEvent.press(getByText('Zero Token'));
 
       expect(mockAddTokens).toHaveBeenCalled();
       expect(setPayTokenMock).toHaveBeenCalled();

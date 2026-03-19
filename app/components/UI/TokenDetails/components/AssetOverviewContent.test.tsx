@@ -177,9 +177,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(false) },
       );
 
-      await act(async () => {
-        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
-      });
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -199,9 +197,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(false) },
       );
 
-      await act(async () => {
-        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
-      });
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -221,9 +217,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      await act(async () => {
-        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
-      });
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('long');
       expect(mockTrack).not.toHaveBeenCalled();
@@ -235,9 +229,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      await act(async () => {
-        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
-      });
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('short');
       expect(mockTrack).not.toHaveBeenCalled();
@@ -250,9 +242,7 @@ describe('AssetOverviewContent', () => {
       );
 
       // Open the geo block modal by pressing Long when not eligible
-      await act(async () => {
-        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
-      });
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
 
       // Verify the tooltip was rendered with the expected props
       expect(mockPerpsBottomSheetTooltipInner).toHaveBeenCalledWith(
@@ -283,9 +273,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      await act(async () => {
-        fireEvent.press(getByTestId('market-insights-entry-card'));
-      });
+      fireEvent.press(getByTestId('market-insights-entry-card'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MARKET_INSIGHTS.VIEW,

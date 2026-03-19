@@ -261,9 +261,7 @@ describe('Quotes', () => {
 
   it('navigates and tracks event on back button press', async () => {
     render(Quotes);
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
-    });
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
@@ -282,9 +280,7 @@ describe('Quotes', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
     render(Quotes);
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
-    });
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',

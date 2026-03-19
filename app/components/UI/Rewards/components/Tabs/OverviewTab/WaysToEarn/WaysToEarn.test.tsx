@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent , act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -308,9 +308,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Swap'));
-      });
+      fireEvent.press(getByText('Swap'));
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -332,9 +330,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Swap'));
-      });
+      fireEvent.press(getByText('Swap'));
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -353,9 +349,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Perps'));
-      });
+      fireEvent.press(getByText('Perps'));
 
       // Assert
       const modalCall = mockNavigate.mock.calls.find(
@@ -370,9 +364,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Perps'));
-      });
+      fireEvent.press(getByText('Perps'));
 
       // Assert
       const modalCall = mockNavigate.mock.calls.find(
@@ -393,9 +385,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Bonus code'));
-      });
+      fireEvent.press(getByText('Bonus code'));
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -419,9 +409,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Bonus code'));
-      });
+      fireEvent.press(getByText('Bonus code'));
 
       // Assert
       const navCall = mockNavigate.mock.calls.find(
@@ -441,9 +429,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Bonus code'));
-      });
+      fireEvent.press(getByText('Bonus code'));
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -461,9 +447,7 @@ describe('WaysToEarn', () => {
     it('calls handleDeeplink when buttonAction has deeplink', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Swap'));
-      });
+      fireEvent.press(getByText('Swap'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -483,9 +467,7 @@ describe('WaysToEarn', () => {
     it('tracks CTA click event with correct properties for deeplink action', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Swap'));
-      });
+      fireEvent.press(getByText('Swap'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -514,9 +496,7 @@ describe('WaysToEarn', () => {
     it('navigates to route when buttonAction has route with root and screen', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Perps'));
-      });
+      fireEvent.press(getByText('Perps'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -538,9 +518,7 @@ describe('WaysToEarn', () => {
     it('navigates to route without screen param when screen is empty', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Refer friends'));
-      });
+      fireEvent.press(getByText('Refer friends'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -569,9 +547,7 @@ describe('WaysToEarn', () => {
       mockUseSelector.mockReturnValue([urlWayToEarn]);
 
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('External action'));
-      });
+      fireEvent.press(getByText('External action'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -603,9 +579,7 @@ describe('WaysToEarn', () => {
       mockUseSelector.mockReturnValue([noActionWayToEarn]);
 
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Info only'));
-      });
+      fireEvent.press(getByText('Info only'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -643,9 +617,7 @@ describe('WaysToEarn', () => {
       mockUseSelector.mockReturnValue([mixedActionWay]);
 
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Mixed action'));
-      });
+      fireEvent.press(getByText('Mixed action'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -681,9 +653,7 @@ describe('WaysToEarn', () => {
       mockUseSelector.mockReturnValue([routeAndUrlWay]);
 
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Route and URL'));
-      });
+      fireEvent.press(getByText('Route and URL'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -713,9 +683,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Swap'));
-      });
+      fireEvent.press(getByText('Swap'));
 
       // Get the modal navigation call
       const modalCall = mockNavigate.mock.calls.find(
@@ -732,9 +700,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Refer friends'));
-      });
+      fireEvent.press(getByText('Refer friends'));
 
       // Get the modal navigation call
       const modalCall = mockNavigate.mock.calls.find(
@@ -751,9 +717,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Perps'));
-      });
+      fireEvent.press(getByText('Perps'));
 
       // Get the modal navigation call
       const modalCall = mockNavigate.mock.calls.find(
@@ -769,9 +733,7 @@ describe('WaysToEarn', () => {
     it('closes modal (goBack) before executing CTA navigation', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Perps'));
-      });
+      fireEvent.press(getByText('Perps'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -806,9 +768,7 @@ describe('WaysToEarn', () => {
       const { getByText } = render(<WaysToEarn />);
 
       // Act
-      await act(async () => {
-        fireEvent.press(getByText('Refer friends'));
-      });
+      fireEvent.press(getByText('Refer friends'));
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -824,9 +784,7 @@ describe('WaysToEarn', () => {
     it('tracks CTA click events with ways_to_earn_type matching wayToEarn.type', async () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      await act(async () => {
-        fireEvent.press(getByText('Perps'));
-      });
+      fireEvent.press(getByText('Perps'));
 
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
@@ -877,9 +835,7 @@ describe('WaysToEarn', () => {
         const { getByText } = render(<WaysToEarn />);
 
         // Act
-        await act(async () => {
-          fireEvent.press(getByText(title));
-        });
+        fireEvent.press(getByText(title));
 
         // Assert
         const modalCall = mockNavigate.mock.calls.find(

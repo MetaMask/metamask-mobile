@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent , act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { Text } from 'react-native';
@@ -327,9 +327,7 @@ describe('BaseControlBar', () => {
       });
       const filterButton = getByTestId('test-network-filter');
 
-      await act(async () => {
-        fireEvent.press(filterButton);
-      });
+      fireEvent.press(filterButton);
 
       expect(customFilterHandler).toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
@@ -340,9 +338,7 @@ describe('BaseControlBar', () => {
       const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
       const sortButton = buttonIcons[0]; // First ButtonIcon should be sort button
 
-      await act(async () => {
-        fireEvent.press(sortButton);
-      });
+      fireEvent.press(sortButton);
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'TokensBottomSheet',
@@ -358,9 +354,7 @@ describe('BaseControlBar', () => {
       const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
       const sortButton = buttonIcons[0];
 
-      await act(async () => {
-        fireEvent.press(sortButton);
-      });
+      fireEvent.press(sortButton);
 
       expect(customSortHandler).toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
@@ -372,9 +366,7 @@ describe('BaseControlBar', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
-      await act(async () => {
-        fireEvent.press(filterButton);
-      });
+      fireEvent.press(filterButton);
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'NetworkManager',

@@ -157,9 +157,7 @@ describe('BankDetails Component', () => {
   it('render matches snapshot with bank info shown', async () => {
     const component = render(BankDetails);
 
-    await act(async () => {
-      fireEvent.press(screen.getByText('Show bank information'));
-    });
+    fireEvent.press(screen.getByText('Show bank information'));
 
     expect(component).toMatchSnapshot();
   });
@@ -167,9 +165,7 @@ describe('BankDetails Component', () => {
   it('calls confirmPayment when bank transfer sent button is pressed', async () => {
     render(BankDetails);
 
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('main-action-button'));
-    });
+    fireEvent.press(screen.getByTestId('main-action-button'));
 
     await waitFor(() => {
       expect(mockConfirmPayment).toHaveBeenCalledWith(
@@ -182,9 +178,7 @@ describe('BankDetails Component', () => {
   it('calls cancelOrder when cancel button is pressed', async () => {
     render(BankDetails);
 
-    await act(async () => {
-      fireEvent.press(screen.getByText('Cancel order'));
-    });
+    fireEvent.press(screen.getByText('Cancel order'));
 
     await waitFor(() => {
       expect(mockCancelOrder).toHaveBeenCalled();
@@ -196,9 +190,7 @@ describe('BankDetails Component', () => {
 
     expect(screen.getByText('Show bank information')).toBeTruthy();
 
-    await act(async () => {
-      fireEvent.press(screen.getByText('Show bank information'));
-    });
+    fireEvent.press(screen.getByText('Show bank information'));
 
     expect(screen.getByText('Hide bank information')).toBeTruthy();
   });
@@ -210,9 +202,7 @@ describe('BankDetails Component', () => {
     expect(screen.queryByText('456 Recipient Street')).toBeNull();
 
     // Show bank information
-    await act(async () => {
-      fireEvent.press(screen.getByText('Show bank information'));
-    });
+    fireEvent.press(screen.getByText('Show bank information'));
 
     // Beneficiary address should now be visible
     expect(screen.getByText('456 Recipient Street')).toBeTruthy();
@@ -235,9 +225,7 @@ describe('BankDetails Component', () => {
       .mockRejectedValue('Payment confirmation failed');
 
     render(BankDetails);
-    await act(async () => {
-      fireEvent.press(screen.getByText('Confirm transfer'));
-    });
+    fireEvent.press(screen.getByText('Confirm transfer'));
 
     await waitFor(() => {
       expect(screen.getByText('Payment confirmation failed')).toBeTruthy();
@@ -313,9 +301,7 @@ describe('BankDetails Component', () => {
 
     const mockLoggerError = jest.spyOn(Logger, 'error');
     render(BankDetails);
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('main-action-button'));
-    });
+    fireEvent.press(screen.getByTestId('main-action-button'));
     expect(mockConfirmPayment).toHaveBeenCalledWith(
       'test-order-id',
       'sepa_bank_transfer',
@@ -330,9 +316,7 @@ describe('BankDetails Component', () => {
 
     const mockLoggerError = jest.spyOn(Logger, 'error');
     render(BankDetails);
-    await act(async () => {
-      fireEvent.press(screen.getByText('Cancel order'));
-    });
+    fireEvent.press(screen.getByText('Cancel order'));
     expect(mockCancelOrder).toHaveBeenCalled();
     expect(mockLoggerError).toHaveBeenCalled();
   });
@@ -383,9 +367,7 @@ describe('BankDetails Component', () => {
 
     render(BankDetails);
 
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('main-action-button'));
-    });
+    fireEvent.press(screen.getByTestId('main-action-button'));
 
     await waitFor(() => {
       expect(mockConfirmPayment).not.toHaveBeenCalled();
@@ -416,9 +398,7 @@ describe('BankDetails Component', () => {
 
     render(BankDetails);
 
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('main-action-button'));
-    });
+    fireEvent.press(screen.getByTestId('main-action-button'));
 
     await waitFor(() => {
       expect(mockConfirmPayment).not.toHaveBeenCalled();
@@ -439,9 +419,7 @@ describe('BankDetails Component', () => {
 
       render(BankDetails);
 
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('main-action-button'));
-      });
+      fireEvent.press(screen.getByTestId('main-action-button'));
 
       await waitFor(() => {
         expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
@@ -464,9 +442,7 @@ describe('BankDetails Component', () => {
 
       render(BankDetails);
 
-      await act(async () => {
-        fireEvent.press(screen.getByText('Cancel order'));
-      });
+      fireEvent.press(screen.getByText('Cancel order'));
 
       await waitFor(() => {
         expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
@@ -488,9 +464,7 @@ describe('BankDetails Component', () => {
       const mockLoggerError = jest.spyOn(Logger, 'error');
       render(BankDetails);
 
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('main-action-button'));
-      });
+      fireEvent.press(screen.getByTestId('main-action-button'));
 
       await waitFor(() => {
         expect(mockLoggerError).toHaveBeenCalledWith(
@@ -509,9 +483,7 @@ describe('BankDetails Component', () => {
       const mockLoggerError = jest.spyOn(Logger, 'error');
       render(BankDetails);
 
-      await act(async () => {
-        fireEvent.press(screen.getByText('Cancel order'));
-      });
+      fireEvent.press(screen.getByText('Cancel order'));
 
       await waitFor(() => {
         expect(mockLoggerError).toHaveBeenCalledWith(
@@ -586,9 +558,7 @@ describe('BankDetails Component', () => {
       const mockLoggerError = jest.spyOn(Logger, 'error');
       render(BankDetails);
 
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('main-action-button'));
-      });
+      fireEvent.press(screen.getByTestId('main-action-button'));
 
       await waitFor(() => {
         expect(mockLoggerError).toHaveBeenCalledWith(

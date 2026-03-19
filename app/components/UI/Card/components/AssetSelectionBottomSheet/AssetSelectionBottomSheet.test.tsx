@@ -547,9 +547,7 @@ describe('AssetSelectionBottomSheet', () => {
         onTokenSelect: mockOnTokenSelect,
       });
 
-      await act(async () => {
-        fireEvent.press(getByText(/USDC on/));
-      });
+      fireEvent.press(getByText(/USDC on/));
 
       expect(mockOnTokenSelect).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -576,9 +574,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      await act(async () => {
-        fireEvent.press(getByText(/USDC on/));
-      });
+      fireEvent.press(getByText(/USDC on/));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.SPENDING_LIMIT,
@@ -686,9 +682,7 @@ describe('AssetSelectionBottomSheet', () => {
         navigateToCardHomeOnPriorityToken: false,
       });
 
-      await act(async () => {
-        fireEvent.press(getByText(/USDC on/));
-      });
+      fireEvent.press(getByText(/USDC on/));
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
@@ -873,9 +867,7 @@ describe('AssetSelectionBottomSheet', () => {
         callerParams,
       });
 
-      await act(async () => {
-        fireEvent.press(getByText(/EURe on/));
-      });
+      fireEvent.press(getByText(/EURe on/));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.SPENDING_LIMIT,
@@ -914,9 +906,7 @@ describe('AssetSelectionBottomSheet', () => {
         callerParams: undefined,
       });
 
-      await act(async () => {
-        fireEvent.press(getByText(/mUSD on/));
-      });
+      fireEvent.press(getByText(/mUSD on/));
 
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -947,9 +937,7 @@ describe('AssetSelectionBottomSheet', () => {
         hideSolanaAssets: true,
       });
 
-      await act(async () => {
-        fireEvent.press(getByText('Others tokens on Solana'));
-      });
+      fireEvent.press(getByText('Others tokens on Solana'));
 
       expect(mockNavigateToCardPage).toHaveBeenCalled();
     });

@@ -870,7 +870,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                               colors={[Array]}
                               onRefresh={[Function]}
                               ref={[Object]}
-                              refreshing={false}
+                              refreshing={true}
                               tintColor="#121314"
                             />
                           }

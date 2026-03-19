@@ -403,9 +403,7 @@ describe('BridgeView', () => {
     const destInput = getByTestId('dest-token-area-input');
 
     // Call the onPressIn handler directly to trigger keypad close
-    await act(async () => {
-      fireEvent(destInput, 'pressIn');
-    });
+    fireEvent(destInput, 'pressIn');
 
     // Verify keypad close was triggered by the pressIn event
     // In React 19, the element may still be in the tree but hidden
@@ -434,15 +432,9 @@ describe('BridgeView', () => {
     );
 
     // Press number buttons to input
-    await act(async () => {
-      fireEvent.press(getByText('9'));
-    });
-    await act(async () => {
-      fireEvent.press(getByText('.'));
-    });
-    await act(async () => {
-      fireEvent.press(getByText('5'));
-    });
+    fireEvent.press(getByText('9'));
+    fireEvent.press(getByText('.'));
+    fireEvent.press(getByText('5'));
 
     // Verify the input value is updated
     const input = getByTestId('source-token-area-input');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor , act } from '@testing-library/react-native';
+import { render, fireEvent, waitFor  } from '@testing-library/react-native';
 // Mock dependencies
 import RewardsClaimBottomSheetModal from './RewardsClaimBottomSheetModal';
 import { SeasonRewardType } from '../../../../../../core/Engine/controllers/rewards-controller/types';
@@ -364,9 +364,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const confirmButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      await act(async () => {
-        fireEvent.press(confirmButton);
-      });
+      fireEvent.press(confirmButton);
 
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -393,9 +391,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       );
       expect(claimButton).toBeOnTheScreen();
 
-      await act(async () => {
-        fireEvent.press(claimButton);
-      });
+      fireEvent.press(claimButton);
 
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -410,9 +406,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       );
       expect(claimButton).toBeOnTheScreen();
 
-      await act(async () => {
-        fireEvent.press(claimButton);
-      });
+      fireEvent.press(claimButton);
 
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -427,9 +421,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       );
       expect(claimButton).toBeOnTheScreen();
 
-      await act(async () => {
-        fireEvent.press(claimButton);
-      });
+      fireEvent.press(claimButton);
 
       expect(mockClaimReward).toHaveBeenCalledWith('reward-123', {});
     });
@@ -440,18 +432,14 @@ describe('RewardsClaimBottomSheetModal', () => {
       );
 
       const inputField = getByPlaceholderText('Enter your Telegram handle');
-      await act(async () => {
-        fireEvent.changeText(inputField, '@user123');
-      });
+      fireEvent.changeText(inputField, '@user123');
 
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
       expect(claimButton).toBeOnTheScreen();
 
-      await act(async () => {
-        fireEvent.press(claimButton);
-      });
+      fireEvent.press(claimButton);
 
       expect(mockClaimReward).toHaveBeenCalledWith('reward-123', {
         data: { telegramHandle: '@user123' },
@@ -554,9 +542,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       );
 
       const inputField = getByPlaceholderText('Enter your Telegram handle');
-      await act(async () => {
-        fireEvent.changeText(inputField, '@user123');
-      });
+      fireEvent.changeText(inputField, '@user123');
 
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
@@ -572,9 +558,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       );
 
       const inputField = getByPlaceholderText('Enter your Telegram handle');
-      await act(async () => {
-        fireEvent.changeText(inputField, '@user123');
-      });
+      fireEvent.changeText(inputField, '@user123');
 
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
@@ -608,9 +592,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      await act(async () => {
-        fireEvent.press(claimButton);
-      });
+      fireEvent.press(claimButton);
 
       await waitFor(() => {
         expect(mockGoBack).not.toHaveBeenCalled();

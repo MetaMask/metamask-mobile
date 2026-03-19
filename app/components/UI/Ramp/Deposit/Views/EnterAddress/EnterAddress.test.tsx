@@ -108,12 +108,8 @@ async function fillFormAndSubmit({
       addressLine2,
     );
   }
-  await act(async () => {
-    fireEvent.changeText(screen.getByTestId('city-input'), city);
-  });
-  await act(async () => {
-    fireEvent.press(screen.getByTestId('state-input'));
-  });
+  fireEvent.changeText(screen.getByTestId('city-input'), city);
+  fireEvent.press(screen.getByTestId('state-input'));
   // Wait for the navigation to happen and then call the onStateSelect callback
   act(() => {
     const lastNavigateCall =
@@ -145,9 +141,7 @@ describe('EnterAddress Component', () => {
 
   it('displays form validation errors when continue is pressed with empty fields', async () => {
     render(EnterAddress);
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('address-continue-button'));
-    });
+    fireEvent.press(screen.getByTestId('address-continue-button'));
     expect(screen.toJSON()).toMatchSnapshot();
     expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
@@ -242,16 +236,10 @@ describe('EnterAddress Component', () => {
       screen.getByTestId('address-line-1-input'),
       '123 Main St',
     );
-    await act(async () => {
-      fireEvent.changeText(screen.getByTestId('city-input'), 'San Francisco');
-    });
-    await act(async () => {
-      fireEvent.changeText(screen.getByTestId('postal-code-input'), '10001');
-    });
+    fireEvent.changeText(screen.getByTestId('city-input'), 'San Francisco');
+    fireEvent.changeText(screen.getByTestId('postal-code-input'), '10001');
 
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('address-continue-button'));
-    });
+    fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('State/Region is required')).toBeOnTheScreen();
     expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();

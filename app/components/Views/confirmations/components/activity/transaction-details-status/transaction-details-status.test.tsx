@@ -5,7 +5,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { fireEvent , act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
@@ -93,9 +93,7 @@ describe('TransactionDetailsStatus', () => {
       status: TransactionStatus.failed,
     });
 
-    await act(async () => {
-      fireEvent.press(getByTestId('status-tooltip-open-btn'));
-    });
+    fireEvent.press(getByTestId('status-tooltip-open-btn'));
 
     expect(getByText(strings('transaction.failed'))).toBeDefined();
     expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();
@@ -118,9 +116,7 @@ describe('TransactionDetailsStatus', () => {
       status: TransactionStatus.failed,
     });
 
-    await act(async () => {
-      fireEvent.press(getByTestId('status-tooltip-open-btn'));
-    });
+    fireEvent.press(getByTestId('status-tooltip-open-btn'));
 
     expect(getByText(strings('transaction.failed'))).toBeDefined();
     expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();

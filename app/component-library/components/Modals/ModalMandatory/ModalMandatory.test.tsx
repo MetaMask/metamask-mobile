@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent , act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { WebView } from '@metamask/react-native-webview';
 import ModalMandatory from './ModalMandatory';
 import { TermsOfUseModalSelectorsIDs } from '../../../../util/termsOfUse/TermsOfUseModal.testIds';
@@ -82,9 +82,7 @@ describe('ModalMandatory', () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const webview = getByTestId(TermsOfUseModalSelectorsIDs.WEBVIEW);
 
-    await act(async () => {
-      fireEvent.press(webview);
-    });
+    fireEvent.press(webview);
     expect(WebView).toHaveBeenCalledWith(
       expect.objectContaining({
         onMessage: expect.any(Function),
@@ -98,9 +96,7 @@ describe('ModalMandatory', () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const checkbox = getByTestId(TermsOfUseModalSelectorsIDs.CHECKBOX);
 
-    await act(async () => {
-      fireEvent.press(checkbox);
-    });
+    fireEvent.press(checkbox);
     expect(checkbox).toBeTruthy();
   });
 
@@ -130,9 +126,7 @@ describe('ModalMandatory', () => {
     expect(button).toBeDisabled();
 
     // Select checkbox
-    await act(async () => {
-      fireEvent.press(checkbox);
-    });
+    fireEvent.press(checkbox);
 
     // Should be enabled after checkbox selection
     expect(button).toBeEnabled();
@@ -162,14 +156,10 @@ describe('ModalMandatory', () => {
     const button = getByTestId('test-button');
 
     // Select checkbox
-    await act(async () => {
-      fireEvent.press(checkbox);
-    });
+    fireEvent.press(checkbox);
 
     // Press button
-    await act(async () => {
-      fireEvent.press(button);
-    });
+    fireEvent.press(button);
     expect(mockRoute.params.onAccept).toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
   });

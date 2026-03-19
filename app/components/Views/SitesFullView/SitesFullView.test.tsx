@@ -252,9 +252,7 @@ describe('SitesFullView', () => {
       const { getByTestId } = render(<SitesFullView />);
       const backButton = getByTestId('sites-full-view-header-back-button');
 
-      await act(async () => {
-        fireEvent.press(backButton);
-      });
+      fireEvent.press(backButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -267,29 +265,21 @@ describe('SitesFullView', () => {
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Search by name
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'Meta');
-      });
+      fireEvent.changeText(searchInput, 'Meta');
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
       expect(queryByTestId('site-item-2')).toBeNull();
 
       // Search by URL
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'opensea');
-      });
+      fireEvent.changeText(searchInput, 'opensea');
       expect(queryByTestId('site-item-1')).toBeNull();
       expect(getByTestId('site-item-2')).toBeOnTheScreen();
 
       // Search by display URL
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'uniswap.org');
-      });
+      fireEvent.changeText(searchInput, 'uniswap.org');
       expect(queryByTestId('site-item-2')).toBeNull();
       expect(getByTestId('site-item-3')).toBeOnTheScreen();
     });
@@ -300,15 +290,11 @@ describe('SitesFullView', () => {
       const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Empty search
-      await act(async () => {
-        fireEvent.changeText(searchInput, '');
-      });
+      fireEvent.changeText(searchInput, '');
 
       // All sites should be visible
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
@@ -326,25 +312,17 @@ describe('SitesFullView', () => {
       const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Type search query
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'test');
-      });
+      fireEvent.changeText(searchInput, 'test');
 
       // Close search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-close'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-close'));
 
       // Reopen search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
 
       // Search input should be empty
       const newSearchInput = getByTestId('sites-full-view-header-search-bar');
@@ -364,15 +342,11 @@ describe('SitesFullView', () => {
       expect(queryByTestId('sites-search-footer')).toBeNull();
 
       // Activate search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Type search query
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'test');
-      });
+      fireEvent.changeText(searchInput, 'test');
 
       // Footer should appear
       expect(getByTestId('sites-search-footer')).toBeOnTheScreen();
@@ -391,9 +365,7 @@ describe('SitesFullView', () => {
       expect(queryByTestId('sites-search-footer')).toBeNull();
 
       // Activate search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
 
       // Footer should not appear with empty query
       expect(queryByTestId('sites-search-footer')).toBeNull();
@@ -484,15 +456,11 @@ describe('SitesFullView', () => {
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
-      await act(async () => {
-        fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
-      });
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
       const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Search with different case
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'METAMASK');
-      });
+      fireEvent.changeText(searchInput, 'METAMASK');
 
       // MetaMask should still be found
       expect(getByTestId('site-item-1')).toBeOnTheScreen();

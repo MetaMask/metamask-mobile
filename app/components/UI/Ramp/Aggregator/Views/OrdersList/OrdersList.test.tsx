@@ -10,7 +10,7 @@ import renderWithProvider, {
 } from '../../../../../../util/test/renderWithProvider';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { fireEvent, screen , act } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -273,17 +273,13 @@ describe('OrdersList', () => {
 
   it('renders buy only correctly when pressing buy filter', async () => {
     render(<OrdersList />);
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
   it('renders sell only correctly when pressing sell filter', async () => {
     render(<OrdersList />);
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
@@ -292,9 +288,7 @@ describe('OrdersList', () => {
       <OrdersList />,
       [testOrders[0]], // a buy order,
     );
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
@@ -303,32 +297,22 @@ describe('OrdersList', () => {
       <OrdersList />,
       [testOrders[1]], // a sell order,
     );
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
   it('resets filter to all after other filter was set', async () => {
     render(<OrdersList />);
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'All' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'All' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
   it('navigates when pressing item', async () => {
     render(<OrdersList />);
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    });
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: /Sold ETH/ }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
+    fireEvent.press(screen.getByRole('button', { name: /Sold ETH/ }));
     expect(mockNavigate).toHaveBeenCalled();
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
       [
@@ -345,9 +329,7 @@ describe('OrdersList', () => {
   it('navigates to ramps order details when pressing RAMPS_V2 order item', async () => {
     render(<OrdersList />, [testOrders[4]]);
 
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: /Purchased ETH/ }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: /Purchased ETH/ }));
     expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
       orderId: 'test-ramps-v2-order-1',
     });
@@ -356,12 +338,8 @@ describe('OrdersList', () => {
   it('navigates to deposit order details when pressing deposit order item', async () => {
     render(<OrdersList />);
 
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    });
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: /Purchased USDC/ }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    fireEvent.press(screen.getByRole('button', { name: /Purchased USDC/ }));
     expect(mockNavigate).toHaveBeenCalledWith('DepositOrderDetails', {
       orderId: 'test-deposit-order-1',
     });
@@ -370,12 +348,8 @@ describe('OrdersList', () => {
   it('navigates to deposit flow when pressing created deposit order item', async () => {
     render(<OrdersList />);
 
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    });
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
 
     expect(mockGoToDeposit).toHaveBeenCalledWith();
   });

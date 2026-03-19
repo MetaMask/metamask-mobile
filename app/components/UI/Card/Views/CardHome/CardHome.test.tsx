@@ -4165,9 +4165,7 @@ describe('CardHome Component', () => {
 
         // When: button is pressed
         render();
-        await act(async () => {
-          fireEvent.press(screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
-        });
+        fireEvent.press(screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
 
         // Then: resetPinToken is called after navigation
         await waitFor(() => {
@@ -4196,9 +4194,7 @@ describe('CardHome Component', () => {
 
         // When: button is pressed while loading
         render();
-        await act(async () => {
-          fireEvent.press(screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
-        });
+        fireEvent.press(screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
 
         // Then: reauthenticate is not called
         await waitFor(() => {
@@ -5731,9 +5727,7 @@ describe('CardHome Component', () => {
 
       // When: user taps cashback item
       render();
-      await act(async () => {
-        fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
-      });
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
 
       // Then: navigates to cashback route
       expect(mockNavigate).toHaveBeenCalled();
@@ -5755,9 +5749,7 @@ describe('CardHome Component', () => {
 
       // When: user taps cashback item
       render();
-      await act(async () => {
-        fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
-      });
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
 
       // Then: tracks cashback button event
       expect(mockTrackEvent).toHaveBeenCalled();

@@ -3,7 +3,7 @@ import SkipAccountSecurityModal from './';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { SkipAccountSecurityModalSelectorsIDs } from './SkipAccountSecurityModal.testIds';
 import { Platform } from 'react-native';
 
@@ -119,15 +119,11 @@ describe('SkipAccountSecurityModal', () => {
       const checkbox = wrapper.getByTestId(
         SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
       );
-      await act(async () => {
-        fireEvent.press(checkbox);
-      });
+      fireEvent.press(checkbox);
 
       expect(confirmButton).toBeEnabled();
 
-      await act(async () => {
-        fireEvent.press(confirmButton);
-      });
+      fireEvent.press(confirmButton);
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockOnConfirm).toHaveBeenCalledTimes(1);
       mockNavigation.mockRestore();
@@ -148,13 +144,9 @@ describe('SkipAccountSecurityModal', () => {
         SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
       );
 
-      await act(async () => {
-        fireEvent.press(checkbox);
-      });
+      fireEvent.press(checkbox);
 
-      await act(async () => {
-        fireEvent.press(cancelButton);
-      });
+      fireEvent.press(cancelButton);
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockOnCancel).toHaveBeenCalledTimes(1);
       mockNavigation.mockRestore();
@@ -203,9 +195,7 @@ describe('SkipAccountSecurityModal', () => {
         name: strings('account_backup_step_1.skip_button_cancel'),
       });
 
-      await act(async () => {
-        fireEvent.press(cancelButton);
-      });
+      fireEvent.press(cancelButton);
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockOnCancel).toHaveBeenCalledTimes(0);
       mockNavigation.mockRestore();
@@ -221,9 +211,7 @@ describe('SkipAccountSecurityModal', () => {
       // Button is disabled when checkbox is unchecked
       expect(confirmButton).toBeDisabled();
 
-      await act(async () => {
-        fireEvent.press(confirmButton);
-      });
+      fireEvent.press(confirmButton);
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockOnConfirm).toHaveBeenCalledTimes(0);
       mockNavigation.mockRestore();
