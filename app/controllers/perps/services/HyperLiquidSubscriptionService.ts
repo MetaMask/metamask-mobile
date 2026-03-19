@@ -2115,12 +2115,17 @@ export class HyperLiquidSubscriptionService {
     const subscription = await subscriptionClient.userFills(
       { user: userAddress },
       (data: UserFillsWsEvent) => {
+        // Build a Map for O(1) lookup instead of O(n) find per fill
+        const orderMap = new Map<string, string>();
+        if (this.#cachedOrders) {
+          for (const order of this.#cachedOrders) {
+            if (order.detailedOrderType) {
+              orderMap.set(order.orderId, order.detailedOrderType);
+            }
+          }
+        }
         const orderFills: OrderFill[] = data.fills.map((fill) => {
-          // Enrich with detailedOrderType from cached orders (best-effort)
           const oid = fill.oid.toString();
-          const cachedOrder = this.#cachedOrders?.find(
-            (order) => order.orderId === oid,
-          );
           return {
             orderId: oid,
             symbol: fill.coin,
@@ -2140,7 +2145,7 @@ export class HyperLiquidSubscriptionService {
                   method: fill.liquidation.method,
                 }
               : undefined,
-            detailedOrderType: cachedOrder?.detailedOrderType,
+            detailedOrderType: orderMap.get(oid),
           };
         });
 
