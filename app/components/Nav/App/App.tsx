@@ -644,7 +644,11 @@ const ImportPrivateKeyView = () => (
       headerShown: false,
     }}
   >
-    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+    <Stack.Screen
+      name="ImportPrivateKey"
+      component={ImportPrivateKey}
+      options={{ cardStyle: { backgroundColor: importedColors.white } }}
+    />
     <Stack.Screen
       name="ImportPrivateKeySuccess"
       component={ImportPrivateKeySuccess}
@@ -911,40 +915,22 @@ const AppFlow = () => (
     initialRouteName={Routes.FOX_LOADER}
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
       animationEnabled: false,
     }}
   >
-    <Stack.Screen
-      name={Routes.ONBOARDING.HOME_NAV}
-      component={Main}
-      options={{ headerShown: false }}
-    />
+    <Stack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
     <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.LOGIN}
-      component={Login}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Rehydrate"
-      component={OAuthRehydration}
-      options={{ headerShown: false }}
-    />
+    <Stack.Screen name={Routes.ONBOARDING.LOGIN} component={Login} />
+    <Stack.Screen name="Rehydrate" component={OAuthRehydration} />
     <Stack.Screen
       name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
       component={MaxBrowserTabsModal}
       options={{ presentation: 'modal' }}
     />
-    <Stack.Screen
-      name="OnboardingRootNav"
-      component={OnboardingRootNav}
-      options={{ headerShown: false }}
-    />
+    <Stack.Screen name="OnboardingRootNav" component={OnboardingRootNav} />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS_FLOW}
       component={OnboardingSuccessFlow}
-      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
