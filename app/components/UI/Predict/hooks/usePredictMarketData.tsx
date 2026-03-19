@@ -119,10 +119,11 @@ export const usePredictMarketData = ({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Use resetQueries instead of refetch to avoid re-fetching all loaded pages.
-  // resetQueries drops cached pages and fetches only the first page.
+  // Use invalidateQueries to trigger a background refetch while keeping
+  // existing data visible. This avoids the empty-state flash that resetQueries
+  // causes (it clears cache before the refetch completes).
   const refetch = useCallback(async () => {
-    await queryClient.resetQueries({ queryKey });
+    await queryClient.invalidateQueries({ queryKey });
   }, [queryClient, queryKey]);
 
   return {
