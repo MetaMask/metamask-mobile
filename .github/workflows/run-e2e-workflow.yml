@@ -337,7 +337,7 @@ jobs:
 
       - name: Aggregate Visual Regression Results
         if: ${{ always() && contains(inputs.test_suite_tag, 'VisualRegression') }}
-        run: npx ts-node tests/visual-regression/aggregate-results.ts
+        run: node tests/visual-regression/aggregate-results.mjs
 
       - name: Upload Visual Regression Report
         if: ${{ always() && contains(inputs.test_suite_tag, 'VisualRegression') }}
