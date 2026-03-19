@@ -70,7 +70,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "txHistory": {},
       },
       "CardController": {
-        "activeProviderId": null,
+        "activeProviderId": "baanx",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
@@ -682,7 +682,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "rewardsEnvUrl": null,
         "seasonStatuses": {},
         "seasons": {},
-        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
@@ -936,7 +935,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "txHistory": {},
       },
       "CardController": {
-        "activeProviderId": null,
+        "activeProviderId": "baanx",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
@@ -1548,7 +1547,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "rewardsEnvUrl": null,
         "seasonStatuses": {},
         "seasons": {},
-        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},

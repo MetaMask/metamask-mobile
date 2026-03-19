@@ -132,42 +132,46 @@ describe('error helpers', () => {
   });
 
   describe('getIconColorForErrorCode', () => {
-    it('returns Error color for DeviceDisconnected', () => {
-      const color = getIconColorForErrorCode(ErrorCode.DeviceDisconnected);
-
-      expect(color).toBe(IconColor.Error);
-    });
-
-    it('returns Info color for UserRejected', () => {
-      const color = getIconColorForErrorCode(ErrorCode.UserRejected);
-
-      expect(color).toBe(IconColor.Info);
-    });
-
-    it('returns Info color for UserCancelled', () => {
-      const color = getIconColorForErrorCode(ErrorCode.UserCancelled);
-
-      expect(color).toBe(IconColor.Info);
-    });
-
-    it('returns Warning color for UserConfirmationRequired', () => {
-      const color = getIconColorForErrorCode(
+    it('returns Default for most errors', () => {
+      const defaultCodes = [
+        ErrorCode.AuthenticationDeviceLocked,
+        ErrorCode.AuthenticationDeviceBlocked,
+        ErrorCode.DeviceStateEthAppClosed,
+        ErrorCode.DeviceDisconnected,
+        ErrorCode.DeviceNotFound,
+        ErrorCode.DeviceMissingCapability,
+        ErrorCode.DeviceStateBlindSignNotSupported,
+        ErrorCode.DeviceUnresponsive,
+        ErrorCode.ConnectionClosed,
+        ErrorCode.ConnectionTimeout,
+        ErrorCode.UserRejected,
+        ErrorCode.UserCancelled,
         ErrorCode.UserConfirmationRequired,
-      );
+        ErrorCode.PermissionBluetoothDenied,
+        ErrorCode.PermissionLocationDenied,
+        ErrorCode.PermissionNearbyDevicesDenied,
+        ErrorCode.BluetoothDisabled,
+        ErrorCode.BluetoothScanFailed,
+        ErrorCode.BluetoothConnectionFailed,
+        ErrorCode.DeviceNotReady,
+        ErrorCode.MobileNotSupported,
+      ];
+
+      for (const code of defaultCodes) {
+        expect(getIconColorForErrorCode(code)).toBe(IconColor.Default);
+      }
+    });
+
+    it('returns Warning color for Unknown', () => {
+      const color = getIconColorForErrorCode(ErrorCode.Unknown);
 
       expect(color).toBe(IconColor.Warning);
     });
 
-    it('returns Error color for Unknown', () => {
-      const color = getIconColorForErrorCode(ErrorCode.Unknown);
-
-      expect(color).toBe(IconColor.Error);
-    });
-
-    it('returns default Error color for unmapped codes', () => {
+    it('returns default Warning color for unmapped codes', () => {
       const color = getIconColorForErrorCode(999 as ErrorCode);
 
-      expect(color).toBe(IconColor.Error);
+      expect(color).toBe(IconColor.Warning);
     });
   });
 

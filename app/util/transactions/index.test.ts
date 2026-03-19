@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import BN from 'bnjs4';
 
 import * as controllerUtilsModule from '@metamask/controller-utils';

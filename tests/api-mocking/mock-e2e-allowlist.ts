@@ -47,7 +47,6 @@ export const ALLOWLISTED_URLS = [
   'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=LINEAETH',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
   'https://mainnet.era.zksync.io/',
-  'https://eth.llamarpc.com/',
   'https://rpc.atlantischain.network/',
   'https://nft.api.cx.metamask.io/collections?chainId=0x539&contract=0xb2552e4f4bc23e1572041677234d192774558bf0',
   'https://metamask.github.io/test-dapp/metamask-fox.svg',
@@ -59,5 +58,4 @@ export const ALLOWLISTED_URLS = [
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0xaa36a7',
   'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
   'https://api.hyperliquid.xyz/exchange',
-  'https://api.hyperliquid.xyz/info',
 ];

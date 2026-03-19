@@ -12,7 +12,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   PREDICT_DETAILS_HEADER_SKELETON,
   PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS,
