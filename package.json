@@ -770,7 +770,8 @@
       "ws>bufferutil": false,
       "ws>utf-8-validate": false,
       "eslint-plugin-import-x>unrs-resolver": false,
-      "eslint-import-resolver-typescript>unrs-resolver": false
+      "eslint-import-resolver-typescript>unrs-resolver": false,
+      "sharp": false
     }
   },
   "packageManager": "yarn@4.10.3",
