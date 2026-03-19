@@ -6,16 +6,16 @@ import {
 } from '@metamask/hw-wallet-sdk';
 
 /**
- * Default flow value used before `showAwaitingConfirmation` is called
+ * Default location value used before `showAwaitingConfirmation` is called
  * (i.e. during the initial connection / device-readiness phase).
  */
-export const HARDWARE_WALLET_CONNECTION_FLOW = 'Connection';
+export const HARDWARE_WALLET_CONNECTION_FLOW = 'connection';
 
 /**
- * Normalized error state categories for analytics.
- * Matches the segment schema enum for `error_state`.
+ * Normalized error type categories for analytics.
+ * Matches the segment schema enum for `error_type`.
  */
-export enum HardwareWalletAnalyticsErrorState {
+export enum HardwareWalletAnalyticsErrorType {
   DeviceLocked = 'Device Locked',
   DeviceDisconnected = 'Device Disconnected',
   EthereumAppNotOpened = 'Ethereum App Not Opened',
@@ -25,15 +25,15 @@ export enum HardwareWalletAnalyticsErrorState {
 }
 
 /**
- * Maps an SDK ErrorCode to the analytics error_state category.
+ * Maps an SDK ErrorCode to the analytics error_type category.
  */
-export function getAnalyticsErrorState(
+export function getAnalyticsErrorType(
   errorCode: ErrorCode,
-): HardwareWalletAnalyticsErrorState {
+): HardwareWalletAnalyticsErrorType {
   switch (errorCode) {
     case ErrorCode.AuthenticationDeviceLocked:
     case ErrorCode.AuthenticationDeviceBlocked:
-      return HardwareWalletAnalyticsErrorState.DeviceLocked;
+      return HardwareWalletAnalyticsErrorType.DeviceLocked;
 
     case ErrorCode.DeviceDisconnected:
     case ErrorCode.DeviceNotFound:
@@ -41,36 +41,36 @@ export function getAnalyticsErrorState(
     case ErrorCode.DeviceUnresponsive:
     case ErrorCode.ConnectionClosed:
     case ErrorCode.ConnectionTimeout:
-      return HardwareWalletAnalyticsErrorState.DeviceDisconnected;
+      return HardwareWalletAnalyticsErrorType.DeviceDisconnected;
 
     case ErrorCode.DeviceStateEthAppClosed:
     case ErrorCode.DeviceMissingCapability:
-      return HardwareWalletAnalyticsErrorState.EthereumAppNotOpened;
+      return HardwareWalletAnalyticsErrorType.EthereumAppNotOpened;
 
     case ErrorCode.BluetoothDisabled:
     case ErrorCode.PermissionBluetoothDenied:
-      return HardwareWalletAnalyticsErrorState.BluetoothDisabled;
+      return HardwareWalletAnalyticsErrorType.BluetoothDisabled;
 
     case ErrorCode.DeviceStateBlindSignNotSupported:
-      return HardwareWalletAnalyticsErrorState.BlindSigningNotEnabled;
+      return HardwareWalletAnalyticsErrorType.BlindSigningNotEnabled;
 
     default:
-      return HardwareWalletAnalyticsErrorState.GenericError;
+      return HardwareWalletAnalyticsErrorType.GenericError;
   }
 }
 
 /**
- * Derives the analytics error_state from the current connection state.
+ * Derives the analytics error_type from the current connection state.
  * Returns null for non-error states.
  */
-export function getErrorStateFromConnectionState(
+export function getErrorTypeFromConnectionState(
   connectionState: HardwareWalletConnectionState,
-): HardwareWalletAnalyticsErrorState | null {
+): HardwareWalletAnalyticsErrorType | null {
   if (connectionState.status === ConnectionStatus.ErrorState) {
-    return getAnalyticsErrorState(connectionState.error.code);
+    return getAnalyticsErrorType(connectionState.error.code);
   }
   if (connectionState.status === ConnectionStatus.AwaitingApp) {
-    return HardwareWalletAnalyticsErrorState.EthereumAppNotOpened;
+    return HardwareWalletAnalyticsErrorType.EthereumAppNotOpened;
   }
   return null;
 }
@@ -98,28 +98,29 @@ export function getAnalyticsDeviceType(
   }
 }
 
+export interface ErrorDetails {
+  error_code: string;
+  error_message: string;
+}
+
 /**
- * Builds a `raw_error` string from the current connection state,
- * including error code, message, and cause when available.
+ * Extracts `error_code` and `error_message` from the current connection state.
  */
-export function buildRawErrorString(
+export function getErrorDetails(
   connectionState: HardwareWalletConnectionState,
-): string {
+): ErrorDetails {
   if (connectionState.status === ConnectionStatus.ErrorState) {
     const { error } = connectionState;
-    const parts: string[] = [`code=${error.code}`];
-    if (error.userMessage) {
-      parts.push(`message=${error.userMessage}`);
-    }
-    if (error.cause) {
-      parts.push(
-        `cause=${error.cause instanceof Error ? error.cause.message : String(error.cause)}`,
-      );
-    }
-    return parts.join('; ');
+    return {
+      error_code: String(error.code),
+      error_message: error.userMessage ?? '',
+    };
   }
   if (connectionState.status === ConnectionStatus.AwaitingApp) {
-    return `status=awaiting_app; appName=${connectionState.appName ?? 'Ethereum'}`;
+    return {
+      error_code: String(ErrorCode.DeviceStateEthAppClosed),
+      error_message: `Open ${connectionState.appName ?? 'Ethereum'} app on device`,
+    };
   }
-  return '';
+  return { error_code: '', error_message: '' };
 }

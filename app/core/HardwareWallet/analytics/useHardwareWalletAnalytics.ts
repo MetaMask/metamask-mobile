@@ -7,10 +7,11 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../Analytics';
 import {
-  HardwareWalletAnalyticsErrorState,
-  getErrorStateFromConnectionState,
+  HardwareWalletAnalyticsErrorType,
+  getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,
-  buildRawErrorString,
+  getErrorDetails,
+  type ErrorDetails,
 } from './helpers';
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -23,7 +24,7 @@ interface UseHardwareWalletAnalyticsOptions {
 }
 
 interface UseHardwareWalletAnalyticsResult {
-  trackPrimaryButtonClicked: () => void;
+  trackCTAClicked: () => void;
   resetAnalyticsState: () => void;
 }
 
@@ -33,13 +34,13 @@ interface UseHardwareWalletAnalyticsResult {
  *
  * - **Recovery Modal Viewed** – fires each time the user enters an
  * error or "awaiting app" state.
- * - **Recovery Primary Button Clicked** – fires when the user taps
+ * - **Recovery CTA Clicked** – fires when the user taps
  * Continue/Retry from the error or awaiting-app screen.
  * - **Recovery Success Modal Viewed** – fires every time the device
  * reaches the Ready state. Error-related properties are only
  * included when the user recovered from a preceding error.
  *
- * `error_state_view_count` is tracked per error_state and resets on
+ * `error_type_view_count` is tracked per error_type and resets on
  * success or when the flow is dismissed.
  */
 export function useHardwareWalletAnalytics({
@@ -51,18 +52,21 @@ export function useHardwareWalletAnalytics({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const viewCountsRef = useRef<Map<string, number>>(new Map());
-  const lastErrorStateRef = useRef<HardwareWalletAnalyticsErrorState | null>(
+  const lastErrorTypeRef = useRef<HardwareWalletAnalyticsErrorType | null>(
     null,
   );
-  const lastErrorViewCountRef = useRef(0);
-  const lastRawErrorRef = useRef('');
+  const lastErrorTypeViewCountRef = useRef(0);
+  const lastErrorDetailsRef = useRef<ErrorDetails>({
+    error_code: '',
+    error_message: '',
+  });
   const prevStatusRef = useRef<ConnectionStatus>(ConnectionStatus.Disconnected);
 
   const resetAnalyticsState = useCallback(() => {
     viewCountsRef.current.clear();
-    lastErrorStateRef.current = null;
-    lastErrorViewCountRef.current = 0;
-    lastRawErrorRef.current = '';
+    lastErrorTypeRef.current = null;
+    lastErrorTypeViewCountRef.current = 0;
+    lastErrorDetailsRef.current = { error_code: '', error_message: '' };
   }, []);
 
   useEffect(() => {
@@ -79,48 +83,52 @@ export function useHardwareWalletAnalytics({
     const isSuccessState = currentStatus === ConnectionStatus.Ready;
 
     if (isRecoveryState) {
-      const errorState = getErrorStateFromConnectionState(connectionState);
-      if (!errorState) return;
+      const errorType = getErrorTypeFromConnectionState(connectionState);
+      if (!errorType) return;
 
-      const currentCount = viewCountsRef.current.get(errorState) ?? 0;
+      const currentCount = viewCountsRef.current.get(errorType) ?? 0;
       const newCount = currentCount + 1;
-      viewCountsRef.current.set(errorState, newCount);
+      viewCountsRef.current.set(errorType, newCount);
 
-      lastErrorStateRef.current = errorState;
-      lastErrorViewCountRef.current = newCount;
-      lastRawErrorRef.current = buildRawErrorString(connectionState);
+      const errorDetails = getErrorDetails(connectionState);
+
+      lastErrorTypeRef.current = errorType;
+      lastErrorTypeViewCountRef.current = newCount;
+      lastErrorDetailsRef.current = errorDetails;
 
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_MODAL_VIEWED,
         )
           .addProperties({
-            flow: capitalize(flow),
+            location: capitalize(flow),
             device_type: getAnalyticsDeviceType(walletType),
             ...(deviceModel && { device_model: deviceModel }),
-            error_state: errorState,
-            error_state_view_count: newCount,
-            raw_error: lastRawErrorRef.current,
+            error_type: errorType,
+            error_type_view_count: newCount,
+            error_code: errorDetails.error_code,
+            error_message: errorDetails.error_message,
           })
           .build(),
       );
     }
 
     if (isSuccessState) {
-      const lastErrorState = lastErrorStateRef.current;
+      const lastErrorType = lastErrorTypeRef.current;
 
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
         )
           .addProperties({
-            flow: capitalize(flow),
+            location: capitalize(flow),
             device_type: getAnalyticsDeviceType(walletType),
             ...(deviceModel && { device_model: deviceModel }),
-            ...(lastErrorState && {
-              error_state: lastErrorState,
-              error_state_view_count: lastErrorViewCountRef.current,
-              raw_error: lastRawErrorRef.current,
+            ...(lastErrorType && {
+              error_type: lastErrorType,
+              error_type_view_count: lastErrorTypeViewCountRef.current,
+              error_code: lastErrorDetailsRef.current.error_code,
+              error_message: lastErrorDetailsRef.current.error_message,
             }),
           })
           .build(),
@@ -138,19 +146,22 @@ export function useHardwareWalletAnalytics({
     resetAnalyticsState,
   ]);
 
-  const trackPrimaryButtonClicked = useCallback(() => {
-    const errorState = getErrorStateFromConnectionState(connectionState);
-    if (!errorState) return;
+  const trackCTAClicked = useCallback(() => {
+    const errorType = getErrorTypeFromConnectionState(connectionState);
+    if (!errorType) return;
+
+    const errorDetails = getErrorDetails(connectionState);
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_PRIMARY_BUTTON_CLICKED,
-      )
+      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_CTA_CLICKED)
         .addProperties({
-          flow: capitalize(flow),
+          location: capitalize(flow),
           device_type: getAnalyticsDeviceType(walletType),
           ...(deviceModel && { device_model: deviceModel }),
-          error_state: errorState,
+          error_type: errorType,
+          error_type_view_count: viewCountsRef.current.get(errorType) ?? 1,
+          error_code: errorDetails.error_code,
+          error_message: errorDetails.error_message,
         })
         .build(),
     );
@@ -163,5 +174,5 @@ export function useHardwareWalletAnalytics({
     createEventBuilder,
   ]);
 
-  return { trackPrimaryButtonClicked, resetAnalyticsState };
+  return { trackCTAClicked, resetAnalyticsState };
 }

@@ -8,114 +8,114 @@ import {
   type HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
 import {
-  HardwareWalletAnalyticsErrorState,
-  getAnalyticsErrorState,
-  getErrorStateFromConnectionState,
+  HardwareWalletAnalyticsErrorType,
+  getAnalyticsErrorType,
+  getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,
-  buildRawErrorString,
+  getErrorDetails,
 } from './helpers';
 
-describe('analytics types', () => {
-  describe('getAnalyticsErrorState', () => {
+describe('analytics helpers', () => {
+  describe('getAnalyticsErrorType', () => {
     it('maps AuthenticationDeviceLocked to Device Locked', () => {
-      expect(getAnalyticsErrorState(ErrorCode.AuthenticationDeviceLocked)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceLocked,
+      expect(getAnalyticsErrorType(ErrorCode.AuthenticationDeviceLocked)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceLocked,
       );
     });
 
     it('maps AuthenticationDeviceBlocked to Device Locked', () => {
-      expect(
-        getAnalyticsErrorState(ErrorCode.AuthenticationDeviceBlocked),
-      ).toBe(HardwareWalletAnalyticsErrorState.DeviceLocked);
+      expect(getAnalyticsErrorType(ErrorCode.AuthenticationDeviceBlocked)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceLocked,
+      );
     });
 
     it('maps DeviceDisconnected to Device Disconnected', () => {
-      expect(getAnalyticsErrorState(ErrorCode.DeviceDisconnected)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+      expect(getAnalyticsErrorType(ErrorCode.DeviceDisconnected)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceDisconnected,
       );
     });
 
     it('maps DeviceNotFound to Device Disconnected', () => {
-      expect(getAnalyticsErrorState(ErrorCode.DeviceNotFound)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+      expect(getAnalyticsErrorType(ErrorCode.DeviceNotFound)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceDisconnected,
       );
     });
 
     it('maps DeviceNotReady to Device Disconnected', () => {
-      expect(getAnalyticsErrorState(ErrorCode.DeviceNotReady)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+      expect(getAnalyticsErrorType(ErrorCode.DeviceNotReady)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceDisconnected,
       );
     });
 
     it('maps DeviceUnresponsive to Device Disconnected', () => {
-      expect(getAnalyticsErrorState(ErrorCode.DeviceUnresponsive)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+      expect(getAnalyticsErrorType(ErrorCode.DeviceUnresponsive)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceDisconnected,
       );
     });
 
     it('maps ConnectionClosed to Device Disconnected', () => {
-      expect(getAnalyticsErrorState(ErrorCode.ConnectionClosed)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+      expect(getAnalyticsErrorType(ErrorCode.ConnectionClosed)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceDisconnected,
       );
     });
 
     it('maps ConnectionTimeout to Device Disconnected', () => {
-      expect(getAnalyticsErrorState(ErrorCode.ConnectionTimeout)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+      expect(getAnalyticsErrorType(ErrorCode.ConnectionTimeout)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceDisconnected,
       );
     });
 
     it('maps DeviceStateEthAppClosed to Ethereum App Not Opened', () => {
-      expect(getAnalyticsErrorState(ErrorCode.DeviceStateEthAppClosed)).toBe(
-        HardwareWalletAnalyticsErrorState.EthereumAppNotOpened,
+      expect(getAnalyticsErrorType(ErrorCode.DeviceStateEthAppClosed)).toBe(
+        HardwareWalletAnalyticsErrorType.EthereumAppNotOpened,
       );
     });
 
     it('maps DeviceMissingCapability to Ethereum App Not Opened', () => {
-      expect(getAnalyticsErrorState(ErrorCode.DeviceMissingCapability)).toBe(
-        HardwareWalletAnalyticsErrorState.EthereumAppNotOpened,
+      expect(getAnalyticsErrorType(ErrorCode.DeviceMissingCapability)).toBe(
+        HardwareWalletAnalyticsErrorType.EthereumAppNotOpened,
       );
     });
 
     it('maps BluetoothDisabled to Bluetooth Disabled', () => {
-      expect(getAnalyticsErrorState(ErrorCode.BluetoothDisabled)).toBe(
-        HardwareWalletAnalyticsErrorState.BluetoothDisabled,
+      expect(getAnalyticsErrorType(ErrorCode.BluetoothDisabled)).toBe(
+        HardwareWalletAnalyticsErrorType.BluetoothDisabled,
       );
     });
 
     it('maps PermissionBluetoothDenied to Bluetooth Disabled', () => {
-      expect(getAnalyticsErrorState(ErrorCode.PermissionBluetoothDenied)).toBe(
-        HardwareWalletAnalyticsErrorState.BluetoothDisabled,
+      expect(getAnalyticsErrorType(ErrorCode.PermissionBluetoothDenied)).toBe(
+        HardwareWalletAnalyticsErrorType.BluetoothDisabled,
       );
     });
 
     it('maps DeviceStateBlindSignNotSupported to Blind Signing Not Enabled', () => {
       expect(
-        getAnalyticsErrorState(ErrorCode.DeviceStateBlindSignNotSupported),
-      ).toBe(HardwareWalletAnalyticsErrorState.BlindSigningNotEnabled);
+        getAnalyticsErrorType(ErrorCode.DeviceStateBlindSignNotSupported),
+      ).toBe(HardwareWalletAnalyticsErrorType.BlindSigningNotEnabled);
     });
 
     it('maps Unknown to Generic Error', () => {
-      expect(getAnalyticsErrorState(ErrorCode.Unknown)).toBe(
-        HardwareWalletAnalyticsErrorState.GenericError,
+      expect(getAnalyticsErrorType(ErrorCode.Unknown)).toBe(
+        HardwareWalletAnalyticsErrorType.GenericError,
       );
     });
 
     it('maps UserRejected to Generic Error', () => {
-      expect(getAnalyticsErrorState(ErrorCode.UserRejected)).toBe(
-        HardwareWalletAnalyticsErrorState.GenericError,
+      expect(getAnalyticsErrorType(ErrorCode.UserRejected)).toBe(
+        HardwareWalletAnalyticsErrorType.GenericError,
       );
     });
 
     it('maps unmapped codes to Generic Error', () => {
-      expect(getAnalyticsErrorState(999 as ErrorCode)).toBe(
-        HardwareWalletAnalyticsErrorState.GenericError,
+      expect(getAnalyticsErrorType(999 as ErrorCode)).toBe(
+        HardwareWalletAnalyticsErrorType.GenericError,
       );
     });
   });
 
-  describe('getErrorStateFromConnectionState', () => {
-    it('returns error state for ErrorState status', () => {
+  describe('getErrorTypeFromConnectionState', () => {
+    it('returns error type for ErrorState status', () => {
       const error = new HardwareWalletError('Disconnected', {
         code: ErrorCode.DeviceDisconnected,
         severity: Severity.Err,
@@ -128,8 +128,8 @@ describe('analytics types', () => {
         error,
       };
 
-      expect(getErrorStateFromConnectionState(state)).toBe(
-        HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+      expect(getErrorTypeFromConnectionState(state)).toBe(
+        HardwareWalletAnalyticsErrorType.DeviceDisconnected,
       );
     });
 
@@ -140,8 +140,8 @@ describe('analytics types', () => {
         appName: 'Ethereum',
       };
 
-      expect(getErrorStateFromConnectionState(state)).toBe(
-        HardwareWalletAnalyticsErrorState.EthereumAppNotOpened,
+      expect(getErrorTypeFromConnectionState(state)).toBe(
+        HardwareWalletAnalyticsErrorType.EthereumAppNotOpened,
       );
     });
 
@@ -150,7 +150,7 @@ describe('analytics types', () => {
         status: ConnectionStatus.Disconnected,
       };
 
-      expect(getErrorStateFromConnectionState(state)).toBeNull();
+      expect(getErrorTypeFromConnectionState(state)).toBeNull();
     });
 
     it('returns null for Ready status', () => {
@@ -158,7 +158,7 @@ describe('analytics types', () => {
         status: ConnectionStatus.Ready,
       };
 
-      expect(getErrorStateFromConnectionState(state)).toBeNull();
+      expect(getErrorTypeFromConnectionState(state)).toBeNull();
     });
 
     it('returns null for Connecting status', () => {
@@ -166,7 +166,7 @@ describe('analytics types', () => {
         status: ConnectionStatus.Connecting,
       };
 
-      expect(getErrorStateFromConnectionState(state)).toBeNull();
+      expect(getErrorTypeFromConnectionState(state)).toBeNull();
     });
   });
 
@@ -204,8 +204,8 @@ describe('analytics types', () => {
     });
   });
 
-  describe('buildRawErrorString', () => {
-    it('builds string from ErrorState with code and message', () => {
+  describe('getErrorDetails', () => {
+    it('returns error_code and error_message from ErrorState', () => {
       const error = new HardwareWalletError('Device disconnected', {
         code: ErrorCode.DeviceDisconnected,
         severity: Severity.Err,
@@ -218,21 +218,21 @@ describe('analytics types', () => {
         error,
       };
 
-      const result = buildRawErrorString(state);
-      expect(result).toContain(`code=${ErrorCode.DeviceDisconnected}`);
-      expect(result).toContain('message=Your device was disconnected');
+      const result = getErrorDetails(state);
+      expect(result.error_code).toBe(String(ErrorCode.DeviceDisconnected));
+      expect(result.error_message).toBe('Your device was disconnected');
     });
 
-    it('builds string from AwaitingApp state', () => {
+    it('returns details from AwaitingApp state', () => {
       const state: HardwareWalletConnectionState = {
         status: ConnectionStatus.AwaitingApp,
         deviceId: 'device-123',
         appName: 'Ethereum',
       };
 
-      const result = buildRawErrorString(state);
-      expect(result).toContain('status=awaiting_app');
-      expect(result).toContain('appName=Ethereum');
+      const result = getErrorDetails(state);
+      expect(result.error_code).toBe(String(ErrorCode.DeviceStateEthAppClosed));
+      expect(result.error_message).toContain('Ethereum');
     });
 
     it('defaults appName to Ethereum when not provided', () => {
@@ -241,16 +241,18 @@ describe('analytics types', () => {
         deviceId: 'device-123',
       };
 
-      const result = buildRawErrorString(state);
-      expect(result).toContain('appName=Ethereum');
+      const result = getErrorDetails(state);
+      expect(result.error_message).toContain('Ethereum');
     });
 
-    it('returns empty string for non-error states', () => {
+    it('returns empty strings for non-error states', () => {
       const state: HardwareWalletConnectionState = {
         status: ConnectionStatus.Disconnected,
       };
 
-      expect(buildRawErrorString(state)).toBe('');
+      const result = getErrorDetails(state);
+      expect(result.error_code).toBe('');
+      expect(result.error_message).toBe('');
     });
   });
 });

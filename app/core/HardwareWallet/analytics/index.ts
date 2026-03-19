@@ -1,10 +1,10 @@
 export {
   HARDWARE_WALLET_CONNECTION_FLOW,
-  HardwareWalletAnalyticsErrorState,
-  getAnalyticsErrorState,
-  getErrorStateFromConnectionState,
+  HardwareWalletAnalyticsErrorType,
+  getAnalyticsErrorType,
+  getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,
-  buildRawErrorString,
+  getErrorDetails,
 } from './helpers';
 
 export { useHardwareWalletAnalytics } from './useHardwareWalletAnalytics';

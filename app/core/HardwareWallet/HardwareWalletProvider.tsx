@@ -79,13 +79,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const analyticsFlow =
     operationTypeRef.current ?? HARDWARE_WALLET_CONNECTION_FLOW;
 
-  const { trackPrimaryButtonClicked, resetAnalyticsState } =
-    useHardwareWalletAnalytics({
-      connectionState,
-      walletType: effectiveWalletType,
-      flow: analyticsFlow,
-      deviceModel: deviceSelection.selectedDevice?.name ?? null,
-    });
+  const { trackCTAClicked, resetAnalyticsState } = useHardwareWalletAnalytics({
+    connectionState,
+    walletType: effectiveWalletType,
+    flow: analyticsFlow,
+    deviceModel: deviceSelection.selectedDevice?.name ?? null,
+  });
 
   const {
     ensureDeviceReady,
@@ -186,7 +185,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         onClose={closeFlow}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
-        onPrimaryButtonClicked={trackPrimaryButtonClicked}
+        onCTAClicked={trackCTAClicked}
       />
     </HardwareWalletContext.Provider>
   );

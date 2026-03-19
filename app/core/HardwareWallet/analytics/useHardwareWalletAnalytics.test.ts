@@ -9,7 +9,7 @@ import {
   type HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
 import { useHardwareWalletAnalytics } from './useHardwareWalletAnalytics';
-import { HardwareWalletAnalyticsErrorState } from './helpers';
+import { HardwareWalletAnalyticsErrorType } from './helpers';
 import { MetaMetricsEvents } from '../../Analytics';
 
 const mockTrackEvent = jest.fn();
@@ -71,11 +71,13 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          flow: 'Connection',
+          location: 'Connection',
           device_type: 'Ledger',
           device_model: 'Nano X',
-          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
-          error_state_view_count: 1,
+          error_type: HardwareWalletAnalyticsErrorType.DeviceDisconnected,
+          error_type_view_count: 1,
+          error_code: String(ErrorCode.DeviceDisconnected),
+          error_message: 'Disconnected',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -100,8 +102,8 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          error_state: HardwareWalletAnalyticsErrorState.EthereumAppNotOpened,
-          error_state_view_count: 1,
+          error_type: HardwareWalletAnalyticsErrorType.EthereumAppNotOpened,
+          error_type_view_count: 1,
         }),
       );
     });
@@ -154,8 +156,8 @@ describe('useHardwareWalletAnalytics', () => {
     });
   });
 
-  describe('error_state_view_count', () => {
-    it('increments for the same error state', () => {
+  describe('error_type_view_count', () => {
+    it('increments for the same error type', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         { initialProps: defaultOptions },
@@ -168,7 +170,7 @@ describe('useHardwareWalletAnalytics', () => {
 
       rerender({ ...defaultOptions, connectionState: errorState });
       expect(mockAddProperties).toHaveBeenLastCalledWith(
-        expect.objectContaining({ error_state_view_count: 1 }),
+        expect.objectContaining({ error_type_view_count: 1 }),
       );
 
       rerender({
@@ -180,11 +182,11 @@ describe('useHardwareWalletAnalytics', () => {
 
       rerender({ ...defaultOptions, connectionState: errorState });
       expect(mockAddProperties).toHaveBeenLastCalledWith(
-        expect.objectContaining({ error_state_view_count: 2 }),
+        expect.objectContaining({ error_type_view_count: 2 }),
       );
     });
 
-    it('starts at 1 for a different error state', () => {
+    it('starts at 1 for a different error type', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         { initialProps: defaultOptions },
@@ -199,8 +201,8 @@ describe('useHardwareWalletAnalytics', () => {
       });
       expect(mockAddProperties).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
-          error_state_view_count: 1,
+          error_type: HardwareWalletAnalyticsErrorType.DeviceDisconnected,
+          error_type_view_count: 1,
         }),
       );
 
@@ -220,8 +222,8 @@ describe('useHardwareWalletAnalytics', () => {
       });
       expect(mockAddProperties).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          error_state: HardwareWalletAnalyticsErrorState.BluetoothDisabled,
-          error_state_view_count: 1,
+          error_type: HardwareWalletAnalyticsErrorType.BluetoothDisabled,
+          error_type_view_count: 1,
         }),
       );
     });
@@ -260,7 +262,7 @@ describe('useHardwareWalletAnalytics', () => {
         },
       });
       expect(mockAddProperties).toHaveBeenLastCalledWith(
-        expect.objectContaining({ error_state_view_count: 1 }),
+        expect.objectContaining({ error_type_view_count: 1 }),
       );
     });
   });
@@ -276,7 +278,7 @@ describe('useHardwareWalletAnalytics', () => {
         ...defaultOptions,
         connectionState: {
           status: ConnectionStatus.ErrorState,
-          error: createError(ErrorCode.DeviceDisconnected),
+          error: createError(ErrorCode.DeviceDisconnected, 'Disconnected'),
         },
       });
 
@@ -294,11 +296,13 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          flow: 'Connection',
+          location: 'Connection',
           device_type: 'Ledger',
           device_model: 'Nano X',
-          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
-          error_state_view_count: 1,
+          error_type: HardwareWalletAnalyticsErrorType.DeviceDisconnected,
+          error_type_view_count: 1,
+          error_code: String(ErrorCode.DeviceDisconnected),
+          error_message: 'Disconnected',
         }),
       );
     });
@@ -319,52 +323,18 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.not.objectContaining({
-          error_state: expect.anything(),
-          error_state_view_count: expect.anything(),
-          raw_error: expect.anything(),
-        }),
-      );
-    });
-
-    it('includes raw_error from the last error state', () => {
-      const { rerender } = renderHook(
-        (props) => useHardwareWalletAnalytics(props),
-        { initialProps: defaultOptions },
-      );
-
-      rerender({
-        ...defaultOptions,
-        connectionState: {
-          status: ConnectionStatus.ErrorState,
-          error: createError(
-            ErrorCode.DeviceDisconnected,
-            'BLE connection lost',
-          ),
-        },
-      });
-
-      mockAddProperties.mockClear();
-
-      rerender({
-        ...defaultOptions,
-        connectionState: { status: ConnectionStatus.Ready },
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          raw_error: expect.stringContaining(
-            `code=${ErrorCode.DeviceDisconnected}`,
-          ),
+          error_type: expect.anything(),
+          error_type_view_count: expect.anything(),
         }),
       );
     });
   });
 
-  describe('Primary Button Clicked', () => {
+  describe('CTA Clicked', () => {
     it('fires with correct properties', () => {
       const errorState: HardwareWalletConnectionState = {
         status: ConnectionStatus.ErrorState,
-        error: createError(ErrorCode.BluetoothDisabled),
+        error: createError(ErrorCode.BluetoothDisabled, 'BT off'),
       };
 
       const { result } = renderHook(
@@ -379,18 +349,21 @@ describe('useHardwareWalletAnalytics', () => {
       mockTrackEvent.mockClear();
 
       act(() => {
-        result.current.trackPrimaryButtonClicked();
+        result.current.trackCTAClicked();
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_PRIMARY_BUTTON_CLICKED,
+        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_CTA_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          flow: 'Connection',
+          location: 'Connection',
           device_type: 'Ledger',
           device_model: 'Nano X',
-          error_state: HardwareWalletAnalyticsErrorState.BluetoothDisabled,
+          error_type: HardwareWalletAnalyticsErrorType.BluetoothDisabled,
+          error_type_view_count: 1,
+          error_code: String(ErrorCode.BluetoothDisabled),
+          error_message: 'BT off',
         }),
       );
     });
@@ -404,7 +377,7 @@ describe('useHardwareWalletAnalytics', () => {
       mockTrackEvent.mockClear();
 
       act(() => {
-        result.current.trackPrimaryButtonClicked();
+        result.current.trackCTAClicked();
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -429,12 +402,12 @@ describe('useHardwareWalletAnalytics', () => {
       mockTrackEvent.mockClear();
 
       act(() => {
-        result.current.trackPrimaryButtonClicked();
+        result.current.trackCTAClicked();
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          error_state: HardwareWalletAnalyticsErrorState.EthereumAppNotOpened,
+          error_type: HardwareWalletAnalyticsErrorType.EthereumAppNotOpened,
         }),
       );
     });
@@ -459,7 +432,7 @@ describe('useHardwareWalletAnalytics', () => {
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ flow: 'Transaction' }),
+        expect.objectContaining({ location: 'Transaction' }),
       );
     });
 
@@ -481,7 +454,7 @@ describe('useHardwareWalletAnalytics', () => {
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ flow: 'Message' }),
+        expect.objectContaining({ location: 'Message' }),
       );
     });
 
@@ -500,7 +473,7 @@ describe('useHardwareWalletAnalytics', () => {
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ flow: 'Connection' }),
+        expect.objectContaining({ location: 'Connection' }),
       );
     });
   });
@@ -538,8 +511,8 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
-          error_state_view_count: 1,
+          error_type: HardwareWalletAnalyticsErrorType.DeviceDisconnected,
+          error_type_view_count: 1,
         }),
       );
     });
