@@ -2,11 +2,11 @@ import React from 'react';
 import { Button, Text, View } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as rpcEventsFuncs from '../../../../../../actions/rpcEvents';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as ConfirmationActions from '../../../hooks/useConfirmActions';
 
 import LedgerSignModal from './ledger-sign-modal';

@@ -115,9 +115,9 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box
-      gap={10}
+      gap={8}
       marginBottom={8}
-      paddingTop={4}
+      paddingTop={6}
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
     >
       <CashSection

@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
 import { assert, getErrorMessage } from '@metamask/utils';

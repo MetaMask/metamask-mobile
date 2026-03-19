@@ -122,10 +122,10 @@ describe('QRSigningTransactionModal', () => {
 
     (
       Engine.context as unknown as {
-        ApprovalController: { accept: jest.Mock };
+        ApprovalController: { acceptRequest: jest.Mock };
       }
     ).ApprovalController = {
-      accept: jest.fn().mockResolvedValue(undefined),
+      acceptRequest: jest.fn().mockResolvedValue(undefined),
     };
   });
 
@@ -171,11 +171,11 @@ describe('QRSigningTransactionModal', () => {
 
     await successCallback();
 
-    expect(Engine.context.ApprovalController.accept).toHaveBeenCalledWith(
-      mockTransactionId,
-      undefined,
-      { waitForResult: true },
-    );
+    expect(
+      Engine.context.ApprovalController.acceptRequest,
+    ).toHaveBeenCalledWith(mockTransactionId, undefined, {
+      waitForResult: true,
+    });
 
     expect(mockOnConfirmationComplete).toHaveBeenCalledWith(true);
   });

@@ -7,7 +7,7 @@ import {
 } from '@metamask/notification-services-controller/push-services';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { createNotificationServicesPushController } from './create-notification-services-push-controller';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as PushUtilsModule from './push-utils';
 import { getNotificationServicesPushControllerMessenger } from '../../messengers/notifications/notification-services-push-controller-messenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';

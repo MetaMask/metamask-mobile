@@ -520,9 +520,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           },
         );
 
-        // Subscribe to all market prices
+        // WARNING: Do NOT set includeMarketData: true here. It triggers
+        // per-symbol activeAssetCtx subscriptions (N symbols × N DEXs = N²
+        // WebSocket connections). assetCtxs (1 per DEX) is always established
+        // by the subscription service regardless of this flag.
         const unsub = controller.subscribeToPrices({
           symbols: this.allMarketSymbols,
+          includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {

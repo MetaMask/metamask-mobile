@@ -37,6 +37,9 @@ import { setLockTime } from '../../actions/settings';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import SecureKeychain from '../SecureKeychain';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -458,6 +461,21 @@ const AgenticService = {
           // 8. Enable device authentication (biometrics/passcode bypass)
           if (settings.deviceAuthEnabled === true) {
             ReduxService.store.dispatch(setOsAuthEnabled(true));
+          }
+
+          // 8b. Store password in SecureKeychain for device-auth auto-unlock on reload (Android only — iOS already handles this)
+          if (
+            settings.deviceAuthEnabled === true &&
+            Platform.OS === 'android'
+          ) {
+            DevLogger.log('[AUTO-UNLOCK] Storing password in SecureKeychain', {
+              authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+            });
+            await SecureKeychain.setGenericPassword(
+              fixture.password,
+              AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+            );
+            DevLogger.log('[AUTO-UNLOCK] SecureKeychain password stored');
           }
 
           // 9. Configure MetaMetrics if specified
