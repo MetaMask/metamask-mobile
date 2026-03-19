@@ -7,9 +7,9 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as OptInHooksModule from './OptIn.hooks';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 
 const mockedDispatch = jest.fn();

@@ -1,5 +1,5 @@
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-extraneous-dependencies */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Mock for @metamask/native-utils
  *

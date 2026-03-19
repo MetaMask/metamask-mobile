@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AddressUtils from '../../../../../util/address';
 import { LedgerContextProvider, useLedgerContext } from './ledger-context';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';

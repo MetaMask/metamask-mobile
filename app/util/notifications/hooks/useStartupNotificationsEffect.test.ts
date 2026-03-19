@@ -1,22 +1,22 @@
 import { waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as ReactRedux from 'react-redux';
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Selectors from '../../../selectors/notifications';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as KeyringSelectors from '../../../selectors/keyringController';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SettingsSelectors from '../../../selectors/settings';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as IdentitySelectors from '../../../selectors/identity';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Constants from '../constants/config';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NotificationHooks from './useNotifications';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as StorageHooks from '../../../store/storage-wrapper-hooks';
 import {
   useRegisterAndFetchNotifications,
