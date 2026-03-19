@@ -9,6 +9,7 @@ import cardReducer, {
   setHasViewedCardButton,
   selectHasViewedCardButton,
   selectCardGeoLocation,
+  selectCardIsLoaded,
   selectDisplayCardButton,
   selectAlwaysShowCardButton,
   setAlwaysShowCardButton,
@@ -202,6 +203,25 @@ describe('Card Selectors', () => {
         } as unknown as RootState;
         expect(selectCardGeoLocation(mockRootState)).toBe(geoLocation);
       });
+    });
+  });
+
+  describe('selectCardIsLoaded', () => {
+    it('returns false by default from initial state', () => {
+      const mockRootState = { card: initialState } as unknown as RootState;
+      expect(selectCardIsLoaded(mockRootState)).toBe(false);
+    });
+
+    it('returns true when isLoaded is true', () => {
+      const mockRootState = { card: CARD_STATE_MOCK } as unknown as RootState;
+      expect(selectCardIsLoaded(mockRootState)).toBe(true);
+    });
+
+    it('returns false when isLoaded is false (initial/loading state)', () => {
+      const mockRootState = {
+        card: EMPTY_CARD_STATE_MOCK,
+      } as unknown as RootState;
+      expect(selectCardIsLoaded(mockRootState)).toBe(false);
     });
   });
 

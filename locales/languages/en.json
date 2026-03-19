@@ -7886,6 +7886,13 @@
       "coming_soon": "Coming soon",
       "notify_me": "Notify me"
     },
+    "earn_rewards": {
+      "title": "Earn rewards",
+      "musd_title": "Up to 3% bonus on stables",
+      "musd_subtitle": "Calculate your mUSD bonus",
+      "card_title": "Up to 3% cash back",
+      "card_subtitle": "Get your MetaMask Card now"
+    },
     "campaigns_view": {
       "title": "Campaigns",
       "active_title": "Active",
