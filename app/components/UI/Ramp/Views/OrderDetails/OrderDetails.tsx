@@ -15,6 +15,7 @@ import {
   normalizeProviderCode,
   RampsOrderStatus,
 } from '@metamask/ramps-controller';
+import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
 import { extractOrderCode } from '../../utils/extractOrderCode';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import Button, {
@@ -71,14 +72,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-const isBailedOrderStatus = (status: RampsOrderStatus | undefined): boolean =>
-  status != null &&
-  [
-    RampsOrderStatus.Precreated,
-    RampsOrderStatus.IdExpired,
-    RampsOrderStatus.Unknown,
-  ].includes(status);
 
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();

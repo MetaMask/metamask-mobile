@@ -82,13 +82,14 @@ describe('OrderContent', () => {
     const pendingOrder: RampsOrder = {
       ...mockOrder,
       fiatAmount: 0,
+      cryptoAmount: 0,
       status: RampsOrderStatus.Pending,
     };
     renderOrder(pendingOrder);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('shows ellipsis for token amount when cryptoAmount is 0 or missing', () => {
+  it('shows placeholder for token amount when cryptoAmount is 0 or missing', () => {
     const orderWithZeroCrypto: RampsOrder = {
       ...mockOrder,
       cryptoAmount: 0,
@@ -199,24 +200,24 @@ describe('OrderContent', () => {
     expect(tokenAmount).toHaveTextContent('0.0₅614 ETH');
   });
 
-  it('shows "..." when cryptoAmount is missing', () => {
+  it('shows placeholder when cryptoAmount is missing', () => {
     const noAmountOrder: RampsOrder = {
       ...mockOrder,
       cryptoAmount: undefined as unknown as number,
     };
     renderOrder(noAmountOrder);
     const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
-    expect(tokenAmount).toHaveTextContent('... ETH');
+    expect(tokenAmount).toHaveTextContent('— ETH');
   });
 
-  it('renders "0" when cryptoAmount is zero', () => {
+  it('shows placeholder when cryptoAmount is zero', () => {
     const zeroAmountOrder: RampsOrder = {
       ...mockOrder,
       cryptoAmount: 0,
     };
     renderOrder(zeroAmountOrder);
     const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
-    expect(tokenAmount).toHaveTextContent('0 ETH');
+    expect(tokenAmount).toHaveTextContent('— ETH');
   });
 
   it('does not render info row when statusDescription is absent', () => {
