@@ -7859,7 +7859,9 @@
       "opt_in_sheet_title": "Join the campaign",
       "opt_in_sheet_description_pre_link": "By clicking 'Opt in' you agree to the MetaMask Rewards",
       "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
-      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically."
+      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically.",
+      "geo_restriction_banner_title": "Not available in your region",
+      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations."
     },
     "campaign_mechanics": {
       "title": "Mechanics"

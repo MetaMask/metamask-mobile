@@ -1,4 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { Linking } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -15,16 +17,18 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  type CampaignDto,
+  CampaignType,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_ONBOARD_TERMS_URL } from '../Onboarding/constants';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import ContentfulRichText, {
-  isDocument,
-} from '../ContentfulRichText/ContentfulRichText';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
+import RewardsInfoBanner from '../RewardsInfoBanner';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
+import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
@@ -39,8 +43,26 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
 }) => {
-  const navigation = useNavigation();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
+  const geolocation = useSelector(getDetectedGeolocation);
+  const geolocationStatus = useSelector(selectGeolocationStatus);
+
+  const isGeoLoading =
+    geolocationStatus === 'loading' || geolocationStatus === 'idle';
+
+  const isGeoRestricted = useMemo(() => {
+    if (isGeoLoading) return false;
+    const country = geolocation?.toUpperCase().split('-')[0];
+    if (campaign.type === CampaignType.ONDO_HOLDING) {
+      return !country || ONDO_RESTRICTED_COUNTRIES.has(country);
+    }
+    // Unknown country: can't confirm user is not in an excluded region, so block.
+    // If the campaign has no exclusions this is a no-op.
+    if (!country) return campaign.excludedRegions.length > 0;
+    return campaign.excludedRegions.some(
+      (region) => region.toUpperCase() === country,
+    );
+  }, [isGeoLoading, geolocation, campaign.type, campaign.excludedRegions]);
 
   const handleOptIn = useCallback(async () => {
     try {
@@ -52,14 +74,8 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   }, [optInToCampaign, campaign.id, onClose]);
 
   const handleTermsPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: REWARDS_ONBOARD_TERMS_URL,
-        timestamp: Date.now(),
-      },
-    });
-  }, [navigation]);
+    Linking.openURL(REWARDS_ONBOARD_TERMS_URL);
+  }, []);
 
   return (
     <BottomSheet shouldNavigateBack={false} onClose={onClose}>
@@ -92,34 +108,25 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           />
         </Box>
 
-        {/* Legal disclaimer – rich text from Contentful or static fallback */}
+        {/* Legal disclaimer with tappable link */}
         <Box twClassName="mb-6">
-          {isDocument(campaign.termsAndConditions) ? (
-            <ContentfulRichText
-              document={campaign.termsAndConditions}
-              textVariant={TextVariant.BodySm}
-              bodyClassName="text-center text-alternative"
-              testID="campaign-opt-in-sheet-description"
-            />
-          ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-alternative text-center"
+            testID="campaign-opt-in-sheet-description"
+          >
+            {strings('rewards.campaign.opt_in_sheet_description_pre_link')}{' '}
             <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative text-center"
-              testID="campaign-opt-in-sheet-description"
+              variant={TextVariant.BodyMd}
+              twClassName="text-primary-default"
+              onPress={handleTermsPress}
+              testID="campaign-opt-in-sheet-terms-link"
             >
-              {strings('rewards.campaign.opt_in_sheet_description_pre_link')}{' '}
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-primary-default"
-                onPress={handleTermsPress}
-                testID="campaign-opt-in-sheet-terms-link"
-              >
-                {strings('rewards.campaign.opt_in_sheet_link_text')}
-              </Text>
-              {'. '}
-              {strings('rewards.campaign.opt_in_sheet_description_post_link')}
+              {strings('rewards.campaign.opt_in_sheet_link_text')}
             </Text>
-          )}
+            {'. '}
+            {strings('rewards.campaign.opt_in_sheet_description_post_link')}
+          </Text>
         </Box>
 
         {optInError && (
@@ -132,17 +139,31 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           </Box>
         )}
 
+        {isGeoRestricted && (
+          <Box twClassName="mb-4">
+            <RewardsInfoBanner
+              title={strings('rewards.campaign.geo_restriction_banner_title')}
+              description={strings(
+                'rewards.campaign.geo_restriction_banner_description',
+              )}
+              testID="campaign-opt-in-geo-restriction-banner"
+            />
+          </Box>
+        )}
+
         {/* Opt-in CTA */}
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleOptIn}
           isLoading={isOptingIn}
-          isDisabled={isOptingIn}
+          isDisabled={isOptingIn || isGeoLoading || isGeoRestricted}
           twClassName="w-full"
           testID="campaign-opt-in-cta"
         >
-          {strings('rewards.campaign.opt_in_cta')}
+          {isGeoLoading
+            ? strings('rewards.onboarding.intro_confirm_geo_loading')
+            : strings('rewards.campaign.opt_in_cta')}
         </Button>
       </Box>
     </BottomSheet>
