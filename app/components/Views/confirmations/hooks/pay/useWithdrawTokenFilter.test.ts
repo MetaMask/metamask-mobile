@@ -9,8 +9,10 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { AssetType, TokenStandard } from '../../types/token';
 import { EthAccountType } from '@metamask/keyring-api';
 import { useSendTokens } from '../send/useSendTokens';
+import { useERC20Tokens } from '../../../../hooks/DisplayName/useERC20Tokens';
 
 jest.mock('../send/useSendTokens');
+jest.mock('../../../../hooks/DisplayName/useERC20Tokens');
 
 const STATE_MOCK = merge(
   {},
@@ -80,6 +82,7 @@ const ALL_TOKENS_MOCK = [
 ] as AssetType[];
 
 const mockUseSendTokens = jest.mocked(useSendTokens);
+const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
 
 function runHook({
   type,
@@ -112,6 +115,8 @@ function runHook({
 describe('useWithdrawTokenFilter', () => {
   beforeEach(() => {
     mockUseSendTokens.mockReturnValue(ALL_TOKENS_MOCK);
+    // Return empty by default; tests that need API data override this.
+    mockUseERC20Tokens.mockReturnValue([]);
   });
 
   it('returns passed-in tokens unchanged for non-withdraw transaction types', () => {
@@ -302,7 +307,6 @@ describe('useWithdrawTokenFilter', () => {
 
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
-      includeAllTokens: true,
     });
   });
 });

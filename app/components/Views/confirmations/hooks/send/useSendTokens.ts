@@ -5,10 +5,8 @@ import { useSendType } from './useSendType';
 
 export function useSendTokens({
   includeNoBalance = false,
-  includeAllTokens = false,
 }: {
   includeNoBalance?: boolean;
-  includeAllTokens?: boolean;
 } = {}): AssetType[] {
   const {
     isPredefinedTron,
@@ -16,7 +14,7 @@ export function useSendTokens({
     isPredefinedSolana,
     isPredefinedEvm,
   } = useSendType();
-  const allTokens = useAccountTokens({ includeNoBalance, includeAllTokens });
+  const allTokens = useAccountTokens({ includeNoBalance });
 
   return useMemo(() => {
     const accountTypeMap: Record<string, boolean> = {

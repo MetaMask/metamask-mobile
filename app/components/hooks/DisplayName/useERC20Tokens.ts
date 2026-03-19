@@ -6,6 +6,7 @@ import { Hex } from '@metamask/utils';
 
 interface TokenAsset {
   assetId: string;
+  decimals: number;
   iconUrl: string;
   name: string;
   symbol: string;
@@ -114,6 +115,11 @@ export function useERC20Tokens(requests: UseDisplayNameRequest[]) {
     const name =
       preferContractSymbol && token?.symbol ? token.symbol : token?.name;
 
-    return { name, image: token?.iconUrl };
+    return {
+      name,
+      image: token?.iconUrl,
+      symbol: token?.symbol,
+      decimals: token?.decimals,
+    };
   });
 }
