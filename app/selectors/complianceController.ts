@@ -47,7 +47,8 @@ const getSelectAreAnyWalletsBlocked = memoize(
       if (!state || addresses.length === 0) return false;
       return addresses.some((addr) => coreSelectIsWalletBlocked(addr)(state));
     }),
-  (addresses: string[]) => [...addresses].sort().join(','),
+  (addresses: string[]) =>
+    [...addresses].sort((a, b) => a.localeCompare(b)).join(','),
 );
 
 /**
