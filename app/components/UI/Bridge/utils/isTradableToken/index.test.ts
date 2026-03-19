@@ -238,5 +238,38 @@ describe('isTradableToken', () => {
 
       expect(result).toBe(false);
     });
+
+    it('returns false for Tron Ready for Withdrawal token', () => {
+      const token = createTestToken({
+        chainId: TrxScope.Mainnet,
+        symbol: 'TRX-READY-FOR-WITHDRAWAL',
+      });
+
+      const result = isTradableToken(token);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for Tron Staking Rewards token', () => {
+      const token = createTestToken({
+        chainId: TrxScope.Mainnet,
+        symbol: 'TRX-STAKING-REWARDS',
+      });
+
+      const result = isTradableToken(token);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for Tron In Lock Period token', () => {
+      const token = createTestToken({
+        chainId: TrxScope.Mainnet,
+        symbol: 'TRX-IN-LOCK-PERIOD',
+      });
+
+      const result = isTradableToken(token);
+
+      expect(result).toBe(false);
+    });
   });
 });

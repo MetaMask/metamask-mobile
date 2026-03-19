@@ -29,7 +29,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
@@ -62,6 +62,8 @@ const config = {
   moduleNameMapper: {
     '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
+    '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',
+    '^react-native-video$': '<rootDir>/app/__mocks__/react-native-video.tsx',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
     '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
@@ -89,5 +91,5 @@ const config = {
   cache: false,
 };
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 module.exports = config;

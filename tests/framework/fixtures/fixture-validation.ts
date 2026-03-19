@@ -1,5 +1,5 @@
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-nodejs-modules */
+/* eslint-disable import-x/no-namespace */
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -208,8 +208,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Per-wallet secrets and dynamic IDs (change every onboarding) ──
     'engine.backgroundState.AccountsController.internalAccounts.selectedAccount',
     'engine.backgroundState.AccountsController.internalAccounts.accounts',
-    'engine.backgroundState.PreferencesController.selectedAddress',
-    'engine.backgroundState.PreferencesController.identities',
+    'engine.backgroundState.AccountsController.accountIdByAddress',
     'engine.backgroundState.AccountTrackerController.accountsByChainId',
     'engine.backgroundState.KeyringController.keyrings',
     'engine.backgroundState.KeyringController.vault',
@@ -313,7 +312,17 @@ export function getMobileFixtureIgnoredKeys(): string[] {
 
     // ── Runtime-detected values (non-deterministic between environments) ──
     'card.geoLocation',
-    'fiatOrders.detectedGeolocation',
+    'engine.backgroundState.GeolocationController.location',
+    'fiatOrders.rampRoutingDecision',
+
+    // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x2105', // Base
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0xa4b1', // Arbitrum
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0xa', // Optimism
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x89', // Polygon
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x38', // BNB Chain
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x279f', // Monad Testnet
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x18c7', // MegaETH Testnet
 
     // ── Dynamic network client IDs, port-dependent URLs, and display names ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.name',

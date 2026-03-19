@@ -190,6 +190,7 @@ jobs:
         with:
           name: ios-bundle
           path: ios/main.jsbundle
+          retention-days: 7
 
   ship-js-bundle-size-check:
     runs-on: ubuntu-latest
@@ -254,6 +255,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
@@ -261,6 +263,7 @@ jobs:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
+          retention-days: 7
       - name: Require clean working directory
         shell: bash
         run: |
@@ -271,6 +274,8 @@ jobs:
             echo "No changes detected"
           fi
 
+  # We need to merge both unit and component view tests into a single coverage report so the PR coverage
+  # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
     needs: [unit-tests, component-view-tests]
@@ -320,6 +325,11 @@ jobs:
             [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
           done
 
+          mkdir -p tests/coverage-unit-merged
+          for file in ./tests/coverage/coverage-unit-*/coverage-unit-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-unit-merged/
+          done
+
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
@@ -328,23 +338,41 @@ jobs:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-stats
           path: ./cv-test-stats.json
           if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: unit-test-stats
           path: ./unit-test-stats.json
           if-no-files-found: error
-      - name: Generate CV test HTML coverage report
-        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html
+          retention-days: 7
+      - name: Generate CV test coverage report
+        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-coverage-summary
+          path: ./tests/coverage-cv-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Generate unit test coverage summary
+        run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage-summary
+          path: ./tests/coverage-unit-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Require clean working directory
         shell: bash
         run: |
@@ -388,6 +416,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
@@ -395,6 +424,7 @@ jobs:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
+          retention-days: 7
 
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
@@ -406,16 +436,19 @@ jobs:
     continue-on-error: true
     permissions:
       contents: read
+      issues: write
       pull-requests: write
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      force_run: ${{ steps.e2e-selection.outputs.force_run }}
     steps:
       - name: Checkout for action definition
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
+            .github/scripts/e2e-risk-label.mjs
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
@@ -440,9 +473,9 @@ jobs:
     if: >-
       ${{
         github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.android_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') &&
-        !github.event.pull_request.head.repo.fork
+        !github.event.pull_request.head.repo.fork &&
+        (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -457,7 +490,7 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -467,7 +500,7 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
@@ -477,9 +510,9 @@ jobs:
     if: >-
       ${{
         github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') &&
-        !github.event.pull_request.head.repo.fork
+        !github.event.pull_request.head.repo.fork &&
+        (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -491,15 +524,15 @@ jobs:
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
-    needs: [needs_e2e_build, build-ios-apps]
+    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
     steps:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -509,7 +542,7 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
@@ -518,7 +551,7 @@ jobs:
 
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -528,14 +561,14 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
 
   e2e-smoke-tests-ios-flask:
     name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -545,20 +578,19 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # TODO: Remove continue-on-error once fixture validation is stable
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
@@ -584,7 +616,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: test-e2e-validate-e2e-fixtures-junit-results
+          name: test-e2e-main-validate-e2e-fixtures-junit-results
           path: fixture-results/
 
       - name: Report results

@@ -8,13 +8,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import {
-  addFiatCustomIdData,
-  removeFiatCustomIdData,
-  getRampRoutingDecision,
-} from '../../../../../reducers/fiatOrders';
+import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
+import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
-import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -29,16 +25,9 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
@@ -47,6 +36,7 @@ import {
   getCheckoutCallback,
   removeCheckoutCallback,
 } from '../../utils/checkoutCallbackRegistry';
+import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
   url: string;
@@ -55,7 +45,9 @@ interface CheckoutParams {
   userAgent?: string;
   /** V2 callback flow: provider code (e.g., "moonpay", "transak"). */
   providerCode?: string;
-  /** V2: pre-order/custom order ID from BuyWidget. */
+  /** V2: order ID from BuyWidget for polling. Prefer orderId; customOrderId kept for backward compatibility. */
+  orderId?: string | null;
+  /** @deprecated Use orderId instead. */
   customOrderId?: string | null;
   /** V2 callback flow: wallet address for this order. */
   walletAddress?: string;
@@ -85,14 +77,14 @@ const Checkout = () => {
   const previousUrlRef = useRef<string | null>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
-  const [customIdData, setCustomIdData] = useState<CustomIdData>();
   const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const { addOrder, getOrderFromCallback } = useRampsOrders();
+  const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
+    useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const isV2Enabled = useRampsUnifiedV2Enabled();
@@ -101,6 +93,7 @@ const Checkout = () => {
     url: uri,
     providerCode,
     providerName,
+    orderId: orderIdParam,
     customOrderId,
     walletAddress,
     network,
@@ -108,10 +101,11 @@ const Checkout = () => {
     onNavigationStateChange,
     callbackKey,
   } = params ?? {};
+  const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
-  const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
   const callbackKeyRef = useRef(callbackKey);
+  const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
 
   useEffect(() => {
@@ -127,7 +121,7 @@ const Checkout = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: providerName ?? headerTitle },
+        { title: providerName ?? '' },
         theme,
         () => {
           trackEvent(
@@ -146,7 +140,6 @@ const Checkout = () => {
     navigation,
     theme,
     providerName,
-    headerTitle,
     createEventBuilder,
     trackEvent,
     rampRoutingDecision,
@@ -169,21 +162,35 @@ const Checkout = () => {
   }, [uri, createEventBuilder, trackEvent, rampRoutingDecision]);
 
   useEffect(() => {
-    if (!hasCallbackFlow || !customOrderId || !walletAddress || !network) {
-      return;
-    }
-    const data: CustomIdData = {
-      id: customOrderId,
-      chainId: network,
-      account: walletAddress,
-      orderType: 'buy' as CustomIdData['orderType'],
-      createdAt: Date.now(),
-      lastTimeFetched: 0,
-      errorCount: 0,
-    };
-    setCustomIdData(data);
-    dispatch(addFiatCustomIdData(data));
-  }, [customOrderId, walletAddress, network, dispatch, hasCallbackFlow]);
+    // For external-browser flows (e.g. PayPal), addPrecreatedOrder is called in
+    // BuildQuote; the user never reaches Checkout. For WebView flows,
+    // providerCode and walletAddress are passed, so hasCallbackFlow is true
+    // and we can register. hasCallbackFlow being false means we lack the data
+    // required for addPrecreatedOrder anyway.
+    // Note: network/chainId is optional in addPrecreatedOrder; do not require it
+    // in the guard, otherwise orders with unusual chain ID formats (e.g. empty
+    // string from chainId.split(':')[1]) would silently skip registration here
+    // while external-browser flows would still register (BuildQuote passes
+    // chainId: network || undefined without requiring network).
+    const canRegister =
+      hasCallbackFlow && effectiveOrderId && providerCode && walletAddress;
+    if (!canRegister) return;
+    if (registeredOrderIdsRef.current.has(effectiveOrderId)) return;
+    registeredOrderIdsRef.current.add(effectiveOrderId);
+    addPrecreatedOrder({
+      orderId: effectiveOrderId,
+      providerCode: normalizeProviderCode(providerCode),
+      walletAddress,
+      chainId: network || undefined,
+    });
+  }, [
+    hasCallbackFlow,
+    effectiveOrderId,
+    walletAddress,
+    network,
+    providerCode,
+    addPrecreatedOrder,
+  ]);
 
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
@@ -219,10 +226,6 @@ const Checkout = () => {
           throw new Error('Order could not be retrieved from callback');
         }
 
-        if (customIdData) {
-          dispatch(removeFiatCustomIdData(customIdData));
-        }
-
         addOrder(rampsOrder);
         dispatch(protectWalletModalVisible());
 
@@ -256,12 +259,11 @@ const Checkout = () => {
       }
     },
     [
+      dispatch,
       hasCallbackFlow,
-      customIdData,
       providerCode,
       walletAddress,
       navigation,
-      dispatch,
       addOrder,
       getOrderFromCallback,
       isV2Enabled,
@@ -303,20 +305,13 @@ const Checkout = () => {
   );
 
   const sharedHeader = (
-    <BottomSheetHeader
-      endAccessory={
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSizes.Lg}
-          iconColor={IconColor.Default}
-          testID="checkout-close-button"
-          onPress={handleClosePress}
-        />
-      }
+    <HeaderCompactStandard
+      onClose={handleClosePress}
+      closeButtonProps={{
+        testID: CHECKOUT_TEST_IDS.CLOSE_BUTTON,
+      }}
       style={styles.headerWithoutPadding}
-    >
-      {headerTitle}
-    </BottomSheetHeader>
+    />
   );
 
   if (error) {
@@ -390,7 +385,7 @@ const Checkout = () => {
                 : onNavigationStateChange
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          testID="checkout-webview"
+          testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>
     );

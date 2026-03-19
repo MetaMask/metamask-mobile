@@ -31,6 +31,7 @@ export enum ACTIONS {
   BUY_CRYPTO = 'buy-crypto',
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
+  /** @deprecated Cash deposit deeplink (`metamask://deposit`, `/deposit`) is no longer handled. */
   DEPOSIT = 'deposit',
   HOME = 'home',
   ASSET = 'asset',

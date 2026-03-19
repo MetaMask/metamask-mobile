@@ -2,7 +2,7 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
@@ -88,107 +88,161 @@ export interface ApplyBonusCodeDto {
 }
 
 /**
- * DTO for snapshot data from the backend
+ * Campaign type enum matching the backend CampaignType
  */
-export interface SnapshotDto {
+export enum CampaignType {
+  ONDO_HOLDING = 'ONDO_HOLDING',
+}
+
+/**
+ * DTO for campaign data from the backend
+ */
+export interface CampaignDto {
   /**
-   * The unique identifier of the snapshot
-   * @example '01974010-377f-7553-a365-0c33c8130980'
+   * The unique identifier of the campaign
+   * @example '123e4567-e89b-12d3-a456-426614174000'
    */
   id: string;
 
   /**
-   * The season ID this snapshot belongs to
-   * @example '7444682d-9050-43b8-9038-28a6a62d6264'
+   * The type of campaign
+   * @example CampaignType.ONDO_HOLDING
    */
-  seasonId: string;
+  type: CampaignType;
 
   /**
-   * The name of the snapshot/airdrop
-   * @example 'Monad Airdrop'
+   * The name of the campaign
+   * @example 'ONDO Holding Campaign'
    */
   name: string;
 
   /**
-   * Optional description of the snapshot
-   * @example 'Earn Monad tokens by participating in the airdrop'
+   * The start date of the campaign
+   * @example '2024-01-01T00:00:00.000Z'
    */
-  description?: string;
+  startDate: string;
 
   /**
-   * The token symbol being distributed
-   * @example 'MONAD'
+   * The end date of the campaign
+   * @example '2024-12-31T23:59:59.999Z'
    */
-  tokenSymbol: string;
+  endDate: string;
 
   /**
-   * The token amount as a serialized bigint string
-   * @example '50000000000000000000000'
+   * Terms and conditions content from Contentful (may be null)
    */
-  tokenAmount: string;
+  termsAndConditions: Json | null;
 
   /**
-   * The chain ID as a serialized bigint string
-   * @example '1'
+   * Regions excluded from this campaign
+   * @example ['US', 'GB']
    */
-  tokenChainId: string;
+  excludedRegions: string[];
 
   /**
-   * Optional token contract address
-   * @example '0x1234567890abcdef1234567890abcdef12345678'
+   * Status label for the campaign
+   * @example 'Active'
    */
-  tokenAddress?: string;
+  statusLabel: string;
 
   /**
-   * The blockchain where tokens will be distributed
-   * @example 'Ethereum'
+   * The details of the campaign
+   * @example { image: { lightModeUrl: 'https://example.com/image.png', darkModeUrl: 'https://example.com/image-dark.png' }, howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
    */
-  receivingBlockchain: string;
-
-  /**
-   * When the snapshot opens (ISO date string)
-   * @example '2025-03-01T00:00:00.000Z'
-   */
-  opensAt: string;
-
-  /**
-   * When the snapshot closes (ISO date string)
-   * @example '2025-03-15T00:00:00.000Z'
-   */
-  closesAt: string;
-
-  /**
-   * When results were calculated (ISO date string)
-   * @example '2025-03-16T00:00:00.000Z'
-   */
-  calculatedAt?: string;
-
-  /**
-   * When tokens were distributed (ISO date string)
-   * @example '2025-03-20T00:00:00.000Z'
-   */
-  distributedAt?: string;
-
-  /**
-   * Background image for the snapshot tile
-   */
-  backgroundImage: ThemeImage;
+  details: CampaignDetails | null;
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignsState = {
+  campaigns: {
+    id: string;
+    type: CampaignType;
+    name: string;
+    startDate: string;
+    endDate: string;
+    termsAndConditions: Json | null;
+    excludedRegions: string[];
+    statusLabel: string;
+    details: {
+      image: {
+        lightModeUrl: string;
+        darkModeUrl: string;
+      };
+      howItWorks: {
+        title: string;
+        description: string;
+        phases: {
+          name: string;
+          daysLabel: string;
+          sortOrder: number;
+          steps: {
+            title: string;
+            description: string;
+            iconName: string;
+          }[];
+        }[];
+        notes?: Json | null;
+      };
+    } | null;
+  }[];
+  lastFetched: number;
+};
+
 /**
- * Snapshot status derived from dates
- * - upcoming: now < opensAt
- * - live: opensAt <= now < closesAt
- * - calculating: closesAt <= now && !calculatedAt
- * - distributing: calculatedAt && !distributedAt
- * - complete: distributedAt is set
+ * Response DTO for campaign participant status from the backend
  */
-export type SnapshotStatus =
-  | 'upcoming'
-  | 'live'
-  | 'calculating'
-  | 'distributing'
-  | 'complete';
+export interface CampaignParticipantStatusDto {
+  /** Whether the subscription has opted into the campaign */
+  optedIn: boolean;
+
+  /**
+   * The number of participants in the campaign
+   * @example 100
+   */
+  participantCount: number;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignParticipantStatusState = {
+  optedIn: boolean;
+  participantCount: number;
+  lastFetched: number;
+};
+
+export interface OndoCampaignStep {
+  title: string;
+  description: string;
+  iconName: string;
+}
+
+export interface OndoCampaignPhase {
+  name: string;
+  daysLabel: string;
+  sortOrder: number;
+  steps: OndoCampaignStep[];
+}
+
+export interface OndoCampaignHowItWorks {
+  title: string;
+  description: string;
+  phases: OndoCampaignPhase[];
+  notes?: Json | null;
+}
+
+export interface OndoHoldingDetails {
+  image: ThemeImage;
+  howItWorks: OndoCampaignHowItWorks;
+}
+
+export type CampaignDetails = OndoHoldingDetails;
+
+/**
+ * Campaign status derived from dates
+ * - upcoming: now < startDate
+ * - active: startDate <= now < endDate
+ * - complete: now >= endDate
+ */
+export type CampaignStatus = 'upcoming' | 'active' | 'complete';
 
 export interface EstimateAssetDto {
   /**
@@ -837,26 +891,8 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotsState = {
-  snapshots: {
-    id: string;
-    seasonId: string;
-    name: string;
-    description?: string;
-    tokenSymbol: string;
-    tokenAmount: string;
-    tokenChainId: string;
-    tokenAddress?: string;
-    receivingBlockchain: string;
-    opensAt: string;
-    closesAt: string;
-    calculatedAt?: string;
-    distributedAt?: string;
-    backgroundImage: {
-      lightModeUrl: string;
-      darkModeUrl: string;
-    };
-  }[];
+export type OffDeviceSubscriptionAccountsState = {
+  accounts: string[];
   lastFetched: number;
 };
 
@@ -1192,7 +1228,13 @@ export type RewardsControllerState = {
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
-  snapshots: { [seasonId: string]: SnapshotsState };
+  offDeviceSubscriptionAccounts: {
+    [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
+  };
+  campaigns: { [subscriptionId: string]: CampaignsState };
+  campaignParticipantStatus: {
+    [compositeId: string]: CampaignParticipantStatusState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1257,6 +1299,20 @@ export interface RewardsControllerPointsEventsUpdatedEvent {
 }
 
 /**
+ * Event emitted when a user opts into a campaign, invalidating any cached
+ * participant status so hooks can refetch fresh data.
+ */
+export interface RewardsControllerCampaignOptedInEvent {
+  type: 'RewardsController:campaignOptedIn';
+  payload: [
+    {
+      campaignId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1264,7 +1320,8 @@ export type RewardsControllerEvents =
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
-  | RewardsControllerPointsEventsUpdatedEvent;
+  | RewardsControllerPointsEventsUpdatedEvent
+  | RewardsControllerCampaignOptedInEvent;
 
 /**
  * Patch type for state changes
@@ -1525,11 +1582,41 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
- * Action for getting snapshots for a season
+ * Action for getting campaigns
  */
-export interface RewardsControllerGetSnapshotsAction {
-  type: 'RewardsController:getSnapshots';
-  handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+export interface RewardsControllerGetCampaignsAction {
+  type: 'RewardsController:getCampaigns';
+  handler: (subscriptionId: string) => Promise<CampaignDto[]>;
+}
+
+/**
+ * Action for opting into a campaign
+ */
+export interface RewardsControllerOptInToCampaignAction {
+  type: 'RewardsController:optInToCampaign';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignParticipantStatusDto>;
+}
+
+/**
+ * Action for getting the campaign participant status
+ */
+export interface RewardsControllerGetCampaignParticipantStatusAction {
+  type: 'RewardsController:getCampaignParticipantStatus';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignParticipantStatusDto>;
+}
+
+/**
+ * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
+ */
+export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
+  type: 'RewardsController:getOffDeviceSubscriptionAccounts';
+  handler: (subscriptionId: string) => Promise<string[]>;
 }
 
 /**
@@ -1625,7 +1712,10 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetCampaignsAction
+  | RewardsControllerOptInToCampaignAction
+  | RewardsControllerGetCampaignParticipantStatusAction
+  | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction

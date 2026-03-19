@@ -1,11 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import type { ServiceContext } from './ServiceContext';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  WITHDRAWAL_CONSTANTS,
+} from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import {
   PerpsAnalyticsEvent,
@@ -18,7 +22,6 @@ import type {
   WithdrawResult,
   PerpsPlatformDependencies,
 } from '../types';
-import type { ServiceContext } from './ServiceContext';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { TransactionStatus } from '../types/transactionTypes';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
@@ -117,7 +120,7 @@ export class AccountService {
 
           // Calculate net amount after fees
           const grossAmount = parseFloat(params.amount);
-          const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
+          const feeAmount = WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
           // Get current account address via messenger

@@ -3,7 +3,6 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-native';
 import RewardsDashboard from './RewardsDashboard';
-import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
@@ -44,7 +43,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
   selectSeasonId: jest.fn(),
-  selectSeasonEndDate: jest.fn(),
+  selectOptinAllowedForGeo: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
 }));
@@ -54,7 +53,7 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectSnapshotsRewardsEnabledFlag: jest.fn(),
+  selectCampaignsRewardsEnabledFlag: jest.fn(),
 }));
 
 jest.mock(
@@ -67,13 +66,13 @@ jest.mock(
 import {
   selectActiveTab,
   selectSeasonId,
-  selectSeasonEndDate,
+  selectOptinAllowedForGeo,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectSnapshotsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
   typeof selectActiveTab
@@ -85,9 +84,10 @@ const mockSelectRewardsSubscriptionId =
 const mockSelectSeasonId = selectSeasonId as jest.MockedFunction<
   typeof selectSeasonId
 >;
-const mockSelectSeasonEndDate = selectSeasonEndDate as jest.MockedFunction<
-  typeof selectSeasonEndDate
->;
+const mockSelectOptinAllowedForGeo =
+  selectOptinAllowedForGeo as jest.MockedFunction<
+    typeof selectOptinAllowedForGeo
+  >;
 const mockSelectHideUnlinkedAccountsBanner =
   selectHideUnlinkedAccountsBanner as jest.MockedFunction<
     typeof selectHideUnlinkedAccountsBanner
@@ -100,24 +100,22 @@ const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
   >;
-const mockSelectSnapshotsRewardsEnabledFlag =
-  selectSnapshotsRewardsEnabledFlag as jest.MockedFunction<
-    typeof selectSnapshotsRewardsEnabledFlag
+const mockSelectCampaignsRewardsEnabledFlag =
+  selectCampaignsRewardsEnabledFlag as jest.MockedFunction<
+    typeof selectCampaignsRewardsEnabledFlag
   >;
 
 // Mock theme
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: '#000',
-      background: '#fff',
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     useSafeAreaInsets: jest.fn(() => ({
@@ -133,7 +131,7 @@ jest.mock('react-native-safe-area-context', () => {
     }: {
       children: React.ReactNode;
       testID?: string;
-    }) => React.createElement(View, { ...props, testID }, children),
+    }) => ReactActual.createElement(View, { ...props, testID }, children),
   };
 });
 
@@ -210,15 +208,15 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
 }));
 
 // Mock child components
-jest.mock('../components/SeasonStatus/SeasonStatus', () => ({
+jest.mock('../components/Campaigns/CampaignsPreview', () => ({
   __esModule: true,
-  default: function MockSeasonStatus() {
+  default: function MockCampaignsPreview() {
     const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return ReactActual.createElement(
       View,
-      { testID: 'season-status' },
-      ReactActual.createElement(Text, null, 'Season Status'),
+      { testID: 'campaigns-preview' },
+      ReactActual.createElement(Text, null, 'Campaigns Preview'),
     );
   },
 }));
@@ -251,19 +249,17 @@ jest.mock('../components/Tabs/RewardsOverview', () => ({
   },
 }));
 
-jest.mock('../components/Tabs/RewardsSnapshots', () => ({
-  __esModule: true,
-  default: function MockRewardsSnapshots({ tabLabel }: { tabLabel: string }) {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-snapshots-tab' },
-      ReactActual.createElement(Text, null, tabLabel || 'Snapshots'),
+jest.mock('../Views/CampaignsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const RN = jest.requireActual('react-native');
+  const MockCampaignsView = ({ tabLabel }: { tabLabel?: string }) =>
+    ReactActual.createElement(
+      RN.View,
+      { testID: 'rewards-campaigns-tab' },
+      ReactActual.createElement(RN.Text, null, tabLabel || 'Campaigns'),
     );
-  },
-}));
+  return { __esModule: true, default: MockCampaignsView };
+});
 
 jest.mock('../components/Tabs/RewardsActivity', () => ({
   __esModule: true,
@@ -275,6 +271,20 @@ jest.mock('../components/Tabs/RewardsActivity', () => ({
       View,
       { testID: 'rewards-activity-tab' },
       ReactActual.createElement(Text, null, tabLabel || 'Activity'),
+    );
+  },
+}));
+
+jest.mock('../components/Tabs/MusdCalculatorTab/MusdCalculatorTab', () => ({
+  __esModule: true,
+  default: function MockMusdCalculatorTab() {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+
+    return ReactActual.createElement(
+      View,
+      { testID: 'musd-calculator-tab' },
+      ReactActual.createElement(Text, null, 'mUSD Calculator'),
     );
   },
 }));
@@ -546,19 +556,17 @@ describe('RewardsDashboard', () => {
   };
 
   const currentSeasonId = '7c9fa360-8d4c-425a-8a3e-7e82e1d82179';
-  const futureDate = new Date(Date.now() + 86400000).toISOString(); // Tomorrow
-  const pastDate = new Date(Date.now() - 86400000).toISOString(); // Yesterday
 
   const defaultSelectorValues = {
-    activeTab: 'overview' as const,
+    activeTab: 'campaigns' as const,
     subscriptionId: 'test-subscription-id',
     seasonId: currentSeasonId,
-    seasonEndDate: new Date(futureDate), // Season is active by default
+    optinAllowedForGeo: false as boolean | null,
     hideUnlinkedAccountsBanner: false,
     hideCurrentAccountNotOptedInBannerArray: [],
     selectedAccount: mockSelectedAccount,
     selectedAccountGroup: mockSelectedAccountGroup,
-    isSnapshotsEnabled: true, // Enable snapshots by default in tests
+    isCampaignsEnabled: true,
   };
 
   const defaultHookValues = {
@@ -638,9 +646,6 @@ describe('RewardsDashboard', () => {
       defaultSelectorValues.subscriptionId,
     );
     mockSelectSeasonId.mockReturnValue(defaultSelectorValues.seasonId);
-    mockSelectSeasonEndDate.mockReturnValue(
-      defaultSelectorValues.seasonEndDate,
-    );
     mockSelectHideUnlinkedAccountsBanner.mockReturnValue(
       defaultSelectorValues.hideUnlinkedAccountsBanner,
     );
@@ -651,8 +656,11 @@ describe('RewardsDashboard', () => {
     mockSelectSelectedAccountGroup.mockReturnValue(
       defaultSelectorValues.selectedAccountGroup,
     );
-    mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(
-      defaultSelectorValues.isSnapshotsEnabled,
+    mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(
+      defaultSelectorValues.isCampaignsEnabled,
+    );
+    mockSelectOptinAllowedForGeo.mockReturnValue(
+      defaultSelectorValues.optinAllowedForGeo,
     );
 
     // Setup hook mocks
@@ -676,16 +684,16 @@ describe('RewardsDashboard', () => {
       if (selector === selectRewardsSubscriptionId)
         return defaultSelectorValues.subscriptionId;
       if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-      if (selector === selectSeasonEndDate)
-        return defaultSelectorValues.seasonEndDate;
+      if (selector === selectOptinAllowedForGeo)
+        return defaultSelectorValues.optinAllowedForGeo;
       if (selector === selectHideUnlinkedAccountsBanner)
         return defaultSelectorValues.hideUnlinkedAccountsBanner;
       if (selector === selectHideCurrentAccountNotOptedInBannerArray)
         return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
       if (selector === selectSelectedAccountGroup)
         return defaultSelectorValues.selectedAccountGroup;
-      if (selector === selectSnapshotsRewardsEnabledFlag)
-        return defaultSelectorValues.isSnapshotsEnabled;
+      if (selector === selectCampaignsRewardsEnabledFlag)
+        return defaultSelectorValues.isCampaignsEnabled;
       return undefined;
     });
   });
@@ -704,13 +712,10 @@ describe('RewardsDashboard', () => {
       const { getByTestId } = render(<RewardsDashboard />);
 
       // Assert
-      expect(getByTestId('season-status')).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
-      expect(getByTestId('tab-headers')).toBeTruthy();
-      expect(getByTestId('tab-content')).toBeTruthy();
-      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
+      expect(getByTestId('campaigns-preview')).toBeTruthy();
     });
 
     it('should call modal hooks when component is rendered', () => {
@@ -721,33 +726,31 @@ describe('RewardsDashboard', () => {
       expect(mockUseRewardDashboardModals).toHaveBeenCalled();
     });
 
-    it('should render previous season summary when season has ended', () => {
-      // Arrange
-      const pastDateObj = new Date(pastDate);
+    it('should render previous season summary when campaigns disabled and geo not allowed', () => {
+      // Arrange - campaigns disabled, geo not allowed → just PreviousSeasonSummary
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectOptinAllowedForGeo) return false;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
 
       // Act
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert
+      // Assert - PreviousSeasonSummary shown without tabs
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeTruthy();
@@ -755,35 +758,42 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
     });
 
-    it('should render season status and tabs when season is active', () => {
-      // Arrange
-      const futureDateObj = new Date(futureDate);
-      mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
+    it('should not render previous season summary when campaigns enabled', () => {
+      // isCampaignsEnabled is true (default) so showPreviousSeasonSummary is false
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
+        if (selector === selectOptinAllowedForGeo) return true;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
       // Act
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      // Assert - no previous season summary or tabs when season is active
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
+      ).toBeNull();
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+    });
+
+    it('should render campaigns preview and referral button when campaigns enabled', () => {
+      // Act - defaults have campaigns enabled
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
       // Assert
-      expect(getByTestId('season-status')).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
@@ -791,67 +801,101 @@ describe('RewardsDashboard', () => {
 
     it('should not render previous season summary when seasonId is null', () => {
       // Arrange
-      const pastDateObj = new Date(pastDate);
-      mockSelectSeasonId.mockReturnValue(null);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return null;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectOptinAllowedForGeo)
+          return defaultSelectorValues.optinAllowedForGeo;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
       // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      const { queryByTestId } = render(<RewardsDashboard />);
 
       // Assert
-      expect(getByTestId('season-status')).toBeTruthy();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
     });
+  });
 
-    it('should not render previous season summary when seasonEndDate is null', () => {
-      // Arrange
-      mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(null);
+  describe('optinAllowedForGeo-based content', () => {
+    it('shows mUSD calculator tab when campaigns disabled and geo allowed', () => {
+      // Arrange - campaigns disabled + geo allowed
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return null;
+        if (selector === selectOptinAllowedForGeo) return true;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
 
       // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      const { getByTestId } = render(<RewardsDashboard />);
 
-      // Assert
-      expect(getByTestId('season-status')).toBeTruthy();
+      // Assert - two-tab layout with mUSD and Previous Season
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
+      expect(getByTestId('musd-calculator-tab')).toBeTruthy();
+    });
+
+    it('hides mUSD calculator when campaigns disabled but geo not allowed', () => {
+      // Arrange - campaigns disabled + geo NOT allowed
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectOptinAllowedForGeo) return false;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
+        return undefined;
+      });
+
+      // Act
+      const { queryByTestId, getByTestId } = render(<RewardsDashboard />);
+
+      // Assert - just PreviousSeasonSummary, no tabs
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
-      ).toBeNull();
+        getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
+      ).toBeTruthy();
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      expect(queryByTestId('musd-calculator-tab')).toBeNull();
+    });
+
+    it('shows campaigns preview when season is active regardless of geo', () => {
+      // Act - defaults have active season with campaigns enabled
+      const { queryByTestId, getByTestId } = render(<RewardsDashboard />);
+
+      // Assert - CampaignsPreview shown, no previous season content
+      expect(getByTestId('campaigns-preview')).toBeTruthy();
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
+      expect(queryByTestId('musd-calculator-tab')).toBeNull();
     });
   });
 
@@ -909,271 +953,102 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('tab functionality', () => {
-    it('should handle tab change when user selects different tab', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
-
-      // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('snapshots'));
-    });
-
-    it('should render all tab options', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
-      // Assert - verify tab headers and individual tabs are rendered
-      expect(getByTestId('tab-headers')).toBeTruthy();
-      expect(getByTestId('tab-0')).toBeTruthy();
-      expect(getByTestId('tab-1')).toBeTruthy();
-      expect(getByTestId('tab-2')).toBeTruthy();
-    });
-
-    it('should show overview tab content by default', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
-    });
-
-    it('switches to snapshots tab when snapshots tab is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
-
-      // Assert
-      expect(getByTestId('rewards-snapshots-tab')).toBeTruthy();
-    });
-
-    it('should switch to activity tab when activity tab is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-2');
-      fireEvent.press(activityTab);
-
-      // Assert
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
-    });
-
-    it('allows tab switching when user is not opted in', () => {
-      // Arrange
-      const futureDateObj = new Date(futureDate);
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
-
-      // Assert - tab change occurred
-      expect(getByTestId('rewards-snapshots-tab')).toBeTruthy();
-    });
-  });
-
-  describe('tabComponents when isSnapshotsEnabled is false', () => {
+  describe('when isCampaignsEnabled is false', () => {
     beforeEach(() => {
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
+      mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
+      mockSelectActiveTab.mockReturnValue('overview');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
+        if (selector === selectActiveTab) return 'overview';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
     });
 
-    it('renders only overview and activity tabs when snapshots is disabled', () => {
-      // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
-
-      // Assert - verify only 2 tabs are rendered
-      expect(getByTestId('tab-headers')).toBeTruthy();
-      expect(getByTestId('tab-0')).toBeTruthy();
-      expect(getByTestId('tab-1')).toBeTruthy();
-      expect(queryByTestId('tab-2')).toBeNull();
-    });
-
-    it('does not render snapshots tab when snapshots is disabled', () => {
+    it('does not render CampaignsPreview when campaigns is disabled', () => {
       // Act
       const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - snapshots tab should not be visible by default
-      expect(queryByTestId('rewards-snapshots-tab')).toBeNull();
-    });
-
-    it('renders overview tab as first tab when snapshots is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
       // Assert
-      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
-    });
-
-    it('switches directly to activity tab at index 1 when snapshots is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert - activity tab is now at index 1 instead of index 2
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
-    });
-
-    it('dispatches setActiveTab with activity when tab-1 is pressed and snapshots is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert - tab-1 should now be activity, not snapshots
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('activity'));
-    });
-
-    it('resets activeTab to overview when snapshots tab becomes unavailable', () => {
-      // Arrange - activeTab is 'snapshots' but isSnapshotsEnabled is false
-      mockSelectActiveTab.mockReturnValue('snapshots');
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert - should dispatch setActiveTab('overview') to reset the invalid tab
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('overview'));
-    });
-
-    it('does not reset activeTab when current tab is still available', () => {
-      // Arrange - activeTab is 'activity' and isSnapshotsEnabled is false
-      // activity tab should still be available
-      mockSelectActiveTab.mockReturnValue('activity');
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'activity';
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert - should NOT dispatch setActiveTab since 'activity' is still valid
-      expect(mockDispatch).not.toHaveBeenCalledWith(setActiveTab('overview'));
+      expect(queryByTestId('campaigns-preview')).toBeNull();
     });
   });
 
   describe('previous season summary', () => {
-    it('should evaluate showPreviousSeasonSummary in useFocusEffect when screen comes into focus', () => {
-      // Arrange
-      const pastDateObj = new Date(pastDate);
+    const setupCampaignsDisabledMocks = (
+      optinAllowed: boolean | null = false,
+    ) => {
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectOptinAllowedForGeo) return optinAllowed;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
+    };
 
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+    it('should show PreviousSeasonSummary when campaigns disabled and geo not allowed', () => {
+      setupCampaignsDisabledMocks(false);
 
-      // Assert - useFocusEffect should evaluate and show previous season summary
-      // when seasonId exists and seasonEndDate is in the past
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeTruthy();
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
     });
 
-    it('should not show previous season summary when season is active', () => {
-      // Arrange
-      const futureDateObj = new Date(futureDate);
+    it('should show two-tab layout when campaigns disabled and geo allowed', () => {
+      setupCampaignsDisabledMocks(true);
+
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
+      expect(getByTestId('musd-calculator-tab')).toBeTruthy();
+    });
+
+    it('should not render previous season summary when campaigns enabled', () => {
+      // isCampaignsEnabled is true (default) so showPreviousSeasonSummary is false
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
       // Act
       const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - useFocusEffect should evaluate and not show previous season summary
-      // when seasonEndDate is in the future
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
@@ -1181,77 +1056,68 @@ describe('RewardsDashboard', () => {
 
     it('should hide referral button when showing previous season summary', () => {
       // Arrange
-      const pastDateObj = new Date(pastDate);
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
 
-      // Act
       const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert
       expect(queryByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeNull();
     });
 
     it('should show settings button when showing previous season summary', () => {
+      setupCampaignsDisabledMocks(false);
       // Arrange
-      const pastDateObj = new Date(pastDate);
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
 
-      // Assert
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
     });
   });
 
   describe('button states when not opted in', () => {
     beforeEach(() => {
-      const futureDateObj = new Date(futureDate);
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId) return null;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
+        if (selector === selectOptinAllowedForGeo)
+          return defaultSelectorValues.optinAllowedForGeo;
+        if (selector === selectCampaignsRewardsEnabledFlag) return true;
         return undefined;
       });
     });
@@ -1306,14 +1172,14 @@ describe('RewardsDashboard', () => {
   describe('edge cases', () => {
     it('should handle invalid activeTab gracefully', () => {
       // Arrange
-      mockSelectActiveTab.mockReturnValue('overview');
+      mockSelectActiveTab.mockReturnValue('nonexistent' as never);
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'overview';
+        if (selector === selectActiveTab) return 'nonexistent';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectOptinAllowedForGeo)
+          return defaultSelectorValues.optinAllowedForGeo;
         return undefined;
       });
 
@@ -1325,25 +1191,22 @@ describe('RewardsDashboard', () => {
   describe('modal triggering for current account', () => {
     it('should show not opted in modal when account group has opted out accounts and modal has not been shown', async () => {
       // Arrange - Mock account group with opted out accounts
-      // Use future date so showPreviousSeasonSummary is false (season is active)
+      // isCampaignsEnabled is true so showPreviousSeasonSummary is false
       // Note: The modal effect only runs when showPreviousSeasonSummary is false
-      const futureDateObj = new Date(futureDate);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1387,24 +1250,21 @@ describe('RewardsDashboard', () => {
     });
 
     it('should show not supported modal when account group is not fully supported and modal has not been shown', async () => {
-      // Arrange - Use future date so showPreviousSeasonSummary is false (season is active)
-      const futureDateObj = new Date(futureDate);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
+      // Arrange - isCampaignsEnabled is true so showPreviousSeasonSummary is false
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1432,16 +1292,14 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1533,24 +1391,21 @@ describe('RewardsDashboard', () => {
 
     it('should show unlinked accounts modal when there are unlinked accounts and user has subscription', async () => {
       // Arrange - Mock account group as fully opted in and has unlinked accounts
-      // Use future date so showPreviousSeasonSummary is false (season is active)
-      const futureDateObj = new Date(futureDate);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
+      // isCampaignsEnabled is true so showPreviousSeasonSummary is false
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1618,15 +1473,13 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
         if (selector === selectHideUnlinkedAccountsBanner) return true;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1639,26 +1492,23 @@ describe('RewardsDashboard', () => {
 
     it('should not show unlinked accounts modal when modal has already been shown', () => {
       // Arrange - setup mock to return true for unlinked accounts modal
-      const futureDateObj = new Date(futureDate);
       mockHasShownModal.mockImplementation(
         (modalType) => modalType === 'unlinked-accounts',
       );
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1673,11 +1523,10 @@ describe('RewardsDashboard', () => {
   describe('modal prioritization', () => {
     it('should show unlinked accounts modal when current account banner dismissed and account group is fully opted in', async () => {
       // Arrange - Mock account group as fully opted in and banner dismissed
-      // Use future date so showPreviousSeasonSummary is false (season is active)
+      // isCampaignsEnabled is true so showPreviousSeasonSummary is false
       mockSelectHideCurrentAccountNotOptedInBannerArray.mockReturnValue([
         { accountGroupId: 'keyring:wallet1/1' as const, hide: true },
       ]);
-      mockSelectSeasonEndDate.mockReturnValue(new Date(futureDate));
 
       const mockWalletWithOptedOutAccounts = [
         {
@@ -1725,22 +1574,20 @@ describe('RewardsDashboard', () => {
         currentAccountGroupPartiallySupported: true,
       });
 
-      const futureDateObj = new Date(futureDate);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return [{ accountGroupId: 'keyring:wallet1/1', hide: true }];
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1755,24 +1602,21 @@ describe('RewardsDashboard', () => {
     });
 
     it('should prioritize not supported modal over other modals', async () => {
-      // Arrange - Use future date so showPreviousSeasonSummary is false (season is active)
-      const futureDateObj = new Date(futureDate);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
+      // Arrange - isCampaignsEnabled is true so showPreviousSeasonSummary is false
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1837,23 +1681,20 @@ describe('RewardsDashboard', () => {
   describe('account group opt-in status logic', () => {
     it('should not show modal when account group is fully opted in', () => {
       // Arrange - Mock account group with all accounts opted in
-      const futureDateObj = new Date(futureDate);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1911,23 +1752,21 @@ describe('RewardsDashboard', () => {
 
     it('should show not supported modal when account group contains unsupported accounts', async () => {
       // Arrange - Mock account group with unsupported accounts
-      // Use future date so showPreviousSeasonSummary is false (season is active)
-      mockSelectSeasonEndDate.mockReturnValue(new Date(futureDate));
+      // isCampaignsEnabled is true so showPreviousSeasonSummary is false
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return new Date(futureDate);
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -1956,8 +1795,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1991,8 +1828,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -2052,8 +1887,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -2088,16 +1921,14 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return null;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -2142,25 +1973,22 @@ describe('RewardsDashboard', () => {
     });
 
     it('should return early and not show modals when showPreviousSeasonSummary is true', () => {
-      // Arrange - Set past date so showPreviousSeasonSummary is true (season has ended)
-      const pastDateObj = new Date(pastDate);
+      // Arrange - isCampaignsEnabled must be false for showPreviousSeasonSummary to be true
       mockSelectSeasonId.mockReturnValue(currentSeasonId);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag) return false;
         return undefined;
       });
 
@@ -2205,25 +2033,23 @@ describe('RewardsDashboard', () => {
     });
 
     it('should return early and not show modals when showPreviousSeasonSummary is null', () => {
-      // Arrange - Set seasonId and seasonEndDate to null so showPreviousSeasonSummary is null
+      // Arrange - Set seasonId to null so showPreviousSeasonSummary is null
       // This tests the case where the useFocusEffect hasn't evaluated yet
       mockSelectSeasonId.mockReturnValue(null);
-      mockSelectSeasonEndDate.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return null;
-        if (selector === selectSeasonEndDate) return null;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 
@@ -2319,23 +2145,23 @@ describe('RewardsDashboard', () => {
       mockCreateEventBuilder.mockClear();
       mockBuild.mockClear();
 
-      // Act - change active tab
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      // Act - change active tab from campaigns to activity
+      mockSelectActiveTab.mockReturnValue('activity');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'activity';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectOptinAllowedForGeo)
+          return defaultSelectorValues.optinAllowedForGeo;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
       rerender(<RewardsDashboard />);
@@ -2344,7 +2170,7 @@ describe('RewardsDashboard', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         'rewards_dashboard_tab_viewed',
       );
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'snapshots' });
+      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'activity' });
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
     });
@@ -2357,30 +2183,6 @@ describe('RewardsDashboard', () => {
       mockBuild.mockClear();
       mockAddProperties.mockClear();
 
-      // Act - change to snapshots tab
-      mockSelectActiveTab.mockReturnValue('snapshots');
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
-        return undefined;
-      });
-      rerender(<RewardsDashboard />);
-
-      // Assert - snapshots tab
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'snapshots' });
-
       // Act - change to activity tab
       mockSelectActiveTab.mockReturnValue('activity');
       mockUseSelector.mockImplementation((selector) => {
@@ -2388,48 +2190,70 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectOptinAllowedForGeo)
+          return defaultSelectorValues.optinAllowedForGeo;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
       rerender(<RewardsDashboard />);
 
       // Assert - activity tab
       expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'activity' });
-    });
-  });
 
-  describe('TabsList ref functionality', () => {
-    it('handles Redux state changes for activeTab without crashing', () => {
-      // Arrange
-      mockSelectActiveTab.mockReturnValue('overview');
-      const { rerender } = render(<RewardsDashboard />);
-
-      // Act - change activeTab in Redux to snapshots
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      // Act - change back to campaigns tab
+      mockSelectActiveTab.mockReturnValue('campaigns');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'campaigns';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectOptinAllowedForGeo)
+          return defaultSelectorValues.optinAllowedForGeo;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
+        return undefined;
+      });
+      rerender(<RewardsDashboard />);
+
+      // Assert - campaigns tab
+      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'campaigns' });
+    });
+  });
+
+  describe('TabsList ref functionality', () => {
+    it('handles Redux state changes for activeTab without crashing', () => {
+      // Arrange
+      mockSelectActiveTab.mockReturnValue('campaigns');
+      const { rerender } = render(<RewardsDashboard />);
+
+      // Act - change activeTab in Redux to campaigns
+      mockSelectActiveTab.mockReturnValue('campaigns');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab) return 'campaigns';
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectCampaignsRewardsEnabledFlag)
+          return defaultSelectorValues.isCampaignsEnabled;
         return undefined;
       });
 

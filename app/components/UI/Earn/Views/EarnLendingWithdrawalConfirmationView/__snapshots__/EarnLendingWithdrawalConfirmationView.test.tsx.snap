@@ -4,7 +4,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f3f3f4",
+      "backgroundColor": "#ffffff",
       "height": "100%",
       "justifyContent": "space-between",
     }
@@ -179,7 +179,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 12,
             "marginBottom": 12,
             "paddingBottom": 8,
@@ -340,7 +340,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 12,
             "marginBottom": 12,
             "paddingBottom": 8,

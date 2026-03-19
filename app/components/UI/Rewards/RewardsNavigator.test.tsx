@@ -22,70 +22,97 @@ jest.mock('./hooks/useSeasonStatus', () => ({
 }));
 
 jest.mock('./OnboardingNavigator', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingNavigator() {
-    return React.createElement(
+    return ReactActual.createElement(
       View,
       { testID: 'rewards-onboarding-navigator' },
-      React.createElement(Text, null, 'Onboarding Navigator'),
+      ReactActual.createElement(Text, null, 'Onboarding Navigator'),
     );
   };
 });
 
 jest.mock('./Views/RewardsDashboard', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockRewardsDashboard() {
-    return React.createElement(
+    return ReactActual.createElement(
       View,
       { testID: 'rewards-dashboard-view' },
-      React.createElement(Text, null, 'Rewards Dashboard'),
+      ReactActual.createElement(Text, null, 'Rewards Dashboard'),
     );
   };
 });
 
 jest.mock('./Views/RewardsReferralView', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockReferralRewardsView() {
-    return React.createElement(
+    return ReactActual.createElement(
       View,
       { testID: 'rewards-referral-view' },
-      React.createElement(Text, null, 'Referral Rewards View'),
+      ReactActual.createElement(Text, null, 'Referral Rewards View'),
     );
   };
 });
 
 jest.mock('./Views/RewardsSettingsView', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockRewardsSettingsView() {
-    return React.createElement(
+    return ReactActual.createElement(
       View,
       { testID: 'rewards-settings-view' },
-      React.createElement(Text, null, 'Rewards Settings View'),
+      ReactActual.createElement(Text, null, 'Rewards Settings View'),
+    );
+  };
+});
+
+jest.mock('./Views/CampaignDetailsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockCampaignDetailsView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'campaign-details-view' },
+      ReactActual.createElement(Text, null, 'Campaign Details View'),
+    );
+  };
+});
+
+jest.mock('./Views/CampaignMechanicsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockCampaignMechanicsView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'campaign-mechanics-view' },
+      ReactActual.createElement(Text, null, 'Campaign Mechanics View'),
     );
   };
 });
 
 // Mock Skeleton component
-jest.mock('../../../component-library/components/Skeleton/Skeleton', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return function MockSkeleton({
-    width,
-    height,
-  }: {
-    width: string;
-    height: string;
-  }) {
-    return React.createElement(View, {
-      testID: 'skeleton-loader',
-      style: { width, height },
-    });
-  };
-});
+jest.mock(
+  '../../../component-library/components-temp/Skeleton/Skeleton',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return function MockSkeleton({
+      width,
+      height,
+    }: {
+      width: string;
+      height: string;
+    }) {
+      return React.createElement(View, {
+        testID: 'skeleton-loader',
+        style: { width, height },
+      });
+    };
+  },
+);
 
 // Mock ErrorBoundary
 jest.mock('../../Views/ErrorBoundary', () => ({
@@ -100,14 +127,12 @@ jest.mock('../../Views/ErrorBoundary', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: '#000',
-      background: '#fff',
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock getNavigationOptionsTitle
 jest.mock('../Navbar', () => ({
@@ -153,14 +178,25 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
 }));
 
+// Mock useRewardCampaigns hook
+jest.mock('./hooks/useRewardCampaigns', () => ({
+  useRewardCampaigns: jest.fn(),
+}));
+
 // Mock useSeasonStatus hook
 jest.mock('./hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),
 }));
 
+// Mock useGeoRewardsMetadata hook
+jest.mock('./hooks/useGeoRewardsMetadata', () => ({
+  useGeoRewardsMetadata: jest.fn(),
+}));
+
 // Import mocked selectors and hooks for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
@@ -169,6 +205,9 @@ const mockSelectRewardsSubscriptionId =
 
 const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
   typeof useSeasonStatus
+>;
+const mockUseGeoRewardsMetadata = useGeoRewardsMetadata as jest.MockedFunction<
+  typeof useGeoRewardsMetadata
 >;
 
 describe('RewardsNavigator', () => {
@@ -182,6 +221,9 @@ describe('RewardsNavigator', () => {
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
     mockUseSeasonStatus.mockReturnValue({
       fetchSeasonStatus: jest.fn(),
+    });
+    mockUseGeoRewardsMetadata.mockReturnValue({
+      fetchGeoRewardsMetadata: jest.fn(),
     });
 
     // Create a mock store
@@ -387,6 +429,19 @@ describe('RewardsNavigator', () => {
         expect(queryByTestId('rewards-dashboard-view')).toBeNull();
       });
     });
+
+    it('registers CAMPAIGN_DETAILS and CAMPAIGN_MECHANICS routes when subscription exists', async () => {
+      // Both views are registered inside the subscriptionId-guarded block,
+      // so they are present in the navigator only when the user is enrolled.
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
+      // Rendering should not throw even with the new screens registered
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+      });
+    });
   });
 
   // Note: Removed AuthErrorView tests as they don't match the actual implementation
@@ -429,6 +484,14 @@ describe('RewardsNavigator', () => {
 
       // Assert - Just verify it renders with default subscription state
       expect(getByTestId('rewards-onboarding-navigator')).toBeDefined();
+    });
+
+    it('calls useGeoRewardsMetadata hook', () => {
+      // Act
+      renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      expect(mockUseGeoRewardsMetadata).toHaveBeenCalledWith({});
     });
 
     it('integrates useSeasonStatus hook properly', () => {
