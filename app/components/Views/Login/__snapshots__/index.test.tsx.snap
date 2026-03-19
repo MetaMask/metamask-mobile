@@ -127,6 +127,7 @@ exports[`Login renders matching snapshot 1`] = `
           }
         >
           <TextInput
+            accessibilityLabel="login-password-input"
             autoCapitalize="none"
             autoFocus={false}
             editable={true}
@@ -569,6 +570,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
           }
         >
           <TextInput
+            accessibilityLabel="login-password-input"
             autoCapitalize="none"
             autoFocus={false}
             editable={true}
