@@ -587,7 +587,7 @@ class Transactions extends PureComponent {
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
-    await Engine.context.ApprovalController.reject(
+    await Engine.context.ApprovalController.rejectRequest(
       tx.id,
       providerErrors.userRejectedRequest(),
     );

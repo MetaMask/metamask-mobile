@@ -25,6 +25,7 @@ import cardReducer, {
   selectContactVerificationId,
   selectConsentSetId,
   resetAuthenticatedData,
+  selectIsUserInSupportedCardCountry,
 } from '.';
 
 // Mock the multichain selectors
@@ -718,6 +719,84 @@ describe('Card Reducer', () => {
 describe('Card Button Display Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('selectIsUserInSupportedCardCountry', () => {
+    it('returns true when geoLocation is in supported countries', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({
+        US: true,
+        GB: true,
+      });
+
+      const stateWithUs: CardSliceState = {
+        ...initialState,
+        geoLocation: 'US',
+      };
+      const mockRootState = {
+        card: stateWithUs,
+      } as unknown as RootState;
+
+      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(true);
+    });
+
+    it('returns false when geoLocation is not in supported countries', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
+
+      const stateWithUnsupported: CardSliceState = {
+        ...initialState,
+        geoLocation: 'CN',
+      };
+      const mockRootState = {
+        card: stateWithUnsupported,
+      } as unknown as RootState;
+
+      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
+    });
+
+    it('returns false when geoLocation is UNKNOWN', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
+
+      const stateWithUnknown: CardSliceState = {
+        ...initialState,
+        geoLocation: 'UNKNOWN',
+      };
+      const mockRootState = {
+        card: stateWithUnknown,
+      } as unknown as RootState;
+
+      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
+    });
+
+    it('returns false when country is explicitly false in supported countries', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({
+        US: true,
+        DE: false,
+      });
+
+      const stateWithDe: CardSliceState = {
+        ...initialState,
+        geoLocation: 'DE',
+      };
+      const mockRootState = {
+        card: stateWithDe,
+      } as unknown as RootState;
+
+      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
+    });
+
+    it('returns false when cardSupportedCountries is empty or missing', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({});
+
+      const stateWithUs: CardSliceState = {
+        ...initialState,
+        geoLocation: 'US',
+      };
+      const mockRootState = {
+        card: stateWithUs,
+      } as unknown as RootState;
+
+      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
+    });
   });
 
   describe('selectAlwaysShowCardButton', () => {

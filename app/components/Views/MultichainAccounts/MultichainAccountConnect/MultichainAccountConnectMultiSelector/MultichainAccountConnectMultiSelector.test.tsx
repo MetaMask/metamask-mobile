@@ -306,7 +306,7 @@ describe('MultichainAccountConnectMultiSelector', () => {
       const updateButton = getByTestId(
         ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
       );
-      expect(updateButton.props.disabled).toBe(true);
+      expect(updateButton).toBeDisabled();
     });
   });
 

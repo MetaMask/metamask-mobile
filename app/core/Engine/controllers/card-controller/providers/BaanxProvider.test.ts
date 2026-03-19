@@ -728,7 +728,7 @@ describe('BaanxProvider', () => {
     });
   });
 
-  describe('sendOtp', () => {
+  describe('executeStepAction', () => {
     it('posts userId to the OTP trigger endpoint', async () => {
       service.get.mockResolvedValue({ token: 'init-token', url: '' });
       const session = await provider.initiateAuth('US');
@@ -736,7 +736,7 @@ describe('BaanxProvider', () => {
       session._metadata.otpUserId = 'user-1';
       service.post.mockResolvedValue({});
 
-      await provider.sendOtp(session);
+      await provider.executeStepAction(session);
 
       expect(service.post).toHaveBeenCalledWith('/v1/auth/login/otp', {
         userId: 'user-1',
@@ -747,8 +747,8 @@ describe('BaanxProvider', () => {
       service.get.mockResolvedValue({ token: 'init-token', url: '' });
       const session = await provider.initiateAuth('US');
 
-      await expect(provider.sendOtp(session)).rejects.toThrow(
-        'No userId in session',
+      await expect(provider.executeStepAction(session)).rejects.toThrow(
+        'executeStepAction: session missing otpUserId',
       );
     });
   });

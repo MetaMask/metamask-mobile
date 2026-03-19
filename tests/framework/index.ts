@@ -6,6 +6,12 @@ export { default as Utilities, BASE_DEFAULTS, sleep } from './Utilities.ts';
 export { Logger, createLogger, LogLevel, logger } from './logger.ts';
 export { default as PortManager, ResourceType } from './PortManager.ts';
 export * from './types.ts';
+export {
+  runAnalyticsExpectations,
+  assertCapturedMetaMetricsEvents,
+  deriveEventNamesForFetch,
+  shouldRunAnalyticsExpectations,
+} from '../helpers/analytics/runAnalyticsExpectations.ts';
 export { boxedStep, getDriver } from './PlaywrightUtilities.ts';
 
 // Mock server utilities

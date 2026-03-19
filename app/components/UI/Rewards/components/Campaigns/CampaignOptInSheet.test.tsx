@@ -1,12 +1,18 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import type { Json } from '@metamask/utils';
 import CampaignOptInSheet from './CampaignOptInSheet';
 import {
   type CampaignDto,
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -63,6 +69,34 @@ jest.mock('../RewardsErrorBanner', () => {
   };
 });
 
+jest.mock('../ContentfulRichText/ContentfulRichText', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text: RNText } = jest.requireActual('react-native');
+  const isDocumentFn = (value: unknown): boolean =>
+    value !== null &&
+    typeof value === 'object' &&
+    'nodeType' in (value as Record<string, unknown>) &&
+    (value as Record<string, unknown>).nodeType === 'document' &&
+    'content' in (value as Record<string, unknown>) &&
+    Array.isArray((value as Record<string, unknown>).content);
+  return {
+    __esModule: true,
+    isDocument: isDocumentFn,
+    default: ({
+      document: doc,
+      testID,
+    }: {
+      document: unknown;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(RNText, null, JSON.stringify(doc)),
+      ),
+  };
+});
+
 jest.mock('../Onboarding/constants', () => ({
   REWARDS_ONBOARD_TERMS_URL: 'https://go.metamask.io/rewards-terms',
 }));
@@ -103,7 +137,6 @@ const mockOptInToCampaign = jest.fn();
 describe('CampaignOptInSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     mockUseOptInToCampaign.mockReturnValue({
       optInToCampaign: mockOptInToCampaign,
       isOptingIn: false,
@@ -137,14 +170,17 @@ describe('CampaignOptInSheet', () => {
     );
   });
 
-  it('opens the terms URL when terms link is pressed', () => {
+  it('opens the terms URL in in-app browser when terms link is pressed', () => {
     const { getByTestId } = render(
       <CampaignOptInSheet campaign={createTestCampaign()} />,
     );
     fireEvent.press(getByTestId('campaign-opt-in-sheet-terms-link'));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://go.metamask.io/rewards-terms',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: expect.objectContaining({
+        newTabUrl: 'https://go.metamask.io/rewards-terms',
+      }),
+    });
   });
 
   it('renders the CTA button', () => {
@@ -233,5 +269,82 @@ describe('CampaignOptInSheet', () => {
     );
     // Button still renders while loading
     expect(getByTestId('campaign-opt-in-cta')).toBeDefined();
+  });
+
+  describe('termsAndConditions rich text', () => {
+    const richTextDoc: Json = {
+      nodeType: 'document',
+      data: {},
+      content: [
+        {
+          nodeType: 'paragraph',
+          data: {},
+          content: [
+            {
+              nodeType: 'text',
+              value: 'By joining you agree to the ',
+              marks: [],
+              data: {},
+            },
+            {
+              nodeType: 'hyperlink',
+              data: { uri: 'https://example.com/terms' },
+              content: [
+                { nodeType: 'text', value: 'Terms', marks: [], data: {} },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    it('renders ContentfulRichText when termsAndConditions is present', () => {
+      const { getByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({ termsAndConditions: richTextDoc })}
+        />,
+      );
+      expect(getByTestId('campaign-opt-in-sheet-description')).toBeDefined();
+    });
+
+    it('does not render the static terms link when termsAndConditions is present', () => {
+      const { queryByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({ termsAndConditions: richTextDoc })}
+        />,
+      );
+      expect(queryByTestId('campaign-opt-in-sheet-terms-link')).toBeNull();
+    });
+
+    it('renders the static fallback when termsAndConditions is null', () => {
+      const { getByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({ termsAndConditions: null })}
+        />,
+      );
+      expect(getByTestId('campaign-opt-in-sheet-terms-link')).toBeOnTheScreen();
+    });
+
+    it('renders the static fallback when termsAndConditions is malformed', () => {
+      const { getByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({
+            termsAndConditions: 'not a document',
+          })}
+        />,
+      );
+      expect(getByTestId('campaign-opt-in-sheet-terms-link')).toBeOnTheScreen();
+    });
+
+    it('renders the static fallback when termsAndConditions is a non-document object', () => {
+      const { getByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({
+            termsAndConditions: { foo: 'bar' },
+          })}
+        />,
+      );
+      expect(getByTestId('campaign-opt-in-sheet-terms-link')).toBeOnTheScreen();
+    });
   });
 });
