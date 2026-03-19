@@ -90,7 +90,7 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
+  const { addOrder, addPrecreatedOrder, getOrderFromCallback, removeOrder } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
@@ -233,6 +233,15 @@ const Checkout = () => {
           throw new Error('Order could not be retrieved from callback');
         }
 
+        const externalTransactionId = parsedUrl.query.externalTransactionId;
+        if (
+          typeof externalTransactionId === 'string' &&
+          externalTransactionId
+        ) {
+          removeOrder(`c-${externalTransactionId}`);
+          removeOrder(externalTransactionId);
+        }
+
         addOrder(rampsOrder);
         dispatch(protectWalletModalVisible());
 
@@ -272,6 +281,7 @@ const Checkout = () => {
       walletAddress,
       navigation,
       addOrder,
+      removeOrder,
       getOrderFromCallback,
       isV2Enabled,
       params?.cryptocurrency,

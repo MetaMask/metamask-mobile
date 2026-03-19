@@ -191,6 +191,7 @@ describe('Checkout', () => {
   const mockAddOrder = jest.fn();
   const mockGetOrderFromCallback = jest.fn();
   const mockAddPrecreatedOrder = jest.fn();
+  const mockRemoveOrder = jest.fn();
   const mockNavigation = {
     setOptions: jest.fn(),
     reset: jest.fn(),
@@ -210,6 +211,7 @@ describe('Checkout', () => {
       addOrder: mockAddOrder,
       getOrderFromCallback: mockGetOrderFromCallback,
       addPrecreatedOrder: mockAddPrecreatedOrder,
+      removeOrder: mockRemoveOrder,
     });
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     mockUseAnalytics.mockReturnValue({
