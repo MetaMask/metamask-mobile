@@ -775,6 +775,7 @@ describe('PerpsOrderBookView', () => {
 
       expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
         mockLongPosition,
+        'order_book',
       );
     });
 

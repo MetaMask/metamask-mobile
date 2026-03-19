@@ -4,7 +4,7 @@ import {
   onRpcEndpointUnavailable,
 } from './messenger-action-handlers';
 // This is intentional so we can mock certain modules.
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as networkControllerUtilsModule from './utils';
 
 describe('onRpcEndpointUnavailable', () => {

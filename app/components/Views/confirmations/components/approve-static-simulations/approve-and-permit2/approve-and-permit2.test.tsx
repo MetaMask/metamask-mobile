@@ -15,7 +15,7 @@ import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandar
 import { TokenStandard } from '../../../types/token';
 import { ApproveAndPermit2 } from './approve-and-permit2';
 import { ApproveMethod } from '../../../types/approve';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useApproveTransactionDataModule from '../../../hooks/useApproveTransactionData';
 
 jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({

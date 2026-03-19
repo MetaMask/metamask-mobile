@@ -47,6 +47,13 @@ ignores:
   - '@metamask/perps-controller'
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'
+
+  # ESLint plugins, resolvers, parsers, configuration, etc.
+  - 'eslint-config-prettier'
+  - 'eslint-import-resolver-typescript'
+  - 'eslint-plugin-prettier'
+  - 'eslint-plugin-react-native'
+
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
 
@@ -63,9 +70,6 @@ ignores:
   - 'babel-core'
   - 'babel-loader'
   - 'chromedriver'
-  - 'eslint-config-prettier'
-  - 'eslint-plugin-prettier'
-  - 'eslint-plugin-react-native'
   - 'execa'
   - 'jetifier'
   - 'metro-react-native-babel-preset'

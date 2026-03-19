@@ -27,7 +27,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+/* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
 const metamaskName = require('../../../images/branding/metamask-name.png');
 

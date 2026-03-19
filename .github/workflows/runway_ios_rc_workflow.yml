@@ -4,7 +4,7 @@
 #
 # Triggered from Runway to either:
 # - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
-# - Build the mobile app (when there is no OTA version bump).
+# - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
 #
 # When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
 #
@@ -112,7 +112,7 @@ jobs:
         run: |
           if [[ -z "${{ needs.decide.outputs.pr_number }}" ]]; then
             echo "::error::No PR found for this branch. OTA update requires a PR number."
-            echo "::error::If you ran the workflow manually (workflow_dispatch), select your release branch in the 'Use workflow from' dropdown (e.g. release/test-runway-rc-ios-workflow), not main."
+            echo "::error::If you ran the workflow manually (workflow_dispatch), select your release branch in the 'Use workflow from' dropdown (e.g. release/7.71.0), not main."
             exit 1
           fi
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
@@ -147,4 +147,88 @@ jobs:
       build_name: main-rc
       platform: ios
       skip_version_bump: false
+      ref: ${{ inputs.ref || github.ref_name }}
     secrets: inherit
+
+  testflight-upload-summary:
+    name: TestFlight upload summary
+    needs: [trigger-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref || github.ref_name }}
+      - name: Display TestFlight upload summary
+        run: |
+          BUILD_VERSION=$(node -p "require('./package.json').version")
+          {
+            echo "### 📲 TestFlight Upload (Runway iOS RC)"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Ref** | ${{ inputs.ref || github.ref_name }} |"
+            echo "| **Build name** | main-rc |"
+            echo "| **Build version** | ${BUILD_VERSION} |"
+            echo "| **TestFlight group** | MetaMask BETA & Release Candidates |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: [trigger-build, testflight-upload-summary]
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    environment: apple
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref || github.ref_name }}
+
+      - name: Setup Ruby (iOS)
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Download iOS build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-main-rc
+
+      - name: Find IPA path
+        id: ipa
+        run: |
+          IPA=$(find . -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA" ]; then
+            echo "::error::No .ipa file found in artifact"
+            exit 1
+          fi
+          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
+          echo "path=$ABS" >> "$GITHUB_OUTPUT"
+
+      - name: Setup App Store Connect API Key
+        run: |
+          bash scripts/setup-app-store-connect-api-key.sh \
+            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+        env:
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+
+      - name: Upload to TestFlight
+        run: |
+          bash scripts/upload-to-testflight.sh \
+            "github_actions_main-rc" \
+            "${{ inputs.ref || github.ref_name }}" \
+            "${{ steps.ipa.outputs.path }}" \
+            "MetaMask BETA & Release Candidates"
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"
