@@ -37,7 +37,7 @@ import {
   normalizeDappUrl,
 } from './wc-utils';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
@@ -645,6 +645,25 @@ class WalletConnect2Session {
       requestEvent,
       this.selfReportedUrl,
     );
+
+    // Prevent external transactions from using internal origins.
+    // This is an external connection (WalletConnect), so block any internal origin.
+    // NOTE: unverifiedOrigin is self-reported by the dapp.
+    if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
+      this._isHandlingRequest = false;
+      return this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: {
+            code: errorCodes.provider.unauthorized,
+            message: ERROR_MESSAGES.INVALID_ORIGIN,
+          },
+        },
+      });
+    }
+
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
@@ -784,15 +803,6 @@ class WalletConnect2Session {
     unverifiedOrigin: string,
   ) {
     try {
-      // Prevent external transactions from using internal origins.
-      // This is an external connection (WalletConnect), so block any internal origin.
-      // NOTE: unverifiedOrigin is self-reported by the dapp.
-      if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
-
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
