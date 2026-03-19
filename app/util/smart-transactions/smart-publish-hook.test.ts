@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable import/no-commonjs */
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-commonjs */
+/* eslint-disable import-x/no-nodejs-modules */
 require('dotenv').config({ path: '../../../.js.env' });
 import {
   TransactionType,

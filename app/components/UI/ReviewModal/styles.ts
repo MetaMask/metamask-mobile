@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { StyleSheet } from 'react-native';
 
 // TODO: Replace "any" with type
