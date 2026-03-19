@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import { selectAllCollectiblesByChain } from './collectibles';
 import * as AccountsControllerSelectorsModule from '../../selectors/accountsController';
 import * as NFTControllerSelectorsModule from '../../selectors/nftController';
