@@ -22,6 +22,7 @@ import {
   FALLBACK_DAPP_SERVER_PORT,
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
+import { logLiveMetaMetricsPostIfDebug } from '../helpers/analytics/analyticsDebug.ts';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -304,6 +305,10 @@ export default class MockServerE2E implements Resource {
             } catch (e) {
               requestBodyText = undefined;
             }
+          }
+
+          if (method === 'POST') {
+            logLiveMetaMetricsPostIfDebug(urlEndpoint, requestBodyJson);
           }
 
           const methodEvents = this._events[method] || [];

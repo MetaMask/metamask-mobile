@@ -128,7 +128,7 @@ describe('assertCapturedMetaMetricsEvents', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('runs validate after declarative checks', async () => {
+  it('runs validate in the same SoftAssert pass as declarative checks', async () => {
     let ran = false;
     await assertCapturedMetaMetricsEvents(
       [{ event: 'Z', properties: {} }],
@@ -141,6 +141,49 @@ describe('assertCapturedMetaMetricsEvents', () => {
       mockServer,
     );
     expect(ran).toBe(true);
+  });
+
+  it('still runs validate when declarative checks failed and aggregates errors', async () => {
+    let ran = false;
+    await expect(
+      assertCapturedMetaMetricsEvents(
+        [{ event: 'Z', properties: {} }],
+        {
+          expectedTotalCount: 99,
+          validate: async () => {
+            ran = true;
+            throw new Error('validate failed');
+          },
+        },
+        mockServer,
+      ),
+    ).rejects.toThrow(/validate failed/);
+    expect(ran).toBe(true);
+  });
+
+  it('evaluates every expected event and reports all failures together', async () => {
+    let caught: Error | undefined;
+    try {
+      await assertCapturedMetaMetricsEvents(
+        [{ event: 'OnlyThis', properties: {} }],
+        {
+          events: [
+            { name: 'MissingOne', minCount: 1 },
+            {
+              name: 'OnlyThis',
+              matchProperties: { wrong: true },
+            },
+          ],
+        },
+        mockServer,
+      );
+    } catch (error) {
+      caught = error as Error;
+    }
+    expect(caught).toBeDefined();
+    expect(caught?.message).toContain('MissingOne');
+    expect(caught?.message).toContain('OnlyThis');
+    expect(caught?.message).toContain('match expected object');
   });
 
   it('validates matchProperties on target payload', async () => {

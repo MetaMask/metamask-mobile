@@ -38,8 +38,10 @@ export function deriveEventNamesForFetch(
 }
 
 /**
- * Runs declarative MetaMetrics checks, then optional `validate`.
- * Declarative failures are aggregated; `validate` runs only if declarative checks pass.
+ * Runs declarative MetaMetrics checks, then optional `validate`, aggregating **all**
+ * failures via `SoftAssert` so every expected event / rule is evaluated (not stop-on-first).
+ * Property checks for an event are skipped when that event did not meet `minCount`, to avoid
+ * noisy follow-on errors; other expected events are still fully checked.
  */
 export async function assertCapturedMetaMetricsEvents(
   events: EventPayload[],
@@ -69,8 +71,16 @@ export async function assertCapturedMetaMetricsEvents(
         }
       }, `MetaMetrics event count for "${eventExpectation.name}"`);
 
+      const targetIndex = Math.min(
+        eventExpectation.matchEventIndex ?? 0,
+        Math.max(matching.length - 1, 0),
+      );
+      const targetPayload = matching[targetIndex];
+      const canInspectPayload =
+        matching.length >= minCount && targetPayload !== undefined;
+
       const requiredProperties = eventExpectation.requiredProperties;
-      if (requiredProperties) {
+      if (requiredProperties && canInspectPayload) {
         for (let i = 0; i < matching.length; i += 1) {
           const payload = matching[i];
           await softAssert.checkAndCollect(
@@ -84,11 +94,9 @@ export async function assertCapturedMetaMetricsEvents(
         }
       }
 
-      const targetIndex = Math.min(
-        eventExpectation.matchEventIndex ?? 0,
-        Math.max(matching.length - 1, 0),
-      );
-      const targetPayload = matching[targetIndex];
+      if (!canInspectPayload) {
+        continue;
+      }
 
       const definedKeys = eventExpectation.requiredDefinedPropertyKeys;
       if (definedKeys && definedKeys.length > 0) {
@@ -127,11 +135,15 @@ export async function assertCapturedMetaMetricsEvents(
     }
   }
 
-  softAssert.throwIfErrors();
-
-  if (expectations.validate) {
-    await expectations.validate({ events, mockServer });
+  const customValidate = expectations.validate;
+  if (customValidate) {
+    await softAssert.checkAndCollect(
+      async () => customValidate({ events, mockServer }),
+      'analyticsExpectations.validate',
+    );
   }
+
+  softAssert.throwIfErrors();
 }
 
 /**

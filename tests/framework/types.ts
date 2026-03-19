@@ -366,8 +366,9 @@ export interface AnalyticsExpectations {
   /** Declarative per-event count and property checks. */
   events?: AnalyticsEventExpectation[];
   /**
-   * Custom validation after declarative checks succeed (or when no declarative checks are configured).
-   * Receives the same `events` array returned from `getEventsPayloads` for this test.
+   * Custom validation after declarative rules are evaluated. Runs in the same `SoftAssert` pass as
+   * declarative checks, so failures are merged: all expected events are still checked even when
+   * some already failed (unless you throw before returning from `validate`).
    */
   validate?: (ctx: {
     events: EventPayload[];

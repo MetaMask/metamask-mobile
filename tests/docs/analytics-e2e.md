@@ -10,24 +10,26 @@ Validation logic lives in **`tests/helpers/analytics/runAnalyticsExpectations.ts
 
 ### Configuration (`AnalyticsExpectations`)
 
-| Field | Purpose |
-| ----- | -------- |
-| `eventNames` | Subset of event names passed to `getEventsPayloads` (faster, less noise). If omitted and no `events[]` entries, **all** captured MetaMetrics payloads are loaded. |
-| `expectedTotalCount` | Assert exact length of that filtered list. |
-| `events` | Declarative per-event rules (see below). |
-| `validate` | Optional escape hatch; runs **after** declarative checks succeed. Receives `{ events, mockServer }`. |
+| Field                | Purpose                                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `eventNames`         | Subset of event names passed to `getEventsPayloads` (faster, less noise). If omitted and no `events[]` entries, **all** captured MetaMetrics payloads are loaded. |
+| `expectedTotalCount` | Assert exact length of that filtered list.                                                                                                                        |
+| `events`             | Declarative per-event rules (see below).                                                                                                                          |
+| `validate`           | Optional escape hatch; runs **after** declarative checks succeed. Receives `{ events, mockServer }`.                                                              |
+
+All declarative rules and the optional `validate` callback are evaluated with **`SoftAssert`**: every configured expected event is checked and **all** failures are reported in one thrown error (not stop-on-first). Property checks for an event are skipped if that event did not meet `minCount`, so you get a clear “missing event” line without extra property noise.
 
 ### Per-event rules (`AnalyticsEventExpectation`)
 
-| Field | Purpose |
-| ----- | -------- |
-| `name` | MetaMetrics event name. |
-| `minCount` | Minimum payloads with this name (@default 1). |
-| `matchEventIndex` | Which occurrence to use for single-payload checks (@default 0). |
-| `requiredProperties` | Type/shape map for **every** payload with this name (`Assertions.checkIfObjectHasKeysAndValidValues`). |
-| `matchProperties` | Exact property object for payload at `matchEventIndex` (`Assertions.checkIfObjectsMatch`). |
-| `containProperties` | Subset match for payload at `matchEventIndex` (`Assertions.checkIfObjectContains`). |
-| `requiredDefinedPropertyKeys` | Keys that must be defined on payload at `matchEventIndex`. |
+| Field                         | Purpose                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `name`                        | MetaMetrics event name.                                                                                |
+| `minCount`                    | Minimum payloads with this name (@default 1).                                                          |
+| `matchEventIndex`             | Which occurrence to use for single-payload checks (@default 0).                                        |
+| `requiredProperties`          | Type/shape map for **every** payload with this name (`Assertions.checkIfObjectHasKeysAndValidValues`). |
+| `matchProperties`             | Exact property object for payload at `matchEventIndex` (`Assertions.checkIfObjectsMatch`).             |
+| `containProperties`           | Subset match for payload at `matchEventIndex` (`Assertions.checkIfObjectContains`).                    |
+| `requiredDefinedPropertyKeys` | Keys that must be defined on payload at `matchEventIndex`.                                             |
 
 ### Preset expectations (data-only, reusable)
 
@@ -78,3 +80,12 @@ analyticsExpectations: {
 ```
 
 Programmatic use: `runAnalyticsExpectations` and `assertCapturedMetaMetricsEvents` are exported from `tests/framework/index.ts`.
+
+## Debug logging (`E2E_ANALYTICS_DEBUG`)
+
+Set **`E2E_ANALYTICS_DEBUG=1`** (also accepts `true`, `yes`, `on`) when running E2E to log MetaMetrics traffic:
+
+1. **Live (as requests hit the mock)** — When the app POSTs through `/proxy` to the MetaMetrics track URL, the mock server logs a line like `Event sent (live): "<name>"` (see `logLiveMetaMetricsPostIfDebug` in `tests/helpers/analytics/analyticsDebug.ts` and `MockServerE2E.ts`).
+2. **Batch (when payloads are read)** — Whenever `getEventsPayloads` runs, it logs each captured event as `Captured event: "<name>"` plus debug-level property JSON (truncated). This runs at the end of the flow when analytics assertions (or custom code) fetch captured events.
+
+Properties are logged at **debug** level to limit noise; event names are **info** level. Adjust log level if your harness filters debug output.
