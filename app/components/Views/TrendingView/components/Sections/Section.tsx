@@ -49,10 +49,11 @@ const Section: React.FC<SectionProps> = ({
     }
   }, [refreshConfig, refetch]);
 
-  // Only show loading skeleton if refreshConfig allows it
+  // Always show skeleton when there's no data to display.
+  // Only gate on silentRefresh when data is already visible.
   const shouldShowSkeleton =
-    (isLoading || (isFetching && data.length === 0)) &&
-    refreshConfig.silentRefresh;
+    isLoading ||
+    (isFetching && (data.length === 0 || refreshConfig.silentRefresh));
 
   return (
     <section.Section
