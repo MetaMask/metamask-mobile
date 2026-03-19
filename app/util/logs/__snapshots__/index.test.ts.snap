@@ -70,12 +70,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "txHistory": {},
       },
       "CardController": {
-        "activeProviderId": null,
+        "activeProviderId": "baanx",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
       },
+      "ComplianceController": {},
       "ConnectivityController": {
         "connectivityStatus": "online",
       },
@@ -883,12 +884,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "txHistory": {},
       },
       "CardController": {
-        "activeProviderId": null,
+        "activeProviderId": "baanx",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
       },
+      "ComplianceController": {},
       "ConnectivityController": {
         "connectivityStatus": "online",
       },

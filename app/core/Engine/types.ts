@@ -423,6 +423,15 @@ import {
   AiDigestControllerEvents,
   AiDigestControllerState,
 } from '@metamask/ai-controllers';
+import {
+  ComplianceController,
+  ComplianceControllerActions,
+  ComplianceControllerEvents,
+  ComplianceControllerState,
+  ComplianceService,
+  ComplianceServiceActions,
+  ComplianceServiceEvents,
+} from '@metamask/compliance-controller';
 
 /**
  * Controllers that area always instantiated
@@ -435,6 +444,7 @@ type RequiredControllers = Omit<
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
+  | 'ComplianceService'
 >;
 
 /**
@@ -448,6 +458,7 @@ type OptionalControllers = Pick<
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
+  | 'ComplianceService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -546,6 +557,8 @@ type GlobalActions =
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
+  | ComplianceControllerActions
+  | ComplianceServiceActions
   | TransakServiceActions;
 
 type GlobalEvents =
@@ -624,6 +637,8 @@ type GlobalEvents =
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
+  | ComplianceControllerEvents
+  | ComplianceServiceEvents
   | TransakServiceEvents;
 
 /**
@@ -744,6 +759,8 @@ export type Controllers = {
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
+  ComplianceService: ComplianceService;
+  ComplianceController: ComplianceController;
   TransakService: TransakService;
 };
 
@@ -825,6 +842,7 @@ export type EngineState = {
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
+  ComplianceController: ComplianceControllerState;
 };
 
 /** Controller names */
@@ -935,7 +953,9 @@ export type ControllersToInitialize =
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'AnalyticsController'
-  | 'AiDigestController';
+  | 'AiDigestController'
+  | 'ComplianceService'
+  | 'ComplianceController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
