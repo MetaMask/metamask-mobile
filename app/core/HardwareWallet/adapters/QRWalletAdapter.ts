@@ -54,7 +54,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
     DevLogger.log('[QRWalletAdapter] connect called for device:', deviceId);
 
     // For QR wallets, we just store the device ID
-    // There's no actual connection to establish
+    // The deviceId can be the account address or 'default' for wallets without real device IDs
     this.#deviceId = deviceId;
     this.#isConnected = true;
 

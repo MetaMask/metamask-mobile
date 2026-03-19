@@ -219,6 +219,32 @@ export const useDeviceConnectionFlow = ({
 
       return createBlockingPromise(() => {
         if (!targetDeviceId) {
+          // For wallets that don't require device discovery (e.g., QR),
+          // we can skip device selection and go straight to connecting
+          if (!adapter.requiresDeviceDiscovery) {
+            DevLogger.log(
+              '[HardwareWallet] No device ID but discovery not required - checking readiness',
+            );
+            updateConnectionState({ status: ConnectionStatus.Connecting });
+
+            (async () => {
+              try {
+                refs.abortControllerRef.current = new AbortController();
+                // Use a default device ID for wallets without real device IDs
+                await tryEnsureReady(adapter, 'default');
+              } catch (error) {
+                DevLogger.log(
+                  '[HardwareWallet] ensureDeviceReady error:',
+                  error,
+                );
+                handleError(error);
+              } finally {
+                refs.abortControllerRef.current = null;
+              }
+            })();
+            return;
+          }
+
           DevLogger.log(
             '[HardwareWallet] No device ID - starting device selection',
           );
