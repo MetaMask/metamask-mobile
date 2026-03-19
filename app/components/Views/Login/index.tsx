@@ -355,8 +355,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet();
         },
       );
-    } catch (error) {
-      await handleLoginError(error as Error);
+    } catch (loginerror) {
+      await handleLoginError(loginerror as Error);
     } finally {
       setLoading(false);
     }
@@ -504,7 +504,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               >
                 <Text
                   twClassName="self-center"
-                  disabled={loading}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
                   variant={TextVariant.BodyMd}
