@@ -1,8 +1,17 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { selectPaymentMethods } from '../../../../selectors/rampsController';
+import {
+  selectPaymentMethods,
+  selectProviders,
+  selectTokens,
+  selectUserRegion,
+} from '../../../../selectors/rampsController';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { rampsQueries } from '../queries';
+
+export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
 
 /**
  * Result returned by the useRampsPaymentMethods hook.
@@ -22,9 +31,21 @@ export interface UseRampsPaymentMethodsResult {
    */
   setSelectedPaymentMethod: (paymentMethod: PaymentMethod | null) => void;
   /**
-   * Whether the payment methods request is currently loading.
+   * Whether the payment methods request is currently loading (no cached data).
    */
   isLoading: boolean;
+  /**
+   * Whether a fetch is in-flight (includes background refetches with cached data).
+   */
+  isFetching: boolean;
+  /**
+   * Query lifecycle status for the active payment methods request.
+   */
+  status: RampsQueryStatus;
+  /**
+   * Whether the active payment methods request completed successfully.
+   */
+  isSuccess: boolean;
   /**
    * The error message if the request failed, or null.
    */
@@ -38,12 +59,34 @@ export interface UseRampsPaymentMethodsResult {
  * @returns Payment methods state.
  */
 export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
-  const {
-    data: paymentMethods,
-    selected: selectedPaymentMethod,
-    isLoading,
-    error,
-  } = useSelector(selectPaymentMethods);
+  const { selected: selectedPaymentMethod } = useSelector(selectPaymentMethods);
+  const { selected: selectedProvider } = useSelector(selectProviders);
+  const { selected: selectedToken } = useSelector(selectTokens);
+  const userRegion = useSelector(selectUserRegion);
+
+  const tokenSupportedByProvider = selectedProvider?.supportedCryptoCurrencies
+    ? selectedProvider.supportedCryptoCurrencies[
+        selectedToken?.assetId ?? ''
+      ] === true
+    : true;
+
+  const queryEnabled = Boolean(
+    userRegion?.regionCode &&
+      userRegion?.country?.currency &&
+      selectedToken?.assetId &&
+      selectedProvider?.id &&
+      tokenSupportedByProvider,
+  );
+
+  const paymentMethodsQuery = useQuery({
+    ...rampsQueries.paymentMethods.options({
+      regionCode: userRegion?.regionCode ?? '',
+      fiat: userRegion?.country?.currency ?? '',
+      assetId: selectedToken?.assetId ?? '',
+      providerId: selectedProvider?.id ?? '',
+    }),
+    enabled: queryEnabled,
+  });
 
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) =>
@@ -53,12 +96,35 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     [],
   );
 
+  const status = useMemo<RampsQueryStatus>(() => {
+    if (!queryEnabled) {
+      return 'idle';
+    }
+    if (paymentMethodsQuery.isPending) {
+      return 'loading';
+    }
+    if (paymentMethodsQuery.isError) {
+      return 'error';
+    }
+    return 'success';
+  }, [
+    paymentMethodsQuery.isError,
+    paymentMethodsQuery.isPending,
+    queryEnabled,
+  ]);
+
   return {
-    paymentMethods,
+    paymentMethods: paymentMethodsQuery.data ?? [],
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    isLoading,
-    error,
+    isLoading: status === 'loading',
+    isFetching: paymentMethodsQuery.isFetching,
+    status,
+    isSuccess: status === 'success',
+    error:
+      paymentMethodsQuery.error instanceof Error
+        ? paymentMethodsQuery.error.message
+        : null,
   };
 }
 

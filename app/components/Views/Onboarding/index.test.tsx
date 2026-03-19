@@ -41,6 +41,15 @@ jest.mock('react-native-elevated-view', () => ({
   default: jest.requireActual('react-native').View,
 }));
 
+const MOCK_APP_VERSION = '7.0.0';
+const MOCK_BUILD_NUMBER = '1234';
+const MOCK_ONBOARDING_VERSION = `${MOCK_APP_VERSION} (${MOCK_BUILD_NUMBER})`;
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => MOCK_APP_VERSION),
+  getBuildNumber: jest.fn(() => MOCK_BUILD_NUMBER),
+}));
+
 import React from 'react';
 import {
   InteractionManager,
@@ -65,6 +74,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
+import { AccountType } from '../../../constants/onboarding';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -634,6 +644,38 @@ describe('Onboarding', () => {
           onboardingTraceCtx: expect.any(Object),
         }),
       );
+    });
+
+    it('stores the onboarding version on the first create wallet press', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId, store } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      await waitFor(() => {
+        expect(store.getState().onboarding).toEqual(
+          expect.objectContaining({
+            accountType: AccountType.Metamask,
+            onboardingVersion: MOCK_ONBOARDING_VERSION,
+          }),
+        );
+      });
     });
 
     it('navigates to offline error sheet when there is no internet', async () => {
