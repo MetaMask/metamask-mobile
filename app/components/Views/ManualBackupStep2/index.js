@@ -3,8 +3,8 @@ import {
   Alert,
   TouchableOpacity,
   FlatList,
-  Dimensions,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -44,8 +44,6 @@ import {
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 
-const { height: windowHeight } = Dimensions.get('window');
-
 const ManualBackupStep2 = ({
   navigation,
   seedphraseBackedUp,
@@ -58,6 +56,7 @@ const ManualBackupStep2 = ({
 
   const tw = useTailwind();
   const { colors } = useTheme();
+  const { width: innerWidth, height: windowHeight } = useWindowDimensions();
 
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
@@ -300,8 +299,6 @@ const ManualBackupStep2 = ({
     [emptySlots, gridWords, wordPositionMap, usedWordIndices],
   );
 
-  const innerWidth = Dimensions.get('window').width;
-
   const renderGridItemText = useCallback(
     (item, index, isEmpty) => (
       <>
@@ -315,14 +312,14 @@ const ManualBackupStep2 = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextDefault}
-          style={tw.style('w-[95%]')}
+          twClassName="w-[95%]"
           maxFontSizeMultiplier={1}
         >
           {isEmpty ? item : '••••••'}
         </Text>
       </>
     ),
-    [tw],
+    [],
   );
 
   const renderGridItem = useCallback(
