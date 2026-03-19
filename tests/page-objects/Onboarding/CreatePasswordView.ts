@@ -1,44 +1,60 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 import enContent from '../../../locales/languages/en.json';
-
-// The DS `TextField` places `testID` on the outer Pressable wrapper
-// (accessible={false}) and forwards `accessibilityLabel` (via ...props)
-// to the inner RN TextInput.
-//
-// Platform differences for Detox element discovery:
-//   • iOS:     by.id(testID) targets the Pressable wrapper. Tapping it
-//              focuses the inner TextInput; typeText keystrokes route to
-//              the first responder.
-//   • Android: by.id(testID) targets the Pressable (ViewGroup), but
-//              typeText requires an android.widget.EditText. We use
-//              by.label(accessibilityLabel) to target the inner
-//              TextInput directly.
 
 class CreatePasswordView {
   get container(): DetoxElement {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
-  get newPasswordInput(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(
+  get newPasswordInput(): EncapsulatedElementType {
+    return encapsulated({
+      // Use getElementByLabel so Detox targets the inner TextInput (EditText on
+      // Android) rather than the outer Pressable container which carries the
+      // testID but has no input connection and therefore rejects typeText.
+      detox: () =>
+        Matchers.getElementByLabel(
           ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-        )
-      : Matchers.getElementByLabel(
-          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-        );
+        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+          ),
+      },
+    });
   }
 
-  get confirmPasswordInput(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(
+  get confirmPasswordInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel(
           ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-        )
-      : Matchers.getElementByLabel(
-          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-        );
+        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+          ),
+      },
+    });
   }
 
   get iUnderstandCheckbox(): DetoxElement {
@@ -62,31 +78,23 @@ class CreatePasswordView {
   }
 
   async resetPasswordInputs(): Promise<void> {
-    await Gestures.typeText(this.newPasswordInput, '', {
-      hideKeyboard: true,
-      clearFirst: true,
-      checkVisibility: false,
+    await UnifiedGestures.typeText(this.newPasswordInput, '', {
+      description: 'Create Password New Password Input',
     });
-    await Gestures.typeText(this.confirmPasswordInput, '', {
-      hideKeyboard: true,
-      clearFirst: true,
-      checkVisibility: false,
+    await UnifiedGestures.typeText(this.confirmPasswordInput, '', {
+      description: 'Create Password Confirm Password Input',
     });
   }
 
   async enterPassword(password: string): Promise<void> {
-    await Gestures.typeText(this.newPasswordInput, password, {
-      elemDescription: 'Create Password New Password Input',
-      hideKeyboard: true,
-      checkVisibility: false,
+    await UnifiedGestures.typeText(this.newPasswordInput, password, {
+      description: 'Create Password New Password Input',
     });
   }
 
   async reEnterPassword(password: string): Promise<void> {
-    await Gestures.typeText(this.confirmPasswordInput, password, {
-      elemDescription: 'Create Password Confirm Password Input',
-      hideKeyboard: true,
-      checkVisibility: false,
+    await UnifiedGestures.typeText(this.confirmPasswordInput, password, {
+      description: 'Create Password Confirm Password Input',
     });
   }
 
