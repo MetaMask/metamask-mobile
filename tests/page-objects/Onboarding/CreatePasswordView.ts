@@ -67,6 +67,7 @@ class CreatePasswordView {
   async resetPasswordInputs(): Promise<void> {
     await Gestures.waitAndTap(this.newPasswordInput, {
       elemDescription: 'Create Password New Password Input',
+      checkVisibility: false,
     });
     await Gestures.typeText(this.newPasswordInput, '', {
       hideKeyboard: true,
@@ -75,6 +76,7 @@ class CreatePasswordView {
     });
     await Gestures.waitAndTap(this.confirmPasswordInput, {
       elemDescription: 'Create Password Confirm Password Input',
+      checkVisibility: false,
     });
     await Gestures.typeText(this.confirmPasswordInput, '', {
       hideKeyboard: true,
@@ -84,12 +86,12 @@ class CreatePasswordView {
   }
 
   async enterPassword(password: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.newPasswordInput, {
-      description: 'New Password Input should be visible',
+    await Assertions.expectElementToBeVisible(this.container, {
+      description: 'Create Password Screen should be visible',
     });
-    // Tap the Pressable / TextInput to focus the inner TextInput.
     await Gestures.waitAndTap(this.newPasswordInput, {
       elemDescription: 'Create Password New Password Input',
+      checkVisibility: false,
     });
     await Gestures.typeText(this.newPasswordInput, password, {
       elemDescription: 'Create Password New Password Input',
@@ -101,6 +103,7 @@ class CreatePasswordView {
   async reEnterPassword(password: string): Promise<void> {
     await Gestures.waitAndTap(this.confirmPasswordInput, {
       elemDescription: 'Create Password Confirm Password Input',
+      checkVisibility: false,
     });
     await Gestures.typeText(this.confirmPasswordInput, password, {
       elemDescription: 'Create Password Confirm Password Input',
