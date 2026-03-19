@@ -97,6 +97,7 @@ import {
   usePerpsTrading,
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   usePerpsLiveAccount,
@@ -1079,6 +1080,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     () => !isLoadingPosition,
     [isLoadingPosition],
   );
+
+  // PR-27668 BUG_MARKER: detect flash condition
+  if (!isLoadingPosition && !existingPosition) {
+    DevLogger.log('[PR-27668] BUG_MARKER: buttons visible but no existingPosition — Long/Short flash', { isLoadingPosition, existingPosition: existingPosition ? 'exists' : 'null', asset: market?.symbol });
+  }
 
   // Define navigation items for the card
   const navigationItems: NavigationItem[] = useMemo(
