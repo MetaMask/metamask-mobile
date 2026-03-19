@@ -197,6 +197,8 @@ jobs:
 
       - name: Upload to TestFlight
         run: |
+          # Group arg is required as positional placeholder for the 5th arg (distribute_external=false).
+          # With distribute_external=false the build is uploaded but NOT distributed to external testers.
           bash scripts/upload-to-testflight.sh \
             "github_actions_main-rc" \
             "${{ github.ref_name }}" \
