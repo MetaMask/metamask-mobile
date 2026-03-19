@@ -52,10 +52,6 @@ export const createStyles = (theme: Theme, colors: Colors) =>
       paddingHorizontal: 16,
       paddingVertical: 24,
     },
-    normalText: {
-      color: theme.colors.text.default,
-      ...fontStyles.normal,
-    },
     seedPhrase: {
       backgroundColor: theme.colors.background.default,
       marginTop: 10,
@@ -82,10 +78,6 @@ export const createStyles = (theme: Theme, colors: Colors) =>
       alignSelf: 'center',
       width: '100%',
       marginVertical: 5,
-    },
-    rowWrapper: {
-      padding: 20,
-      paddingBottom: 0,
     },
     tabContentContainer: {
       minHeight: Platform.OS === 'android' ? 320 : 0,

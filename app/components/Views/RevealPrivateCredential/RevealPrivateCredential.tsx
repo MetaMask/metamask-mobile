@@ -311,7 +311,7 @@ const RevealPrivateCredential = ({
       extraScrollHeight={40}
       showsVerticalScrollIndicator={false}
     >
-      <Box>
+      <>
         <Box twClassName="p-5 pb-0">
           <>
             {unlocked ? (
@@ -349,7 +349,7 @@ const RevealPrivateCredential = ({
             />
           </Box>
         )}
-      </Box>
+      </>
     </ActionView>
   );
 
