@@ -1,7 +1,7 @@
 import ReactNative from 'react-native';
 import StorageWrapper from '../app/store/storage-wrapper';
 import I18n from 'react-native-i18n';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { EventEmitter } from 'events';
 
 import { LANGUAGE } from '../app/constants/storage';

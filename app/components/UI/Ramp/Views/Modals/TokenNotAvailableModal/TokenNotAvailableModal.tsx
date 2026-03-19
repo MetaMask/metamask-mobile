@@ -1,19 +1,18 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -134,19 +133,16 @@ function TokenNotAvailableModal() {
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
     >
-      <BottomSheetHeader
+      <HeaderCompactStandard
+        title={strings('fiat_on_ramp.token_unavailable_modal.title')}
         onClose={handleClose}
         closeButtonProps={{
           testID: TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CLOSE_BUTTON,
         }}
-      >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp.token_unavailable_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+      />
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('fiat_on_ramp.token_unavailable_modal.description', {
             token: tokenName,
             provider: providerName,
@@ -157,25 +153,25 @@ function TokenNotAvailableModal() {
       <View style={styles.footer}>
         <View style={styles.footerButton}>
           <Button
-            size={ButtonSize.Lg}
+            size={ButtonBaseSize.Lg}
             onPress={handleChangeToken}
-            label={strings('fiat_on_ramp.token_unavailable_modal.change_token')}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Secondary}
+            isFullWidth
             testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_TOKEN_BUTTON}
-          />
+          >
+            {strings('fiat_on_ramp.token_unavailable_modal.change_token')}
+          </Button>
         </View>
         <View style={styles.footerButton}>
           <Button
-            size={ButtonSize.Lg}
+            size={ButtonBaseSize.Lg}
             onPress={handleChangeProvider}
-            label={strings(
-              'fiat_on_ramp.token_unavailable_modal.change_provider',
-            )}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_PROVIDER_BUTTON}
-          />
+          >
+            {strings('fiat_on_ramp.token_unavailable_modal.change_provider')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

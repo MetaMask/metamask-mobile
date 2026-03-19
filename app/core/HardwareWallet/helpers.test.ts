@@ -1,6 +1,7 @@
 import {
   getHardwareWalletTypeName,
   getHardwareWalletTypeForAddress,
+  getConnectionTipsForWalletType,
 } from './helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
@@ -108,6 +109,30 @@ describe('HardwareWallet helpers', () => {
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBe(HardwareWalletType.Ledger);
+    });
+  });
+
+  describe('getConnectionTipsForWalletType', () => {
+    it('returns Ledger-specific tips for Ledger wallet type', () => {
+      const tips = getConnectionTipsForWalletType(HardwareWalletType.Ledger);
+
+      expect(tips).toEqual([
+        'hardware_wallet.connecting.tip_unlock',
+        'hardware_wallet.connecting.tip_open_app',
+        'hardware_wallet.connecting.tip_enable_bluetooth',
+      ]);
+    });
+
+    it('returns empty array for QR wallet type', () => {
+      const tips = getConnectionTipsForWalletType(HardwareWalletType.Qr);
+
+      expect(tips).toEqual([]);
+    });
+
+    it('returns empty array for null wallet type', () => {
+      const tips = getConnectionTipsForWalletType(null);
+
+      expect(tips).toEqual([]);
     });
   });
 });
