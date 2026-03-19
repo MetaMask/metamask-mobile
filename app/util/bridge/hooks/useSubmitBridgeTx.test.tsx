@@ -97,18 +97,11 @@ jest.mock('../../../selectors/bridge', () => ({
   ),
 }));
 
-const mockIsHardwareAccount = jest.fn();
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  isHardwareAccount: (...args: unknown[]) => mockIsHardwareAccount(...args),
-}));
-
 const mockStore = configureMockStore();
 
 describe('useSubmitBridgeTx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsHardwareAccount.mockReturnValue(false);
   });
 
   const createWrapper = (mockState = {}) => {
@@ -265,45 +258,6 @@ describe('useSubmitBridgeTx', () => {
         quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
       }),
     ).rejects.toThrow('Approval failed');
-  });
-
-  it('strips 7702/gasless from quote for hardware wallet so controller never executes sponsorship', async () => {
-    mockIsHardwareAccount.mockReturnValue(true);
-
-    const { result } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    const mockQuoteResponse = {
-      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
-      ...DummyQuoteMetadata,
-      quote: {
-        ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0].quote,
-        gasIncluded7702: true,
-        gasIncluded: true,
-        gasSponsored: true,
-      },
-    };
-
-    mockSubmitTx.mockResolvedValueOnce({
-      chainId: '0x1',
-      id: '1',
-      networkClientId: '1',
-      status: 'submitted',
-      time: Date.now(),
-      txParams: {
-        from: '0x1234567890123456789012345678901234567890',
-      },
-    } as TransactionMeta);
-
-    await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
-    });
-
-    const [, payload] = mockSubmitTx.mock.calls[0];
-    expect(payload.quote.gasIncluded7702).toBe(false);
-    expect(payload.quote.gasIncluded).toBe(false);
-    expect(payload.quote.gasSponsored).toBe(false);
   });
 
   it('should propagate errors from bridge transaction', async () => {
