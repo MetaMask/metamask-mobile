@@ -423,6 +423,7 @@ export class Engine {
     const rampsController = controllersByName.RampsController;
     const aiDigestController = controllersByName.AiDigestController;
     const cardController = controllersByName.CardController;
+    const complianceService = controllersByName.ComplianceService;
     const complianceController = controllersByName.ComplianceController;
 
     // Backwards compatibility for existing references
@@ -584,6 +585,7 @@ export class Engine {
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       CardController: cardController,
+      ComplianceService: complianceService,
       ComplianceController: complianceController,
     };
 

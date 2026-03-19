@@ -36,7 +36,7 @@ function normalizeAddresses(input: AddressInput): string[] {
  * ```
  */
 export function useWalletCompliance(address: AddressInput) {
-  const addresses = normalizeAddresses(address);
+  const addresses = useMemo(() => normalizeAddresses(address), [address]);
   const isSingle = addresses.length === 1;
 
   const singleBlocked = useSelector(selectIsWalletBlocked(addresses[0] ?? ''));
