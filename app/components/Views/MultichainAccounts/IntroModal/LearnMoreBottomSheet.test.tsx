@@ -14,11 +14,11 @@ const mockDispatch = jest.fn();
 
 // Mock the BottomSheet component
 const mockOnCloseBottomSheet = jest.fn();
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-commonjs, @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs, @typescript-eslint/no-var-requires
     const ReactMock = require('react');
     return {
       __esModule: true,

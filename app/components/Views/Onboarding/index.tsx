@@ -443,83 +443,85 @@ const Onboarding = () => {
         socialLoginTraceCtx.current = undefined;
       }
 
-      if (result.type === 'success') {
-        const accountType = getSocialAccountType(provider, result.existingUser);
-        dispatch(setAccountType({ accountType, onboardingVersion }));
+      // Error case (result.type !== 'success') is not handled here because
+      // OAuthService.handleOAuthLogin() throws on failure, and the error is
+      // caught by the try/catch in onPressContinueWithSocialLogin, which calls
+      // handleLoginError → handleOAuthLoginError → captureException (Sentry).
+      if (result.type !== 'success') {
+        return;
+      }
 
-        track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
-          account_type: accountType,
-        });
-        if (createWallet) {
-          if (result.existingUser) {
-            navigation.navigate('AccountAlreadyExists', {
-              accountName: result.accountName,
-              oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
-              provider,
-            });
-          } else {
-            trace({
-              name: TraceName.OnboardingNewSocialCreateWallet,
-              op: TraceOperation.OnboardingUserJourney,
-              tags: getTraceTags(store.getState()),
-              parentContext: onboardingTraceCtx.current,
-            });
+      const accountType = getSocialAccountType(provider, result.existingUser);
+      dispatch(setAccountType({ accountType, onboardingVersion }));
 
-            if (isIOS) {
-              // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
-              navigation.navigate(
-                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-                {
-                  accountName: result.accountName,
-                  oauthLoginSuccess: true,
-                  onboardingTraceCtx: onboardingTraceCtx.current,
-                  provider,
-                },
-              );
-            } else {
-              // Direct navigation to ChoosePassword for Android
-              navigation.navigate('ChoosePassword', {
-                [PREVIOUS_SCREEN]: ONBOARDING,
+      track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
+        account_type: accountType,
+      });
+      if (createWallet) {
+        if (result.existingUser) {
+          navigation.navigate('AccountAlreadyExists', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+            onboardingTraceCtx: onboardingTraceCtx.current,
+            provider,
+          });
+        } else {
+          trace({
+            name: TraceName.OnboardingNewSocialCreateWallet,
+            op: TraceOperation.OnboardingUserJourney,
+            tags: getTraceTags(store.getState()),
+            parentContext: onboardingTraceCtx.current,
+          });
+
+          if (isIOS) {
+            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
+            navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+              {
+                accountName: result.accountName,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
-              });
-            }
-          }
-        } else if (!createWallet) {
-          if (result.existingUser) {
-            trace({
-              name: TraceName.OnboardingExistingSocialLogin,
-              op: TraceOperation.OnboardingUserJourney,
-              tags: getTraceTags(store.getState()),
-              parentContext: onboardingTraceCtx.current,
-            });
-            isIOS
-              ? navigation.navigate(
-                  Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-                  {
-                    [PREVIOUS_SCREEN]: ONBOARDING,
-                    oauthLoginSuccess: true,
-                    onboardingTraceCtx: onboardingTraceCtx.current,
-                  },
-                )
-              : navigation.navigate('Rehydrate', {
-                  [PREVIOUS_SCREEN]: ONBOARDING,
-                  oauthLoginSuccess: true,
-                  onboardingTraceCtx: onboardingTraceCtx.current,
-                });
+              },
+            );
           } else {
-            navigation.navigate('AccountNotFound', {
-              accountName: result.accountName,
+            // Direct navigation to ChoosePassword for Android
+            navigation.navigate('ChoosePassword', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
               onboardingTraceCtx: onboardingTraceCtx.current,
               provider,
             });
           }
         }
+      } else if (result.existingUser) {
+        trace({
+          name: TraceName.OnboardingExistingSocialLogin,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: getTraceTags(store.getState()),
+          parentContext: onboardingTraceCtx.current,
+        });
+        isIOS
+          ? navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+              {
+                [PREVIOUS_SCREEN]: ONBOARDING,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: onboardingTraceCtx.current,
+              },
+            )
+          : navigation.navigate('Rehydrate', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+              onboardingTraceCtx: onboardingTraceCtx.current,
+            });
       } else {
-        // handle error: show error message in the UI
+        navigation.navigate('AccountNotFound', {
+          accountName: result.accountName,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: onboardingTraceCtx.current,
+          provider,
+        });
       }
     },
     [navigation, track, dispatch, onboardingVersion],
