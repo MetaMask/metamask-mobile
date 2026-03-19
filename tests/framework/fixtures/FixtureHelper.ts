@@ -46,6 +46,10 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import {
+  runAnalyticsExpectations,
+  shouldRunAnalyticsExpectations,
+} from '../../helpers/analytics/runAnalyticsExpectations';
 import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import type { Fixture } from './types';
@@ -512,6 +516,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    analyticsExpectations,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -672,7 +677,22 @@ export async function withFixtures(
       }
     }
 
-    // Enter drain mode AFTER endTestfn so analytics events are still captured,
+    if (
+      mockServerInstance &&
+      shouldRunAnalyticsExpectations(analyticsExpectations)
+    ) {
+      try {
+        await runAnalyticsExpectations(
+          mockServerInstance.server,
+          analyticsExpectations,
+        );
+      } catch (analyticsError) {
+        logger.error('Error in analyticsExpectations:', analyticsError);
+        cleanupErrors.push(analyticsError as Error);
+      }
+    }
+
+    // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
     // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
     if (mockServerInstance) {
       mockServerInstance.startDraining();
