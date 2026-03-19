@@ -4,7 +4,9 @@ import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
 import AppConstants from '../../core/AppConstants';
 
-export const SEARCH_ENGINE_URLS: Record<string, string> = {
+type SearchEngine = 'Google' | 'DuckDuckGo' | 'Brave';
+
+export const SEARCH_ENGINE_URLS: Record<SearchEngine, string> = {
   Google: 'https://www.google.com/search?q=',
   DuckDuckGo: 'https://duckduckgo.com/?q=',
   Brave: 'https://search.brave.com/search?q=',
