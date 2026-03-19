@@ -13,11 +13,21 @@ import Engine from '../../../../../core/Engine';
  * GasFeeController that it is done requiring new gas estimates. Also checks
  * the returned gas estimate for validity on the current network.
  *
+ * Normalizes falsy networkClientId (e.g. '' from networkClientId ?? '') to
+ * undefined so NetworkController.getNetworkClientById is never called with
+ * a falsy value (which throws "No network client ID was provided").
+ *
  * @param _networkClientId - The optional network client ID to get gas fee estimates for. Defaults to the currently selected network.
  * @returns {GasEstimates} GasEstimates object
  */
-export function useGasFeeEstimates(networkClientId: string) {
+export function useGasFeeEstimates(networkClientId: string | undefined) {
   const [chainId, setChainId] = useState('');
+
+  // Avoid passing '' or other falsy values to NetworkController/GasFeeController;
+  // getNetworkClientById(undefined) is never called, getNetworkClientById('') throws.
+  const effectiveNetworkClientId = networkClientId?.trim()
+    ? networkClientId
+    : undefined;
 
   const gasFeeEstimates = useSelector(
     (state: RootState) => selectGasFeeEstimatesByChainId(state, chainId),
@@ -26,10 +36,13 @@ export function useGasFeeEstimates(networkClientId: string) {
   const { NetworkController } = Engine.context;
 
   useEffect(() => {
+    if (!effectiveNetworkClientId) {
+      return;
+    }
     let isMounted = true;
     const networkConfig =
       NetworkController.getNetworkConfigurationByNetworkClientId(
-        networkClientId,
+        effectiveNetworkClientId,
       );
 
     if (networkConfig && isMounted) {
@@ -39,7 +52,7 @@ export function useGasFeeEstimates(networkClientId: string) {
     return () => {
       isMounted = false;
     };
-  }, [networkClientId, NetworkController]);
+  }, [effectiveNetworkClientId, NetworkController]);
 
   usePolling({
     startPolling: Engine.context.GasFeeController.startPolling.bind(
@@ -49,7 +62,11 @@ export function useGasFeeEstimates(networkClientId: string) {
       Engine.context.GasFeeController.stopPollingByPollingToken.bind(
         Engine.context.GasFeeController,
       ),
-    input: [{ networkClientId }],
+    // GasFeeController.startPolling requires networkClientId: string; never pass
+    // undefined/'' (see hook JSDoc). When missing, skip polling until we have an id.
+    input: effectiveNetworkClientId
+      ? [{ networkClientId: effectiveNetworkClientId }]
+      : [],
   });
 
   return {

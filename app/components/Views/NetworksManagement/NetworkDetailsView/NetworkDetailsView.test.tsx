@@ -145,6 +145,7 @@ const createMockFormHook = (overrides: Record<string, unknown> = {}) => ({
   onSymbolFocused: jest.fn(),
   onSymbolBlur: jest.fn(),
   onRpcUrlFocused: jest.fn(),
+  onRpcUrlBlur: jest.fn(),
   onChainIdFocused: jest.fn(),
   onChainIdBlur: jest.fn(),
   jumpToRpcURL: jest.fn(),
@@ -174,6 +175,7 @@ const createMockValidation = () => ({
   validateName: jest.fn(),
   validateRpcAndChainId: jest.fn(),
   disabledByChainId: jest.fn(() => false),
+  disabledByName: jest.fn(() => false),
   disabledBySymbol: jest.fn(() => false),
   checkIfChainIdExists: jest.fn(() => false),
   checkIfNetworkExists: jest.fn().mockResolvedValue([]),
@@ -452,6 +454,20 @@ describe('NetworkDetailsView', () => {
     expect(saveButton.props.disabled).toBe(true);
   });
 
+  it('disables save button when validation disables network name', () => {
+    mockValidation.mockReturnValue({
+      ...createMockValidation(),
+      disabledByName: jest.fn(() => true),
+    });
+
+    const { getByTestId } = render(<NetworkDetailsView />);
+
+    const saveButton = getByTestId(
+      NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+    );
+    expect(saveButton.props.disabled).toBe(true);
+  });
+
   it('shows warning modal when showWarningModal is true', () => {
     mockFormHook.mockReturnValue({
       ...createMockFormHook(),
@@ -689,6 +705,19 @@ describe('NetworkDetailsView', () => {
         'blur',
       );
       expect(val.validateName).toHaveBeenCalled();
+    });
+
+    it('triggers RPC focus cleanup on RPC URL blur', () => {
+      const formReturn = createMockFormHook();
+      mockFormHook.mockReturnValue(formReturn);
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      fireEvent(
+        getByTestId(NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT),
+        'blur',
+      );
+      expect(formReturn.onRpcUrlBlur).toHaveBeenCalled();
     });
 
     it('triggers handleValidateSymbol on symbol field blur', () => {

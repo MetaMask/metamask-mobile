@@ -40,7 +40,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
@@ -50,7 +50,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import { TraceName } from '../../../../../util/trace';
+import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -122,6 +122,11 @@ import {
   selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
 } from '../../selectors/featureFlags';
+import {
+  MarketInsightsEntryCard,
+  useMarketInsights,
+} from '../../../MarketInsights';
+import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import {
   createSelectIsWatchlistMarket,
   selectPerpsEligibility,
@@ -221,6 +226,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Feature flag for Order Book visibility
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
+
+  // Feature flag for Market Insights in Perps
+  const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
+  const { report: perpsInsightsReport, timeAgo: perpsInsightsTimeAgo } =
+    useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
 
   // Check if current market is in watchlist
   const selectIsWatchlist = useMemo(
@@ -396,7 +406,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [candleData, selectedCandlePeriod, visibleCandleCount]);
 
   // Check if user has an existing position for this market
-  // Also provides positionOpenedTimestamp for stop loss prompt timing
   const {
     isLoading: isLoadingPosition,
     existingPosition,
@@ -548,6 +557,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.SOURCE]:
         source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
+      [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
       // A/B Test context (TAT-1937) - for baseline exposure tracking
       ...(isButtonColorTestEnabled && {
         [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
@@ -611,7 +621,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigateBack();
     } else {
       // Fallback to markets list if no previous screen
-      navigateToHome(source);
+      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
     }
   };
 
@@ -691,7 +701,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigateToOrder({
         direction,
         asset: market.symbol,
-        source: PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       });
     },
     [
@@ -856,7 +866,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    navigateToClosePosition(existingPosition);
+    navigateToClosePosition(
+      existingPosition,
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
   }, [existingPosition, navigateToClosePosition, isEligible, track]);
 
   // Modify position handler - opens the modify action sheet
@@ -1004,6 +1017,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Notify hook that dismiss animation is complete
     handleBannerDismissComplete();
   }, [handleBannerDismissComplete]);
+
+  // Handler for market insights card tap - navigates to full market insights view
+  const handleMarketInsightsPress = useCallback(() => {
+    if (!market?.symbol) return;
+    trace({
+      name: TraceName.MarketInsightsViewLoad,
+      op: TraceOperation.MarketInsightsLoad,
+    });
+    navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
+      assetSymbol: market.symbol,
+      assetIdentifier: market.symbol,
+      isPerps: true,
+    });
+  }, [market?.symbol, navigation]);
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
@@ -1299,6 +1326,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
+          {/* Market Insights Section - shown when perps insights flag is enabled and a report is available */}
+          {isPerpsInsightsEnabled && perpsInsightsReport && market?.symbol ? (
+            <MarketInsightsEntryCard
+              report={perpsInsightsReport}
+              timeAgo={perpsInsightsTimeAgo}
+              onPress={handleMarketInsightsPress}
+            />
+          ) : null}
+
           {/* Statistics Section - Always shown */}
           <View style={styles.section}>
             <PerpsMarketStatisticsCard
@@ -1494,6 +1530,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           onClose={handleTooltipClose}
           contentKey={selectedTooltip}
           testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+          buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS}
         />
       )}
 

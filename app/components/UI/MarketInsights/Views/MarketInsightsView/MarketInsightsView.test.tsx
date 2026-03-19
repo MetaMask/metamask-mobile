@@ -27,9 +27,18 @@ const mockUseSwapBridgeNavigation = jest.fn((_options: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
 
-let mockRouteParams = {
+let mockRouteParams: {
+  assetSymbol: string;
+  assetIdentifier: string;
+  tokenImageUrl?: string;
+  tokenAddress?: string;
+  tokenDecimals?: number;
+  tokenName?: string;
+  tokenChainId?: string;
+  isPerps?: boolean;
+} = {
   assetSymbol: 'ETH',
-  caip19Id: 'eip155:1/erc20:0x123',
+  assetIdentifier: 'eip155:1/erc20:0x123',
   tokenImageUrl: 'https://example.com/eth.png',
   tokenAddress: '0x123',
   tokenDecimals: 18,
@@ -57,7 +66,8 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('../../hooks/useMarketInsights', () => ({
-  useMarketInsights: (caip19Id: string) => mockUseMarketInsights(caip19Id),
+  useMarketInsights: (assetIdentifier: string) =>
+    mockUseMarketInsights(assetIdentifier),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -218,7 +228,7 @@ describe('MarketInsightsView', () => {
     jest.clearAllMocks();
     mockRouteParams = {
       assetSymbol: 'ETH',
-      caip19Id: 'eip155:1/erc20:0x123',
+      assetIdentifier: 'eip155:1/erc20:0x123',
       tokenImageUrl: 'https://example.com/eth.png',
       tokenAddress: '0x123',
       tokenDecimals: 18,
@@ -621,7 +631,7 @@ describe('MarketInsightsView', () => {
     mockRouteParams = {
       ...mockRouteParams,
       assetSymbol: 'USDC',
-      caip19Id: 'eip155:1/erc20:0x456',
+      assetIdentifier: 'eip155:1/erc20:0x456',
       tokenAddress: '0x456',
       tokenName: 'USD Coin',
     };
@@ -633,6 +643,225 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x456',
+        }),
+      }),
+    );
+  });
+
+  it('shows Long and Short buttons (not Trade) in perps context', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest rises',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MarketInsightsView />,
+    );
+
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON)).toBeNull();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.BUY_BUTTON)).toBeNull();
+  });
+
+  it('navigates to PerpsOrderRedirect with long direction when Long button is pressed', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest rises',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.ORDER_REDIRECT,
+        params: { direction: 'long', asset: 'ETH' },
+      }),
+    );
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+  });
+
+  it('navigates to PerpsOrderRedirect with short direction when Short button is pressed', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest rises',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.ORDER_REDIRECT,
+        params: { direction: 'short', asset: 'ETH' },
+      }),
+    );
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+  });
+
+  it('navigates to swaps when swap button is pressed in token context', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MarketInsightsView />,
+    );
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON)).toBeNull();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON)).toBeNull();
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON));
+
+    expect(mockGoToSwaps).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.anything(),
+    );
+  });
+
+  it('sends perps_market analytics property (not caip19) in perps context', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps gaining traction',
+        summary: 'Open interest rises as funding rates normalise',
+        trends: [
+          {
+            title: 'Funding rates',
+            description: 'Funding rates returning to neutral',
+            articles: [],
+            tweets: [],
+          },
+        ],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '2m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          perps_market: 'ETH',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          caip19: expect.anything(),
+        }),
+      }),
+    );
+
+    // Long button carries perps_market and interaction_type 'long'
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          perps_market: 'ETH',
+          interaction_type: 'long',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: expect.anything(),
+          interaction_type: 'long',
+        }),
+      }),
+    );
+
+    // Short button carries perps_market and interaction_type 'short'
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          perps_market: 'ETH',
+          interaction_type: 'short',
+        }),
+      }),
+    );
+
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          perps_market: 'ETH',
+          interaction_type: 'thumbs_up',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: expect.anything(),
+          interaction_type: 'thumbs_up',
         }),
       }),
     );
