@@ -4251,7 +4251,7 @@ describe('PredictController', () => {
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.payWithAnyTokenConfirmation).not.toHaveBeenCalled();
+        expect(controller.initiPayWithAnyToken).not.toHaveBeenCalled();
       });
     });
   });
@@ -4483,7 +4483,7 @@ describe('PredictController', () => {
   describe('payWithAnyTokenConfirmation', () => {
     it('throws error when there is no active order', async () => {
       await withController(async ({ controller }) => {
-        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
+        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
           'Active order is required for pay-with-any-token confirmation',
         );
 
@@ -4500,7 +4500,7 @@ describe('PredictController', () => {
           batchId: 'batch-in-progress',
         });
 
-        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
+        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
           'Pay-with-any-token confirmation is already in progress',
         );
 
@@ -4541,7 +4541,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PREVIEW,
         });
 
-        const result = await controller.payWithAnyTokenConfirmation();
+        const result = await controller.initiPayWithAnyToken();
 
         expect(result).toEqual({
           success: true,
@@ -4587,7 +4587,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PREVIEW,
         });
 
-        const result = await controller.payWithAnyTokenConfirmation();
+        const result = await controller.initiPayWithAnyToken();
 
         expect(result).toEqual({
           success: true,

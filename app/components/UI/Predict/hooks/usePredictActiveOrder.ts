@@ -34,30 +34,14 @@ export const usePredictActiveOrder = () => {
     PredictController.clearActiveOrder();
   }, [PredictController]);
 
-  const setOrderAmount = useCallback(
-    (amount: number) => {
-      PredictController.setOrderAmount(amount);
-    },
-    [PredictController],
-  );
-
   const clearOrderError = useCallback(() => {
     PredictController.clearOrderError();
   }, [PredictController]);
-
-  const setOrderInputFocused = useCallback(
-    (isInputFocused: boolean) => {
-      PredictController.setOrderInputFocused(isInputFocused);
-    },
-    [PredictController],
-  );
 
   return {
     activeOrder,
     clearActiveOrder,
     clearOrderError,
     initializeActiveOrder,
-    setOrderAmount,
-    setOrderInputFocused,
   };
 };

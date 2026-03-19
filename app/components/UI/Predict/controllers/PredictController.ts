@@ -152,9 +152,7 @@ export type PredictControllerState = {
   withdrawTransaction: PredictWithdraw | null;
 
   activeOrder?: {
-    amount?: number;
     batchId?: string;
-    isInputFocused?: boolean;
     state: ActiveOrderState;
     error?: string;
   } | null;
@@ -1457,6 +1455,13 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder = {
+          state: ActiveOrderState.PLACING_ORDER,
+        };
+      }
+    });
     const startTime = performance.now();
     const { analyticsProperties, preview } = params;
 
@@ -1942,20 +1947,11 @@ export class PredictController extends BaseController<
   ): void {
     this.setActiveOrder({
       state: ActiveOrderState.PREVIEW,
-      isInputFocused: true,
     });
     this.setSelectedPaymentToken(null);
     this.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
-    });
-  }
-
-  public setOrderAmount(amount: number): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.amount = amount;
-      }
     });
   }
 
@@ -1967,21 +1963,16 @@ export class PredictController extends BaseController<
     });
   }
 
-  public onConfirmOrder({ isDeposit }: { isDeposit: boolean }): void {
+  public onConfirmOrder(): void {
     this.update((state) => {
       if (state.activeOrder) {
         delete state.activeOrder.error;
-        state.activeOrder.state = isDeposit
-          ? ActiveOrderState.DEPOSIT
-          : ActiveOrderState.PLACE_ORDER;
+        state.activeOrder.state = ActiveOrderState.PLACE_ORDER;
       }
     });
   }
 
-  public onDepositOrder(preview?: OrderPreview): void {
-    if (preview) {
-      this.depositPreview = preview;
-    }
+  public onDepositOrder(): void {
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.DEPOSITING;
@@ -2007,11 +1998,12 @@ export class PredictController extends BaseController<
   public onDepositOrderFailed(errorMessage?: string): void {
     this.update((state) => {
       if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.REDIRECTING;
+        state.activeOrder.state = ActiveOrderState.PREVIEW;
         state.activeOrder.error = errorMessage;
         delete state.activeOrder.batchId;
       }
     });
+    this.initiPayWithAnyToken();
   }
 
   public onOrderCancelled(): void {
@@ -2099,31 +2091,6 @@ export class PredictController extends BaseController<
     }
   }
 
-  public startPayWithAnyTokenConfirmation(): void {
-    const activeOrder = this.state.activeOrder;
-    if (!activeOrder || activeOrder.state !== ActiveOrderState.REDIRECTING) {
-      return;
-    }
-
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN;
-      }
-    });
-
-    this.payWithAnyTokenConfirmation();
-  }
-
-  public onPayWithAnyTokenConfirmationReady(): void {
-    this.update((state) => {
-      if (
-        state.activeOrder?.state === ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN
-      ) {
-        state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
-      }
-    });
-  }
-
   public setActiveOrder(order: PredictControllerState['activeOrder']): void {
     this.update((state) => {
       state.activeOrder = order;
@@ -2133,14 +2100,6 @@ export class PredictController extends BaseController<
   public clearActiveOrder(): void {
     this.update((state) => {
       state.activeOrder = null;
-    });
-  }
-
-  public setOrderInputFocused(isInputFocused: boolean): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.isInputFocused = isInputFocused;
-      }
     });
   }
 
@@ -2283,9 +2242,7 @@ export class PredictController extends BaseController<
    * `PredictPayWithAnyTokenInfo`.
    *
    */
-  public async payWithAnyTokenConfirmation(): Promise<
-    Result<{ batchId: string }>
-  > {
+  public async initiPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
 
     try {

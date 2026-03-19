@@ -46,7 +46,7 @@ export function usePredictTrading() {
 
   const payWithAnyTokenConfirmation = useCallback(async () => {
     const controller = Engine.context.PredictController;
-    return controller.payWithAnyTokenConfirmation();
+    return controller.initiPayWithAnyToken();
   }, []);
 
   return {

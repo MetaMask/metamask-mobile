@@ -33,7 +33,6 @@ import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
 import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBalance';
-import usePredictBuyBackSwipe from './hooks/usePredictBuyBackSwipe';
 import { usePredictBuyConditions } from './hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from './hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from './hooks/usePredictBuyInputState';
@@ -150,7 +149,7 @@ const PredictBuyWithAnyToken = () => {
     isConfirming,
   });
 
-  const { handleBack, handleBackSwipe, handleConfirm } = usePredictBuyActions({
+  const { handleConfirm } = usePredictBuyActions({
     currentValue,
     analyticsProperties,
     preview,
@@ -158,8 +157,6 @@ const PredictBuyWithAnyToken = () => {
     depositAmount: total - depositFee,
     setIsConfirming,
   });
-
-  usePredictBuyBackSwipe({ onBack: handleBackSwipe });
 
   useEffect(() => {
     if (!isPreviewCalculating) {
@@ -198,7 +195,6 @@ const PredictBuyWithAnyToken = () => {
         outcome={outcome}
         outcomeToken={outcomeToken}
         preview={preview}
-        onBack={handleBack}
       />
       <ScrollView
         style={tw.style('flex-col')}

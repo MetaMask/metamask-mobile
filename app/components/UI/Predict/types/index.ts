@@ -11,13 +11,12 @@ export type PredictOrderType = 'FOK' | 'FAK';
 
 export enum ActiveOrderState {
   PREVIEW = 'preview',
+  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
   DEPOSIT = 'deposit',
   DEPOSITING = 'depositing',
+  DEPOSIT_FAILED = 'deposit_failed',
   PLACE_ORDER = 'place_order',
   PLACING_ORDER = 'placing_order',
-  REDIRECTING = 'redirecting',
-  CALLING_PAY_WITH_ANY_TOKEN = 'calling_pay_with_any_token',
-  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
   SUCCESS = 'success',
 }
 

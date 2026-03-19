@@ -1,5 +1,5 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import {
   ActiveOrderState,
@@ -10,6 +10,7 @@ import useApprovalRequest from '../../../../../Views/confirmations/hooks/useAppr
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;
@@ -32,34 +33,19 @@ export const usePredictBuyActions = ({
   const { activeOrder } = usePredictActiveOrder();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
+  const { isPredictBalanceSelected } = usePredictPaymentToken();
+
+  const [previewFromDeposit, setPreviewFromDeposit] =
+    useState<OrderPreview | null>(null);
 
   const onApprovalRejectRef = useRef(onApprovalReject);
   onApprovalRejectRef.current = onApprovalReject;
 
   useEffect(() => {
-    PredictController.payWithAnyTokenConfirmation().catch(() => {
-      // Transaction preparation failed — fall back to on-demand creation
-    });
-
+    PredictController.initiPayWithAnyToken();
     return () => {
       onApprovalRejectRef.current();
     };
-  }, [PredictController]);
-
-  const handleConfirm = useCallback(async () => {
-    setIsConfirming(true);
-    PredictController.onConfirmOrder({
-      isDeposit: currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN,
-    });
-  }, [setIsConfirming, PredictController, currentState]);
-
-  const handleBack = useCallback(() => {
-    PredictController.onOrderCancelled();
-    navigation.dispatch(StackActions.pop());
-  }, [PredictController, navigation]);
-
-  const handleBackSwipe = useCallback(() => {
-    PredictController.onOrderCancelled();
   }, [PredictController]);
 
   const handlePlaceOrder = useCallback(async () => {
@@ -70,10 +56,10 @@ export const usePredictBuyActions = ({
       return;
     }
 
-    const previewToUse =
-      PredictController.getAndClearDepositPreview() ?? preview;
-
-    PredictController.onPlaceOrder();
+    const previewToUse = previewFromDeposit
+      ? { ...previewFromDeposit }
+      : preview;
+    setPreviewFromDeposit(null);
 
     const orderResult = await placeOrder({
       analyticsProperties,
@@ -81,15 +67,50 @@ export const usePredictBuyActions = ({
     });
 
     if (orderResult.status !== 'success') {
+      setIsConfirming(false);
       PredictController.onOrderError();
       return;
     }
 
     PredictController.onOrderSuccess();
-  }, [preview, PredictController, placeOrder, analyticsProperties]);
+  }, [
+    preview,
+    previewFromDeposit,
+    placeOrder,
+    analyticsProperties,
+    PredictController,
+    setIsConfirming,
+  ]);
 
   const handlePlaceOrderRef = useRef(handlePlaceOrder);
   handlePlaceOrderRef.current = handlePlaceOrder;
+
+  const handleConfirm = useCallback(async () => {
+    setIsConfirming(true);
+    if (isPredictBalanceSelected) {
+      PredictController.onConfirmOrder();
+      return;
+    }
+    if (!preview) {
+      PredictController.onOrderError({
+        errorMessage: String(PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE),
+      });
+      return;
+    }
+    PredictController.onDepositOrder();
+    setPreviewFromDeposit(preview);
+    onApprovalConfirm({
+      deleteAfterResult: true,
+      waitForResult: true,
+      handleErrors: false,
+    });
+  }, [
+    setIsConfirming,
+    isPredictBalanceSelected,
+    preview,
+    onApprovalConfirm,
+    PredictController,
+  ]);
 
   useEffect(() => {
     if (
@@ -110,40 +131,19 @@ export const usePredictBuyActions = ({
   }, [currentState, setIsConfirming]);
 
   useEffect(() => {
+    if (currentState === ActiveOrderState.PLACE_ORDER) {
+      handlePlaceOrderRef.current();
+    }
+  }, [currentState]);
+
+  useEffect(() => {
     if (currentState === ActiveOrderState.SUCCESS) {
       PredictController.onPlaceOrderEnd();
       navigation.dispatch(StackActions.pop());
     }
   }, [PredictController, currentState, navigation, setIsConfirming]);
 
-  useEffect(() => {
-    if (currentState === ActiveOrderState.DEPOSIT) {
-      if (!preview) {
-        PredictController.onOrderError({
-          errorMessage: String(PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE),
-        });
-        return;
-      }
-      PredictController.onDepositOrder(preview);
-      onApprovalConfirm({
-        deleteAfterResult: true,
-        waitForResult: true,
-        handleErrors: false,
-      });
-    }
-  }, [PredictController, currentState, onApprovalConfirm, preview]);
-
-  useEffect(() => {
-    if (currentState === ActiveOrderState.PLACE_ORDER) {
-      handlePlaceOrderRef.current().catch(() => {
-        PredictController.onOrderError();
-      });
-    }
-  }, [currentState, PredictController]);
-
   return {
-    handleBack,
-    handleBackSwipe,
     handleConfirm,
   };
 };

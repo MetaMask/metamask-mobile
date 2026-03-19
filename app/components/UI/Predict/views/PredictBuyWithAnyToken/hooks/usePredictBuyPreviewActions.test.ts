@@ -145,60 +145,6 @@ describe('usePredictBuyActions', () => {
     mockPayWithAnyTokenConfirmation.mockResolvedValue(undefined);
   });
 
-  describe('handleBack', () => {
-    it('calls onOrderCancelled on PredictController', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleBack();
-      });
-
-      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onOrderCancelled when in PAY_WITH_ANY_TOKEN state', () => {
-      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleBack();
-      });
-
-      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onOrderCancelled when in PREVIEW state', () => {
-      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleBack();
-      });
-
-      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('handleBackSwipe', () => {
-    it('calls onOrderEnd on PredictController', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyActions(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleBackSwipe();
-      });
-
-      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('handleConfirm', () => {
     it('sets isConfirming to true', async () => {
       const { result } = renderHook(() =>
