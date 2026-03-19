@@ -432,9 +432,9 @@ describe('Login', () => {
         params: { locked: false, oauthLoginSuccess: false },
       });
       const { getByTestId } = renderWithProvider(<Login />);
-      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
-      expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
-      expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
+      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeOnTheScreen();
     });
 
     it('renders MetaMask logo and fox animation', () => {
@@ -444,8 +444,8 @@ describe('Login', () => {
       const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
         <Login />,
       );
-      expect(getByTestId('fox-animation-mock')).toBeDefined();
-      expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeDefined();
+      expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
       expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
       expect(queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON)).toBeNull();
       const images = UNSAFE_root.findAllByType(Image);

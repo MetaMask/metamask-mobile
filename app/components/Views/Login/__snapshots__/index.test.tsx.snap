@@ -353,6 +353,8 @@ exports[`Login renders matching snapshot 1`] = `
         </Text>
       </View>
       <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
         disabled={false}
         onPress={[Function]}
         style={
@@ -367,7 +369,6 @@ exports[`Login renders matching snapshot 1`] = `
       >
         <Text
           accessibilityRole="text"
-          disabled={false}
           style={
             [
               {
@@ -794,6 +795,8 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         </Text>
       </View>
       <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
         disabled={false}
         onPress={[Function]}
         style={
@@ -808,7 +811,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
       >
         <Text
           accessibilityRole="text"
-          disabled={false}
           style={
             [
               {

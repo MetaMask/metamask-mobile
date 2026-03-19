@@ -497,6 +497,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 {strings('login.unlock_button')}
               </Button>
               <TouchableOpacity
+                accessibilityRole="button"
+                accessible
                 testID={LoginViewSelectors.RESET_WALLET}
                 onPress={toggleWarningModal}
                 disabled={loading}
