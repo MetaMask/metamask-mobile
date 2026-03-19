@@ -1,47 +1,47 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
+
+// The DS `TextField` places `testID` on the outer Pressable wrapper
+// (accessible={false}) and forwards `...props` (including
+// accessibilityLabel) to the inner RN TextInput.
+//
+// Platform differences for Detox element discovery:
+//   • iOS:     by.label() cannot discover the inner TextInput when the
+//              parent Pressable has accessible={false}. We target the
+//              Pressable via by.id(testID). Tapping it focuses the inner
+//              TextInput; typeText keystrokes route to the first
+//              responder (the focused TextInput).
+//   • Android: by.id(testID) targets the Pressable (ViewGroup), but
+//              typeText requires an android.widget.EditText. We use
+//              by.label(accessibilityLabel) to target the inner
+//              TextInput directly.
 
 class CreatePasswordView {
   get container(): DetoxElement {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
-  /**
-   * The DS `TextField` places `testID` on the outer Pressable wrapper
-   * (not the inner TextInput). These "outer" getters target that Pressable
-   * via `by.id()` and are used to tap-to-focus before typing.
-   */
-  get newPasswordInputOuter(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-  }
-
-  get confirmPasswordInputOuter(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-  }
-
   get newPasswordInput(): DetoxElement {
-    // The DS `TextField` places `testID` on its outer Pressable wrapper
-    // (not the inner TextInput). On Android, Detox's typeText requires
-    // an android.widget.EditText. Using `accessibilityLabel` (forwarded via
-    // ...props to the inner Input) and `by.label()` targets the actual EditText.
-    // The Pressable has `accessible={false}` so it is skipped by label matchers.
-    return Matchers.getElementByLabel(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        )
+      : Matchers.getElementByLabel(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
   }
 
   get confirmPasswordInput(): DetoxElement {
-    // Same rationale as newPasswordInput — uses accessibilityLabel (forwarded to
-    // the inner Input) to target the actual EditText on Android.
-    return Matchers.getElementByLabel(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        )
+      : Matchers.getElementByLabel(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
   }
 
   get iUnderstandCheckbox(): DetoxElement {
@@ -65,32 +65,32 @@ class CreatePasswordView {
   }
 
   async resetPasswordInputs(): Promise<void> {
-    await Gestures.waitAndTap(this.newPasswordInputOuter, {
-      elemDescription: 'Create Password New Password Container',
+    await Gestures.waitAndTap(this.newPasswordInput, {
+      elemDescription: 'Create Password New Password Input',
     });
     await Gestures.typeText(this.newPasswordInput, '', {
       hideKeyboard: true,
+      clearFirst: true,
       checkVisibility: false,
     });
-    await Gestures.waitAndTap(this.confirmPasswordInputOuter, {
-      elemDescription: 'Create Password Confirm Password Container',
+    await Gestures.waitAndTap(this.confirmPasswordInput, {
+      elemDescription: 'Create Password Confirm Password Input',
     });
     await Gestures.typeText(this.confirmPasswordInput, '', {
       hideKeyboard: true,
+      clearFirst: true,
       checkVisibility: false,
     });
   }
 
   async enterPassword(password: string): Promise<void> {
-    // Tap the outer Pressable (by ID) to ensure the inner TextInput is focused.
-    // The DS TextField's Pressable has accessible={false}, so its onPress
-    // delegates focus to the inner TextInput.
-    await Gestures.waitAndTap(this.newPasswordInputOuter, {
-      elemDescription: 'Create Password New Password Container',
+    await Assertions.expectElementToBeVisible(this.newPasswordInput, {
+      description: 'New Password Input should be visible',
     });
-    // On Android, the inner TextInput found via by.label() may fail Detox's
-    // 75%-visible check even when interactable. Skip the visibility assertion
-    // and rely on the tap above to confirm the screen is loaded and focused.
+    // Tap the Pressable / TextInput to focus the inner TextInput.
+    await Gestures.waitAndTap(this.newPasswordInput, {
+      elemDescription: 'Create Password New Password Input',
+    });
     await Gestures.typeText(this.newPasswordInput, password, {
       elemDescription: 'Create Password New Password Input',
       hideKeyboard: false,
@@ -99,8 +99,8 @@ class CreatePasswordView {
   }
 
   async reEnterPassword(password: string): Promise<void> {
-    await Gestures.waitAndTap(this.confirmPasswordInputOuter, {
-      elemDescription: 'Create Password Confirm Password Container',
+    await Gestures.waitAndTap(this.confirmPasswordInput, {
+      elemDescription: 'Create Password Confirm Password Input',
     });
     await Gestures.typeText(this.confirmPasswordInput, password, {
       elemDescription: 'Create Password Confirm Password Input',
