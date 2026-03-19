@@ -16,7 +16,6 @@ import { CardError } from '../../types';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectSelectedCountry,
   setContactVerificationId,
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
@@ -26,6 +25,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import useRegions from '../../hooks/useRegions';
 
 const CODE_LENGTH = 6;
 
@@ -34,17 +34,20 @@ const ConfirmEmail = () => {
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const { getRegionByCode } = useRegions();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
 
-  const { email, password } = useParams<{
+  const { email, password, countryKey } = useParams<{
     email: string;
     password: string;
+    countryKey: string;
   }>();
+
+  const selectedCountry = getRegionByCode(countryKey);
 
   const {
     sendEmailVerification,
@@ -139,7 +142,9 @@ const ConfirmEmail = () => {
 
       if (onboardingId) {
         dispatch(setOnboardingId(onboardingId));
-        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
+          countryKey,
+        });
       } else if (hasAccount) {
         const navigateToAuthentication = () => {
           navigation.reset({
@@ -183,6 +188,7 @@ const ConfirmEmail = () => {
   }, [
     confirmCode,
     contactVerificationId,
+    countryKey,
     dispatch,
     email,
     navigation,
@@ -204,16 +210,27 @@ const ConfirmEmail = () => {
     }
   }, [resendCooldown]);
 
-  // Auto-submit when all digits are entered
   useEffect(() => {
     if (
       confirmCode.length === CODE_LENGTH &&
-      latestValueSubmitted !== confirmCode
+      latestValueSubmitted !== confirmCode &&
+      selectedCountry &&
+      email &&
+      password &&
+      contactVerificationId
     ) {
       setLatestValueSubmitted(confirmCode);
       handleContinue();
     }
-  }, [confirmCode, handleContinue, latestValueSubmitted]);
+  }, [
+    confirmCode,
+    contactVerificationId,
+    email,
+    handleContinue,
+    latestValueSubmitted,
+    password,
+    selectedCountry,
+  ]);
 
   const isDisabled =
     verifyLoading ||

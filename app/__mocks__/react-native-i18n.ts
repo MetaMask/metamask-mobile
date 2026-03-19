@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies
 import I18nJs from 'i18n-js';
 
 I18nJs.locale = 'en'; // a locale from your available translations

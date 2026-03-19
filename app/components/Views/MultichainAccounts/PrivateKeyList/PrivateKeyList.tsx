@@ -38,10 +38,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import {
   useParams,
   createNavigationDetails,
@@ -233,21 +234,23 @@ export const PrivateKeyList = () => {
         </View>
         <View style={styles.buttons}>
           <Button
-            label={strings('multichain_accounts.private_key_list.cancel')}
-            size={ButtonSize.Lg}
-            variant={ButtonVariants.Secondary}
+            size={ButtonBaseSize.Lg}
+            variant={ButtonVariant.Secondary}
             onPress={onCancel}
             style={styles.button}
             testID={PrivateKeyListIds.CANCEL_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.private_key_list.cancel')}
+          </Button>
           <Button
-            label={strings('multichain_accounts.private_key_list.continue')}
-            size={ButtonSize.Lg}
-            variant={ButtonVariants.Primary}
+            size={ButtonBaseSize.Lg}
+            variant={ButtonVariant.Primary}
             onPress={() => verifyPasswordAndUnlockKeys()}
             style={styles.button}
             testID={PrivateKeyListIds.CONTINUE_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.private_key_list.continue')}
+          </Button>
         </View>
       </>
     ),

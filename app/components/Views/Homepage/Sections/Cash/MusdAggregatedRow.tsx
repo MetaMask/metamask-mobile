@@ -42,6 +42,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
 import NavigationService from '../../../../../core/NavigationService';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import Routes from '../../../../../constants/navigation/Routes';
 
 /**
  * Minimal mUSD asset for useMerklBonusClaim (claim runs on Linea).
@@ -62,10 +63,16 @@ const LINEA_MUSD_ASSET: TokenI = {
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
-  const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
-    useMusdBalance();
+  const {
+    tokenBalanceAggregated,
+    fiatBalanceAggregatedFormatted,
+    hasMusdBalanceOnAnyChain,
+  } = useMusdBalance();
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
-    useMerklBonusClaim(LINEA_MUSD_ASSET);
+    useMerklBonusClaim(
+      LINEA_MUSD_ASSET,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
 
@@ -88,6 +95,13 @@ const MusdAggregatedRow = () => {
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
+    if (hasMusdBalanceOnAnyChain) {
+      NavigationService.navigation.navigate(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW as never,
+      );
+      return;
+    }
+
     NavigationService.navigation.navigate(
       'Asset' as never,
       {
@@ -95,7 +109,7 @@ const MusdAggregatedRow = () => {
         source: TokenDetailsSource.MobileTokenListPage,
       } as never,
     );
-  }, []);
+  }, [hasMusdBalanceOnAnyChain]);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 0,

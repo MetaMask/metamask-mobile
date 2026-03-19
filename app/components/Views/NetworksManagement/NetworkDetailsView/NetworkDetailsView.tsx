@@ -110,12 +110,14 @@ const NetworkDetailsView = () => {
     !formHook.enableAction ||
     formHook.form.editable === false ||
     validation.disabledByChainId(formHook.form) ||
+    validation.disabledByName(formHook.form) ||
     validation.disabledBySymbol(formHook.form);
 
   const handleSave = useCallback(async () => {
     await operations.saveNetwork(formHook.form, {
       enableAction: formHook.enableAction,
       disabledByChainId: validation.disabledByChainId(formHook.form),
+      disabledByName: validation.disabledByName(formHook.form),
       disabledBySymbol: validation.disabledBySymbol(formHook.form),
       isCustomMainnet,
       shouldNetworkSwitchPopToWallet,

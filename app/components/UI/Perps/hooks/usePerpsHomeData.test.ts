@@ -486,6 +486,102 @@ describe('usePerpsHomeData', () => {
     });
   });
 
+  describe('Market type filtering', () => {
+    it('excludes HIP-3 markets from crypto (perpsMarkets) section', () => {
+      const marketsWithHip3 = [
+        ...mockMarkets,
+        createMockMarket({
+          symbol: 'xyz:BRENTOIL',
+          name: 'Brent Oil',
+          isHip3: true,
+          isNewMarket: true,
+        }),
+        createMockMarket({
+          symbol: 'xyz:GOLD',
+          name: 'Gold',
+          marketType: 'commodity',
+          isHip3: true,
+        }),
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: marketsWithHip3,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: mockRefreshMarkets,
+      });
+
+      mockSortMarkets.mockImplementation(({ markets }) => markets);
+
+      const { result } = renderHook(() => usePerpsHomeData());
+
+      // Only non-HIP3 crypto markets should be in perpsMarkets
+      expect(result.current.perpsMarkets).toHaveLength(3);
+      expect(result.current.perpsMarkets.every((m) => !m.isHip3)).toBe(true);
+      // BRENTOIL (unmapped HIP-3) must not appear in crypto
+      expect(
+        result.current.perpsMarkets.find((m) => m.symbol === 'xyz:BRENTOIL'),
+      ).toBeUndefined();
+    });
+
+    it('includes HIP-3 commodity markets in commoditiesMarkets', () => {
+      const marketsWithCommodity = [
+        ...mockMarkets,
+        createMockMarket({
+          symbol: 'xyz:BRENTOIL',
+          name: 'Brent Oil',
+          marketType: 'commodity',
+          isHip3: true,
+        }),
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: marketsWithCommodity,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: mockRefreshMarkets,
+      });
+
+      mockSortMarkets.mockImplementation(({ markets }) => markets);
+
+      const { result } = renderHook(() => usePerpsHomeData());
+
+      expect(result.current.commoditiesMarkets).toHaveLength(1);
+      expect(result.current.commoditiesMarkets[0].symbol).toBe('xyz:BRENTOIL');
+    });
+
+    it('excludes unmapped HIP-3 markets from search crypto results', () => {
+      const marketsWithHip3 = [
+        ...mockMarkets,
+        createMockMarket({
+          symbol: 'xyz:BRENTOIL',
+          name: 'Brent Oil',
+          isHip3: true,
+          isNewMarket: true,
+        }),
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: marketsWithHip3,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: mockRefreshMarkets,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsHomeData({ searchQuery: 'BRENT' }),
+      );
+
+      // BRENTOIL should not appear in perpsMarkets (crypto) during search
+      expect(
+        result.current.perpsMarkets.find((m) => m.symbol === 'xyz:BRENTOIL'),
+      ).toBeUndefined();
+    });
+  });
+
   describe('Trending markets sorting', () => {
     it('sorts markets using saved sort preference', () => {
       renderHook(() => usePerpsHomeData());

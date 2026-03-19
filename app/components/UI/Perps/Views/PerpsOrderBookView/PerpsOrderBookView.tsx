@@ -298,6 +298,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         PERPS_EVENT_VALUE.SCREEN_TYPE.ORDER_BOOK,
       [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
       [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
     },
   });
 
@@ -465,7 +466,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       return;
     }
 
-    navigateToClosePosition(existingPosition);
+    navigateToClosePosition(
+      existingPosition,
+      PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+    );
   }, [existingPosition, navigateToClosePosition, isEligible, track]);
 
   // Handle Modify position button press
@@ -779,6 +783,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               onClose={handleTooltipClose}
               contentKey={selectedTooltip}
               testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+              buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK}
             />
           </Modal>
         </View>
