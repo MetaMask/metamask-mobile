@@ -20,8 +20,9 @@
  * Artifact names used below are coupled to `name:` fields in ci.yml and run-e2e-workflow.yml —
  * renaming either side silently drops that metric from the output.
  *
- * E2E MetaMetrics coverage: scans `tests/helpers/analytics/expectations/*.ts` plus
- * `LEGACY_INLINE_METAMETRICS_PATHS` for specs not yet using declarative expectations.
+ * MetaMetrics (top-level `metametrics` namespace): static scan of
+ * `tests/helpers/analytics/expectations/*.ts` plus `LEGACY_INLINE_METAMETRICS_PATHS`
+ * for specs not yet using declarative expectations.
  *
  * Example output:
  *   {
@@ -29,8 +30,8 @@
  *     "component_view":{ "total_tests_run": 94,    "total_tests_skipped": 0 },
  *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
  *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
- *                        "flask_tests_run": 144, "confirmations_tests_run": 62,
- *                        "metametrics_events_checked_unique_count": 42,
+ *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
+ *     "metametrics":   { "metametrics_events_checked_unique_count": 42,
  *                        "metametrics_events_checked_names_json": "[\"Action Button Clicked\", ...]" },
  *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
  *                        "login_tests_defined": 11, "onboarding_tests_defined": 4, "mm_connect_tests_defined": 6 }
@@ -617,7 +618,7 @@ async function collectE2EMetaMetricsEventCoverage() {
   const onboardingMap = await loadOnboardingEventsMap();
   const names = new Set();
   const entries = await gatherE2EMetaMetricsSourceFiles();
-  console.log(`[e2e] metametrics: scanning ${entries.length} file(s) for referenced event names`);
+  console.log(`[metametrics] scanning ${entries.length} file(s) for referenced event names`);
 
   for (const { path: filePath, mode } of entries) {
     const source = await readFile(filePath, 'utf8');
@@ -634,9 +635,23 @@ async function collectE2EMetaMetricsEventCoverage() {
     metametrics_events_checked_names_json: JSON.stringify(sorted),
   };
   console.log(
-    `[e2e] metametrics: ${sorted.length} unique event name(s) referenced in E2E sources`,
+    `[metametrics] ${sorted.length} unique event name(s) referenced in E2E sources`,
   );
   return payload;
+}
+
+/**
+ * Top-level `metametrics` namespace in qa-stats.json (static E2E event-name coverage).
+ *
+ * @returns {Promise<Record<string, unknown>>}
+ */
+async function collectMetametricsQaStats() {
+  try {
+    return await collectE2EMetaMetricsEventCoverage();
+  } catch (err) {
+    console.warn(`[metametrics] static scan failed, skipping namespace: ${err.message}`);
+    return {};
+  }
 }
 
 /**
@@ -841,13 +856,6 @@ function countExecutedTestsFromJUnitXml(rawXml) {
 
 // Collects all E2E test counts from JUnit artifacts.
 async function collectE2ECounts() {
-  let metametrics = {};
-  try {
-    metametrics = await collectE2EMetaMetricsEventCoverage();
-  } catch (err) {
-    console.warn(`[e2e] metametrics static scan failed, skipping those metrics: ${err.message}`);
-  }
-
   const artifacts = await getArtifactList();
 
   // Per-platform counts for health signalling
@@ -863,9 +871,9 @@ async function collectE2ECounts() {
 
   if (e2eArtifacts.length === 0) {
     console.log(
-      '[e2e] no JUnit artifacts found — skipping JUnit-based e2e counts (metametrics static scan still included when available)',
+      '[e2e] no JUnit artifacts found — skipping JUnit-based e2e counts (see `metametrics` namespace for static event coverage)',
     );
-    return metametrics;
+    return {};
   }
 
   for (const artifact of e2eArtifacts) {
@@ -923,7 +931,6 @@ async function collectE2ECounts() {
   result.total_tests_defined = defined;
   result.total_tests_skipped = skips;
 
-  Object.assign(result, metametrics);
   return result;
 }
 
@@ -985,6 +992,7 @@ async function main() {
     { namespace: 'unit', collect: collectUnitTestCount },
     { namespace: 'component_view', collect: collectComponentViewTestCount },
     { namespace: 'e2e', collect: collectE2ECounts },
+    { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
   ];
 
