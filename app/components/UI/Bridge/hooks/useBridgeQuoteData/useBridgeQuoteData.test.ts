@@ -82,16 +82,9 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
-const mockIsHardwareAccount = jest.fn();
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
-  isHardwareAccount: (address: string) => mockIsHardwareAccount(address),
-}));
-
 describe('useBridgeQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsHardwareAccount.mockReturnValue(false);
     (isQuoteExpired as jest.Mock).mockReturnValue(false);
     (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
     (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
@@ -1609,98 +1602,6 @@ describe('useBridgeQuoteData', () => {
       expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
       expect(result.current.isExpired).toBe(true);
       expect(result.current.willRefresh).toBe(true);
-    });
-  });
-
-  describe('hardware wallet quote normalization', () => {
-    const quoteWithGasSponsored = {
-      ...mockQuoteWithMetadata,
-      quote: {
-        ...mockQuoteWithMetadata.quote,
-        gasIncluded7702: true,
-        gasIncluded: true,
-        gasSponsored: true,
-      },
-    };
-
-    it('strips gasIncluded7702, gasIncluded, and gasSponsored from quotes when source wallet is hardware account', () => {
-      mockIsHardwareAccount.mockReturnValue(true);
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-        recommendedQuote: quoteWithGasSponsored,
-        sortedQuotes: [quoteWithGasSponsored],
-        alternativeQuotes: [],
-      }));
-
-      const bridgeControllerOverrides = {
-        quotes: mockQuotes as unknown as QuoteResponse[],
-        quotesLoadingStatus: null,
-        quoteFetchError: null,
-      };
-      const bridgeReducerOverrides = {
-        destToken: {
-          symbol: 'USDC',
-          chainId: SolScope.Mainnet,
-          address:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          decimals: 6,
-        },
-      };
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides,
-        bridgeReducerOverrides,
-      });
-
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
-
-      expect(result.current.bestQuote?.quote.gasIncluded7702).toBe(false);
-      expect(result.current.bestQuote?.quote.gasIncluded).toBe(false);
-      expect(result.current.bestQuote?.quote.gasSponsored).toBe(false);
-      expect(result.current.activeQuote?.quote.gasIncluded7702).toBe(false);
-      expect(result.current.activeQuote?.quote.gasIncluded).toBe(false);
-      expect(result.current.activeQuote?.quote.gasSponsored).toBe(false);
-    });
-
-    it('leaves gas-sponsored flags unchanged when source wallet is not hardware account', () => {
-      mockIsHardwareAccount.mockReturnValue(false);
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-        recommendedQuote: quoteWithGasSponsored,
-        sortedQuotes: [quoteWithGasSponsored],
-        alternativeQuotes: [],
-      }));
-
-      const bridgeControllerOverrides = {
-        quotes: mockQuotes as unknown as QuoteResponse[],
-        quotesLoadingStatus: null,
-        quoteFetchError: null,
-      };
-      const bridgeReducerOverrides = {
-        destToken: {
-          symbol: 'USDC',
-          chainId: SolScope.Mainnet,
-          address:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          decimals: 6,
-        },
-      };
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides,
-        bridgeReducerOverrides,
-      });
-
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
-
-      expect(result.current.bestQuote?.quote.gasIncluded7702).toBe(true);
-      expect(result.current.bestQuote?.quote.gasIncluded).toBe(true);
-      expect(result.current.bestQuote?.quote.gasSponsored).toBe(true);
-      expect(result.current.activeQuote?.quote.gasIncluded7702).toBe(true);
-      expect(result.current.activeQuote?.quote.gasIncluded).toBe(true);
-      expect(result.current.activeQuote?.quote.gasSponsored).toBe(true);
     });
   });
 });

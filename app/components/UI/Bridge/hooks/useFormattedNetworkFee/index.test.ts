@@ -6,9 +6,6 @@ import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 
 jest.mock('../../utils/formatNetworkFee');
 jest.mock('../../../../../selectors/currencyRateController');
-jest.mock('../useIsHardwareWalletForBridge', () => ({
-  useIsHardwareWalletForBridge: () => false,
-}));
 
 const mockFormatNetworkFee = formatNetworkFee as jest.MockedFunction<
   typeof formatNetworkFee
@@ -38,9 +35,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('-');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', undefined, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', undefined);
     });
   });
 
@@ -58,9 +53,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('-');
-      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', null, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', null);
     });
   });
 
@@ -85,9 +78,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('$10.50');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
     });
 
     it('returns formatted network fee with EUR currency', () => {
@@ -110,9 +101,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('€25.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', quote);
     });
 
     it('returns formatted network fee with GBP currency', () => {
@@ -135,9 +124,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('£5.25');
-      expect(formatNetworkFee).toHaveBeenCalledWith('GBP', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('GBP', quote);
     });
 
     it('returns formatted network fee with JPY currency', () => {
@@ -160,9 +147,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('¥1,500');
-      expect(formatNetworkFee).toHaveBeenCalledWith('JPY', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('JPY', quote);
     });
   });
 
@@ -187,9 +172,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('<$0.01');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
     });
   });
 
@@ -214,9 +197,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('$1,234.56');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
     });
   });
 
@@ -241,9 +222,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('$0');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
     });
   });
 
@@ -268,9 +247,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert initial
       expect(result.current).toBe('$10.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', initialQuote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', initialQuote);
 
       // Arrange - update mock for different quote
       const updatedQuote = {
@@ -290,9 +267,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert after update
       expect(updatedResult.current).toBe('$20.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', updatedQuote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', updatedQuote);
     });
   });
 
@@ -317,9 +292,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert initial
       expect(usdResult.current).toBe('$10.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
 
       // Arrange - change currency
       mockSelectCurrentCurrency.mockReturnValue('EUR');
@@ -333,9 +306,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert after currency change
       expect(eurResult.current).toBe('€10.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', quote);
     });
   });
 
@@ -419,9 +390,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('-');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
     });
 
     it('handles unknown currency code', () => {
@@ -446,9 +415,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('10.00 XYZ');
-      expect(formatNetworkFee).toHaveBeenCalledWith('XYZ', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('XYZ', quote);
     });
 
     it('handles empty string currency', () => {
@@ -473,9 +440,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('-');
-      expect(formatNetworkFee).toHaveBeenCalledWith('', quote, {
-        treatAsNotGasless: false,
-      });
+      expect(formatNetworkFee).toHaveBeenCalledWith('', quote);
     });
   });
 });

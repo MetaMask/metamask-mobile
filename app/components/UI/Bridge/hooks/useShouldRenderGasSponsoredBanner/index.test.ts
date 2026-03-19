@@ -1,11 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useShouldRenderGasSponsoredBanner } from './index';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
-import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 import { useSelector } from 'react-redux';
 
 jest.mock('../useIsNetworkGasSponsored');
-jest.mock('../useIsHardwareWalletForBridge');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -14,10 +12,6 @@ const mockUseIsNetworkGasSponsored =
   useIsNetworkGasSponsored as jest.MockedFunction<
     typeof useIsNetworkGasSponsored
   >;
-const mockUseIsHardwareWalletForBridge =
-  useIsHardwareWalletForBridge as jest.MockedFunction<
-    typeof useIsHardwareWalletForBridge
-  >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('useShouldRenderGasSponsoredBanner', () => {
@@ -25,7 +19,6 @@ describe('useShouldRenderGasSponsoredBanner', () => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(null);
     mockUseIsNetworkGasSponsored.mockReturnValue(false);
-    mockUseIsHardwareWalletForBridge.mockReturnValue(false);
   });
 
   describe('returns true when quoteGasSponsored is true', () => {
@@ -401,36 +394,6 @@ describe('useShouldRenderGasSponsoredBanner', () => {
       );
 
       // Assert
-      expect(result.current).toBe(false);
-    });
-  });
-
-  describe('hardware wallet accounts', () => {
-    it('returns false for hardware wallet even when quote is gas sponsored', () => {
-      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
-      mockUseIsNetworkGasSponsored.mockReturnValue(true);
-
-      const { result } = renderHook(() =>
-        useShouldRenderGasSponsoredBanner({
-          quoteGasSponsored: true,
-          hasInsufficientBalance: false,
-        }),
-      );
-
-      expect(result.current).toBe(false);
-    });
-
-    it('returns false for hardware wallet even when network is sponsored and insufficient balance', () => {
-      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
-      mockUseIsNetworkGasSponsored.mockReturnValue(true);
-
-      const { result } = renderHook(() =>
-        useShouldRenderGasSponsoredBanner({
-          quoteGasSponsored: false,
-          hasInsufficientBalance: true,
-        }),
-      );
-
       expect(result.current).toBe(false);
     });
   });

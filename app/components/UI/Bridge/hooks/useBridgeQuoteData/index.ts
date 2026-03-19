@@ -14,11 +14,7 @@ import {
   setSelectedQuoteRequestId,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
-import {
-  areAddressesEqual,
-  isHardwareAccount,
-} from '../../../../../util/address';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import {
@@ -52,35 +48,7 @@ export const useBridgeQuoteData = ({
   const slippage = useSelector(selectSlippage);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const locale = I18n.locale;
-  const rawQuotes = useSelector(selectBridgeQuotes);
-  const sourceWalletAddress = useSelector(selectSourceWalletAddress);
-  const quotes = useMemo(() => {
-    if (
-      !rawQuotes ||
-      !sourceWalletAddress ||
-      !isHardwareAccount(sourceWalletAddress)
-    ) {
-      return rawQuotes;
-    }
-    const stripGasSponsored = <T extends { quote: Record<string, unknown> }>(
-      item: T,
-    ): T => ({
-      ...item,
-      quote: {
-        ...item.quote,
-        gasIncluded7702: false,
-        gasIncluded: false,
-        gasSponsored: false,
-      },
-    });
-    return {
-      ...rawQuotes,
-      sortedQuotes: rawQuotes.sortedQuotes?.map(stripGasSponsored) ?? [],
-      recommendedQuote: rawQuotes.recommendedQuote
-        ? stripGasSponsored(rawQuotes.recommendedQuote)
-        : undefined,
-    };
-  }, [rawQuotes, sourceWalletAddress]);
+  const quotes = useSelector(selectBridgeQuotes);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);

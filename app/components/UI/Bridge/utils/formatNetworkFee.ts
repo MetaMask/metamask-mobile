@@ -4,23 +4,14 @@ import formatFiat from '../../../../util/formatFiat';
 import { BigNumber } from 'bignumber.js';
 import { isGaslessQuote } from './isGaslessQuote';
 
-export interface FormatNetworkFeeOptions {
-  /** When true, treat quote as not gasless (e.g. hardware wallet: always show normal fee) */
-  treatAsNotGasless?: boolean;
-}
-
 export const formatNetworkFee = (
   currency: string,
   quote?: (QuoteResponse & QuoteMetadata) | null,
-  options: FormatNetworkFeeOptions = {},
 ) => {
   if (!quote) return '-';
 
-  const { treatAsNotGasless = false } = options;
-  const effectivelyGasless = !treatAsNotGasless && isGaslessQuote(quote.quote);
-
   if (
-    effectivelyGasless &&
+    isGaslessQuote(quote.quote) &&
     quote.includedTxFees?.valueInCurrency != null &&
     quote.includedTxFees?.amount != null &&
     isNumberValue(quote.includedTxFees.amount) &&
@@ -30,7 +21,7 @@ export const formatNetworkFee = (
       new BigNumber(quote.includedTxFees.valueInCurrency),
       currency,
     );
-  } else if (effectivelyGasless) {
+  } else if (isGaslessQuote(quote.quote)) {
     // Quote is gasless but includedTxFees is not set.
     // Return "uknown" gas fee to keep the same behavior
     // as the previous vesrions of this utility.
