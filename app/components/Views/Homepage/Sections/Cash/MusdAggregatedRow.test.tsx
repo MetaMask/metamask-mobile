@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MusdAggregatedRow from './MusdAggregatedRow';
+import NavigationService from '../../../../../core/NavigationService';
 
 const mockClaimRewards = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -45,6 +46,16 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../../../../core/NavigationService', () => {
+  const mockNavigate = jest.fn();
+  return {
+    __esModule: true,
+    default: {
+      navigation: { navigate: mockNavigate },
+    },
+  };
+});
+
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -80,6 +91,20 @@ describe('MusdAggregatedRow', () => {
   it('has cash-section-musd-row testID', () => {
     renderWithProvider(<MusdAggregatedRow />);
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
+  });
+
+  it('navigates to Asset with home_section source when row is pressed', () => {
+    renderWithProvider(<MusdAggregatedRow />);
+
+    fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        source: 'home_section',
+      }),
+    );
   });
 
   it('shows Spinner when isClaiming is true', () => {
