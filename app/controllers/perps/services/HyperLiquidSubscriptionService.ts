@@ -2115,26 +2115,34 @@ export class HyperLiquidSubscriptionService {
     const subscription = await subscriptionClient.userFills(
       { user: userAddress },
       (data: UserFillsWsEvent) => {
-        const orderFills: OrderFill[] = data.fills.map((fill) => ({
-          orderId: fill.oid.toString(),
-          symbol: fill.coin,
-          side: fill.side,
-          size: fill.sz,
-          price: fill.px,
-          fee: fill.fee,
-          timestamp: fill.time,
-          pnl: fill.closedPnl,
-          direction: fill.dir,
-          feeToken: fill.feeToken,
-          startPosition: fill.startPosition,
-          liquidation: fill.liquidation
-            ? {
-                liquidatedUser: fill.liquidation.liquidatedUser,
-                markPx: fill.liquidation.markPx,
-                method: fill.liquidation.method,
-              }
-            : undefined,
-        }));
+        const orderFills: OrderFill[] = data.fills.map((fill) => {
+          // Enrich with detailedOrderType from cached orders (best-effort)
+          const oid = fill.oid.toString();
+          const cachedOrder = this.#cachedOrders?.find(
+            (o) => o.orderId === oid,
+          );
+          return {
+            orderId: oid,
+            symbol: fill.coin,
+            side: fill.side,
+            size: fill.sz,
+            price: fill.px,
+            fee: fill.fee,
+            timestamp: fill.time,
+            pnl: fill.closedPnl,
+            direction: fill.dir,
+            feeToken: fill.feeToken,
+            startPosition: fill.startPosition,
+            liquidation: fill.liquidation
+              ? {
+                  liquidatedUser: fill.liquidation.liquidatedUser,
+                  markPx: fill.liquidation.markPx,
+                  method: fill.liquidation.method,
+                }
+              : undefined,
+            detailedOrderType: cachedOrder?.detailedOrderType,
+          };
+        });
 
         // Cache fills for cache-first pattern (similar to price caching)
         // This allows getOrFetchFills() to return cached data without REST API calls

@@ -5113,6 +5113,33 @@ export class HyperLiquidProvider implements PerpsProvider {
         return acc;
       }, []);
 
+      // Enrich fills with detailedOrderType from historical orders.
+      // The fills API does not return order type, so we cross-reference
+      // with historical orders to enable TP/SL pill rendering in activity.
+      try {
+        const rawOrders = await infoClient.historicalOrders({
+          user: userAddress,
+        });
+        const orderTypeByOid = new Map<string, string>();
+        for (const rawOrder of rawOrders || []) {
+          const oid = rawOrder.order.oid?.toString() || '';
+          if (rawOrder.order.orderType && !orderTypeByOid.has(oid)) {
+            orderTypeByOid.set(oid, rawOrder.order.orderType);
+          }
+        }
+        for (const fill of fills) {
+          const orderType = orderTypeByOid.get(fill.orderId);
+          if (orderType) {
+            fill.detailedOrderType = orderType;
+          }
+        }
+      } catch (enrichError) {
+        this.#deps.debugLogger.log(
+          'Warning: failed to enrich fills with order types:',
+          enrichError,
+        );
+      }
+
       return fills;
     } catch (error) {
       this.#deps.debugLogger.log('Error getting user fills:', error);
