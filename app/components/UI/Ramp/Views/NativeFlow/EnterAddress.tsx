@@ -32,6 +32,7 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -253,7 +254,7 @@ const V2EnterAddress = (): JSX.Element => {
               )}
               error={errors.addressLine1}
               returnKeyType="next"
-              testID="address-line-1-input"
+              testID={ENTER_ADDRESS_TEST_IDS.ADDRESS_LINE_1_INPUT}
               ref={addressLine1InputRef}
               autoComplete="address-line1"
               textContentType="fullStreetAddress"
@@ -271,7 +272,7 @@ const V2EnterAddress = (): JSX.Element => {
               )}
               error={errors.addressLine2}
               returnKeyType="next"
-              testID="address-line-2-input"
+              testID={ENTER_ADDRESS_TEST_IDS.ADDRESS_LINE_2_INPUT}
               ref={addressLine2InputRef}
               autoComplete="address-line2"
               textContentType="fullStreetAddress"
@@ -290,7 +291,7 @@ const V2EnterAddress = (): JSX.Element => {
                 )}
                 error={errors.city}
                 returnKeyType="next"
-                testID="city-input"
+                testID={ENTER_ADDRESS_TEST_IDS.CITY_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={cityInputRef}
                 textContentType="addressCity"
@@ -303,7 +304,7 @@ const V2EnterAddress = (): JSX.Element => {
                 placeholder={strings('deposit.enter_address.state')}
                 value={formData.state}
                 error={errors.state}
-                testID="state-input"
+                testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
                 containerStyle={styles.nameInputContainer}
                 isDisabled
               />
@@ -319,7 +320,7 @@ const V2EnterAddress = (): JSX.Element => {
                 })}
                 error={errors.postCode}
                 returnKeyType="done"
-                testID="postal-code-input"
+                testID={ENTER_ADDRESS_TEST_IDS.POSTAL_CODE_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={postCodeInputRef}
                 autoComplete="postal-code"
@@ -334,7 +335,7 @@ const V2EnterAddress = (): JSX.Element => {
                 value={userRegion?.country?.name || ''}
                 error={errors.countryCode}
                 returnKeyType="done"
-                testID="country-input"
+                testID={ENTER_ADDRESS_TEST_IDS.COUNTRY_INPUT}
                 containerStyle={styles.nameInputContainer}
                 isDisabled
                 numberOfLines={1}
@@ -360,7 +361,7 @@ const V2EnterAddress = (): JSX.Element => {
               width={ButtonWidthTypes.Full}
               isDisabled={loading || !!error}
               loading={loading}
-              testID="address-continue-button"
+              testID={ENTER_ADDRESS_TEST_IDS.CONTINUE_BUTTON}
             />
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>

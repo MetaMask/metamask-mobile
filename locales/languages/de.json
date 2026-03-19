@@ -119,6 +119,10 @@
       "message": "Sie senden Ihre Vermögenswerte an eine Burn-Adresse. Wenn Sie fortfahren, verlieren Sie Ihre Vermögenswerte.",
       "title": "Senden von Assets an die Burn-Adresse"
     },
+    "token_contract_warning": {
+      "title": "Token contract warning",
+      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+    },
     "gas_sponsorship_reserve_balance": {
       "message": "Gas-Sponsoring ist für diese Transaktion nicht verfügbar. Sie benötigen mindestens %{minBalance} %{nativeTokenSymbol} auf Ihrem Konto.",
       "title": "Gas-Sponsoring nicht verfügbar"
@@ -689,7 +693,11 @@
     "invisible_character_error": "Wir haben ein unsichtbares Zeichen im ENS-Namen festgestellt. Überprüfen Sie den ENS-Namen, um möglichen Betrug zu vermeiden.",
     "could_not_resolve_name": "Name konnte nicht aufgelöst werden",
     "invalid_address": "Ungültige Adresse",
-    "contractAddressError": "Sie senden Tokens an die Kontraktadresse des Tokens. Dies kann zum Verlust dieser Tokens führen."
+    "contractAddressError": "Sie senden Tokens an die Kontraktadresse des Tokens. Dies kann zum Verlust dieser Tokens führen.",
+    "smart_contract_address": "Smart contract address",
+    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "i_understand": "Ich verstehe",
+    "cancel": "Stornieren"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -2154,6 +2162,7 @@
     "sell_position": "Position verkaufen",
     "cash_out": "Auszahlung",
     "cash_out_info": "Gelder werden Ihrem verfügbaren Guthaben hinzugefügt",
+    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
     "at_price_per_share": "Verkauf von {{size}}-Aktien zu {{price}}",
     "cashout_info": "{{amount}} bei {{outcome}} zu {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} bei {{outcomeGroupTitle}} • {{outcome}} zu {{initialPrice}}",
@@ -2338,7 +2347,9 @@
       "exchange_fee_description": "An die Börse oder den Markt entrichtete Gebühr",
       "total_incl_fees": "inkl. Gebühren",
       "close": "Schließen",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Verbindung zu Prognosen nicht möglich",
@@ -3287,8 +3298,6 @@
     "blockaid_desc": "Diese Funktion warnt Sie durch die aktive Überprüfung von Transaktions- und Signaturanfragen vor bösartigen Aktivitäten.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor böswilligen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie eine Anfrage genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
-    "dismiss_smart_account_update_heading": "Vorschlag „Zum Smart-Konto wechseln“ ablehnen",
-    "dismiss_smart_account_update_desc": "Schalten Sie dies ein, um den Vorschlag „Zum Smart-Konto wechseln“ für kein Konto mehr anzuzeigen. Smart-Konten ermöglichen schnellere Transaktionen, niedrigere Netzwerkgebühren und mehr Flexibilität bei der Zahlung.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Schalten Sie Smart Transactions für zuverlässigere und sicherere Transaktionen auf unterstützten Netzwerken ein.",
     "smart_transactions_learn_more": "Mehr erfahren",
@@ -5921,6 +5930,7 @@
   "earn": {
     "claimable_bonus_tooltip": "Sie haben den jährlichen Bonus für das Halten von mUSD verdient. Ihr Bonus kann täglich auf Linea eingefordert werden.",
     "earn_a_percentage_bonus": "Verdienen Sie einen Bonus von {{percentage}} %",
+    "percentage_bonus": "Bonus von {{percentage}} %",
     "claimable_bonus": "Anspruchsberechtigter Bonus",
     "claim_bonus": "Bonus einfordern",
     "claim_bonus_subtitle": "Der Bonus wird auf {{networkName}} ausgezahlt.",
@@ -6930,7 +6940,7 @@
       "upgrade_title": "Upgrade auf Metall",
       "continue_button": "Fortfahren",
       "virtual_card": {
-        "name": "Orange virtuelle Karte",
+        "name": "Virtual Card",
         "price": "Kostenlos",
         "feature_1": "Virtuelle Karte für Apple Pay und Google Pay",
         "feature_2": "Bezahlen Sie mit Kryptowährung (USDC, USDT, WETH und mehr)",
@@ -6939,10 +6949,13 @@
       "metal_card": {
         "name": "Metallkarte",
         "price": "199 $/Jahr",
-        "feature_1": "Gravierte Metallkarte und virtuelle Karte für Apple Pay und Google Pay",
-        "feature_2": "3 % Cashback auf die ersten 10.000 $, die jedes Jahr ausgegeben werden, danach 1 %.",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "Keine Auslandstransaktionsgebühren"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Prüfen Sie Ihre Bestellung",
@@ -6987,10 +7000,10 @@
       "not_now_button": "Nicht jetzt",
       "sign_up": {
         "title": "Lassen Sie uns beginnen",
-        "description": "Erstellen Sie ein Konto bei Crypto Life (CL), um Ihre MetaMask-Karte einzurichten. MetaMask sieht und speichert Ihre personenbezogenen Daten nicht.",
-        "i_already_have_an_account": "Ich habe bereits eine MetaMask-Karte",
+        "description": "Erstellen Sie ein Konto bei Crypto Life (CL), um Ihre MetaMask Card einzurichten. MetaMask sieht und speichert Ihre personenbezogenen Daten nicht.",
+        "i_already_have_an_account": "Ich habe bereits eine MetaMask Card",
         "email_label": "E-Mail-Adresse",
-        "password_label": "Neues Passwort für die MetaMask-Karte",
+        "password_label": "Neues Passwort für die MetaMask Card",
         "password_description": "Unterscheidet sich von Ihrem Passwort zum Entsperren der MetaMask-App. Muss mindestens 15 Zeichen lang sein.",
         "country_label": "Wohnsitzland",
         "country_placeholder": "Wählen Sie Ihr Land",
@@ -7090,7 +7103,8 @@
         "ssn_label": "Sozialversicherungsnummer",
         "ssn_description": "Vom Kartenaussteller gefordert. Es wird keine Bonitätsprüfung durchgeführt.",
         "invalid_ssn": "Ungültige SSN",
-        "invalid_date_of_birth": "Ungültiges Geburtsdatum. Sie müssen mindestens 18 Jahre alt sein."
+        "invalid_date_of_birth": "Ungültiges Geburtsdatum. Sie müssen mindestens 18 Jahre alt sein.",
+        "name_mismatch_error": "First and last name must match your verified identity"
       },
       "physical_address": {
         "title": "Fügen Sie Ihre Adresse hinzu",
@@ -7174,6 +7188,7 @@
       "enable_assets_button_label": "Assets aktivieren",
       "spending_limit_warning": "Sie haben Ihr Ausgabenlimit fast erreicht. Aktualisieren Sie Ihr Konto, um Ablehnungen zu vermeiden.",
       "logout": "Abmelden",
+      "contact_support": "Support kontaktieren",
       "logout_confirmation_title": "Von Karte abmelden?",
       "logout_confirmation_message": "Möchten Sie sich wirklich von Ihrem MetaMask-Karte-Konto abmelden?",
       "logout_confirmation_cancel": "Stornieren",
@@ -7727,6 +7742,18 @@
     },
     "active_boosts_title": "Aktive Boosts",
     "season_1": "Saison 1",
+    "musd": {
+      "title": "mUSD bonus calculator",
+      "description": "See how much you could earn by converting your stablecoins to mUSD.",
+      "amount_label": "Amount converted",
+      "estimated_bonus": "Estimated annualized bonus: up to 3%",
+      "initial_amount": "Initial amount",
+      "daily_bonus": "Daily claimable bonus",
+      "annualized_bonus": "Annualized bonus",
+      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "buy_button": "mUSD kaufen",
+      "swap_button": "Swap to mUSD"
+    },
     "upcoming_rewards": {
       "title": "Gesperrte Belohnungen",
       "points_needed": "{{points}} Punkte",
@@ -8006,6 +8033,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Token",
       "perpetuals": "Perpetuals",
       "predictions": "Prognosen",

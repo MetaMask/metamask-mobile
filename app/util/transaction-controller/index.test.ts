@@ -6,7 +6,7 @@ import {
   IsAtomicBatchSupportedRequest,
 } from '@metamask/transaction-controller';
 import { cloneDeep } from 'lodash';
-//eslint-disable-next-line import/no-namespace
+//eslint-disable-next-line import-x/no-namespace
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
