@@ -48,8 +48,8 @@ export function getAccountTreeControllerMessenger(
       'KeyringController:getState',
     ],
     events: [
-      'AccountsController:accountAdded',
-      'AccountsController:accountRemoved',
+      'AccountsController:accountsAdded',
+      'AccountsController:accountsRemoved',
       'AccountsController:selectedAccountChange',
       'UserStorageController:stateChange',
       'MultichainAccountService:walletStatusChange',

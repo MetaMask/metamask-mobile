@@ -216,7 +216,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.KeyringController.encryptionKey',
     'engine.backgroundState.KeyringController.encryptionSalt',
     'engine.backgroundState.AccountTreeController.accountTree.wallets',
-    'engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup',
+    'engine.backgroundState.AccountTreeController.selectedAccountGroup',
     'engine.backgroundState.AccountTreeController.accountGroupsMetadata',
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
