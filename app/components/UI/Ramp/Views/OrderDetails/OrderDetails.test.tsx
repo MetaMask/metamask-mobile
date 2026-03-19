@@ -60,7 +60,16 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockUseParams = jest.fn(() => ({ orderId: 'test-order-123' }));
+interface OrderDetailsParams {
+  orderId?: string;
+  callbackUrl?: string;
+  providerCode?: string;
+  walletAddress?: string;
+  showCloseButton?: boolean;
+}
+const mockUseParams = jest.fn<() => OrderDetailsParams>(() => ({
+  orderId: 'test-order-123',
+}));
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
