@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import CampaignOptInSheet from './CampaignOptInSheet';
 import {
@@ -36,6 +35,31 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../ContentfulRichText/ContentfulRichText', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text: RNText } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    isDocument: (val: unknown) =>
+      val !== null &&
+      typeof val === 'object' &&
+      'nodeType' in (val as Record<string, unknown>) &&
+      (val as Record<string, unknown>).nodeType === 'document',
+    default: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(RNText, null, 'Rich text content'),
+      ),
+  };
+});
 
 jest.mock('../../hooks/useOptInToCampaign');
 const mockUseOptInToCampaign = useOptInToCampaign as jest.MockedFunction<
@@ -151,7 +175,6 @@ const mockOptInToCampaign = jest.fn();
 describe('CampaignOptInSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     // Default: geo complete, non-restricted country — keeps non-geo tests clean.
     mockGeolocation = 'AU';
     mockGeoStatus = 'complete';
@@ -189,14 +212,17 @@ describe('CampaignOptInSheet', () => {
     );
   });
 
-  it('opens the terms URL when terms link is pressed', () => {
+  it('navigates to the terms URL when terms link is pressed', () => {
     const { getByTestId } = render(
       <CampaignOptInSheet campaign={createTestCampaign()} />,
     );
     fireEvent.press(getByTestId('campaign-opt-in-sheet-terms-link'));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://go.metamask.io/rewards-terms',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
+      screen: 'BrowserView',
+      params: expect.objectContaining({
+        newTabUrl: 'https://go.metamask.io/rewards-terms',
+      }),
+    });
   });
 
   it('renders the CTA button', () => {
