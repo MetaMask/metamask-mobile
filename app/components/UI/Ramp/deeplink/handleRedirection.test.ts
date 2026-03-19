@@ -1,11 +1,11 @@
-import { RampType } from '../types';
-import Routes from '../../../../../constants/navigation/Routes';
+import { RampType } from '../Aggregator/types';
+import Routes from '../../../../constants/navigation/Routes';
 import handleRedirection from './handleRedirection';
-import NavigationService from '../../../../../core/NavigationService';
+import NavigationService from '../../../../core/NavigationService';
 
 jest.mock('@react-navigation/native');
 
-jest.mock('../../../../../core/NavigationService', () => ({
+jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
