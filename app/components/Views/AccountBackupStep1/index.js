@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
@@ -8,6 +7,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -144,7 +144,12 @@ const AccountBackupStep1 = (props) => {
     >
       <ScrollView
         contentContainerStyle={tw.style('flex-grow')}
-        style={tw.style('flex-1 bg-default')}
+        style={tw.style(
+          'flex-1 bg-default',
+          Platform.OS === 'android'
+            ? `pt-[${StatusBar.currentHeight || 24}px]`
+            : 'pt-2',
+        )}
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <Box twClassName="flex-1 px-4">
@@ -198,7 +203,7 @@ const AccountBackupStep1 = (props) => {
 
           <Box
             justifyContent={BoxJustifyContent.FlexEnd}
-            twClassName={`flex-1 gap-y-4 ${
+            twClassName={`mt-auto gap-y-4 ${
               Platform.OS === 'android' ? 'mb-6' : 'mb-4'
             }`}
           >
@@ -234,5 +239,16 @@ const AccountBackupStep1 = (props) => {
 const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
+
+AccountBackupStep1.propTypes = {
+  /**
+   * Object that represents the current route info like params passed to it.
+   */
+  route: PropTypes.object,
+  /**
+   * Action to save onboarding event.
+   */
+  saveOnboardingEvent: PropTypes.func,
+};
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);
