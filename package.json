@@ -211,6 +211,7 @@
     "@metamask/ai-controllers": "^0.3.0",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
+    "@metamask/client-controller": "file:../core/packages/client-controller",
     "@metamask/approval-controller": "^8.0.0",
     "@metamask/assets-controller": "^2.0.0",
     "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A100.2.1#~/.yarn/patches/@metamask-assets-controllers-npm-100.2.1-4f7a0c8320.patch",
