@@ -41,12 +41,12 @@ import Networks, {
   isMainNet,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
-import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+ Box } from '@metamask/design-system-react-native';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
@@ -81,7 +81,6 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { Box } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -983,14 +982,15 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
           </ScrollView>
           {!isSendFlow ? (
             <Button
-              variant={ButtonVariants.Secondary}
-              label={strings(buttonLabelAddNetwork)}
+              variant={ButtonVariant.Secondary}
               onPress={goToNetworkSettings}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               size={ButtonSize.Lg}
               style={styles.addNetworkButton}
               testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-            />
+            >
+              {strings(buttonLabelAddNetwork)}
+            </Button>
           ) : null}
         </KeyboardAvoidingView>
 
