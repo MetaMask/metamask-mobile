@@ -44,6 +44,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.earn_rewards.musd_subtitle': 'Calculate your mUSD bonus',
       'rewards.earn_rewards.card_title': 'Up to 3% cash back',
       'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
+      'rewards.earn_rewards.card_subtitle_cardholder':
+        'Access your MetaMask Card benefits',
     };
     return map[key] || key;
   },
@@ -65,6 +67,8 @@ import {
 import {
   selectCardGeoLocation,
   selectCardIsLoaded,
+  selectIsCardholder,
+  selectIsAuthenticatedCard,
 } from '../../../../../core/redux/slices/card';
 import { selectCardSupportedCountries } from '../../../../../selectors/featureFlagController/card';
 
@@ -79,6 +83,8 @@ interface SetupOptions {
   isCardGeoLoaded?: boolean;
   cardGeoLocation?: string;
   cardSupportedCountries?: Record<string, boolean>;
+  isCardholder?: boolean;
+  isAuthenticatedCard?: boolean;
 }
 
 const setupSelectors = ({
@@ -87,6 +93,8 @@ const setupSelectors = ({
   isCardGeoLoaded = true,
   cardGeoLocation = 'US',
   cardSupportedCountries = DEFAULT_CARD_SUPPORTED_COUNTRIES,
+  isCardholder = false,
+  isAuthenticatedCard = false,
 }: SetupOptions = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectOptinAllowedForGeo) return optinAllowedForGeo;
@@ -95,6 +103,8 @@ const setupSelectors = ({
     if (selector === selectCardGeoLocation) return cardGeoLocation;
     if (selector === selectCardSupportedCountries)
       return cardSupportedCountries;
+    if (selector === selectIsCardholder) return isCardholder;
+    if (selector === selectIsAuthenticatedCard) return isAuthenticatedCard;
     return undefined;
   });
 };
@@ -199,6 +209,39 @@ describe('EarnRewardsPreview', () => {
       setupSelectors({ optinAllowedForGeo: true });
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Up to 3% cash back')).toBeOnTheScreen();
+      expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
+    });
+  });
+
+  describe('card subtitle — cardholder state', () => {
+    it('shows cardholder subtitle when isCardholder is true', () => {
+      setupSelectors({ optinAllowedForGeo: true, isCardholder: true });
+      const { getByText } = render(<EarnRewardsPreview />);
+      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
+    });
+
+    it('shows cardholder subtitle when isAuthenticatedCard is true', () => {
+      setupSelectors({
+        optinAllowedForGeo: true,
+        isAuthenticatedCard: true,
+      });
+      const { getByText } = render(<EarnRewardsPreview />);
+      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
+    });
+
+    it('shows cardholder subtitle when both isCardholder and isAuthenticatedCard are true', () => {
+      setupSelectors({
+        optinAllowedForGeo: true,
+        isCardholder: true,
+        isAuthenticatedCard: true,
+      });
+      const { getByText } = render(<EarnRewardsPreview />);
+      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
+    });
+
+    it('shows default subtitle when neither isCardholder nor isAuthenticatedCard', () => {
+      setupSelectors({ optinAllowedForGeo: true });
+      const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
     });
   });

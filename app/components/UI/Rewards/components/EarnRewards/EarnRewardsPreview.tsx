@@ -29,6 +29,8 @@ import {
 import {
   selectCardGeoLocation,
   selectCardIsLoaded,
+  selectIsCardholder,
+  selectIsAuthenticatedCard,
 } from '../../../../../core/redux/slices/card';
 import { selectCardSupportedCountries } from '../../../../../selectors/featureFlagController/card';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
@@ -111,9 +113,15 @@ const EarnRewardsPreview: React.FC = () => {
   const cardSupportedCountries = useSelector(
     selectCardSupportedCountries,
   ) as Record<string, boolean>;
+  const isCardholder = useSelector(selectIsCardholder);
+  const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
   const isCardGeoLoading = !isCardGeoLoaded;
   const showCardCard =
     isCardGeoLoaded && cardSupportedCountries?.[cardGeoLocation] === true;
+  const cardSubtitle =
+    isCardholder || isAuthenticatedCard
+      ? strings('rewards.earn_rewards.card_subtitle_cardholder')
+      : strings('rewards.earn_rewards.card_subtitle');
 
   const isAnyGeoLoading = isGeoLoading || isCardGeoLoading;
 
@@ -131,7 +139,7 @@ const EarnRewardsPreview: React.FC = () => {
 
   return (
     <Box
-      twClassName="gap-3 p-4"
+      twClassName="gap-3 p-4 -mt-2"
       testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}
     >
       <Box
@@ -168,7 +176,7 @@ const EarnRewardsPreview: React.FC = () => {
               testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
               image={cardImage}
               title={strings('rewards.earn_rewards.card_title')}
-              subtitle={strings('rewards.earn_rewards.card_subtitle')}
+              subtitle={cardSubtitle}
               onPress={handleCardPress}
             />
           )}
