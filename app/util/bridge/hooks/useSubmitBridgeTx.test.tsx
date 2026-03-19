@@ -15,6 +15,11 @@ import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
 
 type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+interface MockABTestResult {
+  variant: unknown;
+  variantName: string;
+  isActive: boolean;
+}
 
 let mockSubmitTx: jest.Mock<
   Promise<TransactionMeta>,
@@ -103,16 +108,32 @@ jest.mock('../../../hooks', () => ({
 }));
 
 const mockStore = configureMockStore();
+const inactiveABTestResult: MockABTestResult = {
+  variant: undefined,
+  variantName: 'control',
+  isActive: false,
+};
 
 describe('useSubmitBridgeTx', () => {
+  const mockABTests = ({
+    first = inactiveABTestResult,
+    second = inactiveABTestResult,
+  }: {
+    first?: MockABTestResult;
+    second?: MockABTestResult;
+  } = {}) => {
+    jest
+      .mocked(useABTest)
+      .mockReset()
+      .mockReturnValue(inactiveABTestResult)
+      .mockReturnValueOnce(first)
+      .mockReturnValueOnce(second);
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     // Default every test to the non-experiment path unless it opts in.
-    jest.mocked(useABTest).mockReturnValue({
-      variant: undefined,
-      variantName: 'control',
-      isActive: false,
-    });
+    mockABTests();
   });
 
   const createWrapper = (mockState = {}) => {
@@ -204,19 +225,13 @@ describe('useSubmitBridgeTx', () => {
     });
 
     // Re-render with an active assignment to verify submitTx forwards activeAbTests.
-    jest
-      .mocked(useABTest)
-      .mockReset()
-      .mockReturnValue({
-        variant: undefined,
-        variantName: 'control',
-        isActive: false,
-      })
-      .mockReturnValueOnce({
+    mockABTests({
+      second: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
-      });
+      },
+    });
     mockSubmitTx.mockResolvedValueOnce({
       chainId: '0x1',
       id: '2',
@@ -490,19 +505,13 @@ describe('useSubmitBridgeTx', () => {
     });
 
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
-    jest
-      .mocked(useABTest)
-      .mockReset()
-      .mockReturnValue({
-        variant: undefined,
-        variantName: 'control',
-        isActive: false,
-      })
-      .mockReturnValueOnce({
+    mockABTests({
+      second: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
-      });
+      },
+    });
     mockSubmitIntent.mockResolvedValueOnce(mockIntentResult);
 
     const { result: activeResult } = renderHook(() => useSubmitBridgeTx(), {

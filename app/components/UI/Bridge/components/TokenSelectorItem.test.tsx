@@ -399,7 +399,7 @@ describe('TokenSelectorItem', () => {
   });
 
   describe('A/B variants', () => {
-    it('shows control and treatment layouts', () => {
+    it('keeps fiat above token balance in the control layout', () => {
       const token = createMockTokenWithBalance({
         balance: '50.0',
         balanceFiat: '$500',
@@ -409,14 +409,17 @@ describe('TokenSelectorItem', () => {
       const controlRender = render(
         <TokenSelectorItem token={token} onPress={mockOnPress} />,
       );
-      expect(controlRender.getByText('50 USDC')).toBeTruthy();
+      expect(controlRender.getByText('50 USDC')).toBeOnTheScreen();
+
       const controlTextOrder = controlRender
         .UNSAFE_getAllByType(RNText)
         .map((textNode) => String(textNode.props.children));
       expect(controlTextOrder.indexOf('$500')).toBeLessThan(
         controlTextOrder.indexOf('50 USDC'),
       );
+    });
 
+    it('shows token balance first without the ticker in the treatment layout', () => {
       mockUseABTest.mockReturnValue({
         variant: {
           showTokenBalanceFirst: true,
@@ -426,11 +429,18 @@ describe('TokenSelectorItem', () => {
         isActive: true,
       });
 
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+        symbol: 'USDC',
+      });
+
       const treatmentRender = render(
         <TokenSelectorItem token={token} onPress={mockOnPress} />,
       );
-      expect(treatmentRender.getByText('50')).toBeTruthy();
-      expect(treatmentRender.queryByText('50 USDC')).toBeNull();
+      expect(treatmentRender.getByText('50')).toBeOnTheScreen();
+      expect(treatmentRender.queryByText('50 USDC')).not.toBeOnTheScreen();
+
       const treatmentTextOrder = treatmentRender
         .UNSAFE_getAllByType(RNText)
         .map((textNode) => String(textNode.props.children));
