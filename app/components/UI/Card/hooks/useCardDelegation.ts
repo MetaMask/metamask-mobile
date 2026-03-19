@@ -39,6 +39,23 @@ export class UserCancelledError extends Error {
   }
 }
 
+/**
+ * Rethrows the error as UserCancelledError if the user cancelled the transaction,
+ * otherwise rethrows as-is.
+ */
+function rethrowAsUserCancelledIfApplicable(error: unknown): never {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  if (
+    errorMessage.includes('User denied') ||
+    errorMessage.includes('User rejected') ||
+    errorMessage.includes('User cancelled') ||
+    errorMessage.includes('User canceled')
+  ) {
+    throw new UserCancelledError(errorMessage);
+  }
+  throw error;
+}
+
 interface DelegationState {
   isLoading: boolean;
   error: string | null;
@@ -215,19 +232,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
 
         return actualTxHash;
       } catch (error) {
-        // Check if user denied/cancelled the transaction
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        const userCancelled =
-          errorMessage.includes('User denied') ||
-          errorMessage.includes('User rejected') ||
-          errorMessage.includes('User cancelled') ||
-          errorMessage.includes('User canceled');
-
-        if (userCancelled) {
-          throw new UserCancelledError(errorMessage);
-        }
-        throw error;
+        rethrowAsUserCancelledIfApplicable(error);
       }
     },
     [sdk, token, TransactionController, NetworkController],
@@ -380,24 +385,11 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
 
         return txHash;
       } catch (error) {
-        // Check if user denied/cancelled the transaction
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        const userCancelled =
-          errorMessage.includes('User denied') ||
-          errorMessage.includes('User rejected') ||
-          errorMessage.includes('User cancelled') ||
-          errorMessage.includes('User canceled');
-
-        if (userCancelled) {
-          throw new UserCancelledError(errorMessage);
-        }
-
         Logger.error(
           error as Error,
           'Failed to execute Solana approval transaction',
         );
-        throw error;
+        rethrowAsUserCancelledIfApplicable(error);
       }
     },
     [sdk, token],

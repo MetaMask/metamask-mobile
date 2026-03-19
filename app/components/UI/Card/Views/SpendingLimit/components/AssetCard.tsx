@@ -27,6 +27,7 @@ import { buildTokenIconUrl } from '../../../util/buildTokenIconUrl';
 import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { cardNetworkInfos } from '../../../constants';
 
 export interface AssetCardProps {
   /** Token symbol (e.g., 'mUSD', 'USDC') or 'Other' */
@@ -112,14 +113,16 @@ const AssetCard: React.FC<AssetCardProps> = ({
             <AvatarNetwork
               size={AvatarSize.Sm}
               name="Base"
-              imageSource={getNetworkImageSource({ chainId: 'eip155:8453' })}
+              imageSource={getNetworkImageSource({
+                chainId: cardNetworkInfos.base.caipChainId,
+              })}
               style={tw.style('rounded-full overflow-hidden')}
             />
             <AvatarNetwork
               size={AvatarSize.Sm}
               name="Solana"
               imageSource={getNetworkImageSource({
-                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                chainId: cardNetworkInfos.solana.caipChainId,
               })}
               style={tw.style('-ml-2 rounded-full overflow-hidden')}
             />
