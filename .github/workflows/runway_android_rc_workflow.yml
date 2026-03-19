@@ -1,6 +1,6 @@
 ##############################################################################################
 #
-# Runway iOS RC Workflow
+# Runway Android RC Workflow
 #
 # Triggered from Runway to either:
 # - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
@@ -9,7 +9,7 @@
 # When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
 #
 ##############################################################################################
-name: Runway iOS RC
+name: Runway Android RC
 
 on:
   workflow_dispatch:
@@ -130,7 +130,7 @@ jobs:
                 base_branch: '${{ needs.decide.outputs.base_ref }}',
                 message: '${{ needs.decide.outputs.ota_version }}',
                 channel: 'rc',
-                platform: 'ios'
+                platform: 'android'
               }
             });
             core.notice(`Triggered Push OTA Update on ${ref} (PR #${{ needs.decide.outputs.pr_number }}, base: ${{ needs.decide.outputs.base_ref }}, message: ${{ needs.decide.outputs.ota_version }})`);
@@ -142,7 +142,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
-      platform: ios
+      platform: android
       skip_version_bump: false
       ref: ${{ inputs.ref || github.ref_name }}
     secrets: inherit
