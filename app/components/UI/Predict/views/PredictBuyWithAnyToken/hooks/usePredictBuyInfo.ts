@@ -46,6 +46,12 @@ export const usePredictBuyInfo = ({
     }
   }, [computedDepositFee]);
 
+  useEffect(() => {
+    if (!isConfirming) {
+      setAcceptedDepositFee(0);
+    }
+  }, [isConfirming]);
+
   const depositFee =
     computedDepositFee > 0
       ? computedDepositFee
