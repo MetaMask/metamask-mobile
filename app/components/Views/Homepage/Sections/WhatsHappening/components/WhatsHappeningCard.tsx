@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
+  BoxJustifyContent,
   Text,
   TextVariant,
   TextColor,
@@ -29,45 +30,48 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
       <Box
-        twClassName="w-[280px] rounded-2xl bg-background-muted overflow-hidden"
+        twClassName="w-[280px] h-[220px] rounded-2xl bg-background-muted overflow-hidden"
         padding={4}
+        justifyContent={BoxJustifyContent.Between}
         gap={3}
       >
-        {/* Category badge */}
-        {item.category && (
-          <Box twClassName="self-start">
-            <Box twClassName="rounded-full bg-background-default px-2 py-0.5">
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings(
-                  `homepage.sections.whats_happening_categories.${item.category}`,
-                )}
-              </Text>
+        <Box gap={3}>
+          {/* Category badge */}
+          {item.category && (
+            <Box twClassName="self-start">
+              <Box twClassName="rounded-full bg-background-default px-2 py-0.5">
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings(
+                    `homepage.sections.whats_happening_categories.${item.category}`,
+                  )}
+                </Text>
+              </Box>
             </Box>
-          </Box>
-        )}
+          )}
 
-        {/* Title */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={3}
-        >
-          {item.title}
-        </Text>
+          {/* Title */}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={3}
+          >
+            {item.title}
+          </Text>
 
-        {/* Description */}
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={3}
-        >
-          {item.description}
-        </Text>
+          {/* Description */}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={3}
+          >
+            {item.description}
+          </Text>
+        </Box>
 
         {/* Footer: asset pills + date */}
         <Box gap={2}>
