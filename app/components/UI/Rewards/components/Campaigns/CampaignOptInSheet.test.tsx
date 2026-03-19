@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import type { Json } from '@metamask/utils';
 import CampaignOptInSheet from './CampaignOptInSheet';
 import {
   type CampaignDto,
@@ -271,7 +272,7 @@ describe('CampaignOptInSheet', () => {
   });
 
   describe('termsAndConditions rich text', () => {
-    const richTextDoc = {
+    const richTextDoc: Json = {
       nodeType: 'document',
       data: {},
       content: [
