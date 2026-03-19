@@ -1484,7 +1484,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(claimableAsset);
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+        claimableAsset,
+        'token_list_item',
+        true,
+      );
     });
   });
 });
