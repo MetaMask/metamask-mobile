@@ -104,6 +104,15 @@ describe('complianceController selectors', () => {
       const state = buildState(undefined);
       expect(selectIsWalletBlocked(BLOCKED_ADDRESS)(state)).toBe(false);
     });
+
+    it('returns the same selector instance for the same address (memoized)', () => {
+      expect(selectIsWalletBlocked(BLOCKED_ADDRESS)).toBe(
+        selectIsWalletBlocked(BLOCKED_ADDRESS),
+      );
+      expect(selectIsWalletBlocked(SAFE_ADDRESS)).not.toBe(
+        selectIsWalletBlocked(BLOCKED_ADDRESS),
+      );
+    });
   });
 
   describe('selectAreAnyWalletsBlocked', () => {
@@ -180,6 +189,12 @@ describe('complianceController selectors', () => {
     it('returns false when controller state is undefined', () => {
       const state = buildState(undefined);
       expect(selectAreAnyWalletsBlocked([BLOCKED_ADDRESS])(state)).toBe(false);
+    });
+
+    it('returns the same selector instance for the same address set (memoized, order-independent)', () => {
+      const sel1 = selectAreAnyWalletsBlocked([SAFE_ADDRESS, BLOCKED_ADDRESS]);
+      const sel2 = selectAreAnyWalletsBlocked([BLOCKED_ADDRESS, SAFE_ADDRESS]);
+      expect(sel1).toBe(sel2);
     });
   });
 

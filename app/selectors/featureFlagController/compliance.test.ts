@@ -76,4 +76,20 @@ describe('selectComplianceEnabled', () => {
 
     expect(result).toBe(false);
   });
+
+  it('returns true when boolean local override is true (aligns with init)', () => {
+    const result = selectComplianceEnabled.resultFunc({
+      [FeatureFlagNames.complianceEnabled]: true,
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when boolean local override is false (aligns with init)', () => {
+    const result = selectComplianceEnabled.resultFunc({
+      [FeatureFlagNames.complianceEnabled]: false,
+    });
+
+    expect(result).toBe(false);
+  });
 });
