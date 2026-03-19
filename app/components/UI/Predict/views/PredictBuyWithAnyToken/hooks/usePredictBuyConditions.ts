@@ -15,6 +15,8 @@ import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
+  total: number;
+  depositFee: number;
   preview?: OrderPreview | null;
   isPreviewCalculating: boolean;
   isPlaceOrderLoading: boolean;
@@ -25,12 +27,15 @@ interface UsePredictBuyConditionsParams {
 export const usePredictBuyConditions = ({
   preview,
   currentValue,
+  total,
+  depositFee,
   isPreviewCalculating,
   isPlaceOrderLoading,
   isUserInputChange,
   isConfirming,
 }: UsePredictBuyConditionsParams) => {
-  const { isBalanceLoading } = usePredictBuyAvailableBalance();
+  const { isBalanceLoading, availableBalance } =
+    usePredictBuyAvailableBalance();
   const { activeOrder } = usePredictActiveOrder();
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayLoading();
@@ -54,6 +59,16 @@ export const usePredictBuyConditions = ({
     () => currentValue > 0 && currentValue < MINIMUM_BET,
     [currentValue],
   );
+
+  const isInsufficientBalance = useMemo(
+    () => currentValue > 0 && total > availableBalance,
+    [currentValue, total, availableBalance],
+  );
+
+  const maxBetAmount = useMemo(() => {
+    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
+    return Math.max(0, (availableBalance - depositFee) / (1 + feeRate));
+  }, [availableBalance, depositFee, preview?.fees?.totalFeePercentage]);
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
@@ -141,6 +156,7 @@ export const usePredictBuyConditions = ({
     () =>
       !isConfirming &&
       !isBelowMinimum &&
+      !isInsufficientBalance &&
       !!preview &&
       !isPlaceOrderLoading &&
       !isRateLimited &&
@@ -150,6 +166,7 @@ export const usePredictBuyConditions = ({
     [
       isConfirming,
       isBelowMinimum,
+      isInsufficientBalance,
       preview,
       isPlaceOrderLoading,
       isRateLimited,
@@ -166,6 +183,8 @@ export const usePredictBuyConditions = ({
 
   return {
     isBelowMinimum,
+    isInsufficientBalance,
+    maxBetAmount,
     isRateLimited,
     isPlacingOrder,
     canPlaceBet,

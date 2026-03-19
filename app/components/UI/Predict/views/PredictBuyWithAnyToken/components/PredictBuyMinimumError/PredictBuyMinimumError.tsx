@@ -13,11 +13,15 @@ import { MINIMUM_BET } from '../../../../constants/transactions';
 interface PredictBuyMinimumErrorProps {
   isBalanceLoading: boolean;
   isBelowMinimum: boolean;
+  isInsufficientBalance: boolean;
+  maxBetAmount: number;
 }
 
 const PredictBuyMinimumError = ({
   isBalanceLoading,
   isBelowMinimum,
+  isInsufficientBalance,
+  maxBetAmount,
 }: PredictBuyMinimumErrorProps) => {
   const tw = useTailwind();
 
@@ -37,6 +41,29 @@ const PredictBuyMinimumError = ({
               maximumDecimals: 2,
             }),
           })}
+        </Text>
+      </Box>
+    );
+  }
+
+  if (isInsufficientBalance) {
+    const formattedMax = formatPrice(maxBetAmount, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
+
+    return (
+      <Box twClassName="px-12 pb-4">
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          style={tw.style('text-center')}
+        >
+          {maxBetAmount >= MINIMUM_BET
+            ? strings('predict.order.prediction_insufficient_funds', {
+                amount: formattedMax,
+              })
+            : strings('predict.order.no_funds_enough')}
         </Text>
       </Box>
     );

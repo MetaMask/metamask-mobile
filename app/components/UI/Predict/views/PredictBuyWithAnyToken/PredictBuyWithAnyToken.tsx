@@ -45,6 +45,7 @@ import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags'
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
+import { formatPrice } from '../../utils/format';
 
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
@@ -70,6 +71,15 @@ const PredictBuyWithAnyToken = () => {
 
   const { availableBalance, isBalanceLoading } =
     usePredictBuyAvailableBalance();
+
+  const availableBalanceDisplay = useMemo(
+    () =>
+      formatPrice(availableBalance, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      }),
+    [availableBalance],
+  );
 
   const {
     currentValue,
@@ -136,12 +146,16 @@ const PredictBuyWithAnyToken = () => {
   const {
     isPlacingOrder,
     isBelowMinimum,
+    isInsufficientBalance,
+    maxBetAmount,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
   } = usePredictBuyConditions({
     currentValue,
+    total,
+    depositFee,
     preview,
     isPreviewCalculating,
     isPlaceOrderLoading,
@@ -213,7 +227,7 @@ const PredictBuyWithAnyToken = () => {
             isInputFocused={isInputFocused}
             isBalanceLoading={isBalanceLoading}
             isBalancePulsing={isBalancePulsing}
-            availableBalanceDisplay={availableBalance}
+            availableBalanceDisplay={availableBalanceDisplay}
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
             isPlacingOrder={isPlacingOrder}
@@ -224,6 +238,8 @@ const PredictBuyWithAnyToken = () => {
       <PredictBuyMinimumError
         isBalanceLoading={isBalanceLoading}
         isBelowMinimum={isBelowMinimum}
+        isInsufficientBalance={isInsufficientBalance}
+        maxBetAmount={maxBetAmount}
       />
       <PredictKeypad
         ref={keypadRef}

@@ -8,6 +8,12 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
     if (key === 'predict.order.prediction_minimum_bet') {
       return `Minimum bet: ${options?.amount}`;
     }
+    if (key === 'predict.order.prediction_insufficient_funds') {
+      return `Not enough funds. You can use up to ${options?.amount}.`;
+    }
+    if (key === 'predict.order.no_funds_enough') {
+      return 'Not enough funds.';
+    }
     return key;
   }),
 }));
@@ -24,7 +30,12 @@ describe('PredictBuyMinimumError', () => {
   describe('when isBalanceLoading is true', () => {
     it('returns null and does not render anything', () => {
       renderWithProvider(
-        <PredictBuyMinimumError isBalanceLoading isBelowMinimum={false} />,
+        <PredictBuyMinimumError
+          isBalanceLoading
+          isBelowMinimum={false}
+          isInsufficientBalance={false}
+          maxBetAmount={0}
+        />,
       );
 
       expect(screen.queryByText(/Minimum bet:/)).not.toBeOnTheScreen();
@@ -32,17 +43,40 @@ describe('PredictBuyMinimumError', () => {
 
     it('returns null even when isBelowMinimum is true', () => {
       renderWithProvider(
-        <PredictBuyMinimumError isBalanceLoading isBelowMinimum />,
+        <PredictBuyMinimumError
+          isBalanceLoading
+          isBelowMinimum
+          isInsufficientBalance={false}
+          maxBetAmount={0}
+        />,
       );
 
       expect(screen.queryByText(/Minimum bet:/)).not.toBeOnTheScreen();
+    });
+
+    it('returns null even when isInsufficientBalance is true', () => {
+      renderWithProvider(
+        <PredictBuyMinimumError
+          isBalanceLoading
+          isBelowMinimum={false}
+          isInsufficientBalance
+          maxBetAmount={5}
+        />,
+      );
+
+      expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
   });
 
   describe('when isBalanceLoading is false and isBelowMinimum is true', () => {
     it('displays error message with formatted minimum bet amount', () => {
       renderWithProvider(
-        <PredictBuyMinimumError isBalanceLoading={false} isBelowMinimum />,
+        <PredictBuyMinimumError
+          isBalanceLoading={false}
+          isBelowMinimum
+          isInsufficientBalance={false}
+          maxBetAmount={0}
+        />,
       );
 
       expect(screen.getByText(/Minimum bet:/)).toBeOnTheScreen();
@@ -51,7 +85,12 @@ describe('PredictBuyMinimumError', () => {
 
     it('renders error text with correct styling', () => {
       renderWithProvider(
-        <PredictBuyMinimumError isBalanceLoading={false} isBelowMinimum />,
+        <PredictBuyMinimumError
+          isBalanceLoading={false}
+          isBelowMinimum
+          isInsufficientBalance={false}
+          maxBetAmount={0}
+        />,
       );
 
       const errorText = screen.getByText(/Minimum bet:/);
@@ -60,7 +99,12 @@ describe('PredictBuyMinimumError', () => {
 
     it('centers the error text', () => {
       renderWithProvider(
-        <PredictBuyMinimumError isBalanceLoading={false} isBelowMinimum />,
+        <PredictBuyMinimumError
+          isBalanceLoading={false}
+          isBelowMinimum
+          isInsufficientBalance={false}
+          maxBetAmount={0}
+        />,
       );
 
       const errorText = screen.getByText(/Minimum bet:/);
@@ -72,37 +116,80 @@ describe('PredictBuyMinimumError', () => {
     });
   });
 
-  describe('when isBalanceLoading is false and isBelowMinimum is false', () => {
+  describe('when isInsufficientBalance is true', () => {
+    it('displays max bet amount when maxBetAmount >= MINIMUM_BET', () => {
+      renderWithProvider(
+        <PredictBuyMinimumError
+          isBalanceLoading={false}
+          isBelowMinimum={false}
+          isInsufficientBalance
+          maxBetAmount={5}
+        />,
+      );
+
+      expect(
+        screen.getByText(/Not enough funds\. You can use up to \$5\.00\./),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays generic message when maxBetAmount < MINIMUM_BET', () => {
+      renderWithProvider(
+        <PredictBuyMinimumError
+          isBalanceLoading={false}
+          isBelowMinimum={false}
+          isInsufficientBalance
+          maxBetAmount={0.5}
+        />,
+      );
+
+      expect(screen.getByText('Not enough funds.')).toBeOnTheScreen();
+      expect(screen.queryByText(/You can use up to/)).not.toBeOnTheScreen();
+    });
+
+    it('prioritizes isBelowMinimum over isInsufficientBalance', () => {
+      renderWithProvider(
+        <PredictBuyMinimumError
+          isBalanceLoading={false}
+          isBelowMinimum
+          isInsufficientBalance
+          maxBetAmount={5}
+        />,
+      );
+
+      expect(screen.getByText(/Minimum bet:/)).toBeOnTheScreen();
+      expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('when all validation flags are false', () => {
     it('returns null and does not render anything', () => {
       renderWithProvider(
         <PredictBuyMinimumError
           isBalanceLoading={false}
           isBelowMinimum={false}
+          isInsufficientBalance={false}
+          maxBetAmount={0}
         />,
       );
 
       expect(screen.queryByText(/Minimum bet:/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
   });
 
   describe('edge cases', () => {
-    it('handles both flags being false', () => {
+    it('prioritizes isBalanceLoading over all other flags', () => {
       renderWithProvider(
         <PredictBuyMinimumError
-          isBalanceLoading={false}
-          isBelowMinimum={false}
+          isBalanceLoading
+          isBelowMinimum
+          isInsufficientBalance
+          maxBetAmount={5}
         />,
       );
 
       expect(screen.queryByText(/Minimum bet:/)).not.toBeOnTheScreen();
-    });
-
-    it('prioritizes isBalanceLoading over isBelowMinimum', () => {
-      renderWithProvider(
-        <PredictBuyMinimumError isBalanceLoading isBelowMinimum />,
-      );
-
-      expect(screen.queryByText(/Minimum bet:/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
   });
 });

@@ -3,6 +3,7 @@ import { usePredictBuyConditions } from './usePredictBuyConditions';
 import { ActiveOrderState, OrderPreview } from '../../../types';
 
 let mockIsBalanceLoading = false;
+let mockAvailableBalance = 100;
 let mockActiveOrder: { state?: string } | null = null;
 let mockPayTotals: Record<string, unknown> | null = null;
 let mockIsPayTotalsLoading = false;
@@ -23,6 +24,7 @@ let mockIsDepositPending = false;
 jest.mock('./usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
     isBalanceLoading: mockIsBalanceLoading,
+    availableBalance: mockAvailableBalance,
   }),
 }));
 
@@ -59,6 +61,8 @@ jest.mock(
 
 const defaultParams = {
   currentValue: 10,
+  total: 10.5,
+  depositFee: 0,
   preview: { rateLimited: false } as OrderPreview | null,
   isPreviewCalculating: false,
   isPlaceOrderLoading: false,
@@ -70,6 +74,7 @@ describe('usePredictBuyConditions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBalanceLoading = false;
+    mockAvailableBalance = 100;
     mockActiveOrder = null;
     mockPayTotals = null;
     mockIsPayTotalsLoading = false;
@@ -112,6 +117,142 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.isBelowMinimum).toBe(false);
+    });
+  });
+
+  describe('isInsufficientBalance', () => {
+    it('returns true when total exceeds available balance and currentValue > 0', () => {
+      mockAvailableBalance = 5;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          total: 10.5,
+        }),
+      );
+
+      expect(result.current.isInsufficientBalance).toBe(true);
+    });
+
+    it('returns false when total is within available balance', () => {
+      mockAvailableBalance = 100;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          total: 10.5,
+        }),
+      );
+
+      expect(result.current.isInsufficientBalance).toBe(false);
+    });
+
+    it('returns false when total equals available balance', () => {
+      mockAvailableBalance = 10.5;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          total: 10.5,
+        }),
+      );
+
+      expect(result.current.isInsufficientBalance).toBe(false);
+    });
+
+    it('returns false when currentValue is 0', () => {
+      mockAvailableBalance = 0;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 0,
+          total: 0,
+        }),
+      );
+
+      expect(result.current.isInsufficientBalance).toBe(false);
+    });
+  });
+
+  describe('maxBetAmount', () => {
+    it('returns balance divided by (1 + feeRate) when fees apply', () => {
+      mockAvailableBalance = 104;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          preview: {
+            rateLimited: false,
+            fees: { totalFeePercentage: 4 },
+          } as OrderPreview,
+        }),
+      );
+
+      expect(result.current.maxBetAmount).toBe(100);
+    });
+
+    it('subtracts depositFee before applying fee rate', () => {
+      mockAvailableBalance = 106;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          depositFee: 2,
+          preview: {
+            rateLimited: false,
+            fees: { totalFeePercentage: 4 },
+          } as OrderPreview,
+        }),
+      );
+
+      expect(result.current.maxBetAmount).toBe(100);
+    });
+
+    it('returns 0 when depositFee exceeds available balance', () => {
+      mockAvailableBalance = 1;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          depositFee: 5,
+          preview: {
+            rateLimited: false,
+            fees: { totalFeePercentage: 4 },
+          } as OrderPreview,
+        }),
+      );
+
+      expect(result.current.maxBetAmount).toBe(0);
+    });
+
+    it('returns full available balance when fee rate is 0 and no depositFee', () => {
+      mockAvailableBalance = 50;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          preview: {
+            rateLimited: false,
+            fees: { totalFeePercentage: 0 },
+          } as OrderPreview,
+        }),
+      );
+
+      expect(result.current.maxBetAmount).toBe(50);
+    });
+
+    it('returns full available balance when preview has no fees', () => {
+      mockAvailableBalance = 50;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.maxBetAmount).toBe(50);
     });
   });
 
@@ -237,6 +378,16 @@ describe('usePredictBuyConditions', () => {
     it('returns false when isConfirming is true', () => {
       const { result } = renderHook(() =>
         usePredictBuyConditions({ ...defaultParams, isConfirming: true }),
+      );
+
+      expect(result.current.canPlaceBet).toBe(false);
+    });
+
+    it('returns false when isInsufficientBalance', () => {
+      mockAvailableBalance = 5;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, total: 10.5 }),
       );
 
       expect(result.current.canPlaceBet).toBe(false);
