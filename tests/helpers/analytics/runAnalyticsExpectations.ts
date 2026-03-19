@@ -2,11 +2,7 @@ import { Mockttp, MockttpServer } from 'mockttp';
 import Assertions from '../../framework/Assertions';
 import SoftAssert from '../../framework/SoftAssert';
 import type { AnalyticsExpectations } from '../../framework/types';
-import {
-  EventPayload,
-  filterEvents,
-  getEventsPayloads,
-} from './helpers';
+import { EventPayload, filterEvents, getEventsPayloads } from './helpers';
 
 /**
  * Returns true when `analyticsExpectations` should run (non-empty configuration).
@@ -55,8 +51,7 @@ export async function assertCapturedMetaMetricsEvents(
   const expectedTotalCount = expectations.expectedTotalCount;
   if (expectedTotalCount !== undefined) {
     await softAssert.checkAndCollect(
-      async () =>
-        Assertions.checkIfArrayHasLength(events, expectedTotalCount),
+      async () => Assertions.checkIfArrayHasLength(events, expectedTotalCount),
       `Expected ${String(expectedTotalCount)} MetaMetrics events, got ${events.length}`,
     );
   }

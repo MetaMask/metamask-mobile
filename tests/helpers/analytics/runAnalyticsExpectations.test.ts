@@ -60,19 +60,15 @@ describe('deriveEventNamesForFetch', () => {
 
   it('uses unique names from events when eventNames missing', () => {
     const expectations: AnalyticsExpectations = {
-      events: [
-        { name: 'Dup' },
-        { name: 'Dup' },
-        { name: 'Other' },
-      ],
+      events: [{ name: 'Dup' }, { name: 'Dup' }, { name: 'Other' }],
     };
     expect(deriveEventNamesForFetch(expectations)).toEqual(['Dup', 'Other']);
   });
 
   it('returns empty array when no names source', () => {
-    expect(deriveEventNamesForFetch({ validate: async () => undefined })).toEqual(
-      [],
-    );
+    expect(
+      deriveEventNamesForFetch({ validate: async () => undefined }),
+    ).toEqual([]);
   });
 });
 

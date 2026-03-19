@@ -42,25 +42,26 @@ const transactionFinalizedProperties: Record<
 /**
  * Expected MetaMetrics payloads after confirming a dapp-initiated native transfer (local Anvil).
  */
-export const dappInitiatedTransferAnalyticsExpectations: AnalyticsExpectations = {
-  eventNames: [...transactionEventNames],
-  expectedTotalCount: transactionEventNames.length,
-  events: [
-    {
-      name: TRANSACTION_ADDED,
-      requiredProperties: { ...commonTransactionPropertiesAndTypes },
-    },
-    {
-      name: TRANSACTION_SUBMITTED,
-      requiredProperties: { ...simulationLifecycleProperties },
-    },
-    {
-      name: TRANSACTION_APPROVED,
-      requiredProperties: { ...simulationLifecycleProperties },
-    },
-    {
-      name: TRANSACTION_FINALIZED,
-      requiredProperties: { ...transactionFinalizedProperties },
-    },
-  ],
-};
+export const dappInitiatedTransferAnalyticsExpectations: AnalyticsExpectations =
+  {
+    eventNames: [...transactionEventNames],
+    expectedTotalCount: transactionEventNames.length,
+    events: [
+      {
+        name: TRANSACTION_ADDED,
+        requiredProperties: { ...commonTransactionPropertiesAndTypes },
+      },
+      {
+        name: TRANSACTION_SUBMITTED,
+        requiredProperties: { ...simulationLifecycleProperties },
+      },
+      {
+        name: TRANSACTION_APPROVED,
+        requiredProperties: { ...simulationLifecycleProperties },
+      },
+      {
+        name: TRANSACTION_FINALIZED,
+        requiredProperties: { ...transactionFinalizedProperties },
+      },
+    ],
+  };

@@ -330,10 +330,7 @@ export interface AnalyticsEventExpectation {
    * `Assertions.checkIfObjectHasKeysAndValidValues` (e.g. `'string'`, `'number'`, `'array'`).
    * Applied to **every** captured payload with this event name.
    */
-  requiredProperties?: Record<
-    string,
-    string | ((value: unknown) => boolean)
-  >;
+  requiredProperties?: Record<string, string | ((value: unknown) => boolean)>;
   /**
    * Exact property match on the payload at `matchEventIndex` via
    * `Assertions.checkIfObjectsMatch`.
