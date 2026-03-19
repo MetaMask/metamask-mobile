@@ -36,7 +36,9 @@ function normalizeAddresses(input: AddressInput): string[] {
  * ```
  */
 export function useWalletCompliance(address: AddressInput) {
-  const addresses = useMemo(() => normalizeAddresses(address), [address]);
+  const addressKey = Array.isArray(address) ? address.join(',') : address;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- addressKey is a stable scalar derived from address
+  const addresses = useMemo(() => normalizeAddresses(address), [addressKey]);
   const isSingle = addresses.length === 1;
 
   const singleBlocked = useSelector(selectIsWalletBlocked(addresses[0] ?? ''));
