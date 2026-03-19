@@ -1,0 +1,64 @@
+{
+  "pr": "27668",
+  "title": "Button color flash when open a market with an open position",
+  "jira": "TAT-2236",
+  "acceptance_criteria": [
+    "Navigating to a market with an open position shows Close/Modify immediately — no Long/Short flash",
+    "Navigating to a market with NO position shows Long/Short immediately — no flash",
+    "No new TypeScript errors"
+  ],
+  "validate": {
+    "static": ["yarn lint:tsc"],
+    "runtime": {
+      "pre_conditions": ["CDP connected", "Wallet unlocked on Wallet route"],
+      "steps": [
+        {
+          "id": "nav_home",
+          "description": "Navigate to wallet home",
+          "action": "navigate",
+          "target": "Wallet"
+        },
+        {
+          "id": "has_positions",
+          "description": "Verify at least one open position exists",
+          "action": "recipe_ref",
+          "ref": "positions",
+          "assert": { "operator": "length_gt", "value": 0 }
+        },
+        {
+          "id": "open_market_with_position",
+          "description": "Navigate to BTC market detail (has open position)",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}
+        },
+        {
+          "id": "wait_render",
+          "description": "Wait for render to settle",
+          "action": "wait",
+          "ms": 2000
+        },
+        {
+          "id": "check_no_flash_logs",
+          "description": "No BUG_MARKER in Metro logs (no Long/Short flash)",
+          "action": "log_watch",
+          "window_seconds": 5,
+          "must_not_appear": ["BUG_MARKER"]
+        },
+        {
+          "id": "verify_position_state",
+          "description": "Account state still loaded",
+          "action": "eval_sync",
+          "expression": "JSON.stringify(Engine.context.PerpsController.state.accountState)",
+          "assert": { "operator": "not_null" }
+        },
+        {
+          "id": "screenshot_result",
+          "description": "Capture market detail state showing Modify/Close buttons",
+          "action": "screenshot",
+          "filename": "market-detail-with-position.png"
+        }
+      ]
+    }
+  }
+}

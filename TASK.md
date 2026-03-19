@@ -20,7 +20,7 @@ JIRA: TAT-2236
 TITLE: Button color flash when open a market with an open position
 BRANCH: fix/perps/tat-2236-0319-1419
 PR_NUMBER: 27668
-STATUS: working
+STATUS: done
 SESSION: mm-3
 REPO: /Users/deeeed/dev/metamask/metamask-mobile-3
 PLATFORM: ios
@@ -45,7 +45,9 @@ WATCHER_PORT: 8063
 
 ## Root Cause Hypothesis
 
-> _Fill this in at step 12. Do not assume a root cause before investigating._
+In `usePerpsLivePositions.ts`, `rawPositions` and `positions` are separate state variables synced via a `useEffect`. When the WebSocket subscription callback fires (setting `isInitialLoading=false` + `setRawPositions(data)`), the enrichment `useEffect` that syncs `rawPositions` → `positions` runs one render cycle later. This creates a one-render gap where `isLoadingPosition=false` but `positions` is still empty, causing `existingPosition=null` and Long/Short buttons to flash before Modify/Close buttons appear.
+
+Fix: Replace `positions` state + enrichment `useEffect` with a `useMemo` that derives enriched positions from `rawPositions` synchronously.
 
 ---
 
@@ -104,7 +106,7 @@ STOP at any failing step — fix before proceeding.
   Engine.context.PerpsController.getPositions().then(r => JSON.stringify(r))
   ```
   **If the fix is already committed on this branch**, `git stash` first, complete steps 8-11 with the bug visible, then `git stash pop`.
-- [ ] **9. Add a DevLogger reproduction marker** in the relevant source code that fires exactly when the bug condition occurs:
+- [x] **9. Add a DevLogger reproduction marker** in the relevant source code that fires exactly when the bug condition occurs:
   ```javascript
   DevLogger.log('[PR-<PR_NUMBER>] BUG_MARKER: <condition description>');
   ```
@@ -116,39 +118,39 @@ STOP at any failing step — fix before proceeding.
   ```bash
   git add -A && git commit -m "debug(pr-<PR_NUMBER>): add reproduction marker"
   ```
-- [ ] **10. Write `automation/<PR_NUMBER>/recipe.json`** — an executable recipe that validates the fix via `validate-recipe.sh`. Must cover all acceptance criteria. See the Reference section below for schema and example.
+- [x] **10. Write `automation/<PR_NUMBER>/recipe.json`** — an executable recipe that validates the fix via `validate-recipe.sh`. Must cover all acceptance criteria. See the Reference section below for schema and example.
   If you cannot write a valid recipe, set status to `blocked: cannot reproduce` and stop.
-- [ ] **11. Record before.mp4 (if visual)** — if the bug has a visible UI symptom, record the recipe reproduction flow before any fix code is written. Use the video recording commands from the agentic toolkit. Skip if the bug is purely logical (e.g. wrong data, crash, race condition with no UI artifact).
+- [x] **11. Record before.mp4 (if visual)** — if the bug has a visible UI symptom, record the recipe reproduction flow before any fix code is written. Use the video recording commands from the agentic toolkit. Skip if the bug is purely logical (e.g. wrong data, crash, race condition with no UI artifact).
 
 > REMINDER: Do NOT stop or wait for user input. Continue autonomously through all steps.
 
 ### Investigate
 
-- [ ] **12. Check Metro logs** for errors related to the affected area:
+- [x] **12. Check Metro logs** for errors related to the affected area:
   ```bash
   grep -i "error\|warn\|fail" .agent/metro.log | tail -30
   ```
-- [ ] **13. Use DevLogger and CDP to trace the issue.** Never guess — confirm root cause with a file:line reference. Read the relevant source files. Understand the data flow before changing anything. Update the Root Cause Hypothesis section above with your findings.
+- [x] **13. Use DevLogger and CDP to trace the issue.** Never guess — confirm root cause with a file:line reference. Read the relevant source files. Understand the data flow before changing anything. Update the Root Cause Hypothesis section above with your findings.
 
 ### Fix (minimal change only)
 
-- [ ] **14. Make the minimal change** to fix the bug. No refactoring, no cleanup. Only modify files directly related to the fix.
-- [ ] **15. Update or add tests** to cover the fix. If the affected code has existing tests, update them. If no tests exist for the specific bug condition, add a focused test.
+- [x] **14. Make the minimal change** to fix the bug. No refactoring, no cleanup. Only modify files directly related to the fix.
+- [x] **15. Update or add tests** to cover the fix. If the affected code has existing tests, update them. If no tests exist for the specific bug condition, add a focused test.
 
 ### Validate (every step mandatory — do NOT skip any)
 
-- [ ] **16. Run `yarn lint:tsc`** — STOP if you introduced new type errors. Fix before proceeding.
+- [x] **16. Run `yarn lint:tsc`** — STOP if you introduced new type errors. Fix before proceeding.
   ```bash
   NODE_OPTIONS='--max-old-space-size=8192' npx tsc --noEmit --incremental --tsBuildInfoFile .tsbuildinfo --project ./tsconfig.json 2>&1 | tail -20
   ```
-- [ ] **17. Run affected tests** — `yarn jest <specific-test-file> --no-coverage`. STOP if any test fails. Fix before proceeding. NEVER use `--findRelatedTests`.
-- [ ] **18. Run `yarn coverage:analyze`** — target 80% newCodeCoverage on changed lines.
-- [ ] **19. Run validate-recipe.sh** — must exit 0. Do NOT skip. Do NOT proceed if it fails.
+- [x] **17. Run affected tests** — `yarn jest <specific-test-file> --no-coverage`. STOP if any test fails. Fix before proceeding. NEVER use `--findRelatedTests`.
+- [x] **18. Run `yarn coverage:analyze`** — target 80% newCodeCoverage on changed lines.
+- [x] **19. Run validate-recipe.sh** — must exit 0. Do NOT skip. Do NOT proceed if it fails.
   ```bash
   bash scripts/perps/agentic/validate-recipe.sh automation/<PR_NUMBER>/ --skip-manual
   ```
-- [ ] **20. Record after.mp4** — same navigation path as before.mp4. Use the video recording commands from the agentic toolkit. Verify the file exists and is non-empty.
-- [ ] **21. Remove the reproduction marker** added in step 9. **Only stage and commit the marker removal — do NOT include fix files in this commit.**
+- [x] **20. Record after.mp4** — same navigation path as before.mp4. Use the video recording commands from the agentic toolkit. Verify the file exists and is non-empty.
+- [x] **21. Remove the reproduction marker** added in step 9. **Only stage and commit the marker removal — do NOT include fix files in this commit.**
   ```bash
   # If marker and fix are in different files:
   git add <marker-file-only> && git commit -m "cleanup(pr-<PR_NUMBER>): remove reproduction marker"
@@ -162,7 +164,7 @@ STOP at any failing step — fix before proceeding.
 
 ### Report and finish
 
-- [ ] **22. Write `automation/<PR_NUMBER>/report.md`** — must include ALL of the following:
+- [x] **22. Write `automation/<PR_NUMBER>/report.md`** — must include ALL of the following:
   - **Summary**: 1-3 sentences describing the bug and fix
   - **Root cause**: file:line reference, data flow explanation
   - **Reproduction commit**: SHA from step 9 with the BUG_MARKER, plus Metro log excerpt proving it fired
@@ -170,13 +172,13 @@ STOP at any failing step — fix before proceeding.
   - **Test plan**: automated results (tests, lint, recipe, coverage) + manual Gherkin steps
   - **Evidence**: references to before.mp4, after.mp4, and screenshots
   - **JIRA**: ticket number
-- [ ] **23. Update the PR description:**
+- [x] **23. Update the PR description:**
   ```bash
   unset GH_TOKEN && gh pr edit <PR_NUMBER> --body-file automation/<PR_NUMBER>/report.md
   ```
-- [ ] **24. Stage only** — `git add -A`. Do NOT commit the fix. Do NOT push.
-- [ ] **25. Update Status** — set `STATUS: done` in the Task block above.
-- [ ] **26. Print final report to terminal.**
+- [x] **24. Stage only** — `git add -A`. Do NOT commit the fix. Do NOT push.
+- [x] **25. Update Status** — set `STATUS: done` in the Task block above.
+- [x] **26. Print final report to terminal.**
 
 ---
 

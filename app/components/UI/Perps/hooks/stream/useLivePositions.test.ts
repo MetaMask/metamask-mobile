@@ -738,6 +738,60 @@ describe('usePerpsLivePositions', () => {
     });
   });
 
+  describe('No flash on position load (TAT-2236)', () => {
+    it('positions are available in the same render cycle as isInitialLoading becoming false', async () => {
+      // This test verifies the fix for TAT-2236: when WebSocket provides positions,
+      // there must be no intermediate render where isInitialLoading=false but positions=[].
+      // That intermediate state caused Long/Short buttons to flash before Modify/Close.
+      let capturedCallback: (positions: Position[] | null) => void = jest.fn();
+      mockPositionsSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const renderStates: Array<{
+        isInitialLoading: boolean;
+        positionsLength: number;
+      }> = [];
+
+      const { result } = renderHook(() => {
+        const hookResult = usePerpsLivePositions();
+        // Track every render's state
+        renderStates.push({
+          isInitialLoading: hookResult.isInitialLoading,
+          positionsLength: hookResult.positions.length,
+        });
+        return hookResult;
+      });
+
+      // Initially loading with no positions
+      expect(result.current.isInitialLoading).toBe(true);
+      expect(result.current.positions).toEqual([]);
+
+      // Simulate WebSocket delivering positions
+      act(() => {
+        capturedCallback([mockPosition]);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isInitialLoading).toBe(false);
+        expect(result.current.positions).toEqual([mockPosition]);
+      });
+
+      // Verify NO render had isInitialLoading=false with empty positions
+      // when positions were actually provided (the bug condition)
+      const flashStates = renderStates.filter(
+        (s) => !s.isInitialLoading && s.positionsLength === 0,
+      );
+
+      // The only valid case for isInitialLoading=false + positions=[] is
+      // when WebSocket sends empty positions (no open positions). But here
+      // we sent a real position, so there should be no such state.
+      expect(flashStates).toHaveLength(0);
+    });
+  });
+
   describe('enrichPositionsWithLivePnL', () => {
     const basePriceData: Record<string, PriceUpdate> = {
       'BTC-PERP': {
