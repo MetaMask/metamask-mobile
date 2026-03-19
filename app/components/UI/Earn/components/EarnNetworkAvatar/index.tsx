@@ -5,6 +5,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import UsdcvIcon from '../../../../../images/usdcv-icon-2x.png';
 
 interface EarnNetworkAvatarProps {
   token: TokenI;
@@ -22,6 +23,19 @@ export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
         big={false}
         biggest
         testID={`earn-token-list-item-${token.symbol}-${token.chainId}`}
+      />
+    );
+  }
+
+  // USDcv uses a local icon asset (not yet available via API)
+  if (token.symbol === 'USDcv') {
+    return (
+      <AvatarToken
+        name={token.symbol}
+        imageSource={UsdcvIcon}
+        size={AvatarSize.Md}
+        style={styles.networkAvatar}
+        testID={`earn-token-avatar-${token.symbol}`}
       />
     );
   }

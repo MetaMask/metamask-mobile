@@ -94,7 +94,11 @@ const StakeModalStack = () => (
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.EARN_TOKEN_LIST}
         component={EarnTokenList}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          cardStyle: { backgroundColor: undefined },
+          animationEnabled: true,
+        }}
       />
     </ModalStack.Navigator>
   </StakeSDKProvider>
