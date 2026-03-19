@@ -4,7 +4,7 @@ import {
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import {
   Assertions,
-  Gestures,
+  FrameworkDetector,
   Matchers,
   PlaywrightMatchers,
   UnifiedGestures,
@@ -150,6 +150,36 @@ class TransactionPayConfirmation {
     });
   }
 
+  get tokenListScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(
+      TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
+    );
+  }
+
+  private getTokenOptionAt(
+    tokenSymbol: string,
+    index: number,
+  ): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(tokenSymbol, index),
+      appium: async () => {
+        const elements =
+          await PlaywrightMatchers.getAllElementsByText(tokenSymbol);
+        if (elements.length === 0) {
+          throw new Error(
+            `No pay with token option found for "${tokenSymbol}"`,
+          );
+        }
+        if (index >= elements.length) {
+          throw new Error(
+            `Token index ${index} out of bounds (${elements.length} elements)`,
+          );
+        }
+        return elements[index];
+      },
+    });
+  }
+
   private getKeypadButton(key: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(key),
@@ -188,12 +218,6 @@ class TransactionPayConfirmation {
     });
   }
 
-  get tokenListScrollView(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(
-      TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
-    );
-  }
-
   async isAmountEntryVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
       description: 'Transaction pay keyboard continue button',
@@ -209,33 +233,17 @@ class TransactionPayConfirmation {
   }
 
   async tapPayWithToken(tokenSymbol: string, index = 0): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        const tokenElement = Matchers.getElementByText(
-          tokenSymbol,
-        ) as unknown as DetoxElement;
-        await Gestures.scrollToElement(tokenElement, this.tokenListScrollView, {
-          direction: 'down',
-          scrollAmount: 200,
-          elemDescription: `Pay With Token ${tokenSymbol}`,
-        });
-        await Gestures.waitAndTap(Matchers.getElementByText(tokenSymbol), {
-          elemDescription: `Pay With Token ${tokenSymbol}`,
-        });
-      },
-      appium: async () => {
-        const tokenElements =
-          await PlaywrightMatchers.getAllElementsByText(tokenSymbol);
-        if (tokenElements.length === 0) {
-          throw new Error(
-            `No pay with token option found for "${tokenSymbol}"`,
-          );
-        }
-        await UnifiedGestures.tapAtIndex(tokenElements, index, {
-          description: `Pay With Token ${tokenSymbol}`,
-        });
-      },
-    });
+    const tokenElement = this.getTokenOptionAt(tokenSymbol, index);
+    const opts = { description: `Pay With Token ${tokenSymbol}` };
+
+    if (FrameworkDetector.isDetox()) {
+      await UnifiedGestures.scrollToElement(
+        tokenElement,
+        this.tokenListScrollViewIdentifier,
+        { ...opts, direction: 'down', scrollAmount: 200 },
+      );
+    }
+    await UnifiedGestures.waitAndTap(tokenElement, opts);
   }
 
   async tapKeyboardContinueButton(): Promise<void> {
