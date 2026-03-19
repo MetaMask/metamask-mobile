@@ -51,6 +51,17 @@ jest.mock('./adapters', () => ({
   createAdapter: jest.fn(() => mockAdapterInstance),
 }));
 
+jest.mock('../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnValue({
+        build: jest.fn().mockReturnValue({ name: 'built-event' }),
+      }),
+    }),
+  }),
+}));
+
 jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   __esModule: true,
   default: {

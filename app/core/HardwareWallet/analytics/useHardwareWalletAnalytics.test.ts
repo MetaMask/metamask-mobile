@@ -1,0 +1,547 @@
+import { renderHook, act } from '@testing-library/react-hooks';
+import {
+  HardwareWalletError,
+  ErrorCode,
+  Severity,
+  Category,
+  HardwareWalletType,
+  ConnectionStatus,
+  type HardwareWalletConnectionState,
+} from '@metamask/hw-wallet-sdk';
+import { useHardwareWalletAnalytics } from './useHardwareWalletAnalytics';
+import { HardwareWalletAnalyticsErrorState } from './helpers';
+import { MetaMetricsEvents } from '../../Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({ name: 'built-event' });
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+});
+
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+function createError(
+  code: ErrorCode,
+  message = 'Test error',
+): HardwareWalletError {
+  return new HardwareWalletError(message, {
+    code,
+    severity: Severity.Err,
+    category: Category.Connection,
+    userMessage: message,
+  });
+}
+
+describe('useHardwareWalletAnalytics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const defaultOptions = {
+    connectionState: {
+      status: ConnectionStatus.Disconnected,
+    } as HardwareWalletConnectionState,
+    walletType: HardwareWalletType.Ledger,
+    flow: 'connection',
+    deviceModel: 'Nano X',
+  };
+
+  describe('Recovery Modal Viewed', () => {
+    it('fires when transitioning to ErrorState', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      const errorState: HardwareWalletConnectionState = {
+        status: ConnectionStatus.ErrorState,
+        error: createError(ErrorCode.DeviceDisconnected, 'Disconnected'),
+      };
+
+      rerender({ ...defaultOptions, connectionState: errorState });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_MODAL_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flow: 'Connection',
+          device_type: 'Ledger',
+          device_model: 'Nano X',
+          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+          error_state_view_count: 1,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('fires when transitioning to AwaitingApp', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      const awaitingApp: HardwareWalletConnectionState = {
+        status: ConnectionStatus.AwaitingApp,
+        deviceId: 'device-123',
+        appName: 'Ethereum',
+      };
+
+      rerender({ ...defaultOptions, connectionState: awaitingApp });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_MODAL_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_state: HardwareWalletAnalyticsErrorState.EthereumAppNotOpened,
+          error_state_view_count: 1,
+        }),
+      );
+    });
+
+    it('does not fire when status does not change', () => {
+      const errorState: HardwareWalletConnectionState = {
+        status: ConnectionStatus.ErrorState,
+        error: createError(ErrorCode.DeviceDisconnected),
+      };
+
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: { ...defaultOptions, connectionState: errorState },
+        },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      rerender({ ...defaultOptions, connectionState: errorState });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('omits device_model when null', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: { ...defaultOptions, deviceModel: null },
+        },
+      );
+
+      const errorState: HardwareWalletConnectionState = {
+        status: ConnectionStatus.ErrorState,
+        error: createError(ErrorCode.DeviceDisconnected),
+      };
+
+      rerender({
+        ...defaultOptions,
+        deviceModel: null,
+        connectionState: errorState,
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          device_model: expect.anything(),
+        }),
+      );
+    });
+  });
+
+  describe('error_state_view_count', () => {
+    it('increments for the same error state', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      const errorState: HardwareWalletConnectionState = {
+        status: ConnectionStatus.ErrorState,
+        error: createError(ErrorCode.DeviceDisconnected),
+      };
+
+      rerender({ ...defaultOptions, connectionState: errorState });
+      expect(mockAddProperties).toHaveBeenLastCalledWith(
+        expect.objectContaining({ error_state_view_count: 1 }),
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Connecting },
+      });
+
+      mockAddProperties.mockClear();
+
+      rerender({ ...defaultOptions, connectionState: errorState });
+      expect(mockAddProperties).toHaveBeenLastCalledWith(
+        expect.objectContaining({ error_state_view_count: 2 }),
+      );
+    });
+
+    it('starts at 1 for a different error state', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+      expect(mockAddProperties).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+          error_state_view_count: 1,
+        }),
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Connecting },
+      });
+
+      mockAddProperties.mockClear();
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.BluetoothDisabled),
+        },
+      });
+      expect(mockAddProperties).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          error_state: HardwareWalletAnalyticsErrorState.BluetoothDisabled,
+          error_state_view_count: 1,
+        }),
+      );
+    });
+
+    it('resets on success', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Ready },
+      });
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Disconnected },
+      });
+
+      mockAddProperties.mockClear();
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+      expect(mockAddProperties).toHaveBeenLastCalledWith(
+        expect.objectContaining({ error_state_view_count: 1 }),
+      );
+    });
+  });
+
+  describe('Recovery Success Modal Viewed', () => {
+    it('fires when transitioning to Ready after an error', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Ready },
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flow: 'Connection',
+          device_type: 'Ledger',
+          device_model: 'Nano X',
+          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+          error_state_view_count: 1,
+        }),
+      );
+    });
+
+    it('fires without error properties when no preceding error occurred', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Ready },
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          error_state: expect.anything(),
+          error_state_view_count: expect.anything(),
+          raw_error: expect.anything(),
+        }),
+      );
+    });
+
+    it('includes raw_error from the last error state', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(
+            ErrorCode.DeviceDisconnected,
+            'BLE connection lost',
+          ),
+        },
+      });
+
+      mockAddProperties.mockClear();
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Ready },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          raw_error: expect.stringContaining(
+            `code=${ErrorCode.DeviceDisconnected}`,
+          ),
+        }),
+      );
+    });
+  });
+
+  describe('Primary Button Clicked', () => {
+    it('fires with correct properties', () => {
+      const errorState: HardwareWalletConnectionState = {
+        status: ConnectionStatus.ErrorState,
+        error: createError(ErrorCode.BluetoothDisabled),
+      };
+
+      const { result } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: { ...defaultOptions, connectionState: errorState },
+        },
+      );
+
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
+
+      act(() => {
+        result.current.trackPrimaryButtonClicked();
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_PRIMARY_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flow: 'Connection',
+          device_type: 'Ledger',
+          device_model: 'Nano X',
+          error_state: HardwareWalletAnalyticsErrorState.BluetoothDisabled,
+        }),
+      );
+    });
+
+    it('does not fire when not in an error state', () => {
+      const { result } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      mockTrackEvent.mockClear();
+
+      act(() => {
+        result.current.trackPrimaryButtonClicked();
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('fires for AwaitingApp state', () => {
+      const awaitingApp: HardwareWalletConnectionState = {
+        status: ConnectionStatus.AwaitingApp,
+        deviceId: 'device-123',
+        appName: 'Ethereum',
+      };
+
+      const { result } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: { ...defaultOptions, connectionState: awaitingApp },
+        },
+      );
+
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
+
+      act(() => {
+        result.current.trackPrimaryButtonClicked();
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_state: HardwareWalletAnalyticsErrorState.EthereumAppNotOpened,
+        }),
+      );
+    });
+  });
+
+  describe('flow variants', () => {
+    it('tracks transaction flow as Transaction', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: { ...defaultOptions, flow: 'transaction' },
+        },
+      );
+
+      rerender({
+        ...defaultOptions,
+        flow: 'transaction',
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ flow: 'Transaction' }),
+      );
+    });
+
+    it('tracks message flow as Message', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: { ...defaultOptions, flow: 'message' },
+        },
+      );
+
+      rerender({
+        ...defaultOptions,
+        flow: 'message',
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ flow: 'Message' }),
+      );
+    });
+
+    it('defaults to Connection flow', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ flow: 'Connection' }),
+      );
+    });
+  });
+
+  describe('spurious disconnect mid-flow', () => {
+    it('preserves error state across disconnect so success includes it', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      rerender({
+        ...defaultOptions,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Disconnected },
+      });
+
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      rerender({
+        ...defaultOptions,
+        connectionState: { status: ConnectionStatus.Ready },
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
+          error_state_view_count: 1,
+        }),
+      );
+    });
+  });
+});

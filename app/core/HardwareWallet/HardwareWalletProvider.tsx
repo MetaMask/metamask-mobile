@@ -12,6 +12,10 @@ import {
 } from './hooks';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import {
+  HARDWARE_WALLET_CONNECTION_FLOW,
+  useHardwareWalletAnalytics,
+} from './analytics';
 
 interface HardwareWalletProviderProps {
   children: ReactNode;
@@ -69,6 +73,20 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     updateConnectionState,
   });
 
+  const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
+  const operationTypeRef = useRef<'transaction' | 'message' | null>(null);
+
+  const analyticsFlow =
+    operationTypeRef.current ?? HARDWARE_WALLET_CONNECTION_FLOW;
+
+  const { trackPrimaryButtonClicked, resetAnalyticsState } =
+    useHardwareWalletAnalytics({
+      connectionState,
+      walletType: effectiveWalletType,
+      flow: analyticsFlow,
+      deviceModel: deviceSelection.selectedDevice?.name ?? null,
+    });
+
   const {
     ensureDeviceReady,
     connect,
@@ -85,9 +103,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     createAdapterWithCallbacks,
     initializeAdapter,
     checkTransportEnabledOrShowError,
+    onFlowStart: resetAnalyticsState,
   });
-
-  const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
 
   const showHardwareWalletError = useCallback(
     (error: unknown) => {
@@ -104,6 +121,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         operationType,
       );
       awaitingConfirmationRejectRef.current = onReject ?? null;
+      operationTypeRef.current = operationType;
 
       updateConnectionState({
         status: ConnectionStatus.AwaitingConfirmation,
@@ -117,6 +135,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const hideAwaitingConfirmation = useCallback(() => {
     DevLogger.log('[HardwareWallet] hideAwaitingConfirmation');
     awaitingConfirmationRejectRef.current = null;
+    operationTypeRef.current = null;
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [updateConnectionState]);
 
@@ -167,6 +186,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         onClose={closeFlow}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
+        onPrimaryButtonClicked={trackPrimaryButtonClicked}
       />
     </HardwareWalletContext.Provider>
   );
