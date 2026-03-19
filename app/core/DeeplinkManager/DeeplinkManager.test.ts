@@ -546,14 +546,14 @@ describe('DeeplinkManager.start Linking API filters Branch domain URLs', () => {
 });
 
 describe('stripBranchDeepviewParams', () => {
-  it('removes Branch Deepview query params from URL', () => {
+  it('removes Branch Deepview query params from URL but preserves sig and sig_params', () => {
     const url =
       'https://metamask-alternate.app.link/1WkF6GmE40b?__branch_flow_type=viewapp&__branch_flow_id=123&__branch_mobile_deepview_type=1&sig=abc&sig_params=foo&_referrer=twitter&utm_source=twitter';
 
     const result = stripBranchDeepviewParams(url);
 
     expect(result).toBe(
-      'https://metamask-alternate.app.link/1WkF6GmE40b?utm_source=twitter',
+      'https://metamask-alternate.app.link/1WkF6GmE40b?sig=abc&sig_params=foo&utm_source=twitter',
     );
   });
 

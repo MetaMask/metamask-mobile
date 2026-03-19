@@ -16,8 +16,8 @@ const BRANCH_DOMAIN_HOSTS = [
 
 /**
  * Strips Branch Deepview query params from a URL to recover the original
- * short link. The Deepview page appends __branch_*, sig, sig_params, and
- * _referrer params that can confuse the Branch SDK's link resolution.
+ * short link. The Deepview page appends __branch_* and _referrer params
+ * that can confuse the Branch SDK's link resolution.
  */
 export function stripBranchDeepviewParams(url: string): string {
   try {
@@ -26,8 +26,6 @@ export function stripBranchDeepviewParams(url: string): string {
       '__branch_flow_type',
       '__branch_flow_id',
       '__branch_mobile_deepview_type',
-      'sig',
-      'sig_params',
       '_referrer',
     ];
     for (const p of paramsToStrip) {
