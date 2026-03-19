@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useMemo,
   useRef,
   useCallback,
   useContext,
@@ -104,6 +105,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+import { getBuildNumber, getVersion } from 'react-native-device-info';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -132,6 +134,11 @@ interface OnboardingRouteParams {
 
 const Onboarding = () => {
   const navigation = useNavigation();
+  const onboardingVersion = useMemo(
+    () => `${getVersion()} (${getBuildNumber()})`,
+    [],
+  );
+
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
@@ -357,7 +364,12 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
-      dispatch(setAccountType(AccountType.Metamask));
+      dispatch(
+        setAccountType({
+          accountType: AccountType.Metamask,
+          onboardingVersion,
+        }),
+      );
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
         account_type: AccountType.Metamask,
       });
@@ -365,7 +377,14 @@ const Onboarding = () => {
 
     handleExistingUser(action);
     endTrace({ name: TraceName.OnboardingCreateWallet });
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [
+    metrics,
+    navigation,
+    track,
+    handleExistingUser,
+    dispatch,
+    onboardingVersion,
+  ]);
 
   const onPressImport = useCallback(async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -392,13 +411,25 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
-      dispatch(setAccountType(AccountType.Imported));
+      dispatch(
+        setAccountType({
+          accountType: AccountType.Imported,
+          onboardingVersion,
+        }),
+      );
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
         account_type: AccountType.Imported,
       });
     };
     handleExistingUser(action);
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [
+    metrics,
+    navigation,
+    track,
+    handleExistingUser,
+    dispatch,
+    onboardingVersion,
+  ]);
 
   const handlePostSocialLogin = useCallback(
     (
@@ -421,7 +452,7 @@ const Onboarding = () => {
       }
 
       const accountType = getSocialAccountType(provider, result.existingUser);
-      dispatch(setAccountType(accountType));
+      dispatch(setAccountType({ accountType, onboardingVersion }));
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
@@ -493,7 +524,7 @@ const Onboarding = () => {
         });
       }
     },
-    [navigation, track, dispatch],
+    [navigation, track, dispatch, onboardingVersion],
   );
 
   const handleOAuthLoginError = useCallback(
