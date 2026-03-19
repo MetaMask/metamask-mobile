@@ -41,6 +41,7 @@ jest.mock('../index', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockConnect = PerpsConnectionManager.connect as jest.Mock;
 const mockDisconnect = PerpsConnectionManager.disconnect as jest.Mock;
+const mockEnsureConnected = PerpsConnectionManager.ensureConnected as jest.Mock;
 
 describe('PerpsAlwaysOnProvider', () => {
   let mockAppStateListener: ((state: string) => void) | null = null;
@@ -53,6 +54,7 @@ describe('PerpsAlwaysOnProvider', () => {
 
     mockConnect.mockResolvedValue(undefined);
     mockDisconnect.mockResolvedValue(undefined);
+    mockEnsureConnected.mockResolvedValue(undefined);
 
     mockSubscriptionRemove = jest.fn();
     addEventListenerSpy = jest
@@ -167,7 +169,7 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('calls connect after delay when app returns to foreground', () => {
+  it('calls ensureConnected after delay when app returns to foreground', () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -175,7 +177,7 @@ describe('PerpsAlwaysOnProvider', () => {
     );
 
     // Clear the initial mount connect call
-    mockConnect.mockClear();
+    mockEnsureConnected.mockClear();
 
     act(() => {
       mockAppStateListener?.('background');
@@ -185,13 +187,13 @@ describe('PerpsAlwaysOnProvider', () => {
     });
 
     // Should not reconnect immediately — uses a timer delay
-    expect(mockConnect).not.toHaveBeenCalled();
+    expect(mockEnsureConnected).not.toHaveBeenCalled();
 
     act(() => {
       jest.runAllTimers();
     });
 
-    expect(mockConnect).toHaveBeenCalledTimes(1);
+    expect(mockEnsureConnected).toHaveBeenCalledTimes(1);
   });
 
   it('cancels pending reconnect timer if app goes background before timer fires', () => {
@@ -201,7 +203,7 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
 
-    mockConnect.mockClear();
+    mockEnsureConnected.mockClear();
 
     // Goes active — schedules reconnect timer
     act(() => {
@@ -217,8 +219,8 @@ describe('PerpsAlwaysOnProvider', () => {
       jest.runAllTimers();
     });
 
-    // connect should NOT have been called (timer was cancelled)
-    expect(mockConnect).not.toHaveBeenCalled();
+    // ensureConnected should NOT have been called (timer was cancelled)
+    expect(mockEnsureConnected).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
@@ -250,7 +252,7 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
 
-    mockConnect.mockClear();
+    mockEnsureConnected.mockClear();
     mockDisconnect.mockClear();
 
     // Pull-down: active → inactive → active
@@ -266,7 +268,7 @@ describe('PerpsAlwaysOnProvider', () => {
     });
 
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
-    expect(mockConnect).toHaveBeenCalledTimes(1);
+    expect(mockEnsureConnected).toHaveBeenCalledTimes(1);
   });
 
   it('calls disconnect and removes AppState subscription on unmount', () => {

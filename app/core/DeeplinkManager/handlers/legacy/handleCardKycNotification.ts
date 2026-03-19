@@ -5,7 +5,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
-  selectSelectedCountry,
   selectUserCardLocation,
   selectCardGeoLocation,
   selectAlwaysShowCardButton,
@@ -18,11 +17,7 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { isBaanxLoginEnabled } from '../../../../components/UI/Card/hooks/isBaanxLoginEnabled';
 import { CardSDK } from '../../../../components/UI/Card/sdk/CardSDK';
-import { mapCountryToLocation } from '../../../../components/UI/Card/util/mapCountryToLocation';
-import {
-  CardLocation,
-  CardVerificationState,
-} from '../../../../components/UI/Card/types';
+import { CardVerificationState } from '../../../../components/UI/Card/types';
 
 /**
  * Card KYC notification deeplink handler
@@ -149,13 +144,9 @@ async function handleOnboardingFlow(
   );
 
   // Get location from selectedCountry
-  const selectedCountry = selectSelectedCountry(state);
-  const location: CardLocation = mapCountryToLocation(
-    selectedCountry?.key ?? null,
-  );
+  const location = selectUserCardLocation(state);
 
   Logger.log('[handleCardKycNotification] Determined location:', {
-    selectedCountryKey: selectedCountry?.key,
     location,
   });
 

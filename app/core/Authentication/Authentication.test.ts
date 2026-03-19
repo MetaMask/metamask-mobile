@@ -8,7 +8,7 @@ import {
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';

@@ -12,6 +12,7 @@ import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { useNftRefresh } from './useNftRefresh';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
 import { RefreshTestId } from './constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { Nft } from '@metamask/assets-controllers';
@@ -19,6 +20,7 @@ import {
   isNftFetchingProgressSelector,
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import NftGridItem from './NftGridItem';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
@@ -108,8 +110,27 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
     const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
+    const selectedGroupAccounts = useSelector(
+      selectSelectedAccountGroupInternalAccounts,
+    );
+
+    const addressesOverride = useMemo(
+      () =>
+        selectedGroupAccounts?.length > 0
+          ? selectedGroupAccounts.map((a) => a.address)
+          : undefined,
+      [selectedGroupAccounts],
+    );
+
     const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
-      multichainCollectiblesByEnabledNetworksSelector,
+      (state: RootState) =>
+        (
+          multichainCollectiblesByEnabledNetworksSelector as (
+            s: RootState,
+            preferredChainIds?: string[],
+            addressesOverride?: string[],
+          ) => Record<string, Nft[]>
+        )(state, undefined, addressesOverride),
     );
 
     const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =

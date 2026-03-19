@@ -2,41 +2,208 @@ name: Nightly Build
 
 # Triggered by every push to chore/temp-nightly (which nightly-temp-branch-sync.yml
 # force-pushes daily at 4 AM UTC to match main).
+# Temporarily now this is pointing to test/temp-nightly instead of chore/temp-nightly.
 #
-# [skip ci] commits (e.g. version bumps pushed by Bitrise's bump_version_code job via
-# update-latest-build-version.yml) are automatically skipped by GitHub Actions, so
-# this workflow will NOT double-trigger on those commits.
+# [skip ci] commits (e.g. version bumps pushed via update-latest-build-version.yml)
+# are automatically skipped by GitHub Actions, so this workflow will NOT
+# double-trigger on those commits.
 #
-# skip_version_bump=true is passed to build.yml because Bitrise already owns the
-# version bump for chore/temp-nightly during the parallel transition period.
-# When Bitrise is deprecated, remove skip_version_bump: true and the version bump
-# will be handled by build.yml as normal.
+# Version strategy: exp and rc builds share the same bundle ID (MetaMask) so
+# TestFlight requires unique CFBundleVersion per upload. We call the external
+# version generator once (→ version N for exp), then locally increment to N+1
+# for the rc build. Both builds run in parallel after their respective bumps.
 
 on:
   push:
     branches:
-      - chore/temp-nightly
+      - test/temp-nightly
   workflow_dispatch:
 
+# contents: write required by build.yml update-build-version job (version bump commit push)
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
+  bump-version-exp:
+    name: Bump build version (exp)
+    uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ github.ref_name }}
+    secrets: inherit
+
+  bump-version-rc:
+    name: Bump build version (rc)
+    needs: [bump-version-exp]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      commit-hash: ${{ steps.bump.outputs.commit-hash }}
+      build-version: ${{ steps.bump.outputs.build-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump-version-exp.outputs.commit-hash }}
+          fetch-depth: 0
+          token: ${{ secrets.PR_TOKEN || github.token }}
+
+      - name: Increment version for RC build
+        id: bump
+        env:
+          EXP_VERSION: ${{ needs.bump-version-exp.outputs.build-version }}
+          HEAD_REF: ${{ github.ref_name }}
+        run: |
+          RC_VERSION=$((EXP_VERSION + 1))
+          echo "Exp version: $EXP_VERSION → RC version: $RC_VERSION"
+          ./scripts/set-build-version.sh "$RC_VERSION"
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          git add bitrise.yml package.json ios/MetaMask.xcodeproj/project.pbxproj android/app/build.gradle
+          git commit -m "[skip ci] Bump version number to ${RC_VERSION} (nightly rc)"
+          git push origin HEAD:"$HEAD_REF" --force-with-lease
+          echo "commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "build-version=$RC_VERSION" >> "$GITHUB_OUTPUT"
+
   build-exp:
     name: Nightly exp build (main-exp)
+    needs: [bump-version-exp]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
       platform: both
       skip_version_bump: true
+      ref: ${{ needs.bump-version-exp.outputs.commit-hash }}
     secrets: inherit
 
   build-rc:
     name: Nightly RC build (main-rc)
+    needs: [bump-version-rc]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
       platform: both
       skip_version_bump: true
+      ref: ${{ needs.bump-version-rc.outputs.commit-hash }}
     secrets: inherit
+
+  upload-exp-testflight:
+    name: Upload exp to TestFlight
+    needs: [build-exp]
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    environment: apple
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby (iOS)
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Download iOS build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-main-exp
+
+      - name: Find IPA path
+        id: ipa
+        run: |
+          IPA=$(find . -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA" ]; then
+            echo "::error::No .ipa file found in artifact"
+            exit 1
+          fi
+          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
+          echo "path=$ABS" >> "$GITHUB_OUTPUT"
+
+      - name: Setup App Store Connect API Key
+        run: |
+          bash scripts/setup-app-store-connect-api-key.sh \
+            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+        env:
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+
+      - name: Upload to TestFlight
+        run: |
+          bash scripts/upload-to-testflight.sh \
+            "github_actions_main-exp" \
+            "${{ github.ref_name }}" \
+            "${{ steps.ipa.outputs.path }}" \
+            "MetaMask BETA & Release Candidates"
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"
+
+  upload-rc-testflight:
+    name: Upload RC to TestFlight
+    needs: [build-rc]
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    environment: apple
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby (iOS)
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Download iOS build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-main-rc
+
+      - name: Find IPA path
+        id: ipa
+        run: |
+          IPA=$(find . -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA" ]; then
+            echo "::error::No .ipa file found in artifact"
+            exit 1
+          fi
+          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
+          echo "path=$ABS" >> "$GITHUB_OUTPUT"
+
+      - name: Setup App Store Connect API Key
+        run: |
+          bash scripts/setup-app-store-connect-api-key.sh \
+            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+        env:
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+
+      - name: Upload to TestFlight
+        run: |
+          bash scripts/upload-to-testflight.sh \
+            "github_actions_main-rc" \
+            "${{ github.ref_name }}" \
+            "${{ steps.ipa.outputs.path }}" \
+            "MetaMask BETA & Release Candidates"
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"
