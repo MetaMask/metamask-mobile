@@ -67,6 +67,6 @@ describe('SnapUIFooterButton', () => {
   it('applies correct variant based on disabled state', () => {
     render(<SnapUIFooterButton {...defaultProps} disabled />);
     const button = screen.getByRole('button', { name: 'Test Button' });
-    expect(button.props.disabled).toBe(true);
+    expect(button.props.accessibilityState.disabled).toBe(true);
   });
 });
