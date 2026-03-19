@@ -26,12 +26,16 @@ export const usePredictMarketData = ({
 } = {}) => {
   const queryClient = useQueryClient();
 
-  const queryKey = predictQueries.markets.keys.list({
-    category,
-    q,
-    pageSize,
-    customQueryParams,
-  });
+  const queryKey = useMemo(
+    () =>
+      predictQueries.markets.keys.list({
+        category,
+        q,
+        pageSize,
+        customQueryParams,
+      }),
+    [category, q, pageSize, customQueryParams],
+  );
 
   const queryResult = useInfiniteQuery({
     queryKey,
