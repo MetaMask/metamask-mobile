@@ -71,8 +71,16 @@ jest.mock('../RewardsErrorBanner', () => {
 jest.mock('../ContentfulRichText/ContentfulRichText', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
+  const isDocumentFn = (value: unknown): boolean =>
+    value !== null &&
+    typeof value === 'object' &&
+    'nodeType' in (value as Record<string, unknown>) &&
+    (value as Record<string, unknown>).nodeType === 'document' &&
+    'content' in (value as Record<string, unknown>) &&
+    Array.isArray((value as Record<string, unknown>).content);
   return {
     __esModule: true,
+    isDocument: isDocumentFn,
     default: ({
       document: doc,
       testID,
@@ -313,7 +321,29 @@ describe('CampaignOptInSheet', () => {
           campaign={createTestCampaign({ termsAndConditions: null })}
         />,
       );
-      expect(getByTestId('campaign-opt-in-sheet-terms-link')).toBeDefined();
+      expect(getByTestId('campaign-opt-in-sheet-terms-link')).toBeOnTheScreen();
+    });
+
+    it('renders the static fallback when termsAndConditions is malformed', () => {
+      const { getByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({
+            termsAndConditions: 'not a document',
+          })}
+        />,
+      );
+      expect(getByTestId('campaign-opt-in-sheet-terms-link')).toBeOnTheScreen();
+    });
+
+    it('renders the static fallback when termsAndConditions is a non-document object', () => {
+      const { getByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({
+            termsAndConditions: { foo: 'bar' },
+          })}
+        />,
+      );
+      expect(getByTestId('campaign-opt-in-sheet-terms-link')).toBeOnTheScreen();
     });
   });
 });

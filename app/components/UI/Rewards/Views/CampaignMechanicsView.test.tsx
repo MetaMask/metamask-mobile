@@ -91,8 +91,16 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
 jest.mock('../components/ContentfulRichText/ContentfulRichText', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
+  const isDocumentFn = (value: unknown): boolean =>
+    value !== null &&
+    typeof value === 'object' &&
+    'nodeType' in (value as Record<string, unknown>) &&
+    (value as Record<string, unknown>).nodeType === 'document' &&
+    'content' in (value as Record<string, unknown>) &&
+    Array.isArray((value as Record<string, unknown>).content);
   return {
     __esModule: true,
+    isDocument: isDocumentFn,
     default: ({
       document: doc,
       testID,
@@ -296,6 +304,58 @@ describe('CampaignMechanicsView', () => {
                 title: 'How it works',
                 description: 'Earn rewards',
                 phases: [],
+              },
+            },
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<CampaignMechanicsView />);
+      expect(
+        queryByTestId(CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION),
+      ).toBeNull();
+    });
+
+    it('does not render notes section when notes is a non-document object', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              image: {
+                lightModeUrl: 'https://example.com/light.png',
+                darkModeUrl: 'https://example.com/dark.png',
+              },
+              howItWorks: {
+                title: 'How it works',
+                description: 'Earn rewards',
+                phases: [],
+                notes: { title: 'Only title' },
+              },
+            },
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<CampaignMechanicsView />);
+      expect(
+        queryByTestId(CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION),
+      ).toBeNull();
+    });
+
+    it('does not render notes section when notes is a string', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              image: {
+                lightModeUrl: 'https://example.com/light.png',
+                darkModeUrl: 'https://example.com/dark.png',
+              },
+              howItWorks: {
+                title: 'How it works',
+                description: 'Earn rewards',
+                phases: [],
+                notes: 'just a string',
               },
             },
           }),

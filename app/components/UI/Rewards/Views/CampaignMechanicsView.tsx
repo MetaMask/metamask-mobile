@@ -7,7 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
-import ContentfulRichText from '../components/ContentfulRichText/ContentfulRichText';
+import ContentfulRichText, {
+  isDocument,
+} from '../components/ContentfulRichText/ContentfulRichText';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 
@@ -65,7 +67,7 @@ const CampaignMechanicsView: React.FC = () => {
             </Box>
           )}
 
-          {notes && (
+          {isDocument(notes) && (
             <Box
               twClassName="px-4 py-4"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION}

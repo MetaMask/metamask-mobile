@@ -251,4 +251,5 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
   );
 };
 
+export { isDocument };
 export default ContentfulRichText;

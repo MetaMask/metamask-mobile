@@ -20,7 +20,9 @@ import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_ONBOARD_TERMS_URL } from '../Onboarding/constants';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import ContentfulRichText from '../ContentfulRichText/ContentfulRichText';
+import ContentfulRichText, {
+  isDocument,
+} from '../ContentfulRichText/ContentfulRichText';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -92,7 +94,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
 
         {/* Legal disclaimer – rich text from Contentful or static fallback */}
         <Box twClassName="mb-6">
-          {campaign.termsAndConditions ? (
+          {isDocument(campaign.termsAndConditions) ? (
             <ContentfulRichText
               document={campaign.termsAndConditions}
               textVariant={TextVariant.BodySm}
