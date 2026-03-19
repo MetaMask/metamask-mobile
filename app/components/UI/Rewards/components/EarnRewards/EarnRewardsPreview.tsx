@@ -63,7 +63,7 @@ const EarnCard: React.FC<EarnCardProps> = ({
       testID={testID}
       style={({ pressed }) =>
         tw.style(
-          'rounded-xl flex-row items-center p-4 gap-4',
+          'rounded-xl bg-muted flex-row items-center p-4 gap-4',
           pressed && 'opacity-70',
         )
       }
