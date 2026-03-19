@@ -1,9 +1,9 @@
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 /** Minimal shape; KeyringController.getKeyringForAccount is typed as Promise<unknown>. */
-type KeyringControllerLike = {
+interface KeyringControllerLike {
   getKeyringForAccount: (address: string) => Promise<unknown>;
-};
+}
 
 /**
  * Keyring types that support EIP-7702 (Setup Smart Account).
