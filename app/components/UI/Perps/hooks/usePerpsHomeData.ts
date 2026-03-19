@@ -18,7 +18,6 @@ import {
 import type { PerpsTransaction } from '../types/transactionHistory';
 import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
@@ -181,21 +180,12 @@ export const usePerpsHomeData = ({
   // Filter and sort markets by type
   // Perps (crypto) - exclude all non-crypto markets
   const perpsMarkets = useMemo(
-    () => {
-      const cryptoFiltered = allMarkets.filter((m) => !m.marketType);
-      const miscategorized = cryptoFiltered.filter((m) => m.isHip3);
-      if (miscategorized.length > 0) {
-        DevLogger.log('[PR-27699] BUG_MARKER: HIP-3 markets in crypto section', {
-          symbols: miscategorized.map((m) => m.symbol),
-          count: miscategorized.length,
-        });
-      }
-      return sortMarkets({
-        markets: cryptoFiltered,
+    () =>
+      sortMarkets({
+        markets: allMarkets.filter((m) => !m.marketType && !m.isHip3),
         sortBy,
         direction,
-      }).slice(0, trendingLimit);
-    },
+      }).slice(0, trendingLimit),
     [allMarkets, sortBy, direction, trendingLimit],
   );
 
