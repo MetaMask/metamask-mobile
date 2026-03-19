@@ -11,21 +11,29 @@ import { RampsOrderStatus } from '@metamask/ramps-controller';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
+const mockReset = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     setOptions: mockSetOptions,
     navigate: mockNavigate,
     goBack: jest.fn(),
+    setParams: mockSetParams,
+    reset: mockReset,
   }),
 }));
 
 const mockGetOrderById = jest.fn();
 const mockRefreshOrder = jest.fn();
+const mockGetOrderFromCallback = jest.fn();
+const mockAddOrder = jest.fn();
 jest.mock('../../hooks/useRampsOrders', () => ({
   useRampsOrders: () => ({
     getOrderById: mockGetOrderById,
     refreshOrder: mockRefreshOrder,
+    getOrderFromCallback: mockGetOrderFromCallback,
+    addOrder: mockAddOrder,
   }),
 }));
 
@@ -186,5 +194,33 @@ describe('OrderDetails', () => {
   it('createRampsOrderDetailsNavDetails returns correct route', () => {
     const result = createRampsOrderDetailsNavDetails();
     expect(result[0]).toBe(Routes.RAMP.RAMPS_ORDER_DETAILS);
+  });
+
+  it('shows error state with retry when initial callback fetch fails', async () => {
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc',
+      providerCode: 'paypal',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockRejectedValue(
+      new Error('Network request failed'),
+    );
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('Network request failed')).toBeOnTheScreen();
+    });
+    expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+
+    fireEvent.press(getByText('ramps_order_details.try_again'));
+    expect(mockGetOrderFromCallback).toHaveBeenCalledTimes(2);
+    expect(mockGetOrderFromCallback).toHaveBeenNthCalledWith(
+      2,
+      'paypal',
+      'metamask://on-ramp/providers/paypal?orderId=abc',
+      '0x123',
+    );
   });
 });

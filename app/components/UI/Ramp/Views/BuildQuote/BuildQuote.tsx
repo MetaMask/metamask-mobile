@@ -591,17 +591,6 @@ function BuildQuote() {
             return;
           }
 
-          let hasOrderIdInUrl = false;
-          try {
-            const url = new URL(result.url);
-            hasOrderIdInUrl = Boolean(url.searchParams.get('orderId')?.trim());
-          } catch {
-            hasOrderIdInUrl = false;
-          }
-          if (!hasOrderIdInUrl) {
-            navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-            return;
-          }
           navigateAfterExternalBrowser({
             returnDestination: 'order',
             callbackUrl: result.url,

@@ -262,13 +262,11 @@ const OrderDetails = () => {
           message: 'RampsOrderDetails: error fetching order from callback URL',
           callbackUrl,
         });
-        navigation.reset({
-          index: 0,
-          routes: getNavigateAfterExternalBrowserRoutes({
-            returnDestination: 'buildQuote',
-          }),
-        });
-        return;
+        setError(
+          fetchError instanceof Error && fetchError.message
+            ? fetchError.message
+            : strings('ramps_order_details.error_message'),
+        );
       } finally {
         setIsLoading(false);
       }
