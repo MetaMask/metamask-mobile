@@ -1,0 +1,11 @@
+appId: io.metamask
+---
+- runFlow:
+    file: android-launch-and-unlock.yaml
+
+- runFlow:
+    file: send-eth-to-account.yaml
+    env:
+      APP_ID: io.metamask
+      AMOUNT: ${AMOUNT}
+      ACCOUNT_NAME: ${ACCOUNT_NAME}

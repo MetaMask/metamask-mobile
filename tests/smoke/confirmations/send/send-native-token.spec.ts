@@ -4,7 +4,7 @@ import SendView from '../../../page-objects/Send/RedesignedSendView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import { Assertions } from '../../../framework';
-import { DappVariants, LOCAL_NODE_RPC_URL } from '../../../framework/Constants';
+import { DappVariants } from '../../../framework/Constants';
 import { SmokeConfirmations } from '../../../tags';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -29,7 +29,7 @@ describe(SmokeConfirmations('Send native asset'), () => {
         fixture: new FixtureBuilder()
           .withNetworkController({
             chainId: '0x539',
-            rpcUrl: LOCAL_NODE_RPC_URL,
+            rpcUrl: 'http://localhost:8546',
             type: 'custom',
             nickname: 'Local RPC',
             ticker: 'ETH',

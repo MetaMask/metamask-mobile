@@ -7,69 +7,49 @@ description: Use when running UI tests or interacting with MetaMask Mobile via M
 
 > Drive MetaMask Mobile UI via Maestro MCP tools. Works with iOS simulators and Android emulators.
 
-## Before Any Interaction
+## Approach: Pre-Made Flows First, Explore Only When Needed
 
-### 1. Always check for a connected device first
+**For known flows, always use `run_flow_files` first.** Pre-made YAML files in `tests/mcp-server/flows/` encode proven sequences (correct selectors, correct order, conditional handling). Only fall back to individual `tap_on`/`take_screenshot` when exploring unknown UI or debugging failures.
 
-Call `list_devices` to find a connected device. If none is connected, call `start_device` with the target platform, or ask the user to start one.
+**Try first, inspect only when something fails.** Don't inspect the hierarchy before every action — it's slow and expensive. Use `run_flow` with `when: visible:` conditions to handle optional screens (dev screens, modals). Only call `inspect_view_hierarchy` when a step fails and you need to understand why.
 
-### 2. Always inspect before acting
+**Learn from previous runs.** If a flow has been run before in this session (e.g., unlock → dismiss perps → send), reuse the same sequence. Don't re-inspect what you already know works.
 
-Call `inspect_view_hierarchy` before tapping or interacting. **Never guess** element IDs or text — the hierarchy tells you exactly what's on screen.
+### Cost optimization
 
-### 3. Dev build screens (CRITICAL)
+Maestro flows are mechanical — no complex reasoning needed. When dispatching Maestro test execution, **use a `sonnet` or `haiku` subagent** to reduce cost:
 
-Local/dev builds show extra screens on launch that must be dismissed before the app is usable. **Check for their presence** before attempting to dismiss — they don't appear on release builds.
-
-#### Dev Server Selection Screen
-
-On first launch of a dev build, a "Development servers" screen appears asking which metro bundler to connect to.
-
-- **iOS**: The server URL is `http://localhost:<PORT>` (default PORT: 8081)
-- **Android**: The server URL is `http://10.0.2.2:<PORT>` (default PORT: 8081)
-
-**How to handle:**
-
-```yaml
-# Check if dev server screen is present, then tap the correct server
-- runFlow:
-    when:
-      visible: 'Development servers'
-    commands:
-      - tapOn: 'http://10.0.2.2:8081' # Android
-      # - tapOn: "http://localhost:8081"  # iOS
+```
+Agent(model: "sonnet", prompt: "Run this Maestro flow on device X...")
 ```
 
-Or via MCP tools: inspect hierarchy, check for "Development servers" text, then `tap_on` the matching server URL.
+### On failure — fallback diagnosis
 
-#### Developer Menu Onboarding
+When a `run_flow` or `tap_on` fails:
 
-After selecting a server, a "Developer Menu" onboarding screen may appear with a "Continue" button, followed by the dev menu options list.
+1. Call `inspect_view_hierarchy` (cheap, text-based) to understand what's on screen
+2. If hierarchy isn't enough, use `take_screenshot` as last resort
+3. Check for these common blockers:
+   - **"Development servers" screen** → Metro may not be running. Check if the server URL shows a green indicator. If not, tell the user: _"Metro bundler is not running. Please start it with `yarn start`."_
+   - **Login screen still showing** → Wallet didn't unlock. Re-enter password `123123123`.
+   - **Networks modal** → Custom network triggered the add-network sheet. Dismiss with X.
 
-**How to handle:**
+## Standard Launch Flow
 
-```yaml
-- runFlow:
-    when:
-      visible: 'Continue'
-    commands:
-      - tapOn: 'Continue'
-      # Dev menu options list appears — dismiss by tapping Fast Refresh toggle
-      - tapOn:
-          id: 'fast-refresh'
-```
+Use `run_flow` with conditional blocks. These handle all optional screens without pre-inspecting:
 
-#### Combined dismiss flow (copy-paste ready)
+### Android
 
 ```yaml
-# Dismiss dev server selection (Android)
+appId: io.metamask
+---
+# Dev screens (conditional — skipped if not present)
 - runFlow:
     when:
       visible: 'Development servers'
     commands:
       - tapOn: 'http://10.0.2.2:8081'
 
-# Dismiss dev menu onboarding
 - runFlow:
     when:
       visible: 'Continue'
@@ -81,7 +61,76 @@ After selecting a server, a "Developer Menu" onboarding screen may appear with a
           timeout: 5000
       - tapOn:
           id: 'fast-refresh'
+
+# Unlock (conditional — skipped if already unlocked)
+- runFlow:
+    when:
+      visible: 'Enter password'
+    commands:
+      - tapOn: 'Enter password'
+      - inputText: '123123123'
+      - tapOn: 'Unlock'
+
+# Dismiss Perps modal (conditional)
+- runFlow:
+    when:
+      visible: 'Not now'
+    commands:
+      - tapOn: 'Not now'
+
+# Dismiss Networks modal (conditional)
+- runFlow:
+    when:
+      visible: 'Networks'
+    commands:
+      - tapOn:
+          point: '93%,4%'
+
+- waitForAnimationToEnd:
+    timeout: 5000
 ```
+
+### iOS
+
+Same flow but with:
+
+- Dev server URL: `"metamask http://localhost:8081"` (or tap by text)
+- `appId: io.metamask.MetaMask`
+
+**Skip the launch flow for onboarding tests** — when using `withOnboardingFixture`, the app starts in onboarding mode with no wallet to unlock.
+
+## Pre-Made Flow Files (Fast Path)
+
+Reusable YAML flows live in `tests/mcp-server/flows/`. **Always use `run_flow_files` with these first.** Only fall back to individual `tap_on`/`take_screenshot` when exploring unknown UI or debugging failures.
+
+| Flow File                        | Purpose                                                         | Env Vars                           |
+| -------------------------------- | --------------------------------------------------------------- | ---------------------------------- |
+| `ios-launch-and-unlock.yaml`     | Clear state, launch iOS app, dismiss dev screens, unlock wallet | —                                  |
+| `android-launch-and-unlock.yaml` | Dismiss dev screens, unlock wallet (Android)                    | —                                  |
+| `send-eth-to-account.yaml`       | Send ETH to a named account                                     | `AMOUNT`, `ACCOUNT_NAME`, `APP_ID` |
+| `send-eth-full-ios.yaml`         | Launch + unlock + send ETH (iOS composite)                      | `AMOUNT`, `ACCOUNT_NAME`           |
+| `send-eth-full-android.yaml`     | Launch + unlock + send ETH (Android composite)                  | `AMOUNT`, `ACCOUNT_NAME`           |
+| `assert-screenshot.yaml`         | Assert current screen matches a reference image                 | `REFERENCE_IMAGE`, `APP_ID`        |
+
+### 4-Call Fast Path (instead of 25-30 calls)
+
+```
+# 1. Setup everything in one call (test-infra-mcp)
+setup_test_environment(platform: "ios", networkPreset: "anvil")
+
+# 2. Launch and unlock
+run_flow_files("tests/mcp-server/flows/ios-launch-and-unlock.yaml")
+
+# 3. Run test flow
+run_flow_files("tests/mcp-server/flows/send-eth-to-account.yaml",
+  env: { AMOUNT: "1", ACCOUNT_NAME: "Account 3", APP_ID: "io.metamask.MetaMask" })
+
+# 4. Assert screenshot
+run_flow_files("tests/mcp-server/flows/assert-screenshot.yaml",
+  env: { REFERENCE_IMAGE: "/absolute/path/to/activity-good.png", APP_ID: "io.metamask.MetaMask" })
+```
+
+Total: 4 tool calls vs. 25-30 individual taps/screenshots.
 
 ## Quick Reference — MCP Tools
 
@@ -115,7 +164,7 @@ After selecting a server, a "Developer Menu" onboarding screen may appear with a
 
 ### Prerequisites — ALWAYS do these before launching
 
-1. **Start a fixture server** via `test-infra-mcp` (if not already running). If the user didn't specify a fixture, use the default: `start_fixture_server(recipe: [])`. The app MUST have a fixture server to load state from — without it, a clean launch goes to onboarding with no wallet.
+1. **Start a fixture server** via `test-infra-mcp` (if not already running). If the user didn't specify a fixture, use the default: `start_fixture_server(recipe: [])`. A fixture server is **always required for Maestro flows** — the app loads state from it on startup. Without it, a clean launch goes to onboarding with no wallet.
 2. **Set up port forwarding** — `setup_android_port_forwarding()` for Android. iOS doesn't need port forwarding (localhost is shared).
 3. **Clear app data and launch with fixture port:**
 
@@ -148,20 +197,36 @@ Then pass the fixture server port via environment or rely on the default fallbac
 
 The password to unlock MetaMask is always **`123123123`**. Never ask the user for it.
 
+## assertScreenshot — Visual Regression
+
+Compare the current screen against a reference PNG. **Default threshold: 95% similarity.**
+
+```yaml
+- assertScreenshot:
+    path: '/absolute/path/to/reference.png'
+```
+
+- **Only property**: `path` (absolute path to reference PNG). No `threshold`, `tolerance`, or `reference` properties exist.
+- **Dimensions must match exactly** — if the reference is 1179px wide but the device produces 1178px, the assertion fails with "Screenshot size mismatch". Resize with: `sips -z <height> <width> <image.png>`
+- **Use the pre-made flow** `assert-screenshot.yaml` with env var `REFERENCE_IMAGE`:
+  ```
+  run_flow_files("tests/mcp-server/flows/assert-screenshot.yaml",
+    env: { REFERENCE_IMAGE: "/absolute/path/to/ref.png", APP_ID: "io.metamask.MetaMask" })
+  ```
+
 ## Common Flows
 
 ### Unlock wallet
 
+Use **text matching** — testIDs (`login-password-input`, `log-in-button`) don't resolve reliably on iOS because accessibility labels override them.
+
 ```yaml
 - extendedWaitUntil:
-    visible:
-      id: 'login-password-input'
+    visible: 'Enter password'
     timeout: 20000
-- tapOn:
-    id: 'login-password-input'
+- tapOn: 'Enter password'
 - inputText: '123123123'
-- tapOn:
-    id: 'log-in-button'
+- tapOn: 'Unlock'
 ```
 
 ### Full end-to-end launch (Android)
@@ -197,30 +262,48 @@ appId: io.metamask
 
 # Unlock wallet
 - extendedWaitUntil:
-    visible:
-      id: 'login-password-input'
+    visible: 'Enter password'
     timeout: 20000
-
-- tapOn:
-    id: 'login-password-input'
+- tapOn: 'Enter password'
 - inputText: '123123123'
-- tapOn:
-    id: 'log-in-button'
+- tapOn: 'Unlock'
 ```
 
 ## Best Practices
 
-1. **Inspect before acting** — always call `inspect_view_hierarchy` to see what's on screen. Element IDs and text change between versions.
+1. **Wait before conditional checks after screen transitions** — `runFlow: when: visible:` checks **once, instantly**. After `launchApp`, navigation, or any action that triggers a new screen, the UI may not have rendered yet. Always add `extendedWaitUntil` with `optional: true` before the conditional:
 
-2. **Use `runFlow` with `when` for conditional steps** — dev screens, modals, and banners may or may not appear. Use `when: visible:` to handle them gracefully.
+   ```yaml
+   # WRONG — condition checked before screen renders, always skipped
+   - launchApp: ...
+   - runFlow:
+       when:
+         visible: 'Continue'
+       commands: ...
 
-3. **Use element IDs over text when available** — IDs like `login-password-input` are stable; display text may change with localization.
+   # RIGHT — wait for screen to render, then check
+   - launchApp: ...
+   - extendedWaitUntil:
+       visible: 'Continue'
+       timeout: 30000
+       optional: true
+   - runFlow:
+       when:
+         visible: 'Continue'
+       commands: ...
+   ```
+
+2. **Use `runFlow` with `when` for conditional steps** — dev screens, modals, and banners may or may not appear. Use `when: visible:` to handle them gracefully (but remember rule 1 — wait first).
+
+3. **Prefer text matching on iOS, IDs on Android** — iOS accessibility labels often override testIDs, making ID selectors unreliable. Text like `"Enter password"` and `"Unlock"` works on both platforms. Use IDs only when text matching is ambiguous (e.g., `id: "fast-refresh"`).
 
 4. **Use `extendedWaitUntil` for timing** — never assume elements are immediately visible after navigation. Wait with a timeout.
 
 5. **One action at a time when exploring** — use individual MCP tool calls (`tap_on`, `input_text`) when debugging. Use `run_flow` with full YAML when running a known sequence.
 
 6. **Platform differences** — Android uses `back` button for navigation; iOS does not. Dev server host differs (`10.0.2.2` vs `localhost`). Always check platform from `list_devices` result.
+
+7. **iOS merges list item text** — On iOS, elements like token rows ("Ethereum", "ETH", "$2,127,578.70") are combined into a single accessibility label. `tapOn: "Ethereum"` won't match. Use `tapOn: point: "50%,36%"` to tap the first item in a list, or use `inspect_view_hierarchy` to find the correct approach.
 
 ## Integration with test-infra-mcp
 

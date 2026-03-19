@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+---
+# Assert current screen matches a reference image.
+# Default threshold is 95% similarity (Maestro built-in).
+#
+# Env vars:
+#   REFERENCE_IMAGE — absolute path to the reference PNG
+#   APP_ID          — app bundle/package ID
+#
+# IMPORTANT: Reference image must have the EXACT same pixel dimensions as
+# the device screenshot. iOS simulators may differ by 1px from saved images.
+# Use `sips -z <height> <width> <image>` to resize if needed.
+- assertScreenshot:
+    path: ${REFERENCE_IMAGE}

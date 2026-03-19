@@ -1,0 +1,11 @@
+appId: io.metamask.MetaMask
+---
+- runFlow:
+    file: ios-launch-and-unlock.yaml
+
+- runFlow:
+    file: send-eth-to-account.yaml
+    env:
+      APP_ID: io.metamask.MetaMask
+      AMOUNT: ${AMOUNT}
+      ACCOUNT_NAME: ${ACCOUNT_NAME}

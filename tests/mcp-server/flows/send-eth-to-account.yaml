@@ -1,0 +1,40 @@
+appId: ${APP_ID}
+---
+# Tap "Send" wallet action button
+- tapOn: "Send"
+
+# Tap the ETH token row
+# On iOS, "Ethereum" is merged into a single accessibility label so text matching
+# fails. Use a point tap at ~36% height which targets the first token row.
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    point: "50%,36%"
+
+# Enter amount via custom numeric keypad (tap each digit)
+# For single-digit amounts like "1", "5", etc.
+- tapOn: ${AMOUNT}
+
+# Tap Continue to proceed to recipient selection
+- tapOn: "Continue"
+
+# Select the recipient account
+- extendedWaitUntil:
+    visible: ${ACCOUNT_NAME}
+    timeout: 10000
+- tapOn: ${ACCOUNT_NAME}
+
+# Confirm the transaction
+- extendedWaitUntil:
+    visible: "Confirm"
+    timeout: 10000
+- tapOn: "Confirm"
+
+# Wait for transaction confirmation
+- extendedWaitUntil:
+    visible: "Confirmed"
+    timeout: 15000
+
+# Navigate to Activity tab to verify
+- tapOn:
+    id: "tab-bar-item-Activity"

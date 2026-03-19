@@ -1,0 +1,68 @@
+appId: io.metamask
+---
+# CRITICAL: After app launch, the JS bundle reloads from Metro (10-30s).
+# Maestro proceeds immediately but the UI hasn't rendered yet.
+# We MUST use extendedWaitUntil (with optional:true) before conditionals,
+# because `runFlow: when: visible:` checks once and doesn't wait.
+
+# Wait for the first dev screen to render
+- extendedWaitUntil:
+    visible: "Development servers"
+    timeout: 10000
+    optional: true
+
+- runFlow:
+    when:
+      visible: "Development servers"
+    commands:
+      - tapOn: "http://10.0.2.2:8081"
+
+# Wait for the dev menu "Continue" button
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 30000
+    optional: true
+
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+      - runFlow:
+          when:
+            visible:
+              id: "fast-refresh"
+          commands:
+            - tapOn:
+                id: "fast-refresh"
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Enter password"
+    timeout: 60000
+
+- tapOn: "Enter password"
+- inputText: "123123123"
+- tapOn: "Unlock"
+
+# Wait for wallet to load before checking for modals
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# Dismiss Perps modal (conditional)
+- runFlow:
+    when:
+      visible: "Not now"
+    commands:
+      - tapOn: "Not now"
+
+# Dismiss Networks modal (conditional)
+- runFlow:
+    when:
+      visible: "Networks"
+    commands:
+      - tapOn:
+          point: "93%,4%"
+
+- waitForAnimationToEnd:
+    timeout: 5000

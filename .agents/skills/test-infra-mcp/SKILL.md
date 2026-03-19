@@ -7,6 +7,10 @@ description: Use when spinning up test infrastructure outside of Detox withFixtu
 
 > Standalone test infrastructure management via MCP tools. Decoupled from Detox — works with Maestro, ralph-loop, manual QA, or any test runner.
 
+## Cost Optimization
+
+Infrastructure setup (start servers, configure fixtures) is mechanical — no complex reasoning. When dispatching infrastructure + Maestro flows, **use a `sonnet` or `haiku` subagent** to reduce cost. Reserve `opus` for test design and debugging failures.
+
 ## When to Use
 
 - Spinning up a MockServer, FixtureServer, or local Anvil node **outside** of a Detox spec
@@ -19,23 +23,38 @@ description: Use when spinning up test infrastructure outside of Detox withFixtu
 
 ## Quick Reference
 
-| Tool                                                          | Purpose                                                      | Default Port |
-| ------------------------------------------------------------- | ------------------------------------------------------------ | ------------ |
-| `start_mock_server`                                           | Proxy mock — matches real API URLs via `/proxy?url=` pattern | 8000         |
-| `start_fixture_server`                                        | Serves app state at `/state.json`                            | 12345        |
-| `start_dapp_server`                                           | Static file server for test dapps                            | 8085         |
-| `start_websocket_server`                                      | WebSocket server for push notifications                      | 8089         |
-| `start_local_node`                                            | Anvil Ethereum node                                          | 8545         |
-| `stop_resource` / `stop_all`                                  | Cleanup                                                      | —            |
-| `add_mock_route`                                              | Add route to running mock server                             | —            |
-| `load_fixture`                                                | Load/replace state on running fixture server                 | —            |
-| `send_ws_message`                                             | Broadcast to WebSocket clients                               | —            |
-| `node_get_accounts` / `node_get_balance` / `node_set_balance` | Query/modify local node                                      | —            |
-| `get_ios_launch_args` / `get_android_launch_args`             | Port map for app launch                                      | —            |
-| `setup_android_port_forwarding`                               | Run `adb reverse` for all resources                          | —            |
-| `list_resources`                                              | Show all running resources                                   | —            |
-| `list_recipes`                                                | Show available FixtureBuilder recipes                        | —            |
-| `get_server_url` / `get_mock_hits`                            | Query running resources                                      | —            |
+| Tool                                                          | Purpose                                                          | Default Port |
+| ------------------------------------------------------------- | ---------------------------------------------------------------- | ------------ |
+| `start_mock_server`                                           | Proxy mock — matches real API URLs via `/proxy?url=` pattern     | 8000         |
+| `start_fixture_server`                                        | Serves app state at `/state.json`                                | 12345        |
+| `start_dapp_server`                                           | Static file server for test dapps                                | 8085         |
+| `start_websocket_server`                                      | WebSocket server for push notifications                          | 8089         |
+| `start_local_node`                                            | Anvil Ethereum node                                              | 8545         |
+| `stop_resource` / `stop_all`                                  | Cleanup                                                          | —            |
+| `add_mock_route`                                              | Add route to running mock server                                 | —            |
+| `load_fixture`                                                | Load/replace state on running fixture server                     | —            |
+| `send_ws_message`                                             | Broadcast to WebSocket clients                                   | —            |
+| `node_get_accounts` / `node_get_balance` / `node_set_balance` | Query/modify local node                                          | —            |
+| `get_ios_launch_args` / `get_android_launch_args`             | Port map for app launch                                          | —            |
+| `setup_android_port_forwarding`                               | Run `adb reverse` for all resources                              | —            |
+| `list_resources`                                              | Show all running resources                                       | —            |
+| `list_recipes`                                                | Show available FixtureBuilder recipes                            | —            |
+| `get_server_url` / `get_mock_hits`                            | Query running resources                                          | —            |
+| `setup_test_environment`                                      | **One-call setup**: stop all + Anvil + fixture + platform wiring | —            |
+
+## Fallback Ports (CRITICAL)
+
+Resources **must** use their fallback ports. These are the ports the app expects when running on Android (via `adb reverse`) and iOS (via launch args). Do NOT use random/dynamic ports.
+
+| Resource       | Fallback Port | Source                             |
+| -------------- | ------------- | ---------------------------------- |
+| Fixture Server | 12345         | `FALLBACK_FIXTURE_SERVER_PORT`     |
+| Mock Server    | 8000          | `FALLBACK_MOCKSERVER_PORT`         |
+| Anvil Node     | 8545          | `DEFAULT_ANVIL_PORT`               |
+| Dapp Server    | 8085          | `FALLBACK_DAPP_SERVER_PORT`        |
+| WebSocket      | 8089          | `ACCOUNT_ACTIVITY_WS.fallbackPort` |
+
+The MCP server defaults to these ports automatically. Only override if you have a specific reason.
 
 ## Fresh Instances (CRITICAL)
 
@@ -45,26 +64,51 @@ description: Use when spinning up test infrastructure outside of Detox withFixtu
 stop_all()  →  start_mock_server(...)  →  start_fixture_server(...)
 ```
 
-## Fixture Server Is Always Required
+## All Resources Are On-Demand
 
-**A fixture server must ALWAYS be running before launching the app.** The app loads its initial state from the fixture server on startup. Without it, a clean-state launch goes to onboarding (no wallet).
+Every resource (fixture server, local node, dapp server, mock server, WebSocket server) is **on-demand**. Only start what the user explicitly asks for or what the task clearly requires.
 
-- If the user specifies a recipe → use it: `start_fixture_server(recipe: [...])`
-- If the user does NOT mention fixtures → start with the default fixture: `start_fixture_server(recipe: [])`
+**Exception:** When running **Maestro flows**, a fixture server and local node are always required — see the `maestro-mcp` skill for that workflow.
 
-The default fixture provides a fully onboarded wallet with one account, ready for the login screen.
+### Fixture Server
+
+- If the user asks for a fixture server or specifies a recipe → start it: `start_fixture_server(recipe: [...])`
+- The default recipe `[]` provides a fully onboarded wallet with one account, ready for the login screen
+- Without a fixture server, a clean-state app launch goes to onboarding (no wallet)
+
+### Local Node (Anvil)
+
+- Start only when the user requests it or the task involves transactions/blockchain interaction
+- Default port: **8545** (or **8546** if the fixture uses `rpcUrl: http://localhost:8546`)
+- Match the port to whatever the fixture's `withNetworkController` rpcUrl specifies
 
 ## Startup Order
 
-Resources have preconditions. Follow this order when starting multiple:
+### Recommended: One-Call Setup
+
+For most tests, use `setup_test_environment` — it handles everything in one call:
+
+```
+setup_test_environment(
+  platform: "ios",           # or "android"
+  networkPreset: "anvil",    # auto-prepends withNetworkController
+  recipe: ["withMetaMetricsOptIn"]  # additional recipe steps (optional)
+)
+```
+
+This stops all resources, starts Anvil + fixture server, wires platform ports, and returns paths to pre-made flow files. **Use this as the default** for Maestro tests.
+
+### Manual: Step-by-Step
+
+When you need more control (e.g., mock server, dapp server, custom ports), follow this order:
 
 ```
 1. stop_all()                        — always first, kill previous resources
-2. Local node (if needed)            — no preconditions
+2. Local node (if needed)            — start Anvil, match port to fixture rpcUrl
 3. Dapp server (if needed)           — no preconditions
-4. Mock server                       — no preconditions
-5. WebSocket server                  — no preconditions
-6. Fixture server (ALWAYS)           — start LAST, default recipe [] if user didn't specify
+4. Mock server (if needed)           — no preconditions
+5. WebSocket server (if needed)      — no preconditions
+6. Fixture server (if needed)        — start LAST so it can reference running resources
 7. Platform wiring                   — setup_android_port_forwarding() or get_ios_launch_args()
 ```
 
@@ -91,12 +135,47 @@ Mock matches: https://price-api.metafi.codefi.network/v2/chains/1/spot-prices
 
 Wildcard matching works: `"https://gas.api.cx.metamask.io/networks/*/suggestedGasFees"`
 
+## Network Presets
+
+`withNetworkController` accepts either a **preset name** (string) or a **custom config** (JSON object). Use `list_network_presets` to see all available presets.
+
+**Preset name (simple):**
+
+```json
+{ "method": "withNetworkController", "args": "anvil" }
+```
+
+**Custom config (full control):**
+
+```json
+{
+  "method": "withNetworkController",
+  "args": {
+    "chainId": "0x539",
+    "rpcUrl": "http://localhost:8546",
+    "type": "custom",
+    "nickname": "Local RPC",
+    "ticker": "ETH"
+  }
+}
+```
+
+Key presets:
+| Preset | Chain | Use case |
+|--------|-------|----------|
+| `anvil` | 0x539 | Local Anvil node — **auto-detects port** from running node |
+| `sepolia` | 0xaa36a7 | Sepolia testnet |
+| `tenderly-mainnet` | 0x1 | Tenderly fork of mainnet (swap/bridge tests) |
+| `tenderly-linea` | 0xe708 | Tenderly fork of Linea |
+| `mainnet` | 0x1 | Ethereum mainnet via public RPC |
+
 ## Common Patterns
 
 ### Minimal setup (most tests)
 
 ```
-start_mock_server → start_fixture_server(recipe: ["withMetaMetricsOptIn"])
+start_local_node()
+start_fixture_server(recipe: [{ method: "withNetworkController", args: "anvil" }])
 ```
 
 ### Swap/Bridge test
@@ -107,7 +186,7 @@ start_mock_server(routes: [
   { url: "https://swap.api.cx.metamask.io/networks/1/trades*", response: { ... } }
 ])
 start_fixture_server(recipe: [
-  { method: "withNetworkController", args: { selectedNetworkClientId: "mainnet" } },
+  { method: "withNetworkController", args: "tenderly-mainnet" },
   "withDisabledSmartTransactions",
   "withMetaMetricsOptIn"
 ])

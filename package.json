@@ -531,6 +531,7 @@
     "@metamask/test-dapp": "9.5.0",
     "@metamask/test-dapp-multichain": "^0.17.1",
     "@metamask/test-dapp-solana": "^0.3.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",
@@ -658,7 +659,8 @@
     "webpack-cli": "^5.1.4",
     "ws": "^8.19.0",
     "xhr2": "^0.2.1",
-    "xml2js": "^0.5.0"
+    "xml2js": "^0.5.0",
+    "zod": "^4.3.6"
   },
   "config": {
     "react-native-storybook-loader": {
