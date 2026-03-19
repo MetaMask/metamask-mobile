@@ -92,6 +92,7 @@ class CreatePasswordView {
     await Gestures.waitAndTap(this.newPasswordInput, {
       elemDescription: 'Create Password New Password Input',
       checkVisibility: false,
+      checkEnabled: false,
     });
     await Gestures.typeText(this.newPasswordInput, password, {
       elemDescription: 'Create Password New Password Input',
