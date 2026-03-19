@@ -1167,12 +1167,12 @@ export class Engine {
   ) {
     const { ApprovalController } = this.context;
 
-    if (opts.ignoreMissing && !ApprovalController.has({ id })) {
+    if (opts.ignoreMissing && !ApprovalController.hasRequest({ id })) {
       return;
     }
 
     try {
-      ApprovalController.reject(id, reason);
+      ApprovalController.rejectRequest(id, reason);
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -1197,7 +1197,7 @@ export class Engine {
     const { ApprovalController } = this.context;
 
     try {
-      return await ApprovalController.accept(id, requestData, {
+      return await ApprovalController.acceptRequest(id, requestData, {
         waitForResult: opts.waitForResult,
         deleteAfterResult: opts.deleteAfterResult,
       });

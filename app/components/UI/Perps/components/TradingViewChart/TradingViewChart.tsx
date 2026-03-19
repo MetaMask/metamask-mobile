@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import { type CandleData } from '@metamask/perps-controller';

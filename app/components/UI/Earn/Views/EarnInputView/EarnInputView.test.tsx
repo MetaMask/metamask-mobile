@@ -34,14 +34,14 @@ import {
 import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import Engine from '../../../../../core/Engine';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as multichainAccountsSelectors from '../../../../../selectors/multichainAccounts/accounts';
 import {
   createMockToken,

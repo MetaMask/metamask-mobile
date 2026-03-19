@@ -10,7 +10,7 @@ import {
   upgradeOnlyAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import Info from './info-root';

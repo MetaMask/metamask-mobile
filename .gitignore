@@ -185,3 +185,8 @@ temp/
 tests/coverage-systems/
 
 runway-artifacts/
+
+# E2E AI Analyzer output files
+release-test-plan.json
+release-delta.json
+release-signoffs.json
