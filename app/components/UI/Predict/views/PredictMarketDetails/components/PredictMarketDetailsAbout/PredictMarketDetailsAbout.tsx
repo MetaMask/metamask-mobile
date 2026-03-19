@@ -23,133 +23,131 @@ export interface PredictMarketDetailsAboutProps {
 }
 
 const PredictMarketDetailsAbout = memo(
-  ({ market, onPolymarketResolution }: PredictMarketDetailsAboutProps) => {
-    return (
-      <Box twClassName="gap-6">
-        <Box twClassName="gap-4">
+  ({ market, onPolymarketResolution }: PredictMarketDetailsAboutProps) => (
+    <Box twClassName="gap-6">
+      <Box twClassName="gap-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-3"
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
             twClassName="gap-3"
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-3"
-            >
-              <Icon
-                name={IconName.Chart}
-                size={IconSize.Md}
-                color={IconColor.IconDefault}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="font-medium"
-                color={TextColor.TextDefault}
-              >
-                {strings('predict.market_details.volume')}
-              </Text>
-            </Box>
+            <Icon
+              name={IconName.Chart}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
             <Text
               variant={TextVariant.BodyMd}
               twClassName="font-medium"
               color={TextColor.TextDefault}
             >
-              ${formatVolume(market?.outcomes[0].volume || 0)}
+              {strings('predict.market_details.volume')}
             </Text>
           </Box>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="font-medium"
+            color={TextColor.TextDefault}
+          >
+            ${formatVolume(market?.outcomes[0].volume || 0)}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-3"
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
             twClassName="gap-3"
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-3"
-            >
-              <Icon
-                name={IconName.Clock}
-                size={IconSize.Md}
-                color={IconColor.IconDefault}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="font-medium"
-                color={TextColor.TextDefault}
-              >
-                {strings('predict.market_details.end_date')}
-              </Text>
-            </Box>
+            <Icon
+              name={IconName.Clock}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
             <Text
               variant={TextVariant.BodyMd}
               twClassName="font-medium"
               color={TextColor.TextDefault}
             >
-              {market?.endDate
-                ? new Date(market?.endDate).toLocaleDateString()
-                : 'N/A'}
+              {strings('predict.market_details.end_date')}
+            </Text>
+          </Box>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="font-medium"
+            color={TextColor.TextDefault}
+          >
+            {market?.endDate
+              ? new Date(market?.endDate).toLocaleDateString()
+              : 'N/A'}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-3"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Icon
+              name={IconName.Bank}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
+              {strings('predict.market_details.resolution_details')}
             </Text>
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-3"
+            twClassName="gap-1"
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-3"
-            >
-              <Icon
-                name={IconName.Bank}
-                size={IconSize.Md}
-                color={IconColor.IconDefault}
-              />
+            <Pressable onPress={onPolymarketResolution}>
               <Text
                 variant={TextVariant.BodyMd}
                 twClassName="font-medium"
-                color={TextColor.TextDefault}
+                color={TextColor.PrimaryDefault}
               >
-                {strings('predict.market_details.resolution_details')}
+                Polymarket
               </Text>
-            </Box>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
-            >
-              <Pressable onPress={onPolymarketResolution}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
-                  color={TextColor.PrimaryDefault}
-                >
-                  Polymarket
-                </Text>
-              </Pressable>
-              <Icon
-                name={IconName.Export}
-                size={IconSize.Sm}
-                color={IconColor.PrimaryDefault}
-              />
-            </Box>
+            </Pressable>
+            <Icon
+              name={IconName.Export}
+              size={IconSize.Sm}
+              color={IconColor.PrimaryDefault}
+            />
           </Box>
         </Box>
-        <Box twClassName="w-full border-t border-muted" />
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {market?.description}
-        </Text>
-        <Box twClassName="w-full border-t border-muted" />
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {strings('predict.market_details.disclaimer')}
-        </Text>
       </Box>
-    );
-  },
+      <Box twClassName="w-full border-t border-muted" />
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {market?.description}
+      </Text>
+      <Box twClassName="w-full border-t border-muted" />
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        {strings('predict.market_details.disclaimer')}
+      </Text>
+    </Box>
+  ),
 );
 
 PredictMarketDetailsAbout.displayName = 'PredictMarketDetailsAbout';
