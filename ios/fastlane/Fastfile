@@ -93,15 +93,20 @@ platform :ios do
       key_filepath: api_key_key_filepath,
     )
     
-    # Upload to TestFlight with API key from app_store_connect_api_key action
-    upload_to_testflight(
+    # Upload to TestFlight with API key from app_store_connect_api_key action.
+    # Only include groups when distributing externally -- passing groups with
+    # distribute_external=false still triggers the groups API, which fails if
+    # the API key lacks external-distribution permissions.
+    testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
       distribute_external: distribute_external,
-      groups: groups,
       notify_external_testers: notify_external_testers,
       changelog: changelog_message
-    )
+    }
+    testflight_options[:groups] = groups if distribute_external
+
+    upload_to_testflight(testflight_options)
   end
 end
 
