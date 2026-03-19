@@ -75,7 +75,9 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   const isUrl = looksLikeUrl(searchQuery.toLowerCase());
 
   const engineKey = searchEngine ?? AppConstants.DEFAULT_SEARCH_ENGINE;
-  const resolvedEngine: SearchEngine = SEARCH_ENGINE_URLS[engineKey as SearchEngine]
+  const resolvedEngine: SearchEngine = SEARCH_ENGINE_URLS[
+    engineKey as SearchEngine
+  ]
     ? (engineKey as SearchEngine)
     : AppConstants.DEFAULT_SEARCH_ENGINE;
   const searchUrl =
