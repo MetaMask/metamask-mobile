@@ -33,7 +33,7 @@ const PageIndicator: React.FC<PageIndicatorProps> = ({
           key={index}
           style={
             index === activeIndex
-              ? tw.style('w-6 h-2 rounded-full bg-icon-default')
+              ? tw.style('w-2 h-2 rounded-full bg-icon-default')
               : tw.style('w-2 h-2 rounded-full bg-icon-muted')
           }
         />

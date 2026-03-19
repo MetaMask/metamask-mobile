@@ -1,41 +1,20 @@
-import React, { useMemo } from 'react';
-import { Dimensions, ScrollView } from 'react-native';
+import React from 'react';
+import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
   FontWeight,
-  BoxFlexDirection,
-  BoxFlexWrap,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-// Leave some peek space so the user can see the next card's edge
-const HORIZONTAL_PADDING = 16;
-export const CARD_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2;
+import TokenRow from './TokenRow';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
+  cardWidth: number;
 }
-
-const formatDate = (dateString: string): string | null => {
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return null;
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  } catch {
-    return null;
-  }
-};
 
 const getImpactLabel = (impact: WhatsHappeningItem['impact']): string => {
   switch (impact) {
@@ -72,22 +51,22 @@ const getImpactStyles = (
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   item,
+  cardWidth,
 }) => {
   const tw = useTailwind();
-  const formattedDate = useMemo(() => formatDate(item.date), [item.date]);
   const impactLabel = getImpactLabel(item.impact);
   const impactStyles = getImpactStyles(item.impact);
 
   return (
-    <Box style={{ width: SCREEN_WIDTH }} twClassName="px-4">
+    <Box style={{ width: cardWidth }} twClassName="flex-1">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-4')}
+        contentContainerStyle={tw.style('pb-4 flex-grow')}
       >
         <Box
-          twClassName="rounded-2xl bg-background-muted overflow-hidden"
-          padding={5}
+          twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1"
           gap={4}
+          padding={5}
         >
           {/* Impact badge */}
           <Box twClassName={impactStyles.containerClass}>
@@ -98,58 +77,27 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
           {/* Title */}
           <Text
-            variant={TextVariant.HeadingMd}
+            variant={TextVariant.HeadingLg}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
           >
             {item.title}
           </Text>
 
-          {/* Description */}
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {item.description}
-          </Text>
-
-          {/* Related Assets */}
+          {/* Tokens section */}
           {item.relatedAssets.length > 0 && (
-            <Box gap={2}>
+            <Box gap={1}>
               <Text
                 variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                Related assets
+                Tokens
               </Text>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                flexWrap={BoxFlexWrap.Wrap}
-                gap={2}
-              >
-                {item.relatedAssets.map((asset) => (
-                  <Box
-                    key={asset.sourceAssetId}
-                    twClassName="bg-muted rounded-full px-3 py-1"
-                  >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextDefault}
-                    >
-                      {asset.symbol}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          )}
 
-          {/* Date */}
-          {formattedDate && (
-            <Box twClassName="border-t border-muted pt-4">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {formattedDate}
-              </Text>
+              {item.relatedAssets.map((asset) => (
+                <TokenRow key={asset.sourceAssetId} asset={asset} />
+              ))}
             </Box>
           )}
         </Box>
