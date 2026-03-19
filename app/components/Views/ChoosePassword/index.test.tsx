@@ -483,7 +483,11 @@ describe('ChoosePassword', () => {
 
       await fillForm(component, 'StrongPassword123', 'DifferentPassword123');
 
-      const { submitButton } = getFormElements(component);
+      // Avoid getFormElements here: the checkbox is checked after fillForm,
+      // so querying its testID would find two elements (checkbox + inner Icon).
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
       expect(submitButton).toBeDisabled();
       expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     });
