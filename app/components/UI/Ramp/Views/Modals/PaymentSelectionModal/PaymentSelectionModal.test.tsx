@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentSelectionModal from './PaymentSelectionModal';
+import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testIds';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
@@ -206,6 +207,16 @@ describe('PaymentSelectionModal', () => {
     const { getByText } = renderWithProvider(PaymentSelectionModal);
 
     expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
+  });
+
+  it('calls onCloseBottomSheet when header close is pressed', () => {
+    const { getByTestId } = renderWithProvider(PaymentSelectionModal);
+
+    fireEvent.press(
+      getByTestId(PAYMENT_SELECTION_MODAL_TEST_IDS.HEADER_CLOSE_BUTTON),
+    );
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
   it('displays payment methods list', () => {

@@ -27,10 +27,10 @@ import Badge, {
 } from '../../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+/* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const transactionIconReceived = require('images/transaction-icons/receive.png');
 const transactionIconSent = require('images/transaction-icons/receive-inverted.png');
-/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+/* eslint-enable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 interface Props {
   readonly order: FiatOrder;
