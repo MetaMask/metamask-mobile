@@ -66,6 +66,8 @@ const LEGACY_INLINE_METAMETRICS_PATHS = [
   'tests/smoke/card/card-home-add-funds.spec.ts',
   'tests/smoke/card/card-home-manage-card.spec.ts',
   'tests/smoke/confirmations/send/metricsValidationHelper.ts',
+  'tests/smoke/confirmations/transactions/dapp-initiated-transfer.spec.ts',
+  'tests/smoke/predict/predict-cash-out.spec.ts',
   'tests/smoke/predict/predict-claim-positions.spec.ts',
   'tests/smoke/predict/predict-geo-restriction.spec.ts',
   'tests/smoke/predict/predict-open-position.spec.ts',
@@ -73,6 +75,7 @@ const LEGACY_INLINE_METAMETRICS_PATHS = [
   'tests/smoke/snaps/test-snap-preinstalled.spec.ts',
   'tests/smoke/swap/bridge-action-smoke.spec.ts',
   'tests/smoke/swap/swap-action-smoke.spec.ts',
+  'tests/smoke/wallet/analytics/import-wallet.spec.ts',
   'tests/smoke/wallet/analytics/new-wallet.spec.ts',
   'tests/regression/ramps/onramp-parameters.spec.ts',
   'tests/regression/wallet/analytics/opt-out.ts',
@@ -533,7 +536,10 @@ function collectFromLegacyInlineAnalyticsSource(source, onboardingMap, out) {
     const v = strConsts[m[1]];
     if (v) out.add(v);
   }
-  for (const m of source.matchAll(/getEventsPayloads\s*\(\s*[^,]+,\s*\[([\s\S]*?)\]\s*\)/g)) {
+  // Allow optional args after the event array (e.g. timeout): `], 5000)` not only `])`.
+  for (const m of source.matchAll(
+    /getEventsPayloads\s*\(\s*[^,]+,\s*\[([\s\S]*?)\]\s*(?:,\s*[^)]+)?\s*\)/g,
+  )) {
     const inner = m[1];
     for (const sm of inner.matchAll(/['"]([^'"]+)['"]/g)) {
       out.add(sm[1]);
