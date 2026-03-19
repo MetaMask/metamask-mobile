@@ -765,6 +765,12 @@
       "eslint-import-resolver-typescript>unrs-resolver": false
     }
   },
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "12.0.0-preview-434bd0c"
+    }
+  },
   "packageManager": "yarn@4.10.3",
   "foundryup": {
     "binaries": [
