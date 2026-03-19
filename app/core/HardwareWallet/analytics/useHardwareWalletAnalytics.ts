@@ -13,6 +13,8 @@ import {
   buildRawErrorString,
 } from './types';
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 interface UseHardwareWalletAnalyticsOptions {
   connectionState: HardwareWalletConnectionState;
   walletType: HardwareWalletType | null;
@@ -32,8 +34,9 @@ interface UseHardwareWalletAnalyticsResult {
  * error or "awaiting app" state.
  * - **Recovery Primary Button Clicked** – fires when the user taps
  * Continue/Retry from the error or awaiting-app screen.
- * - **Recovery Success Modal Viewed** – fires when the device reaches
- * the Ready state after at least one error/recovery step.
+ * - **Recovery Success Modal Viewed** – fires every time the device
+ * reaches the Ready state. Error-related properties are only
+ * included when the user recovered from a preceding error.
  *
  * `error_state_view_count` is tracked per error_state and resets on
  * success or when the flow is dismissed.
@@ -85,7 +88,7 @@ export function useHardwareWalletAnalytics({
           MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_MODAL_VIEWED,
         )
           .addProperties({
-            flow,
+            flow: capitalize(flow),
             device_type: getAnalyticsDeviceType(walletType),
             ...(deviceModel && { device_model: deviceModel }),
             error_state: errorState,
@@ -96,25 +99,25 @@ export function useHardwareWalletAnalytics({
       );
     }
 
-    if (currentStatus === ConnectionStatus.Ready && hasSeenErrorRef.current) {
+    if (currentStatus === ConnectionStatus.Ready) {
       const lastErrorState = lastErrorStateRef.current;
 
-      if (lastErrorState) {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
-          )
-            .addProperties({
-              flow,
-              device_type: getAnalyticsDeviceType(walletType),
-              ...(deviceModel && { device_model: deviceModel }),
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
+        )
+          .addProperties({
+            flow: capitalize(flow),
+            device_type: getAnalyticsDeviceType(walletType),
+            ...(deviceModel && { device_model: deviceModel }),
+            ...(lastErrorState && {
               error_state: lastErrorState,
               error_state_view_count: lastErrorViewCountRef.current,
               raw_error: lastRawErrorRef.current,
-            })
-            .build(),
-        );
-      }
+            }),
+          })
+          .build(),
+      );
 
       viewCountsRef.current.clear();
       lastErrorStateRef.current = null;
@@ -148,7 +151,7 @@ export function useHardwareWalletAnalytics({
         MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_PRIMARY_BUTTON_CLICKED,
       )
         .addProperties({
-          flow,
+          flow: capitalize(flow),
           device_type: getAnalyticsDeviceType(walletType),
           ...(deviceModel && { device_model: deviceModel }),
           error_state: errorState,

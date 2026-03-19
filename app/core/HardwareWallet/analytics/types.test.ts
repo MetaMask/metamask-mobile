@@ -179,8 +179,8 @@ describe('analytics types', () => {
       expect(getAnalyticsDeviceType(HardwareWalletType.Trezor)).toBe('Trezor');
     });
 
-    it('returns QR for Qr type', () => {
-      expect(getAnalyticsDeviceType(HardwareWalletType.Qr)).toBe('QR');
+    it('returns QR Hardware for Qr type', () => {
+      expect(getAnalyticsDeviceType(HardwareWalletType.Qr)).toBe('QR Hardware');
     });
 
     it('returns OneKey for OneKey type', () => {

@@ -9,10 +9,7 @@ import {
   type HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
 import { useHardwareWalletAnalytics } from './useHardwareWalletAnalytics';
-import {
-  HARDWARE_WALLET_CONNECTION_FLOW,
-  HardwareWalletAnalyticsErrorState,
-} from './types';
+import { HardwareWalletAnalyticsErrorState } from './types';
 import { MetaMetricsEvents } from '../../Analytics';
 
 const mockTrackEvent = jest.fn();
@@ -51,7 +48,7 @@ describe('useHardwareWalletAnalytics', () => {
       status: ConnectionStatus.Disconnected,
     } as HardwareWalletConnectionState,
     walletType: HardwareWalletType.Ledger,
-    flow: HARDWARE_WALLET_CONNECTION_FLOW,
+    flow: 'connection',
     deviceModel: 'Nano X',
   };
 
@@ -74,7 +71,7 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          flow: 'connection',
+          flow: 'Connection',
           device_type: 'Ledger',
           device_model: 'Nano X',
           error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
@@ -297,7 +294,7 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          flow: 'connection',
+          flow: 'Connection',
           device_type: 'Ledger',
           device_model: 'Nano X',
           error_state: HardwareWalletAnalyticsErrorState.DeviceDisconnected,
@@ -306,7 +303,7 @@ describe('useHardwareWalletAnalytics', () => {
       );
     });
 
-    it('does not fire when transitioning to Ready without preceding error', () => {
+    it('fires without error properties when no preceding error occurred', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         { initialProps: defaultOptions },
@@ -317,8 +314,15 @@ describe('useHardwareWalletAnalytics', () => {
         connectionState: { status: ConnectionStatus.Ready },
       });
 
-      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          error_state: expect.anything(),
+          error_state_view_count: expect.anything(),
+          raw_error: expect.anything(),
+        }),
       );
     });
 
@@ -383,7 +387,7 @@ describe('useHardwareWalletAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          flow: 'connection',
+          flow: 'Connection',
           device_type: 'Ledger',
           device_model: 'Nano X',
           error_state: HardwareWalletAnalyticsErrorState.BluetoothDisabled,
@@ -437,7 +441,7 @@ describe('useHardwareWalletAnalytics', () => {
   });
 
   describe('flow variants', () => {
-    it('tracks transaction flow', () => {
+    it('tracks transaction flow as Transaction', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         {
@@ -455,11 +459,11 @@ describe('useHardwareWalletAnalytics', () => {
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ flow: 'transaction' }),
+        expect.objectContaining({ flow: 'Transaction' }),
       );
     });
 
-    it('tracks message flow', () => {
+    it('tracks message flow as Message', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         {
@@ -477,11 +481,11 @@ describe('useHardwareWalletAnalytics', () => {
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ flow: 'message' }),
+        expect.objectContaining({ flow: 'Message' }),
       );
     });
 
-    it('defaults to connection flow', () => {
+    it('defaults to Connection flow', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         { initialProps: defaultOptions },
@@ -496,13 +500,13 @@ describe('useHardwareWalletAnalytics', () => {
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ flow: 'connection' }),
+        expect.objectContaining({ flow: 'Connection' }),
       );
     });
   });
 
   describe('state reset on disconnect', () => {
-    it('resets tracking state when transitioning to Disconnected', () => {
+    it('clears error properties after disconnect so success fires without them', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         { initialProps: defaultOptions },
@@ -522,14 +526,20 @@ describe('useHardwareWalletAnalytics', () => {
       });
 
       mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
 
       rerender({
         ...defaultOptions,
         connectionState: { status: ConnectionStatus.Ready },
       });
 
-      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          error_state: expect.anything(),
+        }),
       );
     });
   });

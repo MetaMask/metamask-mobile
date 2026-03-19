@@ -92,7 +92,7 @@ export function getAnalyticsDeviceType(
     case HardwareWalletType.Lattice:
       return 'Lattice';
     case HardwareWalletType.Qr:
-      return 'QR';
+      return 'QR Hardware';
     default:
       return 'Unknown';
   }
