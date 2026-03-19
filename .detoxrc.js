@@ -77,6 +77,86 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.flask.release',
     },
+    'ios.sim.visual': {
+      device: 'ios.simulator',
+      app: 'ios.debug',
+      artifacts: {
+        rootDir: './tests/visual-regression/artifacts',
+        plugins: {
+          screenshot: {
+            shouldTakeAutomaticSnapshots: false,
+            keepOnlyFailedTestsArtifacts: false,
+          },
+          video: {
+            enabled: false,
+          },
+        },
+      },
+      testRunner: {
+        args: {
+          config: 'tests/visual-regression/jest.visual-regression.config.js',
+        },
+      },
+    },
+    'android.emu.visual': {
+      device: 'android.emulator',
+      app: 'android.debug',
+      artifacts: {
+        rootDir: './tests/visual-regression/artifacts',
+        plugins: {
+          screenshot: {
+            shouldTakeAutomaticSnapshots: false,
+            keepOnlyFailedTestsArtifacts: false,
+          },
+          video: {
+            enabled: false,
+          },
+        },
+      },
+      testRunner: {
+        args: {
+          config: 'tests/visual-regression/jest.visual-regression.config.js',
+        },
+      },
+    },
+    'ios.sim.visual.ci': {
+      device: 'ios.simulator',
+      app: 'ios.main.release',
+      artifacts: {
+        rootDir: './tests/visual-regression/artifacts',
+        plugins: {
+          screenshot: {
+            shouldTakeAutomaticSnapshots: false,
+            keepOnlyFailedTestsArtifacts: false,
+          },
+          video: { enabled: false },
+        },
+      },
+      testRunner: {
+        args: {
+          config: 'tests/visual-regression/jest.visual-regression.config.js',
+        },
+      },
+    },
+    'android.emu.visual.ci': {
+      device: 'android.github_ci.emulator',
+      app: 'android.release',
+      artifacts: {
+        rootDir: './tests/visual-regression/artifacts',
+        plugins: {
+          screenshot: {
+            shouldTakeAutomaticSnapshots: false,
+            keepOnlyFailedTestsArtifacts: false,
+          },
+          video: { enabled: false },
+        },
+      },
+      testRunner: {
+        args: {
+          config: 'tests/visual-regression/jest.visual-regression.config.js',
+        },
+      },
+    },
   },
   devices: {
     'ios.simulator': {

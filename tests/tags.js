@@ -90,6 +90,7 @@ const otherTags = {
   regressionSampleFeature: 'RegressionSampleFeature:',
   performance: 'Performance:',
   fixtureValidation: 'FixtureValidation:',
+  visualRegression: 'VisualRegression:',
 };
 
 // Smoke test tag functions
@@ -139,6 +140,8 @@ const FlaskBuildTests = (testName) =>
 const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
 const FixtureValidation = (testName) =>
   `${otherTags.fixtureValidation} ${testName}`;
+const VisualRegression = (testName) =>
+  `${otherTags.visualRegression} ${testName}`;
 
 export {
   smokeTags,
@@ -168,4 +171,5 @@ export {
   FlaskBuildTests,
   SmokePerformance,
   FixtureValidation,
+  VisualRegression,
 };
