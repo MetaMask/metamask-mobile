@@ -325,7 +325,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   if (
     !hasEverBeenActive ||
-    (isFetching && !marketData.length && !isFetchingMore)
+    (isFetching && !marketData.length && !isFetchingMore && !isRefreshing)
   ) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
