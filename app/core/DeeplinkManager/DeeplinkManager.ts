@@ -52,10 +52,16 @@ export async function resolveBranchShortLink(
   try {
     const cleanUrl = stripBranchDeepviewParams(shortLinkUrl);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
     const response = await fetch(cleanUrl, {
       redirect: 'follow',
       headers: { 'User-Agent': 'MetaMask-Mobile/1.0 (deep-link-resolver)' },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     const finalUrl = response.url;
 
@@ -185,6 +191,8 @@ export class DeeplinkManager {
     const cacheBranchParams = (params: Record<string, unknown> | undefined) => {
       if (params && typeof params === 'object' && Object.keys(params).length) {
         instance.cachedBranchParams = params as BranchParams;
+      } else {
+        instance.cachedBranchParams = undefined;
       }
     };
 

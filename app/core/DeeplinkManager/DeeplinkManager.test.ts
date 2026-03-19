@@ -399,7 +399,7 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     });
   });
 
-  it('passes URI through unchanged when +clicked_branch_link is false', async () => {
+  it('does not pass Branch domain URI through when +clicked_branch_link is false and no +non_branch_link', async () => {
     DeeplinkManager.start();
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
     const mockUri = 'https://metamask.app.link/swap?amount=100';
@@ -410,10 +410,10 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     });
 
     await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    expect(handleDeeplink).not.toHaveBeenCalled();
   });
 
-  it('passes URI through unchanged when $deeplink_path is missing', async () => {
+  it('does not pass Branch domain URI through when $deeplink_path is missing and no +non_branch_link', async () => {
     DeeplinkManager.start();
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
     const mockUri = 'https://metamask.app.link/swap?amount=100';
@@ -424,7 +424,7 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     });
 
     await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    expect(handleDeeplink).not.toHaveBeenCalled();
   });
 
   it('strips leading slash from $deeplink_path when rewriting', async () => {
