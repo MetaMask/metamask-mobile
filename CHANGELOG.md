@@ -33,7 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Always display popular networks assets on the token section of the home page (#27009)
 - Added Trending tokens to the mobile Swap zero state with filter controls and improved Bridge quote/loading state handling (#26620)
 - Added off-device linked accounts detection, caching, and display in Rewards Settings (#26674)
-- Fixed a bug where tapping perpetuals items on the homepage did not show the tutorial for first-time users (#27423)
 - Added a live blinking cursor to the Ramp Buy and Sell amount input screens for a more intuitive input experience (#27292)
 
 ### Changed
@@ -54,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a bug where tapping perpetuals items on the homepage did not show the tutorial for first-time users (#27423)
 - Fixed UI styling on perps, explore and predictions (#26890)
 - Fixed missing mUSD icon when viewing token details from the Cash section empty state (#27442)
 - Fixed a brief flash of empty content in the Tokens section while token data loads on the homepage (#27431)
@@ -97,6 +97,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where the Ramp checkout provider title appeared above the WebView content (#27024)
 - Hardened mUSD conversion quick convert status tracking. Auto reject pending mUSD approvals when app is foregrounded. (#26608)
 - Fixed missing block explorer link on "Receive mUSD" row for Linea USDT and DAI conversions using aggregator routes (#27022)
+
+## [7.69.1]
+
+### Fixed
+
+- Fixed root pages scrollable behavior with SafeAreaView, standardizing safe area and header inset handling across main tab views (#27446)
+- Fixed token prices in the wallet list displaying without thousand-separator commas and with too many decimal places (#27485)
 
 ## [7.69.0]
 
@@ -11017,6 +11024,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...HEAD
 [7.70.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.70.0
+[7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.3...v7.69.0
 [7.68.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.68.3
 [7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.1...v7.68.2

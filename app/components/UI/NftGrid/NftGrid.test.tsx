@@ -7,11 +7,9 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import {
-  isNftFetchingProgressSelector,
-  multichainCollectiblesByEnabledNetworksSelector,
-} from '../../../reducers/collectibles';
+import { isNftFetchingProgressSelector } from '../../../reducers/collectibles';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
@@ -21,7 +19,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     useNavigation: () => ({
       navigate: mockNavigate,
@@ -29,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
     }),
     useFocusEffect: (callback: () => void | (() => void)) => {
       // Use real useEffect to ensure cleanup runs on unmount
-      React.useEffect(() => callback(), [callback]);
+      ReactActual.useEffect(() => callback(), [callback]);
     },
   };
 });
@@ -336,20 +334,27 @@ describe('NftGrid', () => {
     isHomepageRedesignEnabled = false,
     collectibles = {},
     isNftFetching = false,
+    selectedGroupAccounts = [],
   }: {
     isHomepageRedesignEnabled?: boolean;
     collectibles?: Record<string, Nft[]>;
     isNftFetching?: boolean;
+    selectedGroupAccounts?: { address: string }[];
   }) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectHomepageRedesignV1Enabled) {
         return isHomepageRedesignEnabled;
       }
-      if (selector === multichainCollectiblesByEnabledNetworksSelector) {
-        return collectibles;
-      }
       if (selector === isNftFetchingProgressSelector) {
         return isNftFetching;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return selectedGroupAccounts;
+      }
+      // For the custom selector function that calls multichainCollectiblesByEnabledNetworksSelector
+      if (typeof selector === 'function') {
+        // This handles the inline function in NftGrid that calls multichainCollectiblesByEnabledNetworksSelector
+        return collectibles;
       }
       return undefined;
     });
@@ -1229,6 +1234,146 @@ describe('NftGrid', () => {
           call[0]?.properties?.location === 'homepage',
       );
       expect(positionScreenViewedCalls).toHaveLength(0);
+    });
+  });
+
+  describe('non-EVM account group selection (addressesOverride)', () => {
+    it('updates NFT display when selectedGroupAccounts changes from empty to populated', async () => {
+      const mockCollectibles = { '0x1': [mockNft] };
+
+      // Start with no group accounts (EVM case)
+      setupSelectorMocks({
+        isHomepageRedesignEnabled: false,
+        collectibles: mockCollectibles,
+        isNftFetching: false,
+        selectedGroupAccounts: [],
+      });
+      const store = mockStore(initialState);
+
+      const { getByTestId, rerender } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      });
+
+      // Switch to a non-EVM group with accounts
+      const nonEvmAccounts = [{ address: '0xabc111', id: 'non-evm-acc-1' }];
+      setupSelectorMocks({
+        isHomepageRedesignEnabled: false,
+        collectibles: mockCollectibles,
+        isNftFetching: false,
+        selectedGroupAccounts: nonEvmAccounts as { address: string }[],
+      });
+
+      rerender(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      });
+    });
+
+    it('updates NFT display when selectedGroupAccounts changes from populated to empty', async () => {
+      const nonEvmAccounts = [{ address: '0xabc111', id: 'non-evm-acc-1' }];
+      const mockCollectibles = { '0x1': [mockNft] };
+
+      // Start with non-EVM group accounts
+      setupSelectorMocks({
+        isHomepageRedesignEnabled: false,
+        collectibles: mockCollectibles,
+        isNftFetching: false,
+        selectedGroupAccounts: nonEvmAccounts as { address: string }[],
+      });
+      const store = mockStore(initialState);
+
+      const { getByTestId, rerender } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      });
+
+      // Switch back to EVM (empty group accounts)
+      setupSelectorMocks({
+        isHomepageRedesignEnabled: false,
+        collectibles: mockCollectibles,
+        isNftFetching: false,
+        selectedGroupAccounts: [],
+      });
+
+      rerender(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders NFTs across multiple non-EVM accounts in the same group', async () => {
+      const nonEvmAccounts = [
+        { address: '0xabc111', id: 'non-evm-acc-1' },
+        { address: '0xdef222', id: 'non-evm-acc-2' },
+      ];
+      const nft2: typeof mockNft = {
+        ...mockNft,
+        tokenId: '789',
+        name: 'Second NFT',
+      };
+      const mockCollectibles = {
+        '0x1': [mockNft],
+        '0x89': [nft2],
+      };
+      setupSelectorMocks({
+        isHomepageRedesignEnabled: false,
+        collectibles: mockCollectibles,
+        isNftFetching: false,
+        selectedGroupAccounts: nonEvmAccounts as { address: string }[],
+      });
+      const store = mockStore(initialState);
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+        expect(getByTestId('collectible-Second NFT-789')).toBeOnTheScreen();
+      });
     });
   });
 });
