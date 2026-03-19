@@ -123,7 +123,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 {
                   "alignSelf": "flex-start",
                   "display": "flex",
-                  "flexDirection": "column",
                   "marginTop": 32,
                   "rowGap": 16,
                 },
@@ -199,7 +198,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               {
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "marginBottom": 24,
@@ -210,101 +208,175 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
           }
         >
           <View
+            accessibilityLabel="Get started"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "display": "flex",
-                },
-                undefined,
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#131416",
                   "borderRadius": 12,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Get started
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
                 },
-                undefined,
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
               ]
             }
           >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
               style={
+                [
+                  {
+                    "color": "#ffffff",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Get started
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="Remind me later"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#b4b4b528",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="remind-me-later-button"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="remind-me-later-button"
+          >
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
+              style={
+                [
                   {
                     "color": "#131416",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                  }
-                }
-              >
-                Remind me later
-              </Text>
-            </TouchableOpacity>
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Remind me later
+            </Text>
           </View>
         </View>
       </View>
@@ -436,7 +508,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 {
                   "alignSelf": "flex-start",
                   "display": "flex",
-                  "flexDirection": "column",
                   "marginTop": 32,
                   "rowGap": 16,
                 },
@@ -512,7 +583,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               {
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "marginBottom": 24,
@@ -523,101 +593,175 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
           }
         >
           <View
+            accessibilityLabel="Get started"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "display": "flex",
-                },
-                undefined,
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#131416",
                   "borderRadius": 12,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Get started
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
                 },
-                undefined,
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
               ]
             }
           >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
               style={
+                [
+                  {
+                    "color": "#ffffff",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Get started
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="Remind me later"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#b4b4b528",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="remind-me-later-button"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="remind-me-later-button"
+          >
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
+              style={
+                [
                   {
                     "color": "#131416",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                  }
-                }
-              >
-                Remind me later
-              </Text>
-            </TouchableOpacity>
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Remind me later
+            </Text>
           </View>
         </View>
       </View>
@@ -749,7 +893,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 {
                   "alignSelf": "flex-start",
                   "display": "flex",
-                  "flexDirection": "column",
                   "marginTop": 32,
                   "rowGap": 16,
                 },
@@ -825,7 +968,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               {
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "marginBottom": 16,
@@ -836,101 +978,175 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
           }
         >
           <View
+            accessibilityLabel="Get started"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "display": "flex",
-                },
-                undefined,
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#131416",
                   "borderRadius": 12,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Get started
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
                 },
-                undefined,
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
               ]
             }
           >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
               style={
+                [
+                  {
+                    "color": "#ffffff",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Get started
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="Remind me later"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#b4b4b528",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="remind-me-later-button"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="remind-me-later-button"
+          >
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
+              style={
+                [
                   {
                     "color": "#131416",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                  }
-                }
-              >
-                Remind me later
-              </Text>
-            </TouchableOpacity>
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Remind me later
+            </Text>
           </View>
         </View>
       </View>
@@ -1062,7 +1278,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 {
                   "alignSelf": "flex-start",
                   "display": "flex",
-                  "flexDirection": "column",
                   "marginTop": 32,
                   "rowGap": 16,
                 },
@@ -1138,7 +1353,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               {
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "marginBottom": 24,
@@ -1149,101 +1363,175 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
           }
         >
           <View
+            accessibilityLabel="Get started"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "display": "flex",
-                },
-                undefined,
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#131416",
                   "borderRadius": 12,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Get started
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
                 },
-                undefined,
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
               ]
             }
           >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
               style={
+                [
+                  {
+                    "color": "#ffffff",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Get started
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="Remind me later"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#b4b4b528",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="remind-me-later-button"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="remind-me-later-button"
+          >
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
+              style={
+                [
                   {
                     "color": "#131416",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                  }
-                }
-              >
-                Remind me later
-              </Text>
-            </TouchableOpacity>
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Remind me later
+            </Text>
           </View>
         </View>
       </View>
@@ -1375,7 +1663,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 {
                   "alignSelf": "flex-start",
                   "display": "flex",
-                  "flexDirection": "column",
                   "marginTop": 32,
                   "rowGap": 16,
                 },
@@ -1451,7 +1738,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               {
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "marginBottom": 24,
@@ -1462,101 +1748,175 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
           }
         >
           <View
+            accessibilityLabel="Get started"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               [
                 {
-                  "display": "flex",
-                },
-                undefined,
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#131416",
                   "borderRadius": 12,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Get started
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
                 },
-                undefined,
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
               ]
             }
           >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
               style={
+                [
+                  {
+                    "color": "#ffffff",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Get started
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="Remind me later"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
                   "backgroundColor": "#b4b4b528",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
+                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
                   "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="remind-me-later-button"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="remind-me-later-button"
+          >
+            <Text
+              accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
+              style={
+                [
                   {
                     "color": "#131416",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                  }
-                }
-              >
-                Remind me later
-              </Text>
-            </TouchableOpacity>
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Remind me later
+            </Text>
           </View>
         </View>
       </View>

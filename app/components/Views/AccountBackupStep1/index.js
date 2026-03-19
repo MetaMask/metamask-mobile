@@ -11,10 +11,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  Text as DSText,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -32,11 +34,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
 import {
@@ -151,27 +148,20 @@ const AccountBackupStep1 = (props) => {
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <Box twClassName="flex-1 px-4">
-          <DSText
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-          >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('manual_backup_step_1.steps', {
               currentStep: 2,
               totalSteps: 3,
             })}
-          </DSText>
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.FlexStart}
-            twClassName="flex-1 mb-2.5"
-          >
-            <DSText
+          </Text>
+          <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 mb-2.5">
+            <Text
               variant={TextVariant.DisplayMd}
               color={TextColor.TextDefault}
               twClassName="text-left self-start mb-4"
             >
               {strings('account_backup_step_1.title')}
-            </DSText>
+            </Text>
             <Image
               source={
                 themeAppearance === AppThemeKey.dark
@@ -180,62 +170,56 @@ const AccountBackupStep1 = (props) => {
               }
               style={tw.style('w-[250px] h-[250px] mx-auto')}
             />
-            <Box
-              flexDirection={BoxFlexDirection.Column}
-              twClassName="mt-8 self-start gap-y-4"
-            >
-              <DSText
+            <Box twClassName="mt-8 self-start gap-y-4">
+              <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
                 {strings('account_backup_step_1.info_text_1_1')}{' '}
-                <DSText
+                <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.PrimaryDefault}
                   onPress={showWhatIsSeedphrase}
                   testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
                 >
                   {strings('account_backup_step_1.info_text_1_2')}
-                </DSText>{' '}
+                </Text>{' '}
                 {strings('account_backup_step_1.info_text_1_3')}{' '}
-              </DSText>
+              </Text>
 
-              <DSText
+              <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
                 {strings('account_backup_step_1.info_text_1_4')}
-              </DSText>
+              </Text>
             </Box>
           </Box>
 
           <Box
-            flexDirection={BoxFlexDirection.Column}
             justifyContent={BoxJustifyContent.FlexEnd}
             twClassName={`flex-1 gap-y-4 ${
               Platform.OS === 'android' ? 'mb-6' : 'mb-4'
             }`}
           >
-            <Box>
-              <Button
-                variant={ButtonVariants.Primary}
-                onPress={goNext}
-                label={strings('account_backup_step_1.cta_text')}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-              />
-            </Box>
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={goNext}
+              isFullWidth
+              size={ButtonSize.Lg}
+            >
+              {strings('account_backup_step_1.cta_text')}
+            </Button>
             {!hasFunds && (
-              <Box>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  onPress={showRemindLater}
-                  label={strings('account_backup_step_1.remind_me_later')}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
-                />
-              </Box>
+              <Button
+                variant={ButtonVariant.Secondary}
+                onPress={showRemindLater}
+                isFullWidth
+                size={ButtonSize.Lg}
+                testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
+              >
+                {strings('account_backup_step_1.remind_me_later')}
+              </Button>
             )}
           </Box>
         </Box>
