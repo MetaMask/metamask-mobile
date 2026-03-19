@@ -30,9 +30,13 @@ inputs:
     required: false
     default: 'false'
   base-ref:
-    description: 'Base branch ref (must be main for analysis to run)'
+    description: 'Base branch ref (must be main or release/* for analysis to run)'
     required: false
     default: ''
+  is-draft:
+    description: 'Whether the PR is a draft'
+    required: false
+    default: 'false'
 
 outputs:
   ai_e2e_test_tags:
@@ -131,6 +135,7 @@ runs:
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
         BASE_REF: ${{ inputs.base-ref }}
+        IS_DRAFT: ${{ inputs.is-draft }}
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
@@ -142,9 +147,12 @@ runs:
         if [[ "$EVENT_NAME" != "pull_request" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="only runs on PRs"
-        elif [[ "$BASE_REF" != "main" ]]; then
+        elif [[ "$IS_DRAFT" == "true" ]]; then
           SHOULD_SKIP=true
-          SKIP_REASON="base branch is not main (base: $BASE_REF)"
+          SKIP_REASON="draft PR"
+        elif [[ "$BASE_REF" != "main" && "$BASE_REF" != release/* ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="base branch is not main or a release branch (base: $BASE_REF)"
         elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="skip-smart-e2e-selection label found"
@@ -245,7 +253,7 @@ runs:
         fi
 
     - name: Apply risk label to PR
-      if: inputs.pr-number != '' && inputs.github-token != ''
+      if: inputs.pr-number != '' && inputs.github-token != '' && inputs.is-draft != 'true' && (inputs.base-ref == 'main' || startsWith(inputs.base-ref, 'release/'))
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
