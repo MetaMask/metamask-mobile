@@ -83,10 +83,12 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await AccountMenu.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.expectContactIsVisible(TEST_CONTACT_NAME);
-        // Contacts → AccountsMenu
+        // Contacts → AccountsMenu → close SettingsFlow
         await CommonView.tapBackButton();
+        await AccountMenu.tapBack();
 
-        // Disable contact syncing via AccountsMenu → Settings → BackupAndSync
+        // Reopen SettingsFlow to disable contact syncing
+        await TabBarComponent.tapAccountsMenu();
         await AccountMenu.tapSettings();
         await Assertions.expectElementToBeVisible(
           SettingsView.backupAndSyncSectionButton,
