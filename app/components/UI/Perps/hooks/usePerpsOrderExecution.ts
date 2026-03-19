@@ -102,6 +102,10 @@ export function usePerpsOrderExecution(
               [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
                 orderParams.trackingData?.tradeWithToken === true,
             };
+            if (orderParams.trackingData?.source) {
+              partialProps[PERPS_EVENT_PROPERTY.SOURCE] =
+                orderParams.trackingData.source;
+            }
             if (orderParams.trackingData?.tradeWithToken === true) {
               if (orderParams.trackingData.mmPayTokenSelected != null) {
                 partialProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
@@ -168,6 +172,10 @@ export function usePerpsOrderExecution(
             [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
               orderParams.trackingData?.tradeWithToken === true,
           };
+          if (orderParams.trackingData?.source) {
+            failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
+              orderParams.trackingData.source;
+          }
           if (orderParams.trackingData?.tradeWithToken === true) {
             if (orderParams.trackingData.mmPayTokenSelected != null) {
               failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
@@ -232,6 +240,10 @@ export function usePerpsOrderExecution(
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
             orderParams.trackingData?.tradeWithToken === true,
         };
+        if (orderParams.trackingData?.source) {
+          exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
+            orderParams.trackingData.source;
+        }
         if (orderParams.trackingData?.tradeWithToken === true) {
           if (orderParams.trackingData.mmPayTokenSelected != null) {
             exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
