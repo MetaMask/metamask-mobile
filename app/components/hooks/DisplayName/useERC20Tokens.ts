@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { handleFetch } from '@metamask/controller-utils';
 import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
 import { Hex } from '@metamask/utils';
@@ -10,7 +11,7 @@ interface TokenAsset {
   symbol: string;
 }
 
-const TOKENS_API_URL = 'https://tokens.api.cx.metamask.io/v3/assets';
+const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
 
 // Module-level cache and in-flight deduplication so multiple hook instances
 // (e.g. one per address row on a confirmation screen) share a single HTTP request.
@@ -36,8 +37,9 @@ function fetchTokenAssets(assetIds: string[]): Promise<TokenAsset[]> {
 
   const promise = (async () => {
     try {
-      const res = await fetch(`${TOKENS_API_URL}?${params}`);
-      const data: TokenAsset[] = await res.json();
+      const data: TokenAsset[] = await handleFetch(
+        `${TOKEN_API_V3_BASE_URL}/assets?${params}`,
+      );
       data.forEach((t) => {
         tokenCache[t.assetId] = t;
       });
