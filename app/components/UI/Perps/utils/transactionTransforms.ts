@@ -1,3 +1,4 @@
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { BigNumber } from 'bignumber.js';
 import {
   TransactionMeta,
@@ -242,6 +243,8 @@ export function transformFillsToTransactions(
       liquidation,
       detailedOrderType,
     } = fill;
+    // eslint-disable-next-line no-console
+    console.log('[PR-27685] BUG_MARKER: fill transform', JSON.stringify({ orderId: orderId, direction: direction, detailedOrderType: detailedOrderType || 'MISSING' }));
     const [part1, part2] = direction ? direction.split(' ') : [];
     const isOpened = part1 === 'Open';
     const isClosed = part1 === 'Close';
