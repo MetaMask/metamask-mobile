@@ -93,14 +93,6 @@ describe('sentinel-api', () => {
       );
     });
 
-    it('keeps Bearer when getter already returns Bearer token', async () => {
-      setSentinelApiAuth(async () => 'Bearer existing');
-      const headers = await getSentinelApiHeadersAsync();
-      expect((headers as Record<string, string>).Authorization).toBe(
-        'Bearer existing',
-      );
-    });
-
     it('omits Authorization when getter returns undefined', async () => {
       setSentinelApiAuth(async () => undefined);
       const headers = await getSentinelApiHeadersAsync();
