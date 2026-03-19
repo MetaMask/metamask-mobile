@@ -4,5 +4,5 @@ import { NativeModules } from 'react-native';
 const { Minimizer } = NativeModules;
 
 // TODO: add native modules named exports here
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 export { Minimizer };

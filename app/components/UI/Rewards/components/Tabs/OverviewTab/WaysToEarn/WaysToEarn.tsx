@@ -154,9 +154,13 @@ export const WaysToEarn = () => {
     });
   };
 
+  if (!seasonWaysToEarn.length) {
+    return null;
+  }
+
   return (
-    <Box twClassName="p-4">
-      <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
+    <Box twClassName="gap-4">
+      <Text variant={TextVariant.HeadingMd}>
         {strings('rewards.ways_to_earn.title')}
       </Text>
 

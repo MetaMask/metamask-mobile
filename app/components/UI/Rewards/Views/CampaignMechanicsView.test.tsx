@@ -1,0 +1,300 @@
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import CampaignMechanicsView, {
+  CAMPAIGN_MECHANICS_TEST_IDS,
+} from './CampaignMechanicsView';
+import {
+  type CampaignDto,
+  CampaignType,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ goBack: mockGoBack }),
+  useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
+}));
+
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('react-native-safe-area-context');
+  return {
+    ...actual,
+    useSafeAreaInsets: jest.fn(() => ({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })),
+    SafeAreaView: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { ...props, testID }, children),
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return { ...actual };
+});
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
+
+jest.mock(
+  '../../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ title, onBack }: { title: string; onBack: () => void }) =>
+        ReactActual.createElement(
+          View,
+          { testID: 'header' },
+          ReactActual.createElement(Text, null, title),
+          ReactActual.createElement(Pressable, {
+            onPress: onBack,
+            testID: 'header-back-button',
+          }),
+        ),
+    };
+  },
+);
+
+jest.mock('../../../Views/ErrorBoundary', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+  };
+});
+
+jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'campaign-how-it-works' }),
+  };
+});
+
+jest.mock('../hooks/useRewardCampaigns');
+const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
+  typeof useRewardCampaigns
+>;
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: Record<string, string> = {
+      'rewards.campaign_mechanics.title': 'How it works',
+    };
+    return translations[key] || key;
+  },
+}));
+
+const createTestCampaign = (
+  overrides: Partial<CampaignDto> = {},
+): CampaignDto => ({
+  id: 'campaign-1',
+  type: CampaignType.ONDO_HOLDING,
+  name: 'Test Campaign',
+  startDate: '2027-01-01T00:00:00.000Z',
+  endDate: '2027-12-31T23:59:59.999Z',
+  termsAndConditions: null,
+  excludedRegions: [],
+  statusLabel: 'Active',
+  details: null,
+  ...overrides,
+});
+
+const emptyCategorized = { active: [], upcoming: [], previous: [] };
+const hookDefaults = {
+  campaigns: [],
+  categorizedCampaigns: emptyCategorized,
+  isLoading: false,
+  hasError: false,
+  fetchCampaigns: jest.fn(),
+};
+
+describe('CampaignMechanicsView', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseRewardCampaigns.mockReturnValue(hookDefaults);
+  });
+
+  it('renders the container', () => {
+    const { getByTestId } = render(<CampaignMechanicsView />);
+    expect(getByTestId(CAMPAIGN_MECHANICS_TEST_IDS.CONTAINER)).toBeDefined();
+  });
+
+  it('renders the header title', () => {
+    const { getByText } = render(<CampaignMechanicsView />);
+    expect(getByText('How it works')).toBeDefined();
+  });
+
+  it('navigates back when the back button is pressed', () => {
+    const { getByTestId } = render(<CampaignMechanicsView />);
+    fireEvent.press(getByTestId('header-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('howItWorks section', () => {
+    it('renders the howItWorks section when campaign has howItWorks', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              image: {
+                lightModeUrl: 'https://example.com/light.png',
+                darkModeUrl: 'https://example.com/dark.png',
+              },
+              howItWorks: {
+                title: 'How it works',
+                description: 'Earn rewards',
+                phases: [],
+              },
+            },
+          }),
+        ],
+      });
+      const { getByTestId } = render(<CampaignMechanicsView />);
+      expect(
+        getByTestId(CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION),
+      ).toBeDefined();
+      expect(getByTestId('campaign-how-it-works')).toBeDefined();
+    });
+
+    it('does not render howItWorks section when campaign has no details', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign({ details: null })],
+      });
+      const { queryByTestId } = render(<CampaignMechanicsView />);
+      expect(
+        queryByTestId(CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION),
+      ).toBeNull();
+    });
+
+    it('does not render howItWorks section when campaign is not found', () => {
+      // No campaigns in list → useMemo returns null
+      const { queryByTestId } = render(<CampaignMechanicsView />);
+      expect(
+        queryByTestId(CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION),
+      ).toBeNull();
+    });
+  });
+
+  describe('notes section', () => {
+    it('renders notes section when notes has valid shape', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              image: {
+                lightModeUrl: 'https://example.com/light.png',
+                darkModeUrl: 'https://example.com/dark.png',
+              },
+              howItWorks: {
+                title: 'How it works',
+                description: 'Earn rewards',
+                phases: [],
+                notes: {
+                  title: 'Important notes',
+                  description: 'Please read carefully',
+                  items: [
+                    { title: 'Note 1', description: 'Detail 1' },
+                    { title: 'Note 2', description: 'Detail 2' },
+                  ],
+                },
+              },
+            },
+          }),
+        ],
+      });
+      const { getByTestId, getByText } = render(<CampaignMechanicsView />);
+      expect(
+        getByTestId(CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION),
+      ).toBeDefined();
+      expect(
+        getByTestId(CAMPAIGN_MECHANICS_TEST_IDS.NOTES_TITLE),
+      ).toHaveTextContent('Important notes');
+      expect(
+        getByTestId(CAMPAIGN_MECHANICS_TEST_IDS.NOTES_DESCRIPTION),
+      ).toHaveTextContent('Please read carefully');
+      expect(
+        getByTestId(`${CAMPAIGN_MECHANICS_TEST_IDS.NOTE_ITEM}-0`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_MECHANICS_TEST_IDS.NOTE_ITEM_TITLE}-0`),
+      ).toHaveTextContent('Note 1');
+      expect(
+        getByTestId(`${CAMPAIGN_MECHANICS_TEST_IDS.NOTE_ITEM_DESCRIPTION}-0`),
+      ).toHaveTextContent('Detail 1');
+      expect(getByText('Note 2')).toBeDefined();
+    });
+
+    it('does not render notes section when notes is null', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              image: {
+                lightModeUrl: 'https://example.com/light.png',
+                darkModeUrl: 'https://example.com/dark.png',
+              },
+              howItWorks: {
+                title: 'How it works',
+                description: 'Earn rewards',
+                phases: [],
+                notes: null,
+              },
+            },
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<CampaignMechanicsView />);
+      expect(
+        queryByTestId(CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION),
+      ).toBeNull();
+    });
+
+    it('does not render notes section when notes has invalid shape', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              image: {
+                lightModeUrl: 'https://example.com/light.png',
+                darkModeUrl: 'https://example.com/dark.png',
+              },
+              howItWorks: {
+                title: 'How it works',
+                description: 'Earn rewards',
+                phases: [],
+                notes: { title: 'Only title' }, // missing items
+              },
+            },
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<CampaignMechanicsView />);
+      expect(
+        queryByTestId(CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION),
+      ).toBeNull();
+    });
+  });
+});
