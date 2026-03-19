@@ -631,11 +631,11 @@ jobs:
 
   visual-regression-ios:
     name: 'iOS Visual Regression Tests'
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [ios-tests-ready]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: visual-regression-ios
@@ -647,11 +647,11 @@ jobs:
 
   visual-regression-android:
     name: 'Android Visual Regression Tests'
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [build-android-apks]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: visual-regression-android
