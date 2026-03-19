@@ -170,7 +170,7 @@ const revealSeedPhrase = async (
   await waitFor(() => {
     expect(
       wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 };
 
@@ -222,10 +222,10 @@ describe('ManualBackupStep1', () => {
 
       expect(
         wrapper.getByText(strings('manual_backup_step_1.action')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         wrapper.getByText(strings('manual_backup_step_1.reveal')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
 
       await revealSeedPhrase(wrapper);
     }, 15000);
@@ -235,10 +235,10 @@ describe('ManualBackupStep1', () => {
 
       expect(
         wrapper.getByText(strings('manual_backup_step_1.action')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         wrapper.getByText(strings('manual_backup_step_1.reveal')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('opens the seedphrase definition modal', async () => {
@@ -465,7 +465,7 @@ describe('ManualBackupStep1', () => {
 
       expect(
         wrapper.getByText(strings('manual_backup_step_1.before_continiuing')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('shows password view and logs error when getPassword throws', async () => {
