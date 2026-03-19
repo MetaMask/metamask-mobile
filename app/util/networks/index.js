@@ -501,7 +501,7 @@ export function compareRpcUrls(rpcOne, rpcTwo) {
  * auto-derived name (first subdomain, capitalised) is not ideal.
  */
 const BLOCK_EXPLORER_NAME_OVERRIDES = {
-  'megaeth.blockscout.com': 'Megaeth Explorer',
+  'megaeth.blockscout.com': 'MegaETH Explorer',
 };
 
 /**
