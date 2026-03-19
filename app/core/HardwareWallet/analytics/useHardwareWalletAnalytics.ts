@@ -57,14 +57,12 @@ export function useHardwareWalletAnalytics({
   const lastErrorViewCountRef = useRef(0);
   const lastRawErrorRef = useRef('');
   const prevStatusRef = useRef<ConnectionStatus>(ConnectionStatus.Disconnected);
-  const hasSeenErrorRef = useRef(false);
 
   const resetAnalyticsState = useCallback(() => {
     viewCountsRef.current.clear();
     lastErrorStateRef.current = null;
     lastErrorViewCountRef.current = 0;
     lastRawErrorRef.current = '';
-    hasSeenErrorRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -81,8 +79,6 @@ export function useHardwareWalletAnalytics({
     const isSuccessState = currentStatus === ConnectionStatus.Ready;
 
     if (isRecoveryState) {
-      hasSeenErrorRef.current = true;
-
       const errorState = getErrorStateFromConnectionState(connectionState);
       if (!errorState) return;
 
