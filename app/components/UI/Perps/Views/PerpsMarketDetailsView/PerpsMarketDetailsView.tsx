@@ -136,7 +136,6 @@ import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
@@ -1109,11 +1108,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         </View>
       </SafeAreaView>
     );
-  }
-
-  // [PR-27671] BUG_MARKER: detect flash of wrong buttons
-  if (hasLongShortButtons && !existingPosition && market?.symbol) {
-    DevLogger.log('[PR-27671] BUG_MARKER: Long/Short buttons visible while position data not yet resolved', { symbol: market.symbol, isLoadingPosition, hasLongShortButtons, existingPosition: !!existingPosition });
   }
 
   const shouldShowNewPositionActions =
