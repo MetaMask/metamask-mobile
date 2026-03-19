@@ -13,6 +13,8 @@ import {
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import SettingsView from '../../../page-objects/Settings/SettingsView';
 import BackupAndSyncView from '../../../page-objects/Settings/BackupAndSyncView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
+import CommonView from '../../../page-objects/CommonView';
 import { createUserStorageController } from '../utils/mocks';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
@@ -117,8 +119,10 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
         );
         await BackupAndSyncView.toggleAccountSync();
 
-        // Navigate back to wallet to create third account
-        await TabBarComponent.tapWallet();
+        // Navigate back: BackupAndSync → Settings → AccountsMenu → close SettingsFlow → Wallet
+        await CommonView.tapBackButton();
+        await SettingsView.tapBackButton();
+        await AccountMenu.tapBack();
 
         // Create third account with sync disabled - this should NOT sync to user storage
         await WalletView.tapIdenticon();

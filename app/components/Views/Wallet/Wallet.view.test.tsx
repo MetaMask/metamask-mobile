@@ -45,12 +45,8 @@ describeForPlatforms('Wallet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to QR tab when scan button is pressed', async () => {
-    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
-      extraRoutes: [
-        { name: Routes.QR_TAB_SWITCHER },
-        { name: Routes.SETTINGS_VIEW },
-      ],
+  it('scan button is not rendered when account menu is enabled', () => {
+    const { queryByTestId } = renderWalletView({
       overrides: {
         settings: {
           basicFunctionalityEnabled: true,
@@ -68,11 +64,7 @@ describeForPlatforms('Wallet', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON));
-
-    expect(
-      await findByTestId(`route-${Routes.QR_TAB_SWITCHER}`),
-    ).toBeOnTheScreen();
+    expect(queryByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON)).toBeNull();
   });
 
   it('navigates to Settings when hamburger menu button is pressed', async () => {
