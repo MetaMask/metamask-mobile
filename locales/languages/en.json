@@ -3060,6 +3060,7 @@
     "networks_no_results": "No networks found",
     "network_name_label": "Network name",
     "network_name_placeholder": "Network name (optional)",
+    "required": "Required",
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC name",
     "network_rpc_placeholder": "New RPC network",
