@@ -144,7 +144,7 @@ const SecurityTrustScreen: React.FC = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4"
+        twClassName="px-4 pb-3"
         style={{ paddingTop: insets.top + 8 }}
       >
         <TouchableOpacity

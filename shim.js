@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { Platform } from 'react-native';
 import {
   getRandomValues,
@@ -14,6 +14,7 @@ import {
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
+import { WS_SERVICES } from './tests/websocket/constants.ts';
 import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
@@ -28,7 +29,7 @@ import '@walletconnect/react-native-compat';
 import 'react-native-url-polyfill/auto';
 
 // Needed to polyfill browser
-require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-commonjs
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (isE2E) {
@@ -89,10 +90,10 @@ if (typeof process === 'undefined') {
 }
 
 // Use faster Buffer implementation for React Native
-global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import-x/no-commonjs
 
 // Polyfill crypto after process is polyfilled
-const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
+const crypto = require('crypto'); // eslint-disable-line import-x/no-commonjs
 
 // Needed to polyfill crypto
 global.crypto = {
@@ -304,6 +305,41 @@ if (enableApiCallLogs || isTest) {
         console.warn(
           '[XHR Patch] XMLHttpRequest not available, skipping patch',
         );
+      }
+
+      // Patch WebSocket to route production wss:// URLs to local mock servers.
+      // Each WS service gets its own mock port via WS_SERVICES config.
+      // Non-matching wss:// URLs pass through unchanged.
+      if (WS_SERVICES.length > 0 && global.WebSocket) {
+        const OriginalWebSocket = global.WebSocket;
+
+        const wsRoutes = {};
+        for (const svc of WS_SERVICES) {
+          const port = raw?.[svc.launchArgKey] ?? svc.fallbackPort;
+          wsRoutes[svc.url] = `ws://localhost:${port}`;
+        }
+
+        global.WebSocket = function (url, protocols) {
+          let targetUrl = url;
+          if (typeof url === 'string') {
+            for (const [prefix, localUrl] of Object.entries(wsRoutes)) {
+              if (url.startsWith(prefix)) {
+                targetUrl = localUrl;
+                break;
+              }
+            }
+          }
+          return protocols !== undefined
+            ? new OriginalWebSocket(targetUrl, protocols)
+            : new OriginalWebSocket(targetUrl);
+        };
+
+        Object.setPrototypeOf(global.WebSocket, OriginalWebSocket);
+        Object.assign(global.WebSocket, OriginalWebSocket);
+        global.WebSocket.prototype = OriginalWebSocket.prototype;
+
+        // eslint-disable-next-line no-console
+        console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
       }
     }
   })();
