@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
+import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
 import {
@@ -37,7 +37,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);
 };
 
-describe(SmokeTrade('Predictions'), () => {
+describe(SmokePredictions('Predictions Withdraw'), () => {
   it('withdraws from Predict balance and verifies activity', async () => {
     await withFixtures(
       {
