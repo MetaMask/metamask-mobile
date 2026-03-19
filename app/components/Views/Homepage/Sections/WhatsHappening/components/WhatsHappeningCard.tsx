@@ -30,7 +30,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
       <Box
-        twClassName="w-[280px] h-[220px] rounded-2xl bg-background-muted overflow-hidden"
+        twClassName="w-[280px] h-[248px] rounded-2xl bg-background-muted overflow-hidden"
         padding={4}
         justifyContent={BoxJustifyContent.Between}
         gap={3}

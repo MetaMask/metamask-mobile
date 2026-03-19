@@ -72,12 +72,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
+        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         {
           name: HomeSectionNames.WHATS_HAPPENING,
           enabled: isWhatsHappeningEnabled,
         },
-        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled),
@@ -129,11 +129,6 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
-      <WhatsHappeningSection
-        ref={whatsHappeningSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
       <PerpsSection
         ref={perpsSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
@@ -142,6 +137,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       <PredictionsSection
         ref={predictionsSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+      <WhatsHappeningSection
+        ref={whatsHappeningSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <DeFiSection
