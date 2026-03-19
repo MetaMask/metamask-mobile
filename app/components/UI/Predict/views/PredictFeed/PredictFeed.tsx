@@ -353,7 +353,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     );
   }
 
-  if (!marketData || marketData.length === 0) {
+  if ((!marketData || marketData.length === 0) && !isFetching) {
     return (
       <Box
         testID={getPredictFeedSelector.emptyState(category)}
