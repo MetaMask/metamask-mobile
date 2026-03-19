@@ -84,14 +84,14 @@ runs:
         git sparse-checkout disable
         git checkout HEAD -- .
 
-    - name: Fetch main branch for comparison
+    - name: Fetch base branch for comparison
       if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
         git fetch --unshallow 2>/dev/null || true
-        # Fetch main branch for diff comparison
-        git fetch origin main 2>/dev/null || true
+        # Fetch the base branch for diff comparison (main or release/*)
+        git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
 
     - name: Setup Node.js
       if: steps.check-skip-label.outputs.SKIP != 'true'
