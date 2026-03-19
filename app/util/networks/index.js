@@ -513,7 +513,12 @@ export function getBlockExplorerName(blockExplorerUrl) {
   if (!blockExplorerUrl) return undefined;
   const hostname = new URL(blockExplorerUrl).hostname;
   if (!hostname) return undefined;
-  if (Object.hasOwn(BLOCK_EXPLORER_NAME_OVERRIDES, hostname)) {
+  if (
+    Object.prototype.hasOwnProperty.call(
+      BLOCK_EXPLORER_NAME_OVERRIDES,
+      hostname,
+    )
+  ) {
     return BLOCK_EXPLORER_NAME_OVERRIDES[hostname];
   }
   const tempBlockExplorerName = fastSplit(hostname);
