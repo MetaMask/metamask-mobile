@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useMemo,
   useRef,
   useCallback,
   useContext,
@@ -102,8 +103,13 @@ import {
   TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Theme,
+  ThemeProvider,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 
+import { getBuildNumber, getVersion } from 'react-native-device-info';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -132,6 +138,11 @@ interface OnboardingRouteParams {
 
 const Onboarding = () => {
   const navigation = useNavigation();
+  const onboardingVersion = useMemo(
+    () => `${getVersion()} (${getBuildNumber()})`,
+    [],
+  );
+
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
@@ -357,7 +368,12 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
-      dispatch(setAccountType(AccountType.Metamask));
+      dispatch(
+        setAccountType({
+          accountType: AccountType.Metamask,
+          onboardingVersion,
+        }),
+      );
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
         account_type: AccountType.Metamask,
       });
@@ -365,7 +381,14 @@ const Onboarding = () => {
 
     handleExistingUser(action);
     endTrace({ name: TraceName.OnboardingCreateWallet });
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [
+    metrics,
+    navigation,
+    track,
+    handleExistingUser,
+    dispatch,
+    onboardingVersion,
+  ]);
 
   const onPressImport = useCallback(async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -392,13 +415,25 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
-      dispatch(setAccountType(AccountType.Imported));
+      dispatch(
+        setAccountType({
+          accountType: AccountType.Imported,
+          onboardingVersion,
+        }),
+      );
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
         account_type: AccountType.Imported,
       });
     };
     handleExistingUser(action);
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [
+    metrics,
+    navigation,
+    track,
+    handleExistingUser,
+    dispatch,
+    onboardingVersion,
+  ]);
 
   const handlePostSocialLogin = useCallback(
     (
@@ -421,7 +456,7 @@ const Onboarding = () => {
       }
 
       const accountType = getSocialAccountType(provider, result.existingUser);
-      dispatch(setAccountType(accountType));
+      dispatch(setAccountType({ accountType, onboardingVersion }));
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
@@ -493,7 +528,7 @@ const Onboarding = () => {
         });
       }
     },
-    [navigation, track, dispatch],
+    [navigation, track, dispatch, onboardingVersion],
   );
 
   const handleOAuthLoginError = useCallback(
@@ -841,41 +876,45 @@ const Onboarding = () => {
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
         >
-          <Button
-            variant={ButtonVariant.Primary}
-            isInverse
-            onPress={() => handleCtaActions('create')}
-            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+          {/*
+           * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
+           * system theme setting: the "Create" button is always dark (black bg, white text) and the
+           * "Import" button is always light (white bg, black text). This design choice ensures both
+           * buttons remain visually distinct and accessible against the purple onboarding background
+           * in all theme contexts.
+           */}
+          <ThemeProvider
+            theme={Theme.Dark} // Keep this button in dark mode regardless of theme
           >
-            {strings('onboarding.start_exploring_now')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            isInverse
-            onPress={() => handleCtaActions('existing')}
-            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={tw.style({
-              backgroundColor: importedColors.applePayBlack,
-              borderColor: 'transparent',
-            })}
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={() => handleCtaActions('create')}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {strings('onboarding.start_exploring_now')}
+            </Button>
+          </ThemeProvider>
+          <ThemeProvider
+            theme={Theme.Light} // Keep this button in light mode regardless of theme
           >
-            {SEEDLESS_ONBOARDING_ENABLED
-              ? strings('onboarding.import_using_srp_social_login')
-              : strings('onboarding.import_using_srp')}
-          </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={() => handleCtaActions('existing')}
+              testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {SEEDLESS_ONBOARDING_ENABLED
+                ? strings('onboarding.import_using_srp_social_login')
+                : strings('onboarding.import_using_srp')}
+            </Button>
+          </ThemeProvider>
         </OnboardingAnimation>
       </Box>
     ),
-    [
-      state.startOnboardingAnimation,
-      setStartFoxAnimation,
-      handleCtaActions,
-      tw,
-    ],
+    [state.startOnboardingAnimation, setStartFoxAnimation, handleCtaActions],
   );
 
   const handleSimpleNotification =
