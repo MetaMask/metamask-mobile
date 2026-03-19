@@ -142,8 +142,10 @@ export class CardController extends BaseController<
         'submitCredentials: no active auth session',
       );
     }
-    const pid = this.state.activeProviderId ?? '';
-    const result = await this.getActiveProvider().submitCredentials(
+
+    const provider = this.getActiveProvider();
+    const pid = this.state.activeProviderId as string;
+    const result = await provider.submitCredentials(
       this.currentSession,
       credentials,
     );
@@ -192,7 +194,8 @@ export class CardController extends BaseController<
   }
 
   async logout(): Promise<void> {
-    const pid = this.state.activeProviderId ?? '';
+    const pid = this.state.activeProviderId;
+    if (!pid) return;
     const tokens = await CardTokenStore.get(pid);
 
     if (tokens) {
@@ -220,7 +223,11 @@ export class CardController extends BaseController<
     isAuthenticated: boolean;
     location?: string;
   }> {
-    const pid = this.state.activeProviderId ?? '';
+    const pid = this.state.activeProviderId;
+    if (!pid) {
+      this.markUnauthenticated();
+      return { isAuthenticated: false };
+    }
     const tokens = await CardTokenStore.get(pid);
 
     if (!tokens) {
