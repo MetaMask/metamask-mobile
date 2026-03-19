@@ -1,12 +1,7 @@
+import { waitFor } from 'detox';
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import enContent from '../../../locales/languages/en.json';
 
 class CreatePasswordView {
@@ -14,47 +9,24 @@ class CreatePasswordView {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
-  get newPasswordInput(): EncapsulatedElementType {
-    return encapsulated({
-      // Use getElementByLabel so Detox targets the inner TextInput (EditText on
-      // Android) rather than the outer Pressable container which carries the
-      // testID but has no input connection and therefore rejects typeText.
-      detox: () =>
-        Matchers.getElementByLabel(
+  get newPasswordInput(): DetoxElement {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
           ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-          ),
-      },
-    });
+        )
+      : Matchers.getElementByLabel(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
   }
 
-  get confirmPasswordInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByLabel(
+  get confirmPasswordInput(): DetoxElement {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
           ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-          ),
-      },
-    });
+        )
+      : Matchers.getElementByLabel(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
   }
 
   get iUnderstandCheckbox(): DetoxElement {
@@ -78,23 +50,36 @@ class CreatePasswordView {
   }
 
   async resetPasswordInputs(): Promise<void> {
-    await UnifiedGestures.typeText(this.newPasswordInput, '', {
-      description: 'Create Password New Password Input',
+    await Gestures.typeText(this.newPasswordInput, '', {
+      hideKeyboard: true,
+      clearFirst: true,
+      checkVisibility: false,
     });
-    await UnifiedGestures.typeText(this.confirmPasswordInput, '', {
-      description: 'Create Password Confirm Password Input',
+    await Gestures.typeText(this.confirmPasswordInput, '', {
+      hideKeyboard: true,
+      clearFirst: true,
+      checkVisibility: false,
     });
   }
 
   async enterPassword(password: string): Promise<void> {
-    await UnifiedGestures.typeText(this.newPasswordInput, password, {
-      description: 'Create Password New Password Input',
+    const containerEl = (await this.container) as Detox.IndexableNativeElement;
+    await waitFor(containerEl).toExist().withTimeout(15000);
+
+    await Gestures.typeText(this.newPasswordInput, password, {
+      elemDescription: 'Create Password New Password Input',
+      hideKeyboard: true,
+      checkVisibility: false,
+      checkEnabled: false,
     });
   }
 
   async reEnterPassword(password: string): Promise<void> {
-    await UnifiedGestures.typeText(this.confirmPasswordInput, password, {
-      description: 'Create Password Confirm Password Input',
+    await Gestures.typeText(this.confirmPasswordInput, password, {
+      elemDescription: 'Create Password Confirm Password Input',
+      hideKeyboard: true,
+      checkVisibility: false,
+      checkEnabled: false,
     });
   }
 
