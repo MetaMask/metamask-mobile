@@ -40,6 +40,48 @@ export function stripBranchDeepviewParams(url: string): string {
 }
 
 /**
+ * Branch Deepview pages embed the app launch URL in two places:
+ * 1. `<a class="action" href="{scheme}{path}?_branch_referrer=...">`
+ * 2. `window.top.location = validateProtocol("{scheme}{path}?...")`
+ *
+ * The scheme may be "metamask://", "https://link.metamask.io/", or literally
+ * "null" (when the Branch link has no URI scheme configured). This function
+ * extracts the deeplink path from these patterns.
+ */
+function extractDeepviewPath(html: string): string | undefined {
+  const launchHref =
+    html.match(/<a[^>]*class="action"[^>]*href="([^"?]+)/)?.[1] ??
+    html.match(/window\.top\.location\s*=\s*validateProtocol\("([^"?]+)/)?.[1];
+
+  if (!launchHref) return undefined;
+
+  if (launchHref.startsWith('null') && launchHref.length > 4) {
+    return launchHref.substring(4);
+  }
+
+  if (launchHref.startsWith('metamask://')) {
+    return launchHref.replace('metamask://', '');
+  }
+
+  try {
+    const parsed = new URL(launchHref);
+    if (
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+    ) {
+      return parsed.pathname.replace(/^\//, '');
+    }
+  } catch {
+    // not a full URL — treat it as a raw path
+    if (/^[a-zA-Z0-9]/.test(launchHref)) {
+      return launchHref;
+    }
+  }
+
+  return undefined;
+}
+
+/**
  * When the Branch SDK fails to resolve a short link (returns +non_branch_link),
  * fetch the short link URL directly and follow redirects. Branch's server will
  * redirect to the destination URL (e.g. https://link.metamask.io/buy) which
@@ -88,6 +130,10 @@ export async function resolveBranchShortLink(
       return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
     }
 
+    const deepviewPath = extractDeepviewPath(body);
+    if (deepviewPath) {
+      return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`;
+    }
     return undefined;
   } catch (error) {
     Logger.error(

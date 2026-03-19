@@ -706,6 +706,71 @@ describe('resolveBranchShortLink', () => {
 
     expect(result).toBe('https://link.metamask.io/swap');
   });
+
+  it('extracts path from Deepview launch button with null scheme prefix', async () => {
+    const deepviewHtml = `<html><body>
+      <a class="action" href="nulltrending?_branch_referrer=H4sIAAAA">Launch MetaMask</a>
+      <script>window.top.location = validateProtocol("nulltrending?_branch_referrer=H4sIAAAA");</script>
+    </body></html>`;
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest.fn().mockResolvedValue(deepviewHtml),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/trending');
+  });
+
+  it('extracts path from Deepview launch button with metamask:// scheme', async () => {
+    const deepviewHtml = `<html><body>
+      <a class="action" href="metamask://buy?_branch_referrer=abc">Launch MetaMask</a>
+    </body></html>`;
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest.fn().mockResolvedValue(deepviewHtml),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/buy');
+  });
+
+  it('extracts path from Deepview launch button with full MetaMask URL', async () => {
+    const deepviewHtml = `<html><body>
+      <a class="action" href="https://link.metamask.io/swap?_branch_referrer=abc">Launch MetaMask</a>
+    </body></html>`;
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest.fn().mockResolvedValue(deepviewHtml),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/swap');
+  });
+
+  it('falls back to window.top.location when no action button found', async () => {
+    const deepviewHtml = `<html><body>
+      <script>window.top.location = validateProtocol("nullperps?_branch_referrer=H4sI");</script>
+    </body></html>`;
+    global.fetch = jest.fn().mockResolvedValue({
+      url: 'https://metamask-alternate.app.link/abc123',
+      text: jest.fn().mockResolvedValue(deepviewHtml),
+    });
+
+    const result = await resolveBranchShortLink(
+      'https://metamask-alternate.app.link/abc123',
+    );
+
+    expect(result).toBe('https://link.metamask.io/perps');
+  });
 });
 
 describe('DeeplinkManager.start Branch error and +non_branch_link handling', () => {
@@ -842,7 +907,7 @@ describe('DeeplinkManager.start Branch error and +non_branch_link handling', () 
     await waitFor(() => {
       expect(mockedLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
-        'Error getting Branch deeplink',
+        expect.stringContaining('Error getting Branch deeplink'),
       );
     });
   });
