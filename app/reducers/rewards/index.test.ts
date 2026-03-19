@@ -47,6 +47,7 @@ import {
   CampaignType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
+import { brandColor } from '@metamask/design-tokens';
 
 const initialState: RewardsState = rewardsReducer(undefined, {
   type: 'unknown',
@@ -2636,7 +2637,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'old.png', darkModeUrl: 'old.png' },
         boostBips: 100,
         seasonLong: true,
-        backgroundColor: '#000000',
+        backgroundColor: brandColor.black,
       },
     ];
     const stateWithBoosts = {
@@ -2650,7 +2651,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'new.png', darkModeUrl: 'new.png' },
         boostBips: 2000,
         seasonLong: false,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: brandColor.white,
       },
     ];
     const action = setActiveBoosts(newBoosts);
