@@ -50,6 +50,12 @@ export function getConnectionTipsForWalletType(
         'hardware_wallet.connecting.tip_open_app',
         'hardware_wallet.connecting.tip_enable_bluetooth',
       ];
+    case HardwareWalletType.Qr:
+      return [
+        'hardware_wallet.connecting.qr_tip_scan',
+        'hardware_wallet.connecting.qr_tip_align',
+        'hardware_wallet.connecting.qr_tip_lighting',
+      ];
     default:
       return [];
   }

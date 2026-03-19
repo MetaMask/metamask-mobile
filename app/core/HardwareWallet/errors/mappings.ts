@@ -225,6 +225,21 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () => strings('hardware_wallet.errors.not_supported'),
   },
 
+  // QR-specific (using existing error codes with QR-specific messaging)
+  [ErrorCode.DeviceNotFound]: {
+    recoveryAction: RecoveryAction.RETRY,
+    icon: IconName.Search,
+    iconColor: IconColor.Error,
+    getLocalizedTitle: (walletType) =>
+      strings('hardware_wallet.error.device_not_found_title', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
+    getLocalizedMessage: (walletType) =>
+      strings('hardware_wallet.errors.device_not_found', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
+  },
+
   // Unknown
   [ErrorCode.Unknown]: {
     recoveryAction: RecoveryAction.RETRY,
@@ -260,4 +275,9 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   DeviceSocketNoBulkStatus: ErrorCode.BluetoothConnectionFailed,
   EthAppPleaseEnableContractData: ErrorCode.DeviceStateBlindSignNotSupported,
   BleError: ErrorCode.BluetoothConnectionFailed,
+  // QR-specific error names
+  QRScanError: ErrorCode.DeviceNotFound,
+  QRTimeoutError: ErrorCode.ConnectionTimeout,
+  QRCodeInvalid: ErrorCode.DeviceNotReady,
+  CameraPermissionDenied: ErrorCode.PermissionNearbyDevicesDenied,
 };
