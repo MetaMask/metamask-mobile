@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -46,7 +46,6 @@ import Button, {
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
 const IMAGE_1_RATIO = 162.8 / 138;
-const DEVICE_WIDTH = Dimensions.get('window').width;
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const AccountBackupStep1B = (props) => {
@@ -54,6 +53,7 @@ const AccountBackupStep1B = (props) => {
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
   const { colors } = useTheme();
   const tw = useTailwind();
+  const { width: deviceWidth } = useWindowDimensions();
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -110,7 +110,7 @@ const AccountBackupStep1B = (props) => {
     });
   };
 
-  const imgWidth = DEVICE_WIDTH - IMG_PADDING;
+  const imgWidth = deviceWidth - IMG_PADDING;
   const imgHeight = imgWidth * IMAGE_1_RATIO;
 
   return (
@@ -120,17 +120,17 @@ const AccountBackupStep1B = (props) => {
         style={tw.style('flex-1 bg-default')}
       >
         <Box
-          twClassName="flex-1 p-5 pt-0 pb-0 mt-4"
+          twClassName="flex-1 px-5 mt-4"
           testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
         >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <Box alignItems={BoxAlignItems.Center} twClassName="pb-4">
-            <DSText twClassName="text-[32px] leading-[44px]">🔒</DSText>
+            <DSText twClassName="text-4xl leading-tight">🔒</DSText>
             <DSText
               variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
-              twClassName="ml-0 mt-4 mb-4"
+              twClassName="mt-4 mb-4"
             >
               {strings('account_backup_step_1B.title')}
             </DSText>
@@ -155,7 +155,7 @@ const AccountBackupStep1B = (props) => {
             >
               <Icon
                 name="info-circle"
-                style={tw.style('text-[15px] mr-1.5')}
+                style={tw.style('text-sm mr-1.5')}
                 color={colors.primary.default}
               />
               <DSText
@@ -170,27 +170,27 @@ const AccountBackupStep1B = (props) => {
             backgroundColor={BoxBackgroundColor.BackgroundDefault}
             borderWidth={1}
             borderColor={BoxBorderColor.BorderDefault}
-            twClassName="rounded-[10px] p-4 mb-5"
+            twClassName="rounded-xl p-4 mb-5"
           >
             <DSText
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
-              twClassName="mb-2 leading-[17px]"
+              twClassName="mb-2 leading-4"
             >
               {strings('account_backup_step_1B.manual_title')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px] mb-5"
+              twClassName="leading-4 mb-5"
             >
               {strings('account_backup_step_1B.manual_subtitle')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px] mb-2"
+              twClassName="leading-4 mb-2"
             >
               {strings('account_backup_step_1B.manual_security')}
             </DSText>
@@ -202,63 +202,63 @@ const AccountBackupStep1B = (props) => {
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px]"
+              twClassName="leading-4"
             >
               {strings('account_backup_step_1B.risks_title')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px]"
+              twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.risks_1')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px]"
+              twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.risks_2')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px] mb-5"
+              twClassName="leading-4 mb-5"
             >
               • {strings('account_backup_step_1B.risks_3')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px] mb-5"
+              twClassName="leading-4 mb-5"
             >
               {strings('account_backup_step_1B.other_options')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px]"
+              twClassName="leading-4"
             >
               {strings('account_backup_step_1B.tips_title')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px]"
+              twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.tips_1')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px]"
+              twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.tips_2')}
             </DSText>
             <DSText
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-[17px] mb-5"
+              twClassName="leading-4 mb-5"
             >
               • {strings('account_backup_step_1B.tips_3')}
             </DSText>
@@ -283,17 +283,14 @@ const AccountBackupStep1B = (props) => {
         displayCancelButton={false}
         onRequestClose={hideWhySecureWallet}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          twClassName="flex-1 p-[27px]"
-        >
+        <Box twClassName="flex-1 p-7">
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Center}
             alignItems={BoxAlignItems.Center}
             twClassName="mb-4"
           >
-            <Box twClassName="w-[26px]" />
+            <Box twClassName="w-7" />
             <DSText
               variant={TextVariant.HeadingMd}
               color={TextColor.TextDefault}
@@ -304,20 +301,17 @@ const AccountBackupStep1B = (props) => {
             </DSText>
             <TouchableOpacity
               onPress={hideWhySecureWallet}
-              style={tw.style('p-[5px] items-end')}
+              style={tw.style('p-1 items-end')}
               hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
             >
               <Icon
                 name="times"
-                style={tw.style('text-[16px]')}
+                style={tw.style('text-base')}
                 color={colors.text.default}
               />
             </TouchableOpacity>
           </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Column}
-            alignItems={BoxAlignItems.Center}
-          >
+          <Box alignItems={BoxAlignItems.Center}>
             <Image
               source={explain_backup_seedphrase}
               style={tw.style(
@@ -347,7 +341,7 @@ const AccountBackupStep1B = (props) => {
               <DSText
                 variant={TextVariant.BodyMd}
                 color={TextColor.PrimaryDefault}
-                twClassName="mt-[21px] text-center leading-5"
+                twClassName="mt-5 text-center leading-5"
               >
                 {strings('account_backup_step_1B.learn_more')}
               </DSText>
