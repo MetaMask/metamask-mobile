@@ -625,7 +625,7 @@ const ChoosePassword = () => {
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="flex-grow"
+                twClassName="flex-1"
                 gap={4}
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
               >

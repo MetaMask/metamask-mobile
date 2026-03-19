@@ -1,19 +1,16 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
 
 // The DS `TextField` places `testID` on the outer Pressable wrapper
-// (accessible={false}) and forwards `...props` (including
-// accessibilityLabel) to the inner RN TextInput.
+// (accessible={false}) and forwards `accessibilityLabel` (via ...props)
+// to the inner RN TextInput.
 //
 // Platform differences for Detox element discovery:
-//   • iOS:     by.label() cannot discover the inner TextInput when the
-//              parent Pressable has accessible={false}. We target the
-//              Pressable via by.id(testID). Tapping it focuses the inner
-//              TextInput; typeText keystrokes route to the first
-//              responder (the focused TextInput).
+//   • iOS:     by.id(testID) targets the Pressable wrapper. Tapping it
+//              focuses the inner TextInput; typeText keystrokes route to
+//              the first responder.
 //   • Android: by.id(testID) targets the Pressable (ViewGroup), but
 //              typeText requires an android.widget.EditText. We use
 //              by.label(accessibilityLabel) to target the inner
@@ -65,17 +62,9 @@ class CreatePasswordView {
   }
 
   async resetPasswordInputs(): Promise<void> {
-    await Gestures.waitAndTap(this.newPasswordInput, {
-      elemDescription: 'Create Password New Password Input',
-      checkVisibility: false,
-    });
     await Gestures.typeText(this.newPasswordInput, '', {
       hideKeyboard: true,
       clearFirst: true,
-      checkVisibility: false,
-    });
-    await Gestures.waitAndTap(this.confirmPasswordInput, {
-      elemDescription: 'Create Password Confirm Password Input',
       checkVisibility: false,
     });
     await Gestures.typeText(this.confirmPasswordInput, '', {
@@ -86,26 +75,14 @@ class CreatePasswordView {
   }
 
   async enterPassword(password: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.container, {
-      description: 'Create Password Screen should be visible',
-    });
-    await Gestures.waitAndTap(this.newPasswordInput, {
-      elemDescription: 'Create Password New Password Input',
-      checkVisibility: false,
-      checkEnabled: false,
-    });
     await Gestures.typeText(this.newPasswordInput, password, {
       elemDescription: 'Create Password New Password Input',
-      hideKeyboard: false,
+      hideKeyboard: true,
       checkVisibility: false,
     });
   }
 
   async reEnterPassword(password: string): Promise<void> {
-    await Gestures.waitAndTap(this.confirmPasswordInput, {
-      elemDescription: 'Create Password Confirm Password Input',
-      checkVisibility: false,
-    });
     await Gestures.typeText(this.confirmPasswordInput, password, {
       elemDescription: 'Create Password Confirm Password Input',
       hideKeyboard: true,
@@ -116,12 +93,14 @@ class CreatePasswordView {
   async tapIUnderstandCheckBox(): Promise<void> {
     await Gestures.tap(this.iUnderstandCheckbox, {
       elemDescription: 'Create Password - I Understand Checkbox',
+      checkVisibility: false,
     });
   }
 
   async tapCreatePasswordButton(): Promise<void> {
     await Gestures.waitAndTap(this.submitButton, {
       elemDescription: 'Create Password Submit Button',
+      checkVisibility: false,
     });
   }
 }
