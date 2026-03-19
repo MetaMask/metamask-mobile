@@ -104,6 +104,19 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      // Predict flows: run callback immediately so the UI updates before the
+      // modal close animation, eliminating any visual gap.
+      if (
+        isPredictContext ||
+        hasTransactionType(transactionMeta, [
+          TransactionType.predictDepositAndOrder,
+        ])
+      ) {
+        onPredictPaymentTokenChange(token);
+        close();
+        return;
+      }
+
       const onClosed = () => {
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
@@ -118,11 +131,6 @@ export function PayWithModal() {
           ])
         ) {
           onPerpsPaymentTokenChange(token);
-          return;
-        }
-
-        if (isPredictContext) {
-          onPredictPaymentTokenChange(token);
           return;
         }
 
@@ -149,15 +157,6 @@ export function PayWithModal() {
           } catch {
             // Network not configured — skip
           }
-        }
-
-        if (
-          hasTransactionType(transactionMeta, [
-            TransactionType.predictDepositAndOrder,
-          ])
-        ) {
-          onPredictPaymentTokenChange(token);
-          return;
         }
 
         setPayToken({

@@ -159,10 +159,5 @@ export const selectPredictFakOrdersEnabledFlag = createSelector(
  */
 export const selectPredictWithAnyTokenEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-        remoteFeatureFlags?.predictWithAnyToken,
-      ),
-    ) ?? false,
+  (_remoteFeatureFlags) => true,
 );

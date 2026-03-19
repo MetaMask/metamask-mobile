@@ -2063,7 +2063,6 @@ export class PredictController extends BaseController<
       }
       this.update((state) => {
         if (state.activeOrder) {
-          delete state.activeOrder.batchId;
           state.activeOrder.state = ActiveOrderState.PREVIEW;
         }
       });
@@ -2074,11 +2073,13 @@ export class PredictController extends BaseController<
       if (isBalanceToken) {
         return;
       }
-      this.update((state) => {
-        if (state.activeOrder) {
-          state.activeOrder.state = ActiveOrderState.REDIRECTING;
-        }
-      });
+      if (activeOrder.batchId) {
+        this.update((state) => {
+          if (state.activeOrder) {
+            state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
+          }
+        });
+      }
     }
   }
 

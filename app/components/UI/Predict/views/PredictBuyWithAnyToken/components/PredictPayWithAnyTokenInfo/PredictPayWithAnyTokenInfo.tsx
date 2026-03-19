@@ -1,11 +1,10 @@
 import BigNumber from 'bignumber.js';
-import { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { PREDICT_CURRENCY } from '../../../../../../Views/confirmations/constants/predict';
 import { useTransactionCustomAmount } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
-import useClearConfirmationOnBackSwipe from '../../../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { Hex } from '@metamask/utils';
 
@@ -16,17 +15,25 @@ interface PredictPayWithAnyTokenInfoProps {
 const PredictPayWithAnyTokenInfo = ({
   depositAmount,
 }: PredictPayWithAnyTokenInfoProps) => {
+  const transactionMeta = useTransactionMetadataRequest();
+
+  if (!transactionMeta) {
+    return null;
+  }
+
+  return <PredictPayWithAnyTokenInfoInner depositAmount={depositAmount} />;
+};
+
+function PredictPayWithAnyTokenInfoInner({
+  depositAmount,
+}: PredictPayWithAnyTokenInfoProps) {
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
   const { setPayToken, payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
 
-  useClearConfirmationOnBackSwipe();
-
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
-
-  const activeTransactionMeta = useTransactionMetadataRequest();
 
   const parsedDepositAmount = useMemo(() => {
     if (isPredictBalanceSelected || depositAmount <= 0) {
@@ -45,11 +52,11 @@ const PredictPayWithAnyTokenInfo = ({
     if (
       parsedDepositAmount &&
       parsedDepositAmount.trim() !== '' &&
-      activeTransactionMeta
+      transactionMeta
     ) {
       updatePendingAmount(parsedDepositAmount);
     }
-  }, [parsedDepositAmount, activeTransactionMeta, updatePendingAmount]);
+  }, [parsedDepositAmount, transactionMeta, updatePendingAmount]);
 
   useEffect(() => {
     if (
@@ -57,14 +64,14 @@ const PredictPayWithAnyTokenInfo = ({
       amountHuman !== '0' &&
       parsedDepositAmount &&
       parsedDepositAmount.trim() !== '' &&
-      activeTransactionMeta
+      transactionMeta
     ) {
       updateTokenAmountCallback(amountHuman);
     }
   }, [
     amountHuman,
     depositAmount,
-    activeTransactionMeta,
+    transactionMeta,
     updateTokenAmountCallback,
     parsedDepositAmount,
   ]);
@@ -96,6 +103,6 @@ const PredictPayWithAnyTokenInfo = ({
   ]);
 
   return null;
-};
+}
 
 export default PredictPayWithAnyTokenInfo;

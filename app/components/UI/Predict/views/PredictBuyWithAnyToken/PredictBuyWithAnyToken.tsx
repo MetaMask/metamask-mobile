@@ -14,7 +14,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView } from 'react-native';
-import { Edge, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
@@ -59,7 +59,6 @@ const PredictBuyWithAnyToken = () => {
     outcome,
     outcomeToken,
     entryPoint,
-    isConfirmationRoute,
     preview: initialPreview,
   } = route.params;
 
@@ -103,7 +102,6 @@ const PredictBuyWithAnyToken = () => {
   }, []);
 
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
-
   const {
     preview,
     error: previewError,
@@ -193,17 +191,8 @@ const PredictBuyWithAnyToken = () => {
     },
   });
 
-  const edges = useMemo(
-    () =>
-      isConfirmationRoute ? (['top', 'left', 'right'] as Edge[]) : undefined,
-    [isConfirmationRoute],
-  );
-
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={edges}
-    >
+    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <PredictBuyPreviewHeader
         market={market}
         outcome={outcome}
@@ -294,9 +283,7 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      {isConfirmationRoute && (
-        <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
-      )}
+      <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
     </SafeAreaView>
   );
 };
