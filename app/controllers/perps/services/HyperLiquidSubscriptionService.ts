@@ -2119,7 +2119,7 @@ export class HyperLiquidSubscriptionService {
           // Enrich with detailedOrderType from cached orders (best-effort)
           const oid = fill.oid.toString();
           const cachedOrder = this.#cachedOrders?.find(
-            (o) => o.orderId === oid,
+            (order) => order.orderId === oid,
           );
           return {
             orderId: oid,
