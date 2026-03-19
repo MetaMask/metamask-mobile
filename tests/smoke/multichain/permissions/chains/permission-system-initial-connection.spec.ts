@@ -25,7 +25,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPermissionController().build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
       },
       async () => {
@@ -53,7 +53,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPermissionController().build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
       },
       async () => {
