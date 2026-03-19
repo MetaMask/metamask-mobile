@@ -51,6 +51,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
     geolocationStatus === 'loading' || geolocationStatus === 'idle';
 
   const isGeoRestricted = useMemo(() => {
+    if (__DEV__) return false;
     if (isGeoLoading) return false;
     const country = geolocation?.toUpperCase().split('-')[0];
     if (campaign.type === CampaignType.ONDO_HOLDING) {
