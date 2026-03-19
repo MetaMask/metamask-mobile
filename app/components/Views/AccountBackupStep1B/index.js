@@ -16,6 +16,9 @@ import {
   BoxJustifyContent,
   BoxBackgroundColor,
   BoxBorderColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
@@ -37,11 +40,6 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -261,12 +259,13 @@ const AccountBackupStep1B = (props) => {
             </Text>
 
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               onPress={goNext}
-              label={strings('account_backup_step_1B.cta_text')}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               size={ButtonSize.Lg}
-            />
+            >
+              {strings('account_backup_step_1B.cta_text')}
+            </Button>
           </Box>
         </Box>
       </ScrollView>
