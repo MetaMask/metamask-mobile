@@ -61,6 +61,7 @@ export const createMockInfrastructure =
         trace: jest.fn(() => undefined),
         endTrace: jest.fn(),
         setMeasurement: jest.fn(),
+        addBreadcrumb: jest.fn(),
       },
 
       // === Platform Services ===
@@ -145,13 +146,8 @@ export const createMockPerpsControllerState = (
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
   selectedPaymentToken: null,
-  cachedMarketData: null,
-  cachedMarketDataTimestamp: 0,
-  cachedPositions: null,
-  cachedOrders: null,
-  cachedAccountState: null,
-  cachedUserDataTimestamp: 0,
-  cachedUserDataAddress: null,
+  cachedMarketDataByProvider: {},
+  cachedUserDataByProvider: {},
   ...overrides,
 });
 

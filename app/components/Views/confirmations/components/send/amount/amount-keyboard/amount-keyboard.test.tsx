@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
-
 import { mockTheme } from '../../../../../../../util/theme';
 import renderWithProvider, {
   ProviderValues,
@@ -18,7 +17,7 @@ import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { useSendActions } from '../../../../hooks/send/useSendActions';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';

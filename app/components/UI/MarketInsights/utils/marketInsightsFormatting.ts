@@ -70,6 +70,17 @@ export const isXSourceUrl = (source: string): boolean => {
   }
 };
 
+const SAFE_URL_SCHEMES = ['http:', 'https:'];
+
+export const isSafeUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    return SAFE_URL_SCHEMES.includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+};
+
 export const getUniqueSourcesByFavicon = (
   sources: MarketInsightsSource[],
 ): MarketInsightsSource[] => {

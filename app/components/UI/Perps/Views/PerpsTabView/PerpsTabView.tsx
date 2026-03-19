@@ -45,7 +45,7 @@ import styleSheet from './PerpsTabView.styles';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
 const PerpsTabView = () => {
@@ -126,6 +126,8 @@ const PerpsTabView = () => {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
+      [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
     },
   });
 

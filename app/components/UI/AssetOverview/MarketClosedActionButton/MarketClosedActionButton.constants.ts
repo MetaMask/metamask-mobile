@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 
 // Test IDs
 export const MARKETCLOSED_ACTIONBUTTON_TEST_ID = 'market-closed-action-button';

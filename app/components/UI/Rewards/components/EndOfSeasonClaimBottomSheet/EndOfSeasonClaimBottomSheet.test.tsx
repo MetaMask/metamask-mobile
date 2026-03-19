@@ -102,15 +102,12 @@ jest.mock('../../hooks/useLineaSeasonOneTokenReward', () => ({
 }));
 
 // Mock useTheme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        alternative: '#666666',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -286,28 +283,33 @@ jest.mock(
   },
 );
 
-// Mock BottomSheetHeader
+// Mock HeaderCompactStandard
 jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({
-        children,
+        title,
         onClose,
+        closeButtonProps,
       }: {
-        children?: React.ReactNode;
+        title?: React.ReactNode;
         onClose?: () => void;
+        closeButtonProps?: { testID?: string };
       }) =>
         ReactActual.createElement(
           View,
           { testID: 'bottom-sheet-header' },
-          ReactActual.createElement(Text, {}, children),
+          ReactActual.createElement(Text, {}, title),
           ReactActual.createElement(
             TouchableOpacity,
-            { onPress: onClose, testID: 'close-button' },
+            {
+              onPress: onClose,
+              testID: closeButtonProps?.testID ?? 'close-button',
+            },
             ReactActual.createElement(Text, {}, 'Close'),
           ),
         ),
@@ -462,19 +464,16 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       );
 
       expect(getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL)).toBeOnTheScreen();
-      expect(getByText('Reward Details')).toBeOnTheScreen();
+      expect(getByText('Test Reward')).toBeOnTheScreen();
     });
 
     it('renders title for non-LINEA_TOKENS reward', () => {
-      const { getByTestId, getByText } = render(
+      const { getByText } = render(
         <EndOfSeasonClaimBottomSheet
           route={createRoute({ title: 'My Reward Title' })}
         />,
       );
 
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TITLE),
-      ).toBeOnTheScreen();
       expect(getByText('My Reward Title')).toBeOnTheScreen();
     });
 

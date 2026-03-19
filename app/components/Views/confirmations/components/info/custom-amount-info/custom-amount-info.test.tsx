@@ -56,6 +56,14 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
     setConfirmationMetric: jest.fn(),
   }),
 }));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+    })),
+  }),
+}));
 
 const mockGoToBuy = jest.fn();
 
@@ -77,6 +85,19 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
+  }),
+}));
+
+jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: () => ({
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
+    isFetching: false,
+    isLoading: false,
+    status: 'idle',
+    isSuccess: false,
+    error: null,
   }),
 }));
 

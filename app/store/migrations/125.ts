@@ -1,31 +1,50 @@
 import { captureException } from '@sentry/react-native';
-import { isObject } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { cloneDeep } from 'lodash';
+
+const migrationVersion = 125;
 
 /**
- * Migration 125: Change default search engine to Brave
+ * Migration 125: Remove smartAccountOptInForAccounts, identities, selectedAddress, lostIdentities from PreferencesController
  *
- * All existing users will be migrated to 'Brave' for a privacy-focused,
- * ad-free search experience.
- *
- * @param state - The persisted Redux state
- * @returns The migrated Redux state
+ * @param state - The persisted Redux state.
+ * @returns The migrated Redux state.
  */
-export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 125)) {
-    return state;
+export default async function migrate(versionedState: unknown) {
+  if (!ensureValidState(versionedState, migrationVersion)) {
+    return versionedState;
   }
 
-  if (!isObject(state.settings)) {
+  const state = cloneDeep(versionedState);
+
+  const preferencesControllerState =
+    state.engine.backgroundState.PreferencesController;
+
+  if (!isObject(preferencesControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 125: Invalid Settings state error: '${typeof state.settings}'`,
+        `Migration ${migrationVersion}: Invalid PreferencesController state: '${typeof preferencesControllerState}'`,
       ),
     );
     return state;
   }
 
-  state.settings.searchEngine = 'Brave';
+  if (hasProperty(preferencesControllerState, 'smartAccountOptInForAccounts')) {
+    delete preferencesControllerState.smartAccountOptInForAccounts;
+  }
+
+  if (hasProperty(preferencesControllerState, 'identities')) {
+    delete preferencesControllerState.identities;
+  }
+
+  if (hasProperty(preferencesControllerState, 'selectedAddress')) {
+    delete preferencesControllerState.selectedAddress;
+  }
+
+  if (hasProperty(preferencesControllerState, 'lostIdentities')) {
+    delete preferencesControllerState.lostIdentities;
+  }
 
   return state;
 }

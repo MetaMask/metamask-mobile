@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import { useCardSDK } from '../../sdk';
 
 // Mock navigation
@@ -21,6 +22,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useRegisterPhysicalAddress');
 jest.mock('../../hooks/useRegisterUserConsent');
 jest.mock('../../hooks/useRegistrationSettings');
+jest.mock('../../hooks/useRegions');
 
 // Mock SDK
 jest.mock('../../sdk', () => ({
@@ -147,8 +149,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   const Icon = ({ name, size, ...props }: { name: string; size: string }) =>
     React.createElement(View, { testID: 'icon', ...props });
 
+  const Label = ({
+    children,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) =>
+    React.createElement(RNText, props, children);
+
   return {
     Box,
+    Label,
     Text,
     Icon,
     TextVariant: {
@@ -205,19 +214,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     __esModule: true,
     default: MockTextField,
   };
-});
-
-// Mock Label
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) =>
-    React.createElement(Text, props, children);
 });
 
 // Mock Button
@@ -357,18 +353,8 @@ const createTestStore = (initialState = {}) =>
       card: (
         state = {
           onboarding: {
-            selectedCountry: {
-              key: 'US',
-              name: 'United States',
-              emoji: '🇺🇸',
-              areaCode: '1',
-            },
             onboardingId: 'test-id',
             contactVerificationId: 'contact-id',
-            user: {
-              id: 'user-id',
-              email: 'test@example.com',
-            },
           },
           userCardLocation: 'us',
           ...initialState,
@@ -450,7 +436,17 @@ describe('PhysicalAddress Component', () => {
       reset: jest.fn(),
     });
 
-    // Mock useRegistrationSettings
+    const mockUserCountryUS = {
+      key: 'US',
+      name: 'United States',
+      emoji: '🇺🇸',
+      areaCode: '1',
+    };
+    (useRegions as jest.Mock).mockReturnValue({
+      userCountry: mockUserCountryUS,
+    });
+
+    // Mock useRegistrationSettings (for AddressFields usStates and links)
     mockUseRegistrationSettings.mockReturnValue({
       data: {
         countries: [
@@ -530,18 +526,9 @@ describe('PhysicalAddress Component', () => {
       selector({
         card: {
           onboarding: {
-            selectedCountry: {
-              key: 'US',
-              name: 'United States',
-              emoji: '🇺🇸',
-              areaCode: '1',
-            },
             onboardingId: 'test-id',
-            user: {
-              id: 'user-id',
-              email: 'test@example.com',
-            },
           },
+          consentSetId: null,
         },
       }),
     );
@@ -1405,22 +1392,14 @@ describe('PhysicalAddress Component', () => {
 
   describe('Conditional Rendering', () => {
     it('shows state field for US users', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation((selector: any) =>
-        selector({
-          card: {
-            onboarding: {
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
-              onboardingId: 'test-id',
-            },
-          },
-        }),
-      );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: {
+          key: 'US',
+          name: 'United States',
+          emoji: '🇺🇸',
+          areaCode: '1',
+        },
+      });
 
       const { getByTestId } = render(
         <Provider store={store}>
@@ -1432,22 +1411,14 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('hides state field for non-US users', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation((selector: any) =>
-        selector({
-          card: {
-            onboarding: {
-              selectedCountry: {
-                key: 'CA',
-                name: 'Canada',
-                emoji: '🇨🇦',
-                areaCode: '1',
-              },
-              onboardingId: 'test-id',
-            },
-          },
-        }),
-      );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: {
+          key: 'CA',
+          name: 'Canada',
+          emoji: '🇨🇦',
+          areaCode: '1',
+        },
+      });
 
       const { queryByTestId } = render(
         <Provider store={store}>
@@ -1466,13 +1437,15 @@ describe('PhysicalAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: null,
               onboardingId: null,
-              user: null,
             },
+            consentSetId: null,
           },
         }),
       );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: null,
+      });
 
       const { getByTestId } = render(
         <Provider store={store}>
@@ -1767,22 +1740,14 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('does not render legal links for non-US users', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation((selector: any) =>
-        selector({
-          card: {
-            onboarding: {
-              selectedCountry: {
-                key: 'CA',
-                name: 'Canada',
-                emoji: '🇨🇦',
-                areaCode: '1',
-              },
-              onboardingId: 'test-id',
-            },
-          },
-        }),
-      );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: {
+          key: 'CA',
+          name: 'Canada',
+          emoji: '🇨🇦',
+          areaCode: '1',
+        },
+      });
 
       const { queryByText } = render(
         <Provider store={store}>
@@ -1836,6 +1801,92 @@ describe('PhysicalAddress Component', () => {
         'Enter your physical address information',
       );
       expect(buttonText.props.children).toBe('Continue');
+    });
+  });
+
+  describe('Error Reset on Field Change', () => {
+    it('clears consent error when address field is edited', () => {
+      const mockResetConsent = jest.fn();
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
+        getOnboardingConsentSetByOnboardingId: jest
+          .fn()
+          .mockResolvedValue(null),
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        error: 'Consent failed',
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: mockResetConsent,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '456 Oak Ave');
+
+      expect(mockResetConsent).toHaveBeenCalled();
+    });
+
+    it('clears consent error when city field is edited', () => {
+      const mockResetConsent = jest.fn();
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
+        getOnboardingConsentSetByOnboardingId: jest
+          .fn()
+          .mockResolvedValue(null),
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        error: 'Consent failed',
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: mockResetConsent,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+
+      expect(mockResetConsent).toHaveBeenCalled();
+    });
+
+    it('clears consent error when zip code field is edited', () => {
+      const mockResetConsent = jest.fn();
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
+        getOnboardingConsentSetByOnboardingId: jest
+          .fn()
+          .mockResolvedValue(null),
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        error: 'Consent failed',
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: mockResetConsent,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+
+      expect(mockResetConsent).toHaveBeenCalled();
     });
   });
 });

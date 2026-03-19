@@ -106,6 +106,22 @@ async dismissOnboarding() {
 }
 ```
 
+Both `detox` and `appium` branches are **optional** — you can provide only one when the method only exists for a single framework. This is useful during incremental migration when porting a method that has no equivalent on the other side:
+
+```typescript
+// Only the appium branch is needed — Detox doesn't have this flow
+async waitForScreenToDisplay() {
+  await encapsulatedAction({
+    appium: async () => {
+      const element = await asPlaywrightElement(this.title);
+      await element.waitForDisplayed({ timeout: 15000 });
+    },
+  });
+}
+```
+
+If the active framework doesn't have a matching branch, `encapsulatedAction` throws an error to catch misconfiguration early.
+
 ## Escape Hatch
 
 When the unified approach becomes overly complex for a specific case, you can always use `FrameworkDetector` or `PlatformDetector` directly for custom conditional logic:

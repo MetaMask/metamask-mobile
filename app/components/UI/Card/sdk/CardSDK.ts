@@ -465,29 +465,6 @@ export class CardSDK {
     return batches;
   }
 
-  getGeoLocation = async (): Promise<string> => {
-    try {
-      const response = await fetch(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get geolocation: ${response.statusText}`);
-      }
-
-      return await response.text();
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'getGeoLocation' },
-        context: {
-          name: 'card_geolocation',
-          data: { endpoint: 'geolocation' },
-        },
-      });
-      return 'UNKNOWN';
-    }
-  };
-
   // Only runs on linea network
   getSupportedTokensAllowances = async (
     address: string,

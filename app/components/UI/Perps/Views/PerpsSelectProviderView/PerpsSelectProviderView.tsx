@@ -1,49 +1,101 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import { usePerpsNetworkConfig } from '../../hooks/usePerpsNetworkConfig';
+import { selectPerpsNetwork } from '../../selectors/perpsController';
 import PerpsProviderSelectorSheet from '../../components/PerpsProviderSelector/PerpsProviderSelectorSheet';
-import type { PerpsProviderType } from '@metamask/perps-controller';
+import type { ProviderNetworkOption } from '../../components/PerpsProviderSelector/PerpsProviderSelector.types';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 /**
  * PerpsSelectProviderView
  *
  * Navigation-based wrapper for the provider selector bottom sheet.
- * This ensures the sheet renders at full-screen level rather than
- * being constrained by parent container bounds.
+ * Handles combined provider + network switching.
  */
 const PerpsSelectProviderView: React.FC = () => {
   const navigation = useNavigation();
   const { activeProvider, switchProvider } = usePerpsProvider();
+  const { toggleTestnet } = usePerpsNetworkConfig();
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleProviderSelect = useCallback(
-    async (providerId: PerpsProviderType) => {
-      const result = await switchProvider(providerId);
-      if (!result.success) {
-        Logger.error(
-          new Error(`Failed to switch perps provider to ${providerId}`),
-          { message: result.error },
-        );
-      }
-      // Navigation is handled by handleClose when bottom sheet closes
-    },
-    [switchProvider],
+  const selectedOptionId = useMemo(
+    () => `${activeProvider}-${isTestnet ? 'testnet' : 'mainnet'}`,
+    [activeProvider, isTestnet],
   );
 
-  // Determine selected provider, defaulting to hyperliquid for aggregated mode
-  const selectedProvider =
-    activeProvider !== 'aggregated' ? activeProvider : 'hyperliquid';
+  const handleOptionSelect = useCallback(
+    async (option: ProviderNetworkOption) => {
+      const providerChanged = option.providerId !== activeProvider;
+      const networkChanged = option.isTestnet !== isTestnet;
+
+      if (!providerChanged && !networkChanged) {
+        return;
+      }
+
+      // Switch provider first if needed
+      if (providerChanged) {
+        const result = await switchProvider(option.providerId);
+        if (!result.success) {
+          Logger.error(
+            new Error(
+              `Failed to switch perps provider to ${option.providerId}`,
+            ),
+            {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+              },
+              context: {
+                name: 'PerpsSelectProviderView',
+                data: {
+                  action: 'switch_provider',
+                  providerId: option.providerId,
+                  error: result.error,
+                },
+              },
+            },
+          );
+          return;
+        }
+      }
+
+      // Then toggle network if needed
+      if (networkChanged) {
+        const result = await toggleTestnet();
+        if (!result.success) {
+          Logger.error(new Error(`Failed to toggle perps testnet`), {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+            },
+            context: {
+              name: 'PerpsSelectProviderView',
+              data: {
+                action: 'toggle_testnet',
+                targetNetwork: option.isTestnet ? 'testnet' : 'mainnet',
+                error: result.error,
+              },
+            },
+          });
+          return;
+        }
+      }
+    },
+    [activeProvider, isTestnet, switchProvider, toggleTestnet],
+  );
 
   return (
     <PerpsProviderSelectorSheet
       isVisible
       onClose={handleClose}
-      selectedProvider={selectedProvider}
-      onProviderSelect={handleProviderSelect}
+      selectedOptionId={selectedOptionId}
+      onOptionSelect={handleOptionSelect}
       testID="perps-select-provider-sheet"
     />
   );

@@ -36,7 +36,7 @@ const FlatNavHeader = ({ title, onLeftPress }: FlatNavHeaderProps) => {
       <ButtonIcon
         iconName={IconName.ArrowLeft}
         onPress={handleLeftPress}
-        size={ButtonIconSizes.Lg}
+        size={ButtonIconSizes.Md}
         style={styles.left}
         testID="flat-nav-header-back-button"
       />
