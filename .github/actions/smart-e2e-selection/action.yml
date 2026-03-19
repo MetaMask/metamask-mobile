@@ -147,17 +147,17 @@ runs:
         if [[ "$EVENT_NAME" != "pull_request" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="only runs on PRs"
+        elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="skip-smart-e2e-selection label found"
+          FORCE_RUN=true
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         elif [[ "$IS_DRAFT" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="draft PR"
         elif [[ "$BASE_REF" != "main" && "$BASE_REF" != release/* ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="base branch is not main or a release branch (base: $BASE_REF)"
-        elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="skip-smart-e2e-selection label found"
-          FORCE_RUN=true
-          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         fi
 
         # Export skip status, reason, and force run flag for downstream jobs
