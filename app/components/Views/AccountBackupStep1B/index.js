@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   ScrollView,
   TouchableOpacity,
@@ -16,7 +16,7 @@ import {
   BoxJustifyContent,
   BoxBackgroundColor,
   BoxBorderColor,
-  Text as DSText,
+  Text,
   TextVariant,
   TextColor,
   FontWeight,
@@ -125,29 +125,26 @@ const AccountBackupStep1B = (props) => {
         >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <Box alignItems={BoxAlignItems.Center} twClassName="pb-4">
-            <DSText twClassName="text-4xl leading-tight">🔒</DSText>
-            <DSText
+            <Text twClassName="text-4xl leading-tight">🔒</Text>
+            <Text
               variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
               twClassName="mt-4 mb-4"
             >
               {strings('account_backup_step_1B.title')}
-            </DSText>
+            </Text>
             <Box twClassName="mb-4 justify-center">
-              <DSText
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-              >
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('account_backup_step_1B.subtitle_1')}{' '}
-                <DSText
+                <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.PrimaryDefault}
                   onPress={showWhatIsSeedphrase}
                 >
                   {strings('account_backup_step_1B.subtitle_2')}
-                </DSText>
-              </DSText>
+                </Text>
+              </Text>
             </Box>
             <TouchableOpacity
               onPress={showWhySecureWallet}
@@ -158,12 +155,12 @@ const AccountBackupStep1B = (props) => {
                 style={tw.style('text-sm mr-1.5')}
                 color={colors.primary.default}
               />
-              <DSText
+              <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.PrimaryDefault}
               >
                 {strings('account_backup_step_1B.why_important')}
-              </DSText>
+              </Text>
             </TouchableOpacity>
           </Box>
           <Box
@@ -172,96 +169,96 @@ const AccountBackupStep1B = (props) => {
             borderColor={BoxBorderColor.BorderDefault}
             twClassName="rounded-xl p-4 mb-5"
           >
-            <DSText
+            <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
               twClassName="mb-2 leading-4"
             >
               {strings('account_backup_step_1B.manual_title')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4 mb-5"
             >
               {strings('account_backup_step_1B.manual_subtitle')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4 mb-2"
             >
               {strings('account_backup_step_1B.manual_security')}
-            </DSText>
+            </Text>
             <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-5">
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
             </Box>
-            <DSText
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4"
             >
               {strings('account_backup_step_1B.risks_title')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.risks_1')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.risks_2')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4 mb-5"
             >
               • {strings('account_backup_step_1B.risks_3')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4 mb-5"
             >
               {strings('account_backup_step_1B.other_options')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4"
             >
               {strings('account_backup_step_1B.tips_title')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.tips_1')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4"
             >
               • {strings('account_backup_step_1B.tips_2')}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
               twClassName="leading-4 mb-5"
             >
               • {strings('account_backup_step_1B.tips_3')}
-            </DSText>
+            </Text>
 
             <Button
               variant={ButtonVariants.Primary}
@@ -291,14 +288,14 @@ const AccountBackupStep1B = (props) => {
             twClassName="mb-4"
           >
             <Box twClassName="w-7" />
-            <DSText
+            <Text
               variant={TextVariant.HeadingMd}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
               twClassName="flex-1 text-center"
             >
               {strings('account_backup_step_1B.why_secure_title')}
-            </DSText>
+            </Text>
             <TouchableOpacity
               onPress={hideWhySecureWallet}
               style={tw.style('p-1 items-end')}
@@ -320,37 +317,52 @@ const AccountBackupStep1B = (props) => {
               resizeMethod={'auto'}
               testID={'carousel-one-image'}
             />
-            <DSText
+            <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               twClassName="text-center leading-5"
             >
               {strings('account_backup_step_1B.why_secure_1')}
-              <DSText
+              <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextDefault}
                 fontWeight={FontWeight.Bold}
               >
                 {strings('account_backup_step_1B.why_secure_2')}
-              </DSText>
-            </DSText>
+              </Text>
+            </Text>
             <TouchableOpacity
               onPress={learnMore}
               hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
             >
-              <DSText
+              <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.PrimaryDefault}
                 twClassName="mt-5 text-center leading-5"
               >
                 {strings('account_backup_step_1B.learn_more')}
-              </DSText>
+              </Text>
             </TouchableOpacity>
           </Box>
         </Box>
       </ActionModal>
     </SafeAreaView>
   );
+};
+
+AccountBackupStep1B.propTypes = {
+  /**
+   * Object that represents the navigator
+   */
+  navigation: PropTypes.object,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
