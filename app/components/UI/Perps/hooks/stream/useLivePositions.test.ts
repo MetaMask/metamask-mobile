@@ -230,6 +230,48 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
+    it('updates positions and loading state atomically — no intermediate empty-positions render (TAT-2236)', async () => {
+      // This test verifies the fix for TAT-2236: button color flash.
+      // Before the fix, positions were derived via useEffect (one render behind),
+      // causing an intermediate render where isInitialLoading=false but positions=[].
+      let capturedCallback: (positions: Position[]) => void = jest.fn();
+      mockPositionsSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const renderStates: Array<{ positions: Position[]; isInitialLoading: boolean }> = [];
+
+      const { result } = renderHook(() => {
+        const hookResult = usePerpsLivePositions();
+        renderStates.push({
+          positions: hookResult.positions,
+          isInitialLoading: hookResult.isInitialLoading,
+        });
+        return hookResult;
+      });
+
+      // Initially loading with no positions
+      expect(result.current.isInitialLoading).toBe(true);
+      expect(result.current.positions).toEqual([]);
+
+      // Clear render history before the critical update
+      renderStates.length = 0;
+
+      const positions: Position[] = [mockPosition];
+      act(() => {
+        capturedCallback(positions);
+      });
+
+      // After the update, every render must have positions when isInitialLoading is false
+      for (const state of renderStates) {
+        if (!state.isInitialLoading) {
+          expect(state.positions.length).toBeGreaterThan(0);
+        }
+      }
+    });
+
     it('handles empty positions array without unnecessary re-renders', async () => {
       let capturedCallback: (positions: Position[]) => void = jest.fn();
       mockPositionsSubscribe.mockImplementation((params) => {
