@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
-import { SEARCH_ENGINE_URLS } from '../../../../../util/browser';
+import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
 import AppConstants from '../../../../../core/AppConstants';
 
 export interface SitesSearchFooterProps {
@@ -75,8 +75,8 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   const isUrl = looksLikeUrl(searchQuery.toLowerCase());
 
   const engineKey = searchEngine ?? AppConstants.DEFAULT_SEARCH_ENGINE;
-  const resolvedEngine = SEARCH_ENGINE_URLS[engineKey]
-    ? engineKey
+  const resolvedEngine: SearchEngine = SEARCH_ENGINE_URLS[engineKey as SearchEngine]
+    ? (engineKey as SearchEngine)
     : AppConstants.DEFAULT_SEARCH_ENGINE;
   const searchUrl =
     SEARCH_ENGINE_URLS[resolvedEngine] + encodeURIComponent(searchQuery);

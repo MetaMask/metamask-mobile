@@ -4,7 +4,7 @@ import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
 import AppConstants from '../../core/AppConstants';
 
-type SearchEngine = 'Google' | 'DuckDuckGo' | 'Brave';
+export type SearchEngine = 'Google' | 'DuckDuckGo' | 'Brave';
 
 export const SEARCH_ENGINE_URLS: Record<SearchEngine, string> = {
   Google: 'https://www.google.com/search?q=',
@@ -69,7 +69,7 @@ export function processUrlForBrowser(
       !decodedInput.startsWith('localhost')
     ) {
       const baseUrl =
-        SEARCH_ENGINE_URLS[searchEngine] ??
+        SEARCH_ENGINE_URLS[searchEngine as SearchEngine] ??
         SEARCH_ENGINE_URLS[AppConstants.DEFAULT_SEARCH_ENGINE];
       return baseUrl + encodeURIComponent(input);
     }
