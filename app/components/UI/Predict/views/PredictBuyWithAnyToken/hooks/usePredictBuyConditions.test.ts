@@ -63,7 +63,11 @@ const defaultParams = {
   currentValue: 10,
   total: 10.5,
   depositFee: 0,
-  preview: { rateLimited: false } as OrderPreview | null,
+  preview: {
+    rateLimited: false,
+    maxAmountSpent: 10,
+    fees: { totalFee: 0.5 },
+  } as OrderPreview | null,
   isPreviewCalculating: false,
   isPlaceOrderLoading: false,
   isUserInputChange: false,
@@ -121,42 +125,44 @@ describe('usePredictBuyConditions', () => {
   });
 
   describe('isInsufficientBalance', () => {
-    it('returns true when total exceeds available balance and currentValue > 0', () => {
+    it('returns true when currentValue exceeds maxBetAmount', () => {
       mockAvailableBalance = 5;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          total: 10.5,
         }),
       );
 
       expect(result.current.isInsufficientBalance).toBe(true);
     });
 
-    it('returns false when total is within available balance', () => {
+    it('returns false when currentValue is within maxBetAmount', () => {
       mockAvailableBalance = 100;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          total: 10.5,
         }),
       );
 
       expect(result.current.isInsufficientBalance).toBe(false);
     });
 
-    it('returns false when total equals available balance', () => {
+    it('returns false when currentValue equals maxBetAmount', () => {
       mockAvailableBalance = 10.5;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          total: 10.5,
+          preview: {
+            rateLimited: false,
+            maxAmountSpent: 10,
+            fees: { totalFee: 0.5, totalFeePercentage: 5 },
+          } as OrderPreview,
         }),
       );
 
@@ -170,7 +176,6 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 0,
-          total: 0,
         }),
       );
 

@@ -27,7 +27,6 @@ interface UsePredictBuyConditionsParams {
 export const usePredictBuyConditions = ({
   preview,
   currentValue,
-  total,
   depositFee,
   isPreviewCalculating,
   isPlaceOrderLoading,
@@ -60,15 +59,18 @@ export const usePredictBuyConditions = ({
     [currentValue],
   );
 
-  const isInsufficientBalance = useMemo(
-    () => currentValue > 0 && total > availableBalance,
-    [currentValue, total, availableBalance],
-  );
-
   const maxBetAmount = useMemo(() => {
     const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
-    return Math.max(0, (availableBalance - depositFee) / (1 + feeRate));
+    return Math.max(
+      0,
+      Math.floor(((availableBalance - depositFee) / (1 + feeRate)) * 100) / 100,
+    );
   }, [availableBalance, depositFee, preview?.fees?.totalFeePercentage]);
+
+  const isInsufficientBalance = useMemo(
+    () => !isConfirming && currentValue > 0 && currentValue > maxBetAmount,
+    [isConfirming, currentValue, maxBetAmount],
+  );
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
@@ -86,13 +88,6 @@ export const usePredictBuyConditions = ({
       isPlaceOrderLoading ||
       isDepositing,
     [currentState, isPlaceOrderLoading, isDepositing],
-  );
-
-  const isRedirecting = useMemo(
-    () =>
-      activeOrder?.state === ActiveOrderState.REDIRECTING ||
-      activeOrder?.state === ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
-    [activeOrder],
   );
 
   // Workaround: TransactionPayController sets paymentToken and isLoading in
@@ -140,11 +135,9 @@ export const usePredictBuyConditions = ({
 
   const isPayFeesLoading = useMemo(
     () =>
-      isRedirecting ||
-      (shouldWaitForPayFees &&
-        (isPayTotalsLoading || isPayQuoteLoading || isQuotesStale)),
+      shouldWaitForPayFees &&
+      (isPayTotalsLoading || isPayQuoteLoading || isQuotesStale),
     [
-      isRedirecting,
       shouldWaitForPayFees,
       isPayTotalsLoading,
       isPayQuoteLoading,
@@ -161,7 +154,6 @@ export const usePredictBuyConditions = ({
       !isPlaceOrderLoading &&
       !isRateLimited &&
       !isBalanceLoading &&
-      !isRedirecting &&
       !isPayFeesLoading,
     [
       isConfirming,
@@ -171,7 +163,6 @@ export const usePredictBuyConditions = ({
       isPlaceOrderLoading,
       isRateLimited,
       isBalanceLoading,
-      isRedirecting,
       isPayFeesLoading,
     ],
   );

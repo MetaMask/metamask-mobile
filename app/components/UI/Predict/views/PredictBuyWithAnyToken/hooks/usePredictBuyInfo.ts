@@ -1,9 +1,10 @@
 import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { OrderPreview } from '../../../types';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { usePredictBalance } from '../../../hooks/usePredictBalance';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
@@ -28,7 +29,9 @@ export const usePredictBuyInfo = ({
   const payTotals = useTransactionPayTotals();
   const { activeOrder } = usePredictActiveOrder();
 
-  const depositFee = useMemo(() => {
+  const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
+
+  const computedDepositFee = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
     return new BigNumber(provider?.usd ?? 0)
@@ -36,6 +39,19 @@ export const usePredictBuyInfo = ({
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
   }, [isPredictBalanceSelected, payTotals]);
+
+  useEffect(() => {
+    if (computedDepositFee > 0) {
+      setAcceptedDepositFee(computedDepositFee);
+    }
+  }, [computedDepositFee]);
+
+  const depositFee =
+    computedDepositFee > 0
+      ? computedDepositFee
+      : isConfirming
+        ? acceptedDepositFee
+        : 0;
 
   const rewardsFeeAmount =
     isPlaceOrderLoading || previewError
@@ -64,6 +80,14 @@ export const usePredictBuyInfo = ({
     ],
   );
 
+  const { data: predictBalance = 0 } = usePredictBalance();
+
+  const depositAmount = useMemo(() => {
+    const previewTotal =
+      (preview?.maxAmountSpent ?? 0) + (preview?.fees?.totalFee ?? 0);
+    return Math.max(0, Math.ceil((previewTotal - predictBalance) * 100) / 100);
+  }, [preview?.maxAmountSpent, preview?.fees?.totalFee, predictBalance]);
+
   const errorMessage = useMemo(
     () =>
       isOrderNotFilled || isConfirming
@@ -83,6 +107,7 @@ export const usePredictBuyInfo = ({
     metamaskFee,
     providerFee,
     depositFee,
+    depositAmount,
     total,
     rewardsFeeAmount,
     errorMessage,

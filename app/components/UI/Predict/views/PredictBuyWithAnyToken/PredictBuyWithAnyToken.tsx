@@ -131,6 +131,7 @@ const PredictBuyWithAnyToken = () => {
     providerFee,
     total,
     depositFee,
+    depositAmount,
     rewardsFeeAmount,
     errorMessage,
   } = usePredictBuyInfo({
@@ -168,7 +169,7 @@ const PredictBuyWithAnyToken = () => {
     analyticsProperties,
     preview,
     placeOrder,
-    depositAmount: total - depositFee,
+    depositAmount,
     setIsConfirming,
   });
 
@@ -295,7 +296,7 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
+      <PredictPayWithAnyTokenInfo depositAmount={depositAmount} />
     </SafeAreaView>
   );
 };

@@ -31,6 +31,13 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
+jest.mock('../../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => ({
+    data: 0,
+    isLoading: false,
+  }),
+}));
+
 const createMockPreview = (
   overrides?: Partial<OrderPreview>,
 ): OrderPreview => ({

@@ -1987,7 +1987,6 @@ export class PredictController extends BaseController<
   }
 
   public onDepositOrderSuccess(): void {
-    this.setSelectedPaymentToken(null);
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.PLACE_ORDER;
@@ -2012,6 +2011,7 @@ export class PredictController extends BaseController<
   }
 
   public onOrderError(params?: { errorMessage: string }): void {
+    this.setSelectedPaymentToken(null);
     this.update((state) => {
       if (state.activeOrder) {
         state.activeOrder.state = ActiveOrderState.PREVIEW;
