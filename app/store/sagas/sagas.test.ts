@@ -77,7 +77,7 @@ jest.mock('../../core/Engine', () => ({
       updateAccounts: jest.fn(),
     },
     ApprovalController: {
-      clear: jest.fn(),
+      clearRequests: jest.fn(),
     },
     RemoteFeatureFlagController: {
       state: {
@@ -349,7 +349,7 @@ describe('appStateListenerTask', () => {
 
 describe('appLockStateMachine', () => {
   const mockApprovalControllerClear = Engine.context.ApprovalController
-    .clear as jest.Mock;
+    .clearRequests as jest.Mock;
 
   beforeEach(() => {
     mockNavigate.mockClear();

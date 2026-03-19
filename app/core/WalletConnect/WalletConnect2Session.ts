@@ -583,7 +583,7 @@ class WalletConnect2Session {
         // Clear any pending approvals before prompting the user to permit a new chain.
         // Unsure why this is needed, but it was previously found here before this code was refactored.
         // https://github.com/MetaMask/metamask-mobile/blob/081e412f6680e03ad509194acd620c67a273a92b/app/core/WalletConnect/wc-utils.ts#L242
-        Engine.context.ApprovalController.clear(
+        Engine.context.ApprovalController.clearRequests(
           providerErrors.userRejectedRequest(),
         );
         return originalRequestPermittedChainsPermissionIncrementalForOrigin(
