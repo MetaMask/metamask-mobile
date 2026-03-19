@@ -341,7 +341,9 @@ describe('ChoosePassword', () => {
 
       await fillAndSubmitForm(component);
 
-      expect(component.getByTestId('fox-rive-loader-animation')).toBeTruthy();
+      expect(
+        component.getByTestId('fox-rive-loader-animation'),
+      ).toBeOnTheScreen();
       expect(() =>
         component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
       ).toThrow();
@@ -366,7 +368,7 @@ describe('ChoosePassword', () => {
       // Initially the form is visible and the loader is absent
       expect(
         component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(() =>
         component.getByTestId('fox-rive-loader-animation'),
       ).toThrow();
@@ -374,7 +376,9 @@ describe('ChoosePassword', () => {
       await fillAndSubmitForm(component);
 
       // After submit the loader is shown and the form is hidden
-      expect(component.getByTestId('fox-rive-loader-animation')).toBeTruthy();
+      expect(
+        component.getByTestId('fox-rive-loader-animation'),
+      ).toBeOnTheScreen();
       expect(() =>
         component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
       ).toThrow();
@@ -495,7 +499,9 @@ describe('ChoosePassword', () => {
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
       });
-      expect(component.getByDisplayValue('StrongPassword123!@#')).toBeTruthy();
+      expect(
+        component.getByDisplayValue('StrongPassword123!@#'),
+      ).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!@#');
@@ -508,7 +514,9 @@ describe('ChoosePassword', () => {
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPassword123!@');
       });
-      expect(component.getByDisplayValue('StrongPassword123!@#')).toBeTruthy();
+      expect(
+        component.getByDisplayValue('StrongPassword123!@#'),
+      ).toBeOnTheScreen();
 
       // Fully clearing the password field also clears confirm password
       await act(async () => {

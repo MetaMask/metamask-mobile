@@ -9,13 +9,20 @@ class CreatePasswordView {
   }
 
   get newPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
+    // `TextField` from the design system places `testID` on its outer Pressable
+    // wrapper (not the inner TextInput). On Android, Detox's typeText requires
+    // an android.widget.EditText. Using `accessibilityLabel` (forwarded via
+    // ...props to the inner Input) and `by.label()` targets the actual EditText.
+    // The Pressable has `accessible={false}` so it is skipped by label matchers.
+    return Matchers.getElementByLabel(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
   get confirmPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
+    // Same rationale as newPasswordInput — uses accessibilityLabel (forwarded to
+    // the inner Input) to target the actual EditText on Android.
+    return Matchers.getElementByLabel(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
   }

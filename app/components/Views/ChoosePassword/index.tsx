@@ -691,6 +691,9 @@ const ChoosePassword = () => {
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
+                    }
                     onSubmitEditing={jumpToConfirmPassword}
                     autoComplete="password-new"
                     returnKeyType="next"
@@ -802,10 +805,7 @@ const ChoosePassword = () => {
                     onPress={setSelection}
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     style={tw.style(
-                      'flex-row items-start justify-start flex-wrap w-[90%]',
-                      {
-                        marginTop: -6,
-                      },
+                      'flex-row items-start justify-start flex-wrap w-[90%] -mt-1.5',
                     )}
                   >
                     <Text

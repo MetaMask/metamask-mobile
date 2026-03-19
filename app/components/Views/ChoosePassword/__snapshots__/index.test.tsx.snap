@@ -233,6 +233,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                 }
               >
                 <TextInput
+                  accessibilityLabel="create-password-first-input-field"
                   autoCapitalize="none"
                   autoComplete="password-new"
                   autoFocus={true}
