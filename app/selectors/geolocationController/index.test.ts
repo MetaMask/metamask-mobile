@@ -7,7 +7,11 @@ import type { RootState } from '../../reducers';
 
 const buildState = (
   geolocationController: Record<string, unknown> | undefined,
-): DeepPartial<RootState> => ({
+): {
+  engine?: {
+    backgroundState?: { GeolocationController?: Record<string, unknown> };
+  };
+} => ({
   engine: {
     backgroundState: {
       GeolocationController: geolocationController,
@@ -15,16 +19,13 @@ const buildState = (
   },
 });
 
-// Minimal helper to avoid casting everywhere
-type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
-
 describe('geolocationController selectors', () => {
   describe('selectGeolocationControllerState', () => {
     it('returns the full GeolocationController slice', () => {
       const slice = { location: 'AU', status: 'complete' };
       const state = buildState(slice);
       expect(
-        selectGeolocationControllerState(state as RootState),
+        selectGeolocationControllerState(state as unknown as RootState),
       ).toStrictEqual(slice);
     });
 
@@ -36,12 +37,16 @@ describe('geolocationController selectors', () => {
   describe('selectGeolocationLocation', () => {
     it('returns the location string when present', () => {
       const state = buildState({ location: 'US', status: 'complete' });
-      expect(selectGeolocationLocation(state as RootState)).toBe('US');
+      expect(selectGeolocationLocation(state as unknown as RootState)).toBe(
+        'US',
+      );
     });
 
     it('returns undefined when location is not set', () => {
       const state = buildState({ status: 'complete' });
-      expect(selectGeolocationLocation(state as RootState)).toBeUndefined();
+      expect(
+        selectGeolocationLocation(state as unknown as RootState),
+      ).toBeUndefined();
     });
 
     it('returns undefined when GeolocationController is absent', () => {
@@ -52,22 +57,30 @@ describe('geolocationController selectors', () => {
   describe('selectGeolocationStatus', () => {
     it('returns the status string when present', () => {
       const state = buildState({ location: 'AU', status: 'complete' });
-      expect(selectGeolocationStatus(state as RootState)).toBe('complete');
+      expect(selectGeolocationStatus(state as unknown as RootState)).toBe(
+        'complete',
+      );
     });
 
     it('returns "loading" status correctly', () => {
       const state = buildState({ status: 'loading' });
-      expect(selectGeolocationStatus(state as RootState)).toBe('loading');
+      expect(selectGeolocationStatus(state as unknown as RootState)).toBe(
+        'loading',
+      );
     });
 
     it('returns "idle" status correctly', () => {
       const state = buildState({ status: 'idle' });
-      expect(selectGeolocationStatus(state as RootState)).toBe('idle');
+      expect(selectGeolocationStatus(state as unknown as RootState)).toBe(
+        'idle',
+      );
     });
 
     it('returns undefined when status is not set', () => {
       const state = buildState({ location: 'AU' });
-      expect(selectGeolocationStatus(state as RootState)).toBeUndefined();
+      expect(
+        selectGeolocationStatus(state as unknown as RootState),
+      ).toBeUndefined();
     });
 
     it('returns undefined when GeolocationController is absent', () => {
