@@ -1,15 +1,26 @@
-import React from 'react';
-import { ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import { strings } from '../../../../../locales/i18n';
+import {
+  formatRelativeTime,
+  getUniqueSourcesByFavicon,
+} from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
+import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import TokenRow from './TokenRow';
+import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
@@ -19,11 +30,11 @@ interface WhatsHappeningExpandedCardProps {
 const getImpactLabel = (impact: WhatsHappeningItem['impact']): string => {
   switch (impact) {
     case 'positive':
-      return 'Bullish';
+      return strings('homepage.sections.whats_happening_impact.bullish');
     case 'negative':
-      return 'Bearish';
+      return strings('homepage.sections.whats_happening_impact.bearish');
     default:
-      return 'Neutral';
+      return strings('homepage.sections.whats_happening_impact.neutral');
   }
 };
 
@@ -54,8 +65,26 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   cardWidth,
 }) => {
   const tw = useTailwind();
+  const [sourcesVisible, setSourcesVisible] = useState(false);
+
   const impactLabel = getImpactLabel(item.impact);
   const impactStyles = getImpactStyles(item.impact);
+
+  const uniqueSources = useMemo(() => {
+    const sources: MarketInsightsSource[] = item.articles.map((article) => ({
+      name: article.source,
+      type: 'news' as const,
+      url: article.url || article.source,
+    }));
+    return getUniqueSourcesByFavicon(sources);
+  }, [item.articles]);
+
+  const sourceLabel = useMemo(() => {
+    const first = uniqueSources[0];
+    if (!first) return null;
+    const remaining = Math.max(0, uniqueSources.length - 1);
+    return remaining > 0 ? `${first.name} +${remaining}` : first.name;
+  }, [uniqueSources]);
 
   return (
     <Box style={{ width: cardWidth }} twClassName="flex-1">
@@ -84,6 +113,16 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             {item.title}
           </Text>
 
+          {/* Description */}
+          {item.description && (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {item.description}
+            </Text>
+          )}
+
           {/* Tokens section */}
           {item.relatedAssets.length > 0 && (
             <Box gap={1}>
@@ -100,8 +139,62 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               ))}
             </Box>
           )}
+
+          {/* Sources trigger */}
+          {uniqueSources.length > 0 && (
+            <>
+              <Box twClassName="h-px bg-border-muted" />
+
+              <Pressable
+                onPress={() => setSourcesVisible(true)}
+                accessibilityRole="button"
+              >
+                {({ pressed }) => (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                    twClassName={pressed ? 'opacity-60' : ''}
+                  >
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={2}
+                    >
+                      <SourceLogoGroup sources={uniqueSources} />
+                      {sourceLabel ? (
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                        >
+                          {sourceLabel}
+                        </Text>
+                      ) : null}
+                    </Box>
+
+                    {item.date ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {formatRelativeTime(item.date, { nowLabel: 'now' })}
+                      </Text>
+                    ) : null}
+                  </Box>
+                )}
+              </Pressable>
+            </>
+          )}
         </Box>
       </ScrollView>
+
+      {sourcesVisible && (
+        <WhatsHappeningSourcesBottomSheet
+          isVisible={sourcesVisible}
+          onClose={() => setSourcesVisible(false)}
+          articles={item.articles}
+        />
+      )}
     </Box>
   );
 };

@@ -8091,6 +8091,11 @@
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "whats_happening_impact": {
+        "bullish": "Bullish",
+        "bearish": "Bearish",
+        "neutral": "Neutral"
+      },
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",
         "macro": "Macro",
