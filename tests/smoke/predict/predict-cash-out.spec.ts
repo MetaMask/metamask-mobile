@@ -27,11 +27,10 @@ import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
-  Verifies the cash out flow for a predictions position:
-  1. Navigate to Predictions tab and verify balance is $28.16
-  2. Open Spurs vs. Pelicans position details
-  3. Cash out the position with updated mocks
-  4. Verify cash out appears in Activities tab
+  Verifies the cash out flow for a predictions position (homepage sections v1 — no wallet tabs):
+  1. From wallet homepage Predictions section, open Spurs vs. Pelicans position details
+  2. Cash out the position with updated mocks
+  3. Verify balance and cash out in Activities tab
   */
 const positionDetails = {
   name: 'Spurs vs. Pelicans',
