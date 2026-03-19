@@ -85,6 +85,7 @@ import {
 } from 'expo-local-authentication';
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
+import { containsErrorMessage } from '../../util/errorHandling';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1177,14 +1178,22 @@ class AuthenticationService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        trace({
-          name: TraceName.OnboardingFetchSrpsError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({
-          name: TraceName.OnboardingFetchSrpsError,
-        });
+        // trace only if error is not an incorrect password error
+        if (
+          !containsErrorMessage(
+            error as Error,
+            SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+          )
+        ) {
+          trace({
+            name: TraceName.OnboardingFetchSrpsError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({
+            name: TraceName.OnboardingFetchSrpsError,
+          });
+        }
 
         throw error;
       } finally {

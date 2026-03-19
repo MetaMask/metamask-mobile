@@ -457,6 +457,11 @@ class WalletMainScreen {
     const element = await this.networkModal;
     await element.waitForExist({ reverse: true });
   }
+
+  async tapOnTokensSection() {
+    const tokensSection = await AppwrightSelectors.getElementByText(this._device, 'Tokens');
+    await AppwrightGestures.tap(tokensSection);
+  }
 }
 
 export default new WalletMainScreen();

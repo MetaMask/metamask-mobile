@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { randomUUID } from 'node:crypto';
 import { createLogger } from '../../../framework/logger';
 import type { MetricsOutput } from '../../PerformanceTracker';

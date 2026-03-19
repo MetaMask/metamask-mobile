@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs, import/prefer-default-export, @typescript-eslint/no-require-imports */
+/* eslint-disable import-x/no-commonjs, import-x/prefer-default-export, @typescript-eslint/no-require-imports */
 import { WhatsNew, SlideContentType } from './types';
 import { strings } from '../../../../locales/i18n';
 
