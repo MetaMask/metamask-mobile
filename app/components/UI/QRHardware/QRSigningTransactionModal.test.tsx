@@ -157,7 +157,7 @@ describe('QRSigningTransactionModal', () => {
     expect(queryByTestId('QRSigningDetails')).toBeNull();
   });
 
-  it('calls ApprovalController.accept and onConfirmationComplete on success callback', async () => {
+  it('calls ApprovalController.acceptRequest and onConfirmationComplete on success callback', async () => {
     const initialState = createInitialState();
 
     const { getByTestId } = renderScreen(
