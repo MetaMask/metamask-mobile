@@ -360,7 +360,7 @@ function collectFromDeclarativeExpectationsSource(source, onboardingMap, out) {
     const v = onboardingMap[m[1]];
     if (v) out.add(v);
   }
-  for (const m of source.matchAll(/^\s*name:\s*['"]([^'"]+)['"]/gm)) {
+  for (const m of source.matchAll(/\bname:\s*['"]([^'"]+)['"]/g)) {
     out.add(m[1]);
   }
   for (const m of source.matchAll(/\bname:\s*onboardingEvents\.(\w+)/g)) {
