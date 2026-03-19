@@ -89,8 +89,14 @@ function extractDeepviewPath(html: string): string | undefined {
 export async function resolveBranchShortLink(
   shortLinkUrl: string,
 ): Promise<string | undefined> {
+  Logger.log(
+    `=== DEBUG === [resolveBranchShortLink] called with: ${shortLinkUrl}`,
+  );
   try {
     const cleanUrl = stripBranchDeepviewParams(shortLinkUrl);
+    Logger.log(
+      `=== DEBUG === [resolveBranchShortLink] fetching cleanUrl=${cleanUrl}`,
+    );
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
@@ -104,6 +110,9 @@ export async function resolveBranchShortLink(
     clearTimeout(timeout);
 
     const finalUrl = response.url;
+    Logger.log(
+      `=== DEBUG === [resolveBranchShortLink] fetch done, status=${response.status}, finalUrl=${finalUrl}`,
+    );
 
     try {
       const finalHostname = new URL(finalUrl).hostname;
@@ -111,13 +120,24 @@ export async function resolveBranchShortLink(
         finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
         finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
       ) {
+        Logger.log(
+          `=== DEBUG === [resolveBranchShortLink] finalUrl is MetaMask host, returning: ${finalUrl}`,
+        );
         return finalUrl;
       }
+      Logger.log(
+        `=== DEBUG === [resolveBranchShortLink] finalUrl host=${finalHostname} is NOT MetaMask, parsing body`,
+      );
     } catch {
-      // ignore URL parse errors on finalUrl
+      Logger.log(
+        `=== DEBUG === [resolveBranchShortLink] finalUrl parse error, parsing body`,
+      );
     }
 
     const body = await response.text();
+    Logger.log(
+      `=== DEBUG === [resolveBranchShortLink] body length=${body.length}`,
+    );
 
     const deepLinkPathMatch =
       body.match(/\$deeplink_path['":\s]+['"]([^'"]+)['"]/) ??
@@ -125,18 +145,29 @@ export async function resolveBranchShortLink(
 
     if (deepLinkPathMatch?.[1]) {
       const path = deepLinkPathMatch[1];
-      return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
+      const result = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
+      Logger.log(
+        `=== DEBUG === [resolveBranchShortLink] extracted $deeplink_path="${path}", returning: ${result}`,
+      );
+      return result;
     }
 
     const deepviewPath = extractDeepviewPath(body);
     if (deepviewPath) {
-      return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`;
+      const result = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`;
+      Logger.log(
+        `=== DEBUG === [resolveBranchShortLink] extracted Deepview path="${deepviewPath}", returning: ${result}`,
+      );
+      return result;
     }
+    Logger.log(
+      `=== DEBUG === [resolveBranchShortLink] no deeplink path found, returning undefined`,
+    );
     return undefined;
   } catch (error) {
     Logger.error(
       error as Error,
-      `Error resolving Branch short link: ${shortLinkUrl}`,
+      `=== DEBUG === [resolveBranchShortLink] Error resolving: ${shortLinkUrl}`,
     );
     return undefined;
   }
@@ -241,7 +272,11 @@ export class DeeplinkManager {
     };
 
     const getBranchDeeplink = async (uri?: string) => {
+      Logger.log(`=== DEBUG === [getBranchDeeplink] called with uri=${uri}`);
       if (uri) {
+        Logger.log(
+          `=== DEBUG === [getBranchDeeplink] dispatching handleDeeplink: ${uri}`,
+        );
         handleDeeplink({ uri });
         return;
       }
@@ -291,20 +326,34 @@ export class DeeplinkManager {
     });
 
     Linking.getInitialURL().then((url) => {
+      Logger.log(`=== DEBUG === [Linking.getInitialURL] url=${url}`);
       if (!url) {
         return;
       }
       if (isBranchDomainUrl(url)) {
+        Logger.log(
+          `=== DEBUG === [Linking.getInitialURL] skipping Branch domain: ${url}`,
+        );
         return;
       }
+      Logger.log(
+        `=== DEBUG === [Linking.getInitialURL] dispatching handleDeeplink: ${url}`,
+      );
       handleDeeplink({ uri: url });
     });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
+      Logger.log(`=== DEBUG === [Linking.addEventListener] url=${url}`);
       if (isBranchDomainUrl(url)) {
+        Logger.log(
+          `=== DEBUG === [Linking.addEventListener] skipping Branch domain: ${url}`,
+        );
         return;
       }
+      Logger.log(
+        `=== DEBUG === [Linking.addEventListener] dispatching handleDeeplink: ${url}`,
+      );
       handleDeeplink({ uri: url });
     });
 
@@ -314,6 +363,9 @@ export class DeeplinkManager {
     getBranchDeeplink();
 
     branch.subscribe((opts) => {
+      Logger.log(
+        `=== DEBUG === [branch.subscribe] fired — uri=${opts.uri}, error=${opts.error}, params=${JSON.stringify(opts.params)}`,
+      );
       const { error } = opts;
       if (error) {
         const branchError = new Error(error);
@@ -326,20 +378,44 @@ export class DeeplinkManager {
       );
 
       if (rewritten) {
+        Logger.log(
+          `=== DEBUG === [branch.subscribe] rewrite succeeded: ${rewritten}`,
+        );
         getBranchDeeplink(rewritten);
       } else if (opts.uri && !isBranchDomainUrl(opts.uri)) {
+        Logger.log(
+          `=== DEBUG === [branch.subscribe] non-Branch domain URI, passing through: ${opts.uri}`,
+        );
         getBranchDeeplink(opts.uri);
       } else if (
         opts.uri &&
         isBranchDomainUrl(opts.uri) &&
-        opts.params?.['+non_branch_link']
+        opts.params?.['+non_branch_link'] &&
+        isBranchDomainUrl(opts.params['+non_branch_link'] as string)
       ) {
         const nonBranchLink = opts.params['+non_branch_link'] as string;
-        resolveBranchShortLink(nonBranchLink).then((resolved) => {
-          if (resolved) {
-            getBranchDeeplink(resolved);
-          }
-        });
+        Logger.log(
+          `=== DEBUG === [branch.subscribe] Branch domain + +non_branch_link, resolving: ${nonBranchLink}`,
+        );
+        resolveBranchShortLink(nonBranchLink)
+          .then((resolved) => {
+            Logger.log(
+              `=== DEBUG === [branch.subscribe] resolveBranchShortLink returned: ${resolved}`,
+            );
+            if (resolved) {
+              getBranchDeeplink(resolved);
+            }
+          })
+          .catch((err) => {
+            Logger.error(
+              err as Error,
+              'Error resolving Branch short link in subscribe',
+            );
+          });
+      } else {
+        Logger.log(
+          `=== DEBUG === [branch.subscribe] no path matched — uri=${opts.uri}, dropped`,
+        );
       }
     });
   }
