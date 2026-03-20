@@ -1,5 +1,6 @@
 import {
   RampsUnifiedBuyV2Config,
+  resolveRampsUnifiedBuyV2Config,
   selectRampsUnifiedBuyV2Config,
   selectRampsUnifiedBuyV2ActiveFlag,
   selectRampsUnifiedBuyV2MinimumVersionFlag,
@@ -19,6 +20,35 @@ describe('RampsUnifiedBuyV2 selectors', () => {
 
   const mockEmptyRemoteFeatureFlags = {};
 
+  describe('resolveRampsUnifiedBuyV2Config', () => {
+    it('returns inner config when RemoteFeatureFlagController threshold shape is used', () => {
+      const wrapped = {
+        name: 'gradual rollout',
+        value: { active: true, minimumVersion: '7.71.0' },
+      };
+
+      const result = resolveRampsUnifiedBuyV2Config(wrapped);
+
+      expect(result).toEqual({ active: true, minimumVersion: '7.71.0' });
+    });
+
+    it('returns flat config when payload is not wrapped', () => {
+      const flat = { active: true, minimumVersion: '7.63.0' };
+
+      const result = resolveRampsUnifiedBuyV2Config(flat);
+
+      expect(result).toEqual(flat);
+    });
+
+    it('returns empty object when raw is null', () => {
+      expect(resolveRampsUnifiedBuyV2Config(null)).toEqual({});
+    });
+
+    it('returns empty object when raw is not an object', () => {
+      expect(resolveRampsUnifiedBuyV2Config('true')).toEqual({});
+    });
+  });
+
   describe('selectRampsUnifiedBuyV2Config', () => {
     it('returns the rampsUnifiedBuyV2Config when it exists', () => {
       const result = selectRampsUnifiedBuyV2Config.resultFunc(
@@ -26,6 +56,33 @@ describe('RampsUnifiedBuyV2 selectors', () => {
       );
 
       expect(result).toEqual(mockRemoteFeatureFlags.rampsUnifiedBuyV2);
+    });
+
+    it('unwraps threshold-resolved flag shape from RemoteFeatureFlagController', () => {
+      const flagsWithWrapped = {
+        rampsUnifiedBuyV2: {
+          name: 'on',
+          value: { active: true, minimumVersion: '7.71.0' },
+        },
+      };
+
+      const result = selectRampsUnifiedBuyV2Config.resultFunc(flagsWithWrapped);
+
+      expect(result).toEqual({ active: true, minimumVersion: '7.71.0' });
+    });
+
+    it('feeds active and minimum version selectors when flag is threshold-wrapped', () => {
+      const flagsWithWrapped = {
+        rampsUnifiedBuyV2: {
+          value: { active: true, minimumVersion: '7.71.0' },
+        },
+      };
+      const config = selectRampsUnifiedBuyV2Config.resultFunc(flagsWithWrapped);
+
+      expect(selectRampsUnifiedBuyV2ActiveFlag.resultFunc(config)).toBe(true);
+      expect(selectRampsUnifiedBuyV2MinimumVersionFlag.resultFunc(config)).toBe(
+        '7.71.0',
+      );
     });
 
     it('returns an empty object when rampsUnifiedBuyV2Config does not exist', () => {
