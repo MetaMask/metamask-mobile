@@ -300,7 +300,13 @@ export const usePerpsTransactionHistory = ({
       ) {
         tradeMap.set(dedupKey, {
           ...tx,
-          fill: { ...tx.fill, fillType: existing.fill.fillType },
+          fill: {
+            ...tx.fill,
+            fillType: existing.fill.fillType,
+            ...(existing.fill.liquidation && {
+              liquidation: existing.fill.liquidation,
+            }),
+          },
         });
       } else {
         tradeMap.set(dedupKey, tx);

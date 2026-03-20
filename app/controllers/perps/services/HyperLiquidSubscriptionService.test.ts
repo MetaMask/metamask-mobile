@@ -765,7 +765,7 @@ describe('HyperLiquidSubscriptionService', () => {
             callback({
               fills: [
                 {
-                  oid: BigInt(123),
+                  oid: BigInt(12345),
                   coin: 'BTC',
                   side: 'B',
                   sz: '0.1',
@@ -792,9 +792,15 @@ describe('HyperLiquidSubscriptionService', () => {
       });
       await jest.runAllTimersAsync();
 
-      // Assert — fill received with orderId mapped
+      // Assert — fill received with orderId mapped and detailedOrderType enriched
       expect(fillCallback).toHaveBeenCalledWith(
-        [expect.objectContaining({ orderId: '123', symbol: 'BTC' })],
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            detailedOrderType: 'Limit',
+          }),
+        ],
         undefined,
       );
 

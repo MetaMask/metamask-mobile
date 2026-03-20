@@ -1111,7 +1111,20 @@ describe('usePerpsTransactionHistory', () => {
         .mockReturnValue([wsFill]); // re-render: live fills again
 
       mockUsePerpsLiveFills.mockReturnValue({
-        fills: [{ orderId: 'ws-1', timestamp: 1641000000000, symbol: 'BTC' }],
+        fills: [
+          {
+            orderId: 'ws-1',
+            timestamp: 1641000000000,
+            symbol: 'BTC',
+            side: 'buy',
+            size: '0.1',
+            price: '50000',
+            pnl: '0',
+            direction: 'Open Long',
+            fee: '5',
+            feeToken: 'USDC',
+          },
+        ],
         isInitialLoading: false,
       });
 
