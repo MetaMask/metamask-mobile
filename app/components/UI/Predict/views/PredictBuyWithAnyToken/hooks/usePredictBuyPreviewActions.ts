@@ -13,6 +13,8 @@ import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { useSelector } from 'react-redux';
+import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/featureFlags';
 
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
@@ -35,6 +37,9 @@ export const usePredictBuyActions = ({
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const payWithAnyTokenEnabled = useSelector(
+    selectPredictWithAnyTokenEnabledFlag,
+  );
 
   const [previewFromDeposit, setPreviewFromDeposit] =
     useState<OrderPreview | null>(null);
@@ -42,6 +47,9 @@ export const usePredictBuyActions = ({
   const onApprovalRejectRef = useRef(onApprovalReject);
   onApprovalRejectRef.current = onApprovalReject;
   useEffect(() => {
+    if (!payWithAnyTokenEnabled) {
+      return;
+    }
     let initialized = false;
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !initialized) {
@@ -50,10 +58,12 @@ export const usePredictBuyActions = ({
       }
     });
     return () => {
-      unsubscribe();
-      onApprovalRejectRef.current();
+      if (payWithAnyTokenEnabled) {
+        unsubscribe();
+        onApprovalRejectRef.current();
+      }
     };
-  }, [navigation, PredictController]);
+  }, [navigation, PredictController, payWithAnyTokenEnabled]);
 
   const handlePlaceOrder = useCallback(async () => {
     if (!preview) {

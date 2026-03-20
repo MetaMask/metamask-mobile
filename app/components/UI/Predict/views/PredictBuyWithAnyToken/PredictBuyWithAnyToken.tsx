@@ -41,7 +41,10 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
-import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPredictFakOrdersEnabledFlag,
+  selectPredictWithAnyTokenEnabledFlag,
+} from '../../selectors/featureFlags';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
@@ -57,6 +60,10 @@ const PredictBuyWithAnyToken = () => {
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+
+  const payWithAnyTokenEnabled = useSelector(
+    selectPredictWithAnyTokenEnabledFlag,
+  );
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -224,7 +231,9 @@ const PredictBuyWithAnyToken = () => {
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
             isPlacingOrder={isPlacingOrder}
           />
-          <PredictPayWithRow disabled={isPlacingOrder} />
+          {payWithAnyTokenEnabled && (
+            <PredictPayWithRow disabled={isPlacingOrder} />
+          )}
         </Box>
       </ScrollView>
       <PredictBuyMinimumError
