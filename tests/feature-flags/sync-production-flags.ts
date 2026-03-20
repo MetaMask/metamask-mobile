@@ -21,9 +21,9 @@
  * @see {@link https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod}
  */
 
-// eslint-disable-next-line import/no-nodejs-modules -- Node.js script for CI/sync
+// eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
 import fs from 'fs';
-// eslint-disable-next-line import/no-nodejs-modules -- Node.js script for CI/sync
+// eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
 import path from 'path';
 
 import { isEqual } from 'lodash';

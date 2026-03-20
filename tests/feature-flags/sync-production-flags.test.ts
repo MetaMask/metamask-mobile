@@ -5,7 +5,7 @@ jest.mock('prettier', () => ({
   },
 }));
 
-/* eslint-disable import/no-nodejs-modules -- Node.js script for CI/sync */
+/* eslint-disable import-x/no-nodejs-modules -- Node.js script for CI/sync */
 import fs from 'fs';
 import {
   getProductionRemoteFlagApiResponse,
