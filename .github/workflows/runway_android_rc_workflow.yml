@@ -145,4 +145,5 @@ jobs:
       platform: android
       skip_version_bump: false
       ref: ${{ inputs.ref || github.ref_name }}
+      upload_to_sentry: true
     secrets: inherit
