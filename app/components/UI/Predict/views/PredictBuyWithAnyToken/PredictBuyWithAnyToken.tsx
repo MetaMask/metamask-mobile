@@ -158,11 +158,9 @@ const PredictBuyWithAnyToken = () => {
   });
 
   const { handleConfirm } = usePredictBuyActions({
-    currentValue,
     analyticsProperties,
     preview,
     placeOrder,
-    depositAmount,
     setIsConfirming,
   });
 

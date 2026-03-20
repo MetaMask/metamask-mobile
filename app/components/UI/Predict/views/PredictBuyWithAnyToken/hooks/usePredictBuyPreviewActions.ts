@@ -15,11 +15,9 @@ import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 
 interface UsePredictBuyActionsParams {
-  currentValue: number;
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
-  depositAmount: number;
   setIsConfirming: (value: boolean) => void;
 }
 

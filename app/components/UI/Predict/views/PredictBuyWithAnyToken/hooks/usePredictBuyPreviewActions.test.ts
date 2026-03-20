@@ -82,14 +82,12 @@ const mockPlaceOrder = jest.fn<
 const mockSetIsConfirming = jest.fn();
 
 const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
-  currentValue: 100,
   preview: {
     minAmountReceived: 180,
     fees: { totalFee: 5 },
   } as OrderPreview,
   analyticsProperties: { marketId: 'market-1' },
   placeOrder: mockPlaceOrder,
-  depositAmount: 0,
   setIsConfirming: mockSetIsConfirming,
 });
 
