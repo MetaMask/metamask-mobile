@@ -19073,4 +19073,59 @@ describe('RewardsController', () => {
       );
     });
   });
+
+  describe('getClientVersionRequirements', () => {
+    it('fetches version requirements from the data service', async () => {
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+        minimumExtensionVersion: '12.0.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const result = await controller.getClientVersionRequirements();
+
+      expect(result).toEqual(mockRequirements);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+    });
+
+    it('returns cached result on subsequent calls', async () => {
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const firstResult = await controller.getClientVersionRequirements();
+
+      jest.clearAllMocks();
+
+      const secondResult = await controller.getClientVersionRequirements();
+
+      expect(secondResult).toEqual(firstResult);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+    });
+
+    it('does not require rewards feature to be enabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const result = await disabledController.getClientVersionRequirements();
+
+      expect(result).toEqual(mockRequirements);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+    });
+  });
 });

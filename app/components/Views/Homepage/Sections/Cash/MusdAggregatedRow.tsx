@@ -104,7 +104,7 @@ const MusdAggregatedRow = () => {
 
     NavigationService.navigation.navigate('Asset', {
       ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-      source: TokenDetailsSource.MobileTokenListPage,
+      source: TokenDetailsSource.HomeSection,
     });
   }, [hasMusdBalanceOnAnyChain]);
 

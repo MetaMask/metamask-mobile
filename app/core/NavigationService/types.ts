@@ -201,6 +201,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
+import type { WhatsHappeningItem } from '../../components/Views/Homepage/Sections/WhatsHappening/types';
 
 /**
  * Generic type for nested navigation params.
@@ -310,6 +311,9 @@ export interface RootStackParamList extends ParamListBase {
   RewardsDashboard: undefined;
   TrendingView: undefined;
   TrendingFeed: undefined;
+  WhatsHappeningDetailView:
+    | { items: WhatsHappeningItem[]; initialIndex: number }
+    | undefined;
   SitesFullView: undefined;
   ExploreSearch: undefined;
   RewardsOnboardingFlow: undefined;

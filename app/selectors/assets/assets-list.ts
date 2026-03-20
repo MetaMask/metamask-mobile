@@ -122,7 +122,9 @@ function sanitizeAccountTreeForAssetListSelectors(
     selectedAccountGroup: '' as const,
   };
 
-  const newWallets: AccountTreeControllerState['accountTree']['wallets'] = {};
+  type AccountTreeWallets =
+    AccountTreeControllerState['accountTree']['wallets'];
+  const newWallets: AccountTreeWallets = {};
   let mutated = false;
 
   for (const [walletId, wallet] of Object.entries(safeTree.wallets ?? {})) {
@@ -142,7 +144,7 @@ function sanitizeAccountTreeForAssetListSelectors(
         continue;
       }
 
-      const filtered = group.accounts.filter((id) => validIds.has(id));
+      const filtered = group.accounts.filter((id: string) => validIds.has(id));
       if (filtered.length === group.accounts.length) {
         continue;
       }
@@ -164,10 +166,10 @@ function sanitizeAccountTreeForAssetListSelectors(
       continue;
     }
 
-    newWallets[walletId as keyof typeof newWallets] = {
+    newWallets[walletId as keyof AccountTreeWallets] = {
       ...wallet,
       groups: newGroups,
-    };
+    } as AccountTreeWallets[keyof AccountTreeWallets];
   }
 
   if (!mutated) {
