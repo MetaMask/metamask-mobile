@@ -734,6 +734,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  complianceEnabled: {
+    name: 'complianceEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   config_registry_api_enabled: {
     name: 'config_registry_api_enabled',
     type: FeatureFlagType.Remote,
@@ -3522,17 +3530,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  tokenListItemV2AbtestVersioned: {
-    name: 'tokenListItemV2AbtestVersioned',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.67.0',
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 

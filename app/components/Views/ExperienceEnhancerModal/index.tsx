@@ -28,7 +28,7 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
   const styles = createStyles();
-  const { trackEvent, addTraitsToUser, createEventBuilder } = useAnalytics();
+  const { trackEvent, identify, createEventBuilder } = useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const cancelButtonProps: ButtonProps = {
@@ -39,7 +39,7 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(false));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      addTraitsToUser({
+      identify({
         [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
       });
       trackEvent(
@@ -63,7 +63,7 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(true));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      addTraitsToUser({
+      identify({
         [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
       });
       trackEvent(

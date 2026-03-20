@@ -7506,6 +7506,11 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "version_guard": {
+      "title": "Update required",
+      "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
+      "update_button": "Update MetaMask"
+    },
     "season_error": {
       "error_fetching_title": "Season couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -7864,7 +7869,9 @@
       "opt_in_sheet_title": "Join the campaign",
       "opt_in_sheet_description_pre_link": "By clicking 'Opt in' you agree to the MetaMask Rewards",
       "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
-      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically."
+      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically.",
+      "geo_restriction_banner_title": "Not available in your region",
+      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations."
     },
     "campaign_mechanics": {
       "title": "Mechanics"
@@ -7885,6 +7892,14 @@
       "title": "Campaigns",
       "coming_soon": "Coming soon",
       "notify_me": "Notify me"
+    },
+    "earn_rewards": {
+      "title": "Earn rewards",
+      "musd_title": "Up to 3% bonus on stables",
+      "musd_subtitle": "Calculate your mUSD bonus",
+      "card_title": "Up to 3% cash back",
+      "card_subtitle": "Get your MetaMask Card now",
+      "card_subtitle_cardholder": "Access your MetaMask Card benefits"
     },
     "campaigns_view": {
       "title": "Campaigns",
@@ -8123,6 +8138,15 @@
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
+      "whats_happening": "What's happening",
+      "whats_happening_categories": {
+        "geopolitical": "Geopolitical",
+        "macro": "Macro",
+        "regulatory": "Regulatory",
+        "technical": "Technical",
+        "social": "Social",
+        "other": "Other"
+      },
       "defi": "DeFi",
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
