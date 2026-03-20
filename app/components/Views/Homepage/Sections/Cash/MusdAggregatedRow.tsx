@@ -97,18 +97,15 @@ const MusdAggregatedRow = () => {
   const handleTokenRowPress = useCallback(() => {
     if (hasMusdBalanceOnAnyChain) {
       NavigationService.navigation.navigate(
-        Routes.WALLET.CASH_TOKENS_FULL_VIEW as never,
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
       );
       return;
     }
 
-    NavigationService.navigation.navigate(
-      'Asset' as never,
-      {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
-      } as never,
-    );
+    NavigationService.navigation.navigate('Asset', {
+      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+      source: TokenDetailsSource.MobileTokenListPage,
+    });
   }, [hasMusdBalanceOnAnyChain]);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
