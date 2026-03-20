@@ -358,6 +358,44 @@ describe('AssetOverviewContent', () => {
       });
     });
 
+    it('renders a market insights ticker with trend titles when trends are available', () => {
+      mockUseMarketInsights.mockReturnValue({
+        ...defaultMarketInsightsResult,
+        report: {
+          ...defaultMarketInsightsResult.report,
+          trends: [
+            {
+              title: 'ETF inflows accelerate',
+              description: 'First trend',
+              category: 'macro',
+              impact: 'positive',
+              articles: [],
+              tweets: [],
+            },
+            {
+              title: 'Layer 2 activity expands',
+              description: 'Second trend',
+              category: 'technical',
+              impact: 'positive',
+              articles: [],
+              tweets: [],
+            },
+          ],
+        },
+      });
+
+      const { getByTestId, getAllByText } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId('market-insights-ticker')).toBeOnTheScreen();
+      expect(getAllByText(/ETF inflows accelerate/).length).toBeGreaterThan(0);
+      expect(getAllByText(/Layer 2 activity expands/).length).toBeGreaterThan(
+        0,
+      );
+    });
+
     it('resolves market insights display as false when feature flag is disabled', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
       const onMarketInsightsDisplayResolved = jest.fn();

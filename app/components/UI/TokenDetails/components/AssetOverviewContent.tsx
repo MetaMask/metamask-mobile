@@ -6,6 +6,8 @@ import React, {
   useState,
 } from 'react';
 import {
+  Animated,
+  Easing,
   TouchableOpacity,
   View,
   Modal,
@@ -158,6 +160,148 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
     } as TextStyle,
   });
+};
+
+const MARKET_INSIGHTS_TICKER_GAP = 24;
+const MARKET_INSIGHTS_TICKER_MIN_DURATION_MS = 8000;
+const MARKET_INSIGHTS_TICKER_SPEED_PX_PER_SECOND = 80;
+
+const tickerStyles = StyleSheet.create({
+  measurementView: {
+    position: 'absolute',
+    opacity: 0,
+    width: 9999,
+  } as ViewStyle,
+  animatedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  } as ViewStyle,
+  tickerGap: {
+    width: MARKET_INSIGHTS_TICKER_GAP,
+  } as ViewStyle,
+});
+
+const MarketInsightsTicker: React.FC<{
+  titles: string[];
+  onPress?: () => void;
+}> = ({ titles, onPress }) => {
+  const tickerTranslateX = useRef(new Animated.Value(0)).current;
+  const [contentWidth, setContentWidth] = useState(0);
+
+  const tickerText = useMemo(
+    () =>
+      titles
+        .map((title) => title.trim())
+        .filter(Boolean)
+        .join('   •   '),
+    [titles],
+  );
+
+  useEffect(() => {
+    tickerTranslateX.stopAnimation();
+    tickerTranslateX.setValue(0);
+
+    if (!tickerText || contentWidth === 0) {
+      return;
+    }
+
+    const travelDistance = contentWidth + MARKET_INSIGHTS_TICKER_GAP;
+    const duration = Math.max(
+      (travelDistance / MARKET_INSIGHTS_TICKER_SPEED_PX_PER_SECOND) * 1000,
+      MARKET_INSIGHTS_TICKER_MIN_DURATION_MS,
+    );
+
+    const animation = Animated.loop(
+      Animated.timing(tickerTranslateX, {
+        toValue: -travelDistance,
+        duration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+      tickerTranslateX.stopAnimation();
+      tickerTranslateX.setValue(0);
+    };
+  }, [tickerText, contentWidth, tickerTranslateX]);
+
+  if (!tickerText) {
+    return null;
+  }
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} disabled={!onPress}>
+      <Box paddingHorizontal={4} paddingTop={2} testID="market-insights-ticker">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2 rounded-xl bg-muted px-3 py-2"
+        >
+          <Icon
+            name={IconName.Ai}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
+          <Box
+            twClassName="flex-1 overflow-hidden"
+            testID="market-insights-ticker-track"
+          >
+            {/* Measure the natural text width in an unconstrained offscreen view */}
+            <View pointerEvents="none" style={tickerStyles.measurementView}>
+              <DSText
+                onLayout={(event) => {
+                  setContentWidth(event.nativeEvent.layout.width);
+                }}
+                variant={DSTextVariant.BodyMd}
+                numberOfLines={1}
+              >
+                {tickerText}
+              </DSText>
+            </View>
+            {contentWidth > 0 ? (
+              /* Two copies so the loop is seamless: when copy 1 scrolls off, copy 2 is already in place */
+              <Animated.View
+                style={[
+                  tickerStyles.animatedRow,
+                  { transform: [{ translateX: tickerTranslateX }] },
+                ]}
+              >
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextAlternative}
+                  numberOfLines={1}
+                  style={{ width: contentWidth }}
+                >
+                  {tickerText}
+                </DSText>
+                <View style={tickerStyles.tickerGap} />
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextAlternative}
+                  numberOfLines={1}
+                  style={{ width: contentWidth }}
+                >
+                  {tickerText}
+                </DSText>
+              </Animated.View>
+            ) : (
+              <DSText
+                variant={DSTextVariant.BodyMd}
+                color={DSTextColor.TextAlternative}
+                numberOfLines={1}
+              >
+                {tickerText}
+              </DSText>
+            )}
+          </Box>
+        </Box>
+      </Box>
+    </TouchableOpacity>
+  );
 };
 
 export interface AssetOverviewContentProps {
@@ -478,6 +622,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     timeAgo: marketInsightsTimeAgo,
     isLoading: isMarketInsightsLoading,
   } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
+  const marketInsightsTrendTitles = useMemo(() => {
+    if (!marketInsightsReport) return [];
+    return [
+      marketInsightsReport.headline,
+      ...marketInsightsReport.trends.map(({ title }) => title),
+    ];
+  }, [marketInsightsReport]);
 
   useEffect(() => {
     if (!isMarketInsightsEnabled) {
@@ -781,6 +932,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               </Box>
             </Box>
           )}
+
+          {isMarketInsightsEnabled &&
+            marketInsightsReport &&
+            marketInsightsCaip19Id && (
+              <MarketInsightsTicker
+                titles={marketInsightsTrendTitles}
+                onPress={handleMarketInsightsPress}
+              />
+            )}
 
           <PriceChartProvider>
             <Price
