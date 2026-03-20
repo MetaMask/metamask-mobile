@@ -23,13 +23,11 @@ const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 export type ConfirmNavigateOptions = {
   amount?: string;
   headerShown?: boolean;
-  replace?: boolean;
   stack?: string;
-  routeParams?: object;
 } & ConfirmationParams;
 
 export function useConfirmNavigation() {
-  const { navigate, dispatch } = useNavigation();
+  const { navigate } = useNavigation();
   const transactions = useSelector(selectTransactions);
   const [pendingParams, setPendingParams] = useState<ConfirmNavigateOptions>();
   const [transactionsToRemove, setTransactionsToRemove] = useState<string[]>();
@@ -44,7 +42,7 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { headerShown, replace, stack, routeParams, ...params } = options;
+      const { headerShown, stack, ...params } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
@@ -64,17 +62,6 @@ export function useConfirmNavigation() {
 
       log('Navigating', { route, params, stack });
 
-      if (replace) {
-        dispatch(
-          StackActions.replace(route, {
-            ...params,
-            ...routeParams,
-            animationEnabled: false,
-          }),
-        );
-        return;
-      }
-
       if (stack) {
         navigate(stack, { screen: route, params });
         return;
@@ -82,7 +69,7 @@ export function useConfirmNavigation() {
 
       navigate(route, params);
     },
-    [dispatch, navigate, pendingParams, pendingTransactions],
+    [navigate, pendingParams, pendingTransactions],
   );
 
   useEffect(() => {
