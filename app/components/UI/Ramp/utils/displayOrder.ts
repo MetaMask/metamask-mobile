@@ -32,8 +32,6 @@ function toEpochMs(value: unknown): number {
 }
 
 export function fiatOrderToDisplayOrder(order: FiatOrder): DisplayOrder {
-  const rawCryptoAmount = order.cryptoAmount ?? 0;
-
   return {
     id: order.id,
     source: 'legacy',
@@ -42,8 +40,8 @@ export function fiatOrderToDisplayOrder(order: FiatOrder): DisplayOrder {
     fiatAmount: order.amount,
     fiatCurrencyCode: order.currency,
     cryptoAmount:
-      rawCryptoAmount != null && Number(rawCryptoAmount) > 0
-        ? rawCryptoAmount
+      order.cryptoAmount != null && Number(order.cryptoAmount) > 0
+        ? order.cryptoAmount
         : AMOUNT_PLACEHOLDER,
     cryptoCurrencySymbol: order.cryptocurrency,
     network: order.network,

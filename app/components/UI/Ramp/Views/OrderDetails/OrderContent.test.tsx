@@ -235,7 +235,7 @@ describe('OrderContent', () => {
     expect(
       screen.getByTestId('ramps-order-details-token-amount'),
     ).toHaveTextContent('— ETH');
-    expect(screen.getAllByText('—')).toHaveLength(3);
+    expect(screen.getAllByText('—')).toHaveLength(2);
   });
 
   it('does not render info row when statusDescription is absent', () => {
