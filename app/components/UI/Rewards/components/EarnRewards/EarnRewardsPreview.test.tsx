@@ -65,24 +65,17 @@ import {
   selectOptinAllowedForGeoLoading,
 } from '../../../../../reducers/rewards/selectors';
 import {
-  selectCardGeoLocation,
   selectCardIsLoaded,
   selectIsCardholder,
   selectIsAuthenticatedCard,
+  selectIsUserInSupportedCardCountry,
 } from '../../../../../core/redux/slices/card';
-import { selectCardSupportedCountries } from '../../../../../selectors/featureFlagController/card';
-
-const DEFAULT_CARD_SUPPORTED_COUNTRIES: Record<string, boolean> = {
-  US: true,
-  CA: true,
-};
 
 interface SetupOptions {
   optinAllowedForGeo?: boolean | null;
   isGeoLoading?: boolean;
   isCardGeoLoaded?: boolean;
-  cardGeoLocation?: string;
-  cardSupportedCountries?: Record<string, boolean>;
+  isUserInSupportedCardCountry?: boolean;
   isCardholder?: boolean;
   isAuthenticatedCard?: boolean;
 }
@@ -91,8 +84,7 @@ const setupSelectors = ({
   optinAllowedForGeo = null,
   isGeoLoading = false,
   isCardGeoLoaded = true,
-  cardGeoLocation = 'US',
-  cardSupportedCountries = DEFAULT_CARD_SUPPORTED_COUNTRIES,
+  isUserInSupportedCardCountry = true,
   isCardholder = false,
   isAuthenticatedCard = false,
 }: SetupOptions = {}) => {
@@ -100,9 +92,8 @@ const setupSelectors = ({
     if (selector === selectOptinAllowedForGeo) return optinAllowedForGeo;
     if (selector === selectOptinAllowedForGeoLoading) return isGeoLoading;
     if (selector === selectCardIsLoaded) return isCardGeoLoaded;
-    if (selector === selectCardGeoLocation) return cardGeoLocation;
-    if (selector === selectCardSupportedCountries)
-      return cardSupportedCountries;
+    if (selector === selectIsUserInSupportedCardCountry)
+      return isUserInSupportedCardCountry;
     if (selector === selectIsCardholder) return isCardholder;
     if (selector === selectIsAuthenticatedCard) return isAuthenticatedCard;
     return undefined;
@@ -263,8 +254,7 @@ describe('EarnRewardsPreview', () => {
     it('shows mUSD card but hides card card when country is not in supported list', () => {
       setupSelectors({
         optinAllowedForGeo: true,
-        cardGeoLocation: 'CN',
-        cardSupportedCountries: { US: true, CA: true },
+        isUserInSupportedCardCountry: false,
       });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
       expect(
@@ -275,11 +265,10 @@ describe('EarnRewardsPreview', () => {
       ).toBeNull();
     });
 
-    it('hides card card when geoLocation is UNKNOWN (not in supported countries)', () => {
+    it('hides card card when user is not in a supported card country', () => {
       setupSelectors({
         optinAllowedForGeo: true,
-        cardGeoLocation: 'UNKNOWN',
-        cardSupportedCountries: { US: true },
+        isUserInSupportedCardCountry: false,
       });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
@@ -290,8 +279,7 @@ describe('EarnRewardsPreview', () => {
     it('hides both cards when both geos are restricted', () => {
       setupSelectors({
         optinAllowedForGeo: false,
-        cardGeoLocation: 'CN',
-        cardSupportedCountries: { US: true },
+        isUserInSupportedCardCountry: false,
       });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(

@@ -27,12 +27,11 @@ import {
   selectOptinAllowedForGeoLoading,
 } from '../../../../../reducers/rewards/selectors';
 import {
-  selectCardGeoLocation,
   selectCardIsLoaded,
   selectIsCardholder,
   selectIsAuthenticatedCard,
+  selectIsUserInSupportedCardCountry,
 } from '../../../../../core/redux/slices/card';
-import { selectCardSupportedCountries } from '../../../../../selectors/featureFlagController/card';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
@@ -109,15 +108,13 @@ const EarnRewardsPreview: React.FC = () => {
 
   // Card geo check — isCardGeoLoaded flips true when loadCardholderAccounts settles
   const isCardGeoLoaded = useSelector(selectCardIsLoaded);
-  const cardGeoLocation = useSelector(selectCardGeoLocation);
-  const cardSupportedCountries = useSelector(
-    selectCardSupportedCountries,
-  ) as Record<string, boolean>;
+  const isUserInSupportedCardCountry = useSelector(
+    selectIsUserInSupportedCardCountry,
+  );
   const isCardholder = useSelector(selectIsCardholder);
   const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
   const isCardGeoLoading = !isCardGeoLoaded;
-  const showCardCard =
-    isCardGeoLoaded && cardSupportedCountries?.[cardGeoLocation] === true;
+  const showCardCard = isCardGeoLoaded && isUserInSupportedCardCountry;
   const cardSubtitle =
     isCardholder || isAuthenticatedCard
       ? strings('rewards.earn_rewards.card_subtitle_cardholder')
