@@ -299,6 +299,7 @@ describe('useWithdrawTokenFilter', () => {
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       includeAllTokens: false,
+      tokenFilter: undefined,
     });
   });
 
@@ -313,10 +314,11 @@ describe('useWithdrawTokenFilter', () => {
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       includeAllTokens: false,
+      tokenFilter: undefined,
     });
   });
 
-  it('calls useSendTokens with full catalog options when withdraw allowlist is present', () => {
+  it('calls useSendTokens with full catalog options and tokenFilter when withdraw allowlist is present', () => {
     runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -327,6 +329,41 @@ describe('useWithdrawTokenFilter', () => {
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
       includeAllTokens: true,
+      tokenFilter: expect.any(Function),
     });
+  });
+
+  it('passes a tokenFilter that matches allowlisted chainId and address', () => {
+    runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: { enabled: true, tokens: { '0x1': ['0xaaa', '0xbbb'] } },
+      },
+    });
+
+    const args = mockUseSendTokens.mock.calls[0]?.[0] ?? {};
+    const filter = args.tokenFilter;
+
+    expect(filter).toBeDefined();
+    expect(filter?.('0x1', '0xaaa')).toBe(true);
+    expect(filter?.('0x1', '0xbbb')).toBe(true);
+    expect(filter?.('0x1', '0xccc')).toBe(false);
+    expect(filter?.('0x89', '0xaaa')).toBe(false);
+  });
+
+  it('passes a tokenFilter that matches case-insensitively', () => {
+    runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: { enabled: true, tokens: { '0x1': ['0xAAA'] } },
+      },
+    });
+
+    const args = mockUseSendTokens.mock.calls[0]?.[0] ?? {};
+    const filter = args.tokenFilter;
+
+    expect(filter).toBeDefined();
+    expect(filter?.('0x1', '0xaaa')).toBe(true);
+    expect(filter?.('0X1', '0xAAA')).toBe(true);
   });
 });

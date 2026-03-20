@@ -664,5 +664,33 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(0);
     });
+
+    it('only builds catalog tokens that pass tokenFilter', () => {
+      setupAllTokensMocks({});
+
+      const filter = (chainId: string, address: string) =>
+        chainId === '0x1' && address === '0xusdc';
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ includeAllTokens: true, tokenFilter: filter }),
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('USDC');
+      expect(result.current[0].address).toBe('0xusdc');
+    });
+
+    it('includes all catalog tokens when tokenFilter is undefined', () => {
+      setupAllTokensMocks({});
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ includeAllTokens: true }),
+      );
+
+      expect(result.current).toHaveLength(2);
+      const symbols = result.current.map((a) => a.symbol);
+      expect(symbols).toContain('USDC');
+      expect(symbols).toContain('TOKEN1');
+    });
   });
 });

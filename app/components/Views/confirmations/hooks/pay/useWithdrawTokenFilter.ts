@@ -29,9 +29,27 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   );
   const allowlist = config.tokens;
   const shouldLoadFullTokenCatalog = isWithdraw && Boolean(allowlist);
+
+  const tokenFilter = useMemo(() => {
+    if (!allowlist) {
+      return undefined;
+    }
+    const lowerAllowlist = new Map<string, Set<string>>();
+    for (const [chainId, addresses] of Object.entries(allowlist)) {
+      lowerAllowlist.set(
+        chainId.toLowerCase(),
+        new Set(addresses.map((a: string) => a.toLowerCase())),
+      );
+    }
+    return (chainId: string, address: string) =>
+      lowerAllowlist.get(chainId.toLowerCase())?.has(address.toLowerCase()) ??
+      false;
+  }, [allowlist]);
+
   const allTokens = useSendTokens({
     includeNoBalance: shouldLoadFullTokenCatalog,
     includeAllTokens: shouldLoadFullTokenCatalog,
+    tokenFilter,
   });
 
   const filtered = useMemo(() => {
