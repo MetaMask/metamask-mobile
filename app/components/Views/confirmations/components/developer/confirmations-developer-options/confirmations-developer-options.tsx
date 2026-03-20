@@ -181,6 +181,11 @@ function useAddTransactionBatch() {
 
   const addTransactionBatchInstantAndNavigate = useCallback(
     ({ transactionType }: { transactionType: TransactionType }) => {
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
+      });
+
       addTransactionBatchInstant({
         from: selectedAccount as Hex,
         origin: ORIGIN_METAMASK,
@@ -203,10 +208,6 @@ function useAddTransactionBatch() {
             type: transactionType,
           },
         ],
-      });
-
-      navigateToConfirmation({
-        stack: Routes.PREDICT.ROOT,
       });
     },
     [navigateToConfirmation, networkClientId, selectedAccount, transferData],
