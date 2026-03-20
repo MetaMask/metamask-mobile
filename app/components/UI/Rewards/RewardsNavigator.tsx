@@ -8,6 +8,7 @@ import RewardsSettingsView from './Views/RewardsSettingsView';
 import CampaignsView from './Views/CampaignsView';
 import CampaignDetailsView from './Views/CampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
+import MusdCalculatorView from './Views/MusdCalculatorView';
 import PreviousSeasonView from './Views/PreviousSeasonView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
@@ -104,6 +105,11 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.CAMPAIGN_MECHANICS}
             component={CampaignMechanicsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.MUSD_CALCULATOR_VIEW}
+            component={MusdCalculatorView}
             options={{ headerShown: false }}
           />
         </>
