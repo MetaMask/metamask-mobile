@@ -1,12 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text as RNText, View } from 'react-native';
-import Icon, {
+import { StyleSheet, View } from 'react-native';
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
 import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 
 const styles = StyleSheet.create({
@@ -35,7 +37,7 @@ export const MaliciousDappUrlIcon = () => (
   <Icon
     name={IconName.Danger}
     size={IconSize.Sm}
-    color={IconColor.Error}
+    color={IconColor.ErrorDefault}
     style={styles.urlIcon}
   />
 );
@@ -54,7 +56,7 @@ export const TrustSignalUrlIcon = ({
         <Icon
           name={IconName.VerifiedFilled}
           size={IconSize.Sm}
-          color={IconColor.Success}
+          color={IconColor.SuccessDefault}
           style={styles.urlIcon}
         />
       );
@@ -63,7 +65,7 @@ export const TrustSignalUrlIcon = ({
         <Icon
           name={IconName.Danger}
           size={IconSize.Sm}
-          color={IconColor.Error}
+          color={IconColor.ErrorDefault}
           style={styles.urlIcon}
         />
       );
@@ -76,22 +78,18 @@ export const TrustSignalUrlIcon = ({
  * Content for the red "Connect" button on Step 1 of the malicious-dapp
  * warning flow.  Renders a danger triangle to the left of the "Connect" label.
  */
-export const DangerConnectButtonContent = () => {
-  const { colors } = useTheme();
-
-  return (
-    <View style={styles.buttonContent}>
-      <Icon
-        name={IconName.Danger}
-        size={IconSize.Sm}
-        color={IconColor.Inverse}
-      />
-      <RNText style={[styles.buttonText, { color: colors.primary.inverse }]}>
-        {strings('accounts.connect')}
-      </RNText>
-    </View>
-  );
-};
+export const DangerConnectButtonContent = () => (
+  <View style={styles.buttonContent}>
+    <Icon
+      name={IconName.Danger}
+      size={IconSize.Sm}
+      color={IconColor.PrimaryInverse}
+    />
+    <Text color={TextColor.PrimaryInverse} style={styles.buttonText}>
+      {strings('accounts.connect')}
+    </Text>
+  </View>
+);
 
 /**
  * Returns the appropriate label for the confirm/connect button based on

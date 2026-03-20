@@ -1,21 +1,21 @@
 import React from 'react';
 import { SafeAreaView, View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import { useStyles } from '../../../../component-library/hooks';
-import TextComponent, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
-import StyledButton from '../../../UI/StyledButton';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TrustSignalModal.styles';
 import { TrustSignalModalSelectorsIDs } from './TrustSignalModal.testIds';
 import { TrustSignalModalProps } from './TrustSignalModal.types';
@@ -39,9 +39,9 @@ const TrustSignalModal = ({
           <View style={styles.header}>
             <View style={styles.headerSpacer} />
             <ButtonIcon
-              size={ButtonIconSizes.Sm}
+              size={ButtonIconSize.Sm}
               iconName={IconName.Close}
-              iconColor={IconColor.Default}
+              iconProps={{ color: IconColor.IconDefault }}
               onPress={onClose}
               testID={TrustSignalModalSelectorsIDs.CLOSE_BUTTON}
             />
@@ -52,37 +52,37 @@ const TrustSignalModal = ({
             <Icon
               name={IconName.Danger}
               size={IconSize.Xl}
-              color={IconColor.Error}
+              color={IconColor.ErrorDefault}
             />
           </View>
 
           {/* Title */}
-          <TextComponent
+          <Text
             variant={TextVariant.HeadingMD}
             style={styles.title}
             testID={TrustSignalModalSelectorsIDs.TITLE}
           >
             {strings('accounts.trust_signal_block_title')}
-          </TextComponent>
+          </Text>
 
           {/* URL with icon */}
           <View
             style={styles.urlContainer}
             testID={TrustSignalModalSelectorsIDs.URL}
           >
-            <TextComponent
+            <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Error}
+              color={TextColor.ErrorDefault}
               style={styles.urlText}
               numberOfLines={1}
               ellipsizeMode="middle"
             >
               {url}
-            </TextComponent>
+            </Text>
             <Icon
               name={IconName.Danger}
               size={IconSize.Sm}
-              color={IconColor.Error}
+              color={IconColor.ErrorDefault}
             />
           </View>
 
@@ -94,22 +94,22 @@ const TrustSignalModal = ({
             ]}
             testID={TrustSignalModalSelectorsIDs.DESCRIPTION_BOX}
           >
-            <TextComponent variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMD}>
               {strings('accounts.trust_signal_block_description')}
-            </TextComponent>
+            </Text>
           </View>
         </View>
 
         {/* Connect Anyway button */}
         <View style={styles.buttonContainer}>
-          <StyledButton
-            type="danger"
+          <ButtonSemantic
+            severity={ButtonSemanticSeverity.Danger}
             onPress={onConnectAnyway}
-            containerStyle={styles.connectAnywayButton}
+            style={styles.connectAnywayButton}
             testID={TrustSignalModalSelectorsIDs.CONNECT_ANYWAY_BUTTON}
           >
             {strings('accounts.connect_anyway')}
-          </StyledButton>
+          </ButtonSemantic>
         </View>
       </View>
     </SafeAreaView>
