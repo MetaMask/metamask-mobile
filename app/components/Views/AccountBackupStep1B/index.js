@@ -19,12 +19,17 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  ButtonIcon,
+  ButtonIconSize,
+  Icon,
+  IconName,
+  IconColor,
+  IconSize,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
@@ -128,7 +133,7 @@ const AccountBackupStep1B = (props) => {
               variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
-              twClassName="mt-4 mb-4"
+              twClassName="my-4"
             >
               {strings('account_backup_step_1B.title')}
             </Text>
@@ -149,9 +154,10 @@ const AccountBackupStep1B = (props) => {
               style={tw.style('flex-row justify-center items-center')}
             >
               <Icon
-                name="info-circle"
-                style={tw.style('text-sm mr-1.5')}
-                color={colors.primary.default}
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.PrimaryDefault}
+                twClassName="mr-1.5"
               />
               <Text
                 variant={TextVariant.BodySm}
@@ -295,17 +301,11 @@ const AccountBackupStep1B = (props) => {
             >
               {strings('account_backup_step_1B.why_secure_title')}
             </Text>
-            <TouchableOpacity
+            <ButtonIcon
+              iconName={IconName.Close}
               onPress={hideWhySecureWallet}
-              style={tw.style('p-1 items-end')}
-              hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-            >
-              <Icon
-                name="times"
-                style={tw.style('text-base')}
-                color={colors.text.default}
-              />
-            </TouchableOpacity>
+              size={ButtonIconSize.Sm}
+            />
           </Box>
           <Box alignItems={BoxAlignItems.Center}>
             <Image
