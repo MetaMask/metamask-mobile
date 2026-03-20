@@ -106,7 +106,7 @@ const MusdAggregatedRow = () => {
       'Asset' as never,
       {
         ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
+        source: TokenDetailsSource.HomeSection,
       } as never,
     );
   }, [hasMusdBalanceOnAnyChain]);

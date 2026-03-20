@@ -100,6 +100,20 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
   });
 
+  it('navigates to Asset with home_section source when row is pressed', () => {
+    renderWithProvider(<MusdAggregatedRow />);
+
+    fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        source: 'home_section',
+      }),
+    );
+  });
+
   it('shows Spinner when isClaiming is true', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '10',
@@ -153,7 +167,7 @@ describe('MusdAggregatedRow', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'Asset',
         expect.objectContaining({
-          source: TokenDetailsSource.MobileTokenListPage,
+          source: TokenDetailsSource.HomeSection,
         }),
       );
     });
