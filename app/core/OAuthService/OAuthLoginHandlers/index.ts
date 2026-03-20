@@ -7,8 +7,6 @@ import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallb
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import {
   AuthServerUrl,
-  IosGID,
-  IosGoogleRedirectUri,
   AndroidGoogleWebGID,
   AndroidGoogleRedirectUri,
   AppleWebClientId,
@@ -32,10 +30,9 @@ export function createLoginHandler(
 ): BaseLoginHandler {
   if (
     !AuthServerUrl ||
-    !IosGID ||
-    !IosGoogleRedirectUri ||
     !AndroidGoogleWebGID ||
-    !AppleWebClientId
+    !AppleWebClientId ||
+    !AndroidGoogleRedirectUri
   ) {
     throw new Error('Missing environment variables');
   }

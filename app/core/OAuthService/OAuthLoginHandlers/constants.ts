@@ -53,8 +53,6 @@ export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
 export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
   '/api/v1/oauth/marketing_opt_in_status';
 
-export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
-export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 

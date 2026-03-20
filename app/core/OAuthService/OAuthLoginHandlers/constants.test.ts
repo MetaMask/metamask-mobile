@@ -3,8 +3,6 @@ import {
   AppRedirectUri,
   web3AuthNetwork,
   AuthServerUrl,
-  IosGID,
-  IosGoogleRedirectUri,
   AndroidGoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
@@ -30,11 +28,6 @@ describe('OAuth Constants', () => {
       expect(AuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
     });
 
-    it('should have IOS configuration from jest config', () => {
-      expect(IosGID).toBe('iosGoogleClientId');
-      expect(IosGoogleRedirectUri).toBe('iosGoogleRedirectUri');
-    });
-
     it('should have Android configuration from jest config', () => {
       expect(AndroidGoogleWebGID).toBe('androidGoogleWebClientId');
       expect(AppleWebClientId).toBe('AppleClientId');
@@ -51,8 +44,6 @@ describe('OAuth Constants', () => {
     it('should have all required constants defined and non-empty', () => {
       expect(web3AuthNetwork).toBeTruthy();
       expect(AuthServerUrl).toBeTruthy();
-      expect(IosGID).toBeTruthy();
-      expect(IosGoogleRedirectUri).toBeTruthy();
       expect(AndroidGoogleWebGID).toBeTruthy();
       expect(AppleWebClientId).toBeTruthy();
       expect(AuthConnectionConfig).toBeTruthy();
@@ -67,8 +58,6 @@ describe('Error handling with missing environment variables', () => {
       const requiredVars = {
         WEB3AUTH_NETWORK: '',
         AUTH_SERVER_URL: '',
-        IOS_GOOGLE_CLIENT_ID: 'test-ios-google-client-id',
-        IOS_GOOGLE_REDIRECT_URI: 'https://test-ios-redirect.example.com',
         IOS_APPLE_CLIENT_ID: 'test-ios-apple-client-id',
         ANDROID_WEB_GOOGLE_CLIENT_ID: 'test-android-google-client-id',
         ANDROID_WEB_APPLE_CLIENT_ID: 'test-android-apple-client-id',

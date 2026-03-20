@@ -16,9 +16,8 @@ const mockComparePlatformVersionTo = jest.fn();
 jest.mock('./constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
   AppRedirectUri: 'https://app.example.com',
-  IosGID: 'mock-ios-google-client-id',
-  IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
   AndroidGoogleWebGID: 'mock-android-google-client-id',
+  AndroidGoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
 }));
