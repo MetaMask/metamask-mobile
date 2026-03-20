@@ -54,6 +54,7 @@ export const useMarketInsights = (
         await Engine.context.AiDigestController.fetchMarketInsights(
           assetIdentifier,
         );
+
       setReport(data as MarketInsightsReport | null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch insights');

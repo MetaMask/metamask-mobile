@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
-import { getTokenImageSource } from '../../../UI/Bridge/utils';
+import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
 import { useRampNavigation } from '../../../UI/Ramp/hooks/useRampNavigation';
 
 interface TokenRowProps {
@@ -36,9 +36,8 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset }) => {
     goToBuy({ assetId });
   }, [goToBuy, asset.caip19]);
 
-  // getTokenImageSource can theoretically return an array, but with no URL
-  // it only returns a local number require() result or undefined.
-  const rawImageSource = getTokenImageSource(asset.symbol, undefined);
+  // Wallet CDN (via CAIP-19) → Perps SVG (perpsAssetId only) → bundled image-icons.
+  const rawImageSource = getRelatedAssetImageSource(asset);
   const imageSource = Array.isArray(rawImageSource)
     ? (rawImageSource[0] as { uri?: string } | undefined)
     : (rawImageSource as number | { uri?: string } | undefined);
