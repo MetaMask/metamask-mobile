@@ -10,6 +10,8 @@ const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
     code: 'googleCode',
   },
 });
+const mockDeviceIsIos = jest.fn();
+const mockComparePlatformVersionTo = jest.fn();
 
 jest.mock('./constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
@@ -62,9 +64,20 @@ jest.mock('@metamask/react-native-acm', () => ({
   signInWithGoogle: () => mockSignInWithGoogle(),
 }));
 
+jest.mock('../../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isIos: (...args: unknown[]) => mockDeviceIsIos(...args),
+    comparePlatformVersionTo: (...args: unknown[]) =>
+      mockComparePlatformVersionTo(...args),
+  },
+}));
+
 describe('OAuth login handlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDeviceIsIos.mockReturnValue(false);
+    mockComparePlatformVersionTo.mockReturnValue(0);
   });
 
   for (const os of ['ios', 'android']) {
@@ -292,6 +305,8 @@ describe('OAuth login handlers', () => {
     describe('iOS Google handler', () => {
       beforeEach(() => {
         jest.clearAllMocks();
+        mockDeviceIsIos.mockReturnValue(true);
+        mockComparePlatformVersionTo.mockReturnValue(0);
       });
 
       it('throw UserCancelled error when user cancels', async () => {
@@ -353,6 +368,40 @@ describe('OAuth login handlers', () => {
         const handler = createLoginHandler('ios', AuthConnection.Google);
 
         await expect(handler.login()).rejects.toThrow('Network error');
+      });
+
+      it('throws unsupported error on iOS versions below 17.4', async () => {
+        mockDeviceIsIos.mockReturnValue(true);
+        mockComparePlatformVersionTo.mockReturnValue(-1);
+
+        const handler = createLoginHandler('ios', AuthConnection.Google);
+
+        await expect(handler.login()).rejects.toMatchObject({
+          code: OAuthErrorType.IosGoogleLoginNotSupported,
+          message: expect.stringContaining(
+            'iOS Google login requires iOS 17.4 or later',
+          ),
+        });
+        expect(mockExpoAuthSessionPromptAsync).not.toHaveBeenCalled();
+      });
+
+      it('allows iOS version 17.4', async () => {
+        mockDeviceIsIos.mockReturnValue(true);
+        mockComparePlatformVersionTo.mockReturnValue(0);
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({
+          type: 'success',
+          params: {
+            code: 'test-auth-code',
+          },
+        });
+
+        const handler = createLoginHandler('ios', AuthConnection.Google);
+
+        await expect(handler.login()).resolves.toMatchObject({
+          authConnection: AuthConnection.Google,
+          code: 'test-auth-code',
+        });
+        expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
       });
     });
 

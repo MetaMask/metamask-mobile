@@ -575,6 +575,21 @@ const Onboarding = () => {
         ) {
           // QA: do not show error sheet if user cancelled
           return;
+        } else if (error.code === OAuthErrorType.IosGoogleLoginNotSupported) {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              type: 'error',
+              title: strings(
+                `error_sheet.ios_google_login_not_supported_title`,
+              ),
+              description: strings(
+                `error_sheet.ios_google_login_not_supported_description`,
+              ),
+              descriptionAlign: 'center',
+            },
+          });
+          return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
           error.code === OAuthErrorType.GoogleLoginNoMatchingCredential ||

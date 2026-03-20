@@ -1262,6 +1262,60 @@ describe('Onboarding', () => {
       );
     });
 
+    it('navigates to error sheet when iOS Google login is not supported', async () => {
+      Platform.OS = 'ios';
+      const notSupportedError = new OAuthError(
+        '',
+        OAuthErrorType.IosGoogleLoginNotSupported,
+      );
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(notSupportedError);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            type: 'error',
+            title: strings('error_sheet.ios_google_login_not_supported_title'),
+            description: strings(
+              'error_sheet.ios_google_login_not_supported_description',
+            ),
+            descriptionAlign: 'center',
+          }),
+        }),
+      );
+    });
+
     it('navigates to AccountAlreadyExists for existing user in create wallet flow', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({

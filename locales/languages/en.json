@@ -6749,7 +6749,9 @@
     "oauth_error_button": "Try again",
     "no_internet_connection_title": "Unable to connect",
     "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
-    "no_internet_connection_button": "Try again"
+    "no_internet_connection_button": "Try again",
+    "ios_google_login_not_supported_title": "Login not supported",
+    "ios_google_login_not_supported_description": "Google login requires iOS 17.4 or later. Please update your iOS version to continue."
   },
   "password_hint": {
     "title": "Password hint",

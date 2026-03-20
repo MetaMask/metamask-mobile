@@ -16,6 +16,7 @@ export enum OAuthErrorType {
   GoogleLoginUserDisabledOneTapFeature = 10015,
   GoogleLoginOneTapFailure = 10016,
   GoogleLoginNoProviderDependencies = 10017,
+  IosGoogleLoginNotSupported = 10018,
 }
 
 export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
@@ -39,6 +40,8 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
   [OAuthErrorType.GoogleLoginOneTapFailure]: 'Google login one tap failure',
   [OAuthErrorType.GoogleLoginNoProviderDependencies]:
     'Google login credential provider not available',
+  [OAuthErrorType.IosGoogleLoginNotSupported]:
+    'iOS Google login requires iOS 17.4 or later',
 } as const;
 
 export class OAuthError extends Error {
