@@ -70,9 +70,11 @@ const makeOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
   provider: {
     id: 'transak',
     name: 'Transak',
+    environmentType: 'production',
+    description: 'Transak provider',
+    hqAddress: '',
     links: [{ name: 'support', url: 'https://support.transak.com' }],
-    logos: { light: '', dark: '' },
-    isActive: true,
+    logos: { light: '', dark: '', height: 24, width: 79 },
   },
   ...overrides,
 });
