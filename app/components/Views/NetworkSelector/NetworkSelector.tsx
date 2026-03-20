@@ -48,7 +48,10 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { ButtonSize as InternalButtonSize , ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import {
+  ButtonSize as InternalButtonSize,
+  ButtonProps,
+} from '../../../component-library/components/Buttons/Button/Button.types';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';

@@ -101,7 +101,9 @@ describe('NetworkConnectMultiSelector', () => {
     expect(updateButton).toBeDisabled();
 
     // Re-render without loading to verify select all was a no-op
-    rerender(<NetworkConnectMultiSelector {...defaultProps} isLoading={false} />);
+    rerender(
+      <NetworkConnectMultiSelector {...defaultProps} isLoading={false} />,
+    );
 
     const enabledUpdateButton = getByTestId(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
