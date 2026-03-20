@@ -10289,9 +10289,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@myx-trade/sdk@npm:1.0.2":
-  version: 1.0.2
-  resolution: "@myx-trade/sdk@npm:1.0.2"
+"@myx-trade/sdk@npm:1.0.3":
+  version: 1.0.3
+  resolution: "@myx-trade/sdk@npm:1.0.3"
   dependencies:
     crypto-es: "npm:^3.1.3"
     dayjs: "npm:^1.11.13"
@@ -10303,7 +10303,7 @@ __metadata:
     viem: "npm:^2.36.0"
     wretch: "npm:^2.11.0"
     ws: "npm:^8.18.3"
-  checksum: 10/1138b70893ac88936a48f64fa0e7a21d447c84e62763289e7b5a83baf9c74d51871d3da170acbfa22363999b9c926894668debe1d58894b7c62f4c5ff6e312c2
+  checksum: 10/e6e342b61bd055d336b3b8741efcbe9d795c641b1de9e42ed543b171526775ffc335759edc2204fea01e60bd657e52167476980fc602a0c7bc2fceac6dd55a7a
   languageName: node
   linkType: hard
 
@@ -35583,7 +35583,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^17.1.0"
     "@metamask/tron-wallet-snap": "npm:1.24.0"
     "@metamask/utils": "npm:^11.8.1"
-    "@myx-trade/sdk": "npm:1.0.2"
+    "@myx-trade/sdk": "npm:1.0.3"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.30.2"
     "@noble/curves": "npm:1.9.6"
