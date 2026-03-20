@@ -144,6 +144,6 @@ jobs:
       build_name: main-rc
       platform: android
       skip_version_bump: false
-      ref: ${{ inputs.ref || github.ref_name }}
+      source_branch: ${{ inputs.ref || github.ref_name }}
       upload_to_sentry: true
     secrets: inherit

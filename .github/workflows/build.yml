@@ -14,12 +14,7 @@ on:
         type: boolean
         default: false
       source_branch:
-        description: 'Branch, tag, or SHA for version bump and prepare checkout. When non-empty, takes precedence over ref.'
-        required: false
-        type: string
-        default: ''
-      ref:
-        description: 'Git ref (branch) to run the build against. Used as base-branch for version bump and for checkout when skip_version_bump is true. Defaults to the triggering event ref.'
+        description: 'Optional branch, tag, or SHA: base for version bump (when skip_version_bump is false), checkout ref when skip_version_bump is true (e.g. nightly commit SHA), and prepare fallback. If empty, uses the reusable workflow caller ref (github.ref_name).'
         required: false
         type: string
         default: ''
@@ -65,7 +60,7 @@ jobs:
       contents: write
       id-token: write
     with:
-      base-branch: ${{ inputs.source_branch != '' && inputs.source_branch || inputs.ref != '' && inputs.ref || github.ref_name }}
+      base-branch: ${{ inputs.source_branch || github.ref_name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
@@ -80,12 +75,12 @@ jobs:
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
-      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch != '' && inputs.source_branch || inputs.ref != '' && inputs.ref || github.ref_name) }}
+      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch != '' && inputs.source_branch || inputs.ref != '' && inputs.ref || github.ref_name) }}
+          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -157,13 +152,13 @@ jobs:
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump && inputs.ref != '' }}
+        if: ${{ inputs.skip_version_bump && inputs.source_branch != '' }}
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.source_branch }}
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump && inputs.ref == '' }}
+        if: ${{ inputs.skip_version_bump && inputs.source_branch == '' }}
         with:
           submodules: recursive
 
