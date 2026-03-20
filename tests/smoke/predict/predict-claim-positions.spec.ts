@@ -34,6 +34,8 @@ import Utilities from '../../framework/Utilities';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
+import Matchers from '../../framework/Matchers';
+import { PredictActivitySelectorsIDs } from '../../../app/components/UI/Predict/components/PredictActivity/PredictActivity.testIds';
 
 /*
 Test Scenario: Claim winning positions
@@ -137,6 +139,19 @@ describe(SmokePredictions('Claim winnings:'), () => {
         await TabBarComponent.tapActivity();
 
         await ActivitiesView.tapOnPredictionsTab();
+
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByID(
+            PredictActivitySelectorsIDs.row(
+              POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE[0].transactionHash,
+            ),
+          ),
+          {
+            timeout: 45000,
+            description:
+              'First claimed REDEEM row should appear after Predictions tab refetch',
+          },
+        );
 
         for (const position of POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE) {
           await ActivitiesView.tapPredictActivityRow(position.transactionHash);

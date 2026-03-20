@@ -77,14 +77,13 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   };
 
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      testID={PredictActivitySelectorsIDs.row(item.id)}
-    >
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
       <Box
+        collapsable={false}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
         justifyContent={BoxJustifyContent.Between}
+        testID={PredictActivitySelectorsIDs.row(item.id)}
         twClassName="w-full p-2"
       >
         <Box twClassName="pt-1">

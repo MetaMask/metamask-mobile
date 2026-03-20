@@ -81,6 +81,15 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     },
   });
 
+  // Refetch when the Predictions tab is selected so the list matches the latest
+  // server state (e.g. after claim) and E2E sees new REDEEM rows.
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+    void refetch();
+  }, [isVisible, refetch]);
+
   // Track activity list viewed when tab becomes visible
   useEffect(() => {
     if (isVisible && !isLoading) {
