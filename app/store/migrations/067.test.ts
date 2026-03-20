@@ -19,7 +19,8 @@ const mockedCaptureException = jest.mocked(captureException);
 interface StateType {
   engine: {
     backgroundState: {
-      AccountsController: AccountsControllerState;
+      // accountIdByAddress is non-persisted state, so it is not present in migration fixtures
+      AccountsController: Omit<AccountsControllerState, 'accountIdByAddress'>;
     };
   };
 }

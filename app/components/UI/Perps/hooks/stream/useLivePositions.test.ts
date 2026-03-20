@@ -307,6 +307,49 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
+    it('resets to loading when null received after having loaded positions (account switch)', async () => {
+      let capturedCallback: (positions: Position[] | null) => void = jest.fn();
+      mockPositionsSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      // First: receive real positions (simulate loaded state)
+      act(() => {
+        capturedCallback([mockPosition]);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isInitialLoading).toBe(false);
+        expect(result.current.positions).toEqual([mockPosition]);
+      });
+
+      // Account switch: receive null (clearCache)
+      act(() => {
+        capturedCallback(null);
+      });
+
+      expect(result.current.isInitialLoading).toBe(true);
+      expect(result.current.positions).toEqual([]);
+
+      // New account data arrives
+      const newAccountPositions: Position[] = [
+        { ...mockPosition, symbol: 'ETH-PERP', size: '5.0' },
+      ];
+
+      act(() => {
+        capturedCallback(newAccountPositions);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isInitialLoading).toBe(false);
+        expect(result.current.positions).toEqual(newAccountPositions);
+      });
+    });
+
     it('replaces entire positions array on each update', async () => {
       let capturedCallback: (positions: Position[]) => void = jest.fn();
       mockPositionsSubscribe.mockImplementation((params) => {
@@ -692,6 +735,38 @@ describe('usePerpsLivePositions', () => {
 
       expect(result.current.positions).toEqual([]);
       expect(result.current.isInitialLoading).toBe(false);
+    });
+  });
+
+  describe('TAT-2236: no button flash on first WebSocket update', () => {
+    it('positions are available synchronously when isInitialLoading becomes false', () => {
+      // This test verifies the fix for TAT-2236: when the first WebSocket update
+      // arrives, positions must be resolved in the SAME render as isInitialLoading
+      // becoming false. If positions lag by one render, the market detail view
+      // briefly shows Long/Short buttons before switching to Modify/Close.
+      let capturedCallback: (positions: Position[] | null) => void = jest.fn();
+      mockPositionsSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      // Initially loading with no positions
+      expect(result.current.isInitialLoading).toBe(true);
+      expect(result.current.positions).toEqual([]);
+
+      // Simulate first WebSocket update with positions
+      act(() => {
+        capturedCallback([mockPosition]);
+      });
+
+      // CRITICAL: Both isInitialLoading=false AND positions must be set
+      // in the same render — no intermediate state allowed
+      expect(result.current.isInitialLoading).toBe(false);
+      expect(result.current.positions).toEqual([mockPosition]);
+      expect(result.current.positions.length).toBe(1);
     });
   });
 

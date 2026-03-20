@@ -6,7 +6,7 @@
  *   node app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js
  */
 
-// eslint-disable-next-line import/no-default-export
+// eslint-disable-next-line import-x/no-default-export
 export default `/**
  * TradingView Chart WebView Logic
  *

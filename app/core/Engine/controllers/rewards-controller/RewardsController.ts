@@ -21,7 +21,6 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
-  type SnapshotDto,
   type CampaignDto,
   type CampaignParticipantStatusDto,
   type PointsEstimateHistoryEntry,
@@ -34,6 +33,7 @@ import {
   type SeasonStateDto,
   type LineaTokenRewardDto,
   type OffDeviceSubscriptionAccountsState,
+  type ClientVersionRequirementDto,
   BASE32_REGEX,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -93,9 +93,6 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
-
-// Snapshots cache threshold
-const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Off-device subscription accounts cache threshold
 const OFF_DEVICE_SUBSCRIPTION_ACCOUNTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
@@ -173,12 +170,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshots: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   offDeviceSubscriptionAccounts: {
     includeInStateLogs: true,
     persist: true,
@@ -224,7 +215,6 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  snapshots: {},
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
   campaignParticipantStatus: {},
@@ -321,10 +311,10 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isSnapshotsEnabled: () => boolean;
   #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
@@ -478,7 +468,6 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isSnapshotsEnabled,
     isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
@@ -486,7 +475,6 @@ export class RewardsController extends BaseController<
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isSnapshotsEnabled?: () => boolean;
     isCampaignsEnabled?: () => boolean;
   }) {
     super({
@@ -502,7 +490,6 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
     this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
@@ -598,10 +585,6 @@ export class RewardsController extends BaseController<
       this.getUnlockedRewards.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getSnapshots',
-      this.getSnapshots.bind(this),
-    );
-    this.messenger.registerActionHandler(
       'RewardsController:getOffDeviceSubscriptionAccounts',
       this.getOffDeviceSubscriptionAccounts.bind(this),
     );
@@ -665,6 +648,10 @@ export class RewardsController extends BaseController<
       'RewardsController:applyBonusCode',
       this.applyBonusCode.bind(this),
     );
+    this.messenger.registerActionHandler(
+      'RewardsController:getClientVersionRequirements',
+      this.getClientVersionRequirements.bind(this),
+    );
   }
 
   /**
@@ -727,7 +714,7 @@ export class RewardsController extends BaseController<
     if (!this.canChangeRewardsEnvUrl()) {
       return;
     }
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       state.rewardsEnvUrl = url;
     });
     this.messenger.call('RewardsDataService:setRewardsEnvUrl', url);
@@ -872,7 +859,7 @@ export class RewardsController extends BaseController<
     const accountState = this.#getAccountState(caipAccount);
     if (!accountState) return;
 
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       state.activeAccount = accountState;
     });
   }
@@ -1158,7 +1145,7 @@ export class RewardsController extends BaseController<
   ): Promise<string | null> {
     if (!internalAccount) {
       if (shouldBecomeActiveAccount) {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.activeAccount = null;
         });
       }
@@ -1177,7 +1164,7 @@ export class RewardsController extends BaseController<
       let accountState = this.#getAccountState(account as CaipAccountId);
       if (accountState) {
         // Update last authenticated account
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           if (shouldBecomeActiveAccount) {
             state.activeAccount = accountState;
           }
@@ -1191,7 +1178,7 @@ export class RewardsController extends BaseController<
           perpsFeeDiscount: null, // Default value, will be updated when fetched
           lastPerpsDiscountRateFetched: null,
         };
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.accounts[account as CaipAccountId] =
             accountState as RewardsAccountState;
           if (shouldBecomeActiveAccount) {
@@ -1221,7 +1208,7 @@ export class RewardsController extends BaseController<
           // Account hasn't opted in, don't proceed with login
           subscription = null;
           // Update state to reflect not opted in
-          this.update((state: RewardsControllerState) => {
+          this.update((state) => {
             if (!account) {
               return;
             }
@@ -1342,7 +1329,7 @@ export class RewardsController extends BaseController<
       }
     } finally {
       // Update state
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         if (!account) {
           return;
         }
@@ -1414,7 +1401,7 @@ export class RewardsController extends BaseController<
         coercedAccount = account;
       }
 
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         // Create account state if it doesn't exist
         if (!state.accounts[coercedAccount]) {
           state.accounts[coercedAccount] = {
@@ -1600,7 +1587,7 @@ export class RewardsController extends BaseController<
               this.convertInternalAccountToCaipAccountId(internalAccount);
             if (caipAccount) {
               const lastFreshOptInStatusCheck = Date.now();
-              this.update((state: RewardsControllerState) => {
+              this.update((state) => {
                 // Update or create account state with fresh opt-in status and subscription ID
                 if (!state.accounts[caipAccount]) {
                   state.accounts[caipAccount] = {
@@ -1805,7 +1792,7 @@ export class RewardsController extends BaseController<
           return pointsEvents;
         }, params.subscriptionId),
       writeCache: (key, pointsEventsDto) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.pointsEvents[key] =
             this.#convertPointsEventsToState(pointsEventsDto);
         });
@@ -2024,7 +2011,7 @@ export class RewardsController extends BaseController<
       responseBonusBips: response.bonusBips,
     };
 
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       // Add new entry at the beginning (most recent first)
       state.pointsEstimateHistory.unshift(entry);
 
@@ -2156,7 +2143,7 @@ export class RewardsController extends BaseController<
           return seasonStateWithTimestamp;
         }
 
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           delete state.seasons[type];
         });
 
@@ -2165,7 +2152,7 @@ export class RewardsController extends BaseController<
         );
       },
       writeCache: (key, value) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.seasons[key] = value;
           state.seasons[value.id] = value;
         });
@@ -2227,7 +2214,7 @@ export class RewardsController extends BaseController<
             return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
           } catch (error) {
             if (error instanceof SeasonNotFoundError) {
-              this.update((state: RewardsControllerState) => {
+              this.update((state) => {
                 state.seasons = {};
               });
               throw error;
@@ -2240,7 +2227,7 @@ export class RewardsController extends BaseController<
           }
         }, subscriptionId),
       writeCache: (key, subscriptionSeasonStatus) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           // Update season status with composite key
           state.seasonStatuses[key] = subscriptionSeasonStatus;
         });
@@ -2259,7 +2246,7 @@ export class RewardsController extends BaseController<
   async invalidateSubscriptionAndAccounts(
     subscriptionId: string,
   ): Promise<void> {
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       // Remove the failing subscription
       delete state.subscriptions[subscriptionId];
 
@@ -2344,7 +2331,7 @@ export class RewardsController extends BaseController<
           };
         }, subscriptionId),
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.subscriptionReferralDetails[key] = payload;
         });
       },
@@ -2592,7 +2579,7 @@ export class RewardsController extends BaseController<
     try {
       const currentActiveAccount = this.state.activeAccount?.account;
       this.resetState();
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         if (currentActiveAccount) {
           state.activeAccount = {
             account: currentActiveAccount,
@@ -3034,7 +3021,7 @@ export class RewardsController extends BaseController<
       );
 
       // Update store with accounts and subscriptions (but not activeAccount)
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         // Update accounts state
         state.accounts[caipAccount] = {
           account: caipAccount,
@@ -3236,7 +3223,7 @@ export class RewardsController extends BaseController<
           return response.boosts;
         }, subscriptionId),
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.activeBoosts[key] = {
             boosts: payload,
             lastFetched: Date.now(),
@@ -3289,63 +3276,9 @@ export class RewardsController extends BaseController<
           return response || [];
         }, subscriptionId),
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.unlockedRewards[key] = {
             rewards: payload,
-            lastFetched: Date.now(),
-          };
-        });
-      },
-    });
-
-    return result;
-  }
-
-  /**
-   * Get snapshots for a season with caching
-   * @param seasonId - The season ID
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<SnapshotDto[]> - The snapshots data
-   */
-  async getSnapshots(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return [];
-    }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
-    }
-    const result = await wrapWithCache<SnapshotDto[]>({
-      key: seasonId,
-      ttl: SNAPSHOTS_CACHE_THRESHOLD_MS,
-      readCache: (key) => {
-        const cachedSnapshots = this.state.snapshots[key] || undefined;
-        if (!cachedSnapshots) return;
-        return {
-          payload: cachedSnapshots.snapshots,
-          lastFetched: cachedSnapshots.lastFetched,
-        };
-      },
-      fetchFresh: async () =>
-        this.#withAuthRetry(async () => {
-          Logger.log(
-            'RewardsController: Fetching fresh snapshots data via API call for seasonId',
-            seasonId,
-          );
-          const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshots',
-            seasonId,
-            subscriptionId,
-          )) as SnapshotDto[];
-          return response || [];
-        }, subscriptionId),
-      writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
-          state.snapshots[key] = {
-            snapshots: payload,
             lastFetched: Date.now(),
           };
         });
@@ -3430,7 +3363,7 @@ export class RewardsController extends BaseController<
         }
       },
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           (
             state.offDeviceSubscriptionAccounts as Record<
               string,
@@ -3482,17 +3415,20 @@ export class RewardsController extends BaseController<
           )) as CampaignDto[];
           return response || [];
         }, subscriptionId),
-      writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
-          state.campaigns[key] = {
-            campaigns: payload,
-            lastFetched: Date.now(),
-          };
-        });
+      writeCache: (key: string, payload: CampaignDto[]) => {
+        this.#writeCampaignsCache(key, payload);
       },
     });
 
     return result;
+  }
+
+  #writeCampaignsCache(key: string, campaigns: CampaignDto[]): void {
+    const cacheEntry = { campaigns, lastFetched: Date.now() };
+    this.update((state) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state.campaigns as Record<string, unknown>)[key] = cacheEntry as any;
+    });
   }
 
   /**
@@ -3506,8 +3442,11 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
     if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
-      return { optedIn: false };
+      return { optedIn: false, participantCount: 0 };
     }
+    const key = `${subscriptionId}:${campaignId}`;
+    const wasAlreadyOptedIn =
+      this.state.campaignParticipantStatus[key]?.optedIn === true;
     const result = await this.#withAuthRetry(async () => {
       Logger.log('RewardsController: Opting into campaign', campaignId);
       return (await this.messenger.call(
@@ -3517,14 +3456,16 @@ export class RewardsController extends BaseController<
       )) as CampaignParticipantStatusDto;
     }, subscriptionId);
     // Invalidate the participant status cache so the next fetch gets fresh data
-    const key = `${subscriptionId}:${campaignId}`;
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       delete state.campaignParticipantStatus[key];
     });
-    this.messenger.publish('RewardsController:campaignOptedIn', {
-      campaignId,
-      subscriptionId,
-    });
+    // Only emit if the user wasn't already opted in, to avoid redundant refetches
+    if (!wasAlreadyOptedIn) {
+      this.messenger.publish('RewardsController:campaignOptedIn', {
+        campaignId,
+        subscriptionId,
+      });
+    }
     return result;
   }
 
@@ -3539,7 +3480,7 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
     if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
-      return { optedIn: false };
+      return { optedIn: false, participantCount: 0 };
     }
     const key = `${subscriptionId}:${campaignId}`;
     const result = await wrapWithCache<CampaignParticipantStatusDto>({
@@ -3549,7 +3490,10 @@ export class RewardsController extends BaseController<
         const cached = this.state.campaignParticipantStatus[k];
         if (!cached) return undefined;
         return {
-          payload: { optedIn: cached.optedIn },
+          payload: {
+            optedIn: cached.optedIn,
+            participantCount: cached.participantCount,
+          },
           lastFetched: cached.lastFetched,
         };
       },
@@ -3565,9 +3509,10 @@ export class RewardsController extends BaseController<
           )) as CampaignParticipantStatusDto;
         }, subscriptionId),
       writeCache: (k, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.campaignParticipantStatus[k] = {
             optedIn: payload.optedIn,
+            participantCount: payload.participantCount,
             lastFetched: Date.now(),
           };
         });
@@ -3744,11 +3689,30 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Fetch the minimum client version requirements from the public API.
+   * Cached in memory for the controller's lifetime (one fetch per app session).
+   * This is a public (unauthenticated) endpoint that does not require
+   * the rewards feature to be enabled.
+   */
+  async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
+    if (this.#clientVersionRequirements) {
+      return this.#clientVersionRequirements;
+    }
+
+    const result = (await this.messenger.call(
+      'RewardsDataService:getClientVersionRequirements',
+    )) as ClientVersionRequirementDto;
+
+    this.#clientVersionRequirements = result;
+    return result;
+  }
+
+  /**
    * Invalidate referral details cache for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    */
   invalidateReferralDetailsCache(subscriptionId: string): void {
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       Object.keys(state.subscriptionReferralDetails).forEach((key) => {
         if (key.includes(subscriptionId)) {
           delete state.subscriptionReferralDetails[key];
@@ -3774,7 +3738,7 @@ export class RewardsController extends BaseController<
         seasonId,
         subscriptionId,
       );
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         delete state.seasonStatuses[compositeKey];
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
@@ -3783,7 +3747,7 @@ export class RewardsController extends BaseController<
       });
     } else {
       // Invalidate all seasons for this subscription
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         Object.keys(state.seasonStatuses).forEach((key) => {
           if (key.includes(subscriptionId)) {
             delete state.seasonStatuses[key];

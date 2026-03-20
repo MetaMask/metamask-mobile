@@ -72,7 +72,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { addCurrencySymbol } from '../../../../../util/number';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -149,6 +149,8 @@ interface TokenListItemV2Props {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  // Whether this item is currently visible in the viewport.
+  isVisible?: boolean;
 }
 
 export const TokenListItemV2 = React.memo(
@@ -160,6 +162,7 @@ export const TokenListItemV2 = React.memo(
     showPercentageChange = true,
     isFullView = false,
     shouldShowTokenListItemCta,
+    isVisible = true,
   }: TokenListItemV2Props) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -230,7 +233,11 @@ export const TokenListItemV2 = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    const merklClaimData = useMerklBonusClaim(asset);
+    const merklClaimData = useMerklBonusClaim(
+      asset,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+      isVisible,
+    );
     const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
     const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
@@ -631,7 +638,7 @@ export const TokenListItemV2 = React.memo(
                   asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
                   hideFiatForTestnet
                     ? CLTextVariant.BodySM
-                    : CLTextVariant.BodyMDBold
+                    : CLTextVariant.BodyMDMedium
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
@@ -662,11 +669,9 @@ export const TokenListItemV2 = React.memo(
                       twClassName="uppercase"
                     >
                       {tokenPriceInFiat && !hideFiatForScamWarning
-                        ? addCurrencySymbol(
+                        ? formatPriceWithSubscriptNotation(
                             tokenPriceInFiat,
                             currentCurrency,
-                            true,
-                            true,
                           )
                         : '-'}
                       {' \u2022 '}

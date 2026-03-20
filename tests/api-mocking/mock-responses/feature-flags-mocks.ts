@@ -151,6 +151,24 @@ export const remoteFeatureFlagRampsUnifiedEnabled = (active = true) => ({
   ...remoteFeatureFlagRampsUnifiedV2Enabled(active),
 });
 
+/**
+ * Independent V1/V2 toggles for E2E. Uses minimumVersion 0.0.0 so debug builds pass the gate.
+ * Pair with FixtureBuilder.withRampsUnifiedBuyRemoteFlagsSeededForE2E({ rampsUnifiedBuyV1, rampsUnifiedBuyV2 }).
+ */
+export const remoteFeatureFlagRampsUnifiedMatrixForE2E = (
+  rampsUnifiedBuyV1Active: boolean,
+  rampsUnifiedBuyV2Active: boolean,
+) => ({
+  rampsUnifiedBuyV1: {
+    active: rampsUnifiedBuyV1Active,
+    minimumVersion: '0.0.0',
+  },
+  rampsUnifiedBuyV2: {
+    active: rampsUnifiedBuyV2Active,
+    minimumVersion: '0.0.0',
+  },
+});
+
 export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
 });

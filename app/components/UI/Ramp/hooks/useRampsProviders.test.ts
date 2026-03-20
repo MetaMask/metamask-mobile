@@ -270,5 +270,19 @@ describe('useRampsProviders', () => {
 
       expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
     });
+
+    it('does not call determinePreferredProvider when providers is undefined', () => {
+      const store = createMockStore({ data: undefined });
+      mockDeterminePreferredProvider.mockClear();
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

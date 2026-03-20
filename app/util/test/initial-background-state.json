@@ -13,7 +13,8 @@
     "internalAccounts": {
       "accounts": {},
       "selectedAccount": ""
-    }
+    },
+    "accountIdByAddress": {}
   },
   "AccountTreeController": {
     "accountTree": {
@@ -285,10 +286,7 @@
   },
   "PreferencesController": {
     "featureFlags": {},
-    "identities": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
-    "lostIdentities": {},
-    "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": true,
     "useSafeChainsListValidation": true,
@@ -299,7 +297,6 @@
     "showMultiRpcModal": false,
     "showTestNetworks": false,
     "smartAccountOptIn": true,
-    "smartAccountOptInForAccounts": [],
     "showIncomingTransactions": {
       "0x1": true,
       "0x5": true,
@@ -322,7 +319,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x3e7": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -472,7 +470,8 @@
     "assetsBalance": {},
     "assetsInfo": {},
     "assetsPrice": {},
-    "customAssets": {}
+    "customAssets": {},
+    "selectedCurrency": "usd"
   },
   "PermissionController": {
     "subjects": {}
@@ -682,11 +681,12 @@
   },
   "CardController": {
     "selectedCountry": null,
-    "activeProviderId": null,
+    "activeProviderId": "baanx",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
   },
+  "ComplianceController": {},
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -759,7 +759,6 @@
     "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
-    "snapshots": {},
     "campaigns": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
@@ -770,7 +769,9 @@
     "rewardsEnvUrl": null
   },
   "PredictController": {
-    "eligibility": { "eligible": false },
+    "eligibility": {
+      "eligible": false
+    },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
@@ -778,6 +779,8 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
+    "activeOrder": null,
+    "selectedPaymentToken": null,
     "accountMeta": {}
   },
   "AiDigestController": {

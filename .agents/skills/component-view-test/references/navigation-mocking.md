@@ -134,102 +134,62 @@ Route names live in `app/constants/navigation/Routes.ts`.
 
 ## External Service / API Mocking
 
-Some views call external services **directly** (not through Engine controllers) — e.g. a `getTrendingTokens()` function imported from a package, or a `fetch()` call to an external API. These cannot be driven through Redux state overrides.
+Some views call **external HTTP APIs** (e.g. `fetch()` to a REST endpoint). Those requests cannot be driven through Redux state. The framework provides an **api-mocking** layer using [nock](https://github.com/nock/nock) so tests intercept HTTP at the network level **without** using `jest.mock` on service modules (which would violate the “only Engine and allowed native mocks” rule).
 
-### Current pattern — jest.mock on the service module
+### Preferred pattern — nock (api-mocking folder)
 
-When a view calls an external service function directly, mock the module in a dedicated file under `tests/component-view/mocks/` and expose setup/clear helpers:
+All HTTP API mocks for component view tests live under `tests/component-view/api-mocking/`. Each feature has one file (e.g. `trending.ts`) that exports:
 
-```typescript
-// tests/component-view/mocks/myFeatureApiMocks.ts
-import { getMyFeatureData } from '@metamask/some-package';
+- Mock response data (e.g. `mockTrendingTokensData`)
+- A **setup** function (e.g. `setupTrendingApiFetchMock(responseData?, customReply?)`) that uses nock to intercept the endpoint
+- A **clear** function (e.g. `clearTrendingApiMocks()`) to call in `afterEach`
 
-export const getMyFeatureDataMock = getMyFeatureData as jest.Mock;
+Shared nock lifecycle helpers (`clearAllNockMocks`, `disableNetConnect`, `teardownNock`) are in `api-mocking/nockHelpers.ts`. To **add a new API mock** for another view, add a file `api-mocking/<feature>.ts` following the pattern in `api-mocking/trending.ts` (mock data, `setupXxxApiMock`, `clearXxxApiMocks` using `nockHelpers`), and call setup/clear in the view test’s `beforeEach`/`afterEach`.
 
-export const mockFeatureData = [
-  { id: 'item-1', name: 'Token A', price: '100.00', change24h: 5.2 },
-  { id: 'item-2', name: 'Token B', price: '200.00', change24h: -1.8 },
-];
-
-export const setupMyFeatureApiMock = (data = mockFeatureData) => {
-  getMyFeatureDataMock.mockImplementation(async () => data);
-};
-
-export const clearMyFeatureApiMocks = () => {
-  jest.clearAllMocks();
-};
-```
-
-In the test file, declare the `jest.mock` at module scope and use `beforeEach`/`afterEach` for lifecycle:
+**Example (trending):**
 
 ```typescript
-// NOTE: antipattern — only Engine and native modules should be mocked in view tests.
-// This is a temporary workaround for service functions called directly from components,
-// not through Engine. Track removal in the linked issue.
-// eslint-disable-next-line no-restricted-syntax
-jest.mock('@metamask/some-package', () => {
-  const actual = jest.requireActual('@metamask/some-package');
-  return { ...actual, getMyFeatureData: jest.fn().mockResolvedValue([]) };
-});
-
 import {
-  setupMyFeatureApiMock,
-  clearMyFeatureApiMocks,
-  mockFeatureData,
-  getMyFeatureDataMock,
-} from '../../../../tests/component-view/mocks/myFeatureApiMocks';
+  setupTrendingApiFetchMock,
+  clearTrendingApiMocks,
+  mockTrendingTokensData,
+  mockBnbChainToken,
+} from '../../../../tests/component-view/api-mocking/trending';
 
-describe('MyFeatureView', () => {
-  beforeEach(() => {
-    setupMyFeatureApiMock(mockFeatureData);
+beforeEach(() => {
+  setupTrendingApiFetchMock(mockTrendingTokensData);
+});
+afterEach(() => {
+  clearTrendingApiMocks();
+});
+
+it('user sees trending tokens section with mocked data', async () => {
+  const { findByText, queryByTestId } = renderTrendingViewWithRoutes();
+  await waitFor(async () => {
+    expect(await findByText('Ethereum')).toBeOnTheScreen();
   });
+  // assert rows with assertTrendingTokenRowsVisibility(...)
+});
 
-  afterEach(() => {
-    clearMyFeatureApiMocks();
+it('displays only BNB tokens when BNB Chain network filter is selected', async () => {
+  setupTrendingApiFetchMock(mockTrendingTokensData, (uri) => {
+    const url = new URL(uri, 'https://token.api.cx.metamask.io');
+    const chainIdsParam = url.searchParams.get('chainIds') ?? '';
+    const chainIds = chainIdsParam.split(',').map((s) => s.trim());
+    if (chainIds.length === 1 && chainIds[0] === 'eip155:56') {
+      return mockBnbChainToken;
+    }
+    return mockTrendingTokensData;
   });
-
-  it('shows token list after data loads from the external service', async () => {
-    const { findByText } = renderMyFeatureWithRoutes();
-
-    expect(await findByText('Token A')).toBeOnTheScreen();
-  });
-
-  it('shows only filtered results when a specific param is passed', async () => {
-    getMyFeatureDataMock.mockImplementation(async (params) => {
-      if (params?.chainId === 'eip155:56') return [mockBnbData];
-      return mockFeatureData;
-    });
-
-    const { findByText } = renderMyFeatureWithRoutes();
-    // ... interact to trigger the filter, then assert
-  });
+  const { getByTestId, findByText, queryByTestId } =
+    renderTrendingViewWithRoutes();
+  // ... navigate to full view, open network filter, select BNB Chain
+  // assert visible: [BNB], missing: [ETH, BTC, UNI]
 });
 ```
 
-> ⚠️ **This is a known antipattern.** The golden rule is that only Engine and allowed native modules should be mocked in `*.view.test.*` files. Mocking a service module directly bypasses the ESLint guard (note the `eslint-disable` comment). Always link to a tracking issue and plan to migrate to a proper solution.
+### Fallback — jest.mock on the service module (antipattern)
 
-### Future pattern — Mock Service Worker (MSW)
+When a view calls an external **function** (not `fetch`) from a package and that function cannot be replaced by nock (e.g. no HTTP), you may mock the module in a file under `tests/component-view/mocks/` and use setup/clear helpers. This requires an `eslint-disable` and is a **known antipattern**; prefer moving the integration to an HTTP API and using api-mocking, or drive data through Engine/Redux when possible.
 
-> 📌 **Placeholder — no example exists yet in this codebase.**
-
-For views that call HTTP endpoints directly (via `fetch`), the intended approach is [Mock Service Worker (msw)](https://mswjs.io/), which intercepts requests at the network level without needing `jest.mock`. This keeps tests closer to real behavior and avoids the module-mock antipattern.
-
-When the first MSW-based view test is written, document the setup here:
-
-```typescript
-// TODO: Add MSW setup example once the first test using it is merged.
-// Expected shape:
-//
-// import { setupServer } from 'msw/node';
-// import { http, HttpResponse } from 'msw';
-//
-// const server = setupServer(
-//   http.get('https://api.example.com/tokens', () =>
-//     HttpResponse.json(mockTokensData),
-//   ),
-// );
-//
-// beforeAll(() => server.listen());
-// afterEach(() => server.resetHandlers());
-// afterAll(() => server.close());
-```
+> ⚠️ Only Engine and allowed native modules should be mocked in `*.view.test.*` files. Mocking a service module directly bypasses the ESLint guard. Always link to a tracking issue and plan to migrate to nock (api-mocking) or Engine/Redux.
