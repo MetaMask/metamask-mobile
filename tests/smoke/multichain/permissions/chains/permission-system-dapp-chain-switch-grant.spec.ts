@@ -12,6 +12,7 @@ import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAc
 import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
+import { CUSTOM_RPC_PROVIDER_MOCKS } from '../../../../api-mocking/mock-responses/custom-rpc-provider-mocks';
 
 describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
@@ -32,9 +33,9 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
             .withNetworkController(
               CustomNetworks.EthereumMainCustom.providerConfig,
             )
-            .withPermissionController()
             .build(),
           restartDevice: true,
+          testSpecificMock: CUSTOM_RPC_PROVIDER_MOCKS,
         },
         async () => {
           // Setup: Login and navigate to browser

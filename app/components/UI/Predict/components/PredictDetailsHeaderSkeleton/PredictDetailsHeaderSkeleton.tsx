@@ -13,7 +13,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   PREDICT_DETAILS_HEADER_SKELETON,
   PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS,

@@ -35,7 +35,7 @@ import {
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
