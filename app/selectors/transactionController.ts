@@ -5,7 +5,42 @@ import {
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
+
+interface MetaMaskPayToken {
+  address: Hex;
+  chainId: Hex;
+}
+
+function getNestedTransactionTypes(
+  transaction: TransactionMeta,
+): TransactionType[] {
+  if (!transaction.nestedTransactions) {
+    return [];
+  }
+
+  return transaction.nestedTransactions
+    .map((nestedTransaction) => nestedTransaction.type)
+    .filter((type): type is TransactionType => Boolean(type));
+}
+
+function matchesTransactionType(
+  transaction: TransactionMeta,
+  transactionType: string,
+): boolean {
+  return (
+    transaction.type === transactionType ||
+    transaction.originalType === transactionType ||
+    (Boolean(transaction.metamaskPay) &&
+      getNestedTransactionTypes(transaction).some(
+        (nestedTransactionType) => nestedTransactionType === transactionType,
+      ))
+  );
+}
 
 const selectTransactionControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionController;
@@ -45,6 +80,37 @@ export const selectSortedTransactions = createDeepEqualSelector(
     [...nonReplacedTransactions, ...pendingSmartTransactions].sort(
       (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
     ),
+);
+
+export const selectLastWithdrawTokenByType = createSelector(
+  selectNonReplacedTransactions,
+  (_state: RootState, transactionType?: string) => transactionType,
+  (transactions, transactionType): MetaMaskPayToken | undefined => {
+    if (!transactionType) {
+      return undefined;
+    }
+
+    const latestTransaction = [...transactions]
+      .reverse()
+      .find(
+        (transaction) =>
+          matchesTransactionType(transaction, transactionType) &&
+          transaction.metamaskPay?.tokenAddress &&
+          transaction.metamaskPay?.chainId,
+      );
+
+    const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
+    const chainId = latestTransaction?.metamaskPay?.chainId;
+
+    if (!tokenAddress || !chainId) {
+      return undefined;
+    }
+
+    return {
+      address: tokenAddress,
+      chainId,
+    };
+  },
 );
 
 export const selectSortedEVMTransactionsForSelectedAccountGroup =

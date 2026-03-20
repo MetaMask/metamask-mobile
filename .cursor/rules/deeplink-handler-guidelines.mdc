@@ -12,6 +12,8 @@ This guide walks you through adding new deeplink handlers to MetaMask Mobile. Fo
 
 ## Quick Reference
 
+The **`deposit` deeplink** (`metamask://deposit`, `/deposit`) is **deprecated** and not handled; do not add handlers under Ramp Deposit `deeplink/` for it.
+
 | File | Purpose |
 |------|---------|
 | `app/constants/deeplinks.ts` | Define action constants |
