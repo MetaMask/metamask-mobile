@@ -15,11 +15,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 
 export const MusdDeveloperOptionsSection = () => {
@@ -63,13 +59,14 @@ export const MusdDeveloperOptionsSection = () => {
         {`Education screen seen: ${String(hasSeenConversionEducationScreen)}`}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={'Reset education screen'}
         onPress={handleResetEducationSeenState}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {'Reset education screen'}
+      </Button>
       <Text
         color={TextColor.Alternative}
         variant={TextVariant.BodyMD}
@@ -78,13 +75,14 @@ export const MusdDeveloperOptionsSection = () => {
         {`Asset detail CTAs dismissed: ${String(assetDetailCtasSeenCount)}`}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={'Clear asset detail CTAs seen'}
         onPress={handleClearAssetDetailCtasSeen}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {'Clear asset detail CTAs seen'}
+      </Button>
     </>
   );
 };

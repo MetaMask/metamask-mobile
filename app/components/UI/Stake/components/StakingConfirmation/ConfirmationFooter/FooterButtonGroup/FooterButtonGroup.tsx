@@ -4,15 +4,7 @@ import { useSelector } from 'react-redux';
 import { formatEther } from 'ethers/lib/utils';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
+import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './FooterButtonGroup.styles';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
@@ -226,34 +218,28 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   return (
     <View style={styles.footerContainer}>
       <Button
-        label={
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
-            {strings('stake.cancel')}
-          </Text>
-        }
         testID="cancel-button"
         style={styles.button}
-        variant={ButtonVariants.Secondary}
-        width={ButtonWidthTypes.Full}
+        variant={ButtonVariant.Secondary}
+        isFullWidth
         size={ButtonSize.Lg}
         onPress={handleCancelPress}
-        disabled={didSubmitTransaction}
-      />
+        isDisabled={didSubmitTransaction}
+      >
+        {strings('stake.cancel')}
+      </Button>
       <Button
-        label={
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
-            {strings('stake.continue')}
-          </Text>
-        }
         testID="continue-button"
         style={styles.button}
-        variant={ButtonVariants.Primary}
-        width={ButtonWidthTypes.Full}
+        variant={ButtonVariant.Primary}
+        isFullWidth
         size={ButtonSize.Lg}
         onPress={handleConfirmation}
-        disabled={didSubmitTransaction}
-        loading={didSubmitTransaction}
-      />
+        isDisabled={didSubmitTransaction}
+        isLoading={didSubmitTransaction}
+      >
+        {strings('stake.continue')}
+      </Button>
     </View>
   );
 };

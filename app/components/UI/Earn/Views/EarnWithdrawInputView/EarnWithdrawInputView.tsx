@@ -19,12 +19,7 @@ import {
   TextButton,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -998,15 +993,15 @@ const EarnWithdrawInputView = () => {
           <View style={styles.reviewButtonContainer}>
             <Button
               testID="review-button"
-              label={buttonLabel}
               size={ButtonSize.Lg}
-              labelTextVariant={TextVariant.BodyMDMedium}
-              variant={ButtonVariants.Primary}
-              loading={isSubmittingStakeWithdrawalTransaction}
+              variant={ButtonVariant.Primary}
+              isLoading={isSubmittingStakeWithdrawalTransaction}
               isDisabled={isWithdrawButtonDisabled}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={handleWithdrawPress}
-            />
+            >
+              {buttonLabel}
+            </Button>
           </View>
         )}
       </ScreenLayout>

@@ -4,10 +4,9 @@ import React from 'react';
 import { View } from 'react-native-animatable';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
+import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
@@ -146,19 +145,20 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
           {apr}%
         </Text>{' '}
         {strings('earn.empty_state_cta.annually')}{' '}
-        <Button
+        <OldButton
           label={strings('earn.empty_state_cta.learn_more')}
           variant={ButtonVariants.Link}
           onPress={navigateToLendingHistoricApyChart}
         />
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
-        width={ButtonWidthTypes.Full}
-        label={strings('earn.empty_state_cta.earn')}
+        isFullWidth
         onPress={navigateToLendInputScreen}
-      />
+      >
+        {strings('earn.empty_state_cta.earn')}
+      </Button>
     </View>
   );
 };
