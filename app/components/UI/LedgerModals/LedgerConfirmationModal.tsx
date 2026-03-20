@@ -11,7 +11,7 @@ import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
@@ -46,7 +46,7 @@ const LedgerConfirmationModal = ({
 }: LedgerConfirmationModalProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [delayClose, setDelayClose] = useState(false);
   const [completeClose, setCompleteClose] = useState(false);
   const [permissionErrorShown, setPermissionErrorShown] = useState(false);

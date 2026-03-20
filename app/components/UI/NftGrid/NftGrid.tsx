@@ -27,7 +27,8 @@ import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import {
@@ -90,7 +91,7 @@ const NftGridContent = ({
 const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
   ({ isFullView = false }, ref) => {
     const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
     const [longPressedCollectible, setLongPressedCollectible] =
       useState<Nft | null>(null);

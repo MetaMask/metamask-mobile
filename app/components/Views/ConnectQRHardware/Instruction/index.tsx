@@ -17,7 +17,8 @@ import { createStyles } from './styles';
 import StyledButton from '../../../UI/StyledButton';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { QR_CONTINUE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   HARDWARE_WALLET_BUTTON_TYPE,
   HARDWARE_WALLET_DEVICE_TYPE,
@@ -35,7 +36,7 @@ interface IConnectQRInstructionProps {
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
   const { onConnect, renderAlert, navigation } = props;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets);

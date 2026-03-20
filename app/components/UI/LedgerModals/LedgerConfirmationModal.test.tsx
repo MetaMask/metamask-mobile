@@ -16,8 +16,9 @@ import {
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
 import { strings } from '../../../../locales/i18n';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../hooks/Ledger/useBluetooth', () => ({
@@ -42,7 +43,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -87,19 +88,12 @@ describe('LedgerConfirmationModal', () => {
       error: null,
     });
 
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   const checkLedgerCommunicationErrorFlow = function (
