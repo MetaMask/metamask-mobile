@@ -4,7 +4,7 @@ This Fastlane configuration handles uploading iOS builds to TestFlight via Bitri
 
 ## Overview
 
-The `upload_to_testflight_only` lane uploads pre-built IPA files to TestFlight and distributes them to external testing groups.
+The `upload_to_testflight_only` lane uploads pre-built IPA files to TestFlight and, by default, distributes them to external testing groups (same as historical Bitrise behavior). Set `TESTFLIGHT_DISTRIBUTE_EXTERNAL=false` (or `0`, `no`, `off`) for upload-only when the App Store Connect API key cannot manage external beta groups.
 
 ## GitHub Actions
 

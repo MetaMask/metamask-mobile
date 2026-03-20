@@ -217,12 +217,14 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
 
       - name: Upload to TestFlight
+        env:
+          # Runway / GH apple env uses a restricted key; Bitrise keeps default external distribution.
+          TESTFLIGHT_DISTRIBUTE_EXTERNAL: 'false'
         run: |
           bash scripts/upload-to-testflight.sh \
             "github_actions_main-rc" \
             "${{ inputs.ref || github.ref_name }}" \
-            "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates"
+            "${{ steps.ipa.outputs.path }}"
 
       - name: Cleanup API Key
         if: always()
