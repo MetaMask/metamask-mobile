@@ -39,7 +39,7 @@ describe(
           await sendSolTest.signTransaction();
 
           // TODO: Actually sign the transaction (blocked by https://consensyssoftware.atlassian.net/browse/MMQA-586)
-          await SolanaTestDApp.tapCancelButton();
+          await SolanaTestDApp.tapCancelSignAndSendTransaction();
         },
       );
     });
@@ -68,7 +68,7 @@ describe(
 
           await Assertions.expectTextDisplayed('Transaction request');
 
-          await SolanaTestDApp.tapCancelButton();
+          await SolanaTestDApp.tapCancelSignAndSendTransaction();
         },
       );
     });

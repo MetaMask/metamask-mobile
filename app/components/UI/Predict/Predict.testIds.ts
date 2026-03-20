@@ -35,10 +35,20 @@ export const PredictMarketListSelectorsIDs = {
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;
 
+// Suffix matches PredictSportCardFooter (-action-buttons) + PredictActionButtons (-bet) + PredictBetButtons (-yes / -no)
+const MARKET_CARD_BET_YES_SUFFIX = '-action-buttons-bet-yes';
+const MARKET_CARD_BET_NO_SUFFIX = '-action-buttons-bet-no';
+
 // Helper functions for dynamic market list selectors
 export const getPredictMarketListSelector = {
   marketCardByCategory: (category: string, index: number) =>
     `predict-market-list-${category}-card-${index}`,
+  /** Yes bet control; same id shape as sport cards (PredictBetButtons). */
+  marketCardBetYes: (category: string, index: number) =>
+    `predict-market-list-${category}-card-${index}${MARKET_CARD_BET_YES_SUFFIX}`,
+  /** No bet control; same id shape as sport cards (PredictBetButtons). */
+  marketCardBetNo: (category: string, index: number) =>
+    `predict-market-list-${category}-card-${index}${MARKET_CARD_BET_NO_SUFFIX}`,
   emptyState: () => 'predict-market-list-empty-state',
 };
 

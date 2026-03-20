@@ -68,6 +68,16 @@ class SolanaTestDApp {
     );
   }
 
+  /**
+   * Cancel control on the Solana wallet-standard sign-and-send confirmation (snap footer).
+   * Use after device.disableSynchronization when dismissing the transfer SOL flow.
+   */
+  get cancelSignAndSendTransactionButtonSelector(): DetoxElement {
+    return Matchers.getElementByID(
+      SolanaTestdappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON,
+    );
+  }
+
   get cancelButtonSelector() {
     return Matchers.getElementByText('Cancel');
   }
@@ -179,7 +189,20 @@ class SolanaTestDApp {
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButtonSelector);
+    await Gestures.waitAndTap(this.cancelButtonSelector, {
+      elemDescription: 'Cancel button',
+    });
+  }
+
+  /**
+   * Dismisses the Solana sign-and-send transaction confirmation (e.g. transfer SOL test).
+   */
+  async tapCancelSignAndSendTransaction(): Promise<void> {
+    await Gestures.waitAndTap(this.cancelSignAndSendTransactionButtonSelector, {
+      elemDescription:
+        'Solana sign-and-send transaction cancel snap footer button',
+      delay: 1800,
+    });
   }
 }
 

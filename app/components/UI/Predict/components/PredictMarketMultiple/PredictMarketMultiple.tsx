@@ -163,6 +163,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   return (
     <TouchableOpacity
+      accessible={false}
       testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -213,8 +214,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               </Text>
             </Box>
           </Box>
-          {filteredOutcomes.slice(0, 3).map((outcome) => {
+          {filteredOutcomes.slice(0, 3).map((outcome, outcomeRowIndex) => {
             const outcomeLabels = outcome.tokens.map((token) => token.title);
+            const isPrimaryOutcomeRow = outcomeRowIndex === 0;
             return (
               <Box
                 key={`${outcome.id}`}
@@ -270,6 +272,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     }
                     onPress={() => handleBuy(outcome, outcome.tokens[0])}
                     style={styles.buttonYes}
+                    testID={
+                      testID && isPrimaryOutcomeRow
+                        ? `${testID}-action-buttons-bet-yes`
+                        : undefined
+                    }
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
@@ -290,6 +297,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     }
                     onPress={() => handleBuy(outcome, outcome.tokens[1])}
                     style={styles.buttonNo}
+                    testID={
+                      testID && isPrimaryOutcomeRow
+                        ? `${testID}-action-buttons-bet-no`
+                        : undefined
+                    }
                   />
                 </Box>
               </Box>

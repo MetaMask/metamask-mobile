@@ -15,6 +15,7 @@ import ExperienceEnhancerBottomSheet from '../../page-objects/Onboarding/Experie
 import TermsOfUseModal from '../../page-objects/Onboarding/TermsOfUseModal';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import PredictGTMModal from '../../page-objects/Predict/PredictGTMModal';
 import LoginView from '../../page-objects/wallet/LoginView';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import ForgotPasswordModal from '../../page-objects/Common/ForgotPasswordModalView';
@@ -97,6 +98,8 @@ export const completeSocialLoginOnboarding = async (
   } catch {
     // May go directly to home in some flows
   }
+
+  await PredictGTMModal.dismissIfVisible();
 
   await Assertions.expectElementToBeVisible(WalletView.container, {
     description: 'Wallet view should be visible after onboarding',
