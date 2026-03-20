@@ -8863,9 +8863,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-acm@file:./metamask-react-native-acm-1.2.0.tgz::locator=metamask%40workspace%3A.":
+"@metamask/react-native-acm@github:MetaMask/react-native-acm#cw/ios":
   version: 1.2.0
-  resolution: "@metamask/react-native-acm@file:./metamask-react-native-acm-1.2.0.tgz#./metamask-react-native-acm-1.2.0.tgz::hash=5c5867&locator=metamask%40workspace%3A."
+  resolution: "@metamask/react-native-acm@https://github.com/MetaMask/react-native-acm.git#commit=bf5dfef0d54b6b69aa36191d6115ffca4d948885"
   peerDependencies:
     expo: ">=47.0.0"
     react: "*"
@@ -8873,7 +8873,7 @@ __metadata:
   peerDependenciesMeta:
     expo:
       optional: true
-  checksum: 10/1181a53332cfc2457bf46da44e0356de6134fdfeabda9a2f33dd04f841fe624dce786ba241ef956fc146da70d77a95ccfe3164fab210f4e20e8fd067ace1dabd
+  checksum: 10/54453e93d33fa3e0588cefbff253936a5e27d3642976012c25293cc43293e41c84ef8b3bdef5d9b9fe2b7aec2dfc3e8a0d2dd2fcee441b7ed1e7965342aaa7e0
   languageName: node
   linkType: hard
 
@@ -11910,16 +11910,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/app-check@npm:21.0.0":
-  version: 21.0.0
-  resolution: "@react-native-firebase/app-check@npm:21.0.0"
+"@react-native-firebase/app-check@npm:^21.0.0":
+  version: 21.14.0
+  resolution: "@react-native-firebase/app-check@npm:21.14.0"
   peerDependencies:
-    "@react-native-firebase/app": 21.0.0
+    "@react-native-firebase/app": 21.14.0
     expo: ">=47.0.0"
   peerDependenciesMeta:
     expo:
       optional: true
-  checksum: 10/af0868991dc57f56e26d6564d2a2cbc546d80a2f634bafc799ff2e75c1f759acfa1d7ef67525aeacb0d04f05ead8222a567194a4a1508692673ec0c086630ce2
+  checksum: 10/762502cfe77dcfcbb2c20189d84e197c05367769d2e0d72afbec78adfb7fe3b3427ae4ff2496c0f800973b41330ec29c1c76e1a130ed2783f8489c38c5c745dc
   languageName: node
   linkType: hard
 
@@ -34997,7 +34997,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^28.0.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^12.0.0"
-    "@metamask/react-native-acm": "file:./metamask-react-native-acm-1.2.0.tgz"
+    "@metamask/react-native-acm": "github:MetaMask/react-native-acm#cw/ios"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
     "@metamask/react-native-payments": "npm:^2.0.0"
@@ -35056,7 +35056,7 @@ __metadata:
     "@react-native-community/slider": "npm:^4.4.3"
     "@react-native-cookies/cookies": "npm:^6.2.1"
     "@react-native-firebase/app": "npm:^21.0.0"
-    "@react-native-firebase/app-check": "npm:21.0.0"
+    "@react-native-firebase/app-check": "npm:^21.0.0"
     "@react-native-firebase/messaging": "npm:^21.0.0"
     "@react-native-masked-view/masked-view": "npm:^0.3.1"
     "@react-native/babel-preset": "npm:0.76.9"
