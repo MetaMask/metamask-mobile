@@ -157,6 +157,30 @@ jobs:
             "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
 
+      # Confirms PEM is intact after AWS → GITHUB_ENV → AuthKey.p8 (no private key bytes in logs).
+      - name: Verify App Store Connect API key (.p8)
+        run: |
+          set -euo pipefail
+          P8="ios/AuthKey.p8"
+          test -f "$P8"
+          echo "First line (expected PEM BEGIN): $(head -n1 "$P8")"
+          echo "Last line (expected PEM END): $(tail -n1 "$P8")"
+          echo "Byte size: $(wc -c < "$P8")"
+          echo "Line count: $(wc -l < "$P8")"
+          openssl pkey -in "$P8" -pubout -out /dev/null
+          echo "OK: OpenSSL parsed the key (public extract only, not logged)"
+          python3 -c "
+          import os
+          v = os.environ.get('APP_STORE_CONNECT_API_KEY_KEY_CONTENT', '')
+          print('KEY_CONTENT env: chars=', len(v), ' newlines=', v.count(chr(10)))
+          lines = v.lstrip().splitlines()
+          assert lines, 'KEY_CONTENT is empty'
+          first = lines[0]
+          print('KEY_CONTENT first line only:', first)
+          assert first.startswith('-----BEGIN'), 'KEY_CONTENT should start with -----BEGIN'
+          "
+          echo "OK: KEY_CONTENT env shape looks like PEM"
+
       - name: Upload to TestFlight
         run: |
           bash scripts/upload-to-testflight.sh \
