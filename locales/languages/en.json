@@ -6907,6 +6907,7 @@
       "confirm_button": "Confirm"
     },
     "add_wallet": "Add wallet",
+    "create_money_account": "Create money account",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
     "account_details": {

@@ -35,6 +35,7 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import { selectFullPageAccountListEnabledFlag } from '../../../selectors/featureFlagController/fullPageAccountList';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -49,8 +50,12 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
-import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectSelectedAccountGroup,
+  selectWalletByAccount,
+} from '../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AccountWalletType } from '@metamask/account-api';
 
 // Internal dependencies.
 import { useStyles } from '../../../component-library/hooks';
@@ -109,6 +114,22 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     isAccountSyncingInProgress,
     loadingMessage: accountOperationLoadingMessage,
   } = useAccountsOperationsLoadingStates();
+
+  const getWalletByAccount = useSelector(selectWalletByAccount);
+  const entropySource = useMemo(() => {
+    const firstAccountId = selectedAccountGroup?.accounts?.[0];
+    Logger.log(
+      '[MoneyAccount] entropySource memo: firstAccountId =',
+      firstAccountId,
+    );
+    if (!firstAccountId) return null;
+    const wallet = getWalletByAccount(firstAccountId);
+    Logger.log('[MoneyAccount] entropySource memo: wallet =', wallet?.type);
+    if (wallet?.type !== AccountWalletType.Entropy) return null;
+    const id = wallet.metadata.entropy.id;
+    Logger.log('[MoneyAccount] entropySource memo: resolved id =', id);
+    return id;
+  }, [selectedAccountGroup, getWalletByAccount]);
 
   useSyncSRPs();
 
@@ -220,6 +241,28 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     setScreen(AccountSelectorScreens.MultichainAddWalletActions);
   }, []);
 
+  const handleCreateMoneyAccount = useCallback(async () => {
+    Logger.log('[MoneyAccount] handleCreateMoneyAccount called', {
+      entropySource,
+    });
+    if (!entropySource) {
+      Logger.log('[MoneyAccount] No entropySource available, aborting');
+      return;
+    }
+    try {
+      Logger.log(
+        '[MoneyAccount] Calling MoneyAccountService.createMoneyAccount',
+      );
+      const result =
+        await Engine.context.MoneyAccountService.createMoneyAccount(
+          entropySource,
+        );
+      Logger.log('[MoneyAccount] createMoneyAccount succeeded', result);
+    } catch (e) {
+      Logger.error(e as Error, '[MoneyAccount] createMoneyAccount failed');
+    }
+  }, [entropySource]);
+
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
@@ -266,8 +309,28 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         onPress: handleAddAccount,
         testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       },
+      {
+        variant: ButtonVariants.Secondary,
+        isDisabled: !entropySource,
+        label: (
+          <Text variant={TextVariant.BodyMDBold}>
+            {strings('multichain_accounts.create_money_account')}
+          </Text>
+        ),
+        size: ButtonSize.Lg,
+        width: ButtonWidthTypes.Full,
+        onPress: handleCreateMoneyAccount,
+        testID:
+          AccountListBottomSheetSelectorsIDs.CREATE_MONEY_ACCOUNT_BUTTON_ID,
+      },
     ],
-    [handleAddAccount, buttonLabel, isAccountSyncingInProgress],
+    [
+      handleAddAccount,
+      buttonLabel,
+      isAccountSyncingInProgress,
+      entropySource,
+      handleCreateMoneyAccount,
+    ],
   );
 
   const renderAccountSelector = useCallback(

@@ -62,6 +62,10 @@ import {
   getMultichainAccountServiceInitMessenger,
   getMultichainAccountServiceMessenger,
 } from './multichain-account-service-messenger/multichain-account-service-messenger';
+import {
+  getMoneyAccountServiceInitMessenger,
+  getMoneyAccountServiceMessenger,
+} from './money-account-service-messenger/money-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
@@ -394,6 +398,10 @@ export const CONTROLLER_MESSENGERS = {
   MultichainAccountService: {
     getMessenger: getMultichainAccountServiceMessenger,
     getInitMessenger: getMultichainAccountServiceInitMessenger,
+  },
+  MoneyAccountService: {
+    getMessenger: getMoneyAccountServiceMessenger,
+    getInitMessenger: getMoneyAccountServiceInitMessenger,
   },
   PhishingController: {
     getMessenger: getPhishingControllerMessenger,

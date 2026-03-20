@@ -372,6 +372,10 @@ import {
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
 import {
+  MoneyAccountService,
+  MoneyAccountServiceActions,
+} from '@metamask-previews/money-account-service';
+import {
   GatorPermissionsController,
   GatorPermissionsControllerActions,
   GatorPermissionsControllerEvents,
@@ -519,6 +523,7 @@ type GlobalActions =
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
+  | MoneyAccountServiceActions
   | AccountsControllerActions
   | AccountTreeControllerActions
   | PreferencesControllerActions
@@ -743,6 +748,7 @@ export type Controllers = {
   MultichainAccountService: MultichainAccountService;
   SnapKeyringBuilder: SnapKeyringBuilder;
   ///: END:ONLY_INCLUDE_IF
+  MoneyAccountService: MoneyAccountService;
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
@@ -907,6 +913,7 @@ export type ControllersToInitialize =
   | 'MultichainAccountService'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'MoneyAccountService'
   | 'EarnController'
   | 'ErrorReportingService'
   | 'StorageService'
