@@ -6,10 +6,8 @@ import {
   LoginHandlerIdTokenResult,
 } from '../../OAuthInterface';
 import { signInWithGoogle } from '@metamask/react-native-acm';
-import { OAuthError, OAuthErrorMessages, OAuthErrorType } from '../../error';
+import { OAuthError, OAuthErrorType } from '../../error';
 import Logger from '../../../../util/Logger';
-import appCheckNative, { getToken } from '@react-native-firebase/app-check';
-import { Alert } from 'react-native';
 
 /**
  * IosGoogleLoginHandler is the Google login handler for iOS.
@@ -58,10 +56,6 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
    */
   async login(): Promise<LoginHandlerIdTokenResult> {
     try {
-      const appCheckInstance = appCheckNative();
-      const { token } = await getToken(appCheckInstance, false);
-      Alert.alert(token);
-
       const result = await signInWithGoogle({
         iosClientId: this.clientId,
         nonce: this.nonce,
@@ -77,8 +71,6 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
         };
       }
 
-      const { token: token2 } = await getToken(appCheckInstance, false);
-      Alert.alert(token2);
       throw new OAuthError(
         'handleGoogleLogin: Unknown error',
         OAuthErrorType.UnknownError,
