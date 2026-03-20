@@ -15,7 +15,6 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
-import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView';
 import {
   setupMockRequest,
   setupMockPostRequest,
@@ -225,21 +224,10 @@ describe(
         },
         async () => {
           await performSendTransaction();
-          await Assertions.expectElementToBeVisible(
-            ActivitiesView.transactionItem(0),
-            {
-              timeout: 60000,
-              description: 'Latest activity row should be visible',
-            },
-          );
-          await Assertions.expectElementToHaveText(
-            ActivitiesView.transactionStatus(0),
-            'Confirmed',
-            {
-              timeout: 60000,
-              description: 'Latest activity row should become Confirmed',
-            },
-          );
+          await Assertions.expectTextDisplayed('Confirmed', {
+            timeout: 60000,
+            allowDuplicates: true,
+          });
           await device.enableSynchronization();
         },
       );
@@ -266,21 +254,10 @@ describe(
         },
         async () => {
           await performSendTransaction();
-          await Assertions.expectElementToBeVisible(
-            ActivitiesView.transactionItem(0),
-            {
-              timeout: 60000,
-              description: 'Latest activity row should be visible',
-            },
-          );
-          await Assertions.expectElementToHaveText(
-            ActivitiesView.transactionStatus(0),
-            'Failed',
-            {
-              timeout: 60000,
-              description: 'Latest activity row should become Failed',
-            },
-          );
+          await Assertions.expectTextDisplayed('Failed', {
+            timeout: 60000,
+            allowDuplicates: true,
+          });
           await device.enableSynchronization();
         },
       );

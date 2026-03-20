@@ -754,12 +754,16 @@ class WalletView {
       async () => {
         for (const target of this.getPredictionPositionMatchers(positionName)) {
           try {
-            await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-              direction: 'down',
-              scrollAmount: 220,
-              timeout: 6000,
-              elemDescription: `Scroll to prediction position: ${positionName}`,
-            });
+            await Gestures.scrollToElement(
+              target,
+              this.walletScrollViewIdentifier,
+              {
+                direction: 'down',
+                scrollAmount: 220,
+                timeout: 6000,
+                elemDescription: `Scroll to prediction position: ${positionName}`,
+              },
+            );
             await Gestures.waitAndTap(target, {
               checkStability: true,
               elemDescription: `Predictions Position: ${positionName}`,
@@ -770,12 +774,16 @@ class WalletView {
           }
 
           try {
-            await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-              direction: 'up',
-              scrollAmount: 220,
-              timeout: 6000,
-              elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
-            });
+            await Gestures.scrollToElement(
+              target,
+              this.walletScrollViewIdentifier,
+              {
+                direction: 'up',
+                scrollAmount: 220,
+                timeout: 6000,
+                elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
+              },
+            );
             await Gestures.waitAndTap(target, {
               checkStability: true,
               elemDescription: `Predictions Position: ${positionName}`,

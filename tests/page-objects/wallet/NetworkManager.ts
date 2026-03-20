@@ -191,19 +191,24 @@ class NetworkManager {
           return;
         }
 
-        await Assertions.expectElementToBeVisible(this.openNetworkManagerButton, {
-          timeout: 3000,
-          description: 'Open Network Manager Button should be visible',
-        });
+        await Assertions.expectElementToBeVisible(
+          this.openNetworkManagerButton,
+          {
+            timeout: 3000,
+            description: 'Open Network Manager Button should be visible',
+          },
+        );
         await Gestures.waitAndTap(this.openNetworkManagerButton, {
           elemDescription: 'Open Network Manager Button',
-          checkStability: true,
           timeout: 3000,
         });
-        await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-          timeout: 3000,
-          description: 'Network Manager Bottom Sheet should appear',
-        });
+        await Assertions.expectElementToBeVisible(
+          this.networkManagerBottomSheet,
+          {
+            timeout: 3000,
+            description: 'Network Manager Bottom Sheet should appear',
+          },
+        );
       },
       {
         timeout: 30000,
@@ -355,10 +360,9 @@ class NetworkManager {
       elemDescription: 'Network Manager Bottom Sheet',
       timeout: 10000,
     });
-    await Utilities.waitForElementToStopMoving(this.networkManagerBottomSheet, {
-      timeout: 5000,
-      interval: 300,
-      stableCount: 4,
+    await Assertions.expectElementToBeVisible(this.popularNetworksTab, {
+      elemDescription: 'Popular Networks Tab',
+      timeout: 10000,
     });
   }
 

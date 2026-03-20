@@ -229,11 +229,14 @@ class TabBarComponent {
           });
         } catch {
           // Fallback to direct Detox matcher in case encapsulated tap misses transient tree updates.
-          await Gestures.waitAndTap(Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY), {
-            timeout: 2500,
-            elemDescription: 'Tab Bar - Activity Button (fallback)',
-            checkStability: true,
-          });
+          await Gestures.waitAndTap(
+            Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY),
+            {
+              timeout: 2500,
+              elemDescription: 'Tab Bar - Activity Button (fallback)',
+              checkStability: true,
+            },
+          );
         }
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
