@@ -8,6 +8,7 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
+import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -48,6 +49,8 @@ const OndoCampaignDetailsView: React.FC = () => {
       navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW as never);
     }
   }, [campaign, navigation]);
+
+  const isOptedIn = participantStatus?.status?.optedIn === true;
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -106,13 +109,24 @@ const OndoCampaignDetailsView: React.FC = () => {
           {campaign && (
             <>
               <CampaignStatus campaign={campaign} />
-              {campaign.details?.howItWorks && (
+
+              {campaign.details?.howItWorks && !isOptedIn && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="px-4 py-4">
                     <CampaignHowItWorks
                       howItWorks={campaign.details.howItWorks}
                     />
+                  </Box>
+                </>
+              )}
+
+              {/* Position summary - shown when opted in, or when campaign is complete regardless of opt-in */}
+              {(isOptedIn || getCampaignStatus(campaign) === 'complete') && (
+                <>
+                  <Box twClassName="border-b border-border-muted" />
+                  <Box twClassName="px-4 py-4">
+                    <OndoLeaderboardPosition campaignId={campaignId} />
                   </Box>
                 </>
               )}

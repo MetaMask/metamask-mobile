@@ -1,0 +1,325 @@
+import React from 'react';
+import { render } from '@testing-library/react-native';
+import OndoLeaderboardPosition, {
+  ONDO_LEADERBOARD_POSITION_TEST_IDS,
+} from './OndoLeaderboardPosition';
+import {
+  useOndoLeaderboardPosition,
+  type OndoLeaderboardPositionData,
+} from '../../hooks/useOndoLeaderboardPosition';
+
+jest.mock('../../hooks/useOndoLeaderboardPosition');
+
+const mockUseOndoLeaderboardPosition =
+  useOndoLeaderboardPosition as jest.MockedFunction<
+    typeof useOndoLeaderboardPosition
+  >;
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return { ...actual };
+});
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
+
+jest.mock('../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      onConfirm,
+      confirmButtonLabel,
+      testID,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(Text, null, title),
+        confirmButtonLabel &&
+          ReactActual.createElement(
+            Pressable,
+            { onPress: onConfirm, testID: `${testID}-retry` },
+            ReactActual.createElement(Text, null, confirmButtonLabel),
+          ),
+      ),
+  };
+});
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'rewards.leaderboard_position.title': 'Your Position',
+      'rewards.leaderboard_position.rank': 'Rank',
+      'rewards.leaderboard_position.tier': 'Tier',
+      'rewards.leaderboard_position.rate_of_return': 'Return',
+      'rewards.leaderboard_position.total_deposited': 'Total Deposited',
+      'rewards.leaderboard_position.current_value': 'Current Value',
+      'rewards.leaderboard_position.updated_at': `Updated ${params?.time ?? ''}`,
+      'rewards.leaderboard_position.not_found': 'Not on the leaderboard yet',
+      'rewards.leaderboard_position.error_loading':
+        'Failed to load your position',
+      'rewards.leaderboard_position.retry': 'Retry',
+    };
+    return translations[key] || key;
+  },
+}));
+
+const CAMPAIGN_ID = 'campaign-123';
+const mockRefetch = jest.fn();
+
+const MOCK_POSITION_DATA: OndoLeaderboardPositionData = {
+  rank: 5,
+  projected_tier: 'MID',
+  rate_of_return: 0.15,
+  total_usd_deposited: 10000.0,
+  current_usd_value: 12500.5,
+  computed_at: '2024-03-20T12:00:00.000Z',
+};
+
+describe('OndoLeaderboardPosition', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('loading state', () => {
+    it('renders skeleton when loading with no data', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: null,
+        isLoading: true,
+        hasError: false,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.LOADING),
+      ).toBeDefined();
+    });
+
+    it('does not render skeleton when loading but has data', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: MOCK_POSITION_DATA,
+        isLoading: true,
+        hasError: false,
+        refetch: mockRefetch,
+      });
+
+      const { queryByTestId, getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.LOADING),
+      ).toBeNull();
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+    });
+  });
+
+  describe('error state', () => {
+    it('renders error banner when has error and no data', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: null,
+        isLoading: false,
+        hasError: true,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.ERROR),
+      ).toBeDefined();
+    });
+
+    it('shows data when has error but positionData is present', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: MOCK_POSITION_DATA,
+        isLoading: false,
+        hasError: true,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+    });
+  });
+
+  describe('not found state', () => {
+    it('renders not found message when no data and not loading', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: null,
+        isLoading: false,
+        hasError: false,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_FOUND),
+      ).toBeDefined();
+    });
+  });
+
+  describe('position data display', () => {
+    beforeEach(() => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: MOCK_POSITION_DATA,
+        isLoading: false,
+        hasError: false,
+        refetch: mockRefetch,
+      });
+    });
+
+    it('renders position container', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+    });
+
+    it('renders title', () => {
+      const { getByText } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(getByText('Your Position')).toBeDefined();
+    });
+
+    it('renders rank', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      const rankEl = getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.RANK);
+      expect(rankEl).toBeDefined();
+    });
+
+    it('renders rank value as #5', () => {
+      const { getByText } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(getByText('#5')).toBeDefined();
+    });
+
+    it('renders projected tier', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.TIER),
+      ).toBeDefined();
+    });
+
+    it('renders tier value', () => {
+      const { getByText } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(getByText('MID')).toBeDefined();
+    });
+
+    it('renders rate of return with positive sign', () => {
+      const { getByText } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(getByText('+15.00%')).toBeDefined();
+    });
+
+    it('renders negative rate of return without plus sign', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: { ...MOCK_POSITION_DATA, rate_of_return: -0.05 },
+        isLoading: false,
+        hasError: false,
+        refetch: mockRefetch,
+      });
+
+      const { getByText } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(getByText('-5.00%')).toBeDefined();
+    });
+
+    it('renders computed_at timestamp', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.COMPUTED_AT),
+      ).toBeDefined();
+    });
+
+    it('renders total deposited and current value stat cells', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.TOTAL_DEPOSITED),
+      ).toBeDefined();
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CURRENT_VALUE),
+      ).toBeDefined();
+    });
+  });
+
+  describe('hook integration', () => {
+    it('passes campaignId to hook', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: null,
+        isLoading: false,
+        hasError: false,
+        refetch: mockRefetch,
+      });
+
+      render(<OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />);
+
+      expect(mockUseOndoLeaderboardPosition).toHaveBeenCalledWith(CAMPAIGN_ID);
+    });
+
+    it('passes undefined campaignId when not provided', () => {
+      mockUseOndoLeaderboardPosition.mockReturnValue({
+        positionData: null,
+        isLoading: false,
+        hasError: false,
+        refetch: mockRefetch,
+      });
+
+      render(<OndoLeaderboardPosition campaignId={undefined} />);
+
+      expect(mockUseOndoLeaderboardPosition).toHaveBeenCalledWith(undefined);
+    });
+  });
+});

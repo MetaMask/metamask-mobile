@@ -201,3 +201,55 @@ export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
   if (!minVersion) return false;
   return !hasMinimumRequiredVersion(minVersion);
 };
+
+// Campaign leaderboard selectors
+export const selectCampaignLeaderboard = (state: RootState) =>
+  state.rewards.campaignLeaderboard;
+
+export const selectCampaignLeaderboardLoading = (state: RootState) =>
+  state.rewards.campaignLeaderboardLoading;
+
+export const selectCampaignLeaderboardError = (state: RootState) =>
+  state.rewards.campaignLeaderboardError;
+
+export const selectCampaignLeaderboardSelectedTier = (state: RootState) =>
+  state.rewards.campaignLeaderboardSelectedTier;
+
+export const selectCampaignLeaderboardTiers = (state: RootState) =>
+  state.rewards.campaignLeaderboard?.tiers ?? {};
+
+export const selectCampaignLeaderboardComputedAt = (state: RootState) =>
+  state.rewards.campaignLeaderboard?.computed_at ?? null;
+
+export const selectCampaignLeaderboardTierNames = (state: RootState) =>
+  state.rewards.campaignLeaderboard
+    ? Object.keys(state.rewards.campaignLeaderboard.tiers)
+    : [];
+
+export const selectCampaignLeaderboardEntriesByTier =
+  (tierName: string | null) => (state: RootState) =>
+    tierName && state.rewards.campaignLeaderboard?.tiers[tierName]
+      ? state.rewards.campaignLeaderboard.tiers[tierName].entries
+      : [];
+
+export const selectCampaignLeaderboardTotalParticipantsByTier =
+  (tierName: string | null) => (state: RootState) =>
+    tierName && state.rewards.campaignLeaderboard?.tiers[tierName]
+      ? state.rewards.campaignLeaderboard.tiers[tierName].total_participants
+      : 0;
+
+// Campaign leaderboard position selectors
+export const selectCampaignLeaderboardPositions = (state: RootState) =>
+  state.rewards.campaignLeaderboardPositions;
+
+export const selectCampaignLeaderboardPositionById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignLeaderboardPositions[campaignId] ?? null)
+      : null;
+
+export const selectCampaignLeaderboardPositionLoading = (state: RootState) =>
+  state.rewards.campaignLeaderboardPositionLoading;
+
+export const selectCampaignLeaderboardPositionError = (state: RootState) =>
+  state.rewards.campaignLeaderboardPositionError;

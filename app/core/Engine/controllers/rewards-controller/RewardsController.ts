@@ -23,6 +23,8 @@ import {
   type RewardDto,
   type CampaignDto,
   type CampaignParticipantStatusDto,
+  type CampaignLeaderboardDto,
+  type CampaignLeaderboardPositionDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -103,6 +105,12 @@ const CAMPAIGNS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign participant status cache threshold
 const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign leaderboard cache threshold (hourly job updates, but we cache for 5 min)
+const CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign leaderboard position cache threshold
+const CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -189,6 +197,18 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  campaignLeaderboards: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  campaignLeaderboardPositions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -219,6 +239,8 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
   campaignParticipantStatus: {},
+  campaignLeaderboards: {},
+  campaignLeaderboardPositions: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -596,6 +618,14 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getCampaignParticipantStatus',
       this.getCampaignParticipantStatus.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignLeaderboard',
+      this.getOndoCampaignLeaderboard.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignLeaderboardPosition',
+      this.getOndoCampaignLeaderboardPosition.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -3510,6 +3540,131 @@ export class RewardsController extends BaseController<
             lastFetched: Date.now(),
           };
         });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the campaign leaderboard showing top 20 participants per tier.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get leaderboard for.
+   * @returns The leaderboard data grouped by tier.
+   */
+  async getOndoCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { campaign_id: campaignId, computed_at: '', tiers: {} };
+    }
+
+    const result = await wrapWithCache<CampaignLeaderboardDto>({
+      key: campaignId,
+      ttl: CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.campaignLeaderboards[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            campaign_id: cached.campaign_id,
+            computed_at: cached.computed_at,
+            tiers: cached.tiers,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh campaign leaderboard via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getOndoCampaignLeaderboard',
+          campaignId,
+        )) as CampaignLeaderboardDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.campaignLeaderboards[k] = {
+            campaign_id: payload.campaign_id,
+            computed_at: payload.computed_at,
+            tiers: payload.tiers,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the current user's position on the campaign leaderboard.
+   * This is an authenticated endpoint.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get position for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's leaderboard position, or null if not found.
+   */
+  async getOndoCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardPositionDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = `${campaignId}:${subscriptionId}`;
+    const result = await wrapWithCache<CampaignLeaderboardPositionDto | null>({
+      key,
+      ttl: CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.campaignLeaderboardPositions[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            projected_tier: cached.projected_tier,
+            rank: cached.rank,
+            total_in_tier: cached.total_in_tier,
+            rate_of_return: cached.rate_of_return,
+            current_usd_value: cached.current_usd_value,
+            total_usd_deposited: cached.total_usd_deposited,
+            net_deposit: cached.net_deposit,
+            computed_at: cached.computed_at,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign leaderboard position via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getOndoCampaignLeaderboardPosition',
+            campaignId,
+            subscriptionId,
+          )) as CampaignLeaderboardPositionDto | null;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        if (payload === null) {
+          this.update((state) => {
+            delete state.campaignLeaderboardPositions[k];
+          });
+        } else {
+          this.update((state) => {
+            state.campaignLeaderboardPositions[k] = {
+              projected_tier: payload.projected_tier,
+              rank: payload.rank,
+              total_in_tier: payload.total_in_tier,
+              rate_of_return: payload.rate_of_return,
+              current_usd_value: payload.current_usd_value,
+              total_usd_deposited: payload.total_usd_deposited,
+              net_deposit: payload.net_deposit,
+              computed_at: payload.computed_at,
+              lastFetched: Date.now(),
+            };
+          });
+        }
       },
     });
     return result;
