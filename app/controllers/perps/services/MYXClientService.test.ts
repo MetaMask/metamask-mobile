@@ -1047,6 +1047,69 @@ describe('MYXClientService', () => {
       expect(mockAuth).toHaveBeenCalledTimes(1);
     });
 
+    it('generates access token via getAccessToken callback', async () => {
+      // Create service with auth credentials so #generateAccessToken passes the guard
+      const authService = new MYXClientService(mockDeps, {
+        isTestnet: true,
+        authConfig: {
+          appId: 'test-app-id',
+          apiSecret: 'test-secret',
+          brokerAddress: '0xbroker',
+        },
+      });
+
+      // Capture the getAccessToken callback passed to mockAuth
+      let capturedGetAccessToken: (() => Promise<unknown>) | undefined;
+      mockAuth.mockImplementationOnce(
+        ({ getAccessToken }: { getAccessToken: () => Promise<unknown> }) => {
+          capturedGetAccessToken = getAccessToken;
+        },
+      );
+
+      await authService.authenticate({}, {}, '0xuser');
+
+      // Mock fetch for the token API call
+      const mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          code: 9200,
+          data: { accessToken: 'generated-token', expireAt: 9999999999 },
+        }),
+      } as Response);
+
+      // Ensure crypto.subtle.digest is available for sha256Hex
+      const originalCrypto = globalThis.crypto;
+      Object.defineProperty(globalThis, 'crypto', {
+        value: {
+          ...originalCrypto,
+          subtle: {
+            ...originalCrypto?.subtle,
+            digest: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
+          },
+        },
+        configurable: true,
+      });
+
+      const token = await capturedGetAccessToken?.();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('create_token'),
+      );
+      // Restore crypto
+      Object.defineProperty(globalThis, 'crypto', {
+        value: originalCrypto,
+        configurable: true,
+      });
+      // Token should be prefixed with 'sdk.' for WS compatibility
+      expect(token).toEqual({
+        accessToken: 'sdk.generated-token',
+        expireAt: 9999999999,
+      });
+
+      mockFetch.mockRestore();
+      authService.disconnect();
+    });
+
     it('wraps and rethrows SDK auth errors', async () => {
       mockAuth.mockImplementationOnce(() => {
         throw new Error('Auth failed');
