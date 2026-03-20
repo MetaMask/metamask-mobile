@@ -76,6 +76,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "providerData": {},
         "selectedCountry": null,
       },
+      "ComplianceController": {},
       "ConnectivityController": {
         "connectivityStatus": "online",
       },
@@ -941,6 +942,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "providerData": {},
         "selectedCountry": null,
       },
+      "ComplianceController": {},
       "ConnectivityController": {
         "connectivityStatus": "online",
       },
