@@ -11,6 +11,7 @@ const env = {
   PR_NUMBER: process.env.PR_NUMBER || '',
   GITHUB_OUTPUT: process.env.GITHUB_OUTPUT || '',
   GITHUB_STEP_SUMMARY: process.env.GITHUB_STEP_SUMMARY || '',
+  BASE_REF: process.env.BASE_REF || 'main',
 };
 
 const PR_COMMENT_FILE = 'pr_comment.md';
@@ -77,9 +78,11 @@ async function main() {
       return;
     }
 
-    // Build command - always uses origin/main as base (job only runs on PRs targeting main)
-    const baseCmd = `node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --pr ${env.PR_NUMBER}`;
-    console.log(`🎯 Analyzing PR against origin/main`);
+    // Build command - uses GitHub API (PR number) for changed files list; -b ensures
+    // file diffs are computed against the correct base branch (main or release/*)
+    const baseBranch = `origin/${env.BASE_REF}`;
+    const baseCmd = `node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --pr ${env.PR_NUMBER} -b ${baseBranch}`;
+    console.log(`🎯 Analyzing PR #${env.PR_NUMBER} against base branch: ${baseBranch}`);
 
     try {
       execSync(baseCmd, {

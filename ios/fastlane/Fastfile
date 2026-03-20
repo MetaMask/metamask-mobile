@@ -101,6 +101,9 @@ platform :ios do
     testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
+      distribute_external: distribute_external,
+      groups: groups,
+      notify_external_testers: notify_external_testers,
       changelog: changelog_message
     }
 

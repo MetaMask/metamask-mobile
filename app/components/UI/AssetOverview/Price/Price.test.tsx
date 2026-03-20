@@ -6,9 +6,7 @@ import {
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import PriceChart from '../PriceChart/PriceChart';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 
 jest.mock('../PriceChart/PriceChart', () => ({
   ...jest.requireActual('../PriceChart/PriceChart'),
@@ -49,16 +47,15 @@ describe('Price Component', () => {
   });
 
   it('renders price at selected date', async () => {
-    jest
-      .mocked(PriceChart)
-      .mockImplementation(({ onChartIndexChange }) => (
-        <Button
-          testID="mock-price-chart"
-          variant={ButtonVariants.Primary}
-          label="TEST BUTTON"
-          onPress={() => onChartIndexChange(1)}
-        />
-      ));
+    jest.mocked(PriceChart).mockImplementation(({ onChartIndexChange }) => (
+      <Button
+        testID="mock-price-chart"
+        variant={ButtonVariant.Primary}
+        onPress={() => onChartIndexChange(1)}
+      >
+        TEST BUTTON
+      </Button>
+    ));
 
     const { getByTestId } = render(<Price {...{ ...mockProps }} />);
 
