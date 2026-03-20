@@ -27,19 +27,19 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const config = useSelector((state: RootState) =>
     selectPayQuoteConfig(state, transactionType),
   );
+  const allowlist = config.tokens;
+  const shouldLoadFullTokenCatalog = isWithdraw && Boolean(allowlist);
   const allTokens = useSendTokens({
-    includeNoBalance: true,
-    includeAllTokens: true,
+    includeNoBalance: shouldLoadFullTokenCatalog,
+    includeAllTokens: shouldLoadFullTokenCatalog,
   });
 
-  const allowlist = config.tokens;
-
   const filtered = useMemo(() => {
-    if (!allowlist) {
+    if (!shouldLoadFullTokenCatalog || !allowlist) {
       return undefined;
     }
     return allTokens.filter((token) => isAllowlisted(token, allowlist));
-  }, [allTokens, allowlist]);
+  }, [allTokens, allowlist, shouldLoadFullTokenCatalog]);
 
   return useCallback(
     (tokens: AssetType[]): AssetType[] => {
