@@ -3,23 +3,23 @@ import { View, ScrollView, useWindowDimensions } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
@@ -94,7 +94,7 @@ function ErrorDetailsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader
+      <HeaderCompactStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
@@ -104,17 +104,17 @@ function ErrorDetailsModal() {
             size={IconSize.Md}
             color={IconColor.Error}
           />
-          <Text variant={TextVariant.HeadingMD}>
+          <Text variant={TextVariant.HeadingMd}>
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </BottomSheetHeader>
+      </HeaderCompactStandard>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             style={styles.errorText}
           >
             {errorMessage}
@@ -125,31 +125,37 @@ function ErrorDetailsModal() {
       <View style={styles.buttonContainer}>
         {showChangeProvider ? (
           <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
+            variant={ButtonVariant.Secondary}
+            size={ButtonBaseSize.Lg}
             onPress={handleChangeProvider}
-            label={strings('fiat_on_ramp.change_provider_button')}
             style={styles.button}
-          />
+            isFullWidth
+          >
+            {strings('fiat_on_ramp.change_provider_button')}
+          </Button>
         ) : null}
         {!showChangeProvider && providerName && providerSupportUrl ? (
           <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
+            variant={ButtonVariant.Secondary}
+            size={ButtonBaseSize.Lg}
             onPress={handleContactSupport}
-            label={strings('fiat_on_ramp.contact_provider_support', {
+            style={styles.button}
+            isFullWidth
+          >
+            {strings('fiat_on_ramp.contact_provider_support', {
               provider: providerName,
             })}
-            style={styles.button}
-          />
+          </Button>
         ) : null}
         <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
+          variant={ButtonVariant.Primary}
+          size={ButtonBaseSize.Lg}
           onPress={handleClose}
-          label={strings('fiat_on_ramp.got_it')}
           style={styles.button}
-        />
+          isFullWidth
+        >
+          {strings('fiat_on_ramp.got_it')}
+        </Button>
       </View>
     </BottomSheet>
   );

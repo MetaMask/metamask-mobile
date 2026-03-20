@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image } from 'react-native';
 import { strings } from '../../../../locales/i18n';
@@ -29,7 +29,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+/* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
 interface RestoreWalletParams {
   previousScreen: string;

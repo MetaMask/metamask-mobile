@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
 import { GanacheHardfork, RampsRegion } from './types.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
