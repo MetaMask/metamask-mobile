@@ -155,12 +155,18 @@ export async function resolveBranchShortLink(
       const finalUrl = response.url;
 
       try {
-        const finalHostname = new URL(finalUrl).hostname;
+        const finalParsed = new URL(finalUrl);
         if (
-          finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
-          finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+          finalParsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+          finalParsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
         ) {
-          return finalUrl;
+          const cleanParsed = new URL(cleanUrl);
+          cleanParsed.searchParams.forEach((value, key) => {
+            if (!finalParsed.searchParams.has(key)) {
+              finalParsed.searchParams.set(key, value);
+            }
+          });
+          return finalParsed.toString();
         }
       } catch {
         // ignore URL parse errors on finalUrl
