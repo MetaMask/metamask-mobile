@@ -70,18 +70,6 @@ jest.mock('../useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
-jest.mock('../useIsHardwareWalletForBridge', () => ({
-  useIsHardwareWalletForBridge: jest.fn(),
-}));
-
-const { useIsHardwareWalletForBridge } = jest.requireMock(
-  '../useIsHardwareWalletForBridge',
-);
-const mockUseIsHardwareWalletForBridge =
-  useIsHardwareWalletForBridge as jest.MockedFunction<
-    typeof useIsHardwareWalletForBridge
-  >;
-
 jest.useFakeTimers();
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -119,7 +107,6 @@ describe('useBridgeQuoteRequest', () => {
     });
 
     mockUseIsInsufficientBalance.mockReturnValue(false);
-    mockUseIsHardwareWalletForBridge.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -498,12 +485,15 @@ describe('useBridgeQuoteRequest', () => {
   });
 
   describe('hardware wallet accounts', () => {
-    it('forces gasIncluded and gasIncluded7702 false in quote request when account is hardware wallet', async () => {
-      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
+    it('sends gasIncluded and gasIncluded7702 false when useIsGasIncluded7702Supported dispatches false for hardware wallet', async () => {
+      // useIsGasIncluded7702Supported now incorporates the HW wallet check and
+      // dispatches isGasIncluded7702Supported=false for hardware wallets.
+      // useIsGasIncludedSTXSendBundleSupported already dispatches false for HW
+      // wallets via selectShouldUseSmartTransaction.
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
-          isGasIncludedSTXSendBundleSupported: true,
-          isGasIncluded7702Supported: true,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: false,
           sourceToken: {
             address: '0xSourceToken',
             chainId: '0x1',
