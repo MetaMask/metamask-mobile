@@ -9,7 +9,7 @@ import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 
-const BRANCH_DOMAIN_HOSTS = [
+const BRANCH_DOMAIN_HOSTS: readonly string[] = [
   AppConstants.MM_UNIVERSAL_LINK_HOST,
   AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE,
 ];
