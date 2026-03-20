@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed ramps unified buy v2 remote feature flag so LaunchDarkly threshold variations apply correctly
+- Fixed ramps unified buy v2 remote feature flag so LaunchDarkly threshold variations apply correctly (#27757)
 
 ## [7.69.0]
 
