@@ -155,7 +155,7 @@ describe('useIsBaanxLoginEnabled', () => {
       expect(result.current).toBe(false);
     });
 
-    it('returns false when cardGeoLocation is empty string', () => {
+    it('returns false when geolocationLocation is empty string', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,

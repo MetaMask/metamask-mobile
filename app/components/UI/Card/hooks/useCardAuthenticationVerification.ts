@@ -42,7 +42,7 @@ export const useCardAuthenticationVerification = () => {
         );
       }
     } else if (userLoggedIn && !isBaanxLoginEnabled && isAuthenticated) {
-      if (geolocationLocation !== 'UNKNOWN') {
+      if (!!geolocationLocation && geolocationLocation !== 'UNKNOWN') {
         dispatch(resetAuthenticatedData());
       }
     }
