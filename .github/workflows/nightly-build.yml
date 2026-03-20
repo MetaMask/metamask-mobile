@@ -76,7 +76,7 @@ jobs:
       build_name: main-exp
       platform: both
       skip_version_bump: true
-      ref: ${{ needs.bump-version-exp.outputs.commit-hash }}
+      source_branch: ${{ needs.bump-version-exp.outputs.commit-hash }}
     secrets: inherit
 
   build-rc:
@@ -87,7 +87,7 @@ jobs:
       build_name: main-rc
       platform: both
       skip_version_bump: true
-      ref: ${{ needs.bump-version-rc.outputs.commit-hash }}
+      source_branch: ${{ needs.bump-version-rc.outputs.commit-hash }}
     secrets: inherit
 
   upload-exp-testflight:

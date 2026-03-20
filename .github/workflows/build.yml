@@ -14,12 +14,9 @@ on:
         type: boolean
         default: false
       source_branch:
-        description: 'Branch, tag, or SHA to build'
-        required: false
-        type: string
-        default: ''
-      ref:
-        description: 'Git ref to checkout when skip_version_bump is true. Defaults to the triggering event ref.'
+        description: >-
+          Branch, tag, or SHA. If skip_version_bump is false: base branch for the version bump (empty uses github.ref_name).
+          If skip_version_bump is true: ref for prepare, node-modules setup, and build checkout (empty uses the default triggering ref).
         required: false
         type: string
         default: ''
@@ -157,13 +154,13 @@ jobs:
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump && inputs.ref != '' }}
+        if: ${{ inputs.skip_version_bump && inputs.source_branch != '' }}
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.source_branch }}
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump && inputs.ref == '' }}
+        if: ${{ inputs.skip_version_bump && inputs.source_branch == '' }}
         with:
           submodules: recursive
 
