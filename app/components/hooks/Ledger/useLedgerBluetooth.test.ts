@@ -386,7 +386,7 @@ describe('useLedgerBluetooth', () => {
   });
 
   describe('workflow step management', () => {
-    it('pushes function to workflow steps when ledgerLogicToRun is called', async () => {
+    it('sets function in workflow steps when ledgerLogicToRun is called', async () => {
       const mockFunc = jest.fn();
       const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
 
@@ -395,7 +395,7 @@ describe('useLedgerBluetooth', () => {
         await flushPromises();
       });
 
-      // Even though mockFunc is pushed to workflow steps, it won't be called
+      // Even though mockFunc is set in workflow steps, it won't be called
       // because transport setup fails. The mockFunc should NOT be called.
       expect(mockFunc).not.toHaveBeenCalled();
     });
@@ -1233,6 +1233,47 @@ describe('useLedgerBluetooth', () => {
         });
 
         expect(mockFunc).toHaveBeenCalled();
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Concurrent workflow race condition (regression for #26978)
+    // -----------------------------------------------------------------------
+    describe('concurrent workflow calls', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      it('executes the latest callback when ledgerLogicToRun is called while a BOLOS retry is in progress', async () => {
+        // Simulate: first call detects BOLOS, triggers retry loop;
+        // second call arrives before the retry finishes — only the
+        // second callback should execute.
+        mockConnectLedgerHardware
+          .mockResolvedValueOnce('BOLOS') // 1st processLedgerWorkflow
+          .mockResolvedValueOnce('Ethereum') // retry from 1st call
+          .mockResolvedValueOnce('Ethereum'); // 2nd processLedgerWorkflow
+
+        const firstFunc = jest.fn();
+        const secondFunc = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        // Start first workflow (enters BOLOS retry loop), then before
+        // the retry completes start a second workflow.
+        let firstPromise: Promise<void> = Promise.resolve();
+        await act(async () => {
+          firstPromise = result.current.ledgerLogicToRun(firstFunc);
+        });
+
+        await act(async () => {
+          const secondPromise = result.current.ledgerLogicToRun(secondFunc);
+          await jest.runAllTimersAsync();
+          await firstPromise;
+          await secondPromise;
+        });
+
+        // The latest caller's function should have been invoked
+        expect(secondFunc).toHaveBeenCalledWith(mockTransportInstance);
+        expect(result.current.error).toBeUndefined();
       });
     });
 

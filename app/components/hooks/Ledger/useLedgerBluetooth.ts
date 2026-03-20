@@ -266,8 +266,9 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         );
       }
 
-      if (workflowSteps.current.length === 1) {
+      if (workflowSteps.current.length >= 1) {
         const finalLogicFunc = workflowSteps.current.pop();
+        workflowSteps.current = [];
         if (!finalLogicFunc) {
           throw new Error('finalLogicFunc is undefined inside workflowSteps.');
         }
@@ -287,10 +288,12 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
     ledgerLogicToRun: async (func) => {
       // Reset error
       setLedgerError(undefined);
-      // Add code block as last item in stack
-      workflowSteps.current.push(() =>
-        func(transportRef.current as BluetoothInterface),
-      );
+      // Replace any pending workflow with the latest caller's intent.
+      // This prevents stale callbacks from accumulating when a new call
+      // arrives while a previous retry cycle is still in progress.
+      workflowSteps.current = [
+        () => func(transportRef.current as BluetoothInterface),
+      ];
       //  Start off workflow
       await processLedgerWorkflow();
     },
