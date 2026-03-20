@@ -18,7 +18,11 @@ class LoginView {
 
   get passwordInput(): EncapsulatedElementType {
     return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT),
+      // Use getElementByLabel so Detox targets the inner TextInput (EditText on
+      // Android) rather than the outer Pressable container which carries the
+      // testID but has no input connection and therefore rejects typeText.
+      detox: () =>
+        Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
@@ -54,7 +58,7 @@ class LoginView {
     return encapsulated({
       detox: () => Matchers.getElementByID(LoginViewSelectors.TITLE_ID),
       appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.LOGIN_BUTTON_ID),
+        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID),
     });
   }
 
@@ -85,8 +89,8 @@ class LoginView {
   async waitForScreenToDisplay(): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.title);
-        await element.waitForDisplayed({ timeout: 15000 });
+        const titleEl = await asPlaywrightElement(this.title);
+        await titleEl.waitForDisplayed({ timeout: 15000 });
       },
     });
   }

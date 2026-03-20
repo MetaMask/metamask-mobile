@@ -85,8 +85,8 @@ jest.mock('../../../core/Engine', () => ({
       stopTransaction: jest.fn(),
     },
     ApprovalController: {
-      accept: jest.fn(),
-      reject: jest.fn(),
+      acceptRequest: jest.fn(),
+      rejectRequest: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),
@@ -109,7 +109,7 @@ describe('useUnifiedTxActions', () => {
 
   interface EngineContextMock {
     TransactionController: { stopTransaction: jest.Mock };
-    ApprovalController: { accept: jest.Mock; reject: jest.Mock };
+    ApprovalController: { acceptRequest: jest.Mock; rejectRequest: jest.Mock };
   }
 
   const engineContext = Engine.context as unknown as EngineContextMock;
@@ -449,7 +449,8 @@ describe('useUnifiedTxActions', () => {
         await result.current.cancelUnsignedQRTransaction(tx);
       });
 
-      const rejectMock = engineContext.ApprovalController.reject as jest.Mock;
+      const rejectMock = engineContext.ApprovalController
+        .rejectRequest as jest.Mock;
       expect(rejectMock).toHaveBeenCalled();
       const [id] = rejectMock.mock.calls[0];
       expect(id).toBe('13');

@@ -13,6 +13,16 @@ on:
         required: false
         type: boolean
         default: false
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: false
+        type: string
+        default: ''
+      ref:
+        description: 'Git ref to checkout when skip_version_bump is true. Defaults to the triggering event ref.'
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       build_name:
@@ -55,7 +65,7 @@ jobs:
       contents: write
       id-token: write
     with:
-      base-branch: ${{ github.ref_name }}
+      base-branch: ${{ inputs.source_branch != '' && inputs.source_branch || github.ref_name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
@@ -70,8 +80,12 @@ jobs:
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
+      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch != '' && inputs.source_branch || github.ref_name) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch != '' && inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -99,17 +113,20 @@ jobs:
   setup-dependencies:
     name: Setup Dependencies (${{ matrix.platform }})
     needs: [prepare]
+    if: ${{ always() && !failure() && !cancelled() }}
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     uses: ./.github/workflows/setup-node-modules.yml
     with:
+      ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+      fetch-depth: 0
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
       use-tarball: true
       upload-artifact: true
-      artifact-name: node-modules-${{ matrix.platform }}
+      artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
 
   # Build
@@ -140,7 +157,13 @@ jobs:
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump }}
+        if: ${{ inputs.skip_version_bump && inputs.ref != '' }}
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump && inputs.ref == '' }}
         with:
           submodules: recursive
 
@@ -153,7 +176,7 @@ jobs:
       - name: Download node_modules tarball
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-${{ matrix.platform }}
+          name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
       - name: Extract tarball (preserves symlinks)
         run: |

@@ -7,13 +7,18 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { InfoRowSkeleton } from '../../UI/info-row/info-row';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
+
+const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const styles = StyleSheet.create({
   termsText: {
@@ -26,14 +31,26 @@ export function PercentageRow() {
 
   const transactionMetadata = useTransactionMetadataRequest();
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   if (
     !hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
   ) {
     return null;
   }
 
-  const redirectToBonusFaq = () =>
+  const redirectToBonusFaq = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
+        .addProperties({
+          location: EVENT_LOCATIONS.PERCENTAGE_ROW,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        })
+        .build(),
+    );
+
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  };
 
   if (isLoading) {
     return <InfoRowSkeleton testId="percentage-row-skeleton" />;
@@ -42,6 +59,8 @@ export function PercentageRow() {
   return (
     <InfoRow
       label={strings('earn.claimable_bonus')}
+      rowVariant={InfoRowVariant.Small}
+      tooltipColor={IconColor.Alternative}
       tooltip={
         <Text>
           {strings('earn.claimable_bonus_tooltip')}{' '}
@@ -50,7 +69,6 @@ export function PercentageRow() {
           </Text>
         </Text>
       }
-      tooltipColor={IconColor.Muted}
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {MUSD_CONVERSION_APY}%

@@ -24,7 +24,7 @@ import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.4.0/';
+  'https://metamask.github.io/snaps/test-snaps/3.4.1/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {

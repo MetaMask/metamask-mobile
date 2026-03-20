@@ -48,6 +48,7 @@ export const profileMetricsControllerInit: ControllerInitFunction<
     state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
     getMetaMetricsId: () => analyticsId,
+    initialDelayDuration: 60_000, // 1 minute delay
   });
 
   return {

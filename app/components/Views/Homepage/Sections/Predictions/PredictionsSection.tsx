@@ -9,9 +9,9 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
-import ErrorState from '../../components/ErrorState';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import Routes from '../../../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
@@ -113,9 +113,9 @@ const PredictionsSection = forwardRef<
   // !isLoading is required: isEmpty is false during loading (its formula starts
   // with !isLoading), so without this guard the hook would fire with stale
   // itemCount/isEmpty values before data arrives.
-  const willRender = isPredictEnabled && !isLoading && !isEmpty;
+  const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
 
-  useHomeViewedEvent({
+  const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.PREDICT,
@@ -157,28 +157,23 @@ const PredictionsSection = forwardRef<
     return null;
   }
 
+  // Don't render if there is a connection error
   if (hasError) {
-    return (
-      <View ref={sectionViewRef}>
-        <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={refresh}
-          />
-        </Box>
-      </View>
-    );
+    return null;
   }
 
   // Render positions if user has any
   if (hasPositions || isLoadingPositions) {
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPredictions}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'predictions',
+            )}
+          />
           <Box>
             {isLoadingPositions ? (
               <>
@@ -217,9 +212,13 @@ const PredictionsSection = forwardRef<
 
   // Render trending markets if no positions
   return (
-    <View ref={sectionViewRef}>
+    <View ref={sectionViewRef} onLayout={onLayout}>
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllPredictions}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+        />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

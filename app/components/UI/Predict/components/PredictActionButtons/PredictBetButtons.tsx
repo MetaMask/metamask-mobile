@@ -6,6 +6,10 @@ import {
 } from '@metamask/design-system-react-native';
 import PredictBetButton from './PredictBetButton';
 import { PredictBetButtonsProps } from './PredictActionButtons.types';
+import {
+  BASE_PREDICT_BET_BUTTONS_TEST_IDS,
+  PREDICT_BET_BUTTONS_TEST_IDS,
+} from './PredictBetButtons.testIds';
 
 const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   yesLabel,
@@ -17,7 +21,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   yesTeamColor,
   noTeamColor,
   disabled = false,
-  testID = 'predict-bet-buttons',
+  testID = BASE_PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON,
   isCarousel,
 }) => (
   <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3">
@@ -29,7 +33,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         variant="yes"
         teamColor={yesTeamColor}
         disabled={disabled}
-        testID={`${testID}-yes`}
+        testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_YES}`}
         size={isCarousel ? ButtonBaseSize.Md : undefined}
       />
     </Box>
@@ -41,7 +45,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         variant="no"
         teamColor={noTeamColor}
         disabled={disabled}
-        testID={`${testID}-no`}
+        testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_NO}`}
         size={isCarousel ? ButtonBaseSize.Md : undefined}
       />
     </Box>

@@ -5,6 +5,8 @@ import {
   View,
   TouchableOpacity,
   Platform,
+  StyleProp,
+  TextStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -46,6 +48,12 @@ import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import parseAmount from '../../../../util/parseAmount';
 import { getTokenImageSource } from '../utils';
 import { useRWAToken } from '../hooks/useRWAToken';
+import { useABTest } from '../../../../hooks';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutVariant,
+} from './TokenSelectorItem.abTestConfig';
 
 const createStyles = ({
   theme,
@@ -136,12 +144,22 @@ interface TokenSelectorItemProps {
   isNoFeeAsset?: boolean;
 }
 
+const isLoadingBalance = (balance?: string) =>
+  balance === TOKEN_BALANCE_LOADING ||
+  balance === TOKEN_BALANCE_LOADING_UPPERCASE;
+
 const FiatBalanceView = ({
   balance,
   isSelected,
+  textStyle,
+  textVariant,
+  textColor,
 }: {
   balance?: string;
   isSelected: boolean;
+  textStyle?: StyleProp<TextStyle>;
+  textVariant: TextVariant;
+  textColor: TextColor;
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
 
@@ -149,18 +167,51 @@ const FiatBalanceView = ({
     return null;
   }
 
-  if (
-    balance === TOKEN_BALANCE_LOADING ||
-    balance === TOKEN_BALANCE_LOADING_UPPERCASE
-  ) {
+  if (isLoadingBalance(balance)) {
     return <View style={styles.skeleton} />;
   }
 
   return (
     <Text
-      variant={TextVariant.BodySM}
-      color={TextColor.Alternative}
+      variant={textVariant}
+      color={textColor}
       numberOfLines={1}
+      style={textStyle}
+    >
+      {balance}
+    </Text>
+  );
+};
+
+const TokenBalanceView = ({
+  balance,
+  isSelected,
+  textStyle,
+  textVariant,
+  textColor,
+}: {
+  balance?: string;
+  isSelected: boolean;
+  textStyle?: StyleProp<TextStyle>;
+  textVariant: TextVariant;
+  textColor: TextColor;
+}) => {
+  const { styles } = useStyles(createStyles, { isSelected });
+
+  if (!balance) {
+    return null;
+  }
+
+  if (isLoadingBalance(balance)) {
+    return <View style={styles.skeleton} />;
+  }
+
+  return (
+    <Text
+      variant={textVariant}
+      color={textColor}
+      numberOfLines={1}
+      style={textStyle}
     >
       {balance}
     </Text>
@@ -178,6 +229,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   isNoFeeAsset = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
+  const { variant } = useABTest(
+    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
   const noFeeAssets = useSelector((state: RootState) =>
     selectNoFeeAssets(state, token.chainId),
   );
@@ -197,8 +252,18 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     return parseAmount(balance, 5) || balance;
   };
 
-  const cryptoBalance = token.balance
-    ? `${formatTokenBalance(token.balance)} ${token.symbol}`
+  const selectedVariant =
+    variant ??
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+      TokenSelectorBalanceLayoutVariant.Control
+    ];
+  const formattedTokenBalance = token.balance
+    ? formatTokenBalance(token.balance)
+    : undefined;
+  const cryptoBalance = formattedTokenBalance
+    ? selectedVariant.removeTickerFromTokenBalance
+      ? formattedTokenBalance
+      : `${formattedTokenBalance} ${token.symbol}`
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
@@ -206,8 +271,16 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
   const { isStockToken } = useRWAToken();
 
-  const balance = shouldShowBalance ? fiatValue : undefined;
-  const secondaryBalance = shouldShowBalance ? cryptoBalance : undefined;
+  const fiatBalance = shouldShowBalance ? fiatValue : undefined;
+  const tokenBalance = shouldShowBalance ? cryptoBalance : undefined;
+  const topRowBalanceTextStyle = {
+    textVariant: TextVariant.BodyMDMedium,
+    textColor: TextColor.Default,
+  };
+  const bottomRowBalanceTextStyle = {
+    textVariant: TextVariant.BodyMD,
+    textColor: TextColor.Alternative,
+  };
 
   const label = token.accountType
     ? ACCOUNT_TYPE_LABELS[token.accountType]
@@ -272,7 +345,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               <Box style={styles.tokenMainInfo} gap={4}>
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMDMedium}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -291,21 +364,21 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 )}
               </Box>
 
-              {secondaryBalance ? (
-                secondaryBalance === TOKEN_BALANCE_LOADING ||
-                secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                  <View style={styles.skeleton} />
-                ) : (
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
-                    numberOfLines={1}
-                    style={styles.rightValue}
-                  >
-                    {secondaryBalance}
-                  </Text>
-                )
-              ) : null}
+              {selectedVariant.showTokenBalanceFirst ? (
+                <TokenBalanceView
+                  balance={tokenBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...topRowBalanceTextStyle}
+                />
+              ) : (
+                <FiatBalanceView
+                  balance={fiatBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...topRowBalanceTextStyle}
+                />
+              )}
             </Box>
 
             <Box
@@ -323,7 +396,21 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 {token.name}
               </Text>
 
-              <FiatBalanceView balance={balance} isSelected={isSelected} />
+              {selectedVariant.showTokenBalanceFirst ? (
+                <FiatBalanceView
+                  balance={fiatBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...bottomRowBalanceTextStyle}
+                />
+              ) : (
+                <TokenBalanceView
+                  balance={tokenBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...bottomRowBalanceTextStyle}
+                />
+              )}
             </Box>
             {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
           </Box>

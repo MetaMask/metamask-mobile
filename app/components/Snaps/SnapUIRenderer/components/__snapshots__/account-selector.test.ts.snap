@@ -189,15 +189,18 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
-                testID="label"
               >
                 Account Selector
               </Text>
