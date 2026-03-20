@@ -42,6 +42,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
+import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -246,6 +247,7 @@ const RewardsDashboard: React.FC = () => {
         />
         <Box twClassName="flex-1 gap-4">
           {isCampaignsEnabled && <CampaignsPreview />}
+          {isCampaignsEnabled && <EarnRewardsPreview />}
           {showPreviousSeasonSummary &&
             (optinAllowedForGeo ? (
               <TabsList

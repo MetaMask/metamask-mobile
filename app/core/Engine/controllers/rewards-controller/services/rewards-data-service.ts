@@ -27,6 +27,7 @@ import type {
   ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  ClientVersionRequirementDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -214,6 +215,11 @@ export interface RewardsDataServiceGetCampaignParticipantStatusAction {
   handler: RewardsDataService['getCampaignParticipantStatus'];
 }
 
+export interface RewardsDataServiceGetClientVersionRequirementsAction {
+  type: `${typeof SERVICE_NAME}:getClientVersionRequirements`;
+  handler: RewardsDataService['getClientVersionRequirements'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -265,7 +271,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetCampaignParticipantStatusAction;
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetClientVersionRequirementsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -428,6 +435,10 @@ export class RewardsDataService {
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getClientVersionRequirements`,
+      this.getClientVersionRequirements.bind(this),
+    );
   }
 
   /**
@@ -472,6 +483,25 @@ export class RewardsDataService {
       process.env.METAMASK_ENVIRONMENT,
     );
     return defaultUrl;
+  }
+
+  /**
+   * Fetch the minimum client version requirements from the public API.
+   * @returns The client version requirements DTO.
+   */
+  async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
+    const response = await this.makeRequest(
+      '/public/client-version-requirements',
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get client version requirements failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as ClientVersionRequirementDto;
   }
 
   /**
