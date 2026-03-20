@@ -344,27 +344,24 @@ const rewardsSlice = createSlice({
         hasValidPreviousId && previousCandidateId !== newCandidateId;
 
       if (candidateIdChanged) {
-        // Reset UI state to initial values
-        state.seasonId = initialState.seasonId;
-        state.seasonName = initialState.seasonName;
-        state.seasonStartDate = initialState.seasonStartDate;
-        state.seasonEndDate = initialState.seasonEndDate;
-        state.seasonTiers = initialState.seasonTiers;
-        state.seasonActivityTypes = initialState.seasonActivityTypes;
-        state.seasonWaysToEarn = initialState.seasonWaysToEarn;
-        state.referralCode = initialState.referralCode;
-        state.refereeCount = initialState.refereeCount;
-        state.currentTier = initialState.currentTier;
-        state.nextTier = initialState.nextTier;
-        state.nextTierPointsNeeded = initialState.nextTierPointsNeeded;
-        state.balanceTotal = initialState.balanceTotal;
-        state.balanceRefereePortion = initialState.balanceRefereePortion;
-        state.balanceUpdatedAt = initialState.balanceUpdatedAt;
-        state.seasonShouldInstallNewVersion =
-          initialState.seasonShouldInstallNewVersion;
-        state.activeBoosts = initialState.activeBoosts;
-        state.pointsEvents = initialState.pointsEvents;
-        state.unlockedRewards = initialState.unlockedRewards;
+        // Reset all state to initial, preserving only non-subscription-scoped fields
+        Object.assign(state, initialState, {
+          activeTab: state.activeTab,
+          onboardingActiveStep: state.onboardingActiveStep,
+          onboardingReferralCode: state.onboardingReferralCode,
+          geoLocation: state.geoLocation,
+          optinAllowedForGeo: state.optinAllowedForGeo,
+          optinAllowedForGeoLoading: state.optinAllowedForGeoLoading,
+          optinAllowedForGeoError: state.optinAllowedForGeoError,
+          hideCurrentAccountNotOptedInBanner:
+            state.hideCurrentAccountNotOptedInBanner,
+          hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
+          bulkLink: state.bulkLink,
+          versionGuardMinimumMobileVersion:
+            state.versionGuardMinimumMobileVersion,
+          versionGuardLoading: state.versionGuardLoading,
+          versionGuardError: state.versionGuardError,
+        });
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -593,6 +590,9 @@ const rewardsSlice = createSlice({
             activeBoosts: action.payload.rewards.activeBoosts,
             pointsEvents: action.payload.rewards.pointsEvents,
             unlockedRewards: action.payload.rewards.unlockedRewards,
+            campaigns: action.payload.rewards.campaigns,
+            campaignParticipantStatuses:
+              action.payload.rewards.campaignParticipantStatuses,
             hideUnlinkedAccountsBanner:
               action.payload.rewards.hideUnlinkedAccountsBanner,
             hideCurrentAccountNotOptedInBanner:

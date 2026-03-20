@@ -54,6 +54,7 @@ import {
   selectCampaignParticipantStatusById,
   selectCampaignParticipantCount,
   selectIsRewardsVersionBlocked,
+  selectVersionGuardMinimumMobileVersion,
   selectVersionGuardLoading,
   selectVersionGuardError,
 } from './selectors';
@@ -3321,6 +3322,20 @@ describe('Rewards selectors', () => {
   });
 
   describe('version guard selectors', () => {
+    it('selectVersionGuardMinimumMobileVersion returns minimum version', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: '7.30.0',
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBe('7.30.0');
+    });
+
+    it('selectVersionGuardMinimumMobileVersion returns null when not set', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: null,
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
     it('selectVersionGuardLoading returns loading state', () => {
       const state = createMockRootState({ versionGuardLoading: true });
       expect(selectVersionGuardLoading(state)).toBe(true);
