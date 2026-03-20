@@ -13,7 +13,7 @@ jest.mock('react-redux', () => ({
 const mockCheckWalletCompliance = jest.fn();
 const mockCheckWalletsCompliance = jest.fn();
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     ComplianceController: {
       checkWalletCompliance: (...args: unknown[]) =>
@@ -24,9 +24,12 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../selectors/multichainAccounts/accountTreeController', () => ({
-  selectSelectedAccountGroupWithInternalAccountsAddresses: jest.fn(),
-}));
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupWithInternalAccountsAddresses: jest.fn(),
+  }),
+);
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 

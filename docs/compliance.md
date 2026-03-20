@@ -66,7 +66,7 @@ const isEnabled = useSelector(selectComplianceEnabled);
 This is the simplest way to gate a flow. It combines the feature flag check with the blocked status:
 
 ```tsx
-import { useComplianceGate } from 'app/components/hooks/useWalletCompliance';
+import { useComplianceGate } from 'app/components/UI/Compliance/hooks/useWalletCompliance';
 
 function SendConfirmation({ recipientAddress }: { recipientAddress: string }) {
   const { isComplianceEnabled, isBlocked } =
@@ -85,7 +85,7 @@ function SendConfirmation({ recipientAddress }: { recipientAddress: string }) {
 Use this when you need the imperative `checkCompliance` function for on-demand API checks:
 
 ```tsx
-import { useWalletCompliance } from 'app/components/hooks/useWalletCompliance';
+import { useWalletCompliance } from 'app/components/UI/Compliance/hooks/useWalletCompliance';
 
 function AddressInput({ address }: { address: string }) {
   const { isBlocked, checkCompliance } = useWalletCompliance(address);
@@ -225,5 +225,7 @@ new FixtureBuilder()
 | `app/core/Engine/messengers/compliance/compliance-controller-messenger.ts` | Controller + init messenger setup                   |
 | `app/selectors/complianceController.ts`                                    | Redux selectors                                     |
 | `app/selectors/featureFlagController/compliance.ts`                        | Feature flag selector                               |
-| `app/components/hooks/useWalletCompliance.ts`                              | `useWalletCompliance` and `useComplianceGate` hooks |
+| `app/components/UI/Compliance/hooks/useWalletCompliance.ts`                | `useWalletCompliance` and `useComplianceGate` hooks |
+| `app/components/UI/Compliance/AccessRestrictedModal/`                      | Access-restricted modal component                   |
+| `app/components/UI/Compliance/contexts/AccessRestrictedContext.tsx`        | Provider and `useAccessRestrictedModal` hook        |
 | `app/__mocks__/@metamask/compliance-controller.ts`                         | Manual mock for tests                               |

@@ -7,10 +7,10 @@ import React, {
   ReactNode,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../locales/i18n';
-import Routes from '../constants/navigation/Routes';
-import { METAMASK_SUPPORT_URL } from '../constants/urls';
-import AccessRestrictedModal from '../components/UI/AccessRestrictedModal';
+import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import AccessRestrictedModal from '../AccessRestrictedModal';
 
 interface AccessRestrictedContextType {
   showAccessRestrictedModal: () => void;

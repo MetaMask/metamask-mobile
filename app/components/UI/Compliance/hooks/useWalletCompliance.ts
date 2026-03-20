@@ -1,12 +1,12 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
-import Engine from '../../core/Engine';
+import Engine from '../../../../core/Engine';
 import {
   selectIsWalletBlocked,
   selectAreAnyWalletsBlocked,
-} from '../../selectors/complianceController';
-import { selectComplianceEnabled } from '../../selectors/featureFlagController/compliance';
-import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
+} from '../../../../selectors/complianceController';
+import { selectComplianceEnabled } from '../../../../selectors/featureFlagController/compliance';
+import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 type AddressInput = string | string[];
 

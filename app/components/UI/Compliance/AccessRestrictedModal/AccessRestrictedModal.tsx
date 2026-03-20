@@ -4,13 +4,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { strings } from '../../../../locales/i18n';
+} from '../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../locales/i18n';
 import { AccessRestrictedModalProps } from './AccessRestrictedModal.types';
 import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testIds';
 
