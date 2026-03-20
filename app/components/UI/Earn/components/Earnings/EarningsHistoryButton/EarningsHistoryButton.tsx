@@ -2,7 +2,11 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';

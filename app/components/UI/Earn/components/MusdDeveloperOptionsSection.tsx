@@ -9,7 +9,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 
 export const MusdDeveloperOptionsSection = () => {
