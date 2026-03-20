@@ -1,4 +1,6 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { PredictNavigationParamList } from '../../../types/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import {
@@ -27,7 +29,8 @@ export const usePredictBuyActions = ({
   placeOrder,
   setIsConfirming,
 }: UsePredictBuyActionsParams) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<PredictNavigationParamList>>();
   const { onReject: onApprovalReject, onConfirm: onApprovalConfirm } =
     useApprovalRequest();
   const { activeOrder } = usePredictActiveOrder();
@@ -40,13 +43,19 @@ export const usePredictBuyActions = ({
 
   const onApprovalRejectRef = useRef(onApprovalReject);
   onApprovalRejectRef.current = onApprovalReject;
-
   useEffect(() => {
-    PredictController.initiPayWithAnyToken();
+    let initialized = false;
+    const unsubscribe = navigation.addListener('transitionEnd', (e) => {
+      if (!e.data.closing && !initialized) {
+        initialized = true;
+        PredictController.initiPayWithAnyToken();
+      }
+    });
     return () => {
+      unsubscribe();
       onApprovalRejectRef.current();
     };
-  }, [PredictController]);
+  }, [navigation, PredictController]);
 
   const handlePlaceOrder = useCallback(async () => {
     if (!preview) {
