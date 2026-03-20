@@ -239,7 +239,7 @@ export async function replaceMusdConversionTransactionForPayToken(
 
     // This is an automatic rejection (not user-initiated)
     try {
-      ApprovalController.reject(
+      ApprovalController.rejectRequest(
         transactionMeta.id,
         providerErrors.userRejectedRequest({
           message:
