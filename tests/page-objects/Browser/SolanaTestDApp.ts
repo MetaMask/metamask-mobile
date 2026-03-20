@@ -190,6 +190,8 @@ class SolanaTestDApp {
   async confirmSignMessage(): Promise<void> {
     await Gestures.waitAndTap(this.confirmSignMessageButtonSelector, {
       elemDescription: 'Solana sign message confirmation Confirm button',
+      delay: 1800,
+      timeout: 30000,
     });
   }
 

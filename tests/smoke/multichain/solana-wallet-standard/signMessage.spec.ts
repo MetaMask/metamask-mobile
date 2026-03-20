@@ -35,11 +35,17 @@ describe(
 
           await connectSolanaTestDapp();
 
-          const signMessageTest = SolanaTestDApp.getSignMessageTest();
-          await signMessageTest.signMessage();
+          // Same as transfer SOL: Detox sync prevents reliably matching the confirmation footer
+          // (confirm-button) while the MetaMask bottom sheet is open on iOS.
+          await device.disableSynchronization();
 
-          // Confirm the signature
-          await SolanaTestDApp.confirmSignMessage();
+          const signMessageTest = SolanaTestDApp.getSignMessageTest();
+          try {
+            await signMessageTest.signMessage();
+            await SolanaTestDApp.confirmSignMessage();
+          } finally {
+            await device.enableSynchronization();
+          }
 
           const signedMessage = await signMessageTest.getSignedMessage();
           logger.debug(`signedMessage: ${signedMessage}`);
