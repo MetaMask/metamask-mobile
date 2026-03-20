@@ -104,7 +104,10 @@ function rejectTransactions(transactions: TransactionMeta[]) {
 
   for (const tx of transactions) {
     try {
-      ApprovalController.reject(tx.id, providerErrors.userRejectedRequest());
+      ApprovalController.rejectRequest(
+        tx.id,
+        providerErrors.userRejectedRequest(),
+      );
       log('Rejected transaction', tx.type, tx.id);
     } catch {
       log('Failed to reject transaction', tx.type, tx.id);

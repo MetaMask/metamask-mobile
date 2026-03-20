@@ -75,7 +75,6 @@ jest.mock(
       HOME: 'home',
       SWAP: 'swap',
       PERPS: 'perps',
-      DEPOSIT: 'deposit',
       TRANSACTION: 'transaction',
       BUY: 'buy',
       INVALID: 'invalid',

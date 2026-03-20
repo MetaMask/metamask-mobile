@@ -1,5 +1,5 @@
 import '../../../../tests/component-view/mocks';
-import { describeForPlatforms } from '../../../util/test/platform';
+import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
