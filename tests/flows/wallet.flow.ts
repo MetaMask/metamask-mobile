@@ -31,6 +31,7 @@ import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
 import { waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
+import PredictGTMModal from '../page-objects/Predict/PredictGTMModal';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -390,32 +391,36 @@ export const loginToApp = async (password?: string): Promise<void> => {
   // Wait for app to complete rehydration ONCE before attempting login
   await waitForAppReady();
 
-  // Keychain auto-unlock can complete in the gap after login UI was stable (Settings lock
-  // uses reset: false). Treat an already-visible wallet as success.
-  try {
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description:
-        'Wallet container visible after rehydration (keychain auto-unlock)',
-      timeout: 4000,
-    });
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet container should remain visible after auto-unlock',
-      timeout: 5000,
-    });
-    return;
-  } catch {
-    // Expected when the user must enter a password on the login screen
-  }
+  await PredictGTMModal.dismissIfVisible();
 
   await Utilities.executeWithRetry(
     async () => {
+      // Settings lock uses reset: false — keychain unlock may finish during this window,
+      // after login looked stable in waitForAppReady. Re-check wallet on every retry.
+      try {
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description:
+            'Wallet after rehydration (keychain auto-unlock or already signed in)',
+          timeout: 12000,
+        });
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet container should stay visible',
+          timeout: 8000,
+        });
+        return;
+      } catch {
+        // Password login path
+      }
+
       await Assertions.expectElementToBeVisible(LoginView.container, {
         description: 'Login View container should be visible',
+        timeout: 20000,
       });
       await Assertions.expectElementToBeVisible(
         asDetoxElement(LoginView.passwordInput),
         {
           description: 'Login View password input should be visible',
+          timeout: 20000,
         },
       );
 
@@ -426,7 +431,6 @@ export const loginToApp = async (password?: string): Promise<void> => {
         timeout: 10000,
       });
 
-      // SUCCESS: Verify wallet is stable (not flickering back to login)
       await sleep(1000);
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should remain visible',
@@ -434,7 +438,7 @@ export const loginToApp = async (password?: string): Promise<void> => {
       });
     },
     {
-      timeout: 30000,
+      timeout: 60000,
       interval: 2000,
       description: 'login to app after rehydration',
     },
