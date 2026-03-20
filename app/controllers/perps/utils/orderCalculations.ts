@@ -1,12 +1,12 @@
 import type { Hex } from '@metamask/utils';
 
-import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
-import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import type { PerpsDebugLogger } from '../types';
 import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from './hyperLiquidAdapter';
+import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import type { PerpsDebugLogger } from '../types';
 import type { SDKOrderParams } from '../types/hyperliquid-types';
 
 /**

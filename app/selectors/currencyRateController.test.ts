@@ -9,7 +9,7 @@ import {
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
 import type { RootState } from '../reducers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NetworkControllerSelectors from './networkController';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 

@@ -19,13 +19,12 @@ import type {
 } from '@myx-trade/sdk';
 import { MyxClient } from '@myx-trade/sdk';
 
-import AppConstants from '../../../core/AppConstants';
 import {
   MYX_PRICE_POLLING_INTERVAL_MS,
   getMYXChainId,
   getMYXHttpEndpoint,
 } from '../constants/myxConfig';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS, ZERO_ADDRESS } from '../constants/perpsConfig';
 import type { PerpsPlatformDependencies } from '../types';
 import type {
   MYXAuthConfig,
@@ -118,10 +117,9 @@ export class MYXClientService {
       brokerAddress: '',
     };
 
-    const brokerAddress =
-      this.#authConfig.brokerAddress || AppConstants.ZERO_ADDRESS;
+    const brokerAddress = this.#authConfig.brokerAddress || ZERO_ADDRESS;
 
-    if (brokerAddress === AppConstants.ZERO_ADDRESS) {
+    if (brokerAddress === ZERO_ADDRESS) {
       this.#deps.debugLogger.log(
         '[MYXClientService] brokerAddress not configured, using zero address',
       );
@@ -144,9 +142,7 @@ export class MYXClientService {
       chainId: this.#chainId,
       wsConnected: true,
       brokerAddress:
-        brokerAddress === AppConstants.ZERO_ADDRESS
-          ? 'zero (not configured)'
-          : 'configured',
+        brokerAddress === ZERO_ADDRESS ? 'zero (not configured)' : 'configured',
     });
   }
 

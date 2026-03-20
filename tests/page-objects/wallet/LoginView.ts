@@ -18,7 +18,11 @@ class LoginView {
 
   get passwordInput(): EncapsulatedElementType {
     return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT),
+      // Use getElementByLabel so Detox targets the inner TextInput (EditText on
+      // Android) rather than the outer Pressable container which carries the
+      // testID but has no input connection and therefore rejects typeText.
+      detox: () =>
+        Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
