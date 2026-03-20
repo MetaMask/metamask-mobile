@@ -5134,8 +5134,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         if (rawOrders) {
           const orderTypeByOid = new Map<string, string>();
           for (const rawOrder of rawOrders) {
-            const oid = rawOrder.order?.oid?.toString() || '';
-            if (rawOrder.order?.orderType && !orderTypeByOid.has(oid)) {
+            const oid = rawOrder.order?.oid?.toString();
+            if (oid && rawOrder.order?.orderType && !orderTypeByOid.has(oid)) {
               orderTypeByOid.set(oid, rawOrder.order.orderType);
             }
           }

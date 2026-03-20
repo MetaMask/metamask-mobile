@@ -144,6 +144,8 @@ export const usePerpsHomeData = ({
         fillsMap.set(key, {
           ...fill,
           detailedOrderType: existing.detailedOrderType,
+          ...(existing.liquidation &&
+            !fill.liquidation && { liquidation: existing.liquidation }),
         });
       } else {
         fillsMap.set(key, fill);
