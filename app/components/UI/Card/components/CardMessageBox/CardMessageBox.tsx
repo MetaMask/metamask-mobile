@@ -3,9 +3,11 @@ import { View } from 'react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -91,8 +93,10 @@ const CardMessageBox = ({
       />
       <View style={styles.contentContainer}>
         <View style={styles.textsContainer}>
-          <Text variant={TextVariant.BodyMDBold}>{config.title}</Text>
-          <Text variant={TextVariant.BodyMD}>{config.description}</Text>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+            {config.title}
+          </Text>
+          <Text variant={TextVariant.BodyMd}>{config.description}</Text>
         </View>
 
         <View
