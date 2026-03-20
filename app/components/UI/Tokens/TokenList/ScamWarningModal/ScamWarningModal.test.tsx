@@ -50,22 +50,27 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
   const ReactMock = require('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    __esModule: true,
-    default: ({ label, onPress, testID }: Record<string, unknown>) =>
+    ...actual,
+    Button: ({ children, onPress }: Record<string, unknown>) =>
       ReactMock.createElement(
         'View',
         {
-          testID: testID ?? 'edit-network-button',
+          testID: 'edit-network-button',
           onPress,
+          accessibilityRole: 'button',
+          accessible: true,
         },
-        ReactMock.createElement('Text', {}, label),
+        ReactMock.createElement(
+          'Text',
+          { accessibilityRole: 'text' },
+          children,
+        ),
       ),
-    ButtonVariants: { Secondary: 'Secondary' },
-    ButtonSize: { Lg: 'Lg' },
   };
 });
 

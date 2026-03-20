@@ -181,6 +181,8 @@ import { rampsControllerInit } from './controllers/ramps-controller/ramps-contro
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
+import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -377,6 +379,8 @@ export class Engine {
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         CardController: cardControllerInit,
+        ComplianceService: complianceServiceInit,
+        ComplianceController: complianceControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -419,6 +423,8 @@ export class Engine {
     const rampsController = controllersByName.RampsController;
     const aiDigestController = controllersByName.AiDigestController;
     const cardController = controllersByName.CardController;
+    const complianceService = controllersByName.ComplianceService;
+    const complianceController = controllersByName.ComplianceController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -579,6 +585,8 @@ export class Engine {
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       CardController: cardController,
+      ComplianceService: complianceService,
+      ComplianceController: complianceController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -674,6 +682,18 @@ export class Engine {
             this.context.TokenBalancesController.updateBalances({
               chainIds: [hexChainId],
             });
+
+            const { AccountTrackerController, NetworkController } =
+              this.context;
+            try {
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(hexChainId);
+              AccountTrackerController.refresh([networkClientId]);
+            } catch {
+              // Chain may not be configured locally — skip balance refresh
+            }
+
+            this.context.TransactionController.updateIncomingTransactions();
           }
         } catch (error) {
           console.error(
@@ -1167,12 +1187,12 @@ export class Engine {
   ) {
     const { ApprovalController } = this.context;
 
-    if (opts.ignoreMissing && !ApprovalController.has({ id })) {
+    if (opts.ignoreMissing && !ApprovalController.hasRequest({ id })) {
       return;
     }
 
     try {
-      ApprovalController.reject(id, reason);
+      ApprovalController.rejectRequest(id, reason);
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -1197,7 +1217,7 @@ export class Engine {
     const { ApprovalController } = this.context;
 
     try {
-      return await ApprovalController.accept(id, requestData, {
+      return await ApprovalController.acceptRequest(id, requestData, {
         waitForResult: opts.waitForResult,
         deleteAfterResult: opts.deleteAfterResult,
       });
@@ -1341,6 +1361,7 @@ export default {
       TransactionPayController,
       RampsController,
       AiDigestController,
+      ComplianceController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1412,6 +1433,7 @@ export default {
       RampsController: RampsController.state,
       AiDigestController: AiDigestController.state,
       CardController: CardController.state,
+      ComplianceController: ComplianceController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,

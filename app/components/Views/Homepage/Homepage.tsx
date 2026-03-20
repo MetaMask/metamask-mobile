@@ -78,6 +78,10 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
         },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        {
+          name: HomeSectionNames.WHATS_HAPPENING,
+          enabled: isWhatsHappeningEnabled,
+        },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled),
@@ -115,9 +119,9 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box
-      gap={10}
+      gap={8}
       marginBottom={8}
-      paddingTop={4}
+      paddingTop={6}
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
     >
       <CashSection
@@ -142,6 +146,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       <PredictionsSection
         ref={predictionsSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+      <WhatsHappeningSection
+        ref={whatsHappeningSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <DeFiSection

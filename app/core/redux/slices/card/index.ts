@@ -171,6 +171,11 @@ export const selectCardGeoLocation = createSelector(
   (card) => card.geoLocation,
 );
 
+export const selectCardIsLoaded = createSelector(
+  selectCardState,
+  (card) => card.isLoaded,
+);
+
 export const selectHasCardholderAccounts = createSelector(
   selectCardholderAccounts,
   (cardholderAccounts) => cardholderAccounts.length > 0,
@@ -210,28 +215,31 @@ export const selectIsDaimoDemo = createSelector(
   (card) => card.isDaimoDemo,
 );
 
+export const selectIsUserInSupportedCardCountry = createSelector(
+  selectCardGeoLocation,
+  selectCardSupportedCountries,
+  (geoLocation, cardSupportedCountries) =>
+    (cardSupportedCountries as Record<string, boolean>)?.[geoLocation] === true,
+);
+
 export const selectDisplayCardButton = createSelector(
   selectIsCardholder,
   selectAlwaysShowCardButton,
-  selectCardGeoLocation,
-  selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
   selectIsAuthenticatedCard,
+  selectIsUserInSupportedCardCountry,
   (
     isCardholder,
     alwaysShowCardButton,
-    geoLocation,
-    cardSupportedCountries,
     displayCardButtonFeatureFlag,
     isAuthenticated,
+    isUserInSupportedCardCountry,
   ) => {
     if (
       alwaysShowCardButton ||
       isCardholder ||
       isAuthenticated ||
-      ((cardSupportedCountries as Record<string, boolean>)?.[geoLocation] ===
-        true &&
-        displayCardButtonFeatureFlag)
+      (isUserInSupportedCardCountry && displayCardButtonFeatureFlag)
     ) {
       return true;
     }

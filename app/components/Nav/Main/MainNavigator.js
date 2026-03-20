@@ -48,8 +48,6 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import PaymentRequest from '../../UI/PaymentRequest';
-import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
@@ -850,21 +848,6 @@ const OfflineModeView = () => (
   </Stack.Navigator>
 );
 
-const PaymentRequestView = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="PaymentRequest"
-      component={PaymentRequest}
-      options={PaymentRequest.navigationOptions}
-    />
-    <Stack.Screen
-      name="PaymentRequestSuccess"
-      component={PaymentRequestSuccess}
-      options={PaymentRequestSuccess.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
@@ -1073,7 +1056,6 @@ const MainNavigator = () => {
         component={NftFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
-      <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}

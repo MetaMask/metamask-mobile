@@ -1,0 +1,186 @@
+import React, { useCallback } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  ImageSourcePropType,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Text,
+  TextVariant,
+  FontWeight,
+  Skeleton,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../../util/theme';
+import Routes from '../../../../../constants/navigation/Routes';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
+import { strings } from '../../../../../../locales/i18n';
+import {
+  selectOptinAllowedForGeo,
+  selectOptinAllowedForGeoLoading,
+} from '../../../../../reducers/rewards/selectors';
+import {
+  selectCardIsLoaded,
+  selectIsCardholder,
+  selectIsAuthenticatedCard,
+  selectIsUserInSupportedCardCountry,
+} from '../../../../../core/redux/slices/card';
+import { handleDeeplink } from '../../../../../core/DeeplinkManager';
+import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
+import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
+
+const AVATAR_SIZE = 78;
+
+const styles = StyleSheet.create({
+  avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
+});
+
+interface EarnCardProps {
+  image: ImageSourcePropType;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+  testID: string;
+}
+
+const EarnCard: React.FC<EarnCardProps> = ({
+  image,
+  title,
+  subtitle,
+  onPress,
+  testID,
+}) => {
+  const tw = useTailwind();
+
+  return (
+    <Pressable
+      testID={testID}
+      style={({ pressed }) =>
+        tw.style(
+          'rounded-xl bg-muted flex-row items-center p-4 gap-4',
+          pressed && 'opacity-70',
+        )
+      }
+      onPress={onPress}
+    >
+      <Box style={[tw.style('rounded-lg overflow-hidden'), styles.avatar]}>
+        <Image
+          source={image}
+          style={tw.style('w-full h-full')}
+          resizeMode="cover"
+        />
+      </Box>
+      <Box twClassName="flex-1">
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {title}
+        </Text>
+        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          {subtitle}
+        </Text>
+      </Box>
+    </Pressable>
+  );
+};
+
+/**
+ * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
+ *
+ * - mUSD calculator card: only shown when geo allows opt-in (not UK)
+ * - MetaMask Card card: shown when card geo is loaded and country is supported
+ * - While geo is loading: skeletons shown in place of cards; title always visible
+ */
+const EarnRewardsPreview: React.FC = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation();
+  const { colors } = useTheme();
+
+  // mUSD geo check
+  const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
+  const isGeoLoading = useSelector(selectOptinAllowedForGeoLoading);
+  const showMusdCard = optinAllowedForGeo !== false;
+
+  // Card geo check — isCardGeoLoaded flips true when loadCardholderAccounts settles
+  const isCardGeoLoaded = useSelector(selectCardIsLoaded);
+  const isUserInSupportedCardCountry = useSelector(
+    selectIsUserInSupportedCardCountry,
+  );
+  const isCardholder = useSelector(selectIsCardholder);
+  const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
+  const isCardGeoLoading = !isCardGeoLoaded;
+  const showCardCard = isCardGeoLoaded && isUserInSupportedCardCountry;
+  const cardSubtitle =
+    isCardholder || isAuthenticatedCard
+      ? strings('rewards.earn_rewards.card_subtitle_cardholder')
+      : strings('rewards.earn_rewards.card_subtitle');
+
+  const isAnyGeoLoading = isGeoLoading || isCardGeoLoading;
+
+  const handleMusdPress = useCallback(() => {
+    navigation.navigate(Routes.MUSD_CALCULATOR_VIEW);
+  }, [navigation]);
+
+  const handleCardPress = useCallback(() => {
+    handleDeeplink({ uri: 'metamask://card-onboarding' });
+  }, []);
+
+  if (!isAnyGeoLoading && !showMusdCard && !showCardCard) {
+    return null;
+  }
+
+  return (
+    <Box
+      twClassName="gap-3 p-4 -mt-2"
+      testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        {isAnyGeoLoading && (
+          <ActivityIndicator size="small" color={colors.primary.default} />
+        )}
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('rewards.earn_rewards.title')}
+        </Text>
+      </Box>
+
+      {isAnyGeoLoading ? (
+        <>
+          <Skeleton style={tw.style('h-28 rounded-xl')} />
+          <Skeleton style={tw.style('h-28 rounded-xl')} />
+        </>
+      ) : (
+        <>
+          {showMusdCard && (
+            <EarnCard
+              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
+              image={musdImage}
+              title={strings('rewards.earn_rewards.musd_title')}
+              subtitle={strings('rewards.earn_rewards.musd_subtitle')}
+              onPress={handleMusdPress}
+            />
+          )}
+          {showCardCard && (
+            <EarnCard
+              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+              image={cardImage}
+              title={strings('rewards.earn_rewards.card_title')}
+              subtitle={cardSubtitle}
+              onPress={handleCardPress}
+            />
+          )}
+        </>
+      )}
+    </Box>
+  );
+};
+
+export default EarnRewardsPreview;
