@@ -2,7 +2,7 @@
  * Unit tests for HyperLiquid SDK adapter utilities
  */
 
-// Avoid loading heavy controller dependencies in tests
+// Avoid loading @metamask/swaps-controller (and thus controller-utils logger) in tests
 jest.mock('../constants/perpsConfig', () => ({
   DECIMAL_PRECISION_CONFIG: {
     MaxPriceDecimals: 6,
