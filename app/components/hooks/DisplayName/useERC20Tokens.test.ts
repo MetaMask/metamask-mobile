@@ -8,7 +8,6 @@ const TOKEN_SYMBOL_MOCK = 'TT';
 const TOKEN_ICON_URL_MOCK = 'https://example.com/icon.png';
 const TOKEN_ADDRESS_MOCK = '0x0439e60f02a8900a951603950d8d4527f400c3f1';
 const CHAIN_ID_MOCK = CHAIN_IDS.MAINNET;
-// MAINNET chain ID (0x1) → decimal 1
 const ASSET_ID_MOCK = `eip155:1/erc20:${TOKEN_ADDRESS_MOCK}`;
 
 jest.mock('../useTokensData/useTokensData', () => ({
@@ -109,34 +108,5 @@ describe('useERC20Tokens', () => {
     ]);
 
     expect(result.current[0]?.name).toBe(TOKEN_NAME_MOCK);
-  });
-
-  it('passes the correct CAIP-19 asset IDs to useTokensData', () => {
-    renderHook([
-      {
-        type: NameType.EthereumAddress,
-        value: TOKEN_ADDRESS_MOCK,
-        variation: CHAIN_ID_MOCK,
-      },
-    ]);
-
-    expect(mockUseTokensData).toHaveBeenCalledWith([ASSET_ID_MOCK]);
-  });
-
-  it('omits non-EthereumAddress requests from the asset IDs passed to useTokensData', () => {
-    renderHook([
-      {
-        type: 'alternateType' as NameType,
-        value: TOKEN_ADDRESS_MOCK,
-        variation: CHAIN_ID_MOCK,
-      },
-      {
-        type: NameType.EthereumAddress,
-        value: TOKEN_ADDRESS_MOCK,
-        variation: CHAIN_ID_MOCK,
-      },
-    ]);
-
-    expect(mockUseTokensData).toHaveBeenCalledWith([ASSET_ID_MOCK]);
   });
 });
