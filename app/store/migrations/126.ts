@@ -1,37 +1,32 @@
 import { captureException } from '@sentry/react-native';
-import { hasProperty, isObject } from '@metamask/utils';
+import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { cloneDeep } from 'lodash';
-
-const migrationVersion = 126;
 
 /**
- * Migration 126: Remove deprecated SwapsController from persisted backgroundState.
- * The swaps functionality is now handled by BridgeController and BridgeStatusController.
+ * Migration 126: Change default search engine to Brave
  *
- * @param state - The persisted Redux state.
- * @returns The migrated Redux state.
+ * All existing users will be migrated to 'Brave' for a privacy-focused,
+ * ad-free search experience.
+ *
+ * @param state - The persisted Redux state
+ * @returns The migrated Redux state
  */
-export default async function migrate(versionedState: unknown) {
-  if (!ensureValidState(versionedState, migrationVersion)) {
-    return versionedState;
+export default function migrate(state: unknown) {
+  if (!ensureValidState(state, 126)) {
+    return state;
   }
 
-  const state = cloneDeep(versionedState);
-
-  const backgroundState = state.engine.backgroundState;
-
-  if (!isObject(backgroundState)) {
+  if (!isObject(state.settings)) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Invalid backgroundState: '${typeof backgroundState}'`,
+        `FATAL ERROR: Migration 126: Invalid Settings state error: '${typeof state.settings}'`,
       ),
     );
     return state;
   }
 
-  if (hasProperty(backgroundState, 'SwapsController')) {
-    delete backgroundState.SwapsController;
+  if (state.settings.searchEngine === 'Google') {
+    state.settings.searchEngine = 'Brave';
   }
 
   return state;

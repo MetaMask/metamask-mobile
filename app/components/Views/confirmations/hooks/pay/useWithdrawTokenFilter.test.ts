@@ -111,6 +111,7 @@ function runHook({
 
 describe('useWithdrawTokenFilter', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseSendTokens.mockReturnValue(ALL_TOKENS_MOCK);
   });
 
@@ -292,7 +293,30 @@ describe('useWithdrawTokenFilter', () => {
     expect(filtered[0].address).toBe('0xccc');
   });
 
-  it('calls useSendTokens with includeNoBalance true', () => {
+  it('calls useSendTokens without full catalog options for non-withdraw transactions', () => {
+    runHook({ type: TransactionType.simpleSend });
+
+    expect(mockUseSendTokens).toHaveBeenCalledWith({
+      includeNoBalance: false,
+      includeAllTokens: false,
+    });
+  });
+
+  it('calls useSendTokens without full catalog options when withdraw allowlist is missing', () => {
+    runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: { enabled: true },
+      },
+    });
+
+    expect(mockUseSendTokens).toHaveBeenCalledWith({
+      includeNoBalance: false,
+      includeAllTokens: false,
+    });
+  });
+
+  it('calls useSendTokens with full catalog options when withdraw allowlist is present', () => {
     runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {

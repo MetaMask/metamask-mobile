@@ -46,8 +46,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
       'rewards.campaigns_preview.title': 'Campaigns',
-      'rewards.campaigns_preview.coming_soon': 'Coming soon',
-      'rewards.campaigns_preview.notify_me': 'Notify me',
     };
     return translations[key] || key;
   },
@@ -84,7 +82,7 @@ describe('CampaignsPreview', () => {
     mockUseRewardCampaigns.mockReturnValue(mockHookDefaults);
   });
 
-  it('returns null when there are no active or upcoming campaigns', () => {
+  it('returns null when there are no campaigns in any category', () => {
     const { queryByTestId } = render(<CampaignsPreview />);
 
     expect(queryByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW)).toBeNull();
@@ -123,7 +121,7 @@ describe('CampaignsPreview', () => {
     expect(getByText('Active Campaign')).toBeOnTheScreen();
   });
 
-  it('renders the upcoming banner when an upcoming campaign exists', () => {
+  it('renders the upcoming campaign as a CampaignTile when no active campaign exists', () => {
     const upcomingCampaign = createTestCampaign({
       id: 'up-1',
       name: 'Upcoming Campaign',
@@ -136,17 +134,30 @@ describe('CampaignsPreview', () => {
       },
     });
 
-    const { getByText, getByTestId } = render(<CampaignsPreview />);
+    const { getByTestId } = render(<CampaignsPreview />);
 
-    expect(
-      getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW_UPCOMING_BANNER),
-    ).toBeOnTheScreen();
-    expect(getByText('Coming soon')).toBeOnTheScreen();
-    expect(getByText('Upcoming Campaign')).toBeOnTheScreen();
-    expect(getByText('Notify me')).toBeOnTheScreen();
+    expect(getByTestId('campaign-tile-up-1')).toBeOnTheScreen();
   });
 
-  it('renders both active tile and upcoming banner when both exist', () => {
+  it('renders the most recent previous campaign when no active or upcoming exist', () => {
+    const previousCampaign = createTestCampaign({
+      id: 'prev-1',
+      name: 'Previous Campaign',
+    });
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      categorizedCampaigns: {
+        ...emptyCategorized,
+        previous: [previousCampaign],
+      },
+    });
+
+    const { getByTestId } = render(<CampaignsPreview />);
+
+    expect(getByTestId('campaign-tile-prev-1')).toBeOnTheScreen();
+  });
+
+  it('shows the active campaign over upcoming when both exist', () => {
     const activeCampaign = createTestCampaign({
       id: 'active-1',
       name: 'Active Campaign',
@@ -164,45 +175,62 @@ describe('CampaignsPreview', () => {
       },
     });
 
-    const { getByText } = render(<CampaignsPreview />);
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
 
-    expect(getByText('Active Campaign')).toBeOnTheScreen();
-    expect(getByText('Upcoming Campaign')).toBeOnTheScreen();
+    expect(getByTestId('campaign-tile-active-1')).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-up-1')).toBeNull();
   });
 
-  it('does not render a CampaignTile when there are no active campaigns', () => {
+  it('shows the upcoming campaign over previous when no active exists', () => {
     const upcomingCampaign = createTestCampaign({
       id: 'up-1',
       name: 'Upcoming Campaign',
+    });
+    const previousCampaign = createTestCampaign({
+      id: 'prev-1',
+      name: 'Previous Campaign',
     });
     mockUseRewardCampaigns.mockReturnValue({
       ...mockHookDefaults,
       categorizedCampaigns: {
         ...emptyCategorized,
         upcoming: [upcomingCampaign],
+        previous: [previousCampaign],
       },
     });
 
-    const { queryByTestId } = render(<CampaignsPreview />);
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
 
-    expect(queryByTestId('campaign-tile-up-1')).toBeNull();
+    expect(getByTestId('campaign-tile-up-1')).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-prev-1')).toBeNull();
   });
 
-  it('does not render the upcoming banner when there are no upcoming campaigns', () => {
-    const activeCampaign = createTestCampaign({
-      id: 'active-1',
-      name: 'Active Campaign',
-    });
+  it('only shows the first active campaign even when multiple exist', () => {
+    const first = createTestCampaign({ id: 'a1', name: 'First Active' });
+    const second = createTestCampaign({ id: 'a2', name: 'Second Active' });
     mockUseRewardCampaigns.mockReturnValue({
       ...mockHookDefaults,
-      categorizedCampaigns: { ...emptyCategorized, active: [activeCampaign] },
+      categorizedCampaigns: { ...emptyCategorized, active: [first, second] },
     });
 
-    const { queryByTestId } = render(<CampaignsPreview />);
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
 
-    expect(
-      queryByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW_UPCOMING_BANNER),
-    ).toBeNull();
+    expect(getByTestId('campaign-tile-a1')).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-a2')).toBeNull();
+  });
+
+  it('only shows the first upcoming campaign even when multiple exist', () => {
+    const first = createTestCampaign({ id: 'u1', name: 'First Upcoming' });
+    const second = createTestCampaign({ id: 'u2', name: 'Second Upcoming' });
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      categorizedCampaigns: { ...emptyCategorized, upcoming: [first, second] },
+    });
+
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
+
+    expect(getByTestId('campaign-tile-u1')).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-u2')).toBeNull();
   });
 
   it('navigates to campaigns view when the title header is pressed', () => {
@@ -219,33 +247,5 @@ describe('CampaignsPreview', () => {
     fireEvent.press(getByText('Campaigns'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGNS_VIEW);
-  });
-
-  it('only shows the first active campaign even when multiple exist', () => {
-    const first = createTestCampaign({ id: 'a1', name: 'First Active' });
-    const second = createTestCampaign({ id: 'a2', name: 'Second Active' });
-    mockUseRewardCampaigns.mockReturnValue({
-      ...mockHookDefaults,
-      categorizedCampaigns: { ...emptyCategorized, active: [first, second] },
-    });
-
-    const { getByText, queryByText } = render(<CampaignsPreview />);
-
-    expect(getByText('First Active')).toBeOnTheScreen();
-    expect(queryByText('Second Active')).toBeNull();
-  });
-
-  it('only shows the first upcoming campaign even when multiple exist', () => {
-    const first = createTestCampaign({ id: 'u1', name: 'First Upcoming' });
-    const second = createTestCampaign({ id: 'u2', name: 'Second Upcoming' });
-    mockUseRewardCampaigns.mockReturnValue({
-      ...mockHookDefaults,
-      categorizedCampaigns: { ...emptyCategorized, upcoming: [first, second] },
-    });
-
-    const { getByText, queryByText } = render(<CampaignsPreview />);
-
-    expect(getByText('First Upcoming')).toBeOnTheScreen();
-    expect(queryByText('Second Upcoming')).toBeNull();
   });
 });

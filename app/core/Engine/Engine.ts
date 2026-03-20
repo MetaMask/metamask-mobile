@@ -678,6 +678,18 @@ export class Engine {
             this.context.TokenBalancesController.updateBalances({
               chainIds: [hexChainId],
             });
+
+            const { AccountTrackerController, NetworkController } =
+              this.context;
+            try {
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(hexChainId);
+              AccountTrackerController.refresh([networkClientId]);
+            } catch {
+              // Chain may not be configured locally — skip balance refresh
+            }
+
+            this.context.TransactionController.updateIncomingTransactions();
           }
         } catch (error) {
           console.error(

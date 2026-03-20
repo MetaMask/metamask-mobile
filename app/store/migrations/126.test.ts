@@ -1,52 +1,121 @@
 import migrate from './126';
+import { merge } from 'lodash';
+import { captureException } from '@sentry/react-native';
+import initialRootState from '../../util/test/initial-root-state';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
-const oldState = {
-  meta: { version: 125 },
-  engine: {
-    backgroundState: {
-      NetworkController: { selectedNetworkClientId: 'mainnet' },
-      SwapsController: {
-        quotes: {},
-        quoteValues: {},
-        tokens: null,
-        topAssets: null,
-        pollingCyclesLeft: 3,
-        chainCache: {
-          '0x1': {
-            aggregatorMetadata: null,
-            tokens: null,
-            topAssets: null,
-          },
-        },
-      },
-    },
-  },
-};
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration 126: Remove SwapsController from persisted state', () => {
-  it('removes SwapsController from backgroundState', async () => {
-    const result = (await migrate(oldState)) as typeof oldState;
-    expect(result.engine.backgroundState).not.toHaveProperty('SwapsController');
-    expect(result.engine.backgroundState).toHaveProperty('NetworkController');
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
+
+describe('Migration #126 - Update default search engine to Brave', () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
-  it('does nothing if SwapsController is not present', async () => {
-    const stateWithout = {
-      meta: { version: 125 },
-      engine: {
-        backgroundState: {
-          NetworkController: { selectedNetworkClientId: 'mainnet' },
+  const invalidStates = [
+    {
+      state: null,
+      errorMessage: "FATAL ERROR: Migration 126: Invalid state error: 'object'",
+      scenario: 'state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: null,
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 126: Invalid engine state error: 'object'",
+      scenario: 'engine state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: null,
         },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 126: Invalid engine backgroundState error: 'object'",
+      scenario: 'backgroundState is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {},
+        },
+        settings: null,
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 126: Invalid Settings state error: 'object'",
+      scenario: 'Settings object is invalid',
+    },
+  ];
+
+  for (const { errorMessage, scenario, state } of invalidStates) {
+    it(`captures exception if ${scenario}`, async () => {
+      const newState = await migrate(state);
+
+      expect(newState).toStrictEqual(state);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    });
+  }
+
+  it('updates the search engine from Google to Brave', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {},
+      },
+      settings: {
+        searchEngine: 'Google',
       },
     };
-    const result = (await migrate(stateWithout)) as typeof stateWithout;
-    expect(result.engine.backgroundState).toHaveProperty('NetworkController');
-    expect(result.engine.backgroundState).not.toHaveProperty('SwapsController');
+
+    const expectedState = {
+      engine: {
+        backgroundState: {},
+      },
+      settings: {
+        searchEngine: 'Brave',
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('returns state unchanged if state is invalid', async () => {
-    const invalidState = { meta: { version: 125 } };
-    const result = await migrate(invalidState);
-    expect(result).toEqual(invalidState);
+  it('does not change the search engine if it is already DuckDuckGo', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {},
+      },
+      settings: {
+        searchEngine: 'DuckDuckGo',
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(oldState);
+  });
+
+  it('does not change the search engine if it is already Brave', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {},
+      },
+      settings: {
+        searchEngine: 'Brave',
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(oldState);
   });
 });

@@ -103,6 +103,11 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       }
     });
 
+    active.sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
+
     upcoming.sort(
       (a, b) =>
         new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),

@@ -343,7 +343,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
 
       const isFromTokenList =
         source === TokenDetailsSource.MobileTokenList ||
-        source === TokenDetailsSource.MobileTokenListPage;
+        source === TokenDetailsSource.MobileTokenListPage ||
+        source === TokenDetailsSource.HomeSection;
 
       const eventProperties = {
         source,
