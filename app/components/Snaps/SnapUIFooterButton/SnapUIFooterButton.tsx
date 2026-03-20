@@ -6,8 +6,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  ButtonProps as DesignSystemButtonProps,
 } from '@metamask/design-system-react-native';
-import { ActivityIndicator, StyleSheet, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SnapIcon } from '../SnapIcon/SnapIcon';
 import Text, {
   TextVariant,
@@ -146,7 +147,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       onPress={handlePress}
       isDisabled={disabled}
       size={ButtonSize.Lg}
-      style={customButtonStyles.button as ViewStyle}
+      style={customButtonStyles.button as DesignSystemButtonProps["style"]}
       isDanger={snapVariant === 'destructive'}
       testID={testID ?? `${name}-snap-footer-button`}
     >
