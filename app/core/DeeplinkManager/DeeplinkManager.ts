@@ -174,20 +174,24 @@ export async function resolveBranchShortLink(
 
       const body = await response.text();
 
-      const branchUrl = extractBranchUrlFromDeepview(body);
-      if (branchUrl) {
+      const mergeCleanParams = (resolvedUrl: string): string => {
         try {
+          const resolved = new URL(resolvedUrl);
           const cleanParsed = new URL(cleanUrl);
-          const branchParsed = new URL(branchUrl);
           cleanParsed.searchParams.forEach((value, key) => {
-            if (!branchParsed.searchParams.has(key)) {
-              branchParsed.searchParams.set(key, value);
+            if (!resolved.searchParams.has(key)) {
+              resolved.searchParams.set(key, value);
             }
           });
-          return branchParsed.toString();
+          return resolved.toString();
         } catch {
-          return branchUrl;
+          return resolvedUrl;
         }
+      };
+
+      const branchUrl = extractBranchUrlFromDeepview(body);
+      if (branchUrl) {
+        return mergeCleanParams(branchUrl);
       }
 
       const deepLinkPathMatch =
@@ -196,12 +200,16 @@ export async function resolveBranchShortLink(
 
       if (deepLinkPathMatch?.[1]) {
         const path = deepLinkPathMatch[1];
-        return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
+        return mergeCleanParams(
+          `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`,
+        );
       }
 
       const deepviewPath = extractDeepviewPath(body);
       if (deepviewPath) {
-        return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`;
+        return mergeCleanParams(
+          `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`,
+        );
       }
       return undefined;
     } finally {
