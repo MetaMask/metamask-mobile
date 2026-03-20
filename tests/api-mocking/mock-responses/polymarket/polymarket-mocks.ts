@@ -824,6 +824,23 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
     currentUSDCBalance = customBalance;
   }
 
+  // Token API single-token metadata (Polygon bridged USDC). Activity and other flows
+  // call GET .../token/137?address=0x2791...&includeRwaData=true — must be mocked for
+  // live-request validation in E2E.
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/token\.api\.cx\.metamask\.io\/token\/137\?.*address=0x2791bca1f2de4661ed88a30c99a7a9449aa84174/i,
+    responseCode: 200,
+    response: {
+      address: USDC_CONTRACT_ADDRESS.toLowerCase(),
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+      iconUrl:
+        'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x2791bca1f2de4661ed88a30c99a7a9449aa84174.png',
+    },
+  });
+
   // The app makes balance calls through the proxy, not direct Infura calls
   // Our existing proxy mock below will handle these calls
 
