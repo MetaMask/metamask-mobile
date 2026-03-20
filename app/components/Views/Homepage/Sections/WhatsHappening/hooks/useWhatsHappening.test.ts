@@ -27,11 +27,19 @@ const mockTrend = {
   description: 'Spot Bitcoin ETFs recorded over $1.2B in net inflows.',
   category: 'macro',
   impact: 'positive',
-  relatedAssets: ['BTC'],
+  relatedAssets: [
+    {
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      caip19: [],
+      sourceAssetId: 'bitcoin',
+    },
+  ],
   articles: [
     {
       title: 'Article',
       url: 'https://example.com',
+      source: 'example.com',
       date: '2026-03-15T10:00:00.000Z',
     },
   ],
@@ -62,9 +70,7 @@ describe('useWhatsHappening', () => {
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0].title).toBe(mockTrend.title);
     expect(result.current.items[0].category).toBe(mockTrend.category);
-    expect(result.current.items[0].relatedAssets).toEqual(
-      mockTrend.relatedAssets,
-    );
+    expect(result.current.items[0].relatedAssets).toEqual(['BTC']);
     expect(result.current.error).toBeNull();
   });
 

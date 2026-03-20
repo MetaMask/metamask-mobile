@@ -147,7 +147,7 @@ export const lockApp = async (): Promise<void> => {
     });
 
     await dismissDevScreens();
-    await waitForAppReady();
+    await waitForAppReady(15000, { allowUnlockedWallet: false });
   }
 
   await Assertions.expectElementToBeVisible(LoginView.container, {

@@ -16,7 +16,7 @@ export interface WhatsHappeningItem {
     | 'social'
     | 'other';
   impact?: 'positive' | 'negative' | 'neutral';
-  /** CAIP-19 IDs or symbols from `MarketOverviewTrend.relatedAssets` */
+  /** Short labels for carousel pills (from `RelatedAsset.symbol` / `name`) */
   relatedAssets: string[];
   articles: Article[];
 }

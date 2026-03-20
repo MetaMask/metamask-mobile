@@ -390,6 +390,23 @@ export const loginToApp = async (password?: string): Promise<void> => {
   // Wait for app to complete rehydration ONCE before attempting login
   await waitForAppReady();
 
+  // Keychain auto-unlock can complete in the gap after login UI was stable (Settings lock
+  // uses reset: false). Treat an already-visible wallet as success.
+  try {
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description:
+        'Wallet container visible after rehydration (keychain auto-unlock)',
+      timeout: 4000,
+    });
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description: 'Wallet container should remain visible after auto-unlock',
+      timeout: 5000,
+    });
+    return;
+  } catch {
+    // Expected when the user must enter a password on the login screen
+  }
+
   await Utilities.executeWithRetry(
     async () => {
       await Assertions.expectElementToBeVisible(LoginView.container, {
