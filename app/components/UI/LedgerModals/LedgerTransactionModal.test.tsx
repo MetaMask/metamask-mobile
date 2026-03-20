@@ -47,7 +47,7 @@ jest.mock('../../../core/Engine', () => ({
       stopTransaction: (...args: unknown[]) => mockStopTransaction(...args),
     },
     ApprovalController: {
-      accept: (...args: unknown[]) => mockAccept(...args),
+      acceptRequest: (...args: unknown[]) => mockAccept(...args),
     },
   },
 }));
