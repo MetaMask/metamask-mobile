@@ -27,7 +27,7 @@ import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
   isHardwareAccount,
   isHDOrFirstPartySnapAccount,
@@ -65,7 +65,7 @@ const AccountActions = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { networkSupporting7702Present } = useEIP7702Networks(
     selectedAccount.address,
   );

@@ -7,8 +7,8 @@ import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { render } from '@testing-library/react-native';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
   Caip25EndowmentPermissionName,
@@ -21,7 +21,7 @@ import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
@@ -116,10 +116,11 @@ const mockAccountsLength = (accountsLength: number) => {
 
 const mockTrackEvent = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+jest.mocked(useAnalytics).mockReturnValue({
   trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
   enable: jest.fn(),
+  identify: jest.fn(),
   addTraitsToUser: jest.fn(),
   createDataDeletionTask: jest.fn(),
   checkDataDeleteStatus: jest.fn(),
@@ -127,7 +128,7 @@ const mockTrackEvent = jest.fn();
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
   isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
+  getAnalyticsId: jest.fn(),
 });
 
 describe('PermissionApproval', () => {
@@ -200,7 +201,7 @@ describe('PermissionApproval', () => {
 
     render(<PermissionApproval navigation={navigationMock} />);
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.CONNECT_REQUEST_STARTED,
     )
       .addProperties({
