@@ -8,6 +8,7 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { TransactionType } from '@metamask/transaction-controller';
 import { AssetType, TokenStandard } from '../../types/token';
 import { EthAccountType } from '@metamask/keyring-api';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useSendTokens } from '../send/useSendTokens';
 
 jest.mock('../send/useSendTokens');
@@ -133,7 +134,7 @@ describe('useWithdrawTokenFilter', () => {
     expect(result.current(input)).toBe(input);
   });
 
-  it('filters useSendTokens result to only those matching the allowlist', () => {
+  it('returns allTokens from useSendTokens for withdraw with allowlist', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -144,153 +145,9 @@ describe('useWithdrawTokenFilter', () => {
       },
     });
 
-    const filtered = result.current([]);
+    const returned = result.current([]);
 
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].address).toBe('0xaaa');
-    expect(filtered[0].balance).toBe('1.0');
-  });
-
-  it('includes zero-balance tokens from useSendTokens that match the allowlist', () => {
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x1': ['0xaaa', '0xddd'] },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(2);
-    expect(filtered[0].address).toBe('0xaaa');
-    expect(filtered[1].address).toBe('0xDDD');
-    expect(filtered[1].name).toBe('Catalog Token');
-    expect(filtered[1].balance).toBe('0');
-  });
-
-  it('uses override allowlist when override key matches transaction type', () => {
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x1': ['0xaaa'] },
-        },
-        overrides: {
-          predictWithdraw: {
-            enabled: true,
-            tokens: { '0x1': ['0xbbb'] },
-          },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].address).toBe('0xbbb');
-  });
-
-  it('override tokens replace default tokens for same property', () => {
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x1': ['0xaaa'], '0x89': ['0xccc'] },
-        },
-        overrides: {
-          predictWithdraw: {
-            enabled: true,
-            tokens: { '0x89': ['0xccc'] },
-          },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].address).toBe('0xccc');
-    expect(filtered[0].chainId).toBe('0x89');
-  });
-
-  it('falls back to default tokens when override has no tokens property', () => {
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x1': ['0xaaa'] },
-        },
-        overrides: {
-          predictWithdraw: { enabled: false },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].address).toBe('0xaaa');
-  });
-
-  it('matches native token via zero address in allowlist', () => {
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: {
-            '0x1': ['0x0000000000000000000000000000000000000000', '0xaaa'],
-          },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(2);
-    expect(filtered[0].address).toBe('0xaaa');
-    expect(filtered[1].isNative).toBe(true);
-    expect(filtered[1].symbol).toBe('ETH');
-  });
-
-  it('excludes tokens not in allowlist', () => {
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x1': ['0xaaa', '0xzzz'] },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].address).toBe('0xaaa');
-  });
-
-  it('matches chain ID case-insensitively', () => {
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x89': ['0xccc'] },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].address).toBe('0xccc');
+    expect(returned).toBe(ALL_TOKENS_MOCK);
   });
 
   it('calls useSendTokens without full catalog options for non-withdraw transactions', () => {
@@ -365,5 +222,27 @@ describe('useWithdrawTokenFilter', () => {
     expect(filter).toBeDefined();
     expect(filter?.('0x1', '0xaaa')).toBe(true);
     expect(filter?.('0X1', '0xAAA')).toBe(true);
+  });
+
+  it('passes a tokenFilter that matches native tokens via zero address in allowlist', () => {
+    runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: {
+            '0x89': ['0x0000000000000000000000000000000000000000'],
+          },
+        },
+      },
+    });
+
+    const args = mockUseSendTokens.mock.calls[0]?.[0] ?? {};
+    const filter = args.tokenFilter;
+    const nativeAddress = getNativeTokenAddress('0x89');
+
+    expect(filter).toBeDefined();
+    expect(filter?.('0x89', nativeAddress)).toBe(true);
+    expect(filter?.('0x89', '0xrandom')).toBe(false);
   });
 });

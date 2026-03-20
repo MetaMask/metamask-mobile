@@ -34,16 +34,9 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
     if (!allowlist) {
       return undefined;
     }
-    const lowerAllowlist = new Map<string, Set<string>>();
-    for (const [chainId, addresses] of Object.entries(allowlist)) {
-      lowerAllowlist.set(
-        chainId.toLowerCase(),
-        new Set(addresses.map((a: string) => a.toLowerCase())),
-      );
-    }
+    const lookup = buildAllowlistLookup(allowlist);
     return (chainId: string, address: string) =>
-      lowerAllowlist.get(chainId.toLowerCase())?.has(address.toLowerCase()) ??
-      false;
+      lookup.get(chainId.toLowerCase())?.has(address.toLowerCase()) ?? false;
   }, [allowlist]);
 
   const allTokens = useSendTokens({
@@ -52,53 +45,42 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
     tokenFilter,
   });
 
-  const filtered = useMemo(() => {
-    if (!shouldLoadFullTokenCatalog || !allowlist) {
-      return undefined;
-    }
-    return allTokens.filter((token) => isAllowlisted(token, allowlist));
-  }, [allTokens, allowlist, shouldLoadFullTokenCatalog]);
-
   return useCallback(
     (tokens: AssetType[]): AssetType[] => {
-      if (!isWithdraw || !filtered) {
+      if (!isWithdraw || !shouldLoadFullTokenCatalog) {
         return tokens;
       }
-      return filtered;
+      return allTokens;
     },
-    [isWithdraw, filtered],
+    [isWithdraw, shouldLoadFullTokenCatalog, allTokens],
   );
 }
 
-function isAllowlisted(
-  token: AssetType,
+/**
+ * Pre-computes a Map<chainId, Set<address>> from the allowlist for O(1) lookups.
+ * Expands zero-address entries to also include the chain-specific native address.
+ */
+function buildAllowlistLookup(
   allowlist: Record<Hex, Hex[]>,
-): boolean {
-  const chainId = token.chainId?.toLowerCase() as Hex | undefined;
-  if (!chainId) {
-    return false;
+): Map<string, Set<string>> {
+  const lookup = new Map<string, Set<string>>();
+
+  for (const [chainId, addresses] of Object.entries(allowlist)) {
+    const lowerChainId = chainId.toLowerCase();
+    const addressSet = new Set<string>();
+
+    for (const addr of addresses) {
+      const lowerAddr = addr.toLowerCase();
+      addressSet.add(lowerAddr);
+
+      if (isNativeAddress(lowerAddr)) {
+        const nativeAddr = getNativeTokenAddress(lowerChainId as Hex);
+        addressSet.add(nativeAddr.toLowerCase());
+      }
+    }
+
+    lookup.set(lowerChainId, addressSet);
   }
 
-  const allowlistKey = Object.keys(allowlist).find(
-    (key) => key.toLowerCase() === chainId,
-  ) as Hex | undefined;
-  const addresses = allowlistKey ? allowlist[allowlistKey] : undefined;
-  if (!addresses) {
-    return false;
-  }
-
-  const tokenAddr = token.address?.toLowerCase();
-  return addresses.some((allowed) => {
-    const allowedLower = allowed.toLowerCase();
-    if (tokenAddr === allowedLower) {
-      return true;
-    }
-    // Allowlist may use 0x000…000 for native tokens while the token list
-    // uses the chain-specific native address (e.g. 0x…1010 on Polygon).
-    if (isNativeAddress(allowedLower)) {
-      const nativeAddr = getNativeTokenAddress(chainId);
-      return tokenAddr === nativeAddr.toLowerCase();
-    }
-    return false;
-  });
+  return lookup;
 }
