@@ -379,7 +379,11 @@ describeForPlatforms('Send', () => {
       fireEvent.press(reviewButton);
 
       expect(
-        await findByTestId('send-alert-modal-cancel-button', {}, { timeout: 5000 }),
+        await findByTestId(
+          'send-alert-modal-cancel-button',
+          {},
+          { timeout: 5000 },
+        ),
       ).toBeOnTheScreen();
 
       fireEvent.press(screen.getByTestId('send-alert-modal-cancel-button'));
