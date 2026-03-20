@@ -45,7 +45,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
- Box } from '@metamask/design-system-react-native';
+  Box,
+} from '@metamask/design-system-react-native';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
