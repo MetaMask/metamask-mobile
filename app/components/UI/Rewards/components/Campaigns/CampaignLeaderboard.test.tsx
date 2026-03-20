@@ -1,0 +1,462 @@
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import CampaignLeaderboard, {
+  CAMPAIGN_LEADERBOARD_TEST_IDS,
+} from './CampaignLeaderboard';
+import type {
+  CampaignLeaderboardEntry,
+  CampaignLeaderboardPositionDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return { ...actual };
+});
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
+
+jest.mock(
+  '../../../../../component-library/components-temp/Tabs/TabsBar',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        tabs,
+        activeIndex,
+        onTabPress,
+        testID,
+      }: {
+        tabs: { key: string; label: string }[];
+        activeIndex: number;
+        onTabPress: (index: number) => void;
+        testID?: string;
+      }) =>
+        ReactActual.createElement(
+          View,
+          { testID },
+          tabs.map((tab, idx) =>
+            ReactActual.createElement(
+              Pressable,
+              {
+                key: tab.key,
+                onPress: () => onTabPress(idx),
+                testID: `tab-${tab.key}`,
+              },
+              ReactActual.createElement(
+                Text,
+                { style: idx === activeIndex ? { fontWeight: 'bold' } : {} },
+                tab.label,
+              ),
+            ),
+          ),
+        ),
+    };
+  },
+);
+
+jest.mock('../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      onConfirm,
+      confirmButtonLabel,
+      testID,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(Text, null, title),
+        confirmButtonLabel &&
+          ReactActual.createElement(
+            Pressable,
+            { onPress: onConfirm, testID: `${testID}-retry` },
+            ReactActual.createElement(Text, null, confirmButtonLabel),
+          ),
+      ),
+  };
+});
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'rewards.leaderboard.title': 'Leaderboard',
+      'rewards.leaderboard.updated_at': `Updated at ${params?.time ?? ''}`,
+      'rewards.leaderboard.total_participants': `${params?.count ?? ''} participants`,
+      'rewards.leaderboard.no_data': 'No leaderboard data available',
+      'rewards.leaderboard.no_entries_in_tier': 'No entries in this tier',
+      'rewards.leaderboard.error_loading': 'Failed to load leaderboard',
+      'rewards.leaderboard.error_loading_description': 'Please try again',
+      'rewards.leaderboard.error_loading_position':
+        'Failed to load your position',
+      'rewards.leaderboard.retry': 'Retry',
+      'rewards.leaderboard.your_position': 'Your position',
+    };
+    return translations[key] || key;
+  },
+}));
+
+const createMockEntry = (
+  overrides: Partial<CampaignLeaderboardEntry> = {},
+): CampaignLeaderboardEntry => ({
+  rank: 1,
+  referral_code: 'ABC123',
+  rate_of_return: 0.15,
+  ...overrides,
+});
+
+const createMockPosition = (
+  overrides: Partial<CampaignLeaderboardPositionDto> = {},
+): CampaignLeaderboardPositionDto => ({
+  projected_tier: 'STARTER',
+  rank: 25,
+  total_in_tier: 100,
+  rate_of_return: 0.1,
+  current_usd_value: 5000,
+  total_usd_deposited: 4500,
+  net_deposit: 4000,
+  computed_at: '2024-03-20T12:00:00.000Z',
+  referral_code: 'XYZ789',
+  ...overrides,
+});
+
+const defaultProps = {
+  tierNames: ['STARTER', 'MID', 'UPPER'],
+  selectedTier: 'STARTER',
+  onTierChange: jest.fn(),
+  entries: [
+    createMockEntry({ rank: 1, referral_code: 'AAA111', rate_of_return: 0.2 }),
+    createMockEntry({ rank: 2, referral_code: 'BBB222', rate_of_return: 0.15 }),
+    createMockEntry({
+      rank: 3,
+      referral_code: 'CCC333',
+      rate_of_return: -0.05,
+    }),
+  ],
+  totalParticipants: 150,
+  myPosition: null,
+  computedAt: '2024-03-20T12:00:00.000Z',
+  isLoading: false,
+  hasError: false,
+  isPositionLoading: false,
+  hasPositionError: false,
+  onRetry: jest.fn(),
+  onRetryPosition: jest.fn(),
+};
+
+describe('CampaignLeaderboard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('loading state', () => {
+    it('renders skeleton when loading with no data', () => {
+      const { getByTestId } = render(
+        <CampaignLeaderboard
+          {...defaultProps}
+          isLoading
+          entries={[]}
+          myPosition={null}
+        />,
+      );
+
+      expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.LOADING)).toBeDefined();
+    });
+
+    it('does not render skeleton when loading but has data', () => {
+      const { queryByTestId, getByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} isLoading />,
+      );
+
+      expect(queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.LOADING)).toBeNull();
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+    });
+  });
+
+  describe('error state', () => {
+    it('renders error banner when has error and no data', () => {
+      const { getByTestId } = render(
+        <CampaignLeaderboard
+          {...defaultProps}
+          hasError
+          entries={[]}
+          myPosition={null}
+        />,
+      );
+
+      expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR)).toBeDefined();
+    });
+
+    it('renders inline error banner when has error but also has data', () => {
+      const { getByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} hasError />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+      expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR)).toBeDefined();
+    });
+
+    it('calls onRetry when error retry is pressed', () => {
+      const { getByTestId } = render(
+        <CampaignLeaderboard
+          {...defaultProps}
+          hasError
+          entries={[]}
+          myPosition={null}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}-retry`),
+      );
+      expect(defaultProps.onRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders position error banner when position has error', () => {
+      const { getByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} hasPositionError />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.POSITION_ERROR),
+      ).toBeDefined();
+    });
+  });
+
+  describe('empty state', () => {
+    it('renders empty state when no tier names', () => {
+      const { getByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} tierNames={[]} />,
+      );
+
+      expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.EMPTY)).toBeDefined();
+    });
+  });
+
+  describe('leaderboard content', () => {
+    it('renders container with leaderboard title', () => {
+      const { getByTestId, getByText } = render(
+        <CampaignLeaderboard {...defaultProps} />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+      expect(getByText('Leaderboard')).toBeDefined();
+    });
+
+    it('renders computed at timestamp', () => {
+      const { getByTestId } = render(<CampaignLeaderboard {...defaultProps} />);
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
+      ).toBeDefined();
+    });
+
+    it('does not render computed at when null', () => {
+      const { queryByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} computedAt={null} />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
+      ).toBeNull();
+    });
+
+    it('renders tier tabs when multiple tiers', () => {
+      const { getByTestId } = render(<CampaignLeaderboard {...defaultProps} />);
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
+      ).toBeDefined();
+    });
+
+    it('does not render tier tabs when single tier', () => {
+      const { queryByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} tierNames={['STARTER']} />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
+      ).toBeNull();
+    });
+
+    it('calls onTierChange when tab is pressed', () => {
+      const onTierChange = jest.fn();
+      const { getByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} onTierChange={onTierChange} />,
+      );
+
+      fireEvent.press(getByTestId('tab-MID'));
+      expect(onTierChange).toHaveBeenCalledWith('MID');
+    });
+
+    it('renders total participants count', () => {
+      const { getByText } = render(<CampaignLeaderboard {...defaultProps} />);
+
+      expect(getByText('150 participants')).toBeDefined();
+    });
+
+    it('renders leaderboard list', () => {
+      const { getByTestId } = render(<CampaignLeaderboard {...defaultProps} />);
+
+      expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.LIST)).toBeDefined();
+    });
+
+    it('renders entry rows with correct data', () => {
+      const { getByTestId, getByText } = render(
+        <CampaignLeaderboard {...defaultProps} />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-1`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-2`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
+      ).toBeDefined();
+
+      expect(getByText('#1')).toBeDefined();
+      expect(getByText('AAA111')).toBeDefined();
+      expect(getByText('+20.00%')).toBeDefined();
+
+      expect(getByText('#2')).toBeDefined();
+      expect(getByText('BBB222')).toBeDefined();
+      expect(getByText('+15.00%')).toBeDefined();
+
+      expect(getByText('#3')).toBeDefined();
+      expect(getByText('CCC333')).toBeDefined();
+      expect(getByText('-5.00%')).toBeDefined();
+    });
+
+    it('renders empty entries message when no entries', () => {
+      const { getByText } = render(
+        <CampaignLeaderboard {...defaultProps} entries={[]} />,
+      );
+
+      expect(getByText('No entries in this tier')).toBeDefined();
+    });
+  });
+
+  describe('my position', () => {
+    it('renders my position card when user not in top 20', () => {
+      const position = createMockPosition({
+        rank: 25,
+        projected_tier: 'STARTER',
+      });
+      const { getByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
+      ).toBeDefined();
+    });
+
+    it('does not render my position card when user in top 20', () => {
+      const position = createMockPosition({
+        rank: 5,
+        projected_tier: 'STARTER',
+      });
+      const { queryByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
+      ).toBeNull();
+    });
+
+    it('does not render my position card when user in different tier', () => {
+      const position = createMockPosition({ rank: 25, projected_tier: 'MID' });
+      const { queryByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
+      ).toBeNull();
+    });
+
+    it('does not render my position card while loading', () => {
+      const position = createMockPosition({
+        rank: 25,
+        projected_tier: 'STARTER',
+      });
+      const { queryByTestId } = render(
+        <CampaignLeaderboard
+          {...defaultProps}
+          myPosition={position}
+          isPositionLoading
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
+      ).toBeNull();
+    });
+
+    it('highlights current user in leaderboard when in top 20', () => {
+      const position = createMockPosition({
+        rank: 2,
+        projected_tier: 'STARTER',
+        referral_code: 'BBB222',
+      });
+      const { getByTestId } = render(
+        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
+      );
+
+      const userRow = getByTestId(
+        `${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-2`,
+      );
+      expect(userRow).toBeDefined();
+    });
+  });
+
+  describe('rate of return formatting', () => {
+    it('formats positive rate of return with plus sign', () => {
+      const entries = [createMockEntry({ rank: 1, rate_of_return: 0.1523 })];
+      const { getByText } = render(
+        <CampaignLeaderboard {...defaultProps} entries={entries} />,
+      );
+
+      expect(getByText('+15.23%')).toBeDefined();
+    });
+
+    it('formats negative rate of return without plus sign', () => {
+      const entries = [createMockEntry({ rank: 1, rate_of_return: -0.0832 })];
+      const { getByText } = render(
+        <CampaignLeaderboard {...defaultProps} entries={entries} />,
+      );
+
+      expect(getByText('-8.32%')).toBeDefined();
+    });
+
+    it('formats zero rate of return with plus sign', () => {
+      const entries = [createMockEntry({ rank: 1, rate_of_return: 0 })];
+      const { getByText } = render(
+        <CampaignLeaderboard {...defaultProps} entries={entries} />,
+      );
+
+      expect(getByText('+0.00%')).toBeDefined();
+    });
+  });
+});

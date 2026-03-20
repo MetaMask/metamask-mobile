@@ -27,6 +27,8 @@ import type {
   ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  CampaignLeaderboardDto,
+  CampaignLeaderboardPositionDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -214,6 +216,16 @@ export interface RewardsDataServiceGetCampaignParticipantStatusAction {
   handler: RewardsDataService['getCampaignParticipantStatus'];
 }
 
+export interface RewardsDataServiceGetCampaignLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getCampaignLeaderboard`;
+  handler: RewardsDataService['getCampaignLeaderboard'];
+}
+
+export interface RewardsDataServiceGetCampaignLeaderboardPositionAction {
+  type: `${typeof SERVICE_NAME}:getCampaignLeaderboardPosition`;
+  handler: RewardsDataService['getCampaignLeaderboardPosition'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -265,7 +277,9 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetCampaignParticipantStatusAction;
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetCampaignLeaderboardAction
+  | RewardsDataServiceGetCampaignLeaderboardPositionAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -411,6 +425,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getCampaignParticipantStatus`,
       this.getCampaignParticipantStatus.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaignLeaderboard`,
+      this.getCampaignLeaderboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaignLeaderboardPosition`,
+      this.getCampaignLeaderboardPosition.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1359,5 +1381,56 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get the campaign leaderboard showing top 20 participants per tier.
+   * This is a public endpoint - no authentication required.
+   * @param campaignId - The campaign ID to get leaderboard for.
+   * @returns The leaderboard data grouped by tier.
+   */
+  async getCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/campaigns/${campaignId}/leaderboard`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaign leaderboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignLeaderboardDto;
+  }
+
+  /**
+   * Get the current user's position on the campaign leaderboard.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID to get position for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's leaderboard position, or null if not found (404).
+   */
+  async getCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardPositionDto | null> {
+    const response = await this.makeRequest(
+      `/campaigns/${campaignId}/leaderboard/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign leaderboard position failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as CampaignLeaderboardPositionDto;
   }
 }

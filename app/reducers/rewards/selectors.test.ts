@@ -53,6 +53,19 @@ import {
   selectCampaignParticipantStatuses,
   selectCampaignParticipantStatusById,
   selectCampaignParticipantCount,
+  selectCampaignLeaderboard,
+  selectCampaignLeaderboardLoading,
+  selectCampaignLeaderboardError,
+  selectCampaignLeaderboardSelectedTier,
+  selectCampaignLeaderboardTiers,
+  selectCampaignLeaderboardComputedAt,
+  selectCampaignLeaderboardTierNames,
+  selectCampaignLeaderboardEntriesByTier,
+  selectCampaignLeaderboardTotalParticipantsByTier,
+  selectCampaignLeaderboardPositions,
+  selectCampaignLeaderboardPositionById,
+  selectCampaignLeaderboardPositionLoading,
+  selectCampaignLeaderboardPositionError,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
@@ -3308,6 +3321,289 @@ describe('Rewards selectors', () => {
         },
       });
       expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
+    });
+  });
+
+  const mockLeaderboard = {
+    campaign_id: 'campaign-1',
+    computed_at: '2024-03-20T12:00:00.000Z',
+    tiers: {
+      STARTER: {
+        entries: [
+          { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
+          { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+        ],
+        total_participants: 50,
+      },
+      MID: {
+        entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
+        total_participants: 30,
+      },
+    },
+  };
+
+  const mockPosition = {
+    projected_tier: 'STARTER',
+    rank: 5,
+    total_in_tier: 50,
+    rate_of_return: 0.12,
+    current_usd_value: 1000,
+    total_usd_deposited: 900,
+    net_deposit: 800,
+    computed_at: '2024-03-20T12:00:00.000Z',
+    referral_code: 'XYZ789',
+  };
+
+  describe('selectCampaignLeaderboard', () => {
+    it('returns null when leaderboard is not set', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: null,
+      });
+      expect(selectCampaignLeaderboard(state)).toBeNull();
+    });
+
+    it('returns leaderboard when set', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectCampaignLeaderboard(state)).toEqual(mockLeaderboard);
+    });
+  });
+
+  describe('selectCampaignLeaderboardLoading', () => {
+    it('returns false when not loading', () => {
+      const state = createMockRootState({
+        campaignLeaderboardLoading: false,
+      });
+      expect(selectCampaignLeaderboardLoading(state)).toBe(false);
+    });
+
+    it('returns true when loading', () => {
+      const state = createMockRootState({
+        campaignLeaderboardLoading: true,
+      });
+      expect(selectCampaignLeaderboardLoading(state)).toBe(true);
+    });
+  });
+
+  describe('selectCampaignLeaderboardError', () => {
+    it('returns false when no error', () => {
+      const state = createMockRootState({
+        campaignLeaderboardError: false,
+      });
+      expect(selectCampaignLeaderboardError(state)).toBe(false);
+    });
+
+    it('returns true when has error', () => {
+      const state = createMockRootState({
+        campaignLeaderboardError: true,
+      });
+      expect(selectCampaignLeaderboardError(state)).toBe(true);
+    });
+  });
+
+  describe('selectCampaignLeaderboardSelectedTier', () => {
+    it('returns null when no tier selected', () => {
+      const state = createMockRootState({
+        campaignLeaderboardSelectedTier: null,
+      });
+      expect(selectCampaignLeaderboardSelectedTier(state)).toBeNull();
+    });
+
+    it('returns selected tier', () => {
+      const state = createMockRootState({
+        campaignLeaderboardSelectedTier: 'STARTER',
+      });
+      expect(selectCampaignLeaderboardSelectedTier(state)).toBe('STARTER');
+    });
+  });
+
+  describe('selectCampaignLeaderboardTiers', () => {
+    it('returns empty object when no leaderboard', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: null,
+      });
+      expect(selectCampaignLeaderboardTiers(state)).toEqual({});
+    });
+
+    it('returns tiers from leaderboard', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectCampaignLeaderboardTiers(state)).toEqual(
+        mockLeaderboard.tiers,
+      );
+    });
+  });
+
+  describe('selectCampaignLeaderboardComputedAt', () => {
+    it('returns null when no leaderboard', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: null,
+      });
+      expect(selectCampaignLeaderboardComputedAt(state)).toBeNull();
+    });
+
+    it('returns computed_at from leaderboard', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectCampaignLeaderboardComputedAt(state)).toBe(
+        '2024-03-20T12:00:00.000Z',
+      );
+    });
+  });
+
+  describe('selectCampaignLeaderboardTierNames', () => {
+    it('returns empty array when no leaderboard', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: null,
+      });
+      expect(selectCampaignLeaderboardTierNames(state)).toEqual([]);
+    });
+
+    it('returns tier names from leaderboard', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectCampaignLeaderboardTierNames(state)).toEqual([
+        'STARTER',
+        'MID',
+      ]);
+    });
+  });
+
+  describe('selectCampaignLeaderboardEntriesByTier', () => {
+    it('returns empty array when tier name is null', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectCampaignLeaderboardEntriesByTier(null)(state)).toEqual([]);
+    });
+
+    it('returns empty array when tier does not exist', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectCampaignLeaderboardEntriesByTier('UPPER')(state)).toEqual(
+        [],
+      );
+    });
+
+    it('returns entries for specified tier', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectCampaignLeaderboardEntriesByTier('STARTER')(state)).toEqual(
+        mockLeaderboard.tiers.STARTER.entries,
+      );
+    });
+  });
+
+  describe('selectCampaignLeaderboardTotalParticipantsByTier', () => {
+    it('returns 0 when tier name is null', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectCampaignLeaderboardTotalParticipantsByTier(null)(state),
+      ).toBe(0);
+    });
+
+    it('returns 0 when tier does not exist', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectCampaignLeaderboardTotalParticipantsByTier('UPPER')(state),
+      ).toBe(0);
+    });
+
+    it('returns total participants for specified tier', () => {
+      const state = createMockRootState({
+        campaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectCampaignLeaderboardTotalParticipantsByTier('STARTER')(state),
+      ).toBe(50);
+    });
+  });
+
+  describe('selectCampaignLeaderboardPositions', () => {
+    it('returns empty object when no positions', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositions: {},
+      });
+      expect(selectCampaignLeaderboardPositions(state)).toEqual({});
+    });
+
+    it('returns positions when set', () => {
+      const positions = { 'campaign-1': mockPosition };
+      const state = createMockRootState({
+        campaignLeaderboardPositions: positions,
+      });
+      expect(selectCampaignLeaderboardPositions(state)).toEqual(positions);
+    });
+  });
+
+  describe('selectCampaignLeaderboardPositionById', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositions: { 'campaign-1': mockPosition },
+      });
+      expect(
+        selectCampaignLeaderboardPositionById(undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when position does not exist', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositions: {},
+      });
+      expect(
+        selectCampaignLeaderboardPositionById('campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns position for specified campaign', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositions: { 'campaign-1': mockPosition },
+      });
+      expect(
+        selectCampaignLeaderboardPositionById('campaign-1')(state),
+      ).toEqual(mockPosition);
+    });
+  });
+
+  describe('selectCampaignLeaderboardPositionLoading', () => {
+    it('returns false when not loading', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositionLoading: false,
+      });
+      expect(selectCampaignLeaderboardPositionLoading(state)).toBe(false);
+    });
+
+    it('returns true when loading', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositionLoading: true,
+      });
+      expect(selectCampaignLeaderboardPositionLoading(state)).toBe(true);
+    });
+  });
+
+  describe('selectCampaignLeaderboardPositionError', () => {
+    it('returns false when no error', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositionError: false,
+      });
+      expect(selectCampaignLeaderboardPositionError(state)).toBe(false);
+    });
+
+    it('returns true when has error', () => {
+      const state = createMockRootState({
+        campaignLeaderboardPositionError: true,
+      });
+      expect(selectCampaignLeaderboardPositionError(state)).toBe(true);
     });
   });
 });

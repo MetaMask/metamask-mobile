@@ -202,6 +202,167 @@ export interface CampaignParticipantStatusDto {
   participantCount: number;
 }
 
+/**
+ * A single entry in the campaign leaderboard
+ */
+export interface CampaignLeaderboardEntry {
+  /**
+   * The rank of the participant within their tier
+   * @example 1
+   */
+  rank: number;
+
+  /**
+   * The participant's referral code (used as identifier)
+   * @example 'ABC123'
+   */
+  referral_code: string;
+
+  /**
+   * The rate of return as a decimal ratio (0.15 = 15%, -0.05 = -5%)
+   * @example 0.15
+   */
+  rate_of_return: number;
+}
+
+/**
+ * Leaderboard data for a single tier
+ */
+export interface CampaignLeaderboardTier {
+  /**
+   * Top entries in the tier (up to 20)
+   */
+  entries: CampaignLeaderboardEntry[];
+
+  /**
+   * Total number of participants in this tier
+   * @example 150
+   */
+  total_participants: number;
+}
+
+/**
+ * Response DTO for GET /campaigns/:campaignId/leaderboard
+ * Public endpoint returning top 20 per tier
+ */
+export interface CampaignLeaderboardDto {
+  /**
+   * The campaign ID
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  campaign_id: string;
+
+  /**
+   * When the leaderboard was last computed (ISO timestamp)
+   * @example '2024-03-20T12:00:00.000Z'
+   */
+  computed_at: string;
+
+  /**
+   * Leaderboard data by tier name (e.g. STARTER, MID, UPPER)
+   * Keys are dynamic based on campaign config
+   */
+  tiers: Record<string, CampaignLeaderboardTier>;
+}
+
+/**
+ * Response DTO for GET /campaigns/:campaignId/leaderboard/me
+ * Authenticated endpoint returning the current user's position
+ */
+export interface CampaignLeaderboardPositionDto {
+  /**
+   * The user's projected tier based on net deposit
+   * @example 'MID'
+   */
+  projected_tier: string;
+
+  /**
+   * The user's rank within their tier
+   * @example 5
+   */
+  rank: number;
+
+  /**
+   * Total number of participants in the user's tier
+   * @example 150
+   */
+  total_in_tier: number;
+
+  /**
+   * The user's rate of return as a decimal ratio
+   * @example 0.15
+   */
+  rate_of_return: number;
+
+  /**
+   * Current USD value of the user's positions
+   * @example 12500.50
+   */
+  current_usd_value: number;
+
+  /**
+   * Total USD deposited by the user
+   * @example 10000.00
+   */
+  total_usd_deposited: number;
+
+  /**
+   * Net deposit amount (deposits - withdrawals at cost basis)
+   * @example 8500.00
+   */
+  net_deposit: number;
+
+  /**
+   * When the leaderboard was last computed (ISO timestamp)
+   * @example '2024-03-20T12:00:00.000Z'
+   */
+  computed_at: string;
+
+  /**
+   * The user's referral code (used for display in position card)
+   * @example 'ABC123'
+   */
+  referral_code?: string;
+}
+
+/**
+ * State for cached leaderboard data in the controller
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignLeaderboardState = {
+  campaign_id: string;
+  computed_at: string;
+  tiers: Record<
+    string,
+    {
+      entries: {
+        rank: number;
+        referral_code: string;
+        rate_of_return: number;
+      }[];
+      total_participants: number;
+    }
+  >;
+  lastFetched: number;
+};
+
+/**
+ * State for cached leaderboard position in the controller
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignLeaderboardPositionState = {
+  projected_tier: string;
+  rank: number;
+  total_in_tier: number;
+  rate_of_return: number;
+  current_usd_value: number;
+  total_usd_deposited: number;
+  net_deposit: number;
+  computed_at: string;
+  referral_code?: string;
+  lastFetched: number;
+};
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignParticipantStatusState = {
   optedIn: boolean;
@@ -1235,6 +1396,12 @@ export type RewardsControllerState = {
   campaignParticipantStatus: {
     [compositeId: string]: CampaignParticipantStatusState;
   };
+  /** Campaign leaderboard data keyed by campaignId */
+  campaignLeaderboards: { [campaignId: string]: CampaignLeaderboardState };
+  /** Campaign leaderboard position keyed by compositeId (campaignId:subscriptionId) */
+  campaignLeaderboardPositions: {
+    [compositeId: string]: CampaignLeaderboardPositionState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1612,6 +1779,25 @@ export interface RewardsControllerGetCampaignParticipantStatusAction {
 }
 
 /**
+ * Action for getting the campaign leaderboard (public, top 20 per tier)
+ */
+export interface RewardsControllerGetCampaignLeaderboardAction {
+  type: 'RewardsController:getCampaignLeaderboard';
+  handler: (campaignId: string) => Promise<CampaignLeaderboardDto>;
+}
+
+/**
+ * Action for getting the current user's leaderboard position (authenticated)
+ */
+export interface RewardsControllerGetCampaignLeaderboardPositionAction {
+  type: 'RewardsController:getCampaignLeaderboardPosition';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignLeaderboardPositionDto | null>;
+}
+
+/**
  * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
  */
 export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
@@ -1715,6 +1901,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetCampaignsAction
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
+  | RewardsControllerGetCampaignLeaderboardAction
+  | RewardsControllerGetCampaignLeaderboardPositionAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
