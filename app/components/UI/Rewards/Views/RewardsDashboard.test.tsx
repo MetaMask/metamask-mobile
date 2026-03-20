@@ -208,6 +208,19 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
 }));
 
 // Mock child components
+jest.mock('../components/EarnRewards/EarnRewardsPreview', () => ({
+  __esModule: true,
+  default: function MockEarnRewardsPreview() {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+    return ReactActual.createElement(
+      View,
+      { testID: 'earn-rewards-preview' },
+      ReactActual.createElement(Text, null, 'Earn Rewards Preview'),
+    );
+  },
+}));
+
 jest.mock('../components/Campaigns/CampaignsPreview', () => ({
   __esModule: true,
   default: function MockCampaignsPreview() {

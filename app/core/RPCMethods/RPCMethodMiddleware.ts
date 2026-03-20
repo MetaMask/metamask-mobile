@@ -367,7 +367,7 @@ export const getRpcMethodMiddlewareHooks = ({
       },
     }),
   hasApprovalRequestsForOrigin: () =>
-    Engine.context.ApprovalController.has({ origin }),
+    Engine.context.ApprovalController.hasRequest({ origin }),
   getCurrentChainIdForDomain: (domain: string) => {
     const networkClientId =
       Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
@@ -457,7 +457,7 @@ export const getRpcMethodMiddleware = ({
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
-      await Engine.context.ApprovalController.clear(
+      await Engine.context.ApprovalController.clearRequests(
         providerErrors.userRejectedRequest(),
       );
 
