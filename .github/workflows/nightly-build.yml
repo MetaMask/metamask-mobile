@@ -94,12 +94,56 @@ jobs:
     name: Upload exp to TestFlight
     needs: [build-exp]
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    environment: apple
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch Apple API keys from AWS Secrets Manager
+        run: |
+          echo "🔐 Fetching App Store Connect API keys from Secrets Manager..."
+          secret_id="metamask-mobile-main-apple-api-keys"
+          secret_json=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "$secret_id" \
+            --query SecretString \
+            --output text)
+
+          for key in APP_STORE_CONNECT_API_KEY_ISSUER_ID APP_STORE_CONNECT_API_KEY_KEY_ID; do
+            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k] // empty')
+            if [ -z "$value" ]; then
+              echo "::error::Missing key in secret: $key"
+              exit 1
+            fi
+            echo "::add-mask::$value"
+            echo "${key}=${value}" >> "$GITHUB_ENV"
+          done
+
+          key=APP_STORE_CONNECT_API_KEY_KEY_CONTENT
+          value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k] // empty')
+          if [ -z "$value" ]; then
+            echo "::error::Missing key in secret: $key"
+            exit 1
+          fi
+          while IFS= read -r line || [ -n "$line" ]; do
+            [ -n "$line" ] && echo "::add-mask::$line"
+          done <<< "$(printf '%s\n' "$value")"
+
+          delim="APPLEP8$(openssl rand -hex 16)"
+          {
+            printf '%s<<%s\n' "$key" "$delim"
+            printf '%s\n' "$value"
+            printf '%s\n' "$delim"
+          } >> "$GITHUB_ENV"
+
+          echo "✅ Apple API keys loaded from AWS"
 
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
@@ -130,10 +174,6 @@ jobs:
             "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
 
       - name: Upload to TestFlight
         run: |
@@ -141,8 +181,7 @@ jobs:
             "github_actions_main-exp" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates" \
-            "false"
+            "MetaMask BETA & Release Candidates"
 
       - name: Cleanup API Key
         if: always()
@@ -154,12 +193,56 @@ jobs:
     name: Upload RC to TestFlight
     needs: [build-rc]
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    environment: apple
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch Apple API keys from AWS Secrets Manager
+        run: |
+          echo "🔐 Fetching App Store Connect API keys from Secrets Manager..."
+          secret_id="metamask-mobile-main-apple-api-keys"
+          secret_json=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "$secret_id" \
+            --query SecretString \
+            --output text)
+
+          for key in APP_STORE_CONNECT_API_KEY_ISSUER_ID APP_STORE_CONNECT_API_KEY_KEY_ID; do
+            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k] // empty')
+            if [ -z "$value" ]; then
+              echo "::error::Missing key in secret: $key"
+              exit 1
+            fi
+            echo "::add-mask::$value"
+            echo "${key}=${value}" >> "$GITHUB_ENV"
+          done
+
+          key=APP_STORE_CONNECT_API_KEY_KEY_CONTENT
+          value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k] // empty')
+          if [ -z "$value" ]; then
+            echo "::error::Missing key in secret: $key"
+            exit 1
+          fi
+          while IFS= read -r line || [ -n "$line" ]; do
+            [ -n "$line" ] && echo "::add-mask::$line"
+          done <<< "$(printf '%s\n' "$value")"
+
+          delim="APPLEP8$(openssl rand -hex 16)"
+          {
+            printf '%s<<%s\n' "$key" "$delim"
+            printf '%s\n' "$value"
+            printf '%s\n' "$delim"
+          } >> "$GITHUB_ENV"
+
+          echo "✅ Apple API keys loaded from AWS"
 
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
@@ -190,21 +273,14 @@ jobs:
             "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
 
       - name: Upload to TestFlight
         run: |
-          # Group arg is required as positional placeholder for the 5th arg (distribute_external=false).
-          # With distribute_external=false the build is uploaded but NOT distributed to external testers.
           bash scripts/upload-to-testflight.sh \
             "github_actions_main-rc" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates" \
-            "false"
+            "MetaMask BETA & Release Candidates"
 
       - name: Cleanup API Key
         if: always()
