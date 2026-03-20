@@ -1,4 +1,3 @@
-import { waitFor } from 'detox';
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -63,9 +62,6 @@ class CreatePasswordView {
   }
 
   async enterPassword(password: string): Promise<void> {
-    const containerEl = (await this.container) as Detox.IndexableNativeElement;
-    await waitFor(containerEl).toExist().withTimeout(15000);
-
     await Gestures.typeText(this.newPasswordInput, password, {
       elemDescription: 'Create Password New Password Input',
       hideKeyboard: true,
