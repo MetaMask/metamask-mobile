@@ -365,6 +365,83 @@ const mockState = ({
   }) as unknown as RootState;
 
 describe('selectAssetsBySelectedAccountGroup', () => {
+  it('does not throw when the account tree lists ids missing from AccountsController', () => {
+    const base = mockState();
+    const walletId = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ';
+    const groupId = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/0';
+    const wallet =
+      base.engine.backgroundState.AccountTreeController.accountTree.wallets[
+        walletId
+      ];
+    const group = wallet.groups[groupId];
+
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          AccountTreeController: {
+            ...base.engine.backgroundState.AccountTreeController,
+            accountTree: {
+              ...base.engine.backgroundState.AccountTreeController.accountTree,
+              wallets: {
+                ...base.engine.backgroundState.AccountTreeController.accountTree
+                  .wallets,
+                [walletId]: {
+                  ...wallet,
+                  groups: {
+                    ...wallet.groups,
+                    [groupId]: {
+                      ...group,
+                      accounts: [
+                        '00000000-0000-0000-0000-000000000099',
+                        ...group.accounts,
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(() => selectAssetsBySelectedAccountGroup(state)).not.toThrow();
+    expect(selectAssetsBySelectedAccountGroup(state)).toStrictEqual(
+      selectAssetsBySelectedAccountGroup(base),
+    );
+  });
+
+  it('does not throw when internalAccounts.accounts has a key with undefined value (rehydration)', () => {
+    const base = mockState();
+    const ethAccountId = 'd7f11451-9d79-4df4-a012-afd253443639';
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          AccountsController: {
+            ...base.engine.backgroundState.AccountsController,
+            internalAccounts: {
+              ...base.engine.backgroundState.AccountsController
+                .internalAccounts,
+              accounts: {
+                ...base.engine.backgroundState.AccountsController
+                  .internalAccounts.accounts,
+                [ethAccountId]: undefined,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(() => selectAssetsBySelectedAccountGroup(state)).not.toThrow();
+  });
+
   it('builds the initial state object', () => {
     const result = selectAssetsBySelectedAccountGroup(mockState());
     expect(result).toStrictEqual({

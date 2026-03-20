@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import { CardHomeSelectors } from '../../../app/components/UI/Card/Views/CardHome/CardHome.testIds';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 
@@ -84,9 +85,14 @@ class CardHomeView {
   }
 
   async cardDashboardVisible(): Promise<void> {
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
-      .toBeVisible()
-      .withTimeout(10000);
+    // iOS: WKWebView often does not satisfy toBeVisible(); framework uses toExist on iOS.
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+      {
+        description: 'Card dashboard should open in in-app browser webview',
+        timeout: 10000,
+      },
+    );
   }
 }
 

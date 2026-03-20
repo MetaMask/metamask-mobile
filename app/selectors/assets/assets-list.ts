@@ -1,5 +1,7 @@
+import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import {
   Asset,
+  AssetListState,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
   TokenListState,
@@ -86,6 +88,128 @@ const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
   trxInLockPeriod: undefined,
 });
 
+function internalAccountRecordIsUsable(
+  value: unknown,
+): value is { type: string } {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    'type' in value &&
+    typeof (value as { type: unknown }).type === 'string'
+  );
+}
+
+/**
+ * Drops account IDs from the account tree that are not present in AccountsController.
+ * Prevents @metamask/assets-controllers token selectors from reading `undefined.type`
+ * when the tree and internal accounts are briefly out of sync (e.g. after restore or migration).
+ *
+ * Also drops ids whose `internalAccounts.accounts[id]` is missing or not yet hydrated
+ * (keys can exist with undefined values during unlock / rehydration).
+ */
+function sanitizeAccountTreeForAssetListSelectors(
+  accountTree: AccountTreeControllerState['accountTree'] | undefined,
+  internalAccountsMap: Record<string, unknown> | undefined,
+): AccountTreeControllerState['accountTree'] {
+  const validIds = new Set(
+    Object.entries(internalAccountsMap ?? {})
+      .filter(([, record]) => internalAccountRecordIsUsable(record))
+      .map(([id]) => id),
+  );
+
+  const safeTree = accountTree ?? {
+    wallets: {},
+    selectedAccountGroup: '' as const,
+  };
+
+  const newWallets: AccountTreeControllerState['accountTree']['wallets'] = {};
+  let mutated = false;
+
+  for (const [walletId, wallet] of Object.entries(safeTree.wallets ?? {})) {
+    if (!wallet?.groups) {
+      continue;
+    }
+
+    const newGroups: typeof wallet.groups = { ...wallet.groups };
+
+    for (const [groupId, group] of Object.entries(wallet.groups)) {
+      if (!group?.accounts) {
+        mutated = true;
+        delete newGroups[groupId as keyof typeof newGroups];
+        continue;
+      }
+      if (group.accounts.length === 0) {
+        continue;
+      }
+
+      const filtered = group.accounts.filter((id) => validIds.has(id));
+      if (filtered.length === group.accounts.length) {
+        continue;
+      }
+      mutated = true;
+      if (filtered.length === 0) {
+        delete newGroups[groupId as keyof typeof newGroups];
+        continue;
+      }
+      newGroups[groupId as keyof typeof newGroups] = {
+        ...group,
+        accounts: filtered as typeof group.accounts,
+      };
+    }
+
+    if (Object.keys(newGroups).length === 0) {
+      if (Object.keys(wallet.groups).length > 0) {
+        mutated = true;
+      }
+      continue;
+    }
+
+    newWallets[walletId as keyof typeof newWallets] = {
+      ...wallet,
+      groups: newGroups,
+    };
+  }
+
+  if (!mutated) {
+    return safeTree;
+  }
+
+  let { selectedAccountGroup } = safeTree;
+  if (
+    selectedAccountGroup !== '' &&
+    !Object.values(newWallets).some(
+      (w) =>
+        w != null &&
+        w.groups != null &&
+        Object.prototype.hasOwnProperty.call(w.groups, selectedAccountGroup),
+    )
+  ) {
+    selectedAccountGroup = '';
+  }
+
+  return {
+    wallets: newWallets,
+    selectedAccountGroup,
+  } as AccountTreeControllerState['accountTree'];
+}
+
+/**
+ * Invokes the assets-controllers selector; on failure returns {} so the wallet UI
+ * does not red-screen during brief AccountTree / internalAccounts mismatch (e.g. after unlock).
+ */
+function callSelectAssetsBySelectedAccountGroup(
+  assetsState: AssetListState,
+  opts?: { filterTronStakedTokens: boolean },
+) {
+  try {
+    return opts === undefined
+      ? _selectAssetsBySelectedAccountGroup(assetsState)
+      : _selectAssetsBySelectedAccountGroup(assetsState, opts);
+  } catch {
+    return {};
+  }
+}
+
 const getStateForAssetSelector = (state: RootState) => {
   const {
     AccountTreeController,
@@ -119,6 +243,13 @@ const getStateForAssetSelector = (state: RootState) => {
   };
   ///: END:ONLY_INCLUDE_IF
 
+  const accountTree = sanitizeAccountTreeForAssetListSelectors(
+    AccountTreeController?.accountTree,
+    AccountsController?.internalAccounts?.accounts as
+      | Record<string, unknown>
+      | undefined,
+  );
+
   return {
     ...AccountTreeController,
     ...AccountsController,
@@ -139,12 +270,13 @@ const getStateForAssetSelector = (state: RootState) => {
         >
       >;
     }),
+    accountTree,
   };
 };
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) => _selectAssetsBySelectedAccountGroup(assetsState),
+  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
 );
 
 // BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
@@ -578,7 +710,7 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
         return EMPTY_TRON_SPECIAL_ASSETS_MAP;
       }
 
-      const allAssets = _selectAssetsBySelectedAccountGroup(assetsState, {
+      const allAssets = callSelectAssetsBySelectedAccountGroup(assetsState, {
         filterTronStakedTokens: false,
       });
 
