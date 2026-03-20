@@ -4,7 +4,11 @@ import { useSelector } from 'react-redux';
 import { formatEther } from 'ethers/lib/utils';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './FooterButtonGroup.styles';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';

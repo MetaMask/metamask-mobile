@@ -4,7 +4,11 @@ import React from 'react';
 import { View } from 'react-native-animatable';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import OldButton, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';

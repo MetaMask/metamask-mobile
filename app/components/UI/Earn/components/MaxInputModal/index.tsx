@@ -6,7 +6,11 @@ import BottomSheet, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import createMaxInputModalStyles from './MaxInputModal.styles';
