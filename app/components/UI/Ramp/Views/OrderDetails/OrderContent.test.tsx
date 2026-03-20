@@ -82,13 +82,14 @@ describe('OrderContent', () => {
     const pendingOrder: RampsOrder = {
       ...mockOrder,
       fiatAmount: 0,
+      cryptoAmount: 0,
       status: RampsOrderStatus.Pending,
     };
     renderOrder(pendingOrder);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('shows ellipsis for token amount when cryptoAmount is 0 or missing', () => {
+  it('shows placeholder for token amount when cryptoAmount is 0 or missing', () => {
     const orderWithZeroCrypto: RampsOrder = {
       ...mockOrder,
       cryptoAmount: 0,
@@ -199,24 +200,42 @@ describe('OrderContent', () => {
     expect(tokenAmount).toHaveTextContent('0.0₅614 ETH');
   });
 
-  it('shows "..." when cryptoAmount is missing', () => {
+  it('shows placeholder when cryptoAmount is missing', () => {
     const noAmountOrder: RampsOrder = {
       ...mockOrder,
       cryptoAmount: undefined as unknown as number,
     };
     renderOrder(noAmountOrder);
     const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
-    expect(tokenAmount).toHaveTextContent('... ETH');
+    expect(tokenAmount).toHaveTextContent('— ETH');
   });
 
-  it('renders "0" when cryptoAmount is zero', () => {
+  it('shows placeholder when cryptoAmount is zero', () => {
     const zeroAmountOrder: RampsOrder = {
       ...mockOrder,
       cryptoAmount: 0,
     };
     renderOrder(zeroAmountOrder);
     const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
-    expect(tokenAmount).toHaveTextContent('0 ETH');
+    expect(tokenAmount).toHaveTextContent('— ETH');
+  });
+
+  it('shows placeholder amounts for terminal orders with no amounts', () => {
+    const failedOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0,
+      fiatAmount: 0,
+      totalFeesFiat: 0,
+      status: RampsOrderStatus.Failed,
+    };
+
+    renderOrder(failedOrder);
+
+    expect(screen.getByText('Failed')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('ramps-order-details-token-amount'),
+    ).toHaveTextContent('— ETH');
+    expect(screen.getAllByText('—')).toHaveLength(3);
   });
 
   it('does not render info row when statusDescription is absent', () => {
