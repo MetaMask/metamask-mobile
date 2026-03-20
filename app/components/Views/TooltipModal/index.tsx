@@ -56,7 +56,7 @@ const TooltipModal = () => {
       />
       {footerText && (
         <Box
-          style={tw.style('flex-row justify-center px-4', {
+          style={tw.style('flex-row justify-center px-4 pt-1', {
             paddingBottom: insets.bottom,
           })}
         >
