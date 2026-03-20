@@ -224,6 +224,21 @@ describe('useWithdrawTokenFilter', () => {
     expect(filter?.('0X1', '0xAAA')).toBe(true);
   });
 
+  it('passes a tokenFilter that returns false for chains not in allowlist', () => {
+    runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: { enabled: true, tokens: { '0x1': ['0xaaa'] } },
+      },
+    });
+
+    const args = mockUseSendTokens.mock.calls[0]?.[0] ?? {};
+    const filter = args.tokenFilter;
+
+    expect(filter).toBeDefined();
+    expect(filter?.('0x999', '0xaaa')).toBe(false);
+  });
+
   it('passes a tokenFilter that matches native tokens via zero address in allowlist', () => {
     runHook({
       type: TransactionType.predictWithdraw,

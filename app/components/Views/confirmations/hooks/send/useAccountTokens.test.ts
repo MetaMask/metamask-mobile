@@ -665,6 +665,74 @@ describe('useAccountTokens', () => {
       expect(result.current).toHaveLength(0);
     });
 
+    it('excludes owned assets without chainId when tokenFilter is provided', () => {
+      const accountAssets = {
+        '0x1': [
+          {
+            address: '0xtoken1',
+            chainId: '0x1',
+            fiat: { balance: '50' },
+            rawBalance: '0x1234',
+            symbol: 'TOKEN1',
+            assetId: '0xtoken1',
+          },
+          {
+            address: '0xtoken2',
+            chainId: '',
+            fiat: { balance: '100' },
+            rawBalance: '0x5678',
+            symbol: 'TOKEN2',
+            assetId: '0xtoken2',
+          },
+        ],
+      };
+
+      setupAllTokensMocks(accountAssets);
+
+      const filter = () => true;
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ tokenFilter: filter }),
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('TOKEN1');
+    });
+
+    it('excludes owned assets without assetId when tokenFilter is provided', () => {
+      const accountAssets = {
+        '0x1': [
+          {
+            address: '0xtoken1',
+            chainId: '0x1',
+            fiat: { balance: '50' },
+            rawBalance: '0x1234',
+            symbol: 'TOKEN1',
+            assetId: '0xtoken1',
+          },
+          {
+            address: '0xtoken2',
+            chainId: '0x1',
+            fiat: { balance: '100' },
+            rawBalance: '0x5678',
+            symbol: 'TOKEN2',
+            assetId: '',
+          },
+        ],
+      };
+
+      setupAllTokensMocks(accountAssets);
+
+      const filter = () => true;
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ tokenFilter: filter }),
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('TOKEN1');
+    });
+
     it('only builds catalog tokens that pass tokenFilter', () => {
       setupAllTokensMocks({});
 
