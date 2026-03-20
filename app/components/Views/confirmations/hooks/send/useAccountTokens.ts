@@ -35,6 +35,17 @@ export function useAccountTokens({
     const flatAssets = Object.values(assets).flat();
 
     const assetsWithBalance = flatAssets.filter((asset) => {
+      if (tokenFilter) {
+        const address = asset.assetId;
+        if (
+          !asset.chainId ||
+          !address ||
+          !tokenFilter(asset.chainId, address)
+        ) {
+          return false;
+        }
+      }
+
       if (includeNoBalance) {
         return true;
       }
