@@ -3066,6 +3066,7 @@
     "networks_no_results": "No networks found",
     "network_name_label": "Network name",
     "network_name_placeholder": "Network name (optional)",
+    "required": "Required",
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC name",
     "network_rpc_placeholder": "New RPC network",
@@ -5990,6 +5991,10 @@
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
+    "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
+    "claim": "Claim",
+    "sounds_good": "Sounds good",
+    "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -7506,6 +7511,11 @@
     "optin_error": {
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
+    },
+    "version_guard": {
+      "title": "Update required",
+      "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
+      "update_button": "Update MetaMask"
     },
     "season_error": {
       "error_fetching_title": "Season couldn’t be loaded",

@@ -64,7 +64,7 @@ const LedgerTransactionModal = () => {
       await TransactionController.stopTransaction(transactionId, gasFeeParams);
     } else {
       // This requires the user to confirm on the ledger device
-      await ApprovalController.accept(transactionId, undefined, {
+      await ApprovalController.acceptRequest(transactionId, undefined, {
         waitForResult: true,
       });
     }
