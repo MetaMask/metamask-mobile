@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { TokenListState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
-import { createDeepEqualSelector } from '../selectors/util';
 import { selectEvmChainId } from './networkController';
 
 const selectTokenListConstrollerState = (state: RootState) =>
@@ -10,20 +9,13 @@ const selectTokenListConstrollerState = (state: RootState) =>
 /**
  * Return token list from TokenListController.
  * Can pass directly into useSelector.
+ *
+ * @deprecated `tokensChainsCache` is deprecated. Use `useERC20Tokens` from
+ * `app/components/hooks/DisplayName/useERC20Tokens.ts` to fetch token metadata instead.
  */
 export const selectTokenList = createSelector(
   selectTokenListConstrollerState,
   selectEvmChainId,
   (tokenListControllerState: TokenListState, chainId) =>
     tokenListControllerState?.tokensChainsCache?.[chainId]?.data || [],
-);
-
-const selectERC20TokensByChainInternal = createDeepEqualSelector(
-  selectTokenListConstrollerState,
-  (tokenListControllerState) => tokenListControllerState?.tokensChainsCache,
-);
-
-export const selectERC20TokensByChain = createDeepEqualSelector(
-  selectERC20TokensByChainInternal,
-  (tokensChainsCache) => tokensChainsCache,
 );

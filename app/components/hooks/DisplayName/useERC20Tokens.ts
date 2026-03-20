@@ -4,7 +4,7 @@ import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
 import { Hex } from '@metamask/utils';
 
-interface TokenAsset {
+export interface TokenAsset {
   assetId: string;
   decimals: number;
   iconUrl: string;
@@ -19,7 +19,7 @@ const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
 const tokenCache: Record<string, TokenAsset> = {};
 const inFlight = new Map<string, Promise<TokenAsset[]>>();
 
-function fetchTokenAssets(assetIds: string[]): Promise<TokenAsset[]> {
+export function fetchTokenAssets(assetIds: string[]): Promise<TokenAsset[]> {
   const key = assetIds.join(',');
 
   const existing = inFlight.get(key);
@@ -54,7 +54,7 @@ function fetchTokenAssets(assetIds: string[]): Promise<TokenAsset[]> {
   return promise;
 }
 
-function buildAssetId(value: string, variation: Hex): string {
+export function buildAssetId(value: string, variation: Hex): string {
   return `eip155:${parseInt(variation, 16)}/erc20:${value.toLowerCase()}`;
 }
 

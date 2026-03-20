@@ -5,10 +5,11 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
-import { safeToChecksumAddress } from '../../../../util/address';
+import {
+  fetchTokenAssets,
+  buildAssetId,
+} from '../../../hooks/DisplayName/useERC20Tokens';
 import useEarnToasts from './useEarnToasts';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -47,13 +48,9 @@ function getTransactionPayQuotes(transactionId: string) {
  */
 export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
-  const tokensChainsCache = useSelector(selectERC20TokensByChain);
-
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const shownToastsRef = useRef<Set<string>>(new Set());
-  const tokensCacheRef = useRef(tokensChainsCache);
-  tokensCacheRef.current = tokensChainsCache;
 
   const submitConversionEvent = useCallback(
     (
@@ -101,20 +98,20 @@ export const useMusdConversionStatus = () => {
   );
 
   useEffect(() => {
-    const getTokenData = (chainId: Hex, tokenAddress: string) => {
-      const chainTokens = tokensCacheRef.current?.[chainId]?.data;
-      if (!chainTokens) return { symbol: '', name: '' };
-
-      const checksumAddress = safeToChecksumAddress(tokenAddress);
-      const tokenData =
-        chainTokens[checksumAddress as string] ||
-        chainTokens[tokenAddress.toLowerCase()];
-
-      return {
-        symbol: tokenData?.symbol || '',
-        iconUrl: tokenData?.iconUrl,
-        name: tokenData?.name || '',
-      };
+    const getTokenData = async (chainId: Hex, tokenAddress: string) => {
+      try {
+        const results = await fetchTokenAssets([
+          buildAssetId(tokenAddress, chainId),
+        ]);
+        const token = results[0];
+        return {
+          symbol: token?.symbol ?? '',
+          name: token?.name ?? '',
+          iconUrl: token?.iconUrl,
+        };
+      } catch {
+        return { symbol: '', name: '' };
+      }
     };
 
     // Schedule cleanup of toast tracking entries after final transaction status
@@ -131,7 +128,7 @@ export const useMusdConversionStatus = () => {
     };
 
     // Shared helper to validate and extract common data for mUSD conversion handlers
-    const getConversionData = (
+    const getConversionData = async (
       transactionMeta: TransactionMeta,
       status: TransactionStatus,
     ) => {
@@ -150,19 +147,22 @@ export const useMusdConversionStatus = () => {
       }
 
       const tokenData = payTokenAddress
-        ? getTokenData(payChainId as Hex, payTokenAddress)
+        ? await getTokenData(payChainId as Hex, payTokenAddress)
         : { symbol: '', name: '' };
 
       return { transactionId, tokenData, toastKey };
     };
 
     // Handle approved and failed statuses via transactionStatusUpdated
-    const handleTransactionStatusUpdated = ({
+    const handleTransactionStatusUpdated = async ({
       transactionMeta,
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      const data = getConversionData(transactionMeta, transactionMeta.status);
+      const data = await getConversionData(
+        transactionMeta,
+        transactionMeta.status,
+      );
       if (!data) return;
 
       const { transactionId, tokenData, toastKey } = data;
@@ -231,13 +231,15 @@ export const useMusdConversionStatus = () => {
     // This event fires at the same time as TokenBalancesController updates balances,
     // ensuring the success toast appears in sync with the balance change in the UI
     // Note: transactionConfirmed can fire with failed status (see useCardDelegation.ts pattern)
-    const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
+    const handleTransactionConfirmed = async (
+      transactionMeta: TransactionMeta,
+    ) => {
       // Only handle confirmed status - failed status is handled by transactionStatusUpdated
       if (transactionMeta.status !== TransactionStatus.confirmed) {
         return;
       }
 
-      const data = getConversionData(
+      const data = await getConversionData(
         transactionMeta,
         TransactionStatus.confirmed,
       );
