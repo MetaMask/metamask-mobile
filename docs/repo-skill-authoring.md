@@ -1,4 +1,4 @@
-# Skill Authoring Standard
+# Repo Skill Authoring Standard
 
 Canonical guidance for creating and updating repo-local skills in MetaMask Mobile.
 
@@ -14,15 +14,23 @@ Do not create a skill when one of these is enough:
 
 Create a skill when the work is repeated, fragile, or benefits from a shared workflow across agents.
 
+## When To Use This vs Native Skill Creator
+
+Use the native or harness-provided `skill-creator` guidance for general skill design principles or when creating a skill outside this repository.
+
+Use `repo-skill-authoring` for any MetaMask Mobile repo-local skill that should live in `docs/`, `.agents/skills/`, `.claude/`, or `.cursor/`.
+
+If both apply, use native `skill-creator` for general design guidance, and use this document as the source of truth for repository-specific structure, naming, and entrypoints.
+
 ## Agent Skill Entrypoint
 
 Use these entrypoints:
 
 - SSOT policy + execution standard: this document
-- Codex skill entrypoint: `.agents/skills/skill-authoring/SKILL.md` (`$skill-authoring`)
-- Claude skill entrypoint: `.claude/skills/skill-authoring/SKILL.md`
-- Claude command entrypoint: `.claude/commands/create-skill.md`
-- Cursor command entrypoint: `.cursor/commands/create-skill.md`
+- Codex skill entrypoint: `.agents/skills/repo-skill-authoring/SKILL.md` (`$repo-skill-authoring`)
+- Claude skill entrypoint: `.claude/skills/repo-skill-authoring/SKILL.md`
+- Claude command entrypoint: `.claude/commands/create-repo-skill.md`
+- Cursor command entrypoint: `.cursor/commands/create-repo-skill.md`
 
 ## Repo Skill Shape
 

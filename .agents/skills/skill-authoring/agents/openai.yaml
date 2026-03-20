@@ -1,4 +1,0 @@
-interface:
-  display_name: "Skill Authoring"
-  short_description: "Create and validate repo-local skills."
-  default_prompt: "Use $skill-authoring to create or update a repo-local skill with the canonical SSOT doc and thin entrypoints."

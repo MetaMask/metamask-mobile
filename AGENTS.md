@@ -225,18 +225,18 @@ bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-complianc
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
 
-## Skill Authoring Agent Standard
+## Repo Skill Authoring Agent Standard
 
 For repo-local skill creation or update tasks, use the canonical standard:
 
-- `docs/skill-authoring.md` (`Agent Execution Standard (SSOT)`)
+- `docs/repo-skill-authoring.md` (`Agent Execution Standard (SSOT)`)
 
 Codex skill entrypoint:
 
-- `.agents/skills/skill-authoring/SKILL.md` (`$skill-authoring`)
+- `.agents/skills/repo-skill-authoring/SKILL.md` (`$repo-skill-authoring`)
 
 Harness entrypoints:
 
-- Claude: `.claude/commands/create-skill.md` (`/create-skill`)
-- Cursor: `.cursor/commands/create-skill.md` (`/create-skill`) shim to Claude command
-- Windsurf and other harnesses: start prompts with `Follow docs/skill-authoring.md section "Agent Execution Standard (SSOT)".`
+- Claude: `.claude/commands/create-repo-skill.md` (`/create-repo-skill`)
+- Cursor: `.cursor/commands/create-repo-skill.md` (`/create-repo-skill`) shim to Claude command
+- Windsurf and other harnesses: start prompts with `Follow docs/repo-skill-authoring.md section "Agent Execution Standard (SSOT)".`
