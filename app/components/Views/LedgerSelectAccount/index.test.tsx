@@ -99,6 +99,106 @@ jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
   })),
 }));
 
+let capturedOnAnimationCompleted: (() => void) | null = null;
+
+jest.mock('../../UI/BlockingActionModal', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const MockReact = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(
+      (props: {
+        modalVisible: boolean;
+        isLoadingAction: boolean;
+        children: React.ReactNode;
+        onAnimationCompleted?: () => void;
+      }) => {
+        MockReact.useEffect(() => {
+          if (props.modalVisible && props.onAnimationCompleted) {
+            capturedOnAnimationCompleted = props.onAnimationCompleted;
+          }
+        }, [props.modalVisible, props.onAnimationCompleted]);
+
+        if (!props.modalVisible) return null;
+
+        return MockReact.createElement(
+          View,
+          { testID: 'blocking-action-modal' },
+          props.children,
+        );
+      },
+    ),
+  };
+});
+
+jest.mock('@react-native-community/checkbox', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const MockReact = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { TouchableOpacity } = require('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(
+      (props: {
+        value?: boolean;
+        disabled?: boolean;
+        onValueChange?: () => void;
+      }) =>
+        MockReact.createElement(TouchableOpacity, {
+          testID: `account-checkbox${props.disabled ? '-disabled' : ''}`,
+          onPress: props.disabled ? undefined : props.onValueChange,
+          accessible: true,
+          accessibilityRole: 'checkbox',
+        }),
+    ),
+  };
+});
+
+jest.mock('../../UI/SelectOptionSheet', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const MockReact = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View, Text, TouchableOpacity } = require('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(
+      (props: {
+        options: { key: string; label: string; value: string }[];
+        label: string;
+        onValueChange: (val: string) => void;
+        selectedValue: string;
+      }) => {
+        const selectedOption = props.options?.find(
+          (o: { value: string }) => o.value === props.selectedValue,
+        );
+        return MockReact.createElement(
+          View,
+          { testID: 'select-drop-down' },
+          MockReact.createElement(
+            Text,
+            null,
+            selectedOption ? selectedOption.label : '',
+          ),
+          props.options?.map(
+            (option: { key: string; label: string; value: string }) =>
+              MockReact.createElement(
+                TouchableOpacity,
+                {
+                  key: option.key,
+                  testID: `select-option-${option.key}`,
+                  onPress: () => props.onValueChange(option.value),
+                },
+                MockReact.createElement(Text, null, option.label),
+              ),
+          ),
+        );
+      },
+    ),
+  };
+});
+
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => ({
     trackEvent: mockTrackEvent,
@@ -209,6 +309,7 @@ describe('LedgerSelectAccount', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedOnAnimationCompleted = null;
     mockKeyringController.getAccounts.mockResolvedValue(mockExistingAccounts);
     mockGetLedgerAccountsByOperation.mockResolvedValue([]);
     mockGetConnectedDevicesCount.mockResolvedValue(1);
@@ -249,6 +350,28 @@ describe('LedgerSelectAccount', () => {
     });
 
     return result;
+  };
+
+  const triggerModalAnimation = async () => {
+    await act(async () => {
+      capturedOnAnimationCompleted?.();
+    });
+  };
+
+  const selectAccountAndUnlock = async (
+    getByText: (text: string) => ReturnType<typeof getByText>,
+    getAllByTestId: (testId: string) => ReturnType<typeof getAllByTestId>,
+  ) => {
+    const checkboxes = getAllByTestId('account-checkbox');
+    await act(async () => {
+      fireEvent.press(checkboxes[0]);
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('Unlock'));
+    });
+
+    await triggerModalAnimation();
   };
 
   describe('Initial Rendering', () => {
@@ -1133,13 +1256,12 @@ describe('LedgerSelectAccount', () => {
 
   describe('HD Path Options', () => {
     it('renders HD path dropdown with correct options', async () => {
-      const { getByTestId, queryByText } = await renderAndConnect();
+      const { getByTestId } = await renderAndConnect();
 
-      // Verify the dropdown exists
       expect(getByTestId(SELECT_DROP_DOWN)).toBeTruthy();
-
-      // The default selected option should be Ledger Live (label from i18n)
-      expect(queryByText('Ledger Live')).toBeTruthy();
+      expect(getByTestId(`select-option-${LEDGER_LIVE_PATH}`)).toBeTruthy();
+      expect(getByTestId(`select-option-${LEDGER_LEGACY_PATH}`)).toBeTruthy();
+      expect(getByTestId(`select-option-${LEDGER_BIP44_PATH}`)).toBeTruthy();
     });
 
     it('all HD paths are valid formats', () => {
@@ -1513,6 +1635,514 @@ describe('LedgerSelectAccount', () => {
       // Error should be cleared
       await waitFor(() => {
         expect(mockGetLedgerAccountsByOperation).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('onUnlock full flow via onAnimationCompleted', () => {
+    beforeEach(() => {
+      mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
+      mockGetConnectedDevicesCount.mockResolvedValue(2);
+      mockGetHDPath.mockResolvedValue(LEDGER_LIVE_PATH);
+      mockGetLedgerAccounts.mockResolvedValue([]);
+    });
+
+    it('unlocks accounts, tracks event, and navigates on success', async () => {
+      const mockBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      };
+      mockCreateEventBuilder.mockReturnValue(mockBuilder);
+
+      const { getByText, getAllByTestId } = await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockUnlockLedgerWalletAccount).toHaveBeenCalledWith(0);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT,
+        );
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            device_type: HardwareDeviceTypes.LEDGER,
+            device_model: 'Nano X',
+            hd_path: 'Ledger Live',
+            connected_device_count: '2',
+          }),
+        );
+        expect(mockedNavDispatch).toHaveBeenCalled();
+      });
+    });
+
+    it('tracks error event and shows error on unlock failure', async () => {
+      const mockBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      };
+      mockCreateEventBuilder.mockReturnValue(mockBuilder);
+      mockUnlockLedgerWalletAccount.mockRejectedValue(
+        new Error('Unlock failed'),
+      );
+
+      const { getByText, getAllByTestId } = await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.HARDWARE_WALLET_ERROR,
+        );
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            device_type: HardwareDeviceTypes.LEDGER,
+            error: 'Unlock failed',
+          }),
+        );
+      });
+    });
+
+    it('shows ETH app not open message on unlock error with 0x6d00', async () => {
+      mockUnlockLedgerWalletAccount.mockRejectedValue(
+        new Error('Error with status code 0x6d00'),
+      );
+
+      const { getByText, getAllByTestId, queryByText } =
+        await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(
+          queryByText('Please open the Ethereum app on your Ledger device.'),
+        ).toBeTruthy();
+      });
+    });
+  });
+
+  describe('onForget full flow via onAnimationCompleted', () => {
+    it('calls forgetLedger, dispatches, tracks event, and navigates', async () => {
+      const mockBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      };
+      mockCreateEventBuilder.mockReturnValue(mockBuilder);
+
+      const { getByTestId } = await renderAndConnect();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
+      });
+
+      await triggerModalAnimation();
+
+      await waitFor(() => {
+        expect(mockForgetLedger).toHaveBeenCalled();
+        expect(mockedDispatch).toHaveBeenCalled();
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN,
+        );
+        expect(mockedNavDispatch).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('getLedgerErrorDisplayMessage branches', () => {
+    it('shows disconnected message when LedgerDisconnected error occurs with accounts', async () => {
+      const mockClearError = jest.fn();
+      const { queryByText, rerender } = await renderAndConnect();
+
+      (
+        useLedgerBluetooth as unknown as jest.MockedFunction<
+          typeof useLedgerBluetooth
+        >
+      ).mockImplementation(() => ({
+        isSendingLedgerCommands: false,
+        isAppLaunchConfirmationNeeded: false,
+        ledgerLogicToRun: jest.fn(),
+        error: LedgerCommunicationErrors.LedgerDisconnected,
+        clearError: mockClearError,
+        cleanupBluetoothConnection: jest.fn(),
+      }));
+
+      rerender(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockClearError).toHaveBeenCalled();
+        expect(
+          queryByText(
+            'The connection to your device has been lost. Please try again.',
+          ),
+        ).toBeTruthy();
+      });
+    });
+
+    it('shows locked message when LedgerIsLocked error occurs with accounts', async () => {
+      const mockClearError = jest.fn();
+      const { queryByText, rerender } = await renderAndConnect();
+
+      (
+        useLedgerBluetooth as unknown as jest.MockedFunction<
+          typeof useLedgerBluetooth
+        >
+      ).mockImplementation(() => ({
+        isSendingLedgerCommands: false,
+        isAppLaunchConfirmationNeeded: false,
+        ledgerLogicToRun: jest.fn(),
+        error: LedgerCommunicationErrors.LedgerIsLocked,
+        clearError: mockClearError,
+        cleanupBluetoothConnection: jest.fn(),
+      }));
+
+      rerender(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockClearError).toHaveBeenCalled();
+        expect(queryByText('Ledger is locked')).toBeTruthy();
+      });
+    });
+
+    it('shows ETH app message when FailedToOpenApp error occurs with accounts', async () => {
+      const mockClearError = jest.fn();
+      const { queryByText, rerender } = await renderAndConnect();
+
+      (
+        useLedgerBluetooth as unknown as jest.MockedFunction<
+          typeof useLedgerBluetooth
+        >
+      ).mockImplementation(() => ({
+        isSendingLedgerCommands: false,
+        isAppLaunchConfirmationNeeded: false,
+        ledgerLogicToRun: jest.fn(),
+        error: LedgerCommunicationErrors.FailedToOpenApp,
+        clearError: mockClearError,
+        cleanupBluetoothConnection: jest.fn(),
+      }));
+
+      rerender(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockClearError).toHaveBeenCalled();
+        expect(
+          queryByText('Please open the Ethereum app on your Ledger device.'),
+        ).toBeTruthy();
+      });
+    });
+
+    it('shows unspecified error message for UnknownError with accounts', async () => {
+      const mockClearError = jest.fn();
+      const { queryByText, rerender } = await renderAndConnect();
+
+      (
+        useLedgerBluetooth as unknown as jest.MockedFunction<
+          typeof useLedgerBluetooth
+        >
+      ).mockImplementation(() => ({
+        isSendingLedgerCommands: false,
+        isAppLaunchConfirmationNeeded: false,
+        ledgerLogicToRun: jest.fn(),
+        error: LedgerCommunicationErrors.UnknownError,
+        clearError: mockClearError,
+        cleanupBluetoothConnection: jest.fn(),
+      }));
+
+      rerender(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockClearError).toHaveBeenCalled();
+        expect(
+          queryByText('Unspecified error when connect Ledger Hardware,'),
+        ).toBeTruthy();
+      });
+    });
+  });
+
+  describe('updateNewLegacyAccountsLabel full flow', () => {
+    it('renames newly added accounts when using legacy HD path', async () => {
+      const newAccount = '0xnewaccount1234567890abcdef1234567890abcdef';
+      mockGetHDPath.mockResolvedValue(LEDGER_LEGACY_PATH);
+      mockGetLedgerAccounts.mockResolvedValue([newAccount]);
+      mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
+      mockGetConnectedDevicesCount.mockResolvedValue(1);
+      (mockAccountsController.getAccountByAddress as jest.Mock).mockReturnValue(
+        {
+          id: 'account-id',
+          metadata: { name: 'Ledger 1' },
+        },
+      );
+
+      const { getByText, getAllByTestId } = await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockGetHDPath).toHaveBeenCalled();
+        expect(mockGetLedgerAccounts).toHaveBeenCalled();
+        expect(mockAccountsController.getAccountByAddress).toHaveBeenCalledWith(
+          newAccount,
+        );
+        expect(mockAccountsController.setAccountName).toHaveBeenCalledWith(
+          'account-id',
+          'Ledger 1 (legacy)',
+        );
+      });
+    });
+
+    it('does not rename accounts when getAccountByAddress returns undefined', async () => {
+      const newAccount = '0xnewaccount1234567890abcdef1234567890abcdef';
+      mockGetHDPath.mockResolvedValue(LEDGER_LEGACY_PATH);
+      mockGetLedgerAccounts.mockResolvedValue([newAccount]);
+      mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
+      mockGetConnectedDevicesCount.mockResolvedValue(1);
+      (mockAccountsController.getAccountByAddress as jest.Mock).mockReturnValue(
+        undefined,
+      );
+
+      const { getByText, getAllByTestId } = await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockGetLedgerAccounts).toHaveBeenCalled();
+      });
+
+      expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
+    });
+
+    it('skips label update for non-legacy paths', async () => {
+      mockGetHDPath.mockResolvedValue(LEDGER_LIVE_PATH);
+      mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
+      mockGetConnectedDevicesCount.mockResolvedValue(1);
+
+      const { getByText, getAllByTestId } = await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockGetHDPath).toHaveBeenCalled();
+      });
+
+      expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
+    });
+
+    it('does not rename accounts that already exist', async () => {
+      mockGetHDPath.mockResolvedValue(LEDGER_LEGACY_PATH);
+      mockGetLedgerAccounts.mockResolvedValue(mockExistingAccounts);
+      mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
+      mockGetConnectedDevicesCount.mockResolvedValue(1);
+
+      const { getByText, getAllByTestId } = await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockGetLedgerAccounts).toHaveBeenCalled();
+      });
+
+      expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onSelectedPathChanged via SelectOptionSheet', () => {
+    it('changes HD path and calls setHDPath for legacy path', async () => {
+      const { getByTestId } = await renderAndConnect();
+
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(`select-option-${LEDGER_LEGACY_PATH}`));
+      });
+
+      await waitFor(() => {
+        expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LEGACY_PATH);
+      });
+    });
+
+    it('changes HD path and calls setHDPath for BIP44 path', async () => {
+      const { getByTestId } = await renderAndConnect();
+
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(`select-option-${LEDGER_BIP44_PATH}`));
+      });
+
+      await waitFor(() => {
+        expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_BIP44_PATH);
+      });
+    });
+  });
+
+  describe('getPathString coverage via onUnlock analytics', () => {
+    beforeEach(() => {
+      mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
+      mockGetConnectedDevicesCount.mockResolvedValue(1);
+      mockGetHDPath.mockResolvedValue(LEDGER_LIVE_PATH);
+      mockGetLedgerAccounts.mockResolvedValue([]);
+    });
+
+    it('uses Ledger Live path string in analytics', async () => {
+      const mockBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      };
+      mockCreateEventBuilder.mockReturnValue(mockBuilder);
+
+      const { getByText, getAllByTestId } = await renderAndConnect();
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            hd_path: 'Ledger Live',
+          }),
+        );
+      });
+    });
+
+    it('uses Legacy path string in analytics', async () => {
+      const mockBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      };
+      mockCreateEventBuilder.mockReturnValue(mockBuilder);
+
+      const { getByText, getByTestId, getAllByTestId } =
+        await renderAndConnect();
+
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(`select-option-${LEDGER_LEGACY_PATH}`));
+      });
+
+      await waitFor(() => {
+        expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LEGACY_PATH);
+      });
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            hd_path: 'Ledger Legacy',
+          }),
+        );
+      });
+    });
+
+    it('uses BIP44 path string in analytics', async () => {
+      const mockBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      };
+      mockCreateEventBuilder.mockReturnValue(mockBuilder);
+
+      const { getByText, getByTestId, getAllByTestId } =
+        await renderAndConnect();
+
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(`select-option-${LEDGER_BIP44_PATH}`));
+      });
+
+      await waitFor(() => {
+        expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_BIP44_PATH);
+      });
+
+      await selectAccountAndUnlock(getByText, getAllByTestId);
+
+      await waitFor(() => {
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            hd_path: 'Ledger BIP44',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('isAppLaunchConfirmationNeeded modal text', () => {
+    it('shows open ETH app text when confirmation is needed', async () => {
+      jest.mocked(useLedgerBluetooth).mockImplementation(() => ({
+        isSendingLedgerCommands: false,
+        isAppLaunchConfirmationNeeded: true,
+        ledgerLogicToRun: jest.fn(
+          async (fn: (transport: BluetoothInterface) => Promise<void>) =>
+            fn(undefined as unknown as BluetoothInterface),
+        ),
+        error: undefined,
+        clearError: jest.fn(),
+        cleanupBluetoothConnection: jest.fn(),
+      }));
+
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+      const { getByTestId, queryByText } = renderWithProvider(
+        <LedgerSelectAccount />,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('connect-ledger-button'));
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Select an account')).toBeTruthy();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Please open the Ethereum app')).toBeTruthy();
+      });
+    });
+
+    it('shows please wait text when confirmation is not needed', async () => {
+      const { getByTestId, queryByText } = await renderAndConnect();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
+      });
+
+      expect(queryByText('Please wait')).toBeTruthy();
+    });
+  });
+
+  describe('selectedOption effect with error handling', () => {
+    it('catches and displays ETH app error when fetching accounts on path change', async () => {
+      const { getByTestId, queryByText } = await renderAndConnect();
+
+      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+        new Error('Error with status code 0x6d00'),
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(`select-option-${LEDGER_LEGACY_PATH}`));
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByText('Please open the Ethereum app on your Ledger device.'),
+        ).toBeTruthy();
+      });
+    });
+
+    it('catches and displays non-ETH error when fetching accounts on path change', async () => {
+      const { getByTestId, queryByText } = await renderAndConnect();
+
+      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+        new Error('Network connection failed'),
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(`select-option-${LEDGER_LEGACY_PATH}`));
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Network connection failed')).toBeTruthy();
       });
     });
   });
