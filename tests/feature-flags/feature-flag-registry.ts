@@ -3142,17 +3142,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  predictWithAnyToken: {
-    name: 'predictWithAnyToken',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   predictFeeCollection: {
     name: 'predictFeeCollection',
     type: FeatureFlagType.Remote,
@@ -3163,6 +3152,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       metamaskFee: 0.02,
       providerFee: 0.02,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictWithAnyToken: {
+    name: 'predictWithAnyToken',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },

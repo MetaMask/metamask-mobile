@@ -364,14 +364,6 @@ export class PredictController extends BaseController<
 > {
   private provider: PolymarketProvider;
 
-  /**
-   * Transient preview snapshot captured at deposit time.
-   * Used when placing the order after a pay-with-any-token deposit
-   * so the order uses the prices the user saw when confirming.
-   * Cleared after use (success or error), so retries fall back to the live preview.
-   */
-  private depositPreview: OrderPreview | null = null;
-
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
       name: 'PredictController',
@@ -1980,12 +1972,6 @@ export class PredictController extends BaseController<
     });
   }
 
-  public getAndClearDepositPreview(): OrderPreview | null {
-    const preview = this.depositPreview;
-    this.depositPreview = null;
-    return preview;
-  }
-
   public onDepositOrderSuccess(): void {
     this.update((state) => {
       if (state.activeOrder) {
@@ -2497,6 +2483,7 @@ export class PredictController extends BaseController<
         this.update((state) => {
           if (state.activeOrder) {
             delete state.activeOrder.batchId;
+            delete state.activeOrder.error;
           }
         });
       } else {

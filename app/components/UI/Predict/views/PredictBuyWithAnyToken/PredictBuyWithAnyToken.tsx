@@ -54,13 +54,7 @@ const PredictBuyWithAnyToken = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const {
-    market,
-    outcome,
-    outcomeToken,
-    entryPoint,
-    preview: initialPreview,
-  } = route.params;
+  const { market, outcome, outcomeToken, entryPoint } = route.params;
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
@@ -122,7 +116,6 @@ const PredictBuyWithAnyToken = () => {
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
-    initialPreview,
   });
 
   const {

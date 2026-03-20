@@ -3568,7 +3568,6 @@ describe('PredictController', () => {
     it('setActiveOrder updates state with provided order', () => {
       withController(({ controller }) => {
         const order: PredictControllerState['activeOrder'] = {
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
         };
 
@@ -3581,7 +3580,6 @@ describe('PredictController', () => {
     it('clearActiveOrder sets activeOrder to null', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
         });
 
@@ -3812,7 +3810,6 @@ describe('PredictController', () => {
     it('does not change state when in PAY_WITH_ANY_TOKEN and external token selected', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
         });
 
@@ -3831,7 +3828,6 @@ describe('PredictController', () => {
     it('does not change state when in PREVIEW and balance token selected', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
         });
 
@@ -3872,7 +3868,6 @@ describe('PredictController', () => {
     it('clears error from activeOrder', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
           error: 'some error',
         });
@@ -3886,7 +3881,6 @@ describe('PredictController', () => {
     it('does nothing when activeOrder has no error', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
         });
 
@@ -3907,14 +3901,12 @@ describe('PredictController', () => {
     it('preserves other activeOrder properties', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
           error: 'some error',
         });
 
         controller.clearOrderError();
 
-        expect(controller.state.activeOrder?.amount).toBe(50);
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
@@ -3926,7 +3918,6 @@ describe('PredictController', () => {
     it('sets activeOrder state to DEPOSITING', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.DEPOSIT,
         });
 
@@ -3935,26 +3926,6 @@ describe('PredictController', () => {
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.DEPOSITING,
         );
-      });
-    });
-
-    it('does not store preview (no preview param)', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          state: ActiveOrderState.DEPOSIT,
-        });
-
-        controller.onDepositOrder();
-
-        expect(controller.getAndClearDepositPreview()).toBeNull();
-      });
-    });
-  });
-
-  describe('getAndClearDepositPreview', () => {
-    it('returns null when no preview was stored', () => {
-      withController(({ controller }) => {
-        expect(controller.getAndClearDepositPreview()).toBeNull();
       });
     });
   });
@@ -3977,7 +3948,6 @@ describe('PredictController', () => {
     it('sets the error message on activeOrder', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.DEPOSITING,
         });
 
@@ -3992,7 +3962,6 @@ describe('PredictController', () => {
     it('removes batchId from activeOrder', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.DEPOSITING,
           batchId: 'batch-123',
         });
@@ -4000,19 +3969,6 @@ describe('PredictController', () => {
         controller.onDepositOrderFailed('error');
 
         expect(controller.state.activeOrder?.batchId).toBeUndefined();
-      });
-    });
-
-    it('preserves amount when resetting state', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 75,
-          state: ActiveOrderState.DEPOSITING,
-        });
-
-        controller.onDepositOrderFailed('error');
-
-        expect(controller.state.activeOrder?.amount).toBe(75);
       });
     });
 
@@ -4034,7 +3990,6 @@ describe('PredictController', () => {
     it('resets activeOrder state to PREVIEW', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PLACING_ORDER,
         });
 
@@ -4049,7 +4004,6 @@ describe('PredictController', () => {
     it('preserves other activeOrder fields', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 100,
           batchId: 'batch-456',
           state: ActiveOrderState.DEPOSITING,
         });
@@ -4057,7 +4011,6 @@ describe('PredictController', () => {
         controller.onOrderError();
 
         expect(controller.state.activeOrder).toEqual({
-          amount: 100,
           batchId: 'batch-456',
           state: ActiveOrderState.PREVIEW,
         });
@@ -4081,7 +4034,6 @@ describe('PredictController', () => {
         };
         controller.setSelectedPaymentToken(token);
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PLACING_ORDER,
         });
 
@@ -4096,7 +4048,6 @@ describe('PredictController', () => {
     it('clears activeOrder', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PLACING_ORDER,
         });
 
@@ -4133,7 +4084,6 @@ describe('PredictController', () => {
     it('resets activeOrder state to PREVIEW', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PLACING_ORDER,
         });
 
@@ -4153,7 +4103,6 @@ describe('PredictController', () => {
           symbol: 'USDC',
         });
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PLACING_ORDER,
         });
 
@@ -4207,8 +4156,7 @@ describe('PredictController', () => {
     it('throws error when an active order batch is already in progress', async () => {
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.REDIRECTING,
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
           batchId: 'batch-in-progress',
         });
 
@@ -4249,7 +4197,6 @@ describe('PredictController', () => {
 
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
         });
 
@@ -4295,7 +4242,6 @@ describe('PredictController', () => {
 
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
         });
 
@@ -4776,7 +4722,6 @@ describe('PredictController', () => {
         });
 
         controller.setActiveOrder({
-          amount: 50,
           batchId: 'batch-1',
           state: ActiveOrderState.PREVIEW,
         });
@@ -4792,7 +4737,6 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(controller.state.activeOrder).toEqual({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
         });
       });
@@ -4807,7 +4751,6 @@ describe('PredictController', () => {
         });
 
         controller.setActiveOrder({
-          amount: 50,
           batchId: 'batch-1',
           state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
         });

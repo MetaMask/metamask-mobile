@@ -56,11 +56,6 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
-  batchId?: string;
-  animationEnabled?: boolean;
-  isConfirmationRoute?: boolean;
-  isConfirming?: boolean;
-  preview?: OrderPreview;
 }
 
 /** Predict sell preview parameters */

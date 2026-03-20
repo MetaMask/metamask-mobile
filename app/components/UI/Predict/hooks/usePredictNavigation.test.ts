@@ -98,26 +98,6 @@ describe('usePredictNavigation', () => {
       );
     });
 
-    it('passes all params to the navigation call', () => {
-      const { result } = renderHook(() => usePredictNavigation());
-      const params = createMockParams({
-        isConfirmationRoute: true,
-        animationEnabled: false,
-      });
-
-      act(() => {
-        result.current.navigateToBuyPreview(params);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        expect.objectContaining({
-          isConfirmationRoute: true,
-          animationEnabled: false,
-        }),
-      );
-    });
-
     it('passes all params through ROOT navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams({
@@ -134,22 +114,6 @@ describe('usePredictNavigation', () => {
           entryPoint: 'carousel',
         }),
       });
-    });
-
-    it('dispatches StackActions.replace when replace option is true', () => {
-      const { result } = renderHook(() => usePredictNavigation());
-      const params = createMockParams({
-        animationEnabled: false,
-      });
-
-      act(() => {
-        result.current.navigateToBuyPreview(params, { replace: true });
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, params),
-      );
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('replace takes precedence over throughRoot', () => {
