@@ -128,7 +128,7 @@ const AccountBackupStep1B = (props) => {
         >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <Box alignItems={BoxAlignItems.Center} twClassName="pb-4">
-            <Text twClassName="text-4xl leading-tight">🔒</Text>
+            <Text variant={TextVariant.DisplayMd}>🔒</Text>
             <Text
               variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
@@ -177,21 +177,21 @@ const AccountBackupStep1B = (props) => {
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
-              twClassName="mb-2 leading-4"
+              twClassName="mb-2"
             >
               {strings('account_backup_step_1B.manual_title')}
             </Text>
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-4 mb-5"
+              twClassName="mb-5"
             >
               {strings('account_backup_step_1B.manual_subtitle')}
             </Text>
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-4 mb-2"
+              twClassName="mb-2"
             >
               {strings('account_backup_step_1B.manual_security')}
             </Text>
@@ -200,66 +200,42 @@ const AccountBackupStep1B = (props) => {
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
             </Box>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
-              twClassName="leading-4"
-            >
+            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
               {strings('account_backup_step_1B.risks_title')}
             </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
-              twClassName="leading-4"
-            >
+            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
               • {strings('account_backup_step_1B.risks_1')}
             </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
-              twClassName="leading-4"
-            >
+            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
               • {strings('account_backup_step_1B.risks_2')}
             </Text>
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-4 mb-5"
+              twClassName="mb-5"
             >
               • {strings('account_backup_step_1B.risks_3')}
             </Text>
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-4 mb-5"
+              twClassName="mb-5"
             >
               {strings('account_backup_step_1B.other_options')}
             </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
-              twClassName="leading-4"
-            >
+            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
               {strings('account_backup_step_1B.tips_title')}
             </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
-              twClassName="leading-4"
-            >
+            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
               • {strings('account_backup_step_1B.tips_1')}
             </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
-              twClassName="leading-4"
-            >
+            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
               • {strings('account_backup_step_1B.tips_2')}
             </Text>
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextDefault}
-              twClassName="leading-4 mb-5"
+              twClassName="mb-5"
             >
               • {strings('account_backup_step_1B.tips_3')}
             </Text>
@@ -319,7 +295,7 @@ const AccountBackupStep1B = (props) => {
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
-              twClassName="text-center leading-5"
+              twClassName="text-center"
             >
               {strings('account_backup_step_1B.why_secure_1')}
               <Text
@@ -337,7 +313,7 @@ const AccountBackupStep1B = (props) => {
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.PrimaryDefault}
-                twClassName="mt-5 text-center leading-5"
+                twClassName="mt-5 text-center"
               >
                 {strings('account_backup_step_1B.learn_more')}
               </Text>
