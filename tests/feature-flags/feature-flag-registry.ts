@@ -3533,17 +3533,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenListItemV2AbtestVersioned: {
-    name: 'tokenListItemV2AbtestVersioned',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.67.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   tokenSearchDiscoveryEnabled: {
     name: 'tokenSearchDiscoveryEnabled',
     type: FeatureFlagType.Remote,
