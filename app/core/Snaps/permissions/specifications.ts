@@ -29,7 +29,7 @@ import { PreferencesControllerGetStateAction } from '@metamask/preferences-contr
 import { DialogType, EnumToUnion } from '@metamask/snaps-sdk';
 import {
   AddApprovalOptions,
-  AddApprovalRequest,
+  ApprovalControllerAddRequestAction,
 } from '@metamask/approval-controller';
 import Logger from '../../../util/Logger';
 import { HasPermission } from '@metamask/permission-controller';
@@ -40,7 +40,7 @@ import { ExcludedSnapEndowments, ExcludedSnapPermissions } from './permissions';
 import { getMnemonic, getMnemonicSeed } from './utils';
 
 export type SnapPermissionSpecificationsActions =
-  | AddApprovalRequest
+  | ApprovalControllerAddRequestAction
   | ClearSnapState
   | ControllerGetStateAction<
       'CurrencyRateController',

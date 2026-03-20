@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { createStackNavigator } from '@react-navigation/stack';
+import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
 import BuildQuote from './Views/BuildQuote';
@@ -137,23 +139,25 @@ const TokenListRoutes = () => {
   }, []);
 
   return (
-    <RootStack.Navigator
-      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-      screenOptions={{ headerShown: false }}
-    >
-      <RootStack.Screen
-        name={Routes.RAMP.TOKEN_SELECTION}
-        component={MainRoutes}
-      />
-      <RootStack.Screen
-        name={Routes.RAMP.MODALS.ID}
-        component={TokenListModalsRoutes}
-        options={{
-          ...clearStackNavigatorOptions,
-          detachPreviousScreen: false,
-        }}
-      />
-    </RootStack.Navigator>
+    <QueryClientProvider client={reactQueryService.queryClient}>
+      <RootStack.Navigator
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+        screenOptions={{ headerShown: false }}
+      >
+        <RootStack.Screen
+          name={Routes.RAMP.TOKEN_SELECTION}
+          component={MainRoutes}
+        />
+        <RootStack.Screen
+          name={Routes.RAMP.MODALS.ID}
+          component={TokenListModalsRoutes}
+          options={{
+            ...clearStackNavigatorOptions,
+            detachPreviousScreen: false,
+          }}
+        />
+      </RootStack.Navigator>
+    </QueryClientProvider>
   );
 };
 

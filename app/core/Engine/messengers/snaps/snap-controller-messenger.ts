@@ -32,8 +32,8 @@ import {
   UpdateCaveat,
 } from '@metamask/permission-controller';
 import {
-  AddApprovalRequest,
-  UpdateRequestState,
+  ApprovalControllerAddRequestAction,
+  ApprovalControllerUpdateRequestStateAction,
 } from '@metamask/approval-controller';
 import {
   KeyringControllerLockEvent,
@@ -62,8 +62,8 @@ type Actions =
   | RevokePermissions
   | RevokePermissionForAllSubjects
   | GetSubjects
-  | AddApprovalRequest
-  | UpdateRequestState
+  | ApprovalControllerAddRequestAction
+  | ApprovalControllerUpdateRequestStateAction
   | GrantPermissions
   | GetSubjectMetadata
   | UpdateCaveat

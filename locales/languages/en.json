@@ -3060,6 +3060,7 @@
     "networks_no_results": "No networks found",
     "network_name_label": "Network name",
     "network_name_placeholder": "Network name (optional)",
+    "required": "Required",
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC name",
     "network_rpc_placeholder": "New RPC network",
@@ -5984,6 +5985,10 @@
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
+    "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
+    "claim": "Claim",
+    "sounds_good": "Sounds good",
+    "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -7853,7 +7858,16 @@
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
-      "participant_count": "#{{count}}"
+      "entered": "Entered",
+      "participant_count": "#{{count}}",
+      "opt_in_cta": "Opt in",
+      "opt_in_sheet_title": "Join the campaign",
+      "opt_in_sheet_description_pre_link": "By clicking 'Opt in' you agree to the MetaMask Rewards",
+      "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
+      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically."
+    },
+    "campaign_mechanics": {
+      "title": "Mechanics"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",
@@ -7863,6 +7877,7 @@
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again.",
       "join_campaign": "Join the campaign",
+      "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
     },
@@ -8022,13 +8037,12 @@
       "continue": "Continue"
     },
     "connecting": {
-      "title": "Connect your {{device}}",
+      "title": "Connecting your {{device}}...",
       "searching": "Looking for {{device}}...",
-      "tips_header": "To continue, make sure:",
+      "tips_header": "Make sure:",
       "tip_unlock": "Your {{device}} is unlocked",
       "tip_open_app": "The Ethereum app is open",
       "tip_enable_bluetooth": "Bluetooth is turned on",
-      "tip_dnd_off": "Do Not Disturb is turned off",
       "tip_bluetooth_permission": "Location and Bluetooth permission is granted",
       "tip_bluetooth_permission_v12": "Nearby devices permission is granted",
       "tip_stay_close": "Your device stays close to your phone"

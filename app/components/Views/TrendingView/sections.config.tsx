@@ -11,6 +11,7 @@ import TrendingTokensSkeleton from '../../UI/Trending/components/TrendingTokenSk
 import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
 import {
   filterMarketsByQuery,
+  PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
@@ -215,6 +216,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           defaultMarketTypeFilter: 'all',
+          source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
         },
       });
     },
@@ -226,7 +228,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
             Routes.PERPS.ROOT,
             {
               screen: Routes.PERPS.MARKET_DETAILS,
-              params: { market: item as PerpsMarketData },
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
             },
           );
         }}

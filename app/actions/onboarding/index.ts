@@ -24,6 +24,7 @@ export interface SetCompletedOnboardingAction {
 interface SetAccountTypeAction {
   type: typeof SET_ACCOUNT_TYPE;
   accountType: AccountType;
+  onboardingVersion: string;
 }
 
 interface ClearAccountTypeAction {
@@ -61,10 +62,14 @@ export function setCompletedOnboarding(
   };
 }
 
-export function setAccountType(accountType: AccountType): SetAccountTypeAction {
+export function setAccountType(params: {
+  accountType: AccountType;
+  onboardingVersion: string;
+}): SetAccountTypeAction {
   return {
     type: SET_ACCOUNT_TYPE,
-    accountType,
+    accountType: params.accountType,
+    onboardingVersion: params.onboardingVersion,
   };
 }
 

@@ -181,6 +181,15 @@ export class TradingService {
         PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
     }
 
+    // Calculate order value in USD (size * price)
+    const orderSize = parseFloat(result?.filledSize ?? params.size);
+    const assetPrice = result?.averagePrice
+      ? parseFloat(result.averagePrice)
+      : params.trackingData?.marketPrice;
+    if (assetPrice && orderSize) {
+      properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
+    }
+
     // Add success-specific properties
     if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
       if (params.trackingData?.metamaskFee !== undefined) {
@@ -674,13 +683,28 @@ export class TradingService {
         [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]:
           params.trackingData.receivedAmount,
       }),
+      ...(params.trackingData?.source && {
+        [PERPS_EVENT_PROPERTY.SOURCE]: params.trackingData.source,
+      }),
     };
+
+    // Calculate and add order value in USD (size * price)
+    const closeAssetPrice = result?.averagePrice
+      ? parseFloat(result.averagePrice)
+      : params.trackingData?.marketPrice;
+    const orderValue =
+      closeAssetPrice && metrics.requestedSize
+        ? metrics.requestedSize * closeAssetPrice
+        : undefined;
 
     // Add success-specific properties
     if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
       return {
         ...baseProperties,
         [PERPS_EVENT_PROPERTY.CLOSE_TYPE]: metrics.closeType,
+        ...(orderValue !== undefined && {
+          [PERPS_EVENT_PROPERTY.ORDER_VALUE]: orderValue,
+        }),
       };
     }
 
@@ -688,6 +712,9 @@ export class TradingService {
     return {
       ...baseProperties,
       ...(error && { [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: error }),
+      ...(orderValue !== undefined && {
+        [PERPS_EVENT_PROPERTY.ORDER_VALUE]: orderValue,
+      }),
     };
   }
 
@@ -1710,6 +1737,16 @@ export class TradingService {
       const hasTakeProfit = Boolean(params.takeProfitPrice);
       const hasStopLoss = Boolean(params.stopLossPrice);
 
+      // Determine TP/SL action type
+      let tpslAction: string | undefined;
+      if (hasTakeProfit && hasStopLoss) {
+        tpslAction = PERPS_EVENT_VALUE.ACTION.TPSL;
+      } else if (hasTakeProfit) {
+        tpslAction = PERPS_EVENT_VALUE.ACTION.TP;
+      } else if (hasStopLoss) {
+        tpslAction = PERPS_EVENT_VALUE.ACTION.SL;
+      }
+
       // Build comprehensive event properties
       const eventProperties = {
         [PERPS_EVENT_PROPERTY.STATUS]: result?.success
@@ -1721,6 +1758,9 @@ export class TradingService {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: screenType,
         [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: hasTakeProfit,
         [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: hasStopLoss,
+        ...(tpslAction && {
+          [PERPS_EVENT_PROPERTY.ACTION]: tpslAction,
+        }),
         ...(direction && {
           [PERPS_EVENT_PROPERTY.DIRECTION]:
             direction === 'long'
@@ -1948,7 +1988,11 @@ export class TradingService {
           });
         }
 
-        // Track success analytics
+        // Track success analytics with direction-specific flip action
+        const flipAction = isCurrentlyLong
+          ? PERPS_EVENT_VALUE.ACTION.FLIP_LONG_TO_SHORT
+          : PERPS_EVENT_VALUE.ACTION.FLIP_SHORT_TO_LONG;
+
         this.#deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.TradeTransaction,
           {
@@ -1961,7 +2005,9 @@ export class TradingService {
             [PERPS_EVENT_PROPERTY.LEVERAGE]: position.leverage?.value || 1,
             [PERPS_EVENT_PROPERTY.ORDER_SIZE]: positionSize,
             [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
-            [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
+            [PERPS_EVENT_PROPERTY.ACTION]: flipAction,
+            [PERPS_EVENT_PROPERTY.ORDER_VALUE]:
+              positionSize * parseFloat(position.entryPrice),
           },
         );
 
@@ -1987,11 +2033,16 @@ export class TradingService {
         this.#getErrorContext('flipPosition', { symbol: position.symbol }),
       );
 
-      // Track failure analytics
+      // Track failure analytics with direction-specific flip action
+      const wasLong = parseFloat(position.size) > 0;
+      const failFlipAction = wasLong
+        ? PERPS_EVENT_VALUE.ACTION.FLIP_LONG_TO_SHORT
+        : PERPS_EVENT_VALUE.ACTION.FLIP_SHORT_TO_LONG;
+
       this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
         [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
         [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
-        [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
+        [PERPS_EVENT_PROPERTY.ACTION]: failFlipAction,
         [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
       });

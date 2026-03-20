@@ -7,6 +7,11 @@ name: Nightly Build
 # [skip ci] commits (e.g. version bumps pushed via update-latest-build-version.yml)
 # are automatically skipped by GitHub Actions, so this workflow will NOT
 # double-trigger on those commits.
+#
+# Version strategy: exp and rc builds share the same bundle ID (MetaMask) so
+# TestFlight requires unique CFBundleVersion per upload. We call the external
+# version generator once (→ version N for exp), then locally increment to N+1
+# for the rc build. Both builds run in parallel after their respective bumps.
 
 on:
   push:
@@ -20,8 +25,8 @@ permissions:
   id-token: write
 
 jobs:
-  bump-version:
-    name: Bump build version
+  bump-version-exp:
+    name: Bump build version (exp)
     uses: ./.github/workflows/update-latest-build-version.yml
     permissions:
       contents: write
@@ -30,26 +35,59 @@ jobs:
       base-branch: ${{ github.ref_name }}
     secrets: inherit
 
+  bump-version-rc:
+    name: Bump build version (rc)
+    needs: [bump-version-exp]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      commit-hash: ${{ steps.bump.outputs.commit-hash }}
+      build-version: ${{ steps.bump.outputs.build-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump-version-exp.outputs.commit-hash }}
+          fetch-depth: 0
+          token: ${{ secrets.PR_TOKEN || github.token }}
+
+      - name: Increment version for RC build
+        id: bump
+        env:
+          EXP_VERSION: ${{ needs.bump-version-exp.outputs.build-version }}
+          HEAD_REF: ${{ github.ref_name }}
+        run: |
+          RC_VERSION=$((EXP_VERSION + 1))
+          echo "Exp version: $EXP_VERSION → RC version: $RC_VERSION"
+          ./scripts/set-build-version.sh "$RC_VERSION"
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          git add bitrise.yml package.json ios/MetaMask.xcodeproj/project.pbxproj android/app/build.gradle
+          git commit -m "[skip ci] Bump version number to ${RC_VERSION} (nightly rc)"
+          git push origin HEAD:"$HEAD_REF" --force-with-lease
+          echo "commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "build-version=$RC_VERSION" >> "$GITHUB_OUTPUT"
+
   build-exp:
     name: Nightly exp build (main-exp)
-    needs: [bump-version]
+    needs: [bump-version-exp]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
       platform: both
       skip_version_bump: true
-      ref: ${{ needs.bump-version.outputs.commit-hash }}
+      ref: ${{ needs.bump-version-exp.outputs.commit-hash }}
     secrets: inherit
 
   build-rc:
     name: Nightly RC build (main-rc)
-    needs: [bump-version]
+    needs: [bump-version-rc]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
       platform: both
       skip_version_bump: true
-      ref: ${{ needs.bump-version.outputs.commit-hash }}
+      ref: ${{ needs.bump-version-rc.outputs.commit-hash }}
     secrets: inherit
 
   upload-exp-testflight:
@@ -103,7 +141,8 @@ jobs:
             "github_actions_main-exp" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates"
+            "MetaMask BETA & Release Candidates" \
+            "false"
 
       - name: Cleanup API Key
         if: always()
@@ -158,11 +197,14 @@ jobs:
 
       - name: Upload to TestFlight
         run: |
+          # Group arg is required as positional placeholder for the 5th arg (distribute_external=false).
+          # With distribute_external=false the build is uploaded but NOT distributed to external testers.
           bash scripts/upload-to-testflight.sh \
             "github_actions_main-rc" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates"
+            "MetaMask BETA & Release Candidates" \
+            "false"
 
       - name: Cleanup API Key
         if: always()
