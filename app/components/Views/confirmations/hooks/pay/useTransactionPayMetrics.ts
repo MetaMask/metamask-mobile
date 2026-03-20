@@ -135,6 +135,10 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_strategy = 'relay';
   }
 
+  if (strategy === TransactionPayStrategy.Across) {
+    properties.mm_pay_strategy = 'across';
+  }
+
   if (totals) {
     properties.mm_pay_network_fee_usd = new BigNumber(
       totals.fees.sourceNetwork.estimate.usd,

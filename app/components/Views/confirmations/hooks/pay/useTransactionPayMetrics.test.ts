@@ -341,6 +341,62 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
+  it('includes across strategy metric', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    useTransactionPayQuotesMock.mockReturnValue([
+      {
+        ...QUOTE_MOCK,
+        strategy: TransactionPayStrategy.Across,
+      } as TransactionPayQuote<Json>,
+    ]);
+
+    runHook();
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_strategy: 'across',
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
+  it('includes relay strategy metric', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    useTransactionPayQuotesMock.mockReturnValue([
+      {
+        ...QUOTE_MOCK,
+        strategy: TransactionPayStrategy.Relay,
+      } as TransactionPayQuote<Json>,
+    ]);
+
+    runHook();
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_strategy: 'relay',
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
   describe('mm_pay_sending_value_usd', () => {
     it('tracks USD value from required token amountUsd', async () => {
       useTransactionPayTokenMock.mockReturnValue({

@@ -2,6 +2,11 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
+import {
+  type MetaMaskPayRoutingFlags,
+  normalizeMetaMaskPayRoutingFlags,
+  resolveMetaMaskPayStrategies,
+} from '../../../util/transactions/transaction-pay-routing';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -112,6 +117,35 @@ export const selectMetaMaskPayFlags = createSelector(
       stxDisabled,
     };
   },
+);
+
+export const selectMetaMaskPayRoutingFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): MetaMaskPayRoutingFlags =>
+    normalizeMetaMaskPayRoutingFlags(featureFlags?.confirmations_pay),
+);
+
+export const selectMetaMaskPayStrategiesForRoute = createSelector(
+  [
+    selectMetaMaskPayRoutingFlags,
+    (_state: RootState, transactionType?: string) => transactionType,
+    (_state: RootState, _transactionType?: string, chainId?: Hex) => chainId,
+    (
+      _state: RootState,
+      _transactionType?: string,
+      _chainId?: Hex,
+      tokenAddress?: Hex,
+    ) => tokenAddress,
+  ],
+  (routingFlags, transactionType, chainId, tokenAddress) =>
+    resolveMetaMaskPayStrategies(
+      {
+        chainId: chainId?.toLowerCase() as Hex | undefined,
+        tokenAddress: tokenAddress?.toLowerCase() as Hex | undefined,
+        transactionType,
+      },
+      routingFlags,
+    ),
 );
 
 export const selectMetaMaskPayTokensFlags = createSelector(

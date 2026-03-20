@@ -47,14 +47,10 @@ import {
 import { selectSingleTokenByAddressAndChainId } from '../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES } from '../../../util/transactions/metamask-pay';
 
-const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
-  TransactionType.musdConversion,
-  TransactionType.perpsDeposit,
-  TransactionType.perpsDepositAndOrder,
-  TransactionType.predictDeposit,
-  TransactionType.predictWithdraw,
-];
+const POSITIVE_TRANSFER_TRANSACTION_TYPES =
+  MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES;
 
 function getTokenTransfer(args) {
   const {

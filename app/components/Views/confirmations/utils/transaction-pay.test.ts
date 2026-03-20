@@ -151,6 +151,39 @@ describe('Transaction Pay Utils', () => {
         index: 1,
       });
     });
+
+    it('returns undefined when nested transactions do not contain a token transfer', () => {
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: '0x5678',
+        },
+        nestedTransactions: [
+          {
+            data: '0x123456',
+            to: '0x567890',
+          },
+        ],
+      } as unknown as TransactionMeta;
+
+      expect(getTokenTransferData(transactionMeta)).toBeUndefined();
+    });
+
+    it('returns undefined when matching nested transfer is missing token data', () => {
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: '0x5678',
+        },
+        nestedTransactions: [
+          {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+          },
+        ],
+      } as unknown as TransactionMeta;
+
+      expect(getTokenTransferData(transactionMeta)).toBeUndefined();
+    });
   });
 
   describe('getTokenAddress', () => {

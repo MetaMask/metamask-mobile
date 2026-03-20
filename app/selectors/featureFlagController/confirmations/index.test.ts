@@ -1,6 +1,8 @@
 import { cloneDeep } from 'lodash';
 import {
   selectMetaMaskPayFlags,
+  selectMetaMaskPayRoutingFlags,
+  selectMetaMaskPayStrategiesForRoute,
   selectMetaMaskPayTokensFlags,
   BUFFER_STEP_DEFAULT,
   BUFFER_INITIAL_DEFAULT,
@@ -21,6 +23,7 @@ import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../reducers';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
@@ -139,6 +142,212 @@ describe('MetaMask Pay Feature Flags', () => {
       };
 
     expect(selectMetaMaskPayFlags(state).stxDisabled).toEqual(true);
+  });
+});
+
+describe('MetaMask Pay Routing Flags', () => {
+  it('returns the default global order when routing flags are missing', () => {
+    expect(
+      selectMetaMaskPayRoutingFlags(mockedEmptyFlagsState).strategyOrder,
+    ).toEqual([TransactionPayStrategy.Relay, TransactionPayStrategy.Across]);
+    expect(
+      selectMetaMaskPayStrategiesForRoute(
+        mockedEmptyFlagsState as RootState,
+        'perpsDeposit',
+        '0xa4b1' as Hex,
+        '0xabc' as Hex,
+      ),
+    ).toEqual([TransactionPayStrategy.Relay]);
+  });
+
+  it('filters invalid and duplicate strategies from the global order', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          strategyOrder: ['across', 'relay', 'across', 'bridge', 'invalid'],
+          payStrategies: {
+            across: { enabled: true },
+            relay: { enabled: true },
+          },
+        },
+      };
+
+    expect(selectMetaMaskPayRoutingFlags(state).strategyOrder).toEqual([
+      TransactionPayStrategy.Across,
+      TransactionPayStrategy.Relay,
+    ]);
+  });
+
+  it('applies local overrides when resolving routing flags', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          strategyOrder: ['relay'],
+          payStrategies: {
+            across: { enabled: false },
+            relay: { enabled: true },
+          },
+        },
+      };
+
+    const remoteFeatureFlagControllerState = state.engine.backgroundState
+      .RemoteFeatureFlagController as {
+      remoteFeatureFlags: Record<string, unknown>;
+      cacheTimestamp: number;
+      localOverrides: Record<string, unknown>;
+    };
+
+    remoteFeatureFlagControllerState.localOverrides = {
+      confirmations_pay: {
+        strategyOrder: ['across'],
+        payStrategies: {
+          across: { enabled: true },
+          relay: { enabled: true },
+        },
+        routingOverrides: {
+          overrides: {
+            perpsDeposit: {
+              default: ['across'],
+            },
+          },
+        },
+      },
+    };
+
+    expect(
+      selectMetaMaskPayStrategiesForRoute(
+        state as RootState,
+        'perpsDeposit',
+        '0xa4b1' as Hex,
+        '0xabc' as Hex,
+      ),
+    ).toEqual([TransactionPayStrategy.Across]);
+  });
+
+  it('prefers token overrides over chain overrides', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          strategyOrder: ['relay'],
+          payStrategies: {
+            across: { enabled: true },
+            relay: { enabled: true },
+          },
+          routingOverrides: {
+            overrides: {
+              perpsDeposit: {
+                default: ['relay'],
+                chains: {
+                  '0xa4b1': ['across'],
+                },
+                tokens: {
+                  '0xa4b1': {
+                    '0xabc': ['relay'],
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+    expect(
+      selectMetaMaskPayStrategiesForRoute(
+        state as RootState,
+        'perpsDeposit',
+        '0xA4B1' as Hex,
+        '0xAbC' as Hex,
+      ),
+    ).toEqual([TransactionPayStrategy.Relay]);
+  });
+
+  it('prefers chain overrides over transaction-type defaults', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          strategyOrder: ['relay'],
+          payStrategies: {
+            across: { enabled: true },
+            relay: { enabled: true },
+          },
+          routingOverrides: {
+            overrides: {
+              perpsDeposit: {
+                default: ['relay'],
+                chains: {
+                  '0xa4b1': ['across'],
+                },
+              },
+            },
+          },
+        },
+      };
+
+    expect(
+      selectMetaMaskPayStrategiesForRoute(
+        state as RootState,
+        'perpsDeposit',
+        '0xa4b1' as Hex,
+        '0xabc' as Hex,
+      ),
+    ).toEqual([TransactionPayStrategy.Across]);
+  });
+
+  it('removes disabled strategies and falls back to a broader level', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          strategyOrder: ['relay'],
+          payStrategies: {
+            across: { enabled: false },
+            relay: { enabled: true },
+          },
+          routingOverrides: {
+            overrides: {
+              perpsDeposit: {
+                default: ['across'],
+              },
+            },
+          },
+        },
+      };
+
+    expect(
+      selectMetaMaskPayStrategiesForRoute(
+        state as RootState,
+        'perpsDeposit',
+        '0xa4b1' as Hex,
+        '0xabc' as Hex,
+      ),
+    ).toEqual([TransactionPayStrategy.Relay]);
+  });
+
+  it('returns an empty list when every strategy in the fallback order is disabled', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          strategyOrder: ['relay', 'across'],
+          payStrategies: {
+            across: { enabled: false },
+            relay: { enabled: false },
+          },
+        },
+      };
+
+    expect(
+      selectMetaMaskPayStrategiesForRoute(
+        state as RootState,
+        'perpsDeposit',
+        '0xa4b1' as Hex,
+        '0xabc' as Hex,
+      ),
+    ).toEqual([]);
   });
 });
 

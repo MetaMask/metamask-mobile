@@ -301,6 +301,50 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('adds across quote strategy', () => {
+    request.transactionMeta.type = TransactionType.bridge;
+
+    request.allTransactions = [
+      {
+        id: 'child-0',
+        type: TransactionType.bridge,
+      } as TransactionMeta,
+      {
+        id: 'parent-1',
+        type: TransactionType.perpsDeposit,
+        requiredTransactionIds: ['child-0', 'child-1'],
+      } as TransactionMeta,
+      request.transactionMeta,
+    ];
+
+    const state = merge({}, PAY_CONTROLLER_STATE_MOCK) as RootState;
+
+    state.engine.backgroundState.TransactionPayController.transactionData[
+      'parent-1'
+    ] = {
+      quotes: [
+        {},
+        {
+          request: {
+            targetTokenAddress: '0x123',
+          },
+          strategy: TransactionPayStrategy.Across,
+        },
+      ],
+    } as unknown as (typeof state.engine.backgroundState.TransactionPayController.transactionData)[string];
+
+    getStateMock.mockReturnValue(state);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay_strategy: 'across',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
   it('adds dust property', () => {
     request.transactionMeta.type = TransactionType.bridge;
 
@@ -554,5 +598,15 @@ describe('Metamask Pay Metrics', () => {
 
       expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
     });
+  });
+
+  it('adds execution latency when present on metamaskPay metadata', () => {
+    request.transactionMeta.metamaskPay = {
+      executionLatencyMs: 4321,
+    } as TransactionMeta['metamaskPay'];
+
+    const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+    expect(result.properties.mm_pay_execution_latency).toBe(4321);
   });
 });

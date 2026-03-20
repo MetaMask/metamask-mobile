@@ -876,6 +876,32 @@ describe('PerpsProgressBar', () => {
       );
     });
 
+    it('resumes progress from persisted state for the same withdrawal', () => {
+      const mockPersistentProgress = {
+        progress: 99,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: 'withdrawal1',
+      };
+
+      mockUsePerpsSelector.mockReturnValue(mockPersistentProgress);
+      mockUseWithdrawalRequests.mockReturnValue({
+        withdrawalRequests: [mockWithdrawalRequests[0]],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsProgressBar {...defaultProps} />,
+      );
+
+      expect(getByTestId('perps-progress-bar')).toBeTruthy();
+      expect(mockController.updateWithdrawalProgress).not.toHaveBeenCalledWith(
+        25,
+        'withdrawal1',
+      );
+    });
+
     it('handles withdrawal without ID gracefully', () => {
       const withdrawalWithoutId = {
         ...mockWithdrawalRequests[0],

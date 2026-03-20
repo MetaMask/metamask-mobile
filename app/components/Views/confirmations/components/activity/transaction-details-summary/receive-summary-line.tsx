@@ -23,7 +23,6 @@ export function ReceiveSummaryLine({
   const isPerpsDeposit = hasTransactionType(transactionMeta, [
     TransactionType.perpsDeposit,
   ]);
-
   const isPredictDeposit = hasTransactionType(transactionMeta, [
     TransactionType.predictDeposit,
   ]);

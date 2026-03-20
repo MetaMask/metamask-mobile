@@ -204,6 +204,32 @@ describe('TransactionDetailsHero', () => {
     expect(getByText('$75.50')).toBeDefined();
   });
 
+  it('renders amount for perpsDepositAndOrder transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.perpsDepositAndOrder,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText('$123.46')).toBeDefined();
+  });
+
+  it('renders nothing for predictClaim transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.predictClaim,
+      } as unknown as TransactionMeta,
+    });
+
+    const { queryByTestId } = render();
+
+    expect(queryByTestId('transaction-details-hero')).toBeNull();
+  });
+
   it('renders nothing for musdClaim without valid claim data', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {

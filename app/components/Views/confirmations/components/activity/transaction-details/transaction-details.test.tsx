@@ -186,6 +186,23 @@ describe('TransactionDetails', () => {
       );
     });
 
+    it('returns perps_deposit title for perpsDepositAndOrder type', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsDepositAndOrder,
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.perps_deposit'),
+        }),
+      );
+    });
+
     it('returns musd_claim title for musdClaim type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {

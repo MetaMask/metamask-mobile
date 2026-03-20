@@ -16,23 +16,23 @@ import { RootState } from '../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import {
+  getMetaMaskPayUseCase,
+  hasMetaMaskPayDepositChildTransactionType,
+} from '../../../../../util/transactions/metamask-pay';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
 const COPY_METRICS = [
   'mm_pay',
+  'mm_pay_execution_latency',
+  'mm_pay_strategy',
   'mm_pay_use_case',
   'mm_pay_transaction_step_total',
   'mm_pay_sending_value_usd',
   'mm_pay_receiving_value_usd',
   'mm_pay_metamask_fee_usd',
 ] as const;
-
-const PAY_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.predictDeposit,
-  TransactionType.predictWithdraw,
-];
 
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   eventType,
@@ -44,11 +44,16 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   const properties: JsonMap = {};
   const sensitiveProperties: JsonMap = {};
   const { batchId, id: transactionId, type } = transactionMeta;
+  const executionLatency = getExecutionLatency(transactionMeta);
+
+  if (executionLatency !== undefined) {
+    properties.mm_pay_execution_latency = executionLatency;
+  }
 
   const parentTransaction = allTransactions.find(
     (tx) =>
       tx.requiredTransactionIds?.includes(transactionId) ||
-      (batchId && hasTransactionType(tx, PAY_TYPES) && tx.batchId === batchId),
+      (batchId && isMetaMaskPayParentTransaction(tx) && tx.batchId === batchId),
   );
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
@@ -57,10 +62,10 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));
   }
 
-  if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
+  if (isMetaMaskPayParentTransaction(transactionMeta) || !parentTransaction) {
     addFallbackProperties(properties, transactionMeta, getState());
 
-    if (hasTransactionType(transactionMeta, PAY_TYPES) || properties.mm_pay) {
+    if (isMetaMaskPayParentTransaction(transactionMeta) || properties.mm_pay) {
       addTimeToComplete(properties, eventType, transactionMeta.submittedTime);
     }
 
@@ -128,6 +133,10 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
     }
 
+    if (quote?.strategy === TransactionPayStrategy.Across) {
+      properties.mm_pay_strategy = 'across';
+    }
+
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
       properties.mm_pay_dust_usd = parentMetrics?.properties?.mm_pay_dust_usd;
     }
@@ -173,9 +182,14 @@ function addFallbackProperties(
   }
 
   const { chainId, tokenAddress } = metamaskPay;
+  const payUseCase = getMetaMaskPayUseCase(transaction);
 
   properties.mm_pay = true;
   properties.mm_pay_chain_selected = chainId;
+
+  if (payUseCase) {
+    properties.mm_pay_use_case = payUseCase;
+  }
 
   properties.mm_pay_token_selected = getTokenSymbol(
     state,
@@ -192,4 +206,24 @@ function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
   );
 
   return token?.symbol;
+}
+
+function isMetaMaskPayParentTransaction(transaction: TransactionMeta): boolean {
+  return (
+    getMetaMaskPayUseCase(transaction) !== undefined &&
+    !hasMetaMaskPayDepositChildTransactionType(transaction)
+  );
+}
+
+type MetaMaskPayMetadataWithLatency = TransactionMeta['metamaskPay'] & {
+  executionLatencyMs?: number;
+};
+
+function getExecutionLatency(
+  transactionMeta: TransactionMeta,
+): number | undefined {
+  const metadata = transactionMeta.metamaskPay as
+    | MetaMaskPayMetadataWithLatency
+    | undefined;
+  return metadata?.executionLatencyMs;
 }
