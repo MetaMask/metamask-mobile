@@ -90,6 +90,7 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
+import { moneyAccountServiceInit } from './controllers/money-account-service/money-account-service-init';
 import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
@@ -377,6 +378,7 @@ export class Engine {
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         CardController: cardControllerInit,
+        MoneyAccountService: moneyAccountServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -556,6 +558,7 @@ export class Engine {
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
       ///: END:ONLY_INCLUDE_IF
+      MoneyAccountService: controllersByName.MoneyAccountService,
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,

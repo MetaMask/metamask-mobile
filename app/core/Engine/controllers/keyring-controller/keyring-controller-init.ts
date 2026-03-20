@@ -10,6 +10,8 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
+import { MoneyKeyring } from '@metamask/eth-money-keyring';
+import Logger from '../../../../util/Logger';
 import { hmacSha512 } from '@metamask/native-utils';
 import {
   Encryptor,
@@ -70,11 +72,29 @@ export const keyringControllerInit: ControllerInitFunction<
   hdKeyringBuilder.type = HdKeyring.type;
   additionalKeyrings.push(hdKeyringBuilder);
 
+  const moneyKeyringBuilder = () =>
+    new MoneyKeyring({
+      cryptographicFunctions: {
+        pbkdf2Sha512: pbkdf2,
+        hmacSha512: async (key, data) => hmacSha512(key, data),
+      },
+    });
+  moneyKeyringBuilder.type = MoneyKeyring.type;
+  additionalKeyrings.push(moneyKeyringBuilder);
+  Logger.log(
+    '[MoneyAccount] keyringControllerInit: registered MoneyKeyring builder with type =',
+    MoneyKeyring.type,
+  );
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringBuilder = getController('SnapKeyringBuilder');
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
 
+  Logger.log(
+    '[MoneyAccount] keyringControllerInit: all builder types =',
+    additionalKeyrings.map((b) => b.type),
+  );
   const controller = new KeyringController({
     encryptor,
     messenger: controllerMessenger,
