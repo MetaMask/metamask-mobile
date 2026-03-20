@@ -48,6 +48,7 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import { ButtonSize as InternalButtonSize , ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
@@ -73,7 +74,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
@@ -916,14 +916,14 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
     label: strings('accountApproval.cancel'),
-    size: ButtonSize.Lg,
+    size: InternalButtonSize.Lg,
     onPress: () => closeDeleteModal(),
   };
 
   const deleteButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
     label: strings('app_settings.delete'),
-    size: ButtonSize.Lg,
+    size: InternalButtonSize.Lg,
     onPress: () => confirmRemoveRpc(),
   };
 
