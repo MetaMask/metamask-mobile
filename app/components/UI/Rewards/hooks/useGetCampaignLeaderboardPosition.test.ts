@@ -1,0 +1,278 @@
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useSelector, useDispatch } from 'react-redux';
+import { useGetCampaignLeaderboardPosition } from './useGetCampaignLeaderboardPosition';
+import Engine from '../../../../core/Engine';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
+import {
+  setCampaignLeaderboardPosition,
+  setCampaignLeaderboardPositionLoading,
+  setCampaignLeaderboardPositionError,
+} from '../../../../reducers/rewards';
+import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  controllerMessenger: { call: jest.fn() },
+}));
+
+jest.mock('../../../../selectors/rewards', () => ({
+  selectRewardsSubscriptionId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
+  selectCampaignsRewardsEnabledFlag: jest.fn(),
+}));
+
+jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectCampaignLeaderboardPositionById: jest.fn(),
+}));
+
+jest.mock('../../../../reducers/rewards', () => ({
+  setCampaignLeaderboardPosition: jest.fn((payload) => ({
+    type: 'rewards/setCampaignLeaderboardPosition',
+    payload,
+  })),
+  setCampaignLeaderboardPositionLoading: jest.fn((payload) => ({
+    type: 'rewards/setCampaignLeaderboardPositionLoading',
+    payload,
+  })),
+  setCampaignLeaderboardPositionError: jest.fn((payload) => ({
+    type: 'rewards/setCampaignLeaderboardPositionError',
+    payload,
+  })),
+}));
+
+const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
+  typeof Engine.controllerMessenger.call
+>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
+const mockSelectCampaignLeaderboardPositionById =
+  selectCampaignLeaderboardPositionById as jest.MockedFunction<
+    typeof selectCampaignLeaderboardPositionById
+  >;
+
+const CAMPAIGN_ID = 'campaign-123';
+const SUBSCRIPTION_ID = 'sub-456';
+const MOCK_POSITION: CampaignLeaderboardPositionDto = {
+  projected_tier: 'MID',
+  rank: 5,
+  total_in_tier: 150,
+  rate_of_return: 0.15,
+  current_usd_value: 12500.5,
+  total_usd_deposited: 10000.0,
+  net_deposit: 8500.0,
+  computed_at: '2024-03-20T12:00:00.000Z',
+  referral_code: 'ABC123',
+};
+
+interface SelectorState {
+  isCampaignsEnabled: boolean;
+  subscriptionId: string | null;
+  position: CampaignLeaderboardPositionDto | null;
+}
+
+function setupSelectors(state: SelectorState) {
+  const mockPositionSelector = jest.fn().mockReturnValue(state.position);
+  mockSelectCampaignLeaderboardPositionById.mockReturnValue(
+    mockPositionSelector,
+  );
+
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectCampaignsRewardsEnabledFlag)
+      return state.isCampaignsEnabled;
+    if (selector === selectRewardsSubscriptionId) return state.subscriptionId;
+    if (selector === mockPositionSelector) return state.position;
+    return undefined;
+  });
+}
+
+describe('useGetCampaignLeaderboardPosition', () => {
+  const mockDispatch = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseDispatch.mockReturnValue(mockDispatch);
+    setupSelectors({
+      isCampaignsEnabled: true,
+      subscriptionId: SUBSCRIPTION_ID,
+      position: null,
+    });
+  });
+
+  it('does not fetch when campaigns feature flag is disabled', async () => {
+    setupSelectors({
+      isCampaignsEnabled: false,
+      subscriptionId: SUBSCRIPTION_ID,
+      position: null,
+    });
+
+    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
+
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch when subscriptionId is missing', async () => {
+    setupSelectors({
+      isCampaignsEnabled: true,
+      subscriptionId: null,
+      position: null,
+    });
+
+    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
+
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch when campaignId is undefined', async () => {
+    renderHook(() => useGetCampaignLeaderboardPosition(undefined));
+
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('fetches position and dispatches actions on success', async () => {
+    mockCall.mockResolvedValueOnce(MOCK_POSITION as never);
+
+    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignLeaderboardPositionLoading(true),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignLeaderboardPositionError(false),
+    );
+    expect(mockCall).toHaveBeenCalledWith(
+      'RewardsController:getCampaignLeaderboardPosition',
+      CAMPAIGN_ID,
+      SUBSCRIPTION_ID,
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignLeaderboardPosition({
+        campaignId: CAMPAIGN_ID,
+        position: MOCK_POSITION,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignLeaderboardPositionLoading(false),
+    );
+  });
+
+  it('dispatches error action on fetch failure', async () => {
+    mockCall.mockRejectedValueOnce(new Error('Network error') as never);
+
+    const { result } = renderHook(() =>
+      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignLeaderboardPositionError(true),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignLeaderboardPositionLoading(false),
+    );
+    expect(result.current.hasError).toBe(true);
+  });
+
+  it('returns position data from selector', () => {
+    setupSelectors({
+      isCampaignsEnabled: true,
+      subscriptionId: SUBSCRIPTION_ID,
+      position: MOCK_POSITION,
+    });
+
+    const { result } = renderHook(() =>
+      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+    );
+
+    expect(result.current.position).toEqual(MOCK_POSITION);
+  });
+
+  it('returns loading state', async () => {
+    mockCall.mockResolvedValue(MOCK_POSITION as never);
+
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+    );
+
+    // Wait for the fetch to complete
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+
+    // After fetch completes, check the final state
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('returns error state', async () => {
+    mockCall.mockRejectedValueOnce(new Error('Network error') as never);
+
+    const { result } = renderHook(() =>
+      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.hasError).toBe(true);
+  });
+
+  it('refetch function re-fetches the position', async () => {
+    mockCall.mockResolvedValue(MOCK_POSITION as never);
+
+    const { result } = renderHook(() =>
+      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    mockDispatch.mockClear();
+
+    await act(async () => {
+      await result.current.refetch();
+    });
+
+    expect(mockCall).toHaveBeenCalledTimes(2);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignLeaderboardPositionLoading(true),
+    );
+  });
+
+  it('returns null position when not loaded', () => {
+    setupSelectors({
+      isCampaignsEnabled: true,
+      subscriptionId: SUBSCRIPTION_ID,
+      position: null,
+    });
+
+    const { result } = renderHook(() =>
+      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+    );
+
+    expect(result.current.position).toBeNull();
+  });
+
+  it('calls selectCampaignLeaderboardPositionById with campaignId', () => {
+    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
+
+    expect(mockSelectCampaignLeaderboardPositionById).toHaveBeenCalledWith(
+      CAMPAIGN_ID,
+    );
+  });
+});

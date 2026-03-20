@@ -28,6 +28,13 @@ import rewardsReducer, {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  setCampaignLeaderboard,
+  setCampaignLeaderboardLoading,
+  setCampaignLeaderboardError,
+  setCampaignLeaderboardSelectedTier,
+  setCampaignLeaderboardPosition,
+  setCampaignLeaderboardPositionLoading,
+  setCampaignLeaderboardPositionError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -48,6 +55,8 @@ import {
   PointsEventDto,
   CampaignDto,
   CampaignType,
+  CampaignLeaderboardDto,
+  CampaignLeaderboardPositionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -4826,5 +4835,287 @@ describe('setVersionGuardError', () => {
       initialState.versionGuardMinimumMobileVersion,
     );
     expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+  });
+});
+
+const mockLeaderboard: CampaignLeaderboardDto = {
+  campaign_id: 'campaign-1',
+  computed_at: '2024-03-20T12:00:00.000Z',
+  tiers: {
+    STARTER: {
+      entries: [
+        { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
+        { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+      ],
+      total_participants: 50,
+    },
+    MID: {
+      entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
+      total_participants: 30,
+    },
+  },
+};
+
+const mockPosition: CampaignLeaderboardPositionDto = {
+  projected_tier: 'STARTER',
+  rank: 5,
+  total_in_tier: 50,
+  rate_of_return: 0.12,
+  current_usd_value: 1000,
+  total_usd_deposited: 900,
+  net_deposit: 800,
+  computed_at: '2024-03-20T12:00:00.000Z',
+  referral_code: 'XYZ789',
+};
+
+describe('setCampaignLeaderboard', () => {
+  it('should set leaderboard data', () => {
+    const action = setCampaignLeaderboard(mockLeaderboard);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboard).toEqual(mockLeaderboard);
+    expect(state.campaignLeaderboardError).toBe(false);
+  });
+
+  it('should set first tier as selected when not already set', () => {
+    const action = setCampaignLeaderboard(mockLeaderboard);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboardSelectedTier).toBe('STARTER');
+  });
+
+  it('should not override existing selected tier', () => {
+    const stateWithSelectedTier: RewardsState = {
+      ...initialState,
+      campaignLeaderboardSelectedTier: 'MID',
+    };
+    const action = setCampaignLeaderboard(mockLeaderboard);
+
+    const state = rewardsReducer(stateWithSelectedTier, action);
+
+    expect(state.campaignLeaderboardSelectedTier).toBe('MID');
+  });
+
+  it('should set leaderboard to null', () => {
+    const stateWithLeaderboard: RewardsState = {
+      ...initialState,
+      campaignLeaderboard: mockLeaderboard,
+    };
+    const action = setCampaignLeaderboard(null);
+
+    const state = rewardsReducer(stateWithLeaderboard, action);
+
+    expect(state.campaignLeaderboard).toBeNull();
+  });
+
+  it('should reset error when setting leaderboard', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignLeaderboardError: true,
+    };
+    const action = setCampaignLeaderboard(mockLeaderboard);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaignLeaderboardError).toBe(false);
+  });
+});
+
+describe('setCampaignLeaderboardLoading', () => {
+  it('should set loading to true when no leaderboard exists', () => {
+    const action = setCampaignLeaderboardLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboardLoading).toBe(true);
+  });
+
+  it('should not set loading to true when leaderboard already exists', () => {
+    const stateWithLeaderboard: RewardsState = {
+      ...initialState,
+      campaignLeaderboard: mockLeaderboard,
+      campaignLeaderboardLoading: false,
+    };
+    const action = setCampaignLeaderboardLoading(true);
+
+    const state = rewardsReducer(stateWithLeaderboard, action);
+
+    expect(state.campaignLeaderboardLoading).toBe(false);
+  });
+
+  it('should set loading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      campaignLeaderboardLoading: true,
+    };
+    const action = setCampaignLeaderboardLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.campaignLeaderboardLoading).toBe(false);
+  });
+});
+
+describe('setCampaignLeaderboardError', () => {
+  it('should set error to true', () => {
+    const action = setCampaignLeaderboardError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboardError).toBe(true);
+  });
+
+  it('should set error to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignLeaderboardError: true,
+    };
+    const action = setCampaignLeaderboardError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaignLeaderboardError).toBe(false);
+  });
+});
+
+describe('setCampaignLeaderboardSelectedTier', () => {
+  it('should set selected tier', () => {
+    const action = setCampaignLeaderboardSelectedTier('MID');
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboardSelectedTier).toBe('MID');
+  });
+
+  it('should update selected tier', () => {
+    const stateWithSelectedTier: RewardsState = {
+      ...initialState,
+      campaignLeaderboardSelectedTier: 'STARTER',
+    };
+    const action = setCampaignLeaderboardSelectedTier('UPPER');
+
+    const state = rewardsReducer(stateWithSelectedTier, action);
+
+    expect(state.campaignLeaderboardSelectedTier).toBe('UPPER');
+  });
+});
+
+describe('setCampaignLeaderboardPosition', () => {
+  it('should set position for a campaign', () => {
+    const action = setCampaignLeaderboardPosition({
+      campaignId: 'campaign-1',
+      position: mockPosition,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboardPositions['campaign-1']).toEqual(
+      mockPosition,
+    );
+    expect(state.campaignLeaderboardPositionError).toBe(false);
+  });
+
+  it('should remove position when null is provided', () => {
+    const stateWithPosition: RewardsState = {
+      ...initialState,
+      campaignLeaderboardPositions: { 'campaign-1': mockPosition },
+    };
+    const action = setCampaignLeaderboardPosition({
+      campaignId: 'campaign-1',
+      position: null,
+    });
+
+    const state = rewardsReducer(stateWithPosition, action);
+
+    expect(state.campaignLeaderboardPositions['campaign-1']).toBeUndefined();
+  });
+
+  it('should store positions for multiple campaigns', () => {
+    let currentState = initialState;
+
+    currentState = rewardsReducer(
+      currentState,
+      setCampaignLeaderboardPosition({
+        campaignId: 'campaign-1',
+        position: mockPosition,
+      }),
+    );
+
+    const position2 = { ...mockPosition, rank: 10, projected_tier: 'MID' };
+    currentState = rewardsReducer(
+      currentState,
+      setCampaignLeaderboardPosition({
+        campaignId: 'campaign-2',
+        position: position2,
+      }),
+    );
+
+    expect(currentState.campaignLeaderboardPositions['campaign-1']).toEqual(
+      mockPosition,
+    );
+    expect(currentState.campaignLeaderboardPositions['campaign-2']).toEqual(
+      position2,
+    );
+  });
+
+  it('should reset error when setting position', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignLeaderboardPositionError: true,
+    };
+    const action = setCampaignLeaderboardPosition({
+      campaignId: 'campaign-1',
+      position: mockPosition,
+    });
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaignLeaderboardPositionError).toBe(false);
+  });
+});
+
+describe('setCampaignLeaderboardPositionLoading', () => {
+  it('should set loading to true', () => {
+    const action = setCampaignLeaderboardPositionLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboardPositionLoading).toBe(true);
+  });
+
+  it('should set loading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      campaignLeaderboardPositionLoading: true,
+    };
+    const action = setCampaignLeaderboardPositionLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.campaignLeaderboardPositionLoading).toBe(false);
+  });
+});
+
+describe('setCampaignLeaderboardPositionError', () => {
+  it('should set error to true', () => {
+    const action = setCampaignLeaderboardPositionError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignLeaderboardPositionError).toBe(true);
+  });
+
+  it('should set error to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignLeaderboardPositionError: true,
+    };
+    const action = setCampaignLeaderboardPositionError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaignLeaderboardPositionError).toBe(false);
   });
 });

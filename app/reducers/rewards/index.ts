@@ -10,6 +10,8 @@ import {
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  CampaignLeaderboardDto,
+  CampaignLeaderboardPositionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -129,6 +131,18 @@ export interface RewardsState {
   versionGuardMinimumMobileVersion: string | null;
   versionGuardLoading: boolean;
   versionGuardError: boolean;
+
+  // Campaign leaderboard (keyed by campaignId)
+  campaignLeaderboard: CampaignLeaderboardDto | null;
+  campaignLeaderboardLoading: boolean;
+  campaignLeaderboardError: boolean;
+  // Currently selected tier for leaderboard display
+  campaignLeaderboardSelectedTier: string | null;
+
+  // Campaign leaderboard position (user's position, keyed by campaignId)
+  campaignLeaderboardPositions: Record<string, CampaignLeaderboardPositionDto>;
+  campaignLeaderboardPositionLoading: boolean;
+  campaignLeaderboardPositionError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -204,6 +218,17 @@ export const initialState: RewardsState = {
   versionGuardMinimumMobileVersion: null,
   versionGuardLoading: false,
   versionGuardError: false,
+
+  // Campaign leaderboard initial state
+  campaignLeaderboard: null,
+  campaignLeaderboardLoading: false,
+  campaignLeaderboardError: false,
+  campaignLeaderboardSelectedTier: null,
+
+  // Campaign leaderboard position initial state
+  campaignLeaderboardPositions: {},
+  campaignLeaderboardPositionLoading: false,
+  campaignLeaderboardPositionError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -497,6 +522,66 @@ const rewardsSlice = createSlice({
       state.versionGuardError = action.payload;
     },
 
+    // Campaign leaderboard reducers
+    setCampaignLeaderboard: (
+      state,
+      action: PayloadAction<CampaignLeaderboardDto | null>,
+    ) => {
+      state.campaignLeaderboard = action.payload;
+      state.campaignLeaderboardError = false;
+      // Set the first tier as selected if not already set
+      if (action.payload && !state.campaignLeaderboardSelectedTier) {
+        const tierNames = Object.keys(action.payload.tiers);
+        if (tierNames.length > 0) {
+          state.campaignLeaderboardSelectedTier = tierNames[0];
+        }
+      }
+    },
+    setCampaignLeaderboardLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.campaignLeaderboard) {
+        return;
+      }
+      state.campaignLeaderboardLoading = action.payload;
+    },
+    setCampaignLeaderboardError: (state, action: PayloadAction<boolean>) => {
+      state.campaignLeaderboardError = action.payload;
+    },
+    setCampaignLeaderboardSelectedTier: (
+      state,
+      action: PayloadAction<string>,
+    ) => {
+      state.campaignLeaderboardSelectedTier = action.payload;
+    },
+
+    // Campaign leaderboard position reducers
+    setCampaignLeaderboardPosition: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        position: CampaignLeaderboardPositionDto | null;
+      }>,
+    ) => {
+      if (action.payload.position) {
+        state.campaignLeaderboardPositions[action.payload.campaignId] =
+          action.payload.position;
+      } else {
+        delete state.campaignLeaderboardPositions[action.payload.campaignId];
+      }
+      state.campaignLeaderboardPositionError = false;
+    },
+    setCampaignLeaderboardPositionLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.campaignLeaderboardPositionLoading = action.payload;
+    },
+    setCampaignLeaderboardPositionError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.campaignLeaderboardPositionError = action.payload;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -661,6 +746,14 @@ export const {
   setVersionGuardMinimumMobileVersion,
   setVersionGuardLoading,
   setVersionGuardError,
+  // Campaign leaderboard actions
+  setCampaignLeaderboard,
+  setCampaignLeaderboardLoading,
+  setCampaignLeaderboardError,
+  setCampaignLeaderboardSelectedTier,
+  setCampaignLeaderboardPosition,
+  setCampaignLeaderboardPositionLoading,
+  setCampaignLeaderboardPositionError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
