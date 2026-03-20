@@ -1,4 +1,4 @@
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -49,7 +49,11 @@ export function useConfirmNavigation() {
         params.loader = ConfirmationLoader.CustomAmount;
       }
 
-      if (pendingTransactions.length && !pendingParams) {
+      if (
+        params.loader === ConfirmationLoader.CustomAmount &&
+        pendingTransactions.length &&
+        !pendingParams
+      ) {
         log('Rejecting pending transactions before navigating');
 
         setPendingParams(options);
