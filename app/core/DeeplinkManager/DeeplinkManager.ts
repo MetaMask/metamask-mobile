@@ -143,62 +143,64 @@ export async function resolveBranchShortLink(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
 
-    const response = await fetch(cleanUrl, {
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'facebookexternalhit/1.1 (MetaMask-LinkResolver)',
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    const finalUrl = response.url;
-
     try {
-      const finalHostname = new URL(finalUrl).hostname;
-      if (
-        finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
-        finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
-      ) {
-        return finalUrl;
-      }
-    } catch {
-      // ignore URL parse errors on finalUrl
-    }
+      const response = await fetch(cleanUrl, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'facebookexternalhit/1.1 (MetaMask-LinkResolver)',
+        },
+        signal: controller.signal,
+      });
 
-    const body = await response.text();
+      const finalUrl = response.url;
 
-    const branchUrl = extractBranchUrlFromDeepview(body);
-    if (branchUrl) {
       try {
-        const cleanParsed = new URL(cleanUrl);
-        const branchParsed = new URL(branchUrl);
-        cleanParsed.searchParams.forEach((value, key) => {
-          if (!branchParsed.searchParams.has(key)) {
-            branchParsed.searchParams.set(key, value);
-          }
-        });
-        return branchParsed.toString();
+        const finalHostname = new URL(finalUrl).hostname;
+        if (
+          finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+          finalHostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+        ) {
+          return finalUrl;
+        }
       } catch {
-        return branchUrl;
+        // ignore URL parse errors on finalUrl
       }
-    }
 
-    const deepLinkPathMatch =
-      body.match(/\$deeplink_path['":\s]+['"]([^'"]+)['"]/) ??
-      body.match(/deeplink_path['":\s]+['"]([^'"]+)['"]/);
+      const body = await response.text();
 
-    if (deepLinkPathMatch?.[1]) {
-      const path = deepLinkPathMatch[1];
-      return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
-    }
+      const branchUrl = extractBranchUrlFromDeepview(body);
+      if (branchUrl) {
+        try {
+          const cleanParsed = new URL(cleanUrl);
+          const branchParsed = new URL(branchUrl);
+          cleanParsed.searchParams.forEach((value, key) => {
+            if (!branchParsed.searchParams.has(key)) {
+              branchParsed.searchParams.set(key, value);
+            }
+          });
+          return branchParsed.toString();
+        } catch {
+          return branchUrl;
+        }
+      }
 
-    const deepviewPath = extractDeepviewPath(body);
-    if (deepviewPath) {
-      return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`;
+      const deepLinkPathMatch =
+        body.match(/\$deeplink_path['":\s]+['"]([^'"]+)['"]/) ??
+        body.match(/deeplink_path['":\s]+['"]([^'"]+)['"]/);
+
+      if (deepLinkPathMatch?.[1]) {
+        const path = deepLinkPathMatch[1];
+        return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
+      }
+
+      const deepviewPath = extractDeepviewPath(body);
+      if (deepviewPath) {
+        return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`;
+      }
+      return undefined;
+    } finally {
+      clearTimeout(timeout);
     }
-    return undefined;
   } catch (error) {
     Logger.error(
       error as Error,
