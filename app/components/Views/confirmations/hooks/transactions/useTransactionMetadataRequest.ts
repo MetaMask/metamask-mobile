@@ -4,19 +4,33 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectTransactionMetadataById } from '../../../../../selectors/transactionController';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useApprovalRequest from '../useApprovalRequest';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
+import Engine from '../../../../../core/Engine';
 
 export function useTransactionMetadataRequest() {
   const { approvalRequest } = useApprovalRequest();
 
-  const transactionMetadata = useSelector((state: RootState) =>
+  const reduxMetadata = useSelector((state: RootState) =>
     selectTransactionMetadataById(state, approvalRequest?.id as string),
   );
+
+  const controllerMetadata = useMemo(() => {
+    if (!approvalRequest?.id) {
+      return undefined;
+    }
+
+    return Engine.context.TransactionController.state.transactions.find(
+      (tx: TransactionMeta) => tx.id === approvalRequest.id,
+    );
+  }, [approvalRequest?.id]);
+
+  const transactionMetadata = reduxMetadata ?? controllerMetadata;
 
   if (
     approvalRequest?.type === ApprovalType.Transaction &&

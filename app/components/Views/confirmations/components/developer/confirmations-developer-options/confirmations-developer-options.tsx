@@ -12,7 +12,10 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '@react-navigation/native';
-import { addTransactionBatch } from '../../../../../../util/transaction-controller';
+import {
+  addTransactionBatch,
+  addTransactionBatchInstant,
+} from '../../../../../../util/transaction-controller';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -82,7 +85,10 @@ function PredictClaim() {
 }
 
 function PredictDeposit() {
-  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+  const {
+    addTransactionBatchAndNavigate,
+    addTransactionBatchInstantAndNavigate,
+  } = useAddTransactionBatch();
 
   const handleDeposit = useCallback(async () => {
     addTransactionBatchAndNavigate({
@@ -91,13 +97,27 @@ function PredictDeposit() {
     });
   }, [addTransactionBatchAndNavigate]);
 
+  const handleDepositInstant = useCallback(() => {
+    addTransactionBatchInstantAndNavigate({
+      transactionType: TransactionType.predictDeposit,
+    });
+  }, [addTransactionBatchInstantAndNavigate]);
+
   return (
-    <DeveloperButton
-      title="Predict Deposit"
-      description="Trigger a Predict deposit confirmation."
-      buttonLabel="Deposit"
-      onPress={handleDeposit}
-    />
+    <>
+      <DeveloperButton
+        title="Predict Deposit"
+        description="Trigger a Predict deposit confirmation."
+        buttonLabel="Deposit"
+        onPress={handleDeposit}
+      />
+      <DeveloperButton
+        title="Predict Deposit (Instant)"
+        description="Trigger an instant Predict deposit confirmation."
+        buttonLabel="Deposit Instant"
+        onPress={handleDepositInstant}
+      />
+    </>
   );
 }
 
@@ -159,8 +179,42 @@ function useAddTransactionBatch() {
     [navigateToConfirmation, networkClientId, selectedAccount, transferData],
   );
 
+  const addTransactionBatchInstantAndNavigate = useCallback(
+    ({ transactionType }: { transactionType: TransactionType }) => {
+      addTransactionBatchInstant({
+        from: selectedAccount as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        instant: true,
+        transactions: [
+          {
+            params: {
+              to: PROXY_ADDRESS,
+              value: '0x1',
+            },
+          },
+          {
+            params: {
+              to: POLYGON_USDCE_ADDRESS,
+              data: transferData,
+            },
+            type: transactionType,
+          },
+        ],
+      });
+
+      navigateToConfirmation({
+        stack: Routes.PREDICT.ROOT,
+      });
+    },
+    [navigateToConfirmation, networkClientId, selectedAccount, transferData],
+  );
+
   return {
     addTransactionBatchAndNavigate,
+    addTransactionBatchInstantAndNavigate,
   };
 }
 

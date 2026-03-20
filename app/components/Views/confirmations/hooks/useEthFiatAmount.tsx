@@ -41,38 +41,44 @@ export function useEthFiatAmount(
     [conversionRate, currentCurrency, ethAmount],
   );
 
-  if (
-    !conversionRate ||
-    !showFiat ||
-    currentCurrency.toUpperCase() === 'ETH' ||
-    conversionRate <= 0 ||
-    ethAmount === undefined
-  ) {
-    return undefined;
-  }
+  const result = useMemo(() => {
+    if (
+      !conversionRate ||
+      !showFiat ||
+      currentCurrency.toUpperCase() === 'ETH' ||
+      conversionRate <= 0 ||
+      ethAmount === undefined
+    ) {
+      return undefined;
+    }
 
-  // Calculate the fiat amount
-  const fiatAmount = new BigNumber(ethAmount.toString()).times(conversionRate);
+    const fiatAmount = new BigNumber(ethAmount.toString()).times(
+      conversionRate,
+    );
 
-  // Handle small fiat amounts
-  if (
-    ethAmount &&
-    fiatAmount.lt(new BigNumber(0.01)) &&
-    fiatAmount.isGreaterThan(new BigNumber(0))
-  ) {
+    if (ethAmount && fiatAmount.lt(0.01) && fiatAmount.isGreaterThan(0)) {
+      return hideCurrencySymbol
+        ? `< ${formatCurrency(0.01, currentCurrency)}`
+        : `< ${formatCurrency(
+            0.01,
+            currentCurrency,
+          )} ${currentCurrency.toUpperCase()}`;
+    }
+
     return hideCurrencySymbol
-      ? `< ${formatCurrency(0.01, currentCurrency)}`
-      : `< ${formatCurrency(
-          0.01,
+      ? formatCurrency(formattedFiat, currentCurrency)
+      : `${formatCurrency(
+          formattedFiat,
           currentCurrency,
         )} ${currentCurrency.toUpperCase()}`;
-  }
+  }, [
+    conversionRate,
+    currentCurrency,
+    ethAmount,
+    formattedFiat,
+    hideCurrencySymbol,
+    showFiat,
+  ]);
 
-  // Return the formatted fiat amount
-  return hideCurrencySymbol
-    ? formatCurrency(formattedFiat, currentCurrency)
-    : `${formatCurrency(
-        formattedFiat,
-        currentCurrency,
-      )} ${currentCurrency.toUpperCase()}`;
+  return result;
 }

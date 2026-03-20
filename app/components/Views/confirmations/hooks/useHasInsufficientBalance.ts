@@ -1,5 +1,6 @@
 import { add0x, Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
+import { useMemo } from 'react';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
@@ -28,19 +29,20 @@ export function useHasInsufficientBalance(): {
   const { nativeCurrency } =
     networkConfigurations[transactionMetadata?.chainId as Hex] ?? {};
 
-  const maxFeeNativeInHex = multiplyHexes(
-    maxFeePerGas ? (decimalToHex(maxFeePerGas) as Hex) : (gasPrice as Hex),
-    gas as Hex,
-  );
+  const hasInsufficientBalance = useMemo(() => {
+    const maxFeeNativeInHex = multiplyHexes(
+      maxFeePerGas ? (decimalToHex(maxFeePerGas) as Hex) : (gasPrice as Hex),
+      gas as Hex,
+    );
 
-  const transactionValue = txParams?.value || HEX_ZERO;
-  const totalTransactionValue = addHexes(maxFeeNativeInHex, transactionValue);
-  const totalTransactionInHex = add0x(totalTransactionValue as string);
+    const transactionValue = txParams?.value || HEX_ZERO;
+    const totalTransactionValue = addHexes(maxFeeNativeInHex, transactionValue);
+    const totalTransactionInHex = add0x(totalTransactionValue as string);
 
-  const balanceWeiInHexBN = new BigNumber(balanceWeiInHex ?? '0x0');
-  const totalTransactionValueBN = new BigNumber(totalTransactionInHex ?? '0x0');
-
-  const hasInsufficientBalance = balanceWeiInHexBN.lt(totalTransactionValueBN);
+    return new BigNumber(balanceWeiInHex ?? '0x0').lt(
+      new BigNumber(totalTransactionInHex ?? '0x0'),
+    );
+  }, [balanceWeiInHex, maxFeePerGas, gas, gasPrice, txParams?.value]);
 
   return { hasInsufficientBalance, nativeCurrency };
 }

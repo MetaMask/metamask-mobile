@@ -67,33 +67,41 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const isScrollDisabled = useDisableScroll();
+  const transactionMeta = useTransactionMetadataRequest();
+  const isReady = transactionMeta?.ready !== false;
+
+  const content = (
+    <QRHardwareContextProvider>
+      <LedgerContextProvider>
+        <Title />
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          nestedScrollEnabled
+          scrollEnabled={!isScrollDisabled}
+        >
+          <TouchableWithoutFeedback>
+            <>
+              <AlertBanner
+                ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+              />
+              <Info route={route} />
+            </>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+        <Footer />
+      </LedgerContextProvider>
+    </QRHardwareContextProvider>
+  );
 
   return (
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
-        <ConfirmationAlerts>
-          <QRHardwareContextProvider>
-            <LedgerContextProvider>
-              <Title />
-              <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
-                nestedScrollEnabled
-                scrollEnabled={!isScrollDisabled}
-              >
-                <TouchableWithoutFeedback>
-                  <>
-                    <AlertBanner
-                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                    />
-                    <Info route={route} />
-                  </>
-                </TouchableWithoutFeedback>
-              </ScrollView>
-              <Footer />
-            </LedgerContextProvider>
-          </QRHardwareContextProvider>
-        </ConfirmationAlerts>
+        {isReady ? (
+          <ConfirmationAlerts>{content}</ConfirmationAlerts>
+        ) : (
+          <AlertsContextProvider alerts={[]}>{content}</AlertsContextProvider>
+        )}
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
   );
@@ -125,12 +133,10 @@ export const Confirm = ({
     if (approvalRequest) {
       const options = {
         headerShown: false,
-        // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
         gestureEnabled: true,
       };
 
       if (isFullScreenConfirmation) {
-        // If the confirmation is full screen, we need to show the header
         options.headerShown = true;
       }
       navigation.setOptions(options);
@@ -151,7 +157,6 @@ export const Confirm = ({
     }
   }, [approvalRequest]);
 
-  // Show spinner if there is no approvalRequest
   if (!approvalRequest) {
     return <Loader />;
   }

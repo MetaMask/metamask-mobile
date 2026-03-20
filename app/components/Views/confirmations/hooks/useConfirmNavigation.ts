@@ -22,6 +22,7 @@ const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
 export type ConfirmNavigateOptions = {
   amount?: string;
+  animationEnabled?: boolean;
   headerShown?: boolean;
   stack?: string;
 } & ConfirmationParams;
@@ -42,7 +43,7 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { headerShown, stack, ...params } = options;
+      const { headerShown, stack, animationEnabled, ...params } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
@@ -68,6 +69,11 @@ export function useConfirmNavigation() {
 
       if (stack) {
         navigate(stack, { screen: route, params });
+        return;
+      }
+
+      if (animationEnabled === false) {
+        navigate(route, { ...params, animationEnabled: false });
         return;
       }
 

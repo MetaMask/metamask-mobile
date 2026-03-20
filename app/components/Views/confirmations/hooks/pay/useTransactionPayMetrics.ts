@@ -29,7 +29,9 @@ export function useTransactionPayMetrics() {
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const highestBalanceChainId = useHighestBalanceCaipChainId();
+  const highestBalanceChainId = useHighestBalanceCaipChainId({
+    skip: !payToken,
+  });
   const automaticPayToken = useRef<BridgeToken>();
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
@@ -159,8 +161,10 @@ export function useTransactionPayMetrics() {
   }, [dispatch, transactionId, params]);
 }
 
-function useHighestBalanceCaipChainId(): string | undefined {
-  const tokens = useAccountTokens();
+function useHighestBalanceCaipChainId({
+  skip = false,
+}: { skip?: boolean } = {}): string | undefined {
+  const tokens = useAccountTokens({ skip });
 
   return useMemo(() => {
     // Aggregate fiat balances by chainId

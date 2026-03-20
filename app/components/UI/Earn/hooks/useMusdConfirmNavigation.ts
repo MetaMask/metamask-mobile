@@ -6,7 +6,9 @@ import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { useTransactionPayIsMaxAmount } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
 
-export const useMusdConfirmNavigation = () => {
+export const useMusdConfirmNavigation = ({
+  enabled = true,
+}: { enabled?: boolean } = {}) => {
   const navigation = useNavigation();
   const isMusdQuickConvertEnabled = useSelector(
     selectMusdQuickConvertEnabledFlag,
@@ -14,7 +16,7 @@ export const useMusdConfirmNavigation = () => {
 
   const isMaxAmount = useTransactionPayIsMaxAmount();
 
-  const { tokens: conversionTokens } = useMusdConversionTokens();
+  const { tokens: conversionTokens } = useMusdConversionTokens({ enabled });
 
   const isLastConvertibleToken = conversionTokens.length <= 1;
 

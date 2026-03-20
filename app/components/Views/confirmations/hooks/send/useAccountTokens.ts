@@ -15,13 +15,16 @@ import { selectERC20TokensByChain } from '../../../../../selectors/tokenListCont
 
 const EMPTY_CACHE = {} as ReturnType<typeof selectERC20TokensByChain>;
 const selectEmptyCache = () => EMPTY_CACHE;
+const EMPTY_TOKENS: AssetType[] = [];
 
 export function useAccountTokens({
   includeNoBalance = false,
   includeAllTokens = false,
+  skip = false,
 }: {
   includeNoBalance?: boolean;
   includeAllTokens?: boolean;
+  skip?: boolean;
 } = {}): AssetType[] {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
@@ -30,6 +33,10 @@ export function useAccountTokens({
   );
 
   return useMemo(() => {
+    if (skip) {
+      return EMPTY_TOKENS;
+    }
+
     const flatAssets = Object.values(assets).flat();
 
     const assetsWithBalance = flatAssets.filter((asset) => {
@@ -119,6 +126,7 @@ export function useAccountTokens({
     includeAllTokens,
     fiatCurrency,
     tokensChainsCache,
+    skip,
   ]) as unknown as AssetType[];
 }
 

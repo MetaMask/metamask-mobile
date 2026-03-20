@@ -35,8 +35,11 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
-    useMusdConfirmNavigation();
+    useMusdConfirmNavigation({
+      enabled: type === TransactionType.musdConversion,
+    });
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 

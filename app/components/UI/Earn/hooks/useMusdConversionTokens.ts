@@ -25,7 +25,9 @@ import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
  * - hasConvertibleTokensByChainId(chainId: Hex): boolean - Checks if there are convertible tokens on a given chain.
  * - tokens: AssetType[] - The tokens that are eligible for mUSD conversion.
  */
-export const useMusdConversionTokens = () => {
+export const useMusdConversionTokens = ({
+  enabled = true,
+}: { enabled?: boolean } = {}) => {
   const musdConversionPaymentTokensAllowlist = useSelector(
     selectMusdConversionPaymentTokensAllowlist,
   );
@@ -38,7 +40,10 @@ export const useMusdConversionTokens = () => {
     selectMusdConversionMinAssetBalanceRequired,
   );
 
-  const allTokens = useAccountTokens({ includeNoBalance: false });
+  const allTokens = useAccountTokens({
+    includeNoBalance: false,
+    skip: !enabled,
+  });
 
   const filterTokensWithMinBalance = useCallback(
     (token: AssetType) => {

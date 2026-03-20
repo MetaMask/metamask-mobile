@@ -156,11 +156,14 @@ function useFiatTokenValue(
 ) {
   const { decimals, rateWei } = gasFeeToken ?? { decimals: 0, rateWei: '0x0' };
 
-  const nativeWei = new BigNumber(tokenValue ?? '0x0')
-    .shiftedBy(-decimals)
-    .multipliedBy(new BigNumber(rateWei));
-
-  const nativeEth = nativeWei.shiftedBy(-18);
+  const nativeEth = useMemo(
+    () =>
+      new BigNumber(tokenValue ?? '0x0')
+        .shiftedBy(-decimals)
+        .multipliedBy(new BigNumber(rateWei))
+        .shiftedBy(-18),
+    [tokenValue, decimals, rateWei],
+  );
 
   const fiatValue = useEthFiatAmount(
     nativeEth,

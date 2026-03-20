@@ -28,8 +28,8 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
     selectPayQuoteConfig(state, transactionType),
   );
   const allTokens = useSendTokens({
-    includeNoBalance: true,
-    includeAllTokens: true,
+    includeNoBalance: isWithdraw,
+    includeAllTokens: isWithdraw,
   });
 
   const allowlist = config.tokens;
