@@ -14,6 +14,8 @@
 #
 # Environment variables:
 #   IPA_PATH - IPA path (set by find-ipa-file.sh if not provided as argument)
+#   TESTFLIGHT_DISTRIBUTE_EXTERNAL - Default "true": distribute to external TestFlight groups after upload.
+#     Set to "false" (or 0/no/off) for upload-only when the API key lacks App Manager access to beta groups.
 
 set -e
 

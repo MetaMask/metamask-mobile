@@ -20,7 +20,12 @@ platform :ios do
     # Convert groups parameter to array (Fastlane CLI passes strings, not arrays)
     groups_param = options[:groups] || ['MetaMask BETA & Release Candidates']
     groups = groups_param.is_a?(Array) ? groups_param : [groups_param]
-    notify_external_testers = true
+    # Default: distribute to external TestFlight groups (matches historical Fastlane / Bitrise behavior).
+    # Set TESTFLIGHT_DISTRIBUTE_EXTERNAL=false (or 0/no/off) when the API key cannot manage beta groups
+    # (upload still succeeds for internal TestFlight; external step would return "forbidden for security reasons").
+    tf_ext = ENV.fetch('TESTFLIGHT_DISTRIBUTE_EXTERNAL', 'true').to_s.strip.downcase
+    distribute_external = !%w[false 0 no off].include?(tf_ext)
+    notify_external_testers = distribute_external
     
     if ipa_path.nil? || ipa_path.empty?
       UI.user_error!("You must provide an ipa_path using ipa_path: '/path/to/app.ipa'")
@@ -93,14 +98,15 @@ platform :ios do
     )
     
     # Upload to TestFlight with API key from app_store_connect_api_key action
-    upload_to_testflight(
+    upload_params = {
       api_key: api_key,
       ipa: ipa_path,
-      distribute_external: true,
-      groups: groups,
+      distribute_external: distribute_external,
       notify_external_testers: notify_external_testers,
       changelog: changelog_message
-    )
+    }
+    upload_params[:groups] = groups if distribute_external
+    upload_to_testflight(**upload_params)
   end
 end
 
