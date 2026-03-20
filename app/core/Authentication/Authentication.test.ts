@@ -8,7 +8,7 @@ import {
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
@@ -37,7 +37,10 @@ import {
   logIn,
   passwordSet,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -2067,6 +2070,62 @@ describe('Authentication', () => {
         }),
       ).rejects.toThrow('No seed phrase found');
     });
+
+    it('does not trace OnboardingFetchSrpsError when fetchAllSecretData throws wrapped incorrect password error', async () => {
+      // Arrange
+      const incorrectPasswordError = new Error(
+        `SeedlessOnboardingController- ${SeedlessOnboardingControllerErrorMessage.IncorrectPassword}`,
+      );
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(incorrectPasswordError);
+
+      // Act
+      await expect(
+        Authentication.unlockWallet({
+          password: mockPassword,
+          authPreference: mockAuthData,
+        }),
+      ).rejects.toThrow(
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+      );
+
+      // Assert
+      expect(mockTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ name: TraceName.OnboardingFetchSrpsError }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ name: TraceName.OnboardingFetchSrpsError }),
+      );
+    });
+
+    it('traces OnboardingFetchSrpsError when fetchAllSecretData throws a non-password error', async () => {
+      // Arrange
+      const networkError = new Error('Network request failed');
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(networkError);
+
+      // Act
+      await expect(
+        Authentication.unlockWallet({
+          password: mockPassword,
+          authPreference: mockAuthData,
+        }),
+      ).rejects.toThrow('Network request failed');
+
+      // Assert
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingFetchSrpsError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage: 'Network request failed' },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingFetchSrpsError,
+      });
+    });
   });
 
   describe('submitLatestGlobalSeedlessPassword', () => {
@@ -3657,6 +3716,7 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setCompletedOnboarding(false),
       );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });

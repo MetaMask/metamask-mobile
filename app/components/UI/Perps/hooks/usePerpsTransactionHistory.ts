@@ -97,9 +97,10 @@ export const usePerpsTransactionHistory = ({
         throw new Error('PerpsController not available');
       }
 
-      const provider = controller.getActiveProvider();
+      const provider = controller.getActiveProviderOrNull();
       if (!provider) {
-        throw new Error('No active provider available');
+        setIsLoading(false);
+        return;
       }
 
       DevLogger.log('Fetching comprehensive transaction history...');

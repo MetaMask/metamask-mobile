@@ -13,16 +13,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { alternative: '#f0f0f0' },
-      text: { default: '#000000', muted: '#666666' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0066cc', muted: '#cce0ff' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('./PerpsCrossMarginWarningBottomSheet.styles', () => ({
   createStyles: () => ({

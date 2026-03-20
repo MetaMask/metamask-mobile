@@ -184,6 +184,7 @@ import Keypad from '../../../../Base/Keypad';
 const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
 >;
+
 const mockUseShouldDisableCustomSlippageConfirm =
   useShouldDisableCustomSlippageConfirm as jest.MockedFunction<
     typeof useShouldDisableCustomSlippageConfirm

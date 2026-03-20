@@ -31,6 +31,7 @@ describe('useNft', () => {
     expect(result.current.name).toBe('Test Dapp NFTs');
     expect(result.current.nft).toBeDefined();
     expect(result.current.nft?.tokenId).toBe('12345');
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(result.current.nft?.name).toBe('Test Dapp NFTs #12345');
     expect(result.current.tokenId?.toString()).toBe('12345');
   });
@@ -105,6 +106,7 @@ describe('useNft', () => {
     expect(result.current.name).toBe('Test Dapp NFTs');
     expect(result.current.nft).toBeDefined();
     expect(result.current.nft?.tokenId).toBe('12345');
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(result.current.nft?.name).toBe('Test Dapp NFTs #12345');
     expect(result.current.tokenId?.toString()).toBe('12345');
   });

@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { createStackNavigator } from '@react-navigation/stack';
+import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
 import BuildQuote from './Views/BuildQuote';
@@ -45,7 +47,11 @@ const MainRoutes = () => (
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
     />
-    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
+    <Stack.Screen
+      name={Routes.RAMP.AMOUNT_INPUT}
+      component={BuildQuote}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
     <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
     <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
@@ -137,23 +143,25 @@ const TokenListRoutes = () => {
   }, []);
 
   return (
-    <RootStack.Navigator
-      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-      headerMode="none"
-    >
-      <RootStack.Screen
-        name={Routes.RAMP.TOKEN_SELECTION}
-        component={MainRoutes}
-      />
-      <RootStack.Screen
-        name={Routes.RAMP.MODALS.ID}
-        component={TokenListModalsRoutes}
-        options={{
-          ...clearStackNavigatorOptions,
-          detachPreviousScreen: false,
-        }}
-      />
-    </RootStack.Navigator>
+    <QueryClientProvider client={reactQueryService.queryClient}>
+      <RootStack.Navigator
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+        headerMode="none"
+      >
+        <RootStack.Screen
+          name={Routes.RAMP.TOKEN_SELECTION}
+          component={MainRoutes}
+        />
+        <RootStack.Screen
+          name={Routes.RAMP.MODALS.ID}
+          component={TokenListModalsRoutes}
+          options={{
+            ...clearStackNavigatorOptions,
+            detachPreviousScreen: false,
+          }}
+        />
+      </RootStack.Navigator>
+    </QueryClientProvider>
   );
 };
 

@@ -242,7 +242,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-android-*'
+          pattern: 'test-e2e-main-*-android-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
@@ -259,6 +259,7 @@ jobs:
         with:
           name: e2e-smoke-android-all-test-artifacts
           path: all-test-artifacts/
+          retention-days: 7
 
       - name: Create mobile JSON test report
         id: create-json-report
@@ -290,3 +291,4 @@ jobs:
         with:
           name: test-e2e-android-json-report
           path: test/test-results/test-runs-android.json
+          retention-days: 7

@@ -31,7 +31,7 @@ interface IConnectQRInstructionProps {
   renderAlert: () => React.JSX.Element;
 }
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
   const { onConnect, renderAlert, navigation } = props;

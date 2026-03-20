@@ -13,11 +13,11 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../UI/Box/Box';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
@@ -144,15 +144,14 @@ export const EditMultichainAccountName = () => {
         </Box>
         <Box style={styles.saveButtonContainer}>
           <Button
-            width={ButtonWidthTypes.Full}
-            variant={ButtonVariants.Primary}
-            label={strings(
-              'multichain_accounts.edit_account_name.confirm_button',
-            )}
-            size={ButtonSize.Lg}
+            isFullWidth
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Lg}
             onPress={handleAccountNameChange}
             testID={EditAccountNameIds.SAVE_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.edit_account_name.confirm_button')}
+          </Button>
         </Box>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -301,9 +301,10 @@ describe('useTokenActions', () => {
       const expectedAssetId =
         'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F';
       expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-      expect(mockGoToBuy).toHaveBeenCalledWith({
-        assetId: expectedAssetId,
-      });
+      expect(mockGoToBuy).toHaveBeenCalledWith(
+        { assetId: expectedAssetId },
+        { buyFlowOrigin: 'tokenInfo' },
+      );
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.ACTION_BUTTON_CLICKED,
@@ -453,9 +454,10 @@ describe('useTokenActions', () => {
 
         expect(mockIsCaipAssetType).toHaveBeenCalledWith(solanaToken.address);
         expect(mockFormatAddressToAssetId).not.toHaveBeenCalled();
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: solanaToken.address,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: solanaToken.address },
+          { buyFlowOrigin: 'tokenInfo' },
+        );
       });
 
       it('uses token.address directly for trending non-EVM tokens with CAIP address', () => {
@@ -488,9 +490,10 @@ describe('useTokenActions', () => {
           trendingSolanaToken.address,
         );
         expect(mockFormatAddressToAssetId).not.toHaveBeenCalled();
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: trendingSolanaToken.address,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: trendingSolanaToken.address },
+          { buyFlowOrigin: 'tokenInfo' },
+        );
       });
 
       it('uses formatAddressToAssetId for EVM tokens with hex address', () => {
@@ -532,9 +535,10 @@ describe('useTokenActions', () => {
           evmToken.address,
           evmToken.chainId,
         );
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: expectedAssetId,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: expectedAssetId },
+          { buyFlowOrigin: 'tokenInfo' },
+        );
       });
 
       it('uses formatAddressToAssetId for trending EVM tokens', () => {
@@ -574,9 +578,10 @@ describe('useTokenActions', () => {
           trendingEvmToken.address,
           trendingEvmToken.chainId,
         );
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: expectedAssetId,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: expectedAssetId },
+          { buyFlowOrigin: 'tokenInfo' },
+        );
       });
 
       it('passes undefined assetId when formatAddressToAssetId throws an error', () => {
@@ -594,9 +599,10 @@ describe('useTokenActions', () => {
 
         result.current.handleBuyPress();
 
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { buyFlowOrigin: 'tokenInfo' },
+        );
       });
 
       it('passes undefined assetId when formatAddressToAssetId returns null', () => {
@@ -612,9 +618,10 @@ describe('useTokenActions', () => {
 
         result.current.handleBuyPress();
 
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { buyFlowOrigin: 'tokenInfo' },
+        );
       });
     });
 
@@ -655,6 +662,7 @@ describe('useTokenActions', () => {
           chainId: defaultToken.chainId,
           symbol: defaultToken.symbol,
         }),
+        'Buy',
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -692,6 +700,7 @@ describe('useTokenActions', () => {
         expect.objectContaining({
           address: defaultToken.address,
         }),
+        'Buy',
       );
     });
 
@@ -743,6 +752,7 @@ describe('useTokenActions', () => {
           chainId: '0x1',
           symbol: 'ETH',
         }),
+        'Buy',
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -767,6 +777,7 @@ describe('useTokenActions', () => {
           symbol: defaultToken.symbol,
         }),
         undefined,
+        'Sell',
       );
     });
   });

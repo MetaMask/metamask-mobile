@@ -1,10 +1,13 @@
 /* eslint-disable react/display-name */
-/* eslint-disable react-native/no-inline-styles */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-native/no-color-literals */
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import RewardPointsAnimationComponent, { RewardAnimationState } from './index';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 
 /**
  * Storybook configuration for RewardPointsAnimation component
@@ -22,61 +25,13 @@ const RewardPointsAnimationMeta = {
       control: { type: 'number' },
       description: 'Animation duration in milliseconds',
     },
-    variant: {
-      control: { type: 'select' },
-      options: ['BodyMD', 'BodyLG', 'HeadingMd'],
-      description: 'Text variant for styling',
-    },
   },
 };
 
 export default RewardPointsAnimationMeta;
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-  },
-  buttonContainer: {
-    marginTop: 20,
-    gap: 10,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  primaryButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 5,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  secondaryButton: {
-    backgroundColor: '#6C757D',
-    padding: 10,
-    borderRadius: 5,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  animationContainer: {
-    padding: 20,
-    paddingHorizontal: 50,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
-});
-
-const InteractiveStory = (args: {
-  value: number;
-  duration: number;
-  variant?: any;
-}) => {
+const InteractiveStory = (args: { value: number; duration: number }) => {
+  const tw = useTailwind();
   const [currentValue, setCurrentValue] = useState(0);
   const [animationState, setAnimationState] = useState<RewardAnimationState>(
     RewardAnimationState.Idle,
@@ -126,9 +81,11 @@ const InteractiveStory = (args: {
   }, [handleIdle]);
 
   return (
-    <View style={styles.container}>
+    <View style={tw`p-6`}>
       {/* Animation display */}
-      <View style={styles.animationContainer}>
+      <View
+        style={tw`w-full items-center justify-center self-center p-5 px-[50px]`}
+      >
         <RewardPointsAnimationComponent
           {...args}
           value={currentValue}
@@ -137,31 +94,30 @@ const InteractiveStory = (args: {
       </View>
 
       {/* Control buttons for state demonstration */}
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleLoading}
-          >
-            <Text style={styles.buttonText}>Loading</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryButton}
+      <View style={tw`mt-5 gap-2`}>
+        <View style={tw`flex-row gap-2`}>
+          <Button size={ButtonSize.Md} onPress={handleLoading}>
+            Loading
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
             onPress={simulateApiCall}
           >
-            <Text style={styles.buttonText}>Simulate API call</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryButton}
+            Simulate API call
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
             onPress={handleError}
           >
-            <Text style={styles.buttonText}>Error</Text>
-          </TouchableOpacity>
+            Error
+          </Button>
         </View>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.primaryButton} onPress={handleIdle}>
-            <Text style={styles.buttonText}>Set random value</Text>
-          </TouchableOpacity>
+        <View style={tw`flex-row gap-2`}>
+          <Button size={ButtonSize.Md} onPress={handleIdle}>
+            Set random value
+          </Button>
         </View>
       </View>
     </View>

@@ -1,10 +1,12 @@
 import {
-  DataDeleteDate,
-  IDeleteRegulationResponse,
-  IDeleteRegulationStatus,
-  type IMetaMetricsEvent,
-  type ITrackingEvent,
-} from '../../../core/Analytics/MetaMetrics.types';
+  type DataDeleteDate,
+  type IDeleteRegulationResponse,
+  type IDeleteRegulationStatus,
+} from '../../../util/analytics/analyticsDataDeletion.types';
+import type {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../util/analytics/analytics.types';
 import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,
@@ -30,6 +32,13 @@ export const SourceType = {
 export interface UseAnalyticsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
+  /**
+   * Associate traits to the current user
+   */
+  identify(userTraits: AnalyticsUserTraits): Promise<void>;
+  /**
+   * @deprecated Use {@link identify} instead
+   */
   addTraitsToUser(userTraits: AnalyticsUserTraits): Promise<void>;
   trackEvent(event: AnalyticsTrackingEvent, saveDataRecording?: boolean): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;

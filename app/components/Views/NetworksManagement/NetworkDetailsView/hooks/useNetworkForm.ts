@@ -192,7 +192,16 @@ export const useNetworkForm = (
             );
           },
         );
-        editable = true;
+        // Use same rules as network selector: built-in networks are not editable
+        const builtInChainIds = allNetworks
+          .map(
+            (net) =>
+              (Networks as Record<string, { chainId?: string }>)[net]?.chainId,
+          )
+          .filter(Boolean) as string[];
+        editable =
+          !networkConfiguration?.chainId ||
+          !builtInChainIds.includes(networkConfiguration.chainId);
       }
 
       const chainId = networkConfiguration?.chainId;

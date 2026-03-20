@@ -12,6 +12,7 @@ import {
   GetSnap,
   GetSnapState,
   HandleSnapRequest,
+  SnapInterfaceControllerSetInterfaceDisplayedAction,
   UpdateInterface,
   UpdateSnapState,
 } from '@metamask/snaps-controllers';
@@ -29,7 +30,7 @@ import { PreferencesControllerGetStateAction } from '@metamask/preferences-contr
 import { DialogType, EnumToUnion } from '@metamask/snaps-sdk';
 import {
   AddApprovalOptions,
-  AddApprovalRequest,
+  ApprovalControllerAddRequestAction,
 } from '@metamask/approval-controller';
 import Logger from '../../../util/Logger';
 import { HasPermission } from '@metamask/permission-controller';
@@ -40,7 +41,7 @@ import { ExcludedSnapEndowments, ExcludedSnapPermissions } from './permissions';
 import { getMnemonic, getMnemonicSeed } from './utils';
 
 export type SnapPermissionSpecificationsActions =
-  | AddApprovalRequest
+  | ApprovalControllerAddRequestAction
   | ClearSnapState
   | ControllerGetStateAction<
       'CurrencyRateController',
@@ -59,7 +60,8 @@ export type SnapPermissionSpecificationsActions =
   | UpdateSnapState
   | UpdateInterface
   | KeyringControllerGetStateAction
-  | HasPermission;
+  | HasPermission
+  | SnapInterfaceControllerSetInterfaceDisplayedAction;
 
 export type SnapPermissionSpecificationsEvents = KeyringControllerUnlockEvent;
 
@@ -157,6 +159,10 @@ export const getSnapPermissionSpecifications = (
     updateInterface: messenger.call.bind(
       messenger,
       'SnapInterfaceController:updateInterface',
+    ),
+    setInterfaceDisplayed: messenger.call.bind(
+      messenger,
+      'SnapInterfaceController:setInterfaceDisplayed',
     ),
     requestUserApproval: (opts: AddApprovalOptions) =>
       messenger.call('ApprovalController:addRequest', opts, true),

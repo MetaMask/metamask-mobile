@@ -104,7 +104,7 @@ export class Connection {
         // We must manually navigate away from the currently open approval request, otherwise an approval component may be rendered
         // with an approval request prop that it cannot handle and cause the wallet to throw an exception.
         NavigationService.navigation?.goBack();
-        await Engine.context.ApprovalController.clear(
+        await Engine.context.ApprovalController.clearRequests(
           providerErrors.userRejectedRequest({
             data: {
               cause: 'rejectAllApprovals',
@@ -180,7 +180,7 @@ export class Connection {
       kvstore: new KVStore(`mwp/transport/${connInfo.id}`),
       useSharedConnection: true,
     });
-    const sessionstore = new SessionStore(
+    const sessionstore = await SessionStore.create(
       new KVStore(`mwp/session-store/${connInfo.id}`),
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });

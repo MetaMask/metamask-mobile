@@ -24,8 +24,8 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_chainId
   eth_chainId: '0xa4b1', // Arbitrum One chain ID
 
-  // eth_getBalance - mock balance
-  eth_getBalance: '0x0', // 0 ETH balance
+  // eth_getBalance - mock balance (even-length hex required)
+  eth_getBalance: '0x00', // 0 ETH balance
 
   // eth_call - contract calls (dinamically overridden in tests)
   eth_call: '0x',
@@ -36,8 +36,8 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_gasPrice - gas price
   eth_gasPrice: '0x9c7652400', // 42 gwei
 
-  // eth_getTransactionCount - nonce
-  eth_getTransactionCount: '0x0',
+  // eth_getTransactionCount - nonce (use even-length hex)
+  eth_getTransactionCount: '0x00',
 
   // eth_blockNumber - latest block
   eth_blockNumber: '0x1234567',

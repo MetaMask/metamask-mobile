@@ -303,6 +303,14 @@ import {
   EarnControllerState,
 } from '@metamask/earn-controller';
 import {
+  GeolocationController,
+  GeolocationControllerState,
+  GeolocationControllerActions,
+  GeolocationControllerEvents,
+  GeolocationApiService,
+  GeolocationApiServiceActions,
+} from '@metamask/geolocation-controller';
+import {
   PerpsController,
   PerpsControllerState,
   PerpsControllerActions,
@@ -420,6 +428,15 @@ import {
   AiDigestControllerEvents,
   AiDigestControllerState,
 } from '@metamask/ai-controllers';
+import {
+  ComplianceController,
+  ComplianceControllerActions,
+  ComplianceControllerEvents,
+  ComplianceControllerState,
+  ComplianceService,
+  ComplianceServiceActions,
+  ComplianceServiceEvents,
+} from '@metamask/compliance-controller';
 
 /**
  * Controllers that area always instantiated
@@ -427,10 +444,12 @@ import {
 type RequiredControllers = Omit<
   Controllers,
   | 'ErrorReportingService'
+  | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
+  | 'ComplianceService'
 >;
 
 /**
@@ -439,10 +458,12 @@ type RequiredControllers = Omit<
 type OptionalControllers = Pick<
   Controllers,
   | 'ErrorReportingService'
+  | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
+  | 'ComplianceService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -522,6 +543,8 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
+  | GeolocationControllerActions
+  | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
   | CardControllerActions
@@ -540,6 +563,8 @@ type GlobalActions =
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
+  | ComplianceControllerActions
+  | ComplianceServiceActions
   | TransakServiceActions;
 
 type GlobalEvents =
@@ -603,6 +628,7 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
+  | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
   | CardControllerEvents
@@ -618,6 +644,8 @@ type GlobalEvents =
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
+  | ComplianceControllerEvents
+  | ComplianceServiceEvents
   | TransakServiceEvents;
 
 /**
@@ -725,6 +753,8 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  GeolocationController: GeolocationController;
+  GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
   CardController: CardController;
@@ -737,6 +767,8 @@ export type Controllers = {
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
+  ComplianceService: ComplianceService;
+  ComplianceController: ComplianceController;
   TransakService: TransakService;
 };
 
@@ -806,6 +838,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
@@ -818,6 +851,7 @@ export type EngineState = {
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
+  ComplianceController: ComplianceControllerState;
 };
 
 /** Controller names */
@@ -890,6 +924,8 @@ export type ControllersToInitialize =
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
+  | 'GeolocationController'
+  | 'GeolocationApiService'
   | 'KeyringController'
   | 'MultichainNetworkController'
   | 'NftController'
@@ -927,7 +963,9 @@ export type ControllersToInitialize =
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'AnalyticsController'
-  | 'AiDigestController';
+  | 'AiDigestController'
+  | 'ComplianceService'
+  | 'ComplianceController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

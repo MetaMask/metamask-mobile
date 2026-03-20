@@ -6,7 +6,9 @@ import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';
+import type { EventPayload } from '../helpers/analytics/helpers.ts';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
+import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 
 /*
@@ -144,6 +146,16 @@ export interface RampsRegion {
   unsupported: boolean;
   recommended: boolean;
   detected: boolean;
+}
+
+/**
+ * Returns the full ISO 3166-2 location code for a region,
+ * combining country and subdivision when present (e.g. 'US-CA', 'FR').
+ */
+export function getRegionLocationCode(region: RampsRegion): string {
+  return region.stateIsoCode
+    ? `${region.countryIsoCode}-${region.stateIsoCode}`
+    : region.countryIsoCode;
 }
 
 export enum ServerStatus {
@@ -301,6 +313,70 @@ export interface MockApiEndpoint {
 export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
 
 /**
+ * Declarative expectation for a single MetaMetrics event name captured during E2E.
+ */
+export interface AnalyticsEventExpectation {
+  /** MetaMetrics event name (e.g. `'Wallet Imported'`). */
+  name: string;
+  /** Minimum number of payloads with this event name. @default 1 */
+  minCount?: number;
+  /**
+   * Which captured occurrence to use for `matchProperties`, `containProperties`, and
+   * `requiredDefinedPropertyKeys`. @default 0
+   */
+  matchEventIndex?: number;
+  /**
+   * Property shape checks using the same value contract as
+   * `Assertions.checkIfObjectHasKeysAndValidValues` (e.g. `'string'`, `'number'`, `'array'`).
+   * Applied to **every** captured payload with this event name.
+   */
+  requiredProperties?: Record<string, string | ((value: unknown) => boolean)>;
+  /**
+   * Exact property match on the payload at `matchEventIndex` via
+   * `Assertions.checkIfObjectsMatch`.
+   */
+  matchProperties?: Record<string, unknown>;
+  /**
+   * Subset property match on the payload at `matchEventIndex` via
+   * `Assertions.checkIfObjectContains`.
+   */
+  containProperties?: Record<string, unknown>;
+  /**
+   * Keys on the payload at `matchEventIndex` that must be defined (via
+   * `Assertions.checkIfValueIsDefined`).
+   */
+  requiredDefinedPropertyKeys?: string[];
+}
+
+/**
+ * Optional MetaMetrics validation for `withFixtures`.
+ * Executed after `testSuite` and `endTestfn`, before the mock server enters drain mode,
+ * so captured Segment/MetaMetrics requests are still available on `mockServer`.
+ */
+export interface AnalyticsExpectations {
+  /**
+   * Subset of event names to pass to `getEventsPayloads`.
+   * When omitted and no `events` entries exist, all captured MetaMetrics payloads are loaded.
+   */
+  eventNames?: string[];
+  /**
+   * When set, asserts the filtered payload list length equals this value (after `getEventsPayloads`).
+   */
+  expectedTotalCount?: number;
+  /** Declarative per-event count and property checks. */
+  events?: AnalyticsEventExpectation[];
+  /**
+   * Custom validation after declarative rules are evaluated. Runs in the same `SoftAssert` pass as
+   * declarative checks, so failures are merged: all expected events are still checked even when
+   * some already failed (unless you throw before returning from `validate`).
+   */
+  validate?: (ctx: {
+    events: EventPayload[];
+    mockServer: Mockttp;
+  }) => Promise<void>;
+}
+
+/**
  * The options for the withFixtures function.
  * @param {FixtureBuilder | ((ctx: { localNodes?: LocalNode[] }) => FixtureBuilder | Promise<FixtureBuilder>)} fixture - The state of the fixture to load or a function that returns a fixture builder.
  * @param {boolean} [restartDevice=false] - If true, restarts the app to apply the loaded fixture.
@@ -313,13 +389,15 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
  * @param {LanguageAndLocale} [languageAndLocale] - The language and locale to use for the test.
  * @param {Record<string, unknown>} [permissions] - The permissions to set for the device.
  * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
+ * @param {AnalyticsExpectations} [analyticsExpectations] - Optional MetaMetrics assertions run after `endTestfn`, before mock drain.
  */
 export interface WithFixturesOptions {
   fixture:
     | FixtureBuilder
+    | Fixture
     | ((ctx: {
         localNodes?: LocalNode[];
-      }) => FixtureBuilder | Promise<FixtureBuilder>);
+      }) => FixtureBuilder | Fixture | Promise<FixtureBuilder | Fixture>);
   restartDevice?: boolean;
   smartContracts?: string[];
   disableLocalNodes?: boolean;
@@ -338,4 +416,5 @@ export interface WithFixturesOptions {
    */
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
+  analyticsExpectations?: AnalyticsExpectations;
 }

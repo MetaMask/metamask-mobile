@@ -12,6 +12,7 @@ import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { useNftRefresh } from './useNftRefresh';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
 import { RefreshTestId } from './constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { Nft } from '@metamask/assets-controllers';
@@ -19,6 +20,7 @@ import {
   isNftFetchingProgressSelector,
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import NftGridItem from './NftGridItem';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
@@ -54,11 +56,13 @@ const NftGridContent = ({
   nftRowList,
   goToAddCollectible,
   isAddNFTEnabled,
+  isFullView = false,
 }: {
   allFilteredCollectibles: Nft[];
   nftRowList: React.ReactNode;
   goToAddCollectible: () => void;
   isAddNFTEnabled: boolean;
+  isFullView?: boolean;
 }) => {
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
@@ -67,7 +71,7 @@ const NftGridContent = ({
   }
 
   if (isNftFetchingProgress) {
-    return <NftGridSkeleton />;
+    return <NftGridSkeleton isFullView={isFullView} />;
   }
 
   return (
@@ -106,8 +110,27 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
     const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
+    const selectedGroupAccounts = useSelector(
+      selectSelectedAccountGroupInternalAccounts,
+    );
+
+    const addressesOverride = useMemo(
+      () =>
+        selectedGroupAccounts?.length > 0
+          ? selectedGroupAccounts.map((a) => a.address)
+          : undefined,
+      [selectedGroupAccounts],
+    );
+
     const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
-      multichainCollectiblesByEnabledNetworksSelector,
+      (state: RootState) =>
+        (
+          multichainCollectiblesByEnabledNetworksSelector as (
+            s: RootState,
+            preferredChainIds?: string[],
+            addressesOverride?: string[],
+          ) => Record<string, Nft[]>
+        )(state, undefined, addressesOverride),
     );
 
     const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =
@@ -247,9 +270,10 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
               />
             </Box>
           )}
-          keyExtractor={(_, index) => `nft-row-${index}`}
+          keyExtractor={(item) =>
+            `${item.chainId}-${item.address}-${item.tokenId}`
+          }
           testID={RefreshTestId}
-          decelerationRate="fast"
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}
@@ -300,6 +324,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           nftRowList={nftRowList}
           goToAddCollectible={goToAddCollectible}
           isAddNFTEnabled={isAddNFTEnabled}
+          isFullView={isFullView}
         />
 
         {/* View all NFTs button - shown when there are more items than maxItems */}
