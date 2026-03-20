@@ -1,7 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Image } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
   Text,
@@ -20,148 +19,159 @@ import {
   ButtonIconSize,
 } from '@metamask/design-system-react-native';
 import ActionModal from '../ActionModal';
+import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { withAnalyticsAwareness } from '../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+
 import protectWalletImage from '../../../images/explain-backup-seedphrase.png';
 
-const ProtectYourWalletModal = ({ navigation }) => {
-  const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+class ProtectYourWalletModal extends PureComponent {
+  static propTypes = {
+    navigation: PropTypes.object,
+    protectWalletModalNotVisible: PropTypes.func,
+    protectWalletModalVisible: PropTypes.bool,
+    passwordSet: PropTypes.bool,
+    analytics: PropTypes.object,
+    isSeedlessOnboardingLoginFlow: PropTypes.bool,
+  };
 
-  const protectWalletModalVisible = useSelector(
-    (state) => state.user.protectWalletModalVisible,
-  );
-  const passwordSet = useSelector((state) => state.user.passwordSet);
-  const isSeedlessOnboardingLoginFlow = useSelector(
-    selectSeedlessOnboardingLoginFlow,
-  );
-
-  const goToBackupFlow = useCallback(() => {
-    dispatch(protectWalletModalNotVisible());
-    navigation?.navigate(
+  goToBackupFlow = () => {
+    this.props.protectWalletModalNotVisible();
+    this.props.navigation.navigate(
       'SetPasswordFlow',
-      passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
+      this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+    this.props.analytics.trackEvent(
+      this.props.analytics
+        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
         .addProperties({
           wallet_protection_required: false,
           source: 'Modal',
         })
         .build(),
     );
-  }, [dispatch, navigation, passwordSet, trackEvent, createEventBuilder]);
+  };
 
-  const onLearnMore = useCallback(() => {
-    dispatch(protectWalletModalNotVisible());
-    navigation?.navigate('Webview', {
+  onLearnMore = () => {
+    this.props.protectWalletModalNotVisible();
+    this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
         title: strings('protect_wallet_modal.title'),
       },
     });
-  }, [dispatch, navigation]);
+  };
 
-  const onDismiss = useCallback(() => {
-    dispatch(protectWalletModalNotVisible());
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED)
+  onDismiss = () => {
+    this.props.protectWalletModalNotVisible();
+    this.props.analytics.trackEvent(
+      this.props.analytics
+        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED)
         .addProperties({
           wallet_protection_required: false,
           source: 'Modal',
         })
         .build(),
     );
-  }, [dispatch, trackEvent, createEventBuilder]);
+  };
 
-  if (isSeedlessOnboardingLoginFlow) {
-    return null;
-  }
+  render() {
+    if (this.props.isSeedlessOnboardingLoginFlow) {
+      return null;
+    }
 
-  return (
-    <ActionModal
-      modalVisible={protectWalletModalVisible}
-      cancelText={strings('protect_wallet_modal.top_button')}
-      confirmText={strings('protect_wallet_modal.bottom_button')}
-      onCancelPress={goToBackupFlow}
-      onRequestClose={onDismiss}
-      onConfirmPress={onDismiss}
-      cancelButtonMode={'sign'}
-      confirmButtonMode={'transparent-blue'}
-      verticalButtons
-      cancelTestID={ProtectWalletModalSelectorsIDs.CANCEL_BUTTON}
-      confirmTestID={ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON}
-    >
-      <Box
-        twClassName="mt-6 mx-6 flex-1"
-        testID={ProtectWalletModalSelectorsIDs.CONTAINER}
+    return (
+      <ActionModal
+        modalVisible={this.props.protectWalletModalVisible}
+        cancelText={strings('protect_wallet_modal.top_button')}
+        confirmText={strings('protect_wallet_modal.bottom_button')}
+        onCancelPress={this.goToBackupFlow}
+        onRequestClose={this.onDismiss}
+        onConfirmPress={this.onDismiss}
+        cancelButtonMode={'sign'}
+        confirmButtonMode={'transparent-blue'}
+        verticalButtons
+        cancelTestID={ProtectWalletModalSelectorsIDs.CANCEL_BUTTON}
+        confirmTestID={ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON}
       >
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Center}
-          alignItems={BoxAlignItems.Center}
+          twClassName="mt-6 mx-6 flex-1"
+          testID={ProtectWalletModalSelectorsIDs.CONTAINER}
         >
-          <Box twClassName="w-6" />
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-            twClassName="text-center flex-1"
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Center}
+            alignItems={BoxAlignItems.Center}
           >
-            {strings('protect_wallet_modal.title')}
+            <Box twClassName="w-6" />
+            <Text
+              variant={TextVariant.HeadingMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+              twClassName="text-center flex-1"
+            >
+              {strings('protect_wallet_modal.title')}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSize.Sm}
+              iconProps={{ color: IconColor.IconDefault, size: IconSize.Sm }}
+              onPress={this.onDismiss}
+            />
+          </Box>
+
+          <Box alignItems={BoxAlignItems.Center} twClassName="mb-3 mt-8">
+            <Image
+              source={protectWalletImage}
+              style={{
+                width: scaling.scale(135, { baseModel: 1 }),
+                height: scaling.scale(160, { baseModel: 1 }),
+              }}
+            />
+          </Box>
+
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextDefault}
+            twClassName="text-center mb-6"
+          >
+            {strings('protect_wallet_modal.text')}
+            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
+              {' ' + strings('protect_wallet_modal.text_bold')}
+            </Text>
           </Text>
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Sm}
-            iconProps={{ color: IconColor.IconDefault, size: IconSize.Sm }}
-            onPress={onDismiss}
-          />
+
+          <Button
+            variant={ButtonVariant.Tertiary}
+            onPress={this.onLearnMore}
+            testID={ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON}
+            twClassName="w-full mb-3.5"
+          >
+            {strings('protect_wallet_modal.action')}
+          </Button>
         </Box>
+      </ActionModal>
+    );
+  }
+}
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="mb-3 mt-8">
-          <Image
-            source={protectWalletImage}
-            style={{
-              width: scaling.scale(135, { baseModel: 1 }),
-              height: scaling.scale(160, { baseModel: 1 }),
-            }}
-          />
-        </Box>
+const mapStateToProps = (state) => ({
+  protectWalletModalVisible: state.user.protectWalletModalVisible,
+  passwordSet: state.user.passwordSet,
+  isSeedlessOnboardingLoginFlow: selectSeedlessOnboardingLoginFlow(state),
+});
 
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextDefault}
-          twClassName="text-center mb-6"
-        >
-          {strings('protect_wallet_modal.text')}
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
-            {' ' + strings('protect_wallet_modal.text_bold')}
-          </Text>
-        </Text>
+const mapDispatchToProps = (dispatch) => ({
+  protectWalletModalNotVisible: () => dispatch(protectWalletModalNotVisible()),
+});
 
-        <Button
-          variant={ButtonVariant.Tertiary}
-          onPress={onLearnMore}
-          testID={ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON}
-          twClassName="w-full mb-3.5"
-        >
-          {strings('protect_wallet_modal.action')}
-        </Button>
-      </Box>
-    </ActionModal>
-  );
-};
-
-ProtectYourWalletModal.propTypes = {
-  navigation: PropTypes.shape({
-    navigate: PropTypes.func,
-  }),
-};
-
-export default ProtectYourWalletModal;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withAnalyticsAwareness(ProtectYourWalletModal));
