@@ -168,7 +168,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
 
   const handleBuy = useCallback(() => {
     trackBuyButtonClicked();
-    goToBuy({ assetId: token.assetId });
+    goToBuy({ assetId: token.assetId }, { buyFlowOrigin: 'homeTokenList' });
   }, [trackBuyButtonClicked, goToBuy, token.assetId]);
 
   const priceDisplay = useMemo(() => {

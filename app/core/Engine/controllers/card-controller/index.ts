@@ -1,6 +1,9 @@
 import type { ControllerInitFunction } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
 import type { CardControllerMessenger } from './types';
+import { BaanxService } from './services/BaanxService';
+import { BaanxProvider } from './providers/BaanxProvider';
+import { resolveBaanxConfig } from './services/baanx-config';
 
 /**
  * Initialize the CardController.
@@ -14,9 +17,18 @@ export const cardControllerInit: ControllerInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
+  const baanxConfig = resolveBaanxConfig();
+  const baanxProvider = new BaanxProvider({
+    service: new BaanxService(baanxConfig),
+  });
+
   const controller = new CardController({
     messenger: controllerMessenger,
-    state: persistedState.CardController ?? defaultCardControllerState,
+    state: {
+      ...(persistedState.CardController ?? defaultCardControllerState),
+      activeProviderId: 'baanx',
+    },
+    providers: { baanx: baanxProvider },
   });
 
   return { controller };

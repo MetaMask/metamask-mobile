@@ -128,6 +128,7 @@ const CashGetMusdEmptyState = ({
             : EVENT_LOCATIONS.HOME_CASH_SECTION,
           redirects_to: getRedirectLocation(),
           cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_click_target: 'cta_button',
           cta_text: strings('earn.musd_conversion.get_musd'),
           network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
           network_name: networkName ?? undefined,

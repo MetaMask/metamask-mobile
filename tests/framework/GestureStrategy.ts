@@ -22,6 +22,10 @@ export interface UnifiedGestureOptions {
   speed?: 'fast' | 'slow';
   /** Swipe percentage (0–1) — Detox only; Appium ignores this */
   percentage?: number;
+  /** Scroll direction — Detox only; used by scrollToElement */
+  direction?: 'up' | 'down' | 'left' | 'right';
+  /** Scroll amount in px — Detox only; used by scrollToElement */
+  scrollAmount?: number;
 }
 
 /**
@@ -220,6 +224,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
       {
         timeout: opts?.timeout,
         elemDescription: opts?.description,
+        direction: opts?.direction,
+        scrollAmount: opts?.scrollAmount,
       },
     );
   }
