@@ -303,9 +303,10 @@ export const usePerpsTransactionHistory = ({
           fill: {
             ...tx.fill,
             fillType: existing.fill.fillType,
-            ...(existing.fill.liquidation && {
-              liquidation: existing.fill.liquidation,
-            }),
+            ...(existing.fill.liquidation &&
+              !tx.fill.liquidation && {
+                liquidation: existing.fill.liquidation,
+              }),
           },
         });
       } else {
