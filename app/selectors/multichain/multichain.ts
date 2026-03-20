@@ -45,7 +45,7 @@ import {
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
 import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
-import { selectAccountTokensAcrossChains } from '../multichain';
+import { selectAccountTokensAcrossChains } from './evm';
 import { MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET } from '../../core/Multichain/constants';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import {
