@@ -114,7 +114,7 @@ export function* appLockStateMachine() {
     try {
       const { ApprovalController } = Engine.context;
       if (ApprovalController) {
-        ApprovalController.clear(providerErrors.userRejectedRequest());
+        ApprovalController.clearRequests(providerErrors.userRejectedRequest());
       }
     } catch (error) {
       Logger.error(
