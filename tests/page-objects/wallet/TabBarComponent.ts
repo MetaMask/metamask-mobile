@@ -222,18 +222,28 @@ class TabBarComponent {
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarActivityButton, {
-          timeout: 2000,
-        });
+        try {
+          await UnifiedGestures.waitAndTap(this.tabBarActivityButton, {
+            timeout: 2500,
+            description: 'Tab Bar - Activity Button',
+          });
+        } catch {
+          // Fallback to direct Detox matcher in case encapsulated tap misses transient tree updates.
+          await Gestures.waitAndTap(Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY), {
+            timeout: 2500,
+            elemDescription: 'Tab Bar - Activity Button (fallback)',
+            checkStability: true,
+          });
+        }
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
-          timeout: 500,
+          timeout: 1000,
         });
       },
       {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
-        maxRetries: 15,
-        timeout: 45000,
+        // Keep a larger budget for slow post-confirmation transitions before tab bar is tappable.
+        maxRetries: 20,
+        timeout: 70000,
         description: 'Tap Activity Button',
       },
     );

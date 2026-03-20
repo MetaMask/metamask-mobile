@@ -30,6 +30,7 @@ import { RelayStatus } from '../../../../app/util/transactions/transaction-relay
 import TransactionConfirmView from '../../../page-objects/Send/TransactionConfirmView';
 import GasFeeTokenModal from '../../../page-objects/Confirmation/GasFeeTokenModal';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
+import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView';
 
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
@@ -314,7 +315,21 @@ describe(
           await FooterActions.tapConfirmButton();
           await TabBarComponent.tapActivity();
 
-          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.expectElementToBeVisible(
+            ActivitiesView.transactionItem(0),
+            {
+              timeout: 60000,
+              description: 'Latest activity row should be visible',
+            },
+          );
+          await Assertions.expectElementToHaveText(
+            ActivitiesView.transactionStatus(0),
+            'Confirmed',
+            {
+              timeout: 60000,
+              description: 'Latest activity row should become Confirmed',
+            },
+          );
           await device.enableSynchronization();
         },
       );

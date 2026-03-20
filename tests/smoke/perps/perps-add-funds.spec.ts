@@ -101,7 +101,29 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         );
 
         // Go to Perps tab
-        await WalletView.scrollAndTapPerpsSection();
+        await Utilities.executeWithRetry(
+          async () => {
+            await WalletView.scrollAndTapPerpsSection();
+            const marketAddFundsVisible = await Utilities.isElementVisible(
+              PerpsTabView.marketAddFundsButton,
+              1500,
+            );
+            const legacyAddFundsVisible = await Utilities.isElementVisible(
+              PerpsTabView.addFundsButton,
+              1500,
+            );
+
+            if (!marketAddFundsVisible && !legacyAddFundsVisible) {
+              throw new Error(
+                'Perps balance actions are not visible after opening Perps section',
+              );
+            }
+          },
+          {
+            timeout: 30000,
+            description: 'Open Perps section from wallet',
+          },
+        );
 
         // Read initial balance text for later comparison
         const initialBalance = await PerpsTabView.getBalance();
@@ -137,9 +159,12 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         await Utilities.executeWithRetry(
           async () => {
             const current = await PerpsTabView.getBalance();
-            await Assertions.checkIfValueIsDefined(
-              current === initialBalance + 80,
-            );
+            const expectedBalance = initialBalance + 80;
+            if (Math.abs(current - expectedBalance) > 0.01) {
+              throw new Error(
+                `Perps balance mismatch. Expected ${expectedBalance}, received ${current}`,
+              );
+            }
           },
           { interval: 1000, timeout: 60000 },
         );
