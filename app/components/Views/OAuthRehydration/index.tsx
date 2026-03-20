@@ -530,9 +530,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      const err =
-        loginErr instanceof Error ? loginErr : new Error(String(loginErr));
-      await handleLoginError(err);
+      await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
     }
   }, [
     password,
@@ -585,9 +583,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      const err =
-        loginErr instanceof Error ? loginErr : new Error(String(loginErr));
-      await handleLoginError(err);
+      await handleLoginError(
+        ensureError(loginErr, 'Global password login failed'),
+      );
     }
   }, [
     password,
