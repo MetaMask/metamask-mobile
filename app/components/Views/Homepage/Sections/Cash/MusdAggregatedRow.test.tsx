@@ -58,16 +58,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../../../core/NavigationService', () => {
-  const mockNavigate = jest.fn();
-  return {
-    __esModule: true,
-    default: {
-      navigation: { navigate: mockNavigate },
-    },
-  };
-});
-
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -177,7 +167,7 @@ describe('MusdAggregatedRow', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'Asset',
         expect.objectContaining({
-          source: TokenDetailsSource.MobileTokenListPage,
+          source: TokenDetailsSource.HomeSection,
         }),
       );
     });
