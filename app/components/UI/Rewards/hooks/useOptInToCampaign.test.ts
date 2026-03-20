@@ -28,7 +28,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const SUB_ID = 'sub-123';
 const CAMPAIGN_ID = 'camp-456';
-const STATUS = { optedIn: true };
+const STATUS = { optedIn: true, participantCount: 42 };
 
 function setupSelectors(
   subscriptionId: string | null,

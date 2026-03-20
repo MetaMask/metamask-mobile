@@ -11,7 +11,7 @@
  * @see tests/component-view/api-mocking/ (e.g. trending.ts) and references/navigation-mocking.md
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 
 /**

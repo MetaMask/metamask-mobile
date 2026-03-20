@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { Platform } from 'react-native';
 import {
   getRandomValues,
@@ -29,7 +29,7 @@ import '@walletconnect/react-native-compat';
 import 'react-native-url-polyfill/auto';
 
 // Needed to polyfill browser
-require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-commonjs
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (isE2E) {
@@ -90,10 +90,10 @@ if (typeof process === 'undefined') {
 }
 
 // Use faster Buffer implementation for React Native
-global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import-x/no-commonjs
 
 // Polyfill crypto after process is polyfilled
-const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
+const crypto = require('crypto'); // eslint-disable-line import-x/no-commonjs
 
 // Needed to polyfill crypto
 global.crypto = {
@@ -340,6 +340,31 @@ if (enableApiCallLogs || isTest) {
 
         // eslint-disable-next-line no-console
         console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
+      }
+
+      // Patch expo/fetch so its native networking routes through the mock proxy.
+      // The re-export in expo/src/winter/fetch/index.ts uses `export * from`
+      // which Babel compiles to a non-configurable getter. Patching the
+      // re-exporter's property silently fails. Instead we patch the SOURCE
+      // module (expo/src/winter/fetch/fetch) where `fetch` is a plain
+      // writable export. The re-export getter reads from the source, so
+      // all consumers (including bridge-controller) pick up the patched fn.
+      try {
+        const fetchSourceModule = require('expo/src/winter/fetch/fetch');
+        const originalExpoFetch = fetchSourceModule.fetch;
+        fetchSourceModule.fetch = (url, options) => {
+          const proxyUrl = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+          // eslint-disable-next-line no-console
+          console.log(`[E2E SHIM] expo/fetch: ${url} → ${proxyUrl}`);
+          return originalExpoFetch(proxyUrl, options);
+        };
+        // eslint-disable-next-line no-console
+        console.log(
+          '[E2E SHIM] Patched expo/fetch source module to route through mock proxy',
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[E2E SHIM] Failed to patch expo/fetch:', e.message);
       }
     }
   })();

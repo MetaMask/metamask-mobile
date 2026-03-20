@@ -7,7 +7,7 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { InfoRowSkeleton } from '../../UI/info-row/info-row';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../../../../core/AppConstants';
@@ -59,6 +59,8 @@ export function PercentageRow() {
   return (
     <InfoRow
       label={strings('earn.claimable_bonus')}
+      rowVariant={InfoRowVariant.Small}
+      tooltipColor={IconColor.Alternative}
       tooltip={
         <Text>
           {strings('earn.claimable_bonus_tooltip')}{' '}
@@ -67,7 +69,6 @@ export function PercentageRow() {
           </Text>
         </Text>
       }
-      tooltipColor={IconColor.Muted}
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {MUSD_CONVERSION_APY}%

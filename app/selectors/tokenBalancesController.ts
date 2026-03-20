@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { Hex } from '@metamask/utils';
 import { createSelector, weakMapMemoize } from 'reselect';
 import { RootState } from '../reducers';

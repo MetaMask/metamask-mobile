@@ -15,6 +15,8 @@ import type {
   OpenOrdersWsEvent,
 } from '@nktkas/hyperliquid';
 
+import type { HyperLiquidClientService } from './HyperLiquidClientService';
+import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { WebSocketConnectionState } from '../types';
 import type {
@@ -35,8 +37,6 @@ import type {
   PerpsPlatformDependencies,
   PerpsLogger,
 } from '../types';
-import type { HyperLiquidClientService } from './HyperLiquidClientService';
-import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
