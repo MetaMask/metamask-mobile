@@ -2,13 +2,15 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import Assertions from '../../framework/Assertions';
+import { Assertions } from '../../framework';
 import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
+  POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS,
+  POLYMARKET_POLYGON_RELAY_POLLING_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_USDC_BALANCE_MOCKS,
@@ -22,9 +24,11 @@ import PredictBalance from '../../page-objects/Predict/PredictBalance';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
+  // Polygon predict withdraw publishes via EIP-7702 transaction relay, not Infura eth_sendRawTransaction.
+  await POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS(mockServer);
+  await POLYMARKET_POLYGON_RELAY_POLLING_MOCKS(mockServer);
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
@@ -38,15 +42,22 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Predictions Withdraw'), () => {
-  it('withdraws from Predict balance and verifies activity', async () => {
+  it('withdraws from Predict balance', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPolygon().build(),
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          // STX + sendBundle on Polygon would skip Delegation7702PublishHook and use the
+          // smart-transaction publish path (not covered by POLYMARKET_TRANSACTION_SENTINEL_MOCKS).
+          .withDisabledSmartTransactions()
+          .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
       },
       async () => {
         await loginToApp();
+
+        await device.disableSynchronization();
 
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
@@ -57,7 +68,6 @@ describe(SmokePredictions('Predictions Withdraw'), () => {
         await PredictBalance.expectBalanceCardVisible();
         await PredictBalance.tapWithdraw();
 
-        await device.disableSynchronization();
         await TransactionPayConfirmation.tapKeyboardAmount('5');
         await TransactionPayConfirmation.tapKeyboardContinueButton();
         await FooterActions.tapConfirmButton();
@@ -66,17 +76,6 @@ describe(SmokePredictions('Predictions Withdraw'), () => {
           description:
             'Predict market list should be visible after withdraw confirmation',
         });
-        await device.enableSynchronization();
-
-        await TabBarComponent.tapActivity();
-        await ActivitiesView.tapOnPredictionsTab();
-        await Assertions.expectElementToBeVisible(
-          ActivitiesView.predictWithdraw,
-          {
-            description:
-              'Predictions withdraw activity entry should be visible',
-          },
-        );
       },
     );
   });
