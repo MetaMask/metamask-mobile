@@ -92,6 +92,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 
@@ -174,11 +175,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     try {
       authData = await getAuthType();
     } catch (err) {
-      const msg =
-        err instanceof Error && err.message.trim()
-          ? err.message
-          : String(err ?? 'Get auth type failed');
-      throw new Error(msg || 'Get auth type failed');
+      throw ensureError(err, 'Get auth type failed');
     }
     if (
       authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
@@ -389,10 +386,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   // Handles login/unlock errors from onRehydrateLogin and newGlobalPasswordLogin.
   // Call chain: onRehydrateLogin/newGlobalPasswordLogin → unlockWallet() →
-  // Authentication ensures rethrown errors have a message (ensureErrorWithMessage).
+  // Authentication wraps rethrown errors via ensureError, so loginError is always
+  // an Error instance. We still guard against an empty .message with .trim() fallback.
   const handleLoginError = useCallback(
     async (loginError: Error) => {
-      const loginErrorMessage = loginError.message.trim() || loginError.name;
+      const loginErrorMessage =
+        loginError.message?.trim() ||
+        loginError.name?.trim() ||
+        String(loginError);
 
       if (route.params?.onboardingTraceCtx) {
         trace({
@@ -502,12 +503,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authData });
-
-          // TODO: This should probably derive auth capabilities from getAuthCapabilities
-          // prompt biometric failed alert if biometric failed
-          await promptBiometricFailedAlert();
         },
       );
+
+      // Best-effort post-unlock UX: show biometric cancelled alert if needed.
+      // Failure here must not be treated as a login error — unlock already succeeded.
+      try {
+        await promptBiometricFailedAlert();
+      } catch (alertErr) {
+        Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
+      }
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
         account_type: 'social',
@@ -566,12 +571,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authData });
-
-          // TODO: This should probably derive auth capabilities from getAuthCapabilities
-          // prompt biometric failed alert if biometric failed
-          await promptBiometricFailedAlert();
         },
       );
+
+      // Best-effort post-unlock UX: show biometric cancelled alert if needed.
+      // Failure here must not be treated as a login error — unlock already succeeded.
+      try {
+        await promptBiometricFailedAlert();
+      } catch (alertErr) {
+        Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
+      }
 
       setLoading(false);
       setError(null);
