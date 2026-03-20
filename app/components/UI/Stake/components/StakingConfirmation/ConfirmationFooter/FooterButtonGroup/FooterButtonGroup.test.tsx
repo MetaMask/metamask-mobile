@@ -246,8 +246,8 @@ describe('FooterButtonGroup', () => {
 
     const continueButton = getByTestId('continue-button');
     const cancelButton = getByTestId('cancel-button');
-    expect(continueButton.props.disabled).toBe(true);
-    expect(cancelButton.props.disabled).toBe(true);
+    expect(continueButton).toBeDisabled();
+    expect(cancelButton).toBeDisabled();
   });
 
   it('tracks metrics on cancel press', () => {
@@ -288,8 +288,8 @@ describe('FooterButtonGroup', () => {
 
     const continueButton = getByTestId('continue-button');
     const cancelButton = getByTestId('cancel-button');
-    expect(continueButton.props.disabled).toBe(true);
-    expect(cancelButton.props.disabled).toBe(true);
+    expect(continueButton).toBeDisabled();
+    expect(cancelButton).toBeDisabled();
   });
 
   it('shows loading state during transaction', async () => {
@@ -313,6 +313,6 @@ describe('FooterButtonGroup', () => {
     fireEvent.press(getByText(strings('stake.continue')));
 
     const continueButton = getByTestId('continue-button');
-    expect(continueButton.props.loading).toBe(true);
+    expect(continueButton.props.accessibilityState.busy).toBe(true);
   });
 });
