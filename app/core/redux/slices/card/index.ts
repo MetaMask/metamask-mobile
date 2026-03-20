@@ -171,6 +171,11 @@ export const selectCardGeoLocation = createSelector(
   (card) => card.geoLocation,
 );
 
+export const selectCardIsLoaded = createSelector(
+  selectCardState,
+  (card) => card.isLoaded,
+);
+
 export const selectHasCardholderAccounts = createSelector(
   selectCardholderAccounts,
   (cardholderAccounts) => cardholderAccounts.length > 0,
