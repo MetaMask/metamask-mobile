@@ -6,11 +6,7 @@ import BottomSheet, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant, ButtonSize } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import createMaxInputModalStyles from './MaxInputModal.styles';
@@ -56,20 +52,22 @@ const MaxInputModal = () => {
         <View style={styles.button}>
           <Button
             onPress={handleCancel}
-            label={strings('stake.cancel')}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Secondary}
+            isFullWidth
             size={ButtonSize.Lg}
-          />
+          >
+            {strings('stake.cancel')}
+          </Button>
         </View>
         <View style={styles.button}>
           <Button
             onPress={handleConfirm}
-            label={strings('stake.use_max')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             size={ButtonSize.Lg}
-          />
+          >
+            {strings('stake.use_max')}
+          </Button>
         </View>
       </View>
     </BottomSheet>
