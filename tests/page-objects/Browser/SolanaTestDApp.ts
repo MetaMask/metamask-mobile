@@ -6,6 +6,7 @@ import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 /**
  * Get a test element by data-testid
@@ -69,13 +70,11 @@ class SolanaTestDApp {
   }
 
   /**
-   * Cancel control on the Solana wallet-standard sign-and-send confirmation (snap footer).
-   * Use after device.disableSynchronization when dismissing the transfer SOL flow.
+   * Cancel on the Solana sign-and-send confirmation (redesigned confirmations footer
+   * testID `cancel-button`, not the legacy snap-only cancel footer id).
    */
   get cancelSignAndSendTransactionButtonSelector(): DetoxElement {
-    return Matchers.getElementByID(
-      SolanaTestdappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON,
-    );
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
   get cancelButtonSelector() {
@@ -151,6 +150,7 @@ class SolanaTestDApp {
 
   getSendSolTest() {
     return {
+      /** Taps **Sign transaction** (sign-only) on the non-versioned Transfer SOL card. */
       signTransaction: async () => {
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
@@ -158,6 +158,7 @@ class SolanaTestDApp {
           }),
         );
       },
+      /** Taps **Sign and send transaction** on the non-versioned Transfer SOL card. */
       sendTransaction: async () => {
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
@@ -199,8 +200,7 @@ class SolanaTestDApp {
    */
   async tapCancelSignAndSendTransaction(): Promise<void> {
     await Gestures.waitAndTap(this.cancelSignAndSendTransactionButtonSelector, {
-      elemDescription:
-        'Solana sign-and-send transaction cancel snap footer button',
+      elemDescription: 'Solana sign-and-send confirmation Cancel button',
       delay: 1800,
     });
   }
