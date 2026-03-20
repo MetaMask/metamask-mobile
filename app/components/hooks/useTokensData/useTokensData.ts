@@ -45,8 +45,12 @@ function fetchTokenBatch(assetIds: string[]): Promise<TokenAsset[]> {
       const data: TokenAsset[] = await handleFetch(
         `${TOKEN_API_V3_BASE_URL}/assets?${params}`,
       );
+      // Normalize keys to lowercase so they match the locally-constructed
+      // asset IDs (buildAssetId lowercases addresses). The API may return
+      // EIP-55 checksummed addresses (e.g. 0xABc…) which would otherwise
+      // cause every cache lookup and state lookup to miss.
       data.forEach((t) => {
-        tokenCache[t.assetId] = t;
+        tokenCache[t.assetId.toLowerCase()] = t;
       });
       return data;
     } finally {
@@ -101,7 +105,9 @@ export function useTokensData(assetIds: string[]): Record<string, TokenAsset> {
         if (!cancelled) {
           setTokensByAssetId((prev) => ({
             ...prev,
-            ...Object.fromEntries(data.map((t) => [t.assetId, t])),
+            ...Object.fromEntries(
+              data.map((t) => [t.assetId.toLowerCase(), t]),
+            ),
           }));
         }
       } catch {

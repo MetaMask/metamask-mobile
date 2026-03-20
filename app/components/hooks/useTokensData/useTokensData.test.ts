@@ -146,6 +146,30 @@ describe('useTokensData', () => {
     expect(mockHandleFetch).not.toHaveBeenCalled();
   });
 
+  it('looks up token by lowercase key when API returns checksummed assetId', async () => {
+    const lowercaseId = makeAssetId(); // already lowercase from makeAssetId
+    const checksummedId = lowercaseId.replace(/0x[0-9a-f]+/, (m) =>
+      m.replace(/[a-f]/g, (c) => c.toUpperCase()),
+    );
+
+    // API echoes back the checksummed version of the asset ID
+    mockHandleFetch.mockResolvedValue([
+      {
+        assetId: checksummedId,
+        name: TOKEN_NAME_MOCK,
+        symbol: TOKEN_SYMBOL_MOCK,
+        iconUrl: TOKEN_ICON_URL_MOCK,
+      },
+    ]);
+
+    // Hook is called with the lowercase ID (as buildAssetId produces)
+    const { result } = renderHook([lowercaseId]);
+
+    await waitFor(() => {
+      expect(result.current[lowercaseId]?.name).toBe(TOKEN_NAME_MOCK);
+    });
+  });
+
   it(`splits requests larger than ${MAX_BATCH_SIZE} into separate batches`, async () => {
     const assetIds = Array.from({ length: MAX_BATCH_SIZE + 1 }, () =>
       makeAssetId(),
