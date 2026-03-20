@@ -5,6 +5,9 @@ import './shim.js';
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
 import 'react-native-gesture-handler';
 
+// Registers App Check with the Firebase JS singleton (named-only imports can skip the default export side effect).
+import '@react-native-firebase/app-check';
+
 // why-did-you-render must run as early as possible (after gesture-handler) in dev
 import './wdyr';
 

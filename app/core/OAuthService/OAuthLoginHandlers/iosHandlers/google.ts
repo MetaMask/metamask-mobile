@@ -8,9 +8,8 @@ import {
 import { signInWithGoogle } from '@metamask/react-native-acm';
 import { OAuthError, OAuthErrorMessages, OAuthErrorType } from '../../error';
 import Logger from '../../../../util/Logger';
-import { getToken, initializeAppCheck } from '@react-native-firebase/app-check';
+import appCheckNative, { getToken } from '@react-native-firebase/app-check';
 import { Alert } from 'react-native';
-import { getApp } from '@react-native-firebase/app';
 
 /**
  * IosGoogleLoginHandler is the Google login handler for iOS.
@@ -59,7 +58,7 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
    */
   async login(): Promise<LoginHandlerIdTokenResult> {
     try {
-      const appCheckInstance = getApp().appCheck();
+      const appCheckInstance = appCheckNative();
       const { token } = await getToken(appCheckInstance, false);
       Alert.alert(token);
 
