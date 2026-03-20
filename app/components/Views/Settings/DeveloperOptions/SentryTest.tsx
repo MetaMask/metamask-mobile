@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import Text, {
-  TextVariant,
+import {
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -53,8 +54,8 @@ function GenerateTrace() {
   return (
     <>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={styles.desc}
       >
         {strings('app_settings.developer_options.generate_trace_test_desc')}
@@ -78,8 +79,8 @@ export default function SentryTest() {
   return (
     <>
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={styles.heading}
       >
         {'Sentry'}

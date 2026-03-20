@@ -1,9 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text, {
+import {
+  FontWeight,
   TextColor,
+  Text,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import createStyles from './NotificationsSettings.styles';
 
 interface SessionHeaderProps {
@@ -15,12 +17,16 @@ interface SessionHeaderProps {
 const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
   <>
     <View style={styles.switchElement}>
-      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+      <Text
+        color={TextColor.TextDefault}
+        variant={TextVariant.BodyLg}
+        fontWeight={FontWeight.Medium}
+      >
         {title}
       </Text>
     </View>
     <View style={styles.setting}>
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+      <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
         {description}
       </Text>
     </View>
