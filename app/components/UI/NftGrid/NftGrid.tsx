@@ -240,7 +240,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       setIsAddNFTEnabled(false);
       navigation.navigate('AddAsset', { assetType: 'collectible' });
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES)
+          .addProperties({ action: 'Wallet View', name: 'Add Collectibles' })
+          .build(),
       );
       setIsAddNFTEnabled(true);
     }, [navigation, trackEvent, createEventBuilder]);
