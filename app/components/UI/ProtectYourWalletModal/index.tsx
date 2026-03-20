@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -11,15 +10,14 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-} from '@metamask/design-system-react-native';
-import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+  ButtonIcon,
+  ButtonIconSize,
+  TextButton,
+  TextButtonSize,
+} from '@metamask/design-system-react-native';
 import ActionModal from '../ActionModal';
 import { protectWalletModalNotVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
@@ -28,9 +26,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs
-const protectWalletImage = require('../../../images/explain-backup-seedphrase.png');
+import protectWalletImage from '../../../images/explain-backup-seedphrase.png';
 
 interface RootState {
   user: {
@@ -48,7 +44,6 @@ interface ProtectYourWalletModalProps {
 const ProtectYourWalletModal = ({
   navigation,
 }: ProtectYourWalletModalProps) => {
-  const tw = useTailwind();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -126,7 +121,7 @@ const ProtectYourWalletModal = ({
           justifyContent={BoxJustifyContent.Center}
           alignItems={BoxAlignItems.Center}
         >
-          <Box twClassName="w-[26px]" />
+          <Box twClassName="w-6" />
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
@@ -135,20 +130,15 @@ const ProtectYourWalletModal = ({
           >
             {strings('protect_wallet_modal.title')}
           </Text>
-          <TouchableOpacity
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Sm}
+            iconProps={{ color: IconColor.IconDefault, size: IconSize.Sm }}
             onPress={onDismiss}
-            style={tw.style('p-1')}
-            hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-          >
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Sm}
-              color={IconColor.Default}
-            />
-          </TouchableOpacity>
+          />
         </Box>
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="mb-3 mt-[30px]">
+        <Box alignItems={BoxAlignItems.Center} twClassName="mb-3 mt-8">
           <Image
             source={protectWalletImage}
             style={{
@@ -169,20 +159,14 @@ const ProtectYourWalletModal = ({
           </Text>
         </Text>
 
-        <Button
-          variant={ButtonVariants.Link}
+        <TextButton
+          size={TextButtonSize.BodySm}
           onPress={onLearnMore}
           testID={ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON}
-          label={
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.PrimaryDefault}
-              twClassName="text-center mb-3.5"
-            >
-              {strings('protect_wallet_modal.action')}
-            </Text>
-          }
-        />
+          twClassName="self-center mb-3.5"
+        >
+          {strings('protect_wallet_modal.action')}
+        </TextButton>
       </Box>
     </ActionModal>
   );
