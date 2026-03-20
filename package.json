@@ -279,7 +279,7 @@
     "@metamask/profile-metrics-controller": "^3.1.0",
     "@metamask/profile-sync-controller": "^28.0.0",
     "@metamask/ramps-controller": "^12.0.0",
-    "@metamask/react-native-acm": "1.2.0",
+    "@metamask/react-native-acm": "file:./metamask-react-native-acm-1.2.0.tgz",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
@@ -329,8 +329,9 @@
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-community/slider": "^4.4.3",
     "@react-native-cookies/cookies": "^6.2.1",
-    "@react-native-firebase/app": "^20.5.0",
-    "@react-native-firebase/messaging": "^20.5.0",
+    "@react-native-firebase/app": "^21.0.0",
+    "@react-native-firebase/app-check": "21.0.0",
+    "@react-native-firebase/messaging": "^21.0.0",
     "@react-native-masked-view/masked-view": "^0.3.1",
     "@react-native/babel-preset": "0.76.9",
     "@react-native/eslint-config": "^0.82.0",
@@ -763,7 +764,8 @@
       "ws>bufferutil": false,
       "ws>utf-8-validate": false,
       "eslint-plugin-import-x>unrs-resolver": false,
-      "eslint-import-resolver-typescript>unrs-resolver": false
+      "eslint-import-resolver-typescript>unrs-resolver": false,
+      "@react-native-firebase/app>firebase>@firebase/util": false
     }
   },
   "packageManager": "yarn@4.10.3",

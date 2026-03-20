@@ -81,6 +81,13 @@ module.exports = {
         ],
       },
     ],
+    [
+      '@metamask/react-native-acm',
+      {
+        iosUrlScheme:
+          'com.googleusercontent.apps.615965109465-h6tp2h3crls6hbggispcgovbvk4vabu3',
+      },
+    ],
   ],
   android: {
     package:

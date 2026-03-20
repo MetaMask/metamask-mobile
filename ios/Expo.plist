@@ -3,5 +3,9 @@
 <plist version="1.0">
   <dict>
     <!-- EAS Update configuration is injected by scripts/update-expo-channel.js during build -->
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>com.googleusercontent.apps.615965109465-h6tp2h3crls6hbggispcgovbvk4vabu3</string>
+    </array>
   </dict>
 </plist>
