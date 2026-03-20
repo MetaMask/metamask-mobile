@@ -4,6 +4,7 @@ import { getRelatedAssetImageSource } from './getRelatedAssetImageSource';
 jest.mock('../../../../images/image-icons', () => ({
   __esModule: true,
   default: {
+    BTC: 100,
     ETH: 123,
     TRX: 456,
     SOL: 789,
@@ -40,30 +41,32 @@ jest.mock(
 );
 
 describe('getRelatedAssetImageSource', () => {
-  const baseEthAsset = {
-    name: 'Ethereum',
-    symbol: 'ETH',
-    caip19: ['eip155:1/slip44:60'] as string[],
-    sourceAssetId: 'ethereum',
-    // hlPerpsMarket is intentionally set to verify it does NOT trigger Perps path
-    hlPerpsMarket: 'ETH',
-  };
+  describe('CAIP-19 path (highest priority — regular crypto tokens)', () => {
+    it('uses bundled icon when symbol matches image-icons', () => {
+      const result = getRelatedAssetImageSource({
+        name: 'Ethereum',
+        symbol: 'ETH',
+        caip19: ['eip155:1/slip44:60'],
+        sourceAssetId: 'ethereum',
+        hlPerpsMarket: 'ETH', // present but must NOT trigger Perps SVG path
+      });
 
-  describe('CAIP-19 path (highest priority for regular crypto tokens)', () => {
-    it('uses bundled icon via getTokenImageSource when symbol matches', () => {
-      const result = getRelatedAssetImageSource(baseEthAsset);
-
-      // Bundled ETH image (123) takes priority over CDN URL
       expect(result).toBe(123);
+      expect(typeof result).toBe('number'); // bundled PNG, not an SVG URI object
     });
 
-    it('ignores hlPerpsMarket even when set — CAIP-19 wins for regular tokens', () => {
-      // ETH has hlPerpsMarket: 'ETH' but the Perps SVG path must NOT fire
-      // because caip19 is populated and returns a valid source
-      const result = getRelatedAssetImageSource(baseEthAsset);
+    it('ignores hlPerpsMarket when caip19 is populated', () => {
+      // BTC has hlPerpsMarket but also has caip19 — must use CAIP-19 path
+      const result = getRelatedAssetImageSource({
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        caip19: ['bip122:000000000019d6689c085ae165831e93/slip44:0'],
+        sourceAssetId: 'bitcoin',
+        hlPerpsMarket: 'BTC',
+      });
 
-      // Must be the bundled ETH image (a number), not a Perps SVG URI object
-      expect(result).toBe(123);
+      // Bundled BTC icon, not a Perps SVG URI
+      expect(result).toBe(100);
       expect(typeof result).toBe('number');
     });
 
@@ -71,47 +74,19 @@ describe('getRelatedAssetImageSource', () => {
       const result = getRelatedAssetImageSource({
         name: 'Some Token',
         symbol: 'UNKNOWN',
-        caip19: ['eip155:1/erc20:0xABCDEF'] as string[],
+        caip19: ['eip155:1/erc20:0xABCDEF'],
         sourceAssetId: 'some-token',
       });
 
-      // No bundled icon for UNKNOWN → falls back to CDN URI
       expect(result).toEqual({
         uri: expect.stringContaining('static.cx.metamask.io'),
       });
     });
   });
 
-  describe('Perps path (only for assets with no CAIP-19)', () => {
-    it('uses Perps primary URL when perpsAssetId is set and caip19 is empty', () => {
-      const result = getRelatedAssetImageSource({
-        name: 'Tesla',
-        symbol: 'TSLA',
-        caip19: [],
-        sourceAssetId: 'tsla',
-        perpsAssetId: 'xyz:TSLA',
-      });
-
-      expect(result).toEqual({
-        uri: `${PERPS_ICONS_BASE}hip3:xyz_TSLA.svg`,
-      });
-    });
-
-    it('uses Perps primary URL for plain perpsAssetId (no colon format)', () => {
-      const result = getRelatedAssetImageSource({
-        name: 'Bitcoin',
-        symbol: 'BTC',
-        caip19: [],
-        sourceAssetId: 'bitcoin',
-        perpsAssetId: 'BTC',
-      });
-
-      expect(result).toEqual({ uri: `${PERPS_ICONS_BASE}BTC.svg` });
-    });
-
-    it('does NOT use hlPerpsMarket as Perps fallback', () => {
-      // Asset with hlPerpsMarket but no caip19 and no perpsAssetId
-      // Should NOT trigger the Perps path via hlPerpsMarket
+  describe('Perps path via hlPerpsMarket (only when caip19 is empty)', () => {
+    it('uses Perps primary SVG for a plain HL market id', () => {
+      // Hypothetical BTC with no caip19 (purely Perps context)
       const result = getRelatedAssetImageSource({
         name: 'Bitcoin',
         symbol: 'BTC',
@@ -120,25 +95,50 @@ describe('getRelatedAssetImageSource', () => {
         hlPerpsMarket: 'BTC',
       });
 
-      // hlPerpsMarket is intentionally ignored — no Perps SVG should be returned
-      // Falls back to bundled symbol lookup
-      expect(result).toBeUndefined(); // no bundled icon for BTC in our mock
+      expect(result).toEqual({ uri: `${PERPS_ICONS_BASE}BTC.svg` });
+    });
+
+    it('uses Perps primary SVG for HIP-3 synthetic asset (xyz:TSLA format)', () => {
+      const result = getRelatedAssetImageSource({
+        name: 'Tesla',
+        symbol: 'TSLA',
+        caip19: [],
+        sourceAssetId: 'tsla',
+        hlPerpsMarket: 'xyz:TSLA',
+      });
+
+      expect(result).toEqual({
+        uri: `${PERPS_ICONS_BASE}hip3:xyz_TSLA.svg`,
+      });
+    });
+
+    it('skips Perps path when caip19 is populated even if hlPerpsMarket is set', () => {
+      const result = getRelatedAssetImageSource({
+        name: 'Ethereum',
+        symbol: 'ETH',
+        caip19: ['eip155:1/slip44:60'],
+        sourceAssetId: 'ethereum',
+        hlPerpsMarket: 'ETH',
+      });
+
+      // Must be bundled PNG, not SVG URI
+      expect(typeof result).toBe('number');
     });
   });
 
   describe('symbol-only fallback', () => {
-    it('returns bundled icon by symbol when caip19 is empty and no perpsAssetId', () => {
+    it('returns bundled icon by symbol when caip19 is empty and no hlPerpsMarket', () => {
       const result = getRelatedAssetImageSource({
-        ...baseEthAsset,
+        name: 'Ethereum',
+        symbol: 'ETH',
         caip19: [],
-        hlPerpsMarket: undefined,
+        sourceAssetId: 'ethereum',
       });
 
-      // Falls back to bundled ETH by symbol
       expect(result).toBe(123);
     });
 
-    it('returns undefined when no caip19, no perpsAssetId, and unknown symbol', () => {
+    it('returns undefined when no caip19, no hlPerpsMarket, and unknown symbol', () => {
       const result = getRelatedAssetImageSource({
         name: 'Some Token',
         symbol: 'UNKNOWN',

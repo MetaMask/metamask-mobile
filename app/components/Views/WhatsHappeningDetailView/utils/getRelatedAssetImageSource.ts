@@ -9,32 +9,16 @@ import { K_PREFIX_ASSETS } from '../../../UI/Perps/components/PerpsTokenLogo/Per
 /**
  * Image source for a market-overview `RelatedAsset`.
  *
- * Resolution order (first match wins):
- * 1. **MetaMask wallet CDN + bundled icons** via CAIP-19 (PNG). This covers all
- * regular crypto tokens (BTC, ETH, SOL, …) and is the primary path.
- * 2. **Perps icon** via `perpsAssetId` when the asset has no CAIP-19 id. Returns
- * the MetaMask-hosted primary SVG URL so that purely Perps assets like
- * `xyz:TSLA` resolve consistently with `PerpsTokenLogo`. Note: rendering SVG
- * URIs requires `SvgUri` or `PerpsTokenLogo`; plain `AvatarToken` will fall
- * back to initials until that is wired in.
- * 3. **Bundled icons only** by symbol when all above paths fail.
+ * Resolution order: CAIP-19 wallet CDN + bundled PNG (regular crypto tokens) →
+ * Perps SVG via `hlPerpsMarket` when `caip19` is empty (synthetic-only assets
+ * like `xyz:TSLA`) → bundled icon by symbol.
  *
- * `hlPerpsMarket` is intentionally NOT used as a Perps fallback because many
- * regular crypto tokens (BTC, ETH, SOL) carry it, and Perps CDN only serves SVG
- * files that `AvatarToken` cannot render remotely.
+ * `hlPerpsMarket` is NOT consulted when `caip19` is populated because regular
+ * crypto tokens (BTC, ETH) carry it too, and Perps CDN only serves SVGs that
+ * `AvatarToken` cannot render remotely.
  */
-
-/**
- * Until `@metamask/ai-controllers` is bumped to the version that ships
- * `perpsAssetId`, we intersect with the optional local field so TypeScript
- * does not complain.
- */
-type RelatedAssetExtended = RelatedAsset & {
-  perpsAssetId?: string;
-};
-
 export const getRelatedAssetImageSource = (
-  asset: RelatedAssetExtended,
+  asset: RelatedAsset,
 ): ImageSourcePropType | undefined => {
   // 1. Wallet CDN via CAIP-19 (PNG — works with AvatarToken)
   const firstCaip = asset.caip19[0];
@@ -51,11 +35,9 @@ export const getRelatedAssetImageSource = (
     }
   }
 
-  // 2. Perps SVG for assets with no CAIP-19 (e.g. xyz:TSLA via perpsAssetId)
-  //    hlPerpsMarket is skipped intentionally — it is populated for regular
-  //    crypto tokens (BTC, ETH, SOL) which are already covered by CAIP-19 above.
-  if (asset.perpsAssetId) {
-    const urls = getAssetIconUrls(asset.perpsAssetId, K_PREFIX_ASSETS);
+  // 2. Perps SVG for assets with no CAIP-19 (e.g. xyz:TSLA via hlPerpsMarket)
+  if (asset.hlPerpsMarket && asset.caip19.length === 0) {
+    const urls = getAssetIconUrls(asset.hlPerpsMarket, K_PREFIX_ASSETS);
     if (urls) {
       return { uri: urls.primary };
     }
