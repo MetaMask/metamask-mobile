@@ -39,14 +39,8 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 
-interface PayWithModalParams {
-  isPredictContext?: boolean;
-}
-
 export function PayWithModal() {
   const route = useRoute();
-  const { isPredictContext = false } =
-    (route.params as PayWithModalParams) ?? {};
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
     transactionMeta,
@@ -68,6 +62,9 @@ export function PayWithModal() {
   const blockedTokens = useTransactionPayBlockedTokens();
   const { onPaymentTokenChange: onPredictPaymentTokenChange } =
     usePredictPaymentToken();
+  const isPredictContext = hasTransactionType(transactionMeta, [
+    TransactionType.predictDepositAndOrder,
+  ]);
   const predictBalanceTokenFilter =
     usePredictBalanceTokenFilter(isPredictContext);
 
@@ -104,19 +101,6 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      // Predict flows: run callback immediately so the UI updates before the
-      // modal close animation, eliminating any visual gap.
-      if (
-        isPredictContext ||
-        hasTransactionType(transactionMeta, [
-          TransactionType.predictDepositAndOrder,
-        ])
-      ) {
-        onPredictPaymentTokenChange(token);
-        close();
-        return;
-      }
-
       const onClosed = () => {
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
@@ -131,6 +115,11 @@ export function PayWithModal() {
           ])
         ) {
           onPerpsPaymentTokenChange(token);
+          return;
+        }
+
+        if (isPredictContext) {
+          onPredictPaymentTokenChange(token);
           return;
         }
 
@@ -157,6 +146,11 @@ export function PayWithModal() {
           } catch {
             // Network not configured — skip
           }
+        }
+
+        if (isPredictContext) {
+          onPredictPaymentTokenChange(token);
+          return;
         }
 
         setPayToken({

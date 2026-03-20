@@ -45,9 +45,7 @@ export function PredictPayWithRow({
 
   const handlePress = useCallback(() => {
     if (!canEdit) return;
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      isPredictContext: true,
-    });
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation]);
 
   const label = strings('confirm.label.pay_with');
