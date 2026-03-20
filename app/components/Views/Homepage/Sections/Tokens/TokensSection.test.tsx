@@ -35,9 +35,21 @@ jest.mock('./hooks', () => ({
 const mockSortedTokenKeys = jest.fn();
 const mockAccountGroupBalance = jest.fn();
 
+let mockPopularNetworks: string[] = [];
+jest.mock(
+  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({
+      popularNetworks: mockPopularNetworks,
+    }),
+  }),
+);
+
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroup: (state: unknown) =>
-    mockSortedTokenKeys(state),
+  selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance: (
+    state: unknown,
+    chainIds: string[],
+  ) => mockSortedTokenKeys(state, chainIds),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -59,9 +71,32 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
     .mockReturnValue(() => undefined),
 }));
 
+const mockNetworkConfigurations = {};
+jest.mock('../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../selectors/networkController'),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
+  selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
+}));
+
+jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
+  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+}));
+
+const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
+jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+}));
+
 const mockRefreshTokens = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../../../UI/Tokens/util/refreshTokens', () => ({
   refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
+}));
+
+const mockShouldShowTokenListItemCta = jest.fn().mockReturnValue(false);
+jest.mock('../../../../UI/Earn/hooks/useMusdCtaVisibility', () => ({
+  useMusdCtaVisibility: () => ({
+    shouldShowTokenListItemCta: mockShouldShowTokenListItemCta,
+  }),
 }));
 
 // Mock ErrorState to avoid design system import chain and enable testID queries
@@ -93,7 +128,7 @@ jest.mock('./components/PopularTokensSkeleton', () => {
   };
 });
 
-// Mock TokenListItem and TokenListItemV2 to avoid complex import chains
+// Mock TokenListItem to avoid complex import chains
 const MockTokenListItem = ({
   assetKey,
   showRemoveMenu,
@@ -131,55 +166,6 @@ jest.mock(
       assetKey: { address: string; chainId?: string };
       showRemoveMenu?: (token: unknown) => void;
     }) => MockTokenListItem(props),
-  }),
-);
-
-const MockTokenListItemV2 = ({
-  assetKey,
-  showRemoveMenu,
-}: {
-  assetKey: { address: string; chainId?: string };
-  showRemoveMenu?: (token: unknown) => void;
-}) => {
-  const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
-  return ReactActual.createElement(
-    TouchableOpacity,
-    {
-      testID: `token-item-v2-${assetKey.address}`,
-      onLongPress: () =>
-        showRemoveMenu?.({
-          address: assetKey.address,
-          chainId: assetKey.chainId,
-          name: `Token ${assetKey.address}`,
-          symbol: 'TKN',
-          decimals: 18,
-          image: '',
-          balance: '0',
-          logo: undefined,
-          isETH: false,
-        }),
-    },
-    ReactActual.createElement(Text, null, `TokenV2 ${assetKey.address}`),
-  );
-};
-
-jest.mock(
-  '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2',
-  () => ({
-    TokenListItemV2: (props: {
-      assetKey: { address: string; chainId?: string };
-      showRemoveMenu?: (token: unknown) => void;
-    }) => MockTokenListItemV2(props),
-  }),
-);
-
-const mockSelectTokenListLayoutV2Enabled = jest.fn().mockReturnValue(false);
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/tokenListLayout',
-  () => ({
-    selectTokenListLayoutV2Enabled: () => mockSelectTokenListLayoutV2Enabled(),
   }),
 );
 
@@ -311,10 +297,10 @@ describe('TokensSection', () => {
     mockRefreshTokens.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
+    mockPopularNetworks = ['eip155:1', '0xa'];
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
     mockAccountGroupBalance.mockReturnValue(null);
-    mockSelectTokenListLayoutV2Enabled.mockReturnValue(false);
     mockUsePopularTokens.mockReturnValue({
       tokens: mockPopularTokens,
       isInitialLoading: false,
@@ -322,12 +308,19 @@ describe('TokensSection', () => {
       error: null,
       refetch: jest.fn(),
     });
+    // Cash section disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
   });
 
   it('renders section title for account with balance', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
   });
@@ -335,7 +328,9 @@ describe('TokensSection', () => {
   it('renders "Tokens" title for zero balance account', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
   });
@@ -343,7 +338,9 @@ describe('TokensSection', () => {
   it('renders popular tokens for zero balance account', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();
     expect(screen.getByText('Ethereum')).toBeOnTheScreen();
@@ -352,7 +349,9 @@ describe('TokensSection', () => {
   it('renders Buy button for popular tokens in zero balance state', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getAllByText('Buy')).toHaveLength(2);
   });
@@ -360,7 +359,9 @@ describe('TokensSection', () => {
   it('calls goToBuy with assetId when Buy button is pressed', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     const buyButtons = screen.getAllByText('Buy');
     fireEvent.press(buyButtons[0]);
@@ -370,6 +371,22 @@ describe('TokensSection', () => {
     });
   });
 
+  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance)', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    const popularChainIds = ['eip155:1', '0xa'];
+    mockPopularNetworks = popularChainIds;
+    mockSortedTokenKeys.mockReturnValue([]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockSortedTokenKeys).toHaveBeenCalledWith(
+      expect.anything(),
+      popularChainIds,
+    );
+  });
+
   it('renders token list items for account with tokens', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
@@ -377,7 +394,9 @@ describe('TokensSection', () => {
       { chainId: '0x1', address: '0xtoken2', isStaked: false },
     ]);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
     expect(screen.getByTestId('token-item-0xtoken2')).toBeOnTheScreen();
@@ -395,7 +414,9 @@ describe('TokensSection', () => {
       { chainId: '0x1', address: '0xtoken7', isStaked: false },
     ]);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
     expect(screen.getByTestId('token-item-0xtoken5')).toBeOnTheScreen();
@@ -403,10 +424,32 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
+  it('filters out mUSD from displayed tokens (mUSD is shown only in Cash section)', () => {
+    const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.queryByTestId(`token-item-${MUSD_ADDRESS}`)).toBeNull();
+    expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
+  });
+
   it('navigates to tokens full view on title press', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByLabelText('Tokens'));
 
@@ -432,7 +475,9 @@ describe('TokensSection', () => {
       refetch: jest.fn(),
     });
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId('error-state')).toBeOnTheScreen();
@@ -443,7 +488,9 @@ describe('TokensSection', () => {
   it('renders popular token rows when zero balance and no error', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.queryByTestId('error-state')).toBeNull();
     expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();
@@ -457,7 +504,9 @@ describe('TokensSection', () => {
     mockRefreshTokens.mockRejectedValue(new Error('Network error'));
 
     const ref = React.createRef<{ refresh: () => Promise<void> }>();
-    renderWithProvider(<TokensSection ref={ref} />);
+    renderWithProvider(
+      <TokensSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     await act(async () => {
       await ref.current?.refresh();
@@ -477,7 +526,9 @@ describe('TokensSection', () => {
     mockRefreshTokens.mockRejectedValueOnce(new Error('Network error'));
 
     const ref = React.createRef<{ refresh: () => Promise<void> }>();
-    renderWithProvider(<TokensSection ref={ref} />);
+    renderWithProvider(
+      <TokensSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     await act(async () => {
       await ref.current?.refresh();
@@ -502,7 +553,9 @@ describe('TokensSection', () => {
     mockSortedTokenKeys.mockReturnValue([]);
     mockAccountGroupBalance.mockReturnValue(null);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.queryByTestId('error-state')).toBeNull();
   });
@@ -515,7 +568,9 @@ describe('TokensSection', () => {
       userCurrency: 'usd',
     });
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByTestId('error-state')).toBeOnTheScreen();
     expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
@@ -529,7 +584,9 @@ describe('TokensSection', () => {
       userCurrency: 'usd',
     });
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByTestId('error-state')).toBeOnTheScreen();
 
@@ -546,7 +603,9 @@ describe('TokensSection', () => {
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
     ]);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(
       screen.queryByTestId('remove-token-bottom-sheet'),
@@ -572,7 +631,9 @@ describe('TokensSection', () => {
     });
 
     it('shows RemoveTokenBottomSheet on long press and calls removeEvmToken on confirm', async () => {
-      renderWithProvider(<TokensSection />);
+      renderWithProvider(
+        <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       fireEvent(screen.getByTestId('token-item-0xtoken1'), 'onLongPress');
 
@@ -596,7 +657,9 @@ describe('TokensSection', () => {
         },
       ]);
 
-      renderWithProvider(<TokensSection />);
+      renderWithProvider(
+        <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       fireEvent(screen.getByTestId('token-item-0xsoltoken'), 'onLongPress');
 
@@ -609,7 +672,9 @@ describe('TokensSection', () => {
     });
 
     it('hides RemoveTokenBottomSheet on cancel', () => {
-      renderWithProvider(<TokensSection />);
+      renderWithProvider(
+        <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       fireEvent(screen.getByTestId('token-item-0xtoken1'), 'onLongPress');
 
@@ -630,7 +695,9 @@ describe('TokensSection', () => {
     ]);
 
     const ref = React.createRef<{ refresh: () => Promise<void> }>();
-    renderWithProvider(<TokensSection ref={ref} />);
+    renderWithProvider(
+      <TokensSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     await act(async () => {
       await ref.current?.refresh();

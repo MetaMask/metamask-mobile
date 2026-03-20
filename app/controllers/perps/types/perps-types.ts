@@ -1,8 +1,10 @@
 /**
  * Test result states for SDK validation
  */
-import { OrderType } from '.';
 import { CandlePeriod } from '../constants/chartConfig';
+
+// Order type enumeration
+export type OrderType = 'market' | 'limit';
 
 export type TestResultStatus =
   | 'idle'
@@ -55,9 +57,24 @@ export type CandleData = {
   candles: CandleStick[];
 };
 
-// Export all configuration types directly
-export type * from './config';
-export type * from './token';
+// Configuration types
+export type {
+  HyperLiquidEndpoints,
+  AssetNetworkConfig,
+  HyperLiquidAssetConfigs,
+  BridgeContractConfig,
+  HyperLiquidBridgeContracts,
+  TransportReconnectConfig,
+  TransportKeepAliveConfig,
+  HyperLiquidTransportConfig,
+  TradingAmountConfig,
+  TradingDefaultsConfig,
+  FeeRatesConfig,
+  HyperLiquidNetwork,
+} from './config';
+
+// Token types
+export type { PerpsToken } from './token';
 
 /**
  * Order form state for the Perps order view

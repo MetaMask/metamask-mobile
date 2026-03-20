@@ -38,13 +38,11 @@ describe(RegressionTrade('Swap from Token view'), (): void => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Localhost',
-                ticker: 'ETH',
-              },
+              chainId,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
             })
             .withDisabledSmartTransactions()
             .build();

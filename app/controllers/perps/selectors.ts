@@ -142,8 +142,8 @@ export const selectPendingTradeConfiguration = createSelector(
     }
 
     // Check if config has expired (5 minutes = 300,000 milliseconds)
-    const FIVE_MINUTES_MS = 5 * 60 * 1000;
     const now = Date.now();
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
     const age = now - config.timestamp;
 
     if (age > FIVE_MINUTES_MS) {

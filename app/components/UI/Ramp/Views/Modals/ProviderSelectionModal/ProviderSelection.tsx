@@ -235,14 +235,19 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       }
 
       const { provider } = item;
+      const isCustomActionQuote = (q: Quote) =>
+        Boolean((q.quote as { isCustomAction?: boolean })?.isCustomAction);
       const matchedQuote =
         quotes?.success?.find(
           (q) =>
             q.provider === provider.id &&
             (!selectedPaymentMethod ||
-              q.quote?.paymentMethod === selectedPaymentMethod.id),
+              q.quote?.paymentMethod === selectedPaymentMethod.id) &&
+            !isCustomActionQuote(q),
         ) ??
-        quotes?.success?.find((q) => q.provider === provider.id) ??
+        quotes?.success?.find(
+          (q) => q.provider === provider.id && !isCustomActionQuote(q),
+        ) ??
         null;
       const amountOut = matchedQuote?.quote?.amountOut;
       const cryptoAmount =
@@ -269,7 +274,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           accessible
         >
           <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {provider.name}
             </Text>
             {tag ? (
@@ -324,7 +329,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             message={
               showQuotes
                 ? strings('fiat_on_ramp.no_quotes_available')
-                : strings('fiat_on_ramp.no_providers_available')
+                : strings('fiat_on_ramp_aggregator.no_providers_available')
             }
             severity={BannerAlertSeverity.Error}
           />

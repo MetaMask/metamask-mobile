@@ -91,7 +91,12 @@ const RpcUrlInput = forwardRef<TextInput, RpcUrlInputProps>((props, ref) => {
 
   return (
     <>
-      <TextInput ref={ref} {...inputProps} onChangeText={handleRpcUrlChange} />
+      <TextInput
+        ref={ref}
+        {...inputProps}
+        underlineColorAndroid="transparent"
+        onChangeText={handleRpcUrlChange}
+      />
       {warningRpcUrl && (
         <View testID={NetworkDetailsViewSelectorsIDs.RPC_WARNING_BANNER}>
           <Text style={warningStyle}>{warningRpcUrl}</Text>

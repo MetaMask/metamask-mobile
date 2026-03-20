@@ -47,14 +47,26 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
-  selectSnapshotsLoading,
-  selectSnapshotsError,
+  selectCampaigns,
+  selectCampaignsLoading,
+  selectCampaignsError,
+  selectCampaignParticipantStatuses,
+  selectCampaignParticipantStatusById,
+  selectCampaignParticipantCount,
+  selectIsRewardsVersionBlocked,
+  selectVersionGuardMinimumMobileVersion,
+  selectVersionGuardLoading,
+  selectVersionGuardError,
 } from './selectors';
+// eslint-disable-next-line import-x/no-namespace
+import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
   SeasonActivityTypeDto,
+  CampaignDto,
+  CampaignType,
   SeasonWayToEarnDto,
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
@@ -64,6 +76,10 @@ import { RewardsState, AccountOptInBannerInfoStatus } from '.';
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.71.0'),
 }));
 
 const mockedUseSelector = useSelector as jest.MockedFunction<
@@ -97,12 +113,12 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe('overview');
     });
 
-    it('returns snapshots tab when set', () => {
-      const mockState = { rewards: { activeTab: 'snapshots' as const } };
+    it('returns campaigns tab when set', () => {
+      const mockState = { rewards: { activeTab: 'campaigns' as const } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
-      expect(result.current).toBe('snapshots');
+      expect(result.current).toBe('campaigns');
     });
 
     it('returns activity tab when set', () => {
@@ -3115,62 +3131,256 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectSnapshotsLoading', () => {
-    it('returns false when snapshots are not loading', () => {
-      const mockState = { rewards: { snapshotsLoading: false } };
+  const mockCampaign: CampaignDto = {
+    id: 'campaign-1',
+    type: 'ONDO_HOLDING' as CampaignType,
+    name: 'ONDO Holding Campaign',
+    startDate: '2025-01-01T00:00:00.000Z',
+    endDate: '2027-01-01T00:00:00.000Z',
+    termsAndConditions: null,
+    excludedRegions: [],
+    statusLabel: 'Active',
+    details: null,
+  };
+
+  describe('selectCampaigns', () => {
+    it('returns empty array when campaigns is empty', () => {
+      const mockState = { rewards: { campaigns: [] } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(false);
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
     });
 
-    it('returns true when snapshots are loading', () => {
-      const mockState = { rewards: { snapshotsLoading: true } };
+    it('returns campaigns array when campaigns exist', () => {
+      const mockState = { rewards: { campaigns: [mockCampaign] } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(true);
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([mockCampaign]);
     });
 
     describe('Direct selector calls', () => {
-      it('returns false when snapshotsLoading is false', () => {
-        const state = createMockRootState({ snapshotsLoading: false });
-        expect(selectSnapshotsLoading(state)).toBe(false);
+      it('returns empty array when campaigns is empty', () => {
+        const state = createMockRootState({ campaigns: [] });
+        expect(selectCampaigns(state)).toEqual([]);
       });
 
-      it('returns true when snapshotsLoading is true', () => {
-        const state = createMockRootState({ snapshotsLoading: true });
-        expect(selectSnapshotsLoading(state)).toBe(true);
+      it('returns campaigns when they exist', () => {
+        const state = createMockRootState({ campaigns: [mockCampaign] });
+        expect(selectCampaigns(state)).toEqual([mockCampaign]);
       });
     });
   });
 
-  describe('selectSnapshotsError', () => {
-    it('returns false when there is no snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: false } };
+  describe('selectCampaignsLoading', () => {
+    it('returns false when campaigns are not loading', () => {
+      const mockState = { rewards: { campaignsLoading: false } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
       expect(result.current).toBe(false);
     });
 
-    it('returns true when there is a snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: true } };
+    it('returns true when campaigns are loading', () => {
+      const mockState = { rewards: { campaignsLoading: true } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
       expect(result.current).toBe(true);
     });
 
     describe('Direct selector calls', () => {
-      it('returns false when snapshotsError is false', () => {
-        const state = createMockRootState({ snapshotsError: false });
-        expect(selectSnapshotsError(state)).toBe(false);
+      it('returns false when campaignsLoading is false', () => {
+        const state = createMockRootState({ campaignsLoading: false });
+        expect(selectCampaignsLoading(state)).toBe(false);
       });
 
-      it('returns true when snapshotsError is true', () => {
-        const state = createMockRootState({ snapshotsError: true });
-        expect(selectSnapshotsError(state)).toBe(true);
+      it('returns true when campaignsLoading is true', () => {
+        const state = createMockRootState({ campaignsLoading: true });
+        expect(selectCampaignsLoading(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectCampaignsError', () => {
+    it('returns false when there is no campaigns error', () => {
+      const mockState = { rewards: { campaignsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a campaigns error', () => {
+      const mockState = { rewards: { campaignsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when campaignsError is false', () => {
+        const state = createMockRootState({ campaignsError: false });
+        expect(selectCampaignsError(state)).toBe(false);
+      });
+
+      it('returns true when campaignsError is true', () => {
+        const state = createMockRootState({ campaignsError: true });
+        expect(selectCampaignsError(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectCampaignParticipantStatuses', () => {
+    it('returns empty object when no statuses exist', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual({});
+    });
+
+    it('returns all participant statuses', () => {
+      const statuses = {
+        'campaign-1': { optedIn: true, participantCount: 42 },
+        'campaign-2': { optedIn: false, participantCount: 0 },
+      };
+      const state = createMockRootState({
+        campaignParticipantStatuses: statuses,
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual(statuses);
+    });
+  });
+
+  describe('selectCampaignParticipantStatusById', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantStatusById(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantStatusById('campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns status for a specific campaign', () => {
+      const status = { optedIn: true, participantCount: 42 };
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': status,
+        },
+      });
+      expect(selectCampaignParticipantStatusById('campaign-1')(state)).toEqual(
+        status,
+      );
+    });
+  });
+
+  describe('selectCampaignParticipantCount', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBeNull();
+    });
+
+    it('returns participantCount for a specific campaign', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(42);
+    });
+
+    it('returns 0 when participantCount is zero', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
+    });
+  });
+
+  describe('version guard selectors', () => {
+    it('selectVersionGuardMinimumMobileVersion returns minimum version', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: '7.30.0',
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBe('7.30.0');
+    });
+
+    it('selectVersionGuardMinimumMobileVersion returns null when not set', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: null,
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
+    it('selectVersionGuardLoading returns loading state', () => {
+      const state = createMockRootState({ versionGuardLoading: true });
+      expect(selectVersionGuardLoading(state)).toBe(true);
+    });
+
+    it('selectVersionGuardError returns error state', () => {
+      const state = createMockRootState({ versionGuardError: true });
+      expect(selectVersionGuardError(state)).toBe(true);
+    });
+
+    describe('selectIsRewardsVersionBlocked', () => {
+      let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+      beforeEach(() => {
+        mockHasMinimumRequiredVersion = jest.spyOn(
+          remoteFeatureFlagModule,
+          'hasMinimumRequiredVersion',
+        );
+      });
+
+      afterEach(() => {
+        mockHasMinimumRequiredVersion?.mockRestore();
+      });
+
+      it('returns false when minimumMobileVersion is null', () => {
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: null,
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns false when current version meets minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '7.50.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns true when current version is below minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '99.0.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(true);
       });
     });
   });

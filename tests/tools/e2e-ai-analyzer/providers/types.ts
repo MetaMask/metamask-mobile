@@ -71,12 +71,21 @@ export interface LLMRequest {
 }
 
 /**
+ * Token usage for a single API call
+ */
+export interface LLMUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
+/**
  * Response from creating a message/completion
  */
 export interface LLMResponse {
   content: LLMContentBlock[];
   model: string;
   stopReason: string;
+  usage?: LLMUsage;
 }
 
 /**
@@ -85,4 +94,5 @@ export interface LLMResponse {
 export interface ProviderConfig {
   model: string;
   envKey: string;
+  baseUrl?: string;
 }

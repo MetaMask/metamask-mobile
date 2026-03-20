@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 
 // Mock external dependencies
@@ -76,25 +77,6 @@ jest.mock('./TokenListItem/TokenListItem', () => ({
   },
 }));
 
-jest.mock('./TokenListItemV2/TokenListItemV2', () => ({
-  TokenListItemV2: ({ assetKey }: { assetKey: { address: string } }) => {
-    const React = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-    return React.createElement(
-      View,
-      { testID: `token-item-v2-${assetKey.address}` },
-      React.createElement(Text, null, `Token V2: ${assetKey.address}`),
-    );
-  },
-}));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenListLayout',
-  () => ({
-    selectTokenListLayoutV2Enabled: jest.fn(() => false),
-  }),
-);
-
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => ({
   Box: ({
@@ -161,9 +143,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseAnalytics = useAnalytics as jest.MockedFunction<
-  typeof useAnalytics
->;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 
 const mockTokenKeys = [
   {
@@ -195,19 +175,14 @@ describe('TokenList', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    mockUseAnalytics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getAnalyticsId: jest.fn(),
-    });
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        // The real builder is needed so build() produces the correct event shape
+        // for assertions on trackEvent call arguments.
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
 
     // Mock useSelector to call the selector function with empty state
     mockUseSelector.mockImplementation((selector) => selector({}));

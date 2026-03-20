@@ -3,7 +3,7 @@ import AppConstants from '../AppConstants';
 import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 
-// eslint-disable-next-line import/no-nodejs-modules, import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+// eslint-disable-next-line import-x/no-nodejs-modules, import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const EventEmitter = require('events').EventEmitter;
 
 const { NOTIFICATION_NAMES } = AppConstants;
@@ -21,7 +21,9 @@ class WalletConnectPort extends EventEmitter {
   postMessage = (msg: any) => {
     try {
       if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
-        const { selectedAddress } = Engine.context.PreferencesController.state;
+        const { internalAccounts } = Engine.context.AccountsController.state;
+        const selectedAddress =
+          internalAccounts.accounts[internalAccounts.selectedAccount]?.address;
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(msg.data.params.chainId, 16),
           accounts: [selectedAddress],

@@ -15,9 +15,11 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'BackendWebSocketService',
   'AccountActivityService',
   'MultichainAccountService',
+  'GeolocationApiService',
   'ProfileMetricsService',
   'RampsService',
   'TransakService',
+  'ComplianceService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -32,6 +34,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
+  'GeolocationController:stateChange',
   'KeyringController:stateChange',
   'LoggingController:stateChange',
   'NetworkController:stateChange',
@@ -83,8 +86,10 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: END:ONLY_INCLUDE_IF
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
+  'CardController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
+  'ComplianceController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

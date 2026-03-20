@@ -5,7 +5,7 @@ import DeFiPositionsList from './DeFiPositionsList';
 import { RootState } from '../../../reducers';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -27,6 +27,20 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      listPopularEvmNetworks: jest.fn(() => ['0x1']),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+    },
+  },
 }));
 
 const MOCK_ADDRESS_1 = '0x0000000000000000000000000000000000000001';
@@ -564,40 +578,19 @@ describe('DeFiPositionsList', () => {
     beforeEach(() => {
       mockTrackEvent = jest.fn();
       mockAddProperties = jest.fn().mockReturnThis();
-      jest.mocked(useAnalytics).mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: jest.fn(() => {
-          const mockEvent: AnalyticsTrackingEvent = {
-            name: '',
-            properties: {},
-            sensitiveProperties: {},
-            saveDataRecording: false,
-            get isAnonymous(): boolean {
-              return false;
-            },
-            get hasProperties(): boolean {
-              return false;
-            },
-          };
-          return {
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
             addProperties: mockAddProperties,
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
             setSaveDataRecording: jest.fn().mockReturnThis(),
-            build: jest.fn(() => mockEvent),
-          };
+            build: jest.fn(),
+          }),
         }),
-        isEnabled: jest.fn(),
-        enable: jest.fn(),
-        addTraitsToUser: jest.fn(),
-        createDataDeletionTask: jest.fn(),
-        checkDataDeleteStatus: jest.fn(),
-        getDeleteRegulationCreationDate: jest.fn(),
-        getDeleteRegulationId: jest.fn(),
-        isDataRecorded: jest.fn(),
-        getAnalyticsId: jest.fn(),
-      });
+      );
     });
 
     it('tracks Position Screen Viewed when isFullView is true and positions are loaded', async () => {

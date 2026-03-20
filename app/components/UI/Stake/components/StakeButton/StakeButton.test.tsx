@@ -9,7 +9,7 @@ import {
   MOCK_USDC_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 import { mockNetworkState } from '../../../../../util/test/network';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
@@ -90,19 +90,7 @@ jest.mock('../../../../../selectors/earnController/earn', () => ({
   },
 }));
 
-(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
-  trackEvent: jest.fn(),
-  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getAnalyticsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {

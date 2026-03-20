@@ -5,12 +5,17 @@ import {
   OnboardingActionTypes,
   SAVE_EVENT,
   SET_COMPLETED_ONBOARDING,
+  SET_ACCOUNT_TYPE,
+  CLEAR_ACCOUNT_TYPE,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
+import { AccountType } from '../../constants/onboarding';
 
 export interface OnboardingState {
   events: [ITrackingEvent][];
   completedOnboarding: boolean;
+  accountType?: AccountType;
+  onboardingVersion?: string;
 }
 
 export const initialOnboardingState: OnboardingState = {
@@ -42,6 +47,18 @@ const onboardingReducer = (
       return {
         ...state,
         completedOnboarding: action.completedOnboarding,
+      };
+    case SET_ACCOUNT_TYPE:
+      return {
+        ...state,
+        accountType: action.accountType,
+        onboardingVersion: action.onboardingVersion,
+      };
+    case CLEAR_ACCOUNT_TYPE:
+      return {
+        ...state,
+        accountType: undefined,
+        onboardingVersion: undefined,
       };
     default:
       return state;

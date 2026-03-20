@@ -586,16 +586,20 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 1
                                   </Text>
@@ -677,6 +681,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -716,16 +721,20 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 2 (optional)
                                   </Text>
@@ -807,6 +816,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -842,16 +852,20 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       City
                                     </Text>
@@ -932,6 +946,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -973,16 +988,20 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       State/Region
                                     </Text>
@@ -1094,16 +1113,20 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Postal code
                                     </Text>
@@ -1185,6 +1208,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -1226,16 +1250,20 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Country
                                     </Text>
@@ -2107,16 +2135,20 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 1
                                   </Text>
@@ -2222,16 +2254,20 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 2 (optional)
                                   </Text>
@@ -2348,16 +2384,20 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       City
                                     </Text>
@@ -2464,16 +2504,20 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       State/Region
                                     </Text>
@@ -2562,16 +2606,20 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Postal code
                                     </Text>
@@ -2679,16 +2727,20 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Country
                                     </Text>
@@ -3560,16 +3612,20 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 1
                                   </Text>
@@ -3651,6 +3707,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -3675,16 +3732,20 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 2 (optional)
                                   </Text>
@@ -3766,6 +3827,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -3801,16 +3863,20 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       City
                                     </Text>
@@ -3891,6 +3957,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -3917,16 +3984,20 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       State/Region
                                     </Text>
@@ -4023,16 +4094,20 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Postal code
                                     </Text>
@@ -4114,6 +4189,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -4140,16 +4216,20 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Country
                                     </Text>
@@ -5021,16 +5101,20 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 1
                                   </Text>
@@ -5112,6 +5196,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -5136,16 +5221,20 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        {
+                                          "marginBottom": 6,
+                                        },
+                                      ]
                                     }
-                                    testID="label"
                                   >
                                     Address line 2 (optional)
                                   </Text>
@@ -5227,6 +5316,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -5262,16 +5352,20 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       City
                                     </Text>
@@ -5352,6 +5446,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5378,16 +5473,20 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       State/Region
                                     </Text>
@@ -5468,6 +5567,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5504,16 +5604,20 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Postal code
                                     </Text>
@@ -5595,6 +5699,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5621,16 +5726,20 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          {
+                                            "marginBottom": 6,
+                                          },
+                                        ]
                                       }
-                                      testID="label"
                                     >
                                       Country
                                     </Text>

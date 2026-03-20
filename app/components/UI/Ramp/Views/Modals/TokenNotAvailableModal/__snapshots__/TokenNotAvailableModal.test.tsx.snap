@@ -320,11 +320,11 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
                             "flexDirection": "row",
                             "gap": 16,
                             "minHeight": 56,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                           },
                           false,
-                          {
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                         ]
                       }
                       testID="header"
@@ -348,58 +348,109 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
                           ]
                         }
                       >
-                        <Text
-                          accessibilityRole="text"
+                        <View
                           style={
-                            {
-                              "color": "#131416",
-                              "fontFamily": "Geist-Bold",
-                              "fontSize": 20,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                              },
+                              undefined,
+                            ]
                           }
                         >
-                          Not available
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            Not available
+                          </Text>
+                        </View>
                       </View>
                       <View>
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
-                            accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
+                          <View
+                            accessibilityState={
                               {
-                                "alignItems": "center",
-                                "borderRadius": 8,
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 32,
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
                               }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                  "width": 32,
+                                },
+                                undefined,
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
                             }
                             testID="bottomsheetheader-close-button"
                           >
                             <SvgMock
-                              color="#131416"
                               fill="currentColor"
-                              height={24}
                               name="Close"
                               style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "height": 24,
+                                    "width": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
-                              width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -414,13 +465,17 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
                       <Text
                         accessibilityRole="text"
                         style={
-                          {
-                            "color": "#66676a",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 16,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          }
+                          [
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "fontWeight": 400,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                         USD Coin is not available with Transak in your region.
@@ -443,45 +498,93 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
                           }
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Change token"
                           accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
+                          accessibilityState={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "stretch",
-                              "backgroundColor": "#b4b4b528",
-                              "borderColor": "transparent",
-                              "borderRadius": 12,
-                              "borderWidth": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
                             }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#b4b4b528",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
                           }
                           testID="token-unavailable-change-token-button"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#131416",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Change token
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                       <View
                         style={
@@ -490,43 +593,91 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
                           }
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Change provider"
                           accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
+                          accessibilityState={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "stretch",
-                              "backgroundColor": "#131416",
-                              "borderRadius": 12,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
                             }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
                           }
                           testID="token-unavailable-change-provider-button"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#ffffff",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Change provider
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -861,11 +1012,11 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
                             "flexDirection": "row",
                             "gap": 16,
                             "minHeight": 56,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                           },
                           false,
-                          {
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                         ]
                       }
                       testID="header"
@@ -889,58 +1040,109 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
                           ]
                         }
                       >
-                        <Text
-                          accessibilityRole="text"
+                        <View
                           style={
-                            {
-                              "color": "#131416",
-                              "fontFamily": "Geist-Bold",
-                              "fontSize": 20,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                              },
+                              undefined,
+                            ]
                           }
                         >
-                          Not available
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            Not available
+                          </Text>
+                        </View>
                       </View>
                       <View>
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
-                            accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
+                          <View
+                            accessibilityState={
                               {
-                                "alignItems": "center",
-                                "borderRadius": 8,
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 32,
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
                               }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                  "width": 32,
+                                },
+                                undefined,
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
                             }
                             testID="bottomsheetheader-close-button"
                           >
                             <SvgMock
-                              color="#131416"
                               fill="currentColor"
-                              height={24}
                               name="Close"
                               style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "height": 24,
+                                    "width": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
-                              width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -955,13 +1157,17 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
                       <Text
                         accessibilityRole="text"
                         style={
-                          {
-                            "color": "#66676a",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 16,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          }
+                          [
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "fontWeight": 400,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                          is not available with  in your region.
@@ -984,45 +1190,93 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
                           }
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Change token"
                           accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
+                          accessibilityState={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "stretch",
-                              "backgroundColor": "#b4b4b528",
-                              "borderColor": "transparent",
-                              "borderRadius": 12,
-                              "borderWidth": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
                             }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#b4b4b528",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
                           }
                           testID="token-unavailable-change-token-button"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#131416",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Change token
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                       <View
                         style={
@@ -1031,43 +1285,91 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
                           }
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Change provider"
                           accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
+                          accessibilityState={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "stretch",
-                              "backgroundColor": "#131416",
-                              "borderRadius": 12,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
                             }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
                           }
                           testID="token-unavailable-change-provider-button"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#ffffff",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Change provider
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </View>
                   </View>
