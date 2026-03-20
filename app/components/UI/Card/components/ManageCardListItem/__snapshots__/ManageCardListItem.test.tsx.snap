@@ -369,13 +369,17 @@ exports[`ManageCardListItem Component renders with React.ReactNode description a
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Title with React Node
@@ -770,13 +774,17 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Custom Title
@@ -784,13 +792,17 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
+                                  [
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Custom description
@@ -1213,13 +1225,17 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Custom Icon Test
@@ -1227,13 +1243,17 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
+                                  [
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Should use Edit icon
@@ -1656,13 +1676,17 @@ exports[`ManageCardListItem Component renders with required props and matches sn
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Test Title
@@ -1670,13 +1694,17 @@ exports[`ManageCardListItem Component renders with required props and matches sn
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
+                                  [
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Test description
@@ -2067,13 +2095,17 @@ exports[`ManageCardListItem Component renders without right icon when rightIcon 
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 No Icon Test
@@ -2081,13 +2113,17 @@ exports[`ManageCardListItem Component renders without right icon when rightIcon 
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
+                                  [
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Should render without any right icon
