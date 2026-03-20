@@ -398,6 +398,28 @@ describe('useRewardCampaigns', () => {
       });
     });
 
+    it('sorts active by startDate ascending', () => {
+      const activeLater = createTestCampaign({
+        id: 'active-2',
+        startDate: '2022-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const activeEarlier = createTestCampaign({
+        id: 'active-1',
+        startDate: '2021-01-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [activeLater, activeEarlier],
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.categorizedCampaigns.active[0].id).toBe('active-1');
+      expect(result.current.categorizedCampaigns.active[1].id).toBe('active-2');
+    });
+
     it('sorts upcoming by startDate ascending', () => {
       const upcomingLater = createTestCampaign({
         id: 'upcoming-2',

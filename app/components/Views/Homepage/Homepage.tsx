@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
+import WhatsHappeningSection from './Sections/WhatsHappening';
 import PerpsSection from './Sections/Perpetuals';
 import PredictionsSection from './Sections/Predictions';
 import DeFiSection from './Sections/DeFi';
@@ -19,6 +20,7 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
@@ -33,6 +35,7 @@ import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetwor
  */
 const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const tokensSectionRef = useRef<SectionRefreshHandle>(null);
+  const whatsHappeningSectionRef = useRef<SectionRefreshHandle>(null);
   const perpsSectionRef = useRef<SectionRefreshHandle>(null);
   const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
   const defiSectionRef = useRef<SectionRefreshHandle>(null);
@@ -41,6 +44,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isMusdConversionEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
@@ -70,10 +74,20 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
         { name: HomeSectionNames.TOKENS, enabled: true },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        {
+          name: HomeSectionNames.WHATS_HAPPENING,
+          enabled: isWhatsHappeningEnabled,
+        },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled),
-    [isCashSectionEnabled, isPerpsEnabled, isPredictEnabled, isDeFiEnabled],
+    [
+      isCashSectionEnabled,
+      isWhatsHappeningEnabled,
+      isPerpsEnabled,
+      isPredictEnabled,
+      isDeFiEnabled,
+    ],
   );
 
   const totalSectionsLoaded = enabledSections.length;
@@ -89,6 +103,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const refresh = useCallback(async () => {
     await Promise.allSettled([
       tokensSectionRef.current?.refresh(),
+      whatsHappeningSectionRef.current?.refresh(),
       perpsSectionRef.current?.refresh(),
       predictionsSectionRef.current?.refresh(),
       defiSectionRef.current?.refresh(),
@@ -122,6 +137,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       <PredictionsSection
         ref={predictionsSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+      <WhatsHappeningSection
+        ref={whatsHappeningSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <DeFiSection

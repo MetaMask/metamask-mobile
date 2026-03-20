@@ -19,6 +19,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ProfileMetricsService',
   'RampsService',
   'TransakService',
+  'ComplianceService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -88,6 +89,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'CardController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
+  'ComplianceController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [
