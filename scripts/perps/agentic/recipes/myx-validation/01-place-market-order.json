@@ -1,0 +1,48 @@
+{
+  "title": "MYX: Place Market Order",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "MYX testnet enabled",
+        "Sufficient USDC balance"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "recipe_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "pre-snapshot",
+          "description": "Snapshot position count before trade",
+          "action": "recipe_ref",
+          "ref": "myx/pre-trade"
+        },
+        {
+          "id": "place-order",
+          "description": "Place market buy on first MYX market (0.05 size, 10x leverage)",
+          "action": "recipe_ref",
+          "ref": "myx/place-order",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-confirmation",
+          "description": "Wait for on-chain confirmation",
+          "action": "wait",
+          "ms": 5000
+        },
+        {
+          "id": "post-snapshot",
+          "description": "Verify at least one position exists after trade",
+          "action": "recipe_ref",
+          "ref": "myx/post-trade",
+          "assert": { "operator": "gt", "field": "positionCount", "value": 0 }
+        }
+      ]
+    }
+  }
+}

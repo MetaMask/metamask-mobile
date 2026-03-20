@@ -182,8 +182,14 @@ while IFS= read -r sj; do
       ;;
     recipe_ref)
       REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
-      echo "  -> recipe perps/$REF"
-      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" recipe "perps/$REF" 2>/dev/null)
+      # If ref already has team/ prefix (e.g. myx/auth), use as-is; otherwise prepend perps/
+      if [[ "$REF" == */* ]]; then
+        FULL_REF="$REF"
+      else
+        FULL_REF="perps/$REF"
+      fi
+      echo "  -> recipe $FULL_REF"
+      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" recipe "$FULL_REF" 2>/dev/null)
       ;;
     log_watch)
       WS=$(node -p "JSON.parse(process.argv[1]).window_seconds||10" "$sj")

@@ -7,7 +7,9 @@
     "account": "npx tsx showAccount.ts",
     "orders": "npx tsx listOrders.ts",
     "place": "npx tsx placeOrder.ts",
-    "close": "npx tsx closeOrder.ts"
+    "close": "npx tsx closeOrder.ts",
+    "edit": "npx tsx editOrder.ts",
+    "margin": "npx tsx addMargin.ts"
   },
   "dependencies": {}
 }

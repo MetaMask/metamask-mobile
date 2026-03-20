@@ -1,0 +1,62 @@
+{
+  "title": "MYX: Place Order + Close All Positions",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "MYX testnet enabled",
+        "Sufficient USDC balance"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "recipe_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "place-order",
+          "description": "Place market buy order",
+          "action": "recipe_ref",
+          "ref": "myx/place-order",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-fill",
+          "description": "Wait for order fill and position creation",
+          "action": "wait",
+          "ms": 5000
+        },
+        {
+          "id": "verify-position",
+          "description": "Confirm at least one position exists",
+          "action": "recipe_ref",
+          "ref": "myx/positions",
+          "assert": { "operator": "length_gt", "field": "", "value": 0 }
+        },
+        {
+          "id": "close-all",
+          "description": "Batch close all MYX positions",
+          "action": "recipe_ref",
+          "ref": "myx/close-all-positions",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-close",
+          "description": "Wait for close tx confirmations",
+          "action": "wait",
+          "ms": 5000
+        },
+        {
+          "id": "verify-empty",
+          "description": "Verify zero MYX positions remain",
+          "action": "recipe_ref",
+          "ref": "myx/positions",
+          "assert": { "operator": "length_eq", "field": "", "value": 0 }
+        }
+      ]
+    }
+  }
+}

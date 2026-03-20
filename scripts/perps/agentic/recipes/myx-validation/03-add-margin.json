@@ -1,0 +1,43 @@
+{
+  "title": "MYX: Add Margin to Position",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "MYX testnet enabled",
+        "At least one open MYX position (recipe will place one if needed)",
+        "Sufficient USDC balance for $10 margin addition"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "recipe_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "ensure-position",
+          "description": "Check for existing positions, place order if none",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;return c.getPositions().then(function(r){var myx=r.filter(function(p){return p.providerId==='myx'});if(myx.length>0)return JSON.stringify({action:'existing',positionCount:myx.length});return c.getMarketDataWithPrices().then(function(markets){var m=markets.filter(function(x){return x.providerId==='myx'})[0];if(!m)return JSON.stringify({error:'no MYX markets'});return c.placeOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:'0.05',leverage:10,usdAmount:'120',maxSlippageBps:500,currentPrice:parseFloat(m.price)}).then(function(){return JSON.stringify({action:'placed',positionCount:1})})})})})()",
+          "assert": { "operator": "not_null", "field": "positionCount" }
+        },
+        {
+          "id": "wait-position",
+          "description": "Wait for position to settle",
+          "action": "wait",
+          "ms": 5000
+        },
+        {
+          "id": "add-margin",
+          "description": "Add $10 margin to first MYX position",
+          "action": "recipe_ref",
+          "ref": "myx/add-margin",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        }
+      ]
+    }
+  }
+}
