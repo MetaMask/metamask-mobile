@@ -59,13 +59,13 @@ class SolanaTestDApp {
 
   get confirmTransactionButtonSelector(): WebElement {
     return Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
   get confirmSignMessageButtonSelector(): WebElement {
     return Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
@@ -182,11 +182,15 @@ class SolanaTestDApp {
   }
 
   async confirmTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
+    await Gestures.waitAndTap(this.confirmTransactionButtonSelector, {
+      elemDescription: 'Solana transaction confirmation Confirm button',
+    });
   }
 
   async confirmSignMessage(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
+    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector, {
+      elemDescription: 'Solana sign message confirmation Confirm button',
+    });
   }
 
   async tapCancelButton(): Promise<void> {

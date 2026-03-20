@@ -139,7 +139,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
         await ActivitiesView.tapOnPredictionsTab();
 
         for (const position of POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE) {
-          await ActivitiesView.tapPredictPosition(position.title);
+          await ActivitiesView.tapPredictActivityRow(position.transactionHash);
           await Assertions.expectElementToBeVisible(
             PredictActivityDetails.container,
             {

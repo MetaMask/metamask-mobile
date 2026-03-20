@@ -11,6 +11,7 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import { PredictActivitySelectorsIDs } from '../../../app/components/UI/Predict/components/PredictActivity/PredictActivity.testIds';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -156,6 +157,21 @@ class ActivitiesView {
     const el = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(el, {
       elemDescription: `Tapping Predict Position: ${positionName}`,
+    });
+  }
+
+  /**
+   * Tap a Predictions activity row by stable id (matches PredictActivity testID).
+   * Prefer this over {@link tapPredictPosition} — SectionList may not mount
+   * off-screen rows, so by.text can time out even when data exists.
+   */
+  async tapPredictActivityRow(activityId: string): Promise<void> {
+    const el = Matchers.getElementByID(
+      PredictActivitySelectorsIDs.row(activityId),
+    );
+    await Gestures.waitAndTap(el, {
+      elemDescription: `Tapping Predict activity row: ${activityId}`,
+      timeout: 30000,
     });
   }
 

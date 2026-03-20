@@ -53,7 +53,7 @@ class TestSnaps {
 
   get solanaConfirmButton(): DetoxElement {
     return Matchers.getElementByID(
-      'confirm-sign-message-confirm-snap-footer-button',
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 

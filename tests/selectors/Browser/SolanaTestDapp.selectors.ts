@@ -3,10 +3,6 @@
  */
 export interface SolanaTestDappWebIDs {
   WALLET_BUTTON: string;
-  CONFIRM_TRANSACTION_BUTTON: string;
-  CANCEL_TRANSACTION_BUTTON: string;
-  CONFIRM_SIGN_MESSAGE_BUTTON: string;
-  CANCEL_SIGN_MESSAGE_BUTTON: string;
 }
 
 /**
@@ -14,13 +10,6 @@ export interface SolanaTestDappWebIDs {
  */
 export const SolanaTestDappSelectorsWebIDs: SolanaTestDappWebIDs = {
   WALLET_BUTTON: '.wallet-adapter-modal-list .wallet-adapter-button', // Important space between classes to indicate a parent-child relationship
-  CONFIRM_TRANSACTION_BUTTON:
-    'confirm-sign-and-send-transaction-confirm-snap-footer-button',
-  CANCEL_TRANSACTION_BUTTON:
-    'confirm-sign-and-send-transaction-cancel-snap-footer-button',
-  CONFIRM_SIGN_MESSAGE_BUTTON:
-    'confirm-sign-message-confirm-snap-footer-button',
-  CANCEL_SIGN_MESSAGE_BUTTON: 'confirm-sign-message-cancel-snap-footer-button',
 };
 
 /**
