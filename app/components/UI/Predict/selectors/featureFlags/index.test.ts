@@ -929,15 +929,15 @@ describe('Predict Feature Flag Selectors', () => {
   });
 
   describe('selectPredictWithAnyTokenEnabledFlag', () => {
-    it('returns true regardless of remote flag state (hardcoded)', () => {
+    it('returns false when remote flags are empty (version-gated default)', () => {
       const result = selectPredictWithAnyTokenEnabledFlag(
         mockedEmptyFlagsState,
       );
 
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
-    it('returns true even when controller is undefined', () => {
+    it('returns false when controller is undefined', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -948,7 +948,7 @@ describe('Predict Feature Flag Selectors', () => {
 
       const result = selectPredictWithAnyTokenEnabledFlag(state);
 
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
   });
 

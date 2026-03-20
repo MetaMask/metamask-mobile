@@ -16,10 +16,18 @@ let mockActiveOrder: {
 } | null = null;
 let mockIsPredictBalanceSelected = true;
 
+const mockAddListener = jest.fn(
+  (_event: string, callback: (e: { data: { closing: boolean } }) => void) => {
+    callback({ data: { closing: false } });
+    return jest.fn();
+  },
+);
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     dispatch: mockDispatch,
+    addListener: mockAddListener,
   }),
 }));
 

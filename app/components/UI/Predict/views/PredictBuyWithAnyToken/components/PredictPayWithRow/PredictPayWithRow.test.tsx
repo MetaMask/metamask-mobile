@@ -140,7 +140,6 @@ describe('PredictPayWithRow', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
-      { isPredictContext: true },
     );
   });
 
