@@ -31,19 +31,14 @@ const EVM_ETH_ASSET = {
   rawBalance: '0x1BC16D674EC80000', // 2 ETH
 };
 
-/** A valid non-burn EVM address usable as send recipient in tests. */
 const VALID_EVM_RECIPIENT = '0x0000000000000000000000000000000000000002';
-/** A distinct address used as a token contract in the alert modal test.
- *  Must differ from VALID_EVM_RECIPIENT to avoid lodash memoize cache collisions. */
 const TOKEN_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000003';
 
 describeForPlatforms('Send', () => {
   describe('Non-EVM', () => {
-    /**
-     * Regression test for Issue #22789 and related to #23251
-     * TRON send flow: selecting a destination account must move the flow forward
-     * (previously it stayed on the recipient list and did not navigate).
-     */
+    // Regression test for Issue #22789 and related to #23251
+    // TRON send flow: selecting a destination account must move the flow forward
+    // (previously it stayed on the recipient list and did not navigate).
     it('TRON send: selecting destination account updates selection', async () => {
       const { tronOverrides, recipientAddresses } = buildTronSendFixture();
 
@@ -263,7 +258,13 @@ describeForPlatforms('Send', () => {
       // Resetting here ensures any one-time override from a previous test is cleared.
       const engineMock = jest.requireMock(
         '../../../../../../app/core/Engine',
-      ) as unknown as { default: { context: { AssetsContractController: { getTokenStandardAndDetails: jest.Mock } } } };
+      ) as unknown as {
+        default: {
+          context: {
+            AssetsContractController: { getTokenStandardAndDetails: jest.Mock };
+          };
+        };
+      };
       engineMock.default.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValue(
         {},
       );
@@ -354,12 +355,17 @@ describeForPlatforms('Send', () => {
     it('Recipient: token contract address opens alert modal; cancel closes it', async () => {
       const engineMock = jest.requireMock(
         '../../../../../../app/core/Engine',
-      ) as unknown as { default: { context: { AssetsContractController: { getTokenStandardAndDetails: jest.Mock } } } };
+      ) as unknown as {
+        default: {
+          context: {
+            AssetsContractController: { getTokenStandardAndDetails: jest.Mock };
+          };
+        };
+      };
       engineMock.default.context.AssetsContractController.getTokenStandardAndDetails.mockImplementation(
         (tokenAddress: string) => {
           if (
-            tokenAddress?.toLowerCase() ===
-            TOKEN_CONTRACT_ADDRESS.toLowerCase()
+            tokenAddress?.toLowerCase() === TOKEN_CONTRACT_ADDRESS.toLowerCase()
           ) {
             return Promise.resolve({
               standard: 'ERC20',
@@ -408,7 +414,9 @@ describeForPlatforms('Send', () => {
         ),
       ).toBeOnTheScreen();
 
-      fireEvent.press(screen.getByTestId(SendAlertModalSelectorIDs.CANCEL_BUTTON));
+      fireEvent.press(
+        screen.getByTestId(SendAlertModalSelectorIDs.CANCEL_BUTTON),
+      );
 
       await waitFor(
         () =>
@@ -451,7 +459,11 @@ describeForPlatforms('Send', () => {
 
       // Finding the button by its error label is sufficient — it proves the error state is shown
       expect(
-        await findByRole('button', { name: 'Insufficient funds' }, { timeout: 5000 }),
+        await findByRole(
+          'button',
+          { name: 'Insufficient funds' },
+          { timeout: 5000 },
+        ),
       ).toBeOnTheScreen();
     });
   });
