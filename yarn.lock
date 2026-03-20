@@ -7629,15 +7629,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/ai-controllers@npm:0.3.0"
+"@metamask/ai-controllers@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/ai-controllers@npm:0.4.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/a1a4655243a5de34378aad291a34a1b5bf441b186b9e541083bc870ee65bb3244c31e45d84ec3a24bcf8f36452408f3518445939bd450304feaacfcadffb51f5
+  checksum: 10/b51e15821dd62c6b15dc2c1efe6da56f4467b81ee8e7ff7df5f38c429d8b47162ee918e94a5713fe55902390f75a4cb6672813f4e103e8b348fca624dd27c467
   languageName: node
   linkType: hard
 
@@ -8706,9 +8706,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0":
-  version: 21.5.0
-  resolution: "@metamask/keyring-api@npm:21.5.0"
+"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0, @metamask/keyring-api@npm:^21.6.0":
+  version: 21.6.0
+  resolution: "@metamask/keyring-api@npm:21.6.0"
   dependencies:
     "@ethereumjs/tx": "npm:^5.4.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
@@ -8719,7 +8719,7 @@ __metadata:
     async-mutex: "npm:^0.5.0"
     bitcoin-address-validation: "npm:^2.2.3"
     uuid: "npm:^9.0.1"
-  checksum: 10/a7f2a8c66bc76edabde15b66b80904208b71fd62406ebb91579db4c65d74a8f66db6c610afe265823313df7423b6727a4de03cb1f43e41d840d51a5039f9ef4d
+  checksum: 10/ecd482ec83fbdb16da5f0c548db29931edd4718c57550547aed9f3532c8e60ec39a6894571c96a819e5f205e53ec149e6b52710194ac0610960aa51834f15dd8
   languageName: node
   linkType: hard
 
@@ -35528,7 +35528,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^5.0.0"
     "@metamask/accounts-controller": "npm:^37.0.0"
     "@metamask/address-book-controller": "npm:^7.1.0"
-    "@metamask/ai-controllers": "npm:^0.3.0"
+    "@metamask/ai-controllers": "npm:^0.4.0"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
@@ -35579,7 +35579,7 @@ __metadata:
     "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
-    "@metamask/keyring-api": "npm:^21.5.0"
+    "@metamask/keyring-api": "npm:^21.6.0"
     "@metamask/keyring-controller": "npm:^25.0.0"
     "@metamask/keyring-internal-api": "npm:^10.0.0"
     "@metamask/keyring-snap-client": "npm:^8.1.0"
