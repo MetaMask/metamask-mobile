@@ -457,26 +457,14 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPayFeesLoading).toBe(true);
     });
 
-    it('returns true when activeOrder state is REDIRECTING', () => {
-      mockActiveOrder = { state: ActiveOrderState.REDIRECTING };
+    it('returns false when activeOrder state does not affect pay fees loading', () => {
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
 
       const { result } = renderHook(() =>
         usePredictBuyConditions(defaultParams),
       );
 
-      expect(result.current.isPayFeesLoading).toBe(true);
-    });
-
-    it('returns true when activeOrder state is CALLING_PAY_WITH_ANY_TOKEN', () => {
-      mockActiveOrder = {
-        state: ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
-      };
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions(defaultParams),
-      );
-
-      expect(result.current.isPayFeesLoading).toBe(true);
+      expect(result.current.isPayFeesLoading).toBe(false);
     });
   });
 

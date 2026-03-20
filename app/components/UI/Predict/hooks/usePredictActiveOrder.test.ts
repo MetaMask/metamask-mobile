@@ -10,8 +10,6 @@ jest.mock('../../../../core/Engine', () => ({
       clearActiveOrder: jest.fn(),
       clearOrderError: jest.fn(),
       initializeOrder: jest.fn(),
-      setOrderAmount: jest.fn(),
-      setOrderInputFocused: jest.fn(),
     },
   },
 }));
@@ -120,20 +118,6 @@ describe('usePredictActiveOrder', () => {
     });
   });
 
-  describe('setOrderAmount', () => {
-    it('delegates to PredictController.setOrderAmount', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.setOrderAmount(50);
-      });
-
-      expect(
-        Engine.context.PredictController.setOrderAmount,
-      ).toHaveBeenCalledWith(50);
-    });
-  });
-
   describe('clearOrderError', () => {
     it('delegates to PredictController.clearOrderError', () => {
       const { result } = renderHook(() => usePredictActiveOrder());
@@ -145,20 +129,6 @@ describe('usePredictActiveOrder', () => {
       expect(
         Engine.context.PredictController.clearOrderError,
       ).toHaveBeenCalled();
-    });
-  });
-
-  describe('setOrderInputFocused', () => {
-    it('delegates to PredictController.setOrderInputFocused', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.setOrderInputFocused(true);
-      });
-
-      expect(
-        Engine.context.PredictController.setOrderInputFocused,
-      ).toHaveBeenCalledWith(true);
     });
   });
 

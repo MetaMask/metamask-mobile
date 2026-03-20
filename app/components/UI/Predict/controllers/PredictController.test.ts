@@ -3621,13 +3621,12 @@ describe('PredictController', () => {
   });
 
   describe('initializeOrder', () => {
-    it('sets activeOrder to PREVIEW with isInputFocused', () => {
+    it('sets activeOrder to PREVIEW', () => {
       withController(({ controller }) => {
         controller.initializeOrder();
 
         expect(controller.state.activeOrder).toEqual({
           state: ActiveOrderState.PREVIEW,
-          isInputFocused: true,
         });
       });
     });
@@ -3660,7 +3659,6 @@ describe('PredictController', () => {
     it('resets any previous activeOrder state', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 100,
           state: ActiveOrderState.PLACING_ORDER,
           batchId: 'old-batch',
           error: 'old error',
@@ -3670,39 +3668,20 @@ describe('PredictController', () => {
 
         expect(controller.state.activeOrder).toEqual({
           state: ActiveOrderState.PREVIEW,
-          isInputFocused: true,
         });
       });
     });
   });
 
   describe('onConfirmOrder', () => {
-    it('clears error and sets state to DEPOSIT when isDeposit is true', () => {
+    it('clears error and sets state to PLACE_ORDER', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
           error: 'previous error',
         });
 
-        controller.onConfirmOrder({ isDeposit: true });
-
-        expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.DEPOSIT,
-        );
-        expect(controller.state.activeOrder?.error).toBeUndefined();
-      });
-    });
-
-    it('clears error and sets state to PLACE_ORDER when isDeposit is false', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.PREVIEW,
-          error: 'previous error',
-        });
-
-        controller.onConfirmOrder({ isDeposit: false });
+        controller.onConfirmOrder();
 
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.PLACE_ORDER,
@@ -3713,9 +3692,7 @@ describe('PredictController', () => {
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
-        expect(() =>
-          controller.onConfirmOrder({ isDeposit: true }),
-        ).not.toThrow();
+        expect(() => controller.onConfirmOrder()).not.toThrow();
       });
     });
   });
@@ -3791,7 +3768,6 @@ describe('PredictController', () => {
     it('clears error and transitions PAY_WITH_ANY_TOKEN to PREVIEW for balance token', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           batchId: 'batch-123',
           state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
           error: 'previous error',
@@ -3806,15 +3782,14 @@ describe('PredictController', () => {
         expect(controller.state.activeOrder?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeOrder?.batchId).toBeUndefined();
+        expect(controller.state.activeOrder?.batchId).toBe('batch-123');
         expect(controller.state.activeOrder?.error).toBeUndefined();
       });
     });
 
-    it('clears error and transitions PREVIEW to REDIRECTING for external token', () => {
+    it('clears error and transitions PREVIEW to PAY_WITH_ANY_TOKEN for external token', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.PREVIEW,
           error: 'old error',
         });
@@ -3826,7 +3801,7 @@ describe('PredictController', () => {
         );
 
         expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.REDIRECTING,
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
         expect(controller.state.activeOrder?.error).toBeUndefined();
         expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
@@ -3893,43 +3868,6 @@ describe('PredictController', () => {
     });
   });
 
-  describe('setOrderAmount', () => {
-    it('sets the amount on activeOrder', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 0,
-          state: ActiveOrderState.PREVIEW,
-        });
-
-        controller.setOrderAmount(50);
-
-        expect(controller.state.activeOrder?.amount).toBe(50);
-      });
-    });
-
-    it('preserves error when setting amount', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 0,
-          state: ActiveOrderState.PREVIEW,
-          error: 'some error',
-        });
-
-        controller.setOrderAmount(50);
-
-        expect(controller.state.activeOrder?.error).toBe('some error');
-      });
-    });
-
-    it('does not throw when activeOrder is null', () => {
-      withController(({ controller }) => {
-        expect(controller.state.activeOrder).toBeNull();
-
-        expect(() => controller.setOrderAmount(50)).not.toThrow();
-      });
-    });
-  });
-
   describe('clearOrderError', () => {
     it('clears error from activeOrder', () => {
       withController(({ controller }) => {
@@ -3984,62 +3922,6 @@ describe('PredictController', () => {
     });
   });
 
-  describe('setOrderInputFocused', () => {
-    it('sets isInputFocused on activeOrder', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.PREVIEW,
-          isInputFocused: false,
-        });
-
-        controller.setOrderInputFocused(true);
-
-        expect(controller.state.activeOrder?.isInputFocused).toBe(true);
-      });
-    });
-
-    it('sets isInputFocused to false', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.PREVIEW,
-          isInputFocused: true,
-        });
-
-        controller.setOrderInputFocused(false);
-
-        expect(controller.state.activeOrder?.isInputFocused).toBe(false);
-      });
-    });
-
-    it('does not throw when activeOrder is null', () => {
-      withController(({ controller }) => {
-        expect(controller.state.activeOrder).toBeNull();
-
-        expect(() => controller.setOrderInputFocused(true)).not.toThrow();
-      });
-    });
-
-    it('preserves other activeOrder properties', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.PREVIEW,
-          error: 'some error',
-        });
-
-        controller.setOrderInputFocused(true);
-
-        expect(controller.state.activeOrder?.amount).toBe(50);
-        expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
-        );
-        expect(controller.state.activeOrder?.error).toBe('some error');
-      });
-    });
-  });
-
   describe('onDepositOrder', () => {
     it('sets activeOrder state to DEPOSITING', () => {
       withController(({ controller }) => {
@@ -4056,24 +3938,9 @@ describe('PredictController', () => {
       });
     });
 
-    it('stores preview when provided', () => {
+    it('does not store preview (no preview param)', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.DEPOSIT,
-        });
-        const preview = { marketId: 'm1', side: Side.BUY } as OrderPreview;
-
-        controller.onDepositOrder(preview);
-
-        expect(controller.getAndClearDepositPreview()).toEqual(preview);
-      });
-    });
-
-    it('does not overwrite preview when called without one', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.DEPOSIT,
         });
 
@@ -4085,22 +3952,6 @@ describe('PredictController', () => {
   });
 
   describe('getAndClearDepositPreview', () => {
-    it('returns stored preview and clears it', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.DEPOSIT,
-        });
-        const preview = { marketId: 'm1', side: Side.BUY } as OrderPreview;
-        controller.onDepositOrder(preview);
-
-        const result = controller.getAndClearDepositPreview();
-
-        expect(result).toEqual(preview);
-        expect(controller.getAndClearDepositPreview()).toBeNull();
-      });
-    });
-
     it('returns null when no preview was stored', () => {
       withController(({ controller }) => {
         expect(controller.getAndClearDepositPreview()).toBeNull();
@@ -4109,17 +3960,16 @@ describe('PredictController', () => {
   });
 
   describe('onDepositOrderFailed', () => {
-    it('sets activeOrder state to REDIRECTING', () => {
+    it('sets activeOrder state to PREVIEW', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 50,
           state: ActiveOrderState.DEPOSITING,
         });
 
         controller.onDepositOrderFailed('Deposit failed');
 
         expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.REDIRECTING,
+          ActiveOrderState.PREVIEW,
         );
       });
     });
@@ -4166,152 +4016,16 @@ describe('PredictController', () => {
       });
     });
 
-    it('does not throw when activeOrder is null', () => {
+    it('does not throw state update when activeOrder is null', () => {
       withController(({ controller }) => {
+        // Mock initiPayWithAnyToken to prevent unhandled promise rejection
+        // (onDepositOrderFailed now calls initiPayWithAnyToken which requires activeOrder)
+        jest
+          .spyOn(controller, 'initiPayWithAnyToken')
+          .mockResolvedValue(undefined as never);
         expect(controller.state.activeOrder).toBeNull();
 
         expect(() => controller.onDepositOrderFailed('error')).not.toThrow();
-      });
-    });
-  });
-
-  describe('startPayWithAnyTokenConfirmation', () => {
-    it('sets activeOrder state to CALLING_PAY_WITH_ANY_TOKEN', () => {
-      withController(({ controller }) => {
-        jest
-          .spyOn(controller, 'payWithAnyTokenConfirmation')
-          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
-
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.REDIRECTING,
-          error: 'old error',
-        });
-
-        controller.startPayWithAnyTokenConfirmation();
-
-        expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
-        );
-        expect(controller.state.activeOrder?.error).toBeUndefined();
-      });
-    });
-
-    it('keeps activeOrder in CALLING state while waiting for approval request', async () => {
-      await withController(async ({ controller }) => {
-        jest
-          .spyOn(controller, 'payWithAnyTokenConfirmation')
-          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
-
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.REDIRECTING,
-        });
-
-        controller.startPayWithAnyTokenConfirmation();
-
-        expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
-        );
-      });
-    });
-
-    it('returns activeOrder to PREVIEW when confirmation batch creation fails', async () => {
-      await withController(async ({ controller }) => {
-        jest
-          .spyOn(controller, 'payWithAnyTokenConfirmation')
-          .mockRejectedValue(new Error('Deposit failed'));
-
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.REDIRECTING,
-        });
-
-        controller.startPayWithAnyTokenConfirmation();
-        await new Promise((resolve) => setImmediate(resolve));
-
-        expect(controller.state.activeOrder).toEqual({
-          amount: 50,
-          state: ActiveOrderState.PREVIEW,
-          error: 'Deposit failed',
-        });
-      });
-    });
-
-    it('does nothing when activeOrder is not REDIRECTING', () => {
-      withController(({ controller }) => {
-        jest.spyOn(controller, 'payWithAnyTokenConfirmation');
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.PREVIEW,
-        });
-
-        controller.startPayWithAnyTokenConfirmation();
-
-        expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
-        );
-        expect(controller.initiPayWithAnyToken).not.toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('onPayWithAnyTokenConfirmationReady', () => {
-    it('transitions from CALLING_PAY_WITH_ANY_TOKEN to PAY_WITH_ANY_TOKEN', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
-        });
-
-        controller.onPayWithAnyTokenConfirmationReady();
-
-        expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        );
-      });
-    });
-
-    it('does nothing in other states', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          state: ActiveOrderState.REDIRECTING,
-        });
-
-        controller.onPayWithAnyTokenConfirmationReady();
-
-        expect(controller.state.activeOrder?.state).toBe(
-          ActiveOrderState.REDIRECTING,
-        );
-      });
-    });
-  });
-
-  describe('onPayWithAnyTokenConfirmationFailed', () => {
-    it('resets activeOrder state to PREVIEW and stores the error', () => {
-      withController(({ controller }) => {
-        controller.setActiveOrder({
-          amount: 50,
-          batchId: 'batch-123',
-          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        });
-
-        controller.onPayWithAnyTokenConfirmationFailed('Deposit failed');
-
-        expect(controller.state.activeOrder).toEqual({
-          amount: 50,
-          state: ActiveOrderState.PREVIEW,
-          error: 'Deposit failed',
-        });
-      });
-    });
-
-    it('does not throw when activeOrder is null', () => {
-      withController(({ controller }) => {
-        expect(() =>
-          controller.onPayWithAnyTokenConfirmationFailed('error'),
-        ).not.toThrow();
       });
     });
   });
@@ -4449,10 +4163,9 @@ describe('PredictController', () => {
       });
     });
 
-    it('preserves other activeOrder fields when resetting state', () => {
+    it('preserves batchId and clears error when resetting state', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({
-          amount: 75,
           batchId: 'batch-123',
           state: ActiveOrderState.PLACING_ORDER,
           error: 'some error',
@@ -4461,10 +4174,9 @@ describe('PredictController', () => {
         controller.onOrderError();
 
         expect(controller.state.activeOrder).toEqual({
-          amount: 75,
           batchId: 'batch-123',
           state: ActiveOrderState.PREVIEW,
-          error: 'some error',
+          error: undefined,
         });
       });
     });
