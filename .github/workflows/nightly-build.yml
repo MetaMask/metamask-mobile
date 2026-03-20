@@ -141,8 +141,7 @@ jobs:
             "github_actions_main-exp" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates" \
-            "false"
+            "MetaMask BETA & Release Candidates"
 
       - name: Cleanup API Key
         if: always()
@@ -203,8 +202,7 @@ jobs:
             "github_actions_main-rc" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates" \
-            "false"
+            "MetaMask BETA & Release Candidates"
 
       - name: Cleanup API Key
         if: always()
