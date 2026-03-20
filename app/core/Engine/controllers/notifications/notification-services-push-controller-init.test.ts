@@ -5,7 +5,7 @@ import {
 
 import Logger from '../../../../util/Logger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as createNotificationServicesPushControllerModule from './create-notification-services-push-controller';
 import { notificationServicesPushControllerInit } from './notification-services-push-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';

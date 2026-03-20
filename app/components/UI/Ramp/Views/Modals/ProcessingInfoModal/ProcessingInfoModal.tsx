@@ -4,17 +4,16 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { Box } from '@metamask/design-system-react-native';
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  Box,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -104,7 +103,7 @@ function ProcessingInfoModal() {
       isInteractable={false}
       testID={PROCESSING_INFO_MODAL_TEST_IDS.MODAL}
     >
-      <BottomSheetHeader
+      <HeaderCompactStandard
         onClose={handleClose}
         closeButtonProps={{
           testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,
@@ -114,8 +113,8 @@ function ProcessingInfoModal() {
       {statusDescription && (
         <Box twClassName="px-6 pb-4">
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             style={styles.centeredText}
           >
             {statusDescription}
@@ -125,14 +124,15 @@ function ProcessingInfoModal() {
 
       <Box twClassName="px-6 pb-6">
         <Button
-          size={ButtonSize.Lg}
+          size={ButtonBaseSize.Lg}
           onPress={handleGoToSupport}
-          label={strings('ramps_order_details.go_to_provider_support', {
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+        >
+          {strings('ramps_order_details.go_to_provider_support', {
             provider: providerName,
           })}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
+        </Button>
       </Box>
     </BottomSheet>
   );

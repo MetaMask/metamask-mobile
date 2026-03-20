@@ -180,6 +180,17 @@ describe('useMusdConversionStatus', () => {
         labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
       },
     },
+    tronWithdrawal: {
+      failed: jest.fn().mockReturnValue({
+        variant: ToastVariants.Icon as const,
+        iconName: IconName.Danger,
+        hasNoTimeout: false,
+        iconColor: '#000000',
+        backgroundColor: '#FFFFFF',
+        hapticsType: NotificationFeedbackType.Error,
+        labelOptions: [{ label: 'Withdrawal failed', isBold: true }],
+      }),
+    },
   };
 
   // Default mock data

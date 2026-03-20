@@ -110,6 +110,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsClosePosition: {
     position: Position;
+    source?: string;
   };
 
   PerpsAdjustMargin: {

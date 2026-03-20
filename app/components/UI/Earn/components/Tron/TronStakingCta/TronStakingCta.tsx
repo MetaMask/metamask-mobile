@@ -1,18 +1,17 @@
 import React from 'react';
-import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
+import {
+  Box,
+  BoxAlignItems,
+  BoxBackgroundColor,
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../component-library/hooks';
-import { useTheme } from '../../../../../../util/theme';
+  TextColor,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
-import styleSheet from './TronStakingCta.styles';
 import { TronStakingCtaTestIds } from './TronStakingCta.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -27,8 +26,6 @@ interface TronStakingCtaProps {
 }
 
 const TronStakingCta = ({ asset, aprText }: TronStakingCtaProps) => {
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { isEligible } = useStakingEligibility();
@@ -55,25 +52,33 @@ const TronStakingCta = ({ asset, aprText }: TronStakingCtaProps) => {
   };
 
   return (
-    <View style={styles.container} testID={TronStakingCtaTestIds.CONTAINER}>
-      <View style={styles.ctaContent}>
-        <Text variant={TextVariant.HeadingMD} style={styles.ctaTitle}>
+    <Box
+      padding={4}
+      backgroundColor={BoxBackgroundColor.BackgroundSection}
+      twClassName="rounded-xl"
+      testID={TronStakingCtaTestIds.CONTAINER}
+    >
+      <Box alignItems={BoxAlignItems.Center} marginBottom={4} gap={1}>
+        <Text variant={TextVariant.HeadingMd} twClassName="text-center">
           {strings('stake.stake_your_trx_cta.title')}
         </Text>
-        <Text style={styles.ctaText}>
+        <Text twClassName="text-center">
           {strings('stake.stake_your_trx_cta.description_start')}
-          {aprText ? <Text color={TextColor.Success}>{aprText}</Text> : null}
+          {aprText ? (
+            <Text color={TextColor.SuccessDefault}>{aprText}</Text>
+          ) : null}
           {strings('stake.stake_your_trx_cta.description_end')}
         </Text>
-      </View>
+      </Box>
       <Button
         testID={TronStakingCtaTestIds.EARN_BUTTON}
-        style={styles.earnButton}
-        variant={ButtonVariants.Secondary}
-        label={strings('stake.stake_your_trx_cta.earn_button')}
+        variant={ButtonVariant.Secondary}
+        isFullWidth
         onPress={onStakePress}
-      />
-    </View>
+      >
+        {strings('stake.stake_your_trx_cta.earn_button')}
+      </Button>
+    </Box>
   );
 };
 

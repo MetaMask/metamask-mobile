@@ -6049,7 +6049,7 @@
         "secondary_button": "Ahora no"
       },
       "buy_musd": "Comprar mUSD",
-      "get_musd": "Obtener USDC",
+      "get_musd": "Obtener mUSD",
       "bonus_title": "Obtén un {{percentage}} % en tus monedas estables",
       "bonus_description": "Convierte tus stablecoins a mUSD y obtén un {{percentage}} % de bono anualizado.",
       "powered_by_relay": "Desarrollado por Relay",

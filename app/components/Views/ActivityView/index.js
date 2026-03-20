@@ -1,5 +1,5 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -98,14 +98,12 @@ const ActivityView = () => {
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
-  const tabViewRef = useRef();
   const params = useParams();
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
@@ -129,6 +127,17 @@ const ActivityView = () => {
   // Perps comes after Transactions (0) and Orders (1)
   const perpsTabIndex = useMemo(() => 2, []);
 
+  const [initialTabIndex] = useState(() => {
+    if (params.redirectToOrders) {
+      return 1;
+    }
+    if (isPerpsEnabled && params.redirectToPerpsTransactions) {
+      return perpsTabIndex;
+    }
+    return 0;
+  });
+  const [activeTabIndex, setActiveTabIndex] = useState(initialTabIndex);
+
   // Predict comes after Transactions (0), Orders (1), and optionally Perps
   const predictTabIndex = useMemo(
     () => (isPerpsEnabled ? 3 : 2),
@@ -139,22 +148,26 @@ const ActivityView = () => {
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
 
+  const handleChangeTab = useCallback(({ i }) => {
+    setActiveTabIndex(i);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
+      const nextParams = {};
       if (params.redirectToOrders) {
-        const orderTabNumber = 1;
-        navigation.setParams({ redirectToOrders: false });
-        tabViewRef.current?.goToTabIndex(orderTabNumber);
-      } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
-        navigation.setParams({ redirectToPerpsTransactions: false });
-        tabViewRef.current?.goToTabIndex(perpsTabIndex);
+        nextParams.redirectToOrders = false;
+      }
+      if (params.redirectToPerpsTransactions) {
+        nextParams.redirectToPerpsTransactions = false;
+      }
+      if (Object.keys(nextParams).length > 0) {
+        navigation.setParams(nextParams);
       }
     }, [
       navigation,
       params.redirectToOrders,
-      isPerpsEnabled,
       params.redirectToPerpsTransactions,
-      perpsTabIndex,
     ]),
   );
 
@@ -190,8 +203,8 @@ const ActivityView = () => {
 
         <Box twClassName="flex-1 gap-4">
           <TabsList
-            ref={tabViewRef}
-            onChangeTab={({ i }) => setActiveTabIndex(i)}
+            initialActiveIndex={initialTabIndex}
+            onChangeTab={handleChangeTab}
             tabsListContentTwClassName="px-0 pb-3"
             testID={ActivitiesViewSelectorsIDs.TABS_CONTAINER}
           >
@@ -249,13 +262,11 @@ const ActivityView = () => {
                 tabLabel={strings('perps.transactions.title')}
                 style={styles.tabWrapper}
               >
-                {isPerpsTabActive ? (
-                  <PerpsConnectionProvider>
-                    <PerpsStreamProvider>
-                      <PerpsTransactionsView />
-                    </PerpsStreamProvider>
-                  </PerpsConnectionProvider>
-                ) : null}
+                <PerpsConnectionProvider>
+                  <PerpsStreamProvider>
+                    {isPerpsTabActive ? <PerpsTransactionsView /> : null}
+                  </PerpsStreamProvider>
+                </PerpsConnectionProvider>
               </View>
             )}
 

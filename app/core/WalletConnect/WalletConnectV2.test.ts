@@ -5,7 +5,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import AppConstants from '../AppConstants';
 import { IWalletKit } from '@reown/walletkit';
 import WalletConnect2Session from './WalletConnect2Session';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as wcUtils from './wc-utils';
 import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types';
