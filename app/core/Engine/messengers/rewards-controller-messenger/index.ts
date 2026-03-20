@@ -56,6 +56,7 @@ import {
   RewardsDataServiceGetCampaignsAction,
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
+  RewardsDataServiceGetClientVersionRequirementsAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -98,7 +99,8 @@ type AllowedActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetCampaignParticipantStatusAction;
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetClientVersionRequirementsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -163,6 +165,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
+      'RewardsDataService:getClientVersionRequirements',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

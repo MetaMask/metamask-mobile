@@ -9,7 +9,14 @@ import { TextInput, Platform, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -32,11 +39,6 @@ import {
 } from '../../../../../util/networks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
@@ -547,14 +549,15 @@ const AddCustomToken = ({
 
       <Box style={tw.style('pt-4 m-4', { paddingBottom: bottomInset })}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('transaction.next')}
+          isFullWidth
           onPress={handleNext}
           isDisabled={isNextDisabled}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-        />
+        >
+          {strings('transaction.next')}
+        </Button>
       </Box>
     </Box>
   );

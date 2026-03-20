@@ -149,7 +149,7 @@ describe('AddCustomToken', () => {
     const { getByTestId } = renderComponent();
 
     const nextButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
-    expect(nextButton.props.disabled || nextButton.props.isDisabled).toBe(true);
+    expect(nextButton).toBeDisabled();
   });
 
   it('navigates to ConfirmAddAsset when form is valid and Next is pressed', async () => {

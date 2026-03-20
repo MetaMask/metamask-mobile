@@ -227,7 +227,9 @@ jobs:
           bash scripts/upload-to-testflight.sh \
             "github_actions_main-rc" \
             "${{ inputs.ref || github.ref_name }}" \
-            "${{ steps.ipa.outputs.path }}"
+            "${{ steps.ipa.outputs.path }}" \
+            "" \
+            "false"
 
       - name: Cleanup API Key
         if: always()
