@@ -230,7 +230,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampBasicInfo',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -281,7 +284,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'Checkout',
               params: expect.objectContaining({
@@ -368,7 +374,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampKycProcessing',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -462,7 +471,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampAdditionalVerification',
               params: expect.objectContaining({
@@ -650,7 +662,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampKycProcessing',
             }),
@@ -759,7 +774,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampVerifyIdentity',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -771,12 +789,13 @@ describe('useTransakRouting', () => {
   });
 
   describe('navigateToKycWebview', () => {
-    it('resets navigation stack to the KYC webview', () => {
+    it('resets navigation stack to the KYC webview with amount preserved', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       act(() => {
         result.current.navigateToKycWebview({
           kycUrl: 'https://kyc.example.com',
+          amount: 30,
         });
       });
 
@@ -784,7 +803,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: 30 },
+            }),
             expect.objectContaining({
               name: 'Checkout',
               params: expect.objectContaining({

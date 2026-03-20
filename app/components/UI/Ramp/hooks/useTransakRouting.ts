@@ -163,7 +163,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount: quote.fiatAmount },
+          },
           { name: Routes.RAMP.VERIFY_IDENTITY, params: { quote } },
         ],
       });
@@ -182,7 +185,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount: quote.fiatAmount },
+          },
           {
             name: Routes.RAMP.BASIC_INFO,
             params: { quote, previousFormData },
@@ -242,7 +248,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount: quote.fiatAmount },
+          },
           {
             name: Routes.RAMP.ADDITIONAL_VERIFICATION,
             params: { quote, kycUrl, workFlowRunId },
@@ -341,7 +350,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToWebviewModalCallback = useCallback(
-    ({ paymentUrl }: { paymentUrl: string }) => {
+    ({ paymentUrl, amount }: { paymentUrl: string; amount?: number }) => {
       const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: paymentUrl,
@@ -351,7 +360,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           { name: routeName, params: routeParams },
         ],
       });
@@ -364,7 +376,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount: quote.fiatAmount },
+          },
           { name: Routes.RAMP.KYC_PROCESSING, params: { quote } },
         ],
       });
@@ -373,7 +388,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToKycWebviewCallback = useCallback(
-    ({ kycUrl }: { kycUrl: string }) => {
+    ({ kycUrl, amount }: { kycUrl: string; amount?: number }) => {
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: kycUrl,
         providerName: 'Transak',
@@ -381,7 +396,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           { name: routeName, params: routeParams },
         ],
       });
@@ -473,7 +491,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   throw new Error('Failed to generate payment URL');
                 }
 
-                navigateToWebviewModalCallback({ paymentUrl });
+                navigateToWebviewModalCallback({
+                  paymentUrl,
+                  amount: quote.fiatAmount,
+                });
               }
               return true;
             } catch (error) {

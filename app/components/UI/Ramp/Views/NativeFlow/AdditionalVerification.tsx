@@ -27,7 +27,7 @@ interface V2AdditionalVerificationParams {
 
 const V2AdditionalVerification = () => {
   const navigation = useNavigation();
-  const { kycUrl } = useParams<V2AdditionalVerificationParams>();
+  const { kycUrl, quote } = useParams<V2AdditionalVerificationParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -46,8 +46,8 @@ const V2AdditionalVerification = () => {
   }, [navigation, theme]);
 
   const handleContinuePress = useCallback(() => {
-    navigateToKycWebview({ kycUrl });
-  }, [navigateToKycWebview, kycUrl]);
+    navigateToKycWebview({ kycUrl, amount: quote?.fiatAmount });
+  }, [navigateToKycWebview, kycUrl, quote?.fiatAmount]);
 
   return (
     <ScreenLayout>
