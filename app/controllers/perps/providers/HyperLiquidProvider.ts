@@ -5128,21 +5128,29 @@ export class HyperLiquidProvider implements PerpsProvider {
       }, []);
 
       // Enrich fills with detailedOrderType from historical orders
-      const rawOrders = await historicalOrdersPromise;
-      if (rawOrders) {
-        const orderTypeByOid = new Map<string, string>();
-        for (const rawOrder of rawOrders) {
-          const oid = rawOrder.order.oid?.toString() || '';
-          if (rawOrder.order.orderType && !orderTypeByOid.has(oid)) {
-            orderTypeByOid.set(oid, rawOrder.order.orderType);
+      // Wrapped in its own try/catch so a malformed order never discards fetched fills
+      try {
+        const rawOrders = await historicalOrdersPromise;
+        if (rawOrders) {
+          const orderTypeByOid = new Map<string, string>();
+          for (const rawOrder of rawOrders) {
+            const oid = rawOrder.order?.oid?.toString() || '';
+            if (rawOrder.order?.orderType && !orderTypeByOid.has(oid)) {
+              orderTypeByOid.set(oid, rawOrder.order.orderType);
+            }
+          }
+          for (const fill of fills) {
+            const orderType = orderTypeByOid.get(fill.orderId);
+            if (orderType) {
+              fill.detailedOrderType = orderType;
+            }
           }
         }
-        for (const fill of fills) {
-          const orderType = orderTypeByOid.get(fill.orderId);
-          if (orderType) {
-            fill.detailedOrderType = orderType;
-          }
-        }
+      } catch (enrichError) {
+        this.#deps.debugLogger.log(
+          'Error enriching fills with order types:',
+          enrichError,
+        );
       }
 
       return fills;
